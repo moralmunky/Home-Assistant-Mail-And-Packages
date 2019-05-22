@@ -4,7 +4,7 @@ Card, Custom Component, and iOS Notification for getting UPS, USPS, and FedEx de
 
 Supports only Lovelace UI. Last tested in 0.93.1.
 
-<img src="https://github.com/moralmunky/HomeAssistant_Mail_Card/blob/master/mail_card_screenshot.jpg" alt="Preview of the custom mail card" width="350" />  <img src="https://github.com/moralmunky/HomeAssistant_Mail_Card/blob/master/notification_screenshot.jpg" alt="Preview of the custom mail card" width="350" />
+<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/mail_card_screenshot.jpg" alt="Preview of the custom mail card" width="350" />  <img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/notification_screenshot.jpg" alt="Preview of the custom mail card" width="350" />
 
 ## Credits:
 
@@ -22,15 +22,15 @@ Supports only Lovelace UI. Last tested in 0.93.1.
 
 [USPS Informed Delivery:](https://informeddelivery.usps.com/) account and all nortifications turned on for email with the email address you will have the component check.
 
-<img src="https://github.com/moralmunky/Home_Assistant_mail_and_packages/blob/master/USPS_Delivery_Notifications.jpg" alt="USPS Informed Delivery notification settings."  width="350"/>
+<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/USPS_Delivery_Notifications.jpg" alt="USPS Informed Delivery notification settings."  width="350"/>
 
 [FedEx Delivery Manager:](https://www.fedex.com/apps/fdmenrollment/) account and all nortifications turned on for email with the email address you will have the component check.
 
-<img src="https://github.com/moralmunky/Home_Assistant_mail_and_packages/blob/master/FedEx_Delivery_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
+<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/FedEx_Delivery_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
 
 [UPS MyChoice:](https://wwwapps.ups.com/mcdp?loc=en_US) account and all nortifications turned on for email with the email address you will have the component check.
 
-<img src="https://github.com/moralmunky/Home_Assistant_mail_and_packages/blob/master/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
+<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
 
 imagemagick PIP packages are installed within the Home Assistant environment
 ```
