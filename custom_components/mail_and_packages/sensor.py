@@ -126,7 +126,6 @@ class MailCheck(Entity):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-#         self._state = self.hass.data[DOMAIN]['Last_Check']
         self._state = update_time()
     
 class USPS_Mail(Entity):
@@ -426,6 +425,23 @@ def get_mails(account):
 
         return image_count
 
+
+# Get Count
+###############################################################################
+def count(account):
+    count = 0 
+    today = get_formatted_date()
+
+    rv, data = account.search(None, 
+              '(FROM "' + USPS_Email + '" SUBJECT "' + USPS_Delivering_Subject + '" SINCE "' + today + '")')
+
+    if rv == 'OK':
+        count = len(data[0].split())
+        #use to test
+        #count = 5
+
+    return count
+    
 # gets USPS delivering packages count
 ###############################################################################
 def usps_delivering_count(account):
