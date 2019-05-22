@@ -282,6 +282,7 @@ automation:
         - condition: template
           value_template: "{{ states('sensor.mail_usps_mail') | int > 0 }}"
   action:
+    - delay: '00:00:20'
     - service_template: >
         notify.{{ states('input_select.notify_select') }}
       data_template:
