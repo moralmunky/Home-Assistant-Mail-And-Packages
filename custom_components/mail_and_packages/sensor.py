@@ -50,16 +50,19 @@ image_output_path = '/path/to/.homeassistant/www/mail_and_packages/'
 # folder   = hass.data[DOMAIN]['folder']
 # image_output_path = hass.data[DOMAIN]['image_output_path']
 
-USPS_Email = 'munkyhome@icloud.com'
+#USPS_Email = 'munkyhome@icloud.com'
+USPS_Email = 'USPSInformedDelivery@usps.gov'
 USPS_Mail_Subject = 'Informed Delivery Daily Digest'
 USPS_Delivering_Subject = 'Expected Delivery on'
 USPS_Delivered_Subject = 'Item Delivered'
 
-UPS_Email = 'munkyhome@icloud.com'
+#UPS_Email = 'munkyhome@icloud.com'
+UPS_Email = 'mcinfo@ups.com'
 UPS_Delivering_Subject = 'UPS Update: Package Scheduled for Delivery Today'
 UPS_Delivered_Subject = 'Your UPS Package was delivered'
 
-FEDEX_Email = 'munkyhome@icloud.com'
+#FEDEX_Email = 'munkyhome@icloud.com'
+FEDEX_Email = 'TrackingUpdates@fedex.com'
 FEDEX_Delivering_Subject = 'Delivery scheduled for today'
 FEDEX_Delivered_Subject = 'Your package has been delivered'
 
