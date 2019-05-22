@@ -1,5 +1,8 @@
-
-.DS_Store
-.DS_Store
-.DS_Store
-.DS_Store
+DS_Store
+custom_components/.DS_Store
+custom_components/mail_and_packages/.DS_Store
+custom_components/mail_and_packages/__pycache__/.DS_Store
+includes/.DS_Store
+includes/packages/.DS_Store
+www/.DS_Store
+www/mail_and_packages/.DS_Store
