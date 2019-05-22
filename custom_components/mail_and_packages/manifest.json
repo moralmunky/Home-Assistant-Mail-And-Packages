@@ -1,0 +1,8 @@
+{
+  "domain": "mail_and_packages",
+  "name": "Mail and Packages",
+  "documentation": "https://github.com/moralmunky/HomeAssistant_Mail_Card",
+  "dependencies": [],
+  "codeowners": ["@moralmunky"],
+  "requirements": []
+}
