@@ -416,7 +416,7 @@ def get_mails(account):
 
                 for image in images:
                     os.remove(image)
-                image_count = image_count - 1
+                #image_count = image_count - 1
 
         if image_count == 0:
             os.remove(image_output_path + GIF_FILE_NAME)
