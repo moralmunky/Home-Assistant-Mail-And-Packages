@@ -1,22 +1,11 @@
 """
 Based on @skalavala work at https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 """
-# from homeassistant.components.sensor import PLATFORM_SCHEMA
-# import voluptuous as vol
-# import homeassistant.helpers.config_validation as cv
-# from homeassistant.const import (
-#     CONF_HOST, CONF_PORT, CONF_USERNAME, CONF_PASSWORD, CONF_FOLDER,
-#     CONF_IMAGE_OUTPUT_PATH)
-# 
-# PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-#     vol.Required(CONF_HOST): cv.string,
-#     vol.Required(CONF_PORT): cv.string,
-#     vol.Required(CONF_USERNAME): cv.string,
-#     vol.Required(CONF_PASSWORD): cv.string,
-#     vol.Required(CONF_FOLDER): cv.string,
-#     vol.Required(CONF_IMAGE_OUTPUT_PATH): cv.string,
-# })
-
+from homeassistant.components.sensor import PLATFORM_SCHEMA
+import voluptuous as vol
+import homeassistant.helpers.config_validation as cv
+from homeassistant.components.sensor import PLATFORM_SCHEMA
+from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 import logging
@@ -31,17 +20,35 @@ import time
 import subprocess
 from shutil import copyfile
 
-_LOGGER = logging.getLogger(__name__)
+__version__ = '0.1.0'
 
-from . import DOMAIN
+#CONF_HOST = 'host'
+#CONF_PORT = 'port'
+CONF_USERNAME = 'username'
+CONF_PASSWORD = 'password'
+CONF_FOLDER = 'folder'
+CONF_IMAGE_OUTPUT_PATH = 'image_path'
+
+_LOGGER = logging.getLogger(__name__)
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
+    vol.Required(CONF_HOST): cv.string,
+    vol.Optional(CONF_PORT, default=993): cv.port,
+    vol.Required(CONF_USERNAME): cv.string,
+    vol.Required(CONF_PASSWORD): cv.string,
+    vol.Optional(CONF_FOLDER, default='Inbox'): cv.string,
+    vol.Optional(CONF_IMAGE_OUTPUT_PATH, 
+                default='/home/homeassistant/.homeassistant/www/mail_and_packages/'): cv.string
+})
+
+#from . import DOMAIN
 #DOMAIN = 'mail_and_packages'
 
-host = 'imap.mail.com'
-port = 993
-username = 'email@email.com'
-password = 'password'
-folder   = 'Inbox'
-image_output_path = '/path/to/.homeassistant/www/mail_and_packages/'
+# host = conf.get(CONF_HOST)
+# port = conf.get(CONF_PORT)
+# username = conf.get(CONF_USERNAME)
+# password = conf.get(CONF_PASSWORD)
+# folder = conf.get(CONF_FOLDER)
+# image_output_path = conf.get(CONF_IMAGE_OUTPUT_PATH)
 
 # host = hass.data[DOMAIN]['host']
 # port = hass.data[DOMAIN]['port']
@@ -73,12 +80,12 @@ GIF_MAKER_OPTIONS = 'convert -delay 300 -loop 0 -coalesce -set dispose backgroun
 def setup_platform(hass, config, add_devices, discovery_info=None):
     """Setup the sensor platform."""
     # We only want this platform to be set up via discovery.
-#     host = conf[CONF_HOST]
-# 	port = conf[CONF_PORT]
-# 	username = conf[CONF_USERNAME]
-# 	password = conf[CONF_PASSWORD]
-# 	folder = conf[CONF_FOLDER]
-# 	image_output_path = conf[CONF_IMAGE_OUTPUT_PATH]
+    # host = conf.get(CONF_HOST)
+    # port = conf.get(CONF_PORT)
+    # username = conf.get(CONF_USERNAME)
+    # password = conf.get(CONF_PASSWORD)
+    # folder = conf.get(CONF_FOLDER)
+    # image_output_path = conf.get(CONF_IMAGE_OUTPUT_PATH)
 	
     if discovery_info is None:
       return
@@ -131,8 +138,14 @@ class MailCheck(Entity):
 class USPS_Mail(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self):
+    def __init__(self, hass, conf):
         """Initialize the sensor."""
+        self.host = conf.get(CONF_HOST)
+        self.port = conf.get(CONF_PORT)
+        self.folder = conf.get(CONF_FOLDER)
+        self.username = conf.get(CONF_USERNAME)
+        self.password = conf.get(CONF_PASSWORD)
+        self.image_output_path = conf.get(CONF_IMAGE_OUTPUT_PATH)
         self._state = 0
         self.update()
 
@@ -156,15 +169,20 @@ class USPS_Mail(Entity):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-        account = login()
-        selectfolder(account, folder)
-        self._state = get_mails(account)
+        account = login(self.host, self.port, self.username, self.password)
+        selectfolder(account, self.folder)
+        self._state = get_mails(account,self.image_output_path)
 
 class USPS_Delivering(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self):
+    def __init__(self, hass, conf):
         """Initialize the sensor."""
+        self.host = conf.get(CONF_HOST)
+        self.port = conf.get(CONF_PORT)
+        self.folder = conf.get(CONF_FOLDER)
+        self.username = conf.get(CONF_USERNAME)
+        self.password = conf.get(CONF_PASSWORD)
         self._state = 0
         self.update()
 
@@ -189,8 +207,8 @@ class USPS_Delivering(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['USPS_Delivering']
-        account = login()
-        selectfolder(account, folder)
+        account = login(self.host, self.port, self.username, self.password)
+        selectfolder(account, self.folder)
         self._state = usps_delivering_count(account)
 
 class USPS_Delivered(Entity):
@@ -198,6 +216,11 @@ class USPS_Delivered(Entity):
 
     def __init__(self):
         """Initialize the sensor."""
+        self.host = conf.get(CONF_HOST)
+        self.port = conf.get(CONF_PORT)
+        self.folder = conf.get(CONF_FOLDER)
+        self.username = conf.get(CONF_USERNAME)
+        self.password = conf.get(CONF_PASSWORD)        
         self._state = 0
         self.update()
 
@@ -221,8 +244,8 @@ class USPS_Delivered(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['USPS_Delivered']
-        account = login()
-        selectfolder(account, folder)
+        account = login(self.host, self.port, self.username, self.password)
+        selectfolder(account, self.folder)
         self._state = usps_delivered_count(account)
 
 class UPS_Delivering(Entity):
@@ -230,6 +253,11 @@ class UPS_Delivering(Entity):
 
     def __init__(self):
         """Initialize the sensor."""
+        self.host = conf.get(CONF_HOST)
+        self.port = conf.get(CONF_PORT)
+        self.folder = conf.get(CONF_FOLDER)
+        self.username = conf.get(CONF_USERNAME)
+        self.password = conf.get(CONF_PASSWORD)           
         self._state = 0
         self.update()
 
@@ -253,8 +281,8 @@ class UPS_Delivering(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['UPS_Delivering']
-        account = login()
-        selectfolder(account, folder)
+        account = login(self.host, self.port, self.username, self.password)
+        selectfolder(account, self.folder)
         self._state = ups_delivering_count(account)
 
 class UPS_Delivered(Entity):
@@ -262,6 +290,11 @@ class UPS_Delivered(Entity):
 
     def __init__(self):
         """Initialize the sensor."""
+        self.host = conf.get(CONF_HOST)
+        self.port = conf.get(CONF_PORT)
+        self.folder = conf.get(CONF_FOLDER)
+        self.username = conf.get(CONF_USERNAME)
+        self.password = conf.get(CONF_PASSWORD)          
         self._state = 0
         self.update()
 
@@ -285,8 +318,8 @@ class UPS_Delivered(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['UPS_Delivered']
-        account = login()
-        selectfolder(account, folder)
+        account = login(self.host, self.port, self.username, self.password)
+        selectfolder(account, self.folder)
         self._state = ups_delivering_count(account)
 
 class FEDEX_Delivering(Entity):
@@ -294,6 +327,11 @@ class FEDEX_Delivering(Entity):
 
     def __init__(self):
         """Initialize the sensor."""
+        self.host = conf.get(CONF_HOST)
+        self.port = conf.get(CONF_PORT)
+        self.folder = conf.get(CONF_FOLDER)
+        self.username = conf.get(CONF_USERNAME)
+        self.password = conf.get(CONF_PASSWORD)              
         self._state = 0
         self.update()
 
@@ -317,8 +355,8 @@ class FEDEX_Delivering(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['FEDEX_Delivering']
-        account = login()
-        selectfolder(account, folder)
+        account = login(self.host, self.port, self.username, self.password)
+        selectfolder(account, self.folder)
         self._state = fedex_delivering_count(account)
 
 class FEDEX_Delivered(Entity):
@@ -326,6 +364,11 @@ class FEDEX_Delivered(Entity):
 
     def __init__(self):
         """Initialize the sensor."""
+        self.host = conf.get(CONF_HOST)
+        self.port = conf.get(CONF_PORT)
+        self.folder = conf.get(CONF_FOLDER)
+        self.username = conf.get(CONF_USERNAME)
+        self.password = conf.get(CONF_PASSWORD)           
         self._state = 0
         self.update()
 
@@ -349,14 +392,14 @@ class FEDEX_Delivered(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['FEDEX_Delivered']
-        account = login()
-        selectfolder(account, folder)
+        account = login(self.host, self.port, self.username, self.password)
+        selectfolder(account, self.folder)
         self._state = fedex_delivered_count(account)
 
 
 # Login Method
 ###############################################################################
-def login():
+def login(host, port, username, password):
     account = imaplib.IMAP4_SSL(host, port)
 
     try:
@@ -379,7 +422,7 @@ def get_formatted_date():
 
 # Creates GIF image based on the attachments in the inbox
 ###############################################################################
-def get_mails(account):
+def get_mails(account, image_output_path):
     today = get_formatted_date()
     image_count = 0
 
