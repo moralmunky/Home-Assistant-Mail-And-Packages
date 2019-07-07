@@ -7,12 +7,8 @@ import asyncio
 import email
 import datetime
 import imaplib
-# import re
-# import sys
 from datetime import timedelta
 import os
-# import time
-# import subprocess
 from shutil import copyfile
 
 from homeassistant.helpers.entity import Entity
@@ -26,18 +22,15 @@ from homeassistant.util import Throttle
 __version__ = '0.0.1'
 DOMAIN = 'mail_and_packages'
 
-# USPS_Email = 'munkyhome@icloud.com'
 USPS_Email = 'USPSInformedDelivery@usps.gov'
 USPS_Mail_Subject = 'Informed Delivery Daily Digest'
 USPS_Delivering_Subject = 'Expected Delivery on'
 USPS_Delivered_Subject = 'Item Delivered'
 
-# UPS_Email = 'munkyhome@icloud.com'
 UPS_Email = 'mcinfo@ups.com'
 UPS_Delivering_Subject = 'UPS Update: Package Scheduled for Delivery Today'
 UPS_Delivered_Subject = 'Your UPS Package was delivered'
 
-# FEDEX_Email = 'munkyhome@icloud.com'
 FEDEX_Email = 'TrackingUpdates@fedex.com'
 FEDEX_Delivering_Subject = 'Delivery scheduled for today'
 FEDEX_Delivered_Subject = 'Your package has been delivered'
@@ -46,22 +39,18 @@ MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 GIF_FILE_NAME = "mail_today.gif"
 GIF_MAKER_OPTIONS = 'convert -delay 300 -loop 0 -coalesce -set dispose background '
 
-# CONF_HOST = 'host'
-# CONF_PORT = 'port'
-# CONF_USERNAME = 'username'
-# CONF_PASSWORD = 'password'
 CONF_FOLDER = 'folder'
 CONF_IMAGE_OUTPUT_PATH = 'image_path'
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_PORT = 993
+DEFAULT_PORT = '993'
 DEFAULT_FOLDER = 'Inbox'
 DEFAULT_PATH = '/home/homeassistant/.homeassistant/www/mail_and_packages/'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_HOST): cv.string,
-    vol.Optional(CONF_PORT, default=DEFAULT_PORT): cv.port,
+    vol.Optional(CONF_PORT, default=DEFAULT_PORT): cv.string,
     vol.Required(CONF_USERNAME): cv.string,
     vol.Required(CONF_PASSWORD): cv.string,
     vol.Optional(CONF_FOLDER, default=DEFAULT_FOLDER): cv.string,
@@ -69,28 +58,19 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
                  default=DEFAULT_PATH): cv.string,
     })
 
-
 @asyncio.coroutine
 def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
 
     _LOGGER.info('version %s is starting, if you have any issues please report them'
-                 ' here: http://github.com/moralmunky/Home-Assistant-Mail-And-Packages',__version__)
+                 ' here: http://github.com/moralmunky/Home-Assistant-Mail-And-Packages', __version__)
 
-    host = config.get(CONF_HOST)
-    port = config.get(CONF_PORT)
-    folder = config.get(CONF_FOLDER)
-    username = config.get(CONF_USERNAME)
-    password = config.get(CONF_PASSWORD)
-    image_output_path = config.get(CONF_IMAGE_OUTPUT_PATH)
-
-    async_add_entities([MailCheck(), USPS_Mail(host, port, folder, username,
-                       password, image_output_path),
-                       USPS_Delivering(host, port, folder, username, password),
-                       USPS_Delivered(host, port, folder, username, password),
-                       UPS_Delivering(host, port, folder, username, password),
-                       UPS_Delivered(host, port, folder, username, password),
-                       FEDEX_Delivering(host, port, folder, username, password),
-                       FEDEX_Delivered(host, port, folder, username, password)],
+    async_add_entities([MailCheck(), USPS_Mail(hass, config),
+                       USPS_Delivering(hass, config),
+                       USPS_Delivered(hass, config),
+                       UPS_Delivering(hass, config),
+                       UPS_Delivered(hass, config),
+                       FEDEX_Delivering(hass, config),
+                       FEDEX_Delivered(hass, config)],
                        True)
 
 
@@ -128,14 +108,17 @@ class MailCheck(Entity):
 class USPS_Mail(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, host, port, folder, username, password, img_path):
+    def __init__(self, hass, config):
         """Initialize the sensor."""
-        self._host = host
-        self._port = port
-        self._folder = folder
-        self._user = username
-        self._pwd = password
-        self._img_path = img_path
+        self._host = config.get(CONF_HOST)
+        self._port = config.get(CONF_PORT)
+        self._folder = config.get(CONF_FOLDER)
+        self._user = config.get(CONF_USERNAME)
+        self._pwd = config.get(CONF_PASSWORD)
+        self._img_path = config.get(CONF_IMAGE_OUTPUT_PATH)
+
+        _LOGGER.debug("\nDebug: \n Host: %s\n Port: %s\n Folder: %s\n User: %s\n Path: %s\n", self._host, self._port, self._folder, self._user, self._img_path)
+
         self._state = 0
         self.update()
 
@@ -179,13 +162,13 @@ class USPS_Mail(Entity):
 class USPS_Delivering(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, host, port, folder, username, password):
+    def __init__(self, hass, config):
         """Initialize the sensor."""
-        self._host = host
-        self._port = port
-        self._folder = folder
-        self._user = username
-        self._pwd = password        
+        self._host = config.get(CONF_HOST)
+        self._port = config.get(CONF_PORT)
+        self._folder = config.get(CONF_FOLDER)
+        self._user = config.get(CONF_USERNAME)
+        self._pwd = config.get(CONF_PASSWORD)
         self._state = 0
         self.update()
 
@@ -224,19 +207,19 @@ class USPS_Delivering(Entity):
             _LOGGER.debug("Login successful!")
         except imaplib.IMAP4.error as err:
             _LOGGER.error("Error logging into IMAP Server: %s", str(err))
-        return account            
+        return account
 
 
 class USPS_Delivered(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, host, port, folder, username, password):
+    def __init__(self, hass, config):
         """Initialize the sensor."""
-        self._host = host
-        self._port = port
-        self._folder = folder
-        self._user = username
-        self._pwd = password           
+        self._host = config.get(CONF_HOST)
+        self._port = config.get(CONF_PORT)
+        self._folder = config.get(CONF_FOLDER)
+        self._user = config.get(CONF_USERNAME)
+        self._pwd = config.get(CONF_PASSWORD)
         self._state = 0
         self.update()
 
@@ -280,13 +263,13 @@ class USPS_Delivered(Entity):
 class UPS_Delivering(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, host, port, folder, username, password):
+    def __init__(self, hass, config):
         """Initialize the sensor."""
-        self._host = host
-        self._port = port
-        self._folder = folder
-        self._user = username
-        self._pwd = password           
+        self._host = config.get(CONF_HOST)
+        self._port = config.get(CONF_PORT)
+        self._folder = config.get(CONF_FOLDER)
+        self._user = config.get(CONF_USERNAME)
+        self._pwd = config.get(CONF_PASSWORD)
         self._state = 0
         self.update()
 
@@ -330,13 +313,13 @@ class UPS_Delivering(Entity):
 class UPS_Delivered(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, host, port, folder, username, password):
+    def __init__(self, hass, config):
         """Initialize the sensor."""
-        self._host = host
-        self._port = port
-        self._folder = folder
-        self._user = username
-        self._pwd = password           
+        self._host = config.get(CONF_HOST)
+        self._port = config.get(CONF_PORT)
+        self._folder = config.get(CONF_FOLDER)
+        self._user = config.get(CONF_USERNAME)
+        self._pwd = config.get(CONF_PASSWORD)
         self._state = 0
         self.update()
 
@@ -380,13 +363,13 @@ class UPS_Delivered(Entity):
 class FEDEX_Delivering(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, host, port, folder, username, password):
+    def __init__(self, hass, config):
         """Initialize the sensor."""
-        self._host = host
-        self._port = port
-        self._folder = folder
-        self._user = username
-        self._pwd = password           
+        self._host = config.get(CONF_HOST)
+        self._port = config.get(CONF_PORT)
+        self._folder = config.get(CONF_FOLDER)
+        self._user = config.get(CONF_USERNAME)
+        self._pwd = config.get(CONF_PASSWORD)
         self._state = 0
         self.update()
 
@@ -430,13 +413,13 @@ class FEDEX_Delivering(Entity):
 class FEDEX_Delivered(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, host, port, folder, username, password):
+    def __init__(self, hass, config):
         """Initialize the sensor."""
-        self._host = host
-        self._port = port
-        self._folder = folder
-        self._user = username
-        self._pwd = password           
+        self._host = config.get(CONF_HOST)
+        self._port = config.get(CONF_PORT)
+        self._folder = config.get(CONF_FOLDER)
+        self._user = config.get(CONF_USERNAME)
+        self._pwd = config.get(CONF_PASSWORD)
         self._state = 0
         self.update()
 
@@ -543,13 +526,23 @@ def get_mails(account, image_output_path):
                           + image_output_path + GIF_FILE_NAME)
 
                 for image in images:
-                    os.remove(image)
+                    try:
+                        os.remove(image)
+                    except Exception as err:
+                        _LOGGER.error("Error attempting to remove image: %s", str(err))
                 # image_count = image_count - 1
 
         if image_count == 0:
-            os.remove(image_output_path + GIF_FILE_NAME)
-            copyfile(image_output_path + 'mail_none.gif',
-                     image_output_path + GIF_FILE_NAME)
+            try:
+                os.remove(image_output_path + GIF_FILE_NAME)
+            except Exception as err:
+                _LOGGER.error("Error attempting to remove image: %s", str(err))
+
+            try:    
+                copyfile(image_output_path + 'mail_none.gif',
+                        image_output_path + GIF_FILE_NAME)
+            except Exception as err:
+                _LOGGER.error("Error attempting to copy image: %s", str(err))
 
         return image_count
 
