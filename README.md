@@ -69,7 +69,7 @@ Add the js path relative to the /local/ path to the resources section of the lov
 ```
 resources:
   - type: js
-    url: /local/mail_card/mail_and_packages.js?v=.01
+    url: /local/mail_and_packages/mail_and_packages.js?v=.01
 ```
 Add the card configuration to the cards: section of the view you want to display the card in.
 ```
