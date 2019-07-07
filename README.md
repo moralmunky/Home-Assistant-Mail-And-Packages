@@ -56,12 +56,12 @@ Upload the files into inside the Home Assistant .homeassistant/ folder as struct
 ## mail_package.yaml
 Adding your settings to the configuration file will be implimented in a later version. For now they need to be hard coded in the component files, see below. I save all of this information in the Secrets.yaml so the example configuration has the references to these variables.
 ```
-Line 96 Add the mail host
-Line 97 Add the port used to connect
-Line 98 Email account username
-Line 99 Email account passowrd
-Line 100 The name of the folder the email notification are delivered to
-Line 101 The full path to the www/mail_and_packages/ folder
+Line 100 Add the mail host
+Line 101 Add the port used to connect
+Line 102 Email account username
+Line 103 Email account passowrd
+Line 104 The name of the folder the email notification are delivered to
+Line 105 The full path to the www/mail_and_packages/ folder
 ```
 ## Lovelace GUI Setup
 
