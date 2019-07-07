@@ -8,7 +8,7 @@ import email
 import datetime
 import imaplib
 # import re
-import sys
+# import sys
 from datetime import timedelta
 import os
 # import time
@@ -19,49 +19,12 @@ from homeassistant.helpers.entity import Entity
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
-    CONF_HOST, CONF_PORT, CONF_USERNAME, CONF_FOLDER,
-    CONF_PASSWORD)
+    CONF_HOST, CONF_PORT, CONF_USERNAME, CONF_PASSWORD)
 
 from homeassistant.util import Throttle
 
-__version__ = '0.1.0'
+__version__ = '0.0.1'
 DOMAIN = 'mail_and_packages'
-
-# CONF_HOST = 'host'
-# CONF_PORT = 'port'
-# CONF_USERNAME = 'username'
-# CONF_PASSWORD = 'password'
-# CONF_FOLDER = 'folder'
-CONF_IMAGE_OUTPUT_PATH = 'image_path'
-
-_LOGGER = logging.getLogger(__name__)
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_HOST): cv.string,
-    vol.Optional(CONF_PORT, default=993): cv.port,
-    vol.Required(CONF_USERNAME): cv.string,
-    vol.Required(CONF_PASSWORD): cv.string,
-    vol.Optional(CONF_FOLDER, default='Inbox'): cv.string,
-    vol.Optional(CONF_IMAGE_OUTPUT_PATH,
-                 default='/home/homeassistant/.homeassistant/www/mail_and_packages/'): cv.string
-})
-
-# from . import DOMAIN
-# DOMAIN = 'mail_and_packages'
-
-# host = conf.get(CONF_HOST)
-# port = conf.get(CONF_PORT)
-# username = conf.get(CONF_USERNAME)
-# password = conf.get(CONF_PASSWORD)
-# folder = conf.get(CONF_FOLDER)
-# image_output_path = conf.get(CONF_IMAGE_OUTPUT_PATH)
-
-# host = hass.data[DOMAIN]['host']
-# port = hass.data[DOMAIN]['port']
-# username = hass.data[DOMAIN]['username']
-# password = hass.data[DOMAIN]['password']
-# folder   = hass.data[DOMAIN]['folder']
-# image_output_path = hass.data[DOMAIN]['image_output_path']
 
 # USPS_Email = 'munkyhome@icloud.com'
 USPS_Email = 'USPSInformedDelivery@usps.gov'
@@ -79,35 +42,56 @@ FEDEX_Email = 'TrackingUpdates@fedex.com'
 FEDEX_Delivering_Subject = 'Delivery scheduled for today'
 FEDEX_Delivered_Subject = 'Your package has been delivered'
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=1)
+MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 GIF_FILE_NAME = "mail_today.gif"
 GIF_MAKER_OPTIONS = 'convert -delay 300 -loop 0 -coalesce -set dispose background '
 
-# def setup_platform(hass, config, add_devices, discovery_info=None):
-    # """Setup the sensor platform."""
-    # We only want this platform to be set up via discovery.
-    # host = conf.get(CONF_HOST)
-    # port = conf.get(CONF_PORT)
-    # username = conf.get(CONF_USERNAME)
-    # password = conf.get(CONF_PASSWORD)
-    # folder = conf.get(CONF_FOLDER)
-    # image_output_path = conf.get(CONF_IMAGE_OUTPUT_PATH)
-    # if discovery_info is None:
-    #     return
-    # add_devices([MailCheck(), USPS_Mail(hass, config),
-    #             USPS_Delivering(hass, config), USPS_Delivered(hass, config),
-    #             UPS_Delivering(hass, config), UPS_Delivered(hass, config),
-    #             FEDEX_Delivering(hass, config), FEDEX_Delivered(hass, config)])
+# CONF_HOST = 'host'
+# CONF_PORT = 'port'
+# CONF_USERNAME = 'username'
+# CONF_PASSWORD = 'password'
+CONF_FOLDER = 'folder'
+CONF_IMAGE_OUTPUT_PATH = 'image_path'
+
+_LOGGER = logging.getLogger(__name__)
+
+DEFAULT_PORT = 993
+DEFAULT_FOLDER = 'Inbox'
+DEFAULT_PATH = '/home/homeassistant/.homeassistant/www/mail_and_packages/'
+
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
+    vol.Required(CONF_HOST): cv.string,
+    vol.Optional(CONF_PORT, default=DEFAULT_PORT): cv.port,
+    vol.Required(CONF_USERNAME): cv.string,
+    vol.Required(CONF_PASSWORD): cv.string,
+    vol.Optional(CONF_FOLDER, default=DEFAULT_FOLDER): cv.string,
+    vol.Optional(CONF_IMAGE_OUTPUT_PATH,
+                 default=DEFAULT_PATH): cv.string,
+    })
 
 
 @asyncio.coroutine
-def async_setup(hass, config, async_add_devices, discovery_info=None):
+def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
 
-    async_add_devices([MailCheck(), USPS_Mail(hass, config),
-                      USPS_Delivering(hass, config), USPS_Delivered(hass,
-                      config), UPS_Delivering(hass, config),
-                      UPS_Delivered(hass, config), FEDEX_Delivering(hass,
-                      config), FEDEX_Delivered(hass, config)], True)
+    _LOGGER.info('version %s is starting, if you have any issues please report them'
+                 ' here: http://github.com/moralmunky/Home-Assistant-Mail-And-Packages',__version__)
+
+    host = config.get(CONF_HOST)
+    port = config.get(CONF_PORT)
+    folder = config.get(CONF_FOLDER)
+    username = config.get(CONF_USERNAME)
+    password = config.get(CONF_PASSWORD)
+    image_output_path = config.get(CONF_IMAGE_OUTPUT_PATH)
+
+    async_add_entities([MailCheck(), USPS_Mail(host, port, folder, username,
+                       password, image_output_path),
+                       USPS_Delivering(host, port, folder, username, password),
+                       USPS_Delivered(host, port, folder, username, password),
+                       UPS_Delivering(host, port, folder, username, password),
+                       UPS_Delivered(host, port, folder, username, password),
+                       FEDEX_Delivering(host, port, folder, username, password),
+                       FEDEX_Delivered(host, port, folder, username, password)],
+                       True)
 
 
 class MailCheck(Entity):
@@ -144,14 +128,14 @@ class MailCheck(Entity):
 class USPS_Mail(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, host, port, folder, username, password, img_path):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._username = config.get(CONF_USERNAME)
-        self._password = config.get(CONF_PASSWORD)
-        self._image_output_path = config.get(CONF_IMAGE_OUTPUT_PATH)
+        self._host = host
+        self._port = port
+        self._folder = folder
+        self._user = username
+        self._pwd = password
+        self._img_path = img_path
         self._state = 0
         self.update()
 
@@ -175,21 +159,33 @@ class USPS_Mail(Entity):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-        account = login(self._host, self._port, self._username, self._password)
+        account = self.login()
         selectfolder(account, self._folder)
-        self._state = get_mails(account, self._image_output_path)
+        self._state = get_mails(account, self._img_path)
+
+    def login(self):
+        """function used to login"""
+        _LOGGER.debug("Attempting to connect to %s %s", self._host, self._port)
+        account = imaplib.IMAP4_SSL(self._host, self._port)
+
+        try:
+            rv, data = account.login(self._user, self._pwd)
+            _LOGGER.debug("Login successful!")
+        except imaplib.IMAP4.error as err:
+            _LOGGER.error("Error logging into IMAP Server: %s", str(err))
+        return account
 
 
 class USPS_Delivering(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, host, port, folder, username, password):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._username = config.get(CONF_USERNAME)
-        self._password = config.get(CONF_PASSWORD)
+        self._host = host
+        self._port = port
+        self._folder = folder
+        self._user = username
+        self._pwd = password        
         self._state = 0
         self.update()
 
@@ -214,21 +210,33 @@ class USPS_Delivering(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['USPS_Delivering']
-        account = login(self._host, self._port, self._username, self._password)
+        account = self.login()
         selectfolder(account, self._folder)
         self._state = usps_delivering_count(account)
+
+    def login(self):
+        """function used to login"""
+        _LOGGER.debug("Attempting to connect to %s %s", self._host, self._port)
+        account = imaplib.IMAP4_SSL(self._host, self._port)
+
+        try:
+            rv, data = account.login(self._user, self._pwd)
+            _LOGGER.debug("Login successful!")
+        except imaplib.IMAP4.error as err:
+            _LOGGER.error("Error logging into IMAP Server: %s", str(err))
+        return account            
 
 
 class USPS_Delivered(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, host, port, folder, username, password):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._username = config.get(CONF_USERNAME)
-        self._password = config.get(CONF_PASSWORD)
+        self._host = host
+        self._port = port
+        self._folder = folder
+        self._user = username
+        self._pwd = password           
         self._state = 0
         self.update()
 
@@ -252,21 +260,33 @@ class USPS_Delivered(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['USPS_Delivered']
-        account = login(self._host, self._port, self._username, self._password)
+        account = self.login()
         selectfolder(account, self._folder)
         self._state = usps_delivered_count(account)
+
+    def login(self):
+        """function used to login"""
+        _LOGGER.debug("Attempting to connect to %s %s", self._host, self._port)
+        account = imaplib.IMAP4_SSL(self._host, self._port)
+
+        try:
+            rv, data = account.login(self._user, self._pwd)
+            _LOGGER.debug("Login successful!")
+        except imaplib.IMAP4.error as err:
+            _LOGGER.error("Error logging into IMAP Server: %s", str(err))
+        return account
 
 
 class UPS_Delivering(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, host, port, folder, username, password):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._username = config.get(CONF_USERNAME)
-        self._password = config.get(CONF_PASSWORD)
+        self._host = host
+        self._port = port
+        self._folder = folder
+        self._user = username
+        self._pwd = password           
         self._state = 0
         self.update()
 
@@ -290,21 +310,33 @@ class UPS_Delivering(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['UPS_Delivering']
-        account = login(self._host, self._port, self._username, self._password)
+        account = self.login()
         selectfolder(account, self._folder)
         self._state = ups_delivering_count(account)
+
+    def login(self):
+        """function used to login"""
+        _LOGGER.debug("Attempting to connect to %s %s", self._host, self._port)
+        account = imaplib.IMAP4_SSL(self._host, self._port)
+
+        try:
+            rv, data = account.login(self._user, self._pwd)
+            _LOGGER.debug("Login successful!")
+        except imaplib.IMAP4.error as err:
+            _LOGGER.error("Error logging into IMAP Server: %s", str(err))
+        return account
 
 
 class UPS_Delivered(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, host, port, folder, username, password):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._username = config.get(CONF_USERNAME)
-        self._password = config.get(CONF_PASSWORD)
+        self._host = host
+        self._port = port
+        self._folder = folder
+        self._user = username
+        self._pwd = password           
         self._state = 0
         self.update()
 
@@ -328,21 +360,33 @@ class UPS_Delivered(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['UPS_Delivered']
-        account = login(self._host, self._port, self._username, self._password)
+        account = self.login()
         selectfolder(account, self._folder)
         self._state = ups_delivering_count(account)
+
+    def login(self):
+        """function used to login"""
+        _LOGGER.debug("Attempting to connect to %s %s", self._host, self._port)
+        account = imaplib.IMAP4_SSL(self._host, self._port)
+
+        try:
+            rv, data = account.login(self._user, self._pwd)
+            _LOGGER.debug("Login successful!")
+        except imaplib.IMAP4.error as err:
+            _LOGGER.error("Error logging into IMAP Server: %s", str(err))
+        return account
 
 
 class FEDEX_Delivering(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, host, port, folder, username, password):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._username = config.get(CONF_USERNAME)
-        self._password = config.get(CONF_PASSWORD)
+        self._host = host
+        self._port = port
+        self._folder = folder
+        self._user = username
+        self._pwd = password           
         self._state = 0
         self.update()
 
@@ -366,21 +410,33 @@ class FEDEX_Delivering(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['FEDEX_Delivering']
-        account = login(self._host, self._port, self._username, self._password)
-        selectfolder(account, self.folder)
+        account = self.login()
+        selectfolder(account, self._folder)
         self._state = fedex_delivering_count(account)
+
+    def login(self):
+        """function used to login"""
+        _LOGGER.debug("Attempting to connect to %s %s", self._host, self._port)
+        account = imaplib.IMAP4_SSL(self._host, self._port)
+
+        try:
+            rv, data = account.login(self._user, self._pwd)
+            _LOGGER.debug("Login successful!")
+        except imaplib.IMAP4.error as err:
+            _LOGGER.error("Error logging into IMAP Server: %s", str(err))
+        return account
 
 
 class FEDEX_Delivered(Entity):
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, host, port, folder, username, password):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._username = config.get(CONF_USERNAME)
-        self._password = config.get(CONF_PASSWORD)
+        self._host = host
+        self._port = port
+        self._folder = folder
+        self._user = username
+        self._pwd = password           
         self._state = 0
         self.update()
 
@@ -404,22 +460,36 @@ class FEDEX_Delivered(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['FEDEX_Delivered']
-        account = login(self._host, self._port, self._username, self._password)
+        account = self.login()
         selectfolder(account, self._folder)
         self._state = fedex_delivered_count(account)
+
+    def login(self):
+        """function used to login"""
+        _LOGGER.debug("Attempting to connect to %s %s", self._host, self._port)
+        account = imaplib.IMAP4_SSL(self._host, self._port)
+
+        try:
+            rv, data = account.login(self._user, self._pwd)
+            _LOGGER.debug("Login successful!")
+        except imaplib.IMAP4.error as err:
+            _LOGGER.error("Error logging into IMAP Server: %s", str(err))
+        return account
 
 
 # Login Method
 ###############################################################################
-def login(host, port, username, password):
-    account = imaplib.IMAP4_SSL(host, port)
+# def login(host, port, username, password):
+#     _LOGGER.debug("Attempting to connect to %s %s", host, port)
+#     account = imaplib.IMAP4_SSL(host, port)
 
-    try:
-        rv, data = account.login(username, password)
-    except imaplib.IMAP4.error:
-        sys.exit(1)
-
-    return account
+#     try:
+#         rv, data = account.login(username, password)
+#         _LOGGER.debug("Login successful!")
+#     except imaplib.IMAP4.error as err:
+#         # sys.exit(1)
+#         _LOGGER.error("Error logging into IMAP Server: %s", str(err))
+#     return account
 
 
 # Select folder inside the mailbox
