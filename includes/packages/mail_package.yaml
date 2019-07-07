@@ -92,14 +92,6 @@ homeassistant:
     automation.notif_mail_delieveries:
       <<: *customize
 
-mail_and_packages:
-  host: !secret mail_host
-  port: !secret mail_port
-  username: !secret mail_username
-  password: !secret mail_password
-  folder: 'Inbox'
-  image_output_path: !secret mail_image_output_path
-
 ################################################
 ## Mail and Packages Platform
 ################################################   
