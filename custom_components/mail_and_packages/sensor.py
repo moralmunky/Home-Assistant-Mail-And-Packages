@@ -1,5 +1,7 @@
 """
-Based on @skalavala work at https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
+Based on @skalavala work at
+https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
+
 """
 import logging
 import voluptuous as vol
@@ -37,7 +39,8 @@ FEDEX_Delivered_Subject = 'Your package has been delivered'
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 GIF_FILE_NAME = "mail_today.gif"
-GIF_MAKER_OPTIONS = 'convert -delay 300 -loop 0 -coalesce -set dispose background '
+GIF_MAKER_OPTIONS = ('convert -delay 300 -loop 0 -coalesce -set dispose '
+                     'background ')
 
 CONF_FOLDER = 'folder'
 CONF_IMAGE_OUTPUT_PATH = 'image_path'
@@ -58,11 +61,14 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
                  default=DEFAULT_PATH): cv.string,
     })
 
-@asyncio.coroutine
-def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
 
-    _LOGGER.info('version %s is starting, if you have any issues please report them'
-                 ' here: http://github.com/moralmunky/Home-Assistant-Mail-And-Packages', __version__)
+@asyncio.coroutine
+def async_setup_platform(hass, config, async_add_entities,
+                         discovery_info=None):
+
+    _LOGGER.info('version %s is starting, if you have any issues please report'
+                 ' them here: http://github.com/moralmunky/Home-Assistant-Mail'
+                 '-And-Packages', __version__)
 
     async_add_entities([MailCheck(), USPS_Mail(hass, config),
                        USPS_Delivering(hass, config),
@@ -117,7 +123,9 @@ class USPS_Mail(Entity):
         self._pwd = config.get(CONF_PASSWORD)
         self._img_path = config.get(CONF_IMAGE_OUTPUT_PATH)
 
-        _LOGGER.debug("\nDebug: \n Host: %s\n Port: %s\n Folder: %s\n User: %s\n Path: %s\n", self._host, self._port, self._folder, self._user, self._img_path)
+        _LOGGER.debug("\nDebug: \n Host: %s\n Port: %s\n Folder: %s\n User: "
+                      "%s\n Path: %s\n", self._host, self._port,
+                      self._folder, self._user, self._img_path)
 
         self._state = 0
         self.update()
@@ -142,9 +150,12 @@ class USPS_Mail(Entity):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-        account = self.login()
-        selectfolder(account, self._folder)
-        self._state = get_mails(account, self._img_path)
+        if self._host is not None:
+            account = self.login()
+            selectfolder(account, self._folder)
+            self._state = get_mails(account, self._img_path)
+        else:
+            _LOGGER.debug("Variables blank not attempting connection")
 
     def login(self):
         """function used to login"""
@@ -193,9 +204,12 @@ class USPS_Delivering(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['USPS_Delivering']
-        account = self.login()
-        selectfolder(account, self._folder)
-        self._state = usps_delivering_count(account)
+        if self._host is not None:
+            account = self.login()
+            selectfolder(account, self._folder)
+            self._state = usps_delivering_count(account)
+        else:
+            _LOGGER.debug("Variables blank not attempting connection")
 
     def login(self):
         """function used to login"""
@@ -243,9 +257,12 @@ class USPS_Delivered(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['USPS_Delivered']
-        account = self.login()
-        selectfolder(account, self._folder)
-        self._state = usps_delivered_count(account)
+        if self._host is not None:
+            account = self.login()
+            selectfolder(account, self._folder)
+            self._state = usps_delivered_count(account)
+        else:
+            _LOGGER.debug("Variables blank not attempting connection")
 
     def login(self):
         """function used to login"""
@@ -293,9 +310,12 @@ class UPS_Delivering(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['UPS_Delivering']
-        account = self.login()
-        selectfolder(account, self._folder)
-        self._state = ups_delivering_count(account)
+        if self._host is not None:
+            account = self.login()
+            selectfolder(account, self._folder)
+            self._state = ups_delivering_count(account)
+        else:
+            _LOGGER.debug("Variables blank not attempting connection")
 
     def login(self):
         """function used to login"""
@@ -343,9 +363,12 @@ class UPS_Delivered(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['UPS_Delivered']
-        account = self.login()
-        selectfolder(account, self._folder)
-        self._state = ups_delivering_count(account)
+        if self._host is not None:
+            account = self.login()
+            selectfolder(account, self._folder)
+            self._state = ups_delivering_count(account)
+        else:
+            _LOGGER.debug("Variables blank not attempting connection")
 
     def login(self):
         """function used to login"""
@@ -393,9 +416,12 @@ class FEDEX_Delivering(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['FEDEX_Delivering']
-        account = self.login()
-        selectfolder(account, self._folder)
-        self._state = fedex_delivering_count(account)
+        if self._host is not None:
+            account = self.login()
+            selectfolder(account, self._folder)
+            self._state = fedex_delivering_count(account)
+        else:
+            _LOGGER.debug("Variables blank not attempting connection")
 
     def login(self):
         """function used to login"""
@@ -443,9 +469,12 @@ class FEDEX_Delivered(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 #         self._state = self.hass.data[DOMAIN]['FEDEX_Delivered']
-        account = self.login()
-        selectfolder(account, self._folder)
-        self._state = fedex_delivered_count(account)
+        if self._host is not None:
+            account = self.login()
+            selectfolder(account, self._folder)
+            self._state = fedex_delivered_count(account)
+        else:
+            _LOGGER.debug("Variables blank not attempting connection")
 
     def login(self):
         """function used to login"""
@@ -529,7 +558,8 @@ def get_mails(account, image_output_path):
                     try:
                         os.remove(image)
                     except Exception as err:
-                        _LOGGER.error("Error attempting to remove image: %s", str(err))
+                        _LOGGER.error("Error attempting to remove image: %s",
+                                      str(err))
                 # image_count = image_count - 1
 
         if image_count == 0:
@@ -538,9 +568,9 @@ def get_mails(account, image_output_path):
             except Exception as err:
                 _LOGGER.error("Error attempting to remove image: %s", str(err))
 
-            try:    
+            try:
                 copyfile(image_output_path + 'mail_none.gif',
-                        image_output_path + GIF_FILE_NAME)
+                         image_output_path + GIF_FILE_NAME)
             except Exception as err:
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
 
@@ -671,23 +701,6 @@ def fedex_delivered_count(account):
         # count = 4
 
     return count
-
-# gets FedEx pickup count
-###############################################################################
-# def fedex_delivered_count(account):
-#     count = 0 
-#     today = get_formatted_date()
-# 
-#     rv, data = account.search(None, 
-#               '(FROM "munkyhome@icloud.com" SUBJECT "Your package has been delivered" SINCE "' + 
-#               today + '")')
-# 
-#     if rv == 'OK':
-#         count = len(data[0].split())
-#         #use to test
-#         #count = 4
-# 
-#     return count
 
 
 # gets update time
