@@ -103,6 +103,11 @@ class MailCheck(Entity):
         """Return the unit of measurement."""
         return "Time"
 
+    @property
+    def icon(self):
+        """Return the unit of measurement."""
+        return "mdi:update"
+
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
@@ -144,6 +149,11 @@ class USPS_Mail(Entity):
     def unit_of_measurement(self):
         """Return the unit of measurement."""
         return "Items"
+
+    @property
+    def icon(self):
+        """Return the unit of measurement."""
+        return "mdi:email-outline"
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
@@ -196,7 +206,12 @@ class USPS_Delivering(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
-        return "Items"
+        return "Package"
+
+    @property
+    def icon(self):
+        """Return the unit of measurement."""
+        return "mdi:truck-delivery"
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
@@ -250,7 +265,12 @@ class USPS_Delivered(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
-        return "Items"
+        return "Package"
+
+    @property
+    def icon(self):
+        """Return the unit of measurement."""
+        return "mdi:package-variant"
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -303,7 +323,12 @@ class UPS_Delivering(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
-        return "Items"
+        return "Package"
+
+    @property
+    def icon(self):
+        """Return the unit of measurement."""
+        return "mdi:truck-delivery"
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -356,7 +381,12 @@ class UPS_Delivered(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
-        return "Items"
+        return "Package"
+
+    @property
+    def icon(self):
+        """Return the unit of measurement."""
+        return "mdi:package-variant"
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -409,7 +439,12 @@ class FEDEX_Delivering(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
-        return "Items"
+        return "Package"
+
+    @property
+    def icon(self):
+        """Return the unit of measurement."""
+        return "mdi:truck-delivery"
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -462,7 +497,12 @@ class FEDEX_Delivered(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
-        return "Items"
+        return "Package"
+
+    @property
+    def icon(self):
+        """Return the unit of measurement."""
+        return "mdi:package-variant"
 
     def update(self):
         """Fetch new state data for the sensor.
