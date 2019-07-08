@@ -2,10 +2,6 @@
 Based on @skalavala work at
 https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 
-This component utilizes email alerts from USPS, UPS, and FedEx to
-populate sensors in Home Assistant as well as compile a rotating
-gif image to display your incoming mail from the USPS.
-
 """
 import logging
 import voluptuous as vol
@@ -30,7 +26,7 @@ DOMAIN = 'mail_and_packages'
 
 USPS_Email = 'USPSInformedDelivery@usps.gov'
 USPS_Mail_Subject = 'Informed Delivery Daily Digest'
-USPS_Delivering_Subject = 'USPS® Expected Delivery on'
+USPS_Delivering_Subject = 'Expected Delivery on'
 USPS_Delivered_Subject = 'Item Delivered'
 
 UPS_Email = 'mcinfo@ups.com'
