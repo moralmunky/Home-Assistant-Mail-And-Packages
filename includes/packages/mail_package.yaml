@@ -109,7 +109,14 @@ homeassistant:
 ################################################    
 
 sensor:
-    
+  - platform: mail_and_packages
+    host: !secret mail_host
+#.   port: !secret mail_port Using Default Port
+    username: !secret mail_username
+    password: !secret mail_password
+#    folder: 'Inbox' Using Deafult Folder
+#     image_path: !secret mail_image_output_path Using Default Path   
+          
   - platform: template
     sensors:
       mail_usps_packages:
