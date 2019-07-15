@@ -1,5 +1,6 @@
 """
 Based on @skalavala work at https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
+Configuratin code contribution from @firstof9 https://github.com/firstof9/Home-Assistant-Mail-And-Packages/tree/add_config
 """
 
 import logging
