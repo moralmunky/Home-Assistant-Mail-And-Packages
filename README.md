@@ -2,7 +2,7 @@
 
 Card, Custom Component, and iOS Notification for getting UPS, USPS, and FedEx delivery information in Home Assistant.
 
-Supports only Lovelace UI. Last tested in 0.93.1.
+Supports only Lovelace UI. Last tested in 0.95.4.
 
 <img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/mail_card_screenshot.jpg" alt="Preview of the custom mail card" width="350" />  <img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/notification_screenshot.jpg" alt="Preview of the custom mail card" width="350" />
 
@@ -52,24 +52,13 @@ Upload the files into inside the Home Assistant .homeassistant/ folder as struct
 .homeassistant/www/mail_and_packages/
 .homeassistant/custom_compontents/mail_and_packages/
 ```
-
-## mail_package.yaml
-Adding your settings to the configuration file will be implimented in a later version. For now they need to be hard coded in the component files, see below. I save all of this information in the Secrets.yaml so the example configuration has the references to these variables.
-```
-Line 96 Add the mail host
-Line 97 Add the port used to connect
-Line 98 Email account username
-Line 99 Email account passowrd
-Line 100 The name of the folder the email notification are delivered to
-Line 101 The full path to the www/mail_and_packages/ folder
-```
 ## Lovelace GUI Setup
 
 Add the js path relative to the /local/ path to the resources section of the lovelace yaml or at the top of the GUI lovelace RAW configuration editor.
 ```
 resources:
   - type: js
-    url: /local/mail_card/mail_and_packages.js?v=.01
+    url: /local/mail_and_packages/mail_and_packages.js?v=.01
 ```
 Add the card configuration to the cards: section of the view you want to display the card in.
 ```
@@ -84,19 +73,14 @@ Add the card configuration to the cards: section of the view you want to display
     usps: sensor.mail_usps_packages
 ```
 
-## Setup custom_components/mail_and_Packages/sensor.py file
-
-Note: These configurations will eventually be moved into the components configruation file.
-Enter the details for the following variables used in the file
-
-Configuration Details
+## FOR FUTURE IMPLEMENTATION ##
+## mail_package.yaml
+Adding your settings to the configuration file. I save all of this information in the Secrets.yaml so the example configuration has the references to these variables.
 ```
-Line 19 The frequency in minutes the account is checked for new emails
-Line 22 Add the mail host
-Line 23 Add the port used to connect
-Line 24 Email account username
-Line 25 Email account passowrd
-Line 26 The name of the folder the email notification are delivered to
-Line 27 The full path to the www/mail_and_packages/ folder
-
+Line 113 Add the mail host
+Line 114 Port: Optional, add the port used to connect. Default 993
+Line 115 Email account username
+Line 116 Email account passowrd
+Line 117 Folder: Optional, the name of the folder the email notification are delivered to. Default Inbox
+Line 118 Image Path: Optional, the full path to the www/mail_and_packages/ folder. Default /home/homeassistant/.homeassistant/www/mail_and_packages/
 ```
