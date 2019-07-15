@@ -75,7 +75,7 @@ Add the card configuration to the cards: section of the view you want to display
 
 ## FOR FUTURE IMPLEMENTATION ##
 ## mail_package.yaml
-Adding your settings to the configuration file will be implemented in a later version. For now they need to be hard coded in the component files, see below. I save all of this information in the Secrets.yaml so the example configuration has the references to these variables.
+Adding your settings to the configuration file. I save all of this information in the Secrets.yaml so the example configuration has the references to these variables.
 ```
 Line 113 Add the mail host
 Line 114 Port: Optional, add the port used to connect. Default 993
