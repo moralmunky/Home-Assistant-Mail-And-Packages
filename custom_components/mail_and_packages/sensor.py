@@ -39,7 +39,7 @@ FEDEX_Email = 'TrackingUpdates@fedex.com'
 FEDEX_Delivering_Subject = 'Delivery scheduled for today'
 FEDEX_Delivered_Subject = 'Your package has been delivered'
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=1)
+MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
 GIF_FILE_NAME = 'mail_today.gif'
 GIF_MAKER_OPTIONS = 'convert -delay 300 -loop 0 -coalesce -set dispose background '
