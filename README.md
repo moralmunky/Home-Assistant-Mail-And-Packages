@@ -2,7 +2,7 @@
 
 Card, Custom Component, and iOS Notification for getting UPS, USPS, and FedEx delivery information in Home Assistant.
 
-Supports only Lovelace UI. Last tested in 0.93.1.
+Supports only Lovelace UI. Last tested in 0.95.4.
 
 <img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/mail_card_screenshot.jpg" alt="Preview of the custom mail card" width="350" />  <img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/notification_screenshot.jpg" alt="Preview of the custom mail card" width="350" />
 
