@@ -73,32 +73,14 @@ Add the card configuration to the cards: section of the view you want to display
     usps: sensor.mail_usps_packages
 ```
 
-## Setup custom_components/mail_and_Packages/sensor.py file
-
-Note: These configurations will eventually be moved into the components configruation file.
-Enter the details for the following variables used in the file
-
-Configuration Details
-```
-Line 19 The frequency in minutes the account is checked for new emails
-Line 22 Add the mail host
-Line 23 Add the port used to connect
-Line 24 Email account username
-Line 25 Email account passowrd
-Line 26 The name of the folder the email notification are delivered to
-Line 27 The full path to the www/mail_and_packages/ folder
-
-```
-
-
 ## FOR FUTURE IMPLEMENTATION ##
 ## mail_package.yaml
 Adding your settings to the configuration file will be implemented in a later version. For now they need to be hard coded in the component files, see below. I save all of this information in the Secrets.yaml so the example configuration has the references to these variables.
 ```
-Line 100 Add the mail host
-Line 101 Add the port used to connect
-Line 102 Email account username
-Line 103 Email account passowrd
-Line 104 The name of the folder the email notification are delivered to
-Line 105 The full path to the www/mail_and_packages/ folder
+Line 113 Add the mail host
+Line 114 Port: Optional, add the port used to connect. Default 993
+Line 115 Email account username
+Line 116 Email account passowrd
+Line 117 Folder: Optional, the name of the folder the email notification are delivered to. Default Inbox
+Line 118 Image Path: Optional, the full path to the www/mail_and_packages/ folder. Default /home/homeassistant/.homeassistant/www/mail_and_packages/
 ```
