@@ -356,7 +356,7 @@ class Packages_Delivered(Entity):
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Packages In Transit'
+        return 'Packages Delivered'
 
     @property
     def state(self):
