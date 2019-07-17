@@ -80,6 +80,7 @@ def async_setup_platform(hass, config, async_add_entities,
                        FEDEX_Packages(hass, config),
                        FEDEX_Delivering(hass, config),
                        FEDEX_Delivered(hass, config),
+                       Packages_Delivered(hass, config),
                        Packages_Transit(hass, config)],
                        True)
 
@@ -337,6 +338,58 @@ class USPS_Delivered(Entity):
             _LOGGER.debug("USPS Delivered: Host was left blank not attempting connection")
 
 
+class Packages_Delivered(Entity):
+
+    """Representation of a Sensor."""
+
+    def __init__(self, hass, config):
+        """Initialize the sensor."""
+        self._host = config.get(CONF_HOST)
+        self._port = config.get(CONF_PORT)
+        self._folder = config.get(CONF_FOLDER)
+        self._user = config.get(CONF_USERNAME)
+        self._pwd = config.get(CONF_PASSWORD)
+        self._state = 0
+        self.update()
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+
+        return 'Packages In Transit'
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+
+        return self._state
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement."""
+
+        return 'Packages'
+
+    @property
+    def icon(self):
+        """Return the unit of measurement."""
+        return "mdi:package-variant"
+
+    def update(self):
+        """Fetch new state data for the sensor.
+        This is the only method that should fetch new data for Home Assistant.
+        """
+
+        if self._host is not None:
+            account = login(self._host, self._port, self._user, self._pwd)
+            selectfolder(account, self._folder)
+            self._state += get_count(account, USPS_Packages_Email, USPS_Delivered_Subject)
+            self._state += get_count(account, UPS_Email, UPS_Delivered_Subject)
+            self._state += get_count(account, FEDEX_Email, FEDEX_Delivered_Subject)            
+        else:
+            _LOGGER.debug("Packages Transit: Host was left blank not attempting connection")
+
+
 class Packages_Transit(Entity):
 
     """Representation of a Sensor."""
@@ -382,12 +435,9 @@ class Packages_Transit(Entity):
         if self._host is not None:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
-            self._state = get_count(account, USPS_Packages_Email, USPS_Delivering_Subject)
-            self._state += get_count(account, USPS_Packages_Email, USPS_Delivered_Subject)
+            self._state += get_count(account, USPS_Packages_Email, USPS_Delivering_Subject)
             self._state += get_count(account, UPS_Email, UPS_Delivering_Subject)
-            self._state += get_count(account, UPS_Email, UPS_Delivered_Subject)
             self._state += get_count(account, FEDEX_Email, FEDEX_Delivering_Subject)
-            self._state += get_count(account, FEDEX_Email, FEDEX_Delivered_Subject)            
         else:
             _LOGGER.debug("Packages Transit: Host was left blank not attempting connection")
 
@@ -581,7 +631,7 @@ class FEDEX_Packages(Entity):
     def icon(self):
         """Return the unit of measurement."""
 
-        return "mdi:package-variant"
+        return "mdi:package-variant-closed"
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
