@@ -16,7 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 CONF_FILE_PATH = 'image_path'
 DATA_LOCAL_FILE = 'mail_today.gif'
 DEFAULT_NAME = 'Mail USPS'
-DEFAULT_PATH = '/home/homeassistant/.homeassistant/www/mail_and_packages/mail_today.gif'
+DEFAULT_PATH = '/home/homeassistant/.homeassistant/www/mail_and_packages/' + DATA_LOCAL_FILE
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_FILE_PATH, default=DEFAULT_PATH): cv.string,
