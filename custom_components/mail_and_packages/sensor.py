@@ -435,7 +435,7 @@ class Packages_Transit(Entity):
         if self._host is not None:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
-            self._state += get_count(account, USPS_Packages_Email, USPS_Delivering_Subject)
+            self._state = get_count(account, USPS_Packages_Email, USPS_Delivering_Subject)
             self._state += get_count(account, UPS_Email, UPS_Delivering_Subject)
             self._state += get_count(account, FEDEX_Email, FEDEX_Delivering_Subject)
         else:
