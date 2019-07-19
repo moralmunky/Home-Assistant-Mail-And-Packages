@@ -375,6 +375,7 @@ class Packages_Delivered(Entity):
         """Return the unit of measurement."""
         return "mdi:package-variant"
 
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -427,6 +428,7 @@ class Packages_Transit(Entity):
         """Return the unit of measurement."""
         return "mdi:truck-delivery"
 
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -480,6 +482,7 @@ class UPS_Packages(Entity):
 
         return "mdi:package-variant-closed"
 
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -532,6 +535,7 @@ class UPS_Delivering(Entity):
 
         return "mdi:truck-delivery"
 
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -737,6 +741,7 @@ class FEDEX_Delivered(Entity):
 
         return "mdi:package-variant"
 
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
