@@ -23,7 +23,7 @@ from homeassistant.util import Throttle
 
 __version__ = '0.0.2'
 DOMAIN = 'mail_and_packages'
-#from . import DOMAIN
+# from . import DOMAIN
 
 USPS_Mail_Email = 'USPSInformedDelivery@usps.gov'
 USPS_Packages_Email = 'auto-reply@usps.com'
@@ -62,6 +62,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_IMAGE_OUTPUT_PATH,
                  default=DEFAULT_PATH): cv.string,
     })
+
 
 @asyncio.coroutine
 def async_setup_platform(hass, config, async_add_entities,
@@ -116,6 +117,7 @@ class MailCheck(Entity):
     @property
     def icon(self):
         """Return the unit of measurement."""
+
         return "mdi:update"
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
@@ -287,6 +289,7 @@ class USPS_Delivering(Entity):
         else:
             _LOGGER.debug("USPS Delivering: Host was left blank not attempting connection")
 
+
 class USPS_Delivered(Entity):
 
     """Representation of a Sensor."""
@@ -384,9 +387,9 @@ class Packages_Delivered(Entity):
         if self._host is not None:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
-            self._state += get_count(account, USPS_Packages_Email, USPS_Delivered_Subject)
+            self._state = get_count(account, USPS_Packages_Email, USPS_Delivered_Subject)
             self._state += get_count(account, UPS_Email, UPS_Delivered_Subject)
-            self._state += get_count(account, FEDEX_Email, FEDEX_Delivered_Subject)            
+            self._state += get_count(account, FEDEX_Email, FEDEX_Delivered_Subject)
         else:
             _LOGGER.debug("Packages Transit: Host was left blank not attempting connection")
 
@@ -548,6 +551,7 @@ class UPS_Delivering(Entity):
         else:
             _LOGGER.debug("UPS Delivering: Host was left blank not attempting connection")
 
+
 class UPS_Delivered(Entity):
 
     """Representation of a Sensor."""
@@ -702,6 +706,7 @@ class FEDEX_Delivering(Entity):
             self._state = get_count(account, FEDEX_Email, FEDEX_Delivering_Subject)
         else:
             _LOGGER.debug("FEDEX Delivering: Host was left blank not attempting connection")
+
 
 class FEDEX_Delivered(Entity):
 
