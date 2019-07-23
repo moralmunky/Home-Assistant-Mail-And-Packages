@@ -1,6 +1,8 @@
 """
-Based on @skalavala work at https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
-Configuratin code contribution from @firstof9 https://github.com/firstof9/Home-Assistant-Mail-And-Packages/tree/add_config
+Based on @skalavala work at
+https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
+
+Configuratin code contribution from @firstof9 https://github.com/firstof9/
 """
 
 import logging
@@ -42,7 +44,8 @@ FEDEX_Delivered_Subject = 'Your package has been delivered'
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
 GIF_FILE_NAME = 'mail_today.gif'
-GIF_MAKER_OPTIONS = 'convert -delay 300 -loop 0 -coalesce -set dispose background '
+GIF_MAKER_OPTIONS = ('convert -delay 300 -loop 0 -coalesce -set dispose'
+                     ' background')
 
 CONF_FOLDER = 'folder'
 CONF_IMAGE_OUTPUT_PATH = 'image_path'
@@ -68,8 +71,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 def async_setup_platform(hass, config, async_add_entities,
                          discovery_info=None):
 
-    _LOGGER.info('version %s is starting, if you have any issues please report them'
-                 ' here: http://github.com/moralmunky/Home-Assistant-Mail-And-Packages', __version__)
+    _LOGGER.info('version %s is starting, if you have any issues please report'
+                 ' them here: http://github.com/moralmunky/Home-Assistant-Mail'
+                 '-And-Packages', __version__)
 
     async_add_entities([MailCheck(), USPS_Mail(hass, config),
                        USPS_Packages(hass, config),
@@ -182,7 +186,8 @@ class USPS_Mail(Entity):
             selectfolder(account, self._folder)
             self._state = get_mails(account, self._img_path)
         else:
-            _LOGGER.debug("USPS Mail: Host was left blank not attempting connection")
+            _LOGGER.debug("USPS Mail: Host was left blank not "
+                          "attempting connection")
 
 
 class USPS_Packages(Entity):
@@ -232,10 +237,13 @@ class USPS_Packages(Entity):
         if self._host is not None:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
-            self._state = get_count(account, USPS_Packages_Email, USPS_Delivering_Subject)
-            self._state += get_count(account, USPS_Packages_Email, USPS_Delivered_Subject)
+            self._state = get_count(account, USPS_Packages_Email,
+                                    USPS_Delivering_Subject)
+            self._state += get_count(account, USPS_Packages_Email,
+                                     USPS_Delivered_Subject)
         else:
-            _LOGGER.debug("USPS Packages: Host was left blank not attempting connection")
+            _LOGGER.debug("USPS Packages: Host was left blank not "
+                          "attempting connection")
 
 
 class USPS_Delivering(Entity):
@@ -285,9 +293,11 @@ class USPS_Delivering(Entity):
         if self._host is not None:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
-            self._state = get_count(account, USPS_Packages_Email, USPS_Delivering_Subject)
+            self._state = get_count(account, USPS_Packages_Email,
+                                    USPS_Delivering_Subject)
         else:
-            _LOGGER.debug("USPS Delivering: Host was left blank not attempting connection")
+            _LOGGER.debug("USPS Delivering: Host was left blank not "
+                          "attempting connection")
 
 
 class USPS_Delivered(Entity):
@@ -336,9 +346,11 @@ class USPS_Delivered(Entity):
         if self._host is not None:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
-            self._state = get_count(account, USPS_Packages_Email, USPS_Delivered_Subject)
+            self._state = get_count(account, USPS_Packages_Email,
+                                    USPS_Delivered_Subject)
         else:
-            _LOGGER.debug("USPS Delivered: Host was left blank not attempting connection")
+            _LOGGER.debug("USPS Delivered: Host was left blank not "
+                          "attempting connection")
 
 
 class Packages_Delivered(Entity):
@@ -387,11 +399,14 @@ class Packages_Delivered(Entity):
         if self._host is not None:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
-            self._state = get_count(account, USPS_Packages_Email, USPS_Delivered_Subject)
+            self._state = get_count(account, USPS_Packages_Email,
+                                    USPS_Delivered_Subject)
             self._state += get_count(account, UPS_Email, UPS_Delivered_Subject)
-            self._state += get_count(account, FEDEX_Email, FEDEX_Delivered_Subject)
+            self._state += get_count(account, FEDEX_Email,
+                                     FEDEX_Delivered_Subject)
         else:
-            _LOGGER.debug("Packages Transit: Host was left blank not attempting connection")
+            _LOGGER.debug("Packages Transit: Host was left blank not "
+                          "attempting connection")
 
 
 class Packages_Transit(Entity):
@@ -440,11 +455,15 @@ class Packages_Transit(Entity):
         if self._host is not None:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
-            self._state = get_count(account, USPS_Packages_Email, USPS_Delivering_Subject)
-            self._state += get_count(account, UPS_Email, UPS_Delivering_Subject)
-            self._state += get_count(account, FEDEX_Email, FEDEX_Delivering_Subject)
+            self._state = get_count(account, USPS_Packages_Email,
+                                    USPS_Delivering_Subject)
+            self._state += get_count(account, UPS_Email,
+                                     UPS_Delivering_Subject)
+            self._state += get_count(account, FEDEX_Email,
+                                     FEDEX_Delivering_Subject)
         else:
-            _LOGGER.debug("Packages Transit: Host was left blank not attempting connection")
+            _LOGGER.debug("Packages Transit: Host was left blank not "
+                          "attempting connection")
 
 
 class UPS_Packages(Entity):
@@ -497,7 +516,8 @@ class UPS_Packages(Entity):
             self._state = get_count(account, UPS_Email, UPS_Delivering_Subject)
             self._state += get_count(account, UPS_Email, UPS_Delivered_Subject)
         else:
-            _LOGGER.debug("UPS Packages: Host was left blank not attempting connection")
+            _LOGGER.debug("UPS Packages: Host was left blank not "
+                          "attempting connection")
 
 
 class UPS_Delivering(Entity):
@@ -549,7 +569,8 @@ class UPS_Delivering(Entity):
             selectfolder(account, self._folder)
             self._state = get_count(account, UPS_Email, UPS_Delivering_Subject)
         else:
-            _LOGGER.debug("UPS Delivering: Host was left blank not attempting connection")
+            _LOGGER.debug("UPS Delivering: Host was left blank not "
+                          "attempting connection")
 
 
 class UPS_Delivered(Entity):
@@ -600,7 +621,8 @@ class UPS_Delivered(Entity):
             selectfolder(account, self._folder)
             self._state = get_count(account, UPS_Email, UPS_Delivered_Subject)
         else:
-            _LOGGER.debug("UPS Delivered: Host was left blank not attempting connection")
+            _LOGGER.debug("UPS Delivered: Host was left blank not "
+                          "attempting connection")
 
 
 class FEDEX_Packages(Entity):
@@ -650,10 +672,13 @@ class FEDEX_Packages(Entity):
         if self._host is not None:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
-            self._state = get_count(account, FEDEX_Email, FEDEX_Delivering_Subject)
-            self._state += get_count(account, FEDEX_Email, FEDEX_Delivered_Subject)
+            self._state = get_count(account, FEDEX_Email,
+                                    FEDEX_Delivering_Subject)
+            self._state += get_count(account, FEDEX_Email,
+                                     FEDEX_Delivered_Subject)
         else:
-            _LOGGER.debug("FEDEX Packages: Host was left blank not attempting connection")
+            _LOGGER.debug("FEDEX Packages: Host was left blank not "
+                          "attempting connection")
 
 
 class FEDEX_Delivering(Entity):
@@ -703,9 +728,11 @@ class FEDEX_Delivering(Entity):
         if self._host is not None:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
-            self._state = get_count(account, FEDEX_Email, FEDEX_Delivering_Subject)
+            self._state = get_count(account, FEDEX_Email,
+                                    FEDEX_Delivering_Subject)
         else:
-            _LOGGER.debug("FEDEX Delivering: Host was left blank not attempting connection")
+            _LOGGER.debug("FEDEX Delivering: Host was left blank not "
+                          "attempting connection")
 
 
 class FEDEX_Delivered(Entity):
@@ -755,9 +782,11 @@ class FEDEX_Delivered(Entity):
         if self._host is not None:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
-            self._state = get_count(account, FEDEX_Email, FEDEX_Delivered_Subject)
+            self._state = get_count(account, FEDEX_Email,
+                                    FEDEX_Delivered_Subject)
         else:
-            _LOGGER.debug("FEDEX Delivered: Host was left blank not attempting connection")
+            _LOGGER.debug("FEDEX Delivered: Host was left blank not "
+                          "attempting connection")
 
 # Login Method
 ###############################################################################
@@ -810,8 +839,8 @@ def get_mails(account, image_path):
     _LOGGER.debug("Attempting to find Informed Delivery mail")
 
     (rv, data) = account.search(None,
-                                '(FROM "' + USPS_Mail_Email + '" SUBJECT "' + USPS_Mail_Subject + '" SINCE "'
-                                 + today + '")')
+                                '(FROM "' + USPS_Mail_Email + '" SUBJECT "' +
+                                USPS_Mail_Subject + '" SINCE "' + today + '")')
 
     if rv == 'OK':
         for num in data[0].split():
@@ -836,9 +865,12 @@ def get_mails(account, image_path):
 
                 for image in images:
                     all_images = all_images + image + ' '
-
-                os.system(GIF_MAKER_OPTIONS + all_images
-                          + image_path + GIF_FILE_NAME)
+                try:
+                    os.system(GIF_MAKER_OPTIONS + all_images
+                              + image_path + GIF_FILE_NAME)
+                except Exception as err:
+                    _LOGGER.error("Error attempting to generate image: %s",
+                                  str(err))
 
                 for image in images:
                     try:
@@ -869,7 +901,8 @@ def get_count(account, email, subject):
     count = 0
     today = get_formatted_date()
 
-    _LOGGER.debug("Attempting to find mail from %s with subject %s", email, subject)
+    _LOGGER.debug("Attempting to find mail from %s with subject %s", email,
+                  subject)
 
     (rv, data) = account.search(None, '(FROM "' + email + '" SUBJECT "'
                                 + subject + '" SINCE "' + today + '")')

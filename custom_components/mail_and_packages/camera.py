@@ -1,4 +1,4 @@
-"""Camera that loads a picture from a local file."""
+"""Camera that loads mail_today.gif"""
 import logging
 import mimetypes
 import os
@@ -7,7 +7,7 @@ import voluptuous as vol
 
 from homeassistant.const import CONF_NAME, ATTR_ENTITY_ID
 from homeassistant.components.camera import (
-    Camera, PLATFORM_SCHEMA)
+    Camera, CAMERA_SERVICE_SCHEMA, PLATFORM_SCHEMA)
 from homeassistant.components.camera.const import DOMAIN
 from homeassistant.helpers import config_validation as cv
 
@@ -16,11 +16,17 @@ _LOGGER = logging.getLogger(__name__)
 CONF_FILE_PATH = 'image_path'
 DATA_LOCAL_FILE = 'mail_today.gif'
 DEFAULT_NAME = 'Mail USPS'
-DEFAULT_PATH = '/home/homeassistant/.homeassistant/www/mail_and_packages/' + DATA_LOCAL_FILE
+DEFAULT_PATH = ('/home/homeassistant/.homeassistant/www/mail_and_packages/'
+                + DATA_LOCAL_FILE)
+SERVICE_UPDATE_FILE_PATH = DEFAULT_PATH
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_FILE_PATH, default=DEFAULT_PATH): cv.string,
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string
+})
+
+CAMERA_SERVICE_UPDATE_FILE_PATH = CAMERA_SERVICE_SCHEMA.extend({
+    vol.Required(CONF_FILE_PATH): cv.string
 })
 
 
@@ -43,6 +49,12 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
             if camera.entity_id in entity_ids:
                 camera.update_file_path(file_path)
         return True
+
+    hass.services.register(
+        DOMAIN,
+        SERVICE_UPDATE_FILE_PATH,
+        update_file_path_service,
+        schema=CAMERA_SERVICE_UPDATE_FILE_PATH)
 
     add_entities([camera])
 
