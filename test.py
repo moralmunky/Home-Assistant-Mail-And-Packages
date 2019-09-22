@@ -7,6 +7,7 @@ Based on @skalavala work at https://blog.kalavala.net/usps/homeassistant/mqtt/20
 """
 
 import email
+import re
 import datetime, imaplib, re, sys
 import os
 import time
@@ -36,7 +37,8 @@ FEDEX_Delivered_Subject = 'Your package has been delivered'
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 GIF_FILE_NAME = 'mail_today.gif'
-GIF_MAKER_OPTIONS = 'convert -delay 300 -loop 0 -coalesce -set dispose background '
+IMG_RESIZE_OPTIONS = ('convert -resize 700x315\> ')
+GIF_MAKER_OPTIONS = ('convert -delay 300 -loop 0 -coalesce -fill white -dispose Background ')
 
 # Login Method
 ###############################################################################
@@ -84,17 +86,28 @@ def update_time():
 
 def get_mails(account):
     today = get_formatted_date()
+    #Custom email date
+    today = '21-Sep-2019'
     image_count = 0
+    images = []
+    
+    print ("Attempting to find Informed Delivery mail for {}".format(str(today)))
+    
+    #Check the mail piece for mail images
+    rv, data = account.search ( None, '(FROM "' + USPS_Email + '" SUBJECT "' + USPS_Mail_Subject + '" ON "' + today + '")')
 
-    rv, data = account.search ( None, 
-                              '(FROM "' + USPS_Email + '" SUBJECT "' + USPS_Mail_Subject + '" SINCE "' + 
-              today + '")')
-
+    #Get number of emails found
+    messageIDsString = str( data[0], encoding='utf8' )
+    listOfSplitStrings = messageIDsString.split(" ")
+    msg_count = len(listOfSplitStrings)
+    print ("Found emails: {}\n".format(str(msg_count)))
+    
     if rv == 'OK':
         for num in data[0].split():
             (rv, data) = account.fetch(num, '(RFC822)')
             msg = email.message_from_string(data[0][1].decode('utf-8'))
-            images = []
+            
+            #walking through the email parts to find images
             for part in msg.walk():
                 if part.get_content_maintype() == 'multipart':
                     continue
@@ -102,32 +115,94 @@ def get_mails(account):
                     continue
 
                 filepath = image_output_path + part.get_filename()
+                print ("Image found: {}.".format(str(filepath)))
                 fp = open(filepath, 'wb')
                 fp.write(part.get_payload(decode=True))
                 images.append(filepath)
+                #print(*images, sep = "\n")
+                #print ("\n")
                 image_count = image_count + 1
                 fp.close()
+            
+            #Look for mail pieces without images image
+            html_text = str(msg)
+            link_pattern = re.compile('image-no-mailpieces700.jpg')
+            search = link_pattern.search(html_text)
+            if search is not None:
+                images.append( image_output_path + 'image-no-mailpieces700.jpg')
+                image_count = image_count + 1
+                print ("Image found: " + image_output_path + "image-no-mailpieces700.jpg.")
+            else:
+                print("No mail without images image found.")
                 
-
+            print ("Total mages found in email: {}. \n".format(str(image_count)))
 			
+			#Remove duplicate images
+            print ("Removing duplicate images.") 
+            images = list(dict.fromkeys(images)) 
+          
+            image_count = len(images)
+            print ("Found {} unique images total to generate gif.".format(str(image_count)))
+            print(*images, sep = "\n")
+            print ("\n")
+        
+            #Remove USPS announcement images
+            print ("Removing USPS announcement images.")  
+            remove_terms = ['mailerProvidedImage', 'ra_0']      
+            images = [image_list for image_list in images if not any(ignore in image_list for ignore in remove_terms)]
+            image_count = len(images)
+            print ("Found {} mail images total to generate gif.".format(str(image_count)))
+            print(*images, sep = "\n")
+            print ("\n")
+        
+            #Get new image count
+            image_count = len(images)
+        
+        
+            #Creating the GIF
             if image_count > 0:
-                all_images = ''
-
-                for image in images:
-                    all_images = all_images + image + ' '
-                    print("Found '{}'".format(image))
-                os.system(GIF_MAKER_OPTIONS + all_images
-                          + image_output_path + GIF_FILE_NAME)
-
-                for image in images:
-                    os.remove(image)
-                #image_count = image_count - 1
+	            all_images = ''
+	            
+	            #Convert to similar images sizes
+	            for image in images:
+	                try:
+	                    os.system(IMG_RESIZE_OPTIONS + image + ' ' + image)
+	                except Exception as err:
+	                    print ("Error attempting to resize images: {}".format(str(err)))
+	            
+	            #Combine images into GIF
+	            for image in images:
+	                all_images = all_images + image + ' '
+	            try:
+	                os.system(GIF_MAKER_OPTIONS + all_images
+	                          + image_output_path + GIF_FILE_NAME)
+	                print ("GIF of mail images generated.")
+	                
+	            except Exception as err:
+	                print ("Error attempting to generate image: {}".format(str(err)))
+                
+	            #Comment out to keep the temperary individual mail images.
+	            print ("Deleting temporary images.\n")
+	            images.remove( image_output_path + 'image-no-mailpieces700.jpg')
+	            for image in images:
+	                try:
+	                    os.remove(image)
+	                except Exception as err:
+	                    print ("Error attempting to remove image: {}".format(str(err)))
 
         if image_count == 0:
-            os.remove(image_output_path + GIF_FILE_NAME)
-            copyfile(image_output_path + 'mail_none.gif',
-                     image_output_path + GIF_FILE_NAME)
+            try:
+                os.remove(image_output_path + GIF_FILE_NAME)
+                print ("No mail GIF generated.\n")
+            except Exception as err:
+                print ("Error attempting to remove image: {}".format(str(err)))
 
+            try:
+                copyfile(image_output_path + 'mail_none.gif',
+                         image_output_path + GIF_FILE_NAME)
+            except Exception as err:
+                print ("Error attempting to copy image: {}".format(str(err)))
+                
         return image_count
 
 
