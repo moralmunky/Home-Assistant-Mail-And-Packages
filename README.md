@@ -73,14 +73,22 @@ Add the card configuration to the cards: section of the view you want to display
     usps: sensor.mail_usps_packages
 ```
 
-## FOR FUTURE IMPLEMENTATION ##
-## mail_package.yaml
-Adding your settings to the configuration file. I save all of this information in the Secrets.yaml so the example configuration has the references to these variables.
+## Configuration ##
+## configuration.yaml
+Adding your settings to the configuration file.
 ```
-Line 113 Add the mail host
-Line 114 Port: Optional, add the port used to connect. Default 993
-Line 115 Email account username
-Line 116 Email account passowrd
-Line 117 Folder: Optional, the name of the folder the email notification are delivered to. Default Inbox
-Line 118 Image Path: Optional, the full path to the www/mail_and_packages/ folder. Default /home/homeassistant/.homeassistant/www/mail_and_packages/
+sensor:
+  - platform: mail_and_packages:
+      host: imap.your.email.server.com
+      port: 993 (optional)
+      username: youremaillogin@email.com
+      passowrd: youremailserverpassword
+      folder: Inbox (optional)
+      image_path: /home/homeassistant/.homeassistant/www/mail_and_packages/ (note for HassIO installs this would be /config/www/mail_and_packages/)
+```
+
+## Optional Camera Component ##
+```
+camera:
+  - platform: mail_and_packages
 ```
