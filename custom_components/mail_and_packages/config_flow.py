@@ -35,7 +35,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow):
                 user_input["host"], user_input["port"],
                 user_input["username"], user_input["password"])
             if valid:
-                return self.async_create_entry(title=user_input["host"],
+                return self.async_create_entry(title='Mail and Packages',
                                                data=user_input)
             else:
                 self._errors["base"] = "communication"

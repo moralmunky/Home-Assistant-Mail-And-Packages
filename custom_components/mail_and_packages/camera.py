@@ -52,7 +52,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
     hass.services.register(
         DOMAIN,
-        SERVICE_UPDATE_FILE_PATH,
+        DEFAULT_NAME,
         update_file_path_service,
         schema=CAMERA_SERVICE_UPDATE_FILE_PATH)
 
