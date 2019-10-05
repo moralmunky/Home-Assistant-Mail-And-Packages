@@ -5,14 +5,16 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuratin code contribution from @firstof9 https://github.com/firstof9/
 """
 
-import logging
 import voluptuous as vol
+import logging
 import asyncio
+import os
+import sys
+import re
+import imaplib
 import email
 import datetime
-import imaplib
 from datetime import timedelta
-import os
 from shutil import copyfile
 
 from homeassistant.helpers.entity import Entity
@@ -23,7 +25,7 @@ from homeassistant.const import (
 
 from homeassistant.util import Throttle
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 DOMAIN = 'mail_and_packages'
 # from . import DOMAIN
 
@@ -44,11 +46,11 @@ FEDEX_Delivered_Subject = 'Your package has been delivered'
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
 GIF_FILE_NAME = 'mail_today.gif'
-GIF_MAKER_OPTIONS = ('convert -delay 300 -loop 0 -coalesce -set dispose'
-                     ' background')
+IMG_RESIZE_OPTIONS = ('convert -resize 700x315\> ')
+GIF_MAKER_OPTIONS = ('convert -delay 300 -loop 0 -coalesce -fill white -dispose Background ')
 
 CONF_FOLDER = 'folder'
-CONF_IMAGE_OUTPUT_PATH = 'image_path'
+CONF_IMAGE_OUTPUT_PATH = 'image_output_path'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -144,7 +146,7 @@ class USPS_Mail(Entity):
         self._folder = config.get(CONF_FOLDER)
         self._user = config.get(CONF_USERNAME)
         self._pwd = config.get(CONF_PASSWORD)
-        self._img_path = config.get(CONF_IMAGE_OUTPUT_PATH)
+        self._img_out_path = config.get(CONF_IMAGE_OUTPUT_PATH)
 
 #         _LOGGER.debug("\nDebug: \n Host: %s\n Port: %s\n Folder: %s\n User: "
 #                       "%s\n Path: %s\n", self._host, self._port,
@@ -169,12 +171,13 @@ class USPS_Mail(Entity):
     def unit_of_measurement(self):
         """Return the unit of measurement."""
 
-        return 'Items'
+        return 'Packages'
 
     @property
     def icon(self):
         """Return the unit of measurement."""
-        return "mdi:email-outline"
+
+        return "mdi:package-variant-closed"
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
@@ -184,7 +187,7 @@ class USPS_Mail(Entity):
         if self._host is not None:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
-            self._state = get_mails(account, self._img_path)
+            self._state = get_mails(account, self._img_out_path)
         else:
             _LOGGER.debug("USPS Mail: Host was left blank not "
                           "attempting connection")
@@ -335,7 +338,8 @@ class USPS_Delivered(Entity):
     @property
     def icon(self):
         """Return the unit of measurement."""
-        return "mdi:package-variant"
+
+        return "mdi:package-variant-closed"
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
@@ -608,7 +612,8 @@ class UPS_Delivered(Entity):
     @property
     def icon(self):
         """Return the unit of measurement."""
-        return "mdi:package-variant"
+
+        return "mdi:package-variant-closed"
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
@@ -832,21 +837,30 @@ def update_time():
 # Creates GIF image based on the attachments in the inbox
 ###############################################################################
 
-def get_mails(account, image_path):
+def get_mails(account, image_output_path):
     today = get_formatted_date()
     image_count = 0
+    images = []
+    msg = ''
+
+    _LOGGER.debug("Attempting to find Informed Delivery mail")
 
     _LOGGER.debug("Attempting to find Informed Delivery mail")
 
     (rv, data) = account.search(None,
-                                '(FROM "' + USPS_Mail_Email + '" SUBJECT "' +
-                                USPS_Mail_Subject + '" SINCE "' + today + '")')
+                                '(FROM "' + USPS_Mail_Email + '" SUBJECT "' + USPS_Mail_Subject + '" ON "' + today + '")')
 
+    #Get number of emails found
+    messageIDsString = str( data[0], encoding='utf8' )
+    listOfSplitStrings = messageIDsString.split(" ")
+    msg_count = len(listOfSplitStrings)
+    
     if rv == 'OK':
         for num in data[0].split():
             (rv, data) = account.fetch(num, '(RFC822)')
             msg = email.message_from_string(data[0][1].decode('utf-8'))
-            images = []
+
+            #walking through the email parts to find images
             for part in msg.walk():
                 if part.get_content_maintype() == 'multipart':
                     continue
@@ -860,39 +874,64 @@ def get_mails(account, image_path):
                 image_count = image_count + 1
                 fp.close()
 
-            if image_count > 0:
-                all_images = ''
+        #Remove duplicate images
+        print ("Removing duplicate images.") 
+        images = list(dict.fromkeys(images))
+        
+        #Create copy of image list for deleting temperary images
+        imagesDelete = images
 
-                for image in images:
-                    all_images = all_images + image + ' '
-                try:
-                    os.system(GIF_MAKER_OPTIONS + all_images
-                              + image_path + GIF_FILE_NAME)
-                except Exception as err:
-                    _LOGGER.error("Error attempting to generate image: %s",
-                                  str(err))
+        #Look for mail pieces without images image
+        html_text = str(msg)
+        link_pattern = re.compile('image-no-mailpieces700.jpg')
+        search = link_pattern.search(html_text)
+        if search is not None:
+            images.append( image_output_path + 'image-no-mailpieces700.jpg')
+            image_count = image_count + 1
+            print ("Image found: " + image_output_path + "image-no-mailpieces700.jpg.")
 
-                for image in images:
-                    try:
-                        os.remove(image)
-                    except Exception as err:
-                        _LOGGER.error("Error attempting to remove image: %s",
-                                      str(err))
+        #Remove USPS announcement images
+        print ("Removing USPS announcement images.")  
+        remove_terms = ['mailerProvidedImage', 'ra_0']      
+        images = [el for el in images if not any(ignore in el for ignore in remove_terms)]
+        image_count = len(images)
 
-        if image_count == 0:
+        if image_count > 0:
+            all_images = ''
+
+            #Combine images into GIF
+            for image in images:
+                #Convert to similar images sizes
+                os.system(IMG_RESIZE_OPTIONS + image + ' ' + image)
+                #Add images to a list for imagemagick
+                all_images = all_images + image + ' '
             try:
-                os.remove(image_path + GIF_FILE_NAME)
+                os.system(GIF_MAKER_OPTIONS + all_images
+                          + image_output_path + GIF_FILE_NAME)
+                _LOGGER.info("Mail image generated.")
+            except Exception as err:
+                _LOGGER.error("Error attempting to generate image: %s", str(err))
+
+        for image in imagesDelete:
+            try:
+                os.remove(image)
             except Exception as err:
                 _LOGGER.error("Error attempting to remove image: %s", str(err))
 
-            try:
-                copyfile(image_path + 'mail_none.gif',
-                         image_path + GIF_FILE_NAME)
-            except Exception as err:
-                _LOGGER.error("Error attempting to copy image: %s", str(err))
+    if image_count == 0:
+        _LOGGER.info("No mail found.")
+        try:
+            os.remove(image_output_path + GIF_FILE_NAME)
+        except Exception as err:
+            _LOGGER.error("Error attempting to remove image: %s", str(err))
 
-        return image_count
+        try:
+            copyfile(image_output_path + 'mail_none.gif',
+                     image_output_path + GIF_FILE_NAME)
+        except Exception as err:
+            _LOGGER.error("Error attempting to copy image: %s", str(err))
 
+    return image_count
 
 # Get Package Count
 ###############################################################################
@@ -905,7 +944,7 @@ def get_count(account, email, subject):
                   subject)
 
     (rv, data) = account.search(None, '(FROM "' + email + '" SUBJECT "'
-                                + subject + '" SINCE "' + today + '")')
+                                + subject + '" ON "' + today + '")')
 
     if rv == 'OK':
         count = len(data[0].split())

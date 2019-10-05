@@ -1,6 +1,10 @@
 # HomeAssistant Mail and Packages
 
-Card, Custom Component, and iOS Notification for getting UPS, USPS, and FedEx delivery information in Home Assistant.
+Card, Custom Component, and iOS Notification for getting UPS, USPS, and FedEx delivery information in Home Assistant. This component only shows a snapshot of the current days packages that are in transit for delviery on the current day or have already been deliveredon in the current day. It also generates the number of USPS mail pieces and images (if avaiable) for the current day.
+
+The component conencts to the email account you supply where your shipment notifcations are deleivers. It looks at the subject lines of the current days emails from the shipping companies. It counts the subject line matches to the known standard subject lines from the shipping companies. For USPS informed delviery emails, it also downloads the mail images to combined them into a rotating GIF.
+
+All procedures are done locally on your machine.
 
 Supports only Lovelace UI. Last tested in 0.95.4.
 
@@ -11,12 +15,6 @@ Supports only Lovelace UI. Last tested in 0.95.4.
 * Mail Card based on Bram_Kragten work at [Home Assistant Community: Custom UI weather state card, with a question](https://community.home-assistant.io/t/custom-ui-weather-state-card-with-a-question/23008)
 * Mail.py script based on @skalavala work at [skalavala blog](https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html)
 * Package and macros based on happyleavesaoc work at [happyleavesaoc/my-home-automation](https://github.com/happyleavesaoc/my-home-automation)
-
-## To Do:
-
-*Gather the configuration options from the yaml configuration instead of hard coding it in the component
-*Add UPS and FedEx reaady for pickup package count for packages that are being delivered to a package pick up location?
-#Home Assistant Configuration
 
 ## Requirements:
 
@@ -32,11 +30,9 @@ Supports only Lovelace UI. Last tested in 0.95.4.
 
 <img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
 
-imagemagick PIP packages are installed within the Home Assistant environment
-```
-sudo apt-get install imagemagick
-```
-In order to utilize the (more or less) drop in configration files provided you must have The Home Assistant must have [packages:](https://www.home-assistant.io/docs/configuration/packages/) defined wtihin the configuration.yaml.
+[imagemagick](https://imagemagick.org/script/download.php) packages are installed within the Home Assistant environment
+
+In order to utilize the (more or less) drop in configration files provided you must have [packages:](https://www.home-assistant.io/docs/configuration/packages/) defined wtihin the configuration.yaml.
 
 Example:
 ```
@@ -73,22 +69,24 @@ Add the card configuration to the cards: section of the view you want to display
     usps: sensor.mail_usps_packages
 ```
 
-## Configuration ##
-## configuration.yaml
+## FOR FUTURE IMPLEMENTATION ##
+## mail_package.yaml
 Adding your settings to the configuration file.
 ```
 sensor:
-  - platform: mail_and_packages:
-      host: imap.your.email.server.com
-      port: 993 (optional)
-      username: youremaillogin@email.com
-      passowrd: youremailserverpassword
-      folder: Inbox (optional)
-      image_path: /home/homeassistant/.homeassistant/www/mail_and_packages/ (note for HassIO installs this would be /config/www/mail_and_packages/)
+  - platform: mail_and_packages
+    host: 'mail_host'
+    username: 'mail_username'
+    password: 'mail_password' 
 ```
 
-## Optional Camera Component ##
-```
-camera:
-  - platform: mail_and_packages
-```
+Optional configutation options
+    
+    port: 'mail_port'
+    Default is 993
+    
+    folder: 'Inbox'
+    Default is Inbox
+    
+    image_output_path: 'mail_image_output_path'
+    Default is /home/homeassistant/.homeassistant/www/mail_and_packages/
