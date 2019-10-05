@@ -838,6 +838,7 @@ def get_mails(account, image_output_path):
     today = get_formatted_date()
     image_count = 0
     images = []
+    msg = ''
 
     _LOGGER.debug("Attempting to find Informed Delivery mail")
 
