@@ -845,8 +845,6 @@ def get_mails(account, image_output_path):
 
     _LOGGER.debug("Attempting to find Informed Delivery mail")
 
-    _LOGGER.debug("Attempting to find Informed Delivery mail")
-
     (rv, data) = account.search(None,
                                 '(FROM "' + USPS_Mail_Email + '" SUBJECT "' + USPS_Mail_Subject + '" ON "' + today + '")')
 
