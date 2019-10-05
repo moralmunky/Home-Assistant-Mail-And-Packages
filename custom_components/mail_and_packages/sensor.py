@@ -6,7 +6,8 @@ Configuratin code contribution from @firstof9 https://github.com/firstof9/
 """
 
 import voluptuous as vol
-import asyncio, logging
+import logging
+import asyncio
 import os
 import sys
 import re
