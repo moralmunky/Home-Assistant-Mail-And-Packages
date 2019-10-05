@@ -6,7 +6,6 @@ Configuratin code contribution from @firstof9 https://github.com/firstof9/
 """
 
 import logging
-import voluptuous as vol
 import asyncio
 import email
 import datetime
@@ -16,8 +15,6 @@ import os
 from shutil import copyfile
 
 from homeassistant.helpers.entity import Entity
-import homeassistant.helpers.config_validation as cv
-from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
      CONF_HOST, CONF_PORT, CONF_USERNAME, CONF_PASSWORD)
 
@@ -51,20 +48,6 @@ CONF_FOLDER = 'folder'
 CONF_IMAGE_OUTPUT_PATH = 'image_path'
 
 _LOGGER = logging.getLogger(__name__)
-
-DEFAULT_PORT = '993'
-DEFAULT_FOLDER = 'Inbox'
-DEFAULT_PATH = '/home/homeassistant/.homeassistant/www/mail_and_packages/'
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_HOST): cv.string,
-    vol.Optional(CONF_PORT, default=DEFAULT_PORT): cv.string,
-    vol.Required(CONF_USERNAME): cv.string,
-    vol.Required(CONF_PASSWORD): cv.string,
-    vol.Optional(CONF_FOLDER, default=DEFAULT_FOLDER): cv.string,
-    vol.Optional(CONF_IMAGE_OUTPUT_PATH,
-                 default=DEFAULT_PATH): cv.string,
-    })
 
 
 @asyncio.coroutine
