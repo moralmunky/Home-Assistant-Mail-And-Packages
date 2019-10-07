@@ -98,8 +98,13 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _test_login(self, host, port, user, pwd):
         """function used to login"""
-        account = imaplib.IMAP4_SSL(host, port)
-
+        # Attempt to catch invalid mail server hosts
+        try:
+            account = imaplib.IMAP4_SSL(host, port)
+        except imaplib.IMAP4.error as err:
+            _LOGGER.info("Error connecting into IMAP Server: %s", str(err))
+            return False
+        # Validate we can login to mail server
         try:
             rv, data = account.login(user, pwd)
             return True
