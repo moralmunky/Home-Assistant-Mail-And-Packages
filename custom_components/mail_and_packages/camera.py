@@ -8,40 +8,79 @@ import voluptuous as vol
 from homeassistant.const import CONF_NAME, ATTR_ENTITY_ID
 from homeassistant.components.camera import (
     Camera, CAMERA_SERVICE_SCHEMA, PLATFORM_SCHEMA)
-from homeassistant.components.camera.const import DOMAIN
 from homeassistant.helpers import config_validation as cv
+# from homeassistant.const import (
+#      CONF_HOST, CONF_PORT, CONF_USERNAME, CONF_PASSWORD)
+
+from .const import (
+    CONF_PATH,
+    DOMAIN,
+    DEFAULT_PATH,
+    CAMERA_NAME,
+    DATA_LOCAL_FILE
+)
 
 _LOGGER = logging.getLogger(__name__)
 
-CONF_FILE_PATH = 'image_path'
-DATA_LOCAL_FILE = 'mail_today.gif'
-DEFAULT_NAME = 'Mail USPS'
-DEFAULT_PATH = ('/home/homeassistant/.homeassistant/www/mail_and_packages/'
-                + DATA_LOCAL_FILE)
-SERVICE_UPDATE_FILE_PATH = DEFAULT_PATH
+# CONF_PATH = 'image_path'
+# DATA_LOCAL_FILE = 'mail_today.gif'
+# CAMERA_NAME = 'Mail USPS'
+# DEFAULT_PATH = ('/home/homeassistant/.homeassistant/www/mail_and_packages/'
+#                 + DATA_LOCAL_FILE)
+SERVICE_UPDATE_FILE_PATH = DEFAULT_PATH + DATA_LOCAL_FILE
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_FILE_PATH, default=DEFAULT_PATH): cv.string,
-    vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string
+    vol.Required(CONF_PATH, default=DEFAULT_PATH): cv.string,
+    vol.Optional(CONF_NAME, default=CAMERA_NAME): cv.string
 })
 
 CAMERA_SERVICE_UPDATE_FILE_PATH = CAMERA_SERVICE_SCHEMA.extend({
-    vol.Required(CONF_FILE_PATH): cv.string
+    vol.Required(CONF_PATH): cv.string
 })
 
 
-def setup_platform(hass, config, add_entities, discovery_info=None):
-    """Set up the Camera that works with local files."""
-    if DATA_LOCAL_FILE not in hass.data:
-        hass.data[DATA_LOCAL_FILE] = []
+# def setup_platform(hass, config, add_entities, discovery_info=None):
+#     """Set up the Camera that works with local files."""
+#     if DATA_LOCAL_FILE not in hass.data:
+#         hass.data[DATA_LOCAL_FILE] = []
 
-    file_path = config[CONF_FILE_PATH]
-    camera = LocalFile(config[CONF_NAME], file_path)
+#     file_path = config[CONF_FILE_PATH]
+#     camera = LocalFile(config[CONF_NAME], file_path)
+#     hass.data[DATA_LOCAL_FILE].append(camera)
+
+#     def update_file_path_service(call):
+#         """Update the file path."""
+#         file_path = call.data.get(CONF_FILE_PATH)
+#         entity_ids = call.data.get(ATTR_ENTITY_ID)
+#         cameras = hass.data[DATA_LOCAL_FILE]
+
+#         for camera in cameras:
+#             if camera.entity_id in entity_ids:
+#                 camera.update_file_path(file_path)
+#         return True
+
+#     hass.services.register(
+#         DOMAIN,
+#         CAMERA_NAME,
+#         update_file_path_service,
+#         schema=CAMERA_SERVICE_UPDATE_FILE_PATH)
+
+#     add_entities([camera])
+
+
+async def async_setup_entry(hass, entry, async_add_entities):
+
+    config = {
+        CONF_PATH: entry.data[CONF_PATH]
+    }
+
+    file_path = config[CONF_PATH]
+    camera = LocalFile(CAMERA_NAME, file_path)
     hass.data[DATA_LOCAL_FILE].append(camera)
 
     def update_file_path_service(call):
         """Update the file path."""
-        file_path = call.data.get(CONF_FILE_PATH)
+        file_path = call.data.get(CONF_PATH)
         entity_ids = call.data.get(ATTR_ENTITY_ID)
         cameras = hass.data[DATA_LOCAL_FILE]
 
@@ -52,11 +91,11 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
     hass.services.register(
         DOMAIN,
-        DEFAULT_NAME,
+        CAMERA_NAME,
         update_file_path_service,
         schema=CAMERA_SERVICE_UPDATE_FILE_PATH)
 
-    add_entities([camera])
+    async_add_entities([camera])
 
 
 class LocalFile(Camera):

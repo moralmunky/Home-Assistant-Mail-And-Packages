@@ -6,13 +6,19 @@ import voluptuous as vol
 import imaplib
 
 from homeassistant import config_entries
-from .const import DOMAIN, DEFAULT_PORT, DEFAULT_PATH, DEFAULT_FOLDER
+from .const import (DOMAIN, DEFAULT_PORT, DEFAULT_PATH, DEFAULT_FOLDER)
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_PASSWORD,
+    CONF_USERNAME,
+    CONF_PORT
+)
 
 _LOGGER = logging.getLogger(__name__)
 
 
 @config_entries.HANDLERS.register(DOMAIN)
-class MailAndPackagesFlowHandler(config_entries.ConfigFlow):
+class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Mail and Packages."""
 
     VERSION = 1
@@ -32,10 +38,10 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow):
 
         if user_input is not None:
             valid = await self._test_login(
-                user_input["host"], user_input["port"],
-                user_input["username"], user_input["password"])
+                user_input[CONF_HOST], user_input[CONF_PORT],
+                user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
             if valid:
-                return self.async_create_entry(title='Mail and Packages',
+                return self.async_create_entry(title=user_input[CONF_HOST],
                                                data=user_input)
             else:
                 self._errors["base"] = "communication"
@@ -53,7 +59,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow):
         username = ""
         password = ""
         folder = DEFAULT_FOLDER
-        img_path = DEFAULT_PATH
+        image_path = DEFAULT_PATH
 
         if user_input is not None:
             if "host" in user_input:
@@ -64,19 +70,18 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow):
                 username = user_input["username"]
             if "password" in user_input:
                 password = user_input["password"]
-
             if "folder" in user_input:
                 folder = user_input["folder"]
-            if "img_path" in user_input:
-                img_path = user_input["img_path"]
+            if "image_path" in user_input:
+                image_path = user_input["image_path"]
 
         data_schema = OrderedDict()
         data_schema[vol.Required("host", default=host)] = str
-        data_schema[vol.Required("port", default=port)] = int
+        data_schema[vol.Required("port", default=port)] = vol.Coerce(int)
         data_schema[vol.Required("username", default=username)] = str
         data_schema[vol.Required("password", default=password)] = str
         data_schema[vol.Optional("folder", default=folder)] = str
-        data_schema[vol.Optional("img_path", default=img_path)] = str
+        data_schema[vol.Optional("image_path", default=image_path)] = str
         return self.async_show_form(
             step_id="user", data_schema=vol.Schema(data_schema),
             errors=self._errors)
@@ -91,7 +96,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow):
 
         return self.async_create_entry(title="configuration.yaml", data={})
 
-    async def _test_login(host, port, user, pwd):
+    async def _test_login(self, host, port, user, pwd):
         """function used to login"""
         account = imaplib.IMAP4_SSL(host, port)
 
@@ -99,5 +104,5 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow):
             rv, data = account.login(user, pwd)
             return True
         except imaplib.IMAP4.error as err:
-            _LOGGER.error("Error logging into IMAP Server: %s", str(err))
+            _LOGGER.info("Error logging into IMAP Server: %s", str(err))
             return False

@@ -4,6 +4,6 @@
   "documentation": "https://github.com/moralmunky/HomeAssistant_Mail_Card",
   "dependencies": [],
   "codeowners": ["@moralmunky","@firstof9"],
-  "config_flow": "true",
+  "config_flow": true,
   "requirements": []
 }
