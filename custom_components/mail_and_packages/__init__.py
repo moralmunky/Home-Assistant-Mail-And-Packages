@@ -1,37 +1,19 @@
 """Mail and Packages Integration."""
-from .const import (DOMAIN, CONF_FOLDER, CONF_PATH)
-from homeassistant.const import (
-    CONF_HOST,
-    CONF_PASSWORD,
-    CONF_USERNAME,
-    CONF_PORT
-)
+from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.config_entries import ConfigEntry
 
 
-async def async_setup(hass, config):
-
-    conf = config.get(DOMAIN)
-
-    if conf is None:
-        conf = {}
-
-    hass.data[DOMAIN] = {}
+async def async_setup(hass: HomeAssistantType, config: ConfigEntry) -> bool:
+    """ Disallow configuration via YAML """
 
     return True
 
-async def async_setup_entry(hass, entry):
 
-    host = entry.data[CONF_HOST]
+async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
+    """Load the saved entities."""
 
-    config = {
-        CONF_HOST: entry.data[CONF_HOST],
-        CONF_USERNAME: entry.data[CONF_USERNAME],
-        CONF_PASSWORD: entry.data[CONF_PASSWORD],
-        CONF_PORT: entry.data[CONF_PORT],
-        CONF_FOLDER: entry.data[CONF_FOLDER],
-        CONF_PATH: entry.data[CONF_PATH]
-    }
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "sensor")
+    )
 
-    if config is None:
-        return False
     return True
