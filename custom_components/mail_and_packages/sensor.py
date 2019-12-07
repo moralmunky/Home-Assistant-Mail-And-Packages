@@ -152,13 +152,13 @@ class USPS_Mail(Entity):
     def unit_of_measurement(self):
         """Return the unit of measurement."""
 
-        return 'Packages'
+        return 'Items'
 
     @property
     def icon(self):
         """Return the unit of measurement."""
 
-        return "mdi:package-variant-closed"
+        return "mdi:mailbox-up"
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
