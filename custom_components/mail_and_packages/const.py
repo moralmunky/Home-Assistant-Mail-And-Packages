@@ -1,5 +1,6 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.0.4"
+VERSION = "0.0.5"
+ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"

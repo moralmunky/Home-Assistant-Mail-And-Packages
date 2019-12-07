@@ -86,15 +86,15 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=vol.Schema(data_schema),
             errors=self._errors)
 
-    async def async_step_import(self, user_input):
-        """Import a config entry.
-        Special type of import, we're not actually going to store any data.
-        Instead, we're going to rely on the values that are in config file.
-        """
-        if self._async_current_entries():
-            return self.async_abort(reason="single_instance_allowed")
+    # async def async_step_import(self, user_input):
+    #     """Import a config entry.
+    #     Special type of import, we're not actually going to store any data.
+    #     Instead, we're going to rely on the values that are in config file.
+    #     """
+    #     if self._async_current_entries():
+    #         return self.async_abort(reason="single_instance_allowed")
 
-        return self.async_create_entry(title="configuration.yaml", data={})
+    #     return self.async_create_entry(title="configuration.yaml", data={})
 
     async def _test_login(self, host, port, user, pwd):
         """function used to login"""
