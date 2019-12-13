@@ -5,6 +5,7 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 
+# import voluptuous as vol
 import logging
 import asyncio
 import os
@@ -37,8 +38,10 @@ from .const import (
     GIF_FILE_NAME,
     IMG_RESIZE_OPTIONS,
     GIF_MAKER_OPTIONS,
-    VERSION
+    VERSION,
+    ISSUE_URL,
 )
+
 from homeassistant.util import Throttle
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,8 +52,7 @@ MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 async def async_setup_entry(hass, entry, async_add_entities):
 
     _LOGGER.info('version %s is starting, if you have any issues please report'
-                 ' them here: http://github.com/moralmunky/Home-Assistant-Mail'
-                 '-And-Packages', VERSION)
+                 ' them here: %s', VERSION, ISSUE_URL)
 
     config = {
         CONF_HOST: entry.data[CONF_HOST],
@@ -130,6 +132,7 @@ class USPS_Mail(Entity):
         self._user = config.get(CONF_USERNAME)
         self._pwd = config.get(CONF_PASSWORD)
         self._img_out_path = config.get(CONF_PATH)
+
         self._state = 0
         self.update()
 
@@ -149,13 +152,13 @@ class USPS_Mail(Entity):
     def unit_of_measurement(self):
         """Return the unit of measurement."""
 
-        return 'Packages'
+        return 'Items'
 
     @property
     def icon(self):
         """Return the unit of measurement."""
 
-        return "mdi:package-variant-closed"
+        return "mdi:mailbox-up"
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
