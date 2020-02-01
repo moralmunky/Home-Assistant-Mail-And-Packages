@@ -3,6 +3,7 @@
   "name": "Mail and Packages",
   "documentation": "https://github.com/moralmunky/HomeAssistant_Mail_Card",
   "dependencies": [],
-  "codeowners": ["@moralmunky"],
+  "codeowners": ["@moralmunky","@firstof9"],
+  "config_flow": true,
   "requirements": []
 }
