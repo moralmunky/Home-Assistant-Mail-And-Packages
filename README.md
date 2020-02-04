@@ -32,19 +32,10 @@ Supports only Lovelace UI. Last tested in 0.95.4.
 
 [imagemagick](https://imagemagick.org/script/download.php) packages are installed within the Home Assistant environment
 
-In order to utilize the (more or less) drop in configration files provided you must have [packages:](https://www.home-assistant.io/docs/configuration/packages/) defined wtihin the configuration.yaml.
-
-Example:
-```
-homeassistant:
-  packages: !include_dir_named includes/packages
-```
-
 ## Upload Files
 
 Upload the files into inside the Home Assistant .homeassistant/ folder as structured in the repository
 ```
-.homeassistant/includes/packages/mail_package.yaml
 .homeassistant/www/mail_and_packages/
 .homeassistant/custom_compontents/mail_and_packages/
 ```
@@ -69,24 +60,7 @@ Add the card configuration to the cards: section of the view you want to display
     usps: sensor.mail_usps_packages
 ```
 
-## FOR FUTURE IMPLEMENTATION ##
-## mail_package.yaml
-Adding your settings to the configuration file.
-```
-sensor:
-  - platform: mail_and_packages
-    host: 'mail_host'
-    username: 'mail_username'
-    password: 'mail_password' 
-```
-
-Optional configutation options
-    
-    port: 'mail_port'
-    Default is 993
-    
-    folder: 'Inbox'
-    Default is Inbox
-    
-    image_output_path: 'mail_image_output_path'
-    Default is /home/homeassistant/.homeassistant/www/mail_and_packages/
+## Installation 
+Once the directories are coppied over, go into ```Configuration -> Intergrations``` select the ```+```
+and add the ```Mail And Packages``` intergration you will be prompted to input your mail
+server settings.
