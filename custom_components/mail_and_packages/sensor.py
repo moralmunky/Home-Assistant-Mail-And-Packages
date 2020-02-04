@@ -852,7 +852,12 @@ def get_mails(account, image_output_path):
                     continue
 
                 filepath = image_output_path + part.get_filename()
-                fp = open(filepath, 'wb')
+                # Log error message if we are unable to open the filepath for
+                # some reason
+                try:
+                    fp = open(filepath, 'wb')
+                except Exception as err:
+                    _LOGGER.critical("Error opening filepath: %s",str(err))
                 fp.write(part.get_payload(decode=True))
                 images.append(filepath)
                 image_count = image_count + 1
