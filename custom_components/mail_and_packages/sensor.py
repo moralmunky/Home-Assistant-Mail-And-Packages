@@ -857,7 +857,7 @@ def get_mails(account, image_output_path):
                 try:
                     fp = open(filepath, 'wb')
                 except Exception as err:
-                    _LOGGER.critical("Error opening filepath: %s",str(err))
+                    _LOGGER.critical("Error opening filepath: %s", str(err))
                 fp.write(part.get_payload(decode=True))
                 images.append(filepath)
                 image_count = image_count + 1
@@ -904,24 +904,25 @@ def get_mails(account, image_output_path):
                 _LOGGER.error("Error attempting to generate image: %s",
                               str(err))
 
-        for image in imagesDelete:
+            for image in imagesDelete:
+                try:
+                    os.remove(image)
+                except Exception as err:
+                    _LOGGER.error("Error attempting to remove image: %s",
+                                  str(err))
+
+        if image_count == 0:
+            _LOGGER.info("No mail found.")
             try:
-                os.remove(image)
+                os.remove(image_output_path + GIF_FILE_NAME)
             except Exception as err:
                 _LOGGER.error("Error attempting to remove image: %s", str(err))
 
-    if image_count == 0:
-        _LOGGER.info("No mail found.")
-        try:
-            os.remove(image_output_path + GIF_FILE_NAME)
-        except Exception as err:
-            _LOGGER.error("Error attempting to remove image: %s", str(err))
-
-        try:
-            copyfile(image_output_path + 'mail_none.gif',
-                     image_output_path + GIF_FILE_NAME)
-        except Exception as err:
-            _LOGGER.error("Error attempting to copy image: %s", str(err))
+            try:
+                copyfile(image_output_path + 'mail_none.gif',
+                         image_output_path + GIF_FILE_NAME)
+            except Exception as err:
+                _LOGGER.error("Error attempting to copy image: %s", str(err))
 
     return image_count
 
