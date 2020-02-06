@@ -886,6 +886,7 @@ def get_mails(account, image_output_path):
         images = [el for el in images if not any(ignore in el for ignore
                                                  in remove_terms)]
         image_count = len(images)
+        _LOGGER.debug("Image Count: %s", str(image_count))
 
         if image_count > 0:
             all_images = ''
@@ -897,6 +898,8 @@ def get_mails(account, image_output_path):
                 # Add images to a list for imagemagick
                 all_images = all_images + image + ' '
             try:
+                _LOGGER.debug("System command: " + GIF_MAKER_OPTIONS
+                              + all_images + image_output_path + GIF_FILE_NAME)
                 os.system(GIF_MAKER_OPTIONS + all_images
                           + image_output_path + GIF_FILE_NAME)
                 _LOGGER.info("Mail image generated.")
@@ -911,7 +914,7 @@ def get_mails(account, image_output_path):
                     _LOGGER.error("Error attempting to remove image: %s",
                                   str(err))
 
-        if image_count == 0:
+        elif image_count == 0:
             _LOGGER.info("No mail found.")
             try:
                 os.remove(image_output_path + GIF_FILE_NAME)
