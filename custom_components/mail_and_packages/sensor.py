@@ -906,7 +906,6 @@ def get_mails(account, image_output_path):
             except Exception as err:
                 _LOGGER.error("Error attempting to generate image: %s",
                               str(err))
-
             for image in imagesDelete:
                 try:
                     os.remove(image)
@@ -917,11 +916,12 @@ def get_mails(account, image_output_path):
         elif image_count == 0:
             _LOGGER.info("No mail found.")
             try:
+                _LOGGER.debug("Removing " + image_output_path + GIF_FILE_NAME)
                 os.remove(image_output_path + GIF_FILE_NAME)
             except Exception as err:
                 _LOGGER.error("Error attempting to remove image: %s", str(err))
-
             try:
+                _LOGGER.debug("Copying nomail gif")
                 copyfile(image_output_path + 'mail_none.gif',
                          image_output_path + GIF_FILE_NAME)
             except Exception as err:
