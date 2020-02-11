@@ -8,6 +8,7 @@ Configuration code contribution from @firstof9 https://github.com/firstof9/
 # import voluptuous as vol
 import logging
 import asyncio
+import imageio as io
 import os
 import re
 import imaplib
@@ -897,11 +898,14 @@ def get_mails(account, image_output_path):
                 os.system(IMG_RESIZE_OPTIONS + image + ' ' + image)
                 # Add images to a list for imagemagick
                 all_images = all_images + image + ' '
+
             try:
                 _LOGGER.debug("System command: " + GIF_MAKER_OPTIONS
                               + all_images + image_output_path + GIF_FILE_NAME)
-                os.system(GIF_MAKER_OPTIONS + all_images
-                          + image_output_path + GIF_FILE_NAME)
+                # Use ImageIO to create mail images
+                io.mimsave(GIF_FILE_NAME, all_images, duration=30)
+                # os.system(GIF_MAKER_OPTIONS + all_images
+                #           + image_output_path + GIF_FILE_NAME)
                 _LOGGER.info("Mail image generated.")
             except Exception as err:
                 _LOGGER.error("Error attempting to generate image: %s",

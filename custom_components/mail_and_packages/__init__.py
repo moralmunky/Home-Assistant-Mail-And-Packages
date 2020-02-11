@@ -7,6 +7,7 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup(hass: HomeAssistantType, config: ConfigEntry):
     """ Disallow configuration via YAML """
 

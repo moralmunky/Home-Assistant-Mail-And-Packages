@@ -5,5 +5,6 @@
   "dependencies": [],
   "codeowners": ["@moralmunky","@firstof9"],
   "config_flow": true,
-  "requirements": []
+  "requirements": [ "imageio" ],
+  "quality_scale": "gold"
 }
