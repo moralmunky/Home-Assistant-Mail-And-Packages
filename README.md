@@ -1,3 +1,11 @@
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/moralmunky/Home-Assistant-Mail-And-Packages)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
+
+![GitHub contributors](https://img.shields.io/github/contributors/moralmunky/Home-Assistant-Mail-And-Packages)
+![Maintenance](https://img.shields.io/maintenance/yes/2020)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/moralmunky/Home-Assistant-Mail-And-Packages)
+![GitHub last commit](https://img.shields.io/github/last-commit/moralmunky/Home-Assistant-Mail-And-Packages)
+
 # HomeAssistant Mail and Packages
 
 Card, Custom Component, and iOS Notification for getting UPS, USPS, and FedEx delivery information in Home Assistant. This component only shows a snapshot of the current days packages that are in transit for delviery on the current day or have already been deliveredon in the current day. It also generates the number of USPS mail pieces and images (if avaiable) for the current day.
@@ -30,25 +38,14 @@ Supports only Lovelace UI. Last tested in 0.95.4.
 
 <img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
 
-[imagemagick](https://imagemagick.org/script/download.php) packages are installed within the Home Assistant environment
-
-In order to utilize the (more or less) drop in configration files provided you must have [packages:](https://www.home-assistant.io/docs/configuration/packages/) defined wtihin the configuration.yaml.
-
-Example:
-```
-homeassistant:
-  packages: !include_dir_named includes/packages
-```
-
 ## Upload Files
 
 Upload the files into inside the Home Assistant .homeassistant/ folder as structured in the repository
 ```
-.homeassistant/includes/packages/mail_package.yaml
 .homeassistant/www/mail_and_packages/
 .homeassistant/custom_compontents/mail_and_packages/
 ```
-## Lovelace GUI Setup
+## Lovelace Custom Card Setup
 
 Add the js path relative to the /local/ path to the resources section of the lovelace yaml or at the top of the GUI lovelace RAW configuration editor.
 ```
@@ -69,24 +66,48 @@ Add the card configuration to the cards: section of the view you want to display
     usps: sensor.mail_usps_packages
 ```
 
-## FOR FUTURE IMPLEMENTATION ##
-## mail_package.yaml
-Adding your settings to the configuration file.
-```
-sensor:
-  - platform: mail_and_packages
-    host: 'mail_host'
-    username: 'mail_username'
-    password: 'mail_password' 
-```
+## Installation 
+Once the directories are coppied over, go into ```Configuration -> Intergrations``` select the ```+```
+and add the ```Mail And Packages``` intergration you will be prompted to input your mail
+server settings.
 
-Optional configutation options
-    
-    port: 'mail_port'
-    Default is 993
-    
-    folder: 'Inbox'
-    Default is Inbox
-    
-    image_output_path: 'mail_image_output_path'
-    Default is /home/homeassistant/.homeassistant/www/mail_and_packages/
+## Template
+Use the following to create a deliveries summary sensor:
+```
+- platform: template
+  sensors:
+    mail_deliveries_message:
+      friendly_name: "Deliveries Summary"
+      entity_id: 
+        - sensor.mail_usps_mail
+        - sensor.packages_in_transit
+      value_template: > 
+        {# Deliveries Sentence #}
+          {% macro deliveries_sentence() -%}
+                {%- if states("sensor.mail_usps_mail")|int == 0 -%}
+                  No
+                {%- else -%}
+                  {{states("sensor.mail_usps_mail")|int}}
+                {%- endif -%}
+              {{' '}} 
+                {%- if states("sensor.mail_usps_mail")|int <= 1 -%}
+                  mail
+                {%- else -%}
+                  pieces of mail
+                {%- endif -%}
+              {{' '}}will be delivered.{{' '}} 
+                {%- if states("sensor.packages_in_transit")|int == 0 -%}
+                  No
+                {%- else -%}
+                  {{states("sensor.packages_in_transit")|int}}
+                {%- endif -%}
+              {{' '}} 
+                {%- if states("sensor.packages_in_transit")|int == 1 -%}
+                  package is
+                {%- else -%}
+                  packages are
+                {%- endif -%}
+              {{' '}}in transit.{{' '}}
+          {%- endmacro %}
+        {{deliveries_sentence()}}
+```        

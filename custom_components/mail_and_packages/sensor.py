@@ -8,6 +8,7 @@ Configuration code contribution from @firstof9 https://github.com/firstof9/
 # import voluptuous as vol
 import logging
 import asyncio
+import imageio as io
 import os
 import re
 import imaplib
@@ -36,8 +37,7 @@ from .const import (
     FEDEX_Delivering_Subject,
     FEDEX_Delivered_Subject,
     GIF_FILE_NAME,
-    IMG_RESIZE_OPTIONS,
-    GIF_MAKER_OPTIONS,
+    GIF_DURATION,
     VERSION,
     ISSUE_URL,
 )
@@ -356,7 +356,7 @@ class Packages_Delivered(Entity):
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Packages Delivered'
+        return 'Mail Packages Delivered'
 
     @property
     def state(self):
@@ -412,7 +412,7 @@ class Packages_Transit(Entity):
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Packages In Transit'
+        return 'Mail Packages In Transit'
 
     @property
     def state(self):
@@ -469,7 +469,7 @@ class UPS_Packages(Entity):
     def name(self):
         """Return the name of the sensor."""
 
-        return 'UPS Packages'
+        return 'Mail UPS Packages'
 
     @property
     def state(self):
@@ -629,7 +629,7 @@ class FEDEX_Packages(Entity):
     def name(self):
         """Return the name of the sensor."""
 
-        return 'FEDEX Packages'
+        return 'Mail FEDEX Packages'
 
     @property
     def state(self):
@@ -835,11 +835,12 @@ def get_mails(account, image_output_path):
                                 USPS_Mail_Subject + '" ON "' + today + '")')
 
     # Get number of emails found
-    messageIDsString = str(data[0], encoding='utf8')
-    listOfSplitStrings = messageIDsString.split(" ")
-    msg_count = len(listOfSplitStrings)
+    # messageIDsString = str(data[0], encoding='utf8')
+    # listOfSplitStrings = messageIDsString.split(" ")
+    # msg_count = len(listOfSplitStrings)
 
     if rv == 'OK':
+        _LOGGER.debug("Informed Delivery email found processing...")
         for num in data[0].split():
             (rv, data) = account.fetch(num, '(RFC822)')
             msg = email.message_from_string(data[0][1].decode('utf-8'))
@@ -851,8 +852,14 @@ def get_mails(account, image_output_path):
                 if part.get('Content-Disposition') is None:
                     continue
 
+                _LOGGER.debug("Extracting image from email")
                 filepath = image_output_path + part.get_filename()
-                fp = open(filepath, 'wb')
+                # Log error message if we are unable to open the filepath for
+                # some reason
+                try:
+                    fp = open(filepath, 'wb')
+                except Exception as err:
+                    _LOGGER.critical("Error opening filepath: %s", str(err))
                 fp.write(part.get_payload(decode=True))
                 images.append(filepath)
                 image_count = image_count + 1
@@ -862,7 +869,7 @@ def get_mails(account, image_output_path):
         _LOGGER.debug("Removing duplicate images.")
         images = list(dict.fromkeys(images))
 
-        # Create copy of image list for deleting temperary images
+        # Create copy of image list for deleting temporary images
         imagesDelete = images
 
         # Look for mail pieces without images image
@@ -872,7 +879,8 @@ def get_mails(account, image_output_path):
         if search is not None:
             images.append(image_output_path + 'image-no-mailpieces700.jpg')
             image_count = image_count + 1
-            _LOGGER.debug("Image found: " + image_output_path +
+            _LOGGER.debug("Placeholder image found using: " +
+                          image_output_path +
                           "image-no-mailpieces700.jpg.")
 
         # Remove USPS announcement images
@@ -881,42 +889,44 @@ def get_mails(account, image_output_path):
         images = [el for el in images if not any(ignore in el for ignore
                                                  in remove_terms)]
         image_count = len(images)
+        _LOGGER.debug("Image Count: %s", str(image_count))
 
         if image_count > 0:
-            all_images = ''
+            all_images = []
 
-            # Combine images into GIF
-            for image in images:
-                # Convert to similar images sizes
-                os.system(IMG_RESIZE_OPTIONS + image + ' ' + image)
-                # Add images to a list for imagemagick
-                all_images = all_images + image + ' '
+            _LOGGER.debug("Creating array of image files...")
+            # Create numpy array of images
+            all_images = [io.imread(image) for image in images]
+
             try:
-                os.system(GIF_MAKER_OPTIONS + all_images
-                          + image_output_path + GIF_FILE_NAME)
+                _LOGGER.debug("Generating animated GIF")
+                # Use ImageIO to create mail images
+                io.mimwrite(os.path.join(image_output_path, GIF_FILE_NAME),
+                            all_images, duration=GIF_DURATION)
                 _LOGGER.info("Mail image generated.")
             except Exception as err:
                 _LOGGER.error("Error attempting to generate image: %s",
                               str(err))
+            for image in imagesDelete:
+                try:
+                    os.remove(image)
+                except Exception as err:
+                    _LOGGER.error("Error attempting to remove image: %s",
+                                  str(err))
 
-        for image in imagesDelete:
+        elif image_count == 0:
+            _LOGGER.info("No mail found.")
             try:
-                os.remove(image)
+                _LOGGER.debug("Removing " + image_output_path + GIF_FILE_NAME)
+                os.remove(image_output_path + GIF_FILE_NAME)
             except Exception as err:
                 _LOGGER.error("Error attempting to remove image: %s", str(err))
-
-    if image_count == 0:
-        _LOGGER.info("No mail found.")
-        try:
-            os.remove(image_output_path + GIF_FILE_NAME)
-        except Exception as err:
-            _LOGGER.error("Error attempting to remove image: %s", str(err))
-
-        try:
-            copyfile(image_output_path + 'mail_none.gif',
-                     image_output_path + GIF_FILE_NAME)
-        except Exception as err:
-            _LOGGER.error("Error attempting to copy image: %s", str(err))
+            try:
+                _LOGGER.debug("Copying nomail gif")
+                copyfile(image_output_path + 'mail_none.gif',
+                         image_output_path + GIF_FILE_NAME)
+            except Exception as err:
+                _LOGGER.error("Error attempting to copy image: %s", str(err))
 
     return image_count
 

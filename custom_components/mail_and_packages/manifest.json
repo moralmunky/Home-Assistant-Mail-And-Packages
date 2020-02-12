@@ -1,9 +1,9 @@
 {
   "domain": "mail_and_packages",
   "name": "Mail and Packages",
-  "documentation": "https://github.com/moralmunky/HomeAssistant_Mail_Card",
+  "documentation": "https://github.com/moralmunky/Home-Assistant-Mail-And-Packages",
   "dependencies": [],
   "codeowners": ["@moralmunky","@firstof9"],
   "config_flow": true,
-  "requirements": []
+  "requirements": [ "imageio" ]
 }
