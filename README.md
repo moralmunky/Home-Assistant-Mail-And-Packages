@@ -30,8 +30,6 @@ Supports only Lovelace UI. Last tested in 0.95.4.
 
 <img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
 
-[imagemagick](https://imagemagick.org/script/download.php) packages are installed within the Home Assistant environment
-
 ## Upload Files
 
 Upload the files into inside the Home Assistant .homeassistant/ folder as structured in the repository
@@ -39,7 +37,7 @@ Upload the files into inside the Home Assistant .homeassistant/ folder as struct
 .homeassistant/www/mail_and_packages/
 .homeassistant/custom_compontents/mail_and_packages/
 ```
-## Lovelace GUI Setup
+## Lovelace Custom Card Setup
 
 Add the js path relative to the /local/ path to the resources section of the lovelace yaml or at the top of the GUI lovelace RAW configuration editor.
 ```

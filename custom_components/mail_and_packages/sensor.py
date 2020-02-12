@@ -835,11 +835,12 @@ def get_mails(account, image_output_path):
                                 USPS_Mail_Subject + '" ON "' + today + '")')
 
     # Get number of emails found
-    messageIDsString = str(data[0], encoding='utf8')
-    listOfSplitStrings = messageIDsString.split(" ")
-    msg_count = len(listOfSplitStrings)
+    # messageIDsString = str(data[0], encoding='utf8')
+    # listOfSplitStrings = messageIDsString.split(" ")
+    # msg_count = len(listOfSplitStrings)
 
     if rv == 'OK':
+        _LOGGER.debug("Informed Delivery email found processing...")
         for num in data[0].split():
             (rv, data) = account.fetch(num, '(RFC822)')
             msg = email.message_from_string(data[0][1].decode('utf-8'))
@@ -851,6 +852,7 @@ def get_mails(account, image_output_path):
                 if part.get('Content-Disposition') is None:
                     continue
 
+                _LOGGER.debug("Extracting image from email")
                 filepath = image_output_path + part.get_filename()
                 # Log error message if we are unable to open the filepath for
                 # some reason
@@ -877,7 +879,8 @@ def get_mails(account, image_output_path):
         if search is not None:
             images.append(image_output_path + 'image-no-mailpieces700.jpg')
             image_count = image_count + 1
-            _LOGGER.debug("Image found: " + image_output_path +
+            _LOGGER.debug("Placeholder image found using: " +
+                          image_output_path +
                           "image-no-mailpieces700.jpg.")
 
         # Remove USPS announcement images
@@ -892,13 +895,14 @@ def get_mails(account, image_output_path):
             all_images = []
 
             _LOGGER.debug("Creating array of image files...")
-            # Combine images into GIF
+            # Create numpy array of images
             all_images = [io.imread(image) for image in images]
 
             try:
                 _LOGGER.debug("Generating animated GIF")
                 # Use ImageIO to create mail images
-                io.mimwrite(os.path.join(image_output_path, GIF_FILE_NAME), all_images, duration=GIF_DURATION)
+                io.mimwrite(os.path.join(image_output_path, GIF_FILE_NAME),
+                            all_images, duration=GIF_DURATION)
                 _LOGGER.info("Mail image generated.")
             except Exception as err:
                 _LOGGER.error("Error attempting to generate image: %s",

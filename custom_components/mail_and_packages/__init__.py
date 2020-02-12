@@ -30,7 +30,8 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
 async def async_remove_entry(hass, config_entry):
     """Handle removal of an entry."""
     try:
-        await hass.config_entries.async_forward_entry_unload(config_entry, DOMAIN)
+        await hass.config_entries.async_forward_entry_unload(config_entry,
+                                                             DOMAIN)
         _LOGGER.info(
             "Successfully removed sensor from the mail_and_packages integration"
         )
@@ -42,4 +43,5 @@ async def update_listener(hass, entry):
     """Update listener."""
     entry.data = entry.options
     await hass.config_entries.async_forward_entry_unload(entry, DOMAIN)
-    hass.async_add_job(hass.config_entries.async_forward_entry_setup(entry, DOMAIN))
+    hass.async_add_job(hass.config_entries.async_forward_entry_setup(entry,
+                                                                     DOMAIN))
