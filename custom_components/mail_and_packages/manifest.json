@@ -6,5 +6,4 @@
   "codeowners": ["@moralmunky","@firstof9"],
   "config_flow": true,
   "requirements": [ "imageio" ],
-  "quality_scale": "gold"
 }

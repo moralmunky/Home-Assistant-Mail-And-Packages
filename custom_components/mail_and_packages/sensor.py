@@ -37,8 +37,7 @@ from .const import (
     FEDEX_Delivering_Subject,
     FEDEX_Delivered_Subject,
     GIF_FILE_NAME,
-    IMG_RESIZE_OPTIONS,
-    GIF_MAKER_OPTIONS,
+    GIF_DURATION,
     VERSION,
     ISSUE_URL,
 )
@@ -868,7 +867,7 @@ def get_mails(account, image_output_path):
         _LOGGER.debug("Removing duplicate images.")
         images = list(dict.fromkeys(images))
 
-        # Create copy of image list for deleting temperary images
+        # Create copy of image list for deleting temporary images
         imagesDelete = images
 
         # Look for mail pieces without images image
@@ -890,22 +889,16 @@ def get_mails(account, image_output_path):
         _LOGGER.debug("Image Count: %s", str(image_count))
 
         if image_count > 0:
-            all_images = ''
+            all_images = []
 
+            _LOGGER.debug("Creating array of image files...")
             # Combine images into GIF
-            for image in images:
-                # Convert to similar images sizes
-                os.system(IMG_RESIZE_OPTIONS + image + ' ' + image)
-                # Add images to a list for imagemagick
-                all_images = all_images + image + ' '
+            all_images = [io.imread(image) for image in images]
 
             try:
-                _LOGGER.debug("System command: " + GIF_MAKER_OPTIONS
-                              + all_images + image_output_path + GIF_FILE_NAME)
+                _LOGGER.debug("Generating animated GIF")
                 # Use ImageIO to create mail images
-                io.mimsave(GIF_FILE_NAME, all_images, duration=30)
-                # os.system(GIF_MAKER_OPTIONS + all_images
-                #           + image_output_path + GIF_FILE_NAME)
+                io.mimwrite(os.path.join(image_output_path, GIF_FILE_NAME), all_images, duration=GIF_DURATION)
                 _LOGGER.info("Mail image generated.")
             except Exception as err:
                 _LOGGER.error("Error attempting to generate image: %s",

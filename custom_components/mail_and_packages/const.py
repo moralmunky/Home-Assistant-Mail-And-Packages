@@ -27,6 +27,7 @@ FEDEX_Delivering_Subject = 'Delivery scheduled for today'
 FEDEX_Delivered_Subject = 'Your package has been delivered'
 
 GIF_FILE_NAME = 'mail_today.gif'
+GIF_DURATION = 10
 IMG_RESIZE_OPTIONS = ('convert -resize 700x315 ')
 GIF_MAKER_OPTIONS = ('convert -delay 300 -loop 0 -coalesce -fill white '
                      '-dispose Background ')
