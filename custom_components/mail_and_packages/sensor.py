@@ -356,7 +356,7 @@ class Packages_Delivered(Entity):
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Packages Delivered'
+        return 'Mail Packages Delivered'
 
     @property
     def state(self):
@@ -412,7 +412,7 @@ class Packages_Transit(Entity):
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Packages In Transit'
+        return 'Mail Packages In Transit'
 
     @property
     def state(self):
@@ -469,7 +469,7 @@ class UPS_Packages(Entity):
     def name(self):
         """Return the name of the sensor."""
 
-        return 'UPS Packages'
+        return 'Mail UPS Packages'
 
     @property
     def state(self):
@@ -629,7 +629,7 @@ class FEDEX_Packages(Entity):
     def name(self):
         """Return the name of the sensor."""
 
-        return 'FEDEX Packages'
+        return 'Mail FEDEX Packages'
 
     @property
     def state(self):
