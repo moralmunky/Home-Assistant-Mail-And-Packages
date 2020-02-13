@@ -854,6 +854,30 @@ def get_mails(account, image_output_path):
 
                 _LOGGER.debug("Extracting image from email")
                 filepath = image_output_path + part.get_filename()
+
+                # Check to see if the path exists, if not make it
+                pathcheck = os.path.isdir(image_output_path)
+                if not pathcheck:
+                    try:
+                        os.mkdir(image_output_path)
+                    except Exception as err:
+                        _LOGGER.critical("Error creating directory: %s",
+                                         str(err))
+
+                # Check if the no mail image is present in the image path
+                filecheck = os.path.isfile(image_output_path + 'mail_none.gif')
+                if not filecheck:
+                    try:
+                        copyfile(os.getcwd() +
+                                 '/custom_components/mail_and_packages/mail_none.gif',
+                                 image_output_path + 'mail_none.gif')
+                        copyfile(os.getcwd() +
+                                 '/custom_components/mail_and_packages/image-no-mailpieces700.jpg',
+                                 image_output_path + 'image-no-mailpieces700.jpg')                                 
+                    except Exception as err:
+                        _LOGGER.critical("Error copying no_mail image: %s",
+                                         str(err))
+
                 # Log error message if we are unable to open the filepath for
                 # some reason
                 try:
