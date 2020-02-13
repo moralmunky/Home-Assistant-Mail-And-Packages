@@ -49,7 +49,7 @@ Supports only Lovelace UI. Last tested in 0.105.x.
    * You will need to create the `custom_components` folder if it does not exist
    * On HomeAssistant (formerly hass.io) the final location will be `/config/custom_components/mail_and_packages`
    * On Hassbian the final location will be `/home/homeassistant/.homeassistant/custom_components/mail_and_packages`
-3. Copy/move `image-no-mailpieces700.jpg` and `mail_none.gif` to the www directory (recommend `/www/mail_and_packages` as the path)
+3. Copy/move `image-no-mailpieces700.jpg` and `mail_none.gif` to the www directory (recommend `<config_dir>/www/mail_and_packages` as the path)
 
 ## Configuration/HASS Set Up
 Once you have finished either installing via HACS or manually (and rebooted HASS), go into ```Configuration -> Integration``` select the ```+```and add the ```Mail And Packages``` integration you will be prompted to input your mail server settings.
