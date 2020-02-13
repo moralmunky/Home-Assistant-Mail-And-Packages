@@ -100,12 +100,6 @@ class MailCheck(Entity):
         return self._state
 
     @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-
-        return 'Time'
-
-    @property
     def icon(self):
         """Return the unit of measurement."""
 
