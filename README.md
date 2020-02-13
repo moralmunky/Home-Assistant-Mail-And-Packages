@@ -38,41 +38,24 @@ Supports only Lovelace UI. Last tested in 0.95.4.
 
 <img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
 
-## Upload Files
+## Installation (HACS) - Highly Recommended
+0. Have [HACS](https://github.com/custom-components/hacs) installed, this will allow you to easily update
+1. Add `https://github.com/moralmunky/Home-Assistant-Mail-And-Packages` as a [custom repository](https://custom-components.github.io/hacs/usage/settings/#add-custom-repositories) as Type: Integration
+2. Click install under "Mail and Packages", restart your instance.
 
-Upload the files into inside the Home Assistant .homeassistant/ folder as structured in the repository
-```
-.homeassistant/www/mail_and_packages/
-.homeassistant/custom_compontents/mail_and_packages/
-```
-## Lovelace Custom Card Setup
+## Installation (Manual)
+1. Download this repository as a ZIP (green button, top right) and unzip the archive
+2. Copy `/custom_components/mail_and_packages` to your `<config_dir>/custom_components/` directory
+   * You will need to create the `custom_components` folder if it does not exist
+   * On Hassio the final location will be `/config/custom_components/mail_and_packages`
+   * On Hassbian the final location will be `/home/homeassistant/.homeassistant/custom_components/mail_and_packages`
+3. Copy/move `image-no-mailpieces700.jpg` and `mail_none.gif` to the www directory (recommend /www/mail_and_packages)
 
-Add the js path relative to the /local/ path to the resources section of the lovelace yaml or at the top of the GUI lovelace RAW configuration editor.
-```
-resources:
-  - type: js
-    url: /local/mail_and_packages/mail_and_packages.js?v=.01
-```
-Add the card configuration to the cards: section of the view you want to display the card in.
-```
-  - type: 'custom:mail-and-packages'
-    deliver_today: sensor.mail_deliveries_today
-    fedex: sensor.mail_fedex_packages
-    in_transit: sensor.mail_packages_in_transit
-    last_update: sensor.mail_updated
-    mail: sensor.mail_usps_mail
-    summary: sensor.mail_deliveries_message
-    ups: sensor.mail_ups_packages
-    usps: sensor.mail_usps_packages
-```
+## Configuration/HASS Set Up
+Once you have finished either installing via HACS or manually (and rebooted HASS), go into ```Configuration -> Integration``` select the ```+```and add the ```Mail And Packages``` integration you will be prompted to input your mail server settings.
 
-## Installation 
-Once the directories are coppied over, go into ```Configuration -> Intergrations``` select the ```+```
-and add the ```Mail And Packages``` intergration you will be prompted to input your mail
-server settings.
-
-## Template
-Use the following to create a deliveries summary sensor:
+### Template
+Use the following to create a deliveries summary sensor (under the sensor portion of configuartion.yaml:
 ```
 - platform: template
   sensors:
@@ -110,4 +93,137 @@ Use the following to create a deliveries summary sensor:
               {{' '}}in transit.{{' '}}
           {%- endmacro %}
         {{deliveries_sentence()}}
-```        
+```
+### Camera
+You may also want to add a camera to display the image.  Add to the camera portion of configuration.yaml.
+```
+  - platform: local_file
+    file_path: /config/www/mail_and_packages/mail_today.gif
+    name: mail_usps
+```
+### Automation
+```
+- alias: "Mail Notif - Mail Delieveries"
+  initial_state: 'on'
+  trigger:
+  #Trigger if mail or packages get updated
+    - platform: state
+      entity_id: sensor.mail_usps_mail
+    - platform: state
+      entity_id: sensor.mail_usps_delivering
+  #send only if mail or packages are more than 0
+  condition:
+    - condition: or
+      conditions:
+        - condition: template
+          value_template: "{{ states('sensor.mail_usps_mail') | int > 0 }}"
+        - condition: template
+          value_template: "{{ states('sensor.mail_usps_delivering') | int > 0 }}"
+  action:
+    - service: notify.YOUR_NOTIFY_METHOD
+      data_template:
+        title: "*Today's Mail and Packages*"
+        message: "{{ states('sensor.mail_deliveries_message')}}"
+    - service: notify.YOUR_NOTIFY_METHOD
+      data:
+        message: "Here is the mail"
+        data:
+          document:
+            file: "PATH_TO_FILE/mail_today.gif"
+```
+
+## Lovelace Custom Card Setup
+
+A few options here as provided by the community:
+
+### Option 1 (requires [vertical stack in card custom card](https://github.com/ofekashery/vertical-stack-in-card))
+```
+- type: custom:vertical-stack-in-card
+      title: Mail & Package Tracking
+      cards:
+        - type: picture-glance
+          camera_image: camera.mail_usps
+          entities: []
+        - type: entity-filter
+          state_filter:
+            - operator: ">"
+              value: '0'
+          entities:
+           - entity: sensor.mail_usps_mail
+             name: "Today's Mail"
+           - entity: sensor.mail_packages_in_transit
+             name: "Today's Package Delivery"
+           - entity: sensor.mail_usps_delivering
+             icon: 'mdi:package-variant-closed'
+             name: USPS
+           - entity: sensor.mail_fedex_delivering
+             icon: 'mdi:package-variant-closed'
+             name: FedEx
+           - entity: sensor.mail_ups_delivering
+             icon: 'mdi:package-variant-closed'
+             name: UPS
+           - entity: sensor.mail_updated
+             state_filter:
+               - operator: "regex"
+                 value: 20
+```
+### Option 2 (also requires vertical stack in card)
+```
+cards:
+  - cards: null
+    entities:
+      - entity: sensor.mail_usps_mail
+        name: Todays USPS Mail
+      - entity: sensor.packages_in_transit
+        name: Todays Package Delivery
+    type: entities
+  - cards: null
+    entities:
+      - entity: sensor.mail_usps_delivering
+        icon: 'mdi:package-variant-closed'
+        name: USPS
+      - entity: sensor.mail_fedex_delivering
+        icon: 'mdi:package-variant-closed'
+        name: FedEx
+      - entity: sensor.mail_ups_delivering
+        icon: 'mdi:package-variant-closed'
+        name: UPS
+    show_header_toggle: false
+    type: glance
+  - aspect_ratio: 0%
+    camera_image: camera.mail_usps
+    entities: []
+    type: picture-glance
+  - cards: null
+    entities:
+      - entity: sensor.mail_updated
+    type: entities
+title: Mail & Package Tracking
+type: 'custom:vertical-stack-in-card'
+```
+### Option 3 (no custom card required)
+```
+    - type: vertical-stack
+      title: Mail Today
+      cards:
+        - type: picture
+          image: /local/mail_and_packages/mail_today.gif
+        - type: entity-filter
+          state_filter:
+            - operator: ">"
+              value: 0
+          entities:
+           - entity: sensor.mail_usps_mail
+             name: USPS Mail
+           - entity: sensor.mail_usps_packages
+             name: USPS Packages
+           - entity: sensor.fedex_packages
+             name: FedEx Packages
+           - sensor.ups_packages
+           - sensor.packages_in_transit
+           - sensor.packages_delivered
+           - entity: sensor.mail_updated
+             state_filter:
+               - operator: "regex"
+                 value: 20
+```
