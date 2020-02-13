@@ -8,13 +8,13 @@
 
 # HomeAssistant Mail and Packages
 
-Card, Custom Component, and iOS Notification for getting UPS, USPS, and FedEx delivery information in Home Assistant. This component only shows a snapshot of the current days packages that are in transit for delviery on the current day or have already been deliveredon in the current day. It also generates the number of USPS mail pieces and images (if avaiable) for the current day.
+Card, Custom Component, and Notifications for getting UPS, USPS, and FedEx delivery information in Home Assistant. This component only shows a snapshot of the current days packages that are in transit for delviery on the current day or have already been deliveredon in the current day. It also generates the number of USPS mail pieces and images (if avaiable) for the current day.
 
 The component conencts to the email account you supply where your shipment notifcations are deleivers. It looks at the subject lines of the current days emails from the shipping companies. It counts the subject line matches to the known standard subject lines from the shipping companies. For USPS informed delviery emails, it also downloads the mail images to combined them into a rotating GIF.
 
 All procedures are done locally on your machine.
 
-Supports only Lovelace UI. Last tested in 0.95.4.
+Supports only Lovelace UI. Last tested in 0.105.x.
 
 <img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/mail_card_screenshot.jpg" alt="Preview of the custom mail card" width="350" />  <img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/notification_screenshot.jpg" alt="Preview of the custom mail card" width="350" />
 
@@ -47,15 +47,15 @@ Supports only Lovelace UI. Last tested in 0.95.4.
 1. Download this repository as a ZIP (green button, top right) and unzip the archive
 2. Copy `/custom_components/mail_and_packages` to your `<config_dir>/custom_components/` directory
    * You will need to create the `custom_components` folder if it does not exist
-   * On Hassio the final location will be `/config/custom_components/mail_and_packages`
+   * On HomeAssistant (formerly hass.io) the final location will be `/config/custom_components/mail_and_packages`
    * On Hassbian the final location will be `/home/homeassistant/.homeassistant/custom_components/mail_and_packages`
-3. Copy/move `image-no-mailpieces700.jpg` and `mail_none.gif` to the www directory (recommend /www/mail_and_packages)
+3. Copy/move `image-no-mailpieces700.jpg` and `mail_none.gif` to the www directory (recommend `<config_dir>/www/mail_and_packages` as the path)
 
 ## Configuration/HASS Set Up
 Once you have finished either installing via HACS or manually (and rebooted HASS), go into ```Configuration -> Integration``` select the ```+```and add the ```Mail And Packages``` integration you will be prompted to input your mail server settings.
 
 ### Template
-Use the following to create a deliveries summary sensor (under the sensor portion of configuartion.yaml:
+Use the following to create a deliveries summary sensor (under the sensor portion of configuartion.yaml):
 ```
 - platform: template
   sensors:
@@ -206,8 +206,9 @@ type: 'custom:vertical-stack-in-card'
     - type: vertical-stack
       title: Mail Today
       cards:
-        - type: picture
-          image: /local/mail_and_packages/mail_today.gif
+        - type: picture-glance
+          camera_image: camera.mail_usps
+          entities: []
         - type: entity-filter
           state_filter:
             - operator: ">"
