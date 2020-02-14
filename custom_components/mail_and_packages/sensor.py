@@ -32,6 +32,7 @@ from .const import (
     USPS_Delivered_Subject,
     UPS_Email,
     UPS_Delivering_Subject,
+    UPS_Delivering_Subject_2,
     UPS_Delivered_Subject,
     FEDEX_Email,
     FEDEX_Delivering_Subject,
@@ -120,16 +121,23 @@ class EmailData:
             self._usps_packages = self._usps_delivering + self._usps_delivered
             self._ups_delivered = get_count(account, UPS_Email,
                                             UPS_Delivered_Subject)
-            self._ups_delivering = get_count(account, UPS_Email,
-                                             UPS_Delivering_Subject)
+            self._ups_delivering = (get_count(account, UPS_Email,
+                                              UPS_Delivering_Subject) +
+                                    get_count(account, UPS_Email,
+                                              UPS_Delivering_Subject_2))
             self._ups_packages = self._ups_delivered + self._ups_delivering
             self._fedex_delivered = get_count(account, FEDEX_Email,
                                               FEDEX_Delivered_Subject)
             self._fedex_delivering = get_count(account, FEDEX_Email,
                                                FEDEX_Delivering_Subject)
-            self._fedex_packages = self._fedex_delivered + self._fedex_delivering
-            self._packages_transit = self._fedex_delivering + self._ups_delivering + self._usps_delivering
-            self._packages_delivered = self._fedex_delivered + self._ups_delivered + self._usps_delivered
+            self._fedex_packages = (self._fedex_delivered +
+                                    self._fedex_delivering)
+            self._packages_transit = (self._fedex_delivering +
+                                      self._ups_delivering +
+                                      self._usps_delivering)
+            self._packages_delivered = (self._fedex_delivered +
+                                        self._ups_delivered +
+                                        self._usps_delivered)
 
         else:
             _LOGGER.debug("Host was left blank not attempting connection")
