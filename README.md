@@ -211,20 +211,20 @@ type: 'custom:vertical-stack-in-card'
           entities: []
         - type: entity-filter
           state_filter:
-            - operator: ">"
-              value: 0
+            - operator: '>'
+              value: '0'
           entities:
-           - entity: sensor.mail_usps_mail
-             name: USPS Mail
-           - entity: sensor.mail_usps_packages
-             name: USPS Packages
-           - entity: sensor.fedex_packages
-             name: FedEx Packages
-           - sensor.ups_packages
-           - sensor.packages_in_transit
-           - sensor.packages_delivered
-           - entity: sensor.mail_updated
-             state_filter:
-               - operator: "regex"
-                 value: 20
+            - entity: sensor.mail_usps_mail
+              name: USPS Mail
+            - entity: sensor.mail_usps_packages
+              name: USPS Packages
+            - entity: sensor.fedex_packages
+              name: FedEx Packages
+            - sensor.mail_ups_packages
+            - sensor.mail_packages_in_transit
+            - sensor.mail_packages_delivered
+            - entity: sensor.mail_updated
+              state_filter:
+                - operator: regex
+                  value: 20
 ```
