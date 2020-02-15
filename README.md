@@ -79,13 +79,13 @@ Use the following to create a deliveries summary sensor (under the sensor portio
                   pieces of mail
                 {%- endif -%}
               {{' '}}will be delivered.{{' '}} 
-                {%- if states("sensor.packages_in_transit")|int == 0 -%}
+                {%- if states("sensor.mail_packages_in_transit")|int == 0 -%}
                   No
                 {%- else -%}
-                  {{states("sensor.packages_in_transit")|int}}
+                  {{states("sensor.mail_packages_in_transit")|int}}
                 {%- endif -%}
               {{' '}} 
-                {%- if states("sensor.packages_in_transit")|int == 1 -%}
+                {%- if states("sensor.mail_packages_in_transit")|int == 1 -%}
                   package is
                 {%- else -%}
                   packages are
