@@ -139,6 +139,11 @@ class EmailData:
                                         self._ups_delivered +
                                         self._usps_delivered)
 
+            # Subtract the number of delivered packages from those in transit
+            if self._packages_transit >= self._packages_delivered:
+                self._packages_transit -= self._packages_delivered
+            
+
         else:
             _LOGGER.debug("Host was left blank not attempting connection")
 
