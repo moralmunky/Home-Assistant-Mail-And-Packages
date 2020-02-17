@@ -28,4 +28,4 @@ FEDEX_Delivering_Subject = 'Delivery scheduled for today'
 FEDEX_Delivered_Subject = 'Your package has been delivered'
 
 GIF_FILE_NAME = 'mail_today.gif'
-GIF_DURATION = 10
+GIF_DURATION = 5
