@@ -174,7 +174,7 @@ cards:
     entities:
       - entity: sensor.mail_usps_mail
         name: Todays USPS Mail
-      - entity: sensor.packages_in_transit
+      - entity: sensor.mail_packages_in_transit
         name: Todays Package Delivery
     type: entities
   - cards: null
