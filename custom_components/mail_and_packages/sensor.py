@@ -830,13 +830,13 @@ def get_mails(account, image_output_path):
         if image_count > 0:
             all_images = []
 
-            _LOGGER.debug("Resizing images to 700x315...")
-            # Resize images to 700x315
-            images = [resize(image, (700, 315)) for image in images]
-
             _LOGGER.debug("Creating array of image files...")
             # Create numpy array of images
             all_images = [io.imread(image) for image in images]
+
+            _LOGGER.debug("Resizing images to 700x315...")
+            # Resize images to 700x315
+            all_images = [resize(image, (700, 315)) for image in images]
 
             try:
                 _LOGGER.debug("Generating animated GIF")
