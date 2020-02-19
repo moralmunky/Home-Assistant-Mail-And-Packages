@@ -10,6 +10,7 @@ import logging
 import asyncio
 import imageio as io
 from skimage.transform import resize
+from skimage import img_as_ubyte
 import os
 import re
 import imaplib
@@ -836,7 +837,8 @@ def get_mails(account, image_output_path):
 
             _LOGGER.debug("Resizing images to 700x315...")
             # Resize images to 700x315
-            all_images = [resize(image, (315, 700)) for image in all_images]
+            all_images = [img_as_ubyte(resize(image, (315, 700))) for image in
+                          all_images]
 
             try:
                 _LOGGER.debug("Generating animated GIF")
