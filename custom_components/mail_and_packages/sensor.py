@@ -836,7 +836,7 @@ def get_mails(account, image_output_path):
 
             _LOGGER.debug("Resizing images to 700x315...")
             # Resize images to 700x315
-            all_images = [resize(image, (700, 315)) for image in all_images]
+            all_images = [resize(image, (315, 700)) for image in all_images]
 
             try:
                 _LOGGER.debug("Generating animated GIF")
