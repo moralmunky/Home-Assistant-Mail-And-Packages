@@ -840,8 +840,7 @@ def get_mails(account, image_output_path):
 
             _LOGGER.debug("Resizing images to 700x315...")
             # Resize images to 700x315
-            all_images = [img_as_ubyte(resize(image, (315, 700))) for image in
-                          all_images]
+            all_images = resize_images(all_images)
 
             try:
                 _LOGGER.debug("Generating animated GIF")
@@ -874,6 +873,24 @@ def get_mails(account, image_output_path):
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
 
     return image_count
+
+# Resize images
+# This should keep the aspect ratio of the images
+#################################################
+
+
+def resize_images(images):
+    sized_images = []
+    for image in images:
+        if image.size[0] < 700:
+            wpercent = 700/image.size[0]
+            height = int(float(image.size[1])*float(wpercent))
+            sized_images.append(img_as_ubyte(resize(image, (height, 700))))
+        else:
+            sized_images.append(img_as_ubyte(resize(image, (317, 700))))
+
+    return sized_images
+
 
 # Get Package Count
 ###############################################################################
