@@ -25,6 +25,7 @@ UPS_Delivered_Subject = 'Your UPS Package was delivered'
 
 FEDEX_Email = 'TrackingUpdates@fedex.com'
 FEDEX_Delivering_Subject = 'Delivery scheduled for today'
+FEDEX_Delivering_Subject_2 = 'Your package is scheduled for delivery today'
 FEDEX_Delivered_Subject = 'Your package has been delivered'
 
 GIF_FILE_NAME = 'mail_today.gif'

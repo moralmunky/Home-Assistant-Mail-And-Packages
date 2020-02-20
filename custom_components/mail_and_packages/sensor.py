@@ -38,6 +38,7 @@ from .const import (
     UPS_Delivered_Subject,
     FEDEX_Email,
     FEDEX_Delivering_Subject,
+    FEDEX_Delivering_Subject_2,
     FEDEX_Delivered_Subject,
     GIF_FILE_NAME,
     GIF_DURATION,
@@ -130,8 +131,10 @@ class EmailData:
             self._ups_packages = self._ups_delivered + self._ups_delivering
             self._fedex_delivered = get_count(account, FEDEX_Email,
                                               FEDEX_Delivered_Subject)
-            self._fedex_delivering = get_count(account, FEDEX_Email,
-                                               FEDEX_Delivering_Subject)
+            self._fedex_delivering = (get_count(account, FEDEX_Email,
+                                                FEDEX_Delivering_Subject) +
+                                      get_count(account, FEDEX_Email,
+                                                FEDEX_Delivering_Subject_2))
             self._fedex_packages = (self._fedex_delivered +
                                     self._fedex_delivering)
             self._packages_transit = (self._fedex_delivering +
