@@ -882,9 +882,9 @@ def get_mails(account, image_output_path):
 def resize_images(images):
     sized_images = []
     for image in images:
-        if image.size[0] < 700:
-            wpercent = 700/image.size[0]
-            height = int(float(image.size[1])*float(wpercent))
+        if image.shape[1] < 700:
+            wpercent = 700/image.shape[1]
+            height = int(float(image.shape[0])*float(wpercent))
             sized_images.append(img_as_ubyte(resize(image, (height, 700))))
         else:
             sized_images.append(img_as_ubyte(resize(image, (317, 700))))
