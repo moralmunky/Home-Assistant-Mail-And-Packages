@@ -9,6 +9,8 @@ Configuration code contribution from @firstof9 https://github.com/firstof9/
 import logging
 import asyncio
 import imageio as io
+from skimage.transform import resize
+from skimage import img_as_ubyte
 import os
 import re
 import imaplib
@@ -32,9 +34,11 @@ from .const import (
     USPS_Delivered_Subject,
     UPS_Email,
     UPS_Delivering_Subject,
+    UPS_Delivering_Subject_2,
     UPS_Delivered_Subject,
     FEDEX_Email,
     FEDEX_Delivering_Subject,
+    FEDEX_Delivering_Subject_2,
     FEDEX_Delivered_Subject,
     GIF_FILE_NAME,
     GIF_DURATION,
@@ -63,18 +67,89 @@ async def async_setup_entry(hass, entry, async_add_entities):
         CONF_PATH: entry.data[CONF_PATH]
     }
 
-    async_add_entities([MailCheck(), USPS_Mail(hass, config),
-                       USPS_Packages(hass, config),
-                       USPS_Delivering(hass, config),
-                       USPS_Delivered(hass, config),
-                       UPS_Packages(hass, config),
-                       UPS_Delivering(hass, config),
-                       UPS_Delivered(hass, config),
-                       FEDEX_Packages(hass, config),
-                       FEDEX_Delivering(hass, config),
-                       FEDEX_Delivered(hass, config),
-                       Packages_Delivered(hass, config),
-                       Packages_Transit(hass, config)])
+    data = EmailData(hass, config)
+
+    async_add_entities([MailCheck(), USPS_Mail(hass, data),
+                       USPS_Packages(hass, data),
+                       USPS_Delivering(hass, data),
+                       USPS_Delivered(hass, data),
+                       UPS_Packages(hass, data),
+                       UPS_Delivering(hass, data),
+                       UPS_Delivered(hass, data),
+                       FEDEX_Packages(hass, data),
+                       FEDEX_Delivering(hass, data),
+                       FEDEX_Delivered(hass, data),
+                       Packages_Delivered(hass, data),
+                       Packages_Transit(hass, data)])
+
+
+class EmailData:
+    """The class for handling the data retrieval."""
+
+    def __init__(self, hass, config):
+        """Initialize the data object."""
+        self._host = config.get(CONF_HOST)
+        self._port = config.get(CONF_PORT)
+        self._folder = config.get(CONF_FOLDER)
+        self._user = config.get(CONF_USERNAME)
+        self._pwd = config.get(CONF_PASSWORD)
+        self._img_out_path = config.get(CONF_PATH)
+        self._fedex_delivered = None
+        self._fedex_delivering = None
+        self._fedex_packages = None
+        self._ups_packages = None
+        self._ups_delivering = None
+        self._ups_delivered = None
+        self._usps_packages = None
+        self._usps_delivering = None
+        self._usps_delivered = None
+        self._usps_mail = None
+        self._packages_delivered = None
+        self._packages_transit = None
+
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    def update(self):
+        """Get the latest data"""
+        if self._host is not None:
+            # Login to email server and select the folder
+            account = login(self._host, self._port, self._user, self._pwd)
+            selectfolder(account, self._folder)
+
+            # Tally emails and generate mail images
+            self._usps_mail = get_mails(account, self._img_out_path)
+            self._usps_delivering = get_count(account, USPS_Packages_Email,
+                                              USPS_Delivering_Subject)
+            self._usps_delivered = get_count(account, USPS_Packages_Email,
+                                             USPS_Delivered_Subject)
+            self._usps_packages = self._usps_delivering + self._usps_delivered
+            self._ups_delivered = get_count(account, UPS_Email,
+                                            UPS_Delivered_Subject)
+            self._ups_delivering = (get_count(account, UPS_Email,
+                                              UPS_Delivering_Subject) +
+                                    get_count(account, UPS_Email,
+                                              UPS_Delivering_Subject_2))
+            self._ups_packages = self._ups_delivered + self._ups_delivering
+            self._fedex_delivered = get_count(account, FEDEX_Email,
+                                              FEDEX_Delivered_Subject)
+            self._fedex_delivering = (get_count(account, FEDEX_Email,
+                                                FEDEX_Delivering_Subject) +
+                                      get_count(account, FEDEX_Email,
+                                                FEDEX_Delivering_Subject_2))
+            self._fedex_packages = (self._fedex_delivered +
+                                    self._fedex_delivering)
+            self._packages_transit = (self._fedex_delivering +
+                                      self._ups_delivering +
+                                      self._usps_delivering)
+            self._packages_delivered = (self._fedex_delivered +
+                                        self._ups_delivered +
+                                        self._usps_delivered)
+
+            # Subtract the number of delivered packages from those in transit
+            if self._packages_transit >= self._packages_delivered:
+                self._packages_transit -= self._packages_delivered
+
+        else:
+            _LOGGER.debug("Host was left blank not attempting connection")
 
 
 class MailCheck(Entity):
@@ -118,15 +193,9 @@ class USPS_Mail(Entity):
 
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, data):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._user = config.get(CONF_USERNAME)
-        self._pwd = config.get(CONF_PASSWORD)
-        self._img_out_path = config.get(CONF_PATH)
-
+        self.data = data
         self._state = 0
         self.update()
 
@@ -154,31 +223,21 @@ class USPS_Mail(Entity):
 
         return "mdi:mailbox-up"
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-        if self._host is not None:
-            account = login(self._host, self._port, self._user, self._pwd)
-            selectfolder(account, self._folder)
-            self._state = get_mails(account, self._img_out_path)
-        else:
-            _LOGGER.debug("USPS Mail: Host was left blank not "
-                          "attempting connection")
+        self.data.update()
+        self._state = self.data._usps_mail
 
 
 class USPS_Packages(Entity):
 
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, data):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._user = config.get(CONF_USERNAME)
-        self._pwd = config.get(CONF_PASSWORD)
+        self.data = data
         self._state = 0
         self.update()
 
@@ -206,35 +265,21 @@ class USPS_Packages(Entity):
 
         return "mdi:package-variant-closed"
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-
-        if self._host is not None:
-            account = login(self._host, self._port, self._user, self._pwd)
-            selectfolder(account, self._folder)
-            self._state = get_count(account, USPS_Packages_Email,
-                                    USPS_Delivering_Subject)
-            self._state += get_count(account, USPS_Packages_Email,
-                                     USPS_Delivered_Subject)
-        else:
-            _LOGGER.debug("USPS Packages: Host was left blank not "
-                          "attempting connection")
+        self.data.update()
+        self._state = self.data._usps_packages
 
 
 class USPS_Delivering(Entity):
 
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, data):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._user = config.get(CONF_USERNAME)
-        self._pwd = config.get(CONF_PASSWORD)
+        self.data = data
         self._state = 0
         self.update()
 
@@ -262,33 +307,21 @@ class USPS_Delivering(Entity):
 
         return "mdi:truck-delivery"
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-
-        if self._host is not None:
-            account = login(self._host, self._port, self._user, self._pwd)
-            selectfolder(account, self._folder)
-            self._state = get_count(account, USPS_Packages_Email,
-                                    USPS_Delivering_Subject)
-        else:
-            _LOGGER.debug("USPS Delivering: Host was left blank not "
-                          "attempting connection")
+        self.data.update()
+        self._state = self.data._usps_delivering
 
 
 class USPS_Delivered(Entity):
 
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, data):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._user = config.get(CONF_USERNAME)
-        self._pwd = config.get(CONF_PASSWORD)
+        self.data = data
         self._state = 0
         self.update()
 
@@ -316,33 +349,21 @@ class USPS_Delivered(Entity):
 
         return "mdi:package-variant-closed"
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-
-        if self._host is not None:
-            account = login(self._host, self._port, self._user, self._pwd)
-            selectfolder(account, self._folder)
-            self._state = get_count(account, USPS_Packages_Email,
-                                    USPS_Delivered_Subject)
-        else:
-            _LOGGER.debug("USPS Delivered: Host was left blank not "
-                          "attempting connection")
+        self.data.update()
+        self._state = self.data._usps_delivered
 
 
 class Packages_Delivered(Entity):
 
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, data):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._user = config.get(CONF_USERNAME)
-        self._pwd = config.get(CONF_PASSWORD)
+        self.data = data
         self._state = 0
         self.update()
 
@@ -369,36 +390,21 @@ class Packages_Delivered(Entity):
         """Return the unit of measurement."""
         return "mdi:package-variant"
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-
-        if self._host is not None:
-            account = login(self._host, self._port, self._user, self._pwd)
-            selectfolder(account, self._folder)
-            self._state = get_count(account, USPS_Packages_Email,
-                                    USPS_Delivered_Subject)
-            self._state += get_count(account, UPS_Email, UPS_Delivered_Subject)
-            self._state += get_count(account, FEDEX_Email,
-                                     FEDEX_Delivered_Subject)
-        else:
-            _LOGGER.debug("Packages Transit: Host was left blank not "
-                          "attempting connection")
+        self.data.update()
+        self._state = self.data._packages_delivered
 
 
 class Packages_Transit(Entity):
 
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, data):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._user = config.get(CONF_USERNAME)
-        self._pwd = config.get(CONF_PASSWORD)
+        self.data = data
         self._state = 0
         self.update()
 
@@ -425,37 +431,21 @@ class Packages_Transit(Entity):
         """Return the unit of measurement."""
         return "mdi:truck-delivery"
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-
-        if self._host is not None:
-            account = login(self._host, self._port, self._user, self._pwd)
-            selectfolder(account, self._folder)
-            self._state = get_count(account, USPS_Packages_Email,
-                                    USPS_Delivering_Subject)
-            self._state += get_count(account, UPS_Email,
-                                     UPS_Delivering_Subject)
-            self._state += get_count(account, FEDEX_Email,
-                                     FEDEX_Delivering_Subject)
-        else:
-            _LOGGER.debug("Packages Transit: Host was left blank not "
-                          "attempting connection")
+        self.data.update()
+        self._state = self.data._packages_transit
 
 
 class UPS_Packages(Entity):
 
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, data):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._user = config.get(CONF_USERNAME)
-        self._pwd = config.get(CONF_PASSWORD)
+        self.data = data
         self._state = 0
         self.update()
 
@@ -483,33 +473,21 @@ class UPS_Packages(Entity):
 
         return "mdi:package-variant-closed"
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-
-        if self._host is not None:
-            account = login(self._host, self._port, self._user, self._pwd)
-            selectfolder(account, self._folder)
-            self._state = get_count(account, UPS_Email, UPS_Delivering_Subject)
-            self._state += get_count(account, UPS_Email, UPS_Delivered_Subject)
-        else:
-            _LOGGER.debug("UPS Packages: Host was left blank not "
-                          "attempting connection")
+        self.data.update()
+        self._state = self.data._ups_packages
 
 
 class UPS_Delivering(Entity):
 
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, data):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._user = config.get(CONF_USERNAME)
-        self._pwd = config.get(CONF_PASSWORD)
+        self.data = data
         self._state = 0
         self.update()
 
@@ -537,32 +515,21 @@ class UPS_Delivering(Entity):
 
         return "mdi:truck-delivery"
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-
-        if self._host is not None:
-            account = login(self._host, self._port, self._user, self._pwd)
-            selectfolder(account, self._folder)
-            self._state = get_count(account, UPS_Email, UPS_Delivering_Subject)
-        else:
-            _LOGGER.debug("UPS Delivering: Host was left blank not "
-                          "attempting connection")
+        self.data.update()
+        self._state = self.data._ups_delivering
 
 
 class UPS_Delivered(Entity):
 
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, data):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._user = config.get(CONF_USERNAME)
-        self._pwd = config.get(CONF_PASSWORD)
+        self.data = data
         self._state = 0
         self.update()
 
@@ -590,32 +557,21 @@ class UPS_Delivered(Entity):
 
         return "mdi:package-variant-closed"
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-
-        if self._host is not None:
-            account = login(self._host, self._port, self._user, self._pwd)
-            selectfolder(account, self._folder)
-            self._state = get_count(account, UPS_Email, UPS_Delivered_Subject)
-        else:
-            _LOGGER.debug("UPS Delivered: Host was left blank not "
-                          "attempting connection")
+        self.data.update()
+        self._state = self.data._ups_delivered
 
 
 class FEDEX_Packages(Entity):
 
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, data):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._user = config.get(CONF_USERNAME)
-        self._pwd = config.get(CONF_PASSWORD)
+        self.data = data
         self._state = 0
         self.update()
 
@@ -643,35 +599,21 @@ class FEDEX_Packages(Entity):
 
         return "mdi:package-variant-closed"
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-
-        if self._host is not None:
-            account = login(self._host, self._port, self._user, self._pwd)
-            selectfolder(account, self._folder)
-            self._state = get_count(account, FEDEX_Email,
-                                    FEDEX_Delivering_Subject)
-            self._state += get_count(account, FEDEX_Email,
-                                     FEDEX_Delivered_Subject)
-        else:
-            _LOGGER.debug("FEDEX Packages: Host was left blank not "
-                          "attempting connection")
+        self.data.update()
+        self._state = self.data._fedex_packages
 
 
 class FEDEX_Delivering(Entity):
 
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, data):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._user = config.get(CONF_USERNAME)
-        self._pwd = config.get(CONF_PASSWORD)
+        self.data = data
         self._state = 0
         self.update()
 
@@ -699,33 +641,21 @@ class FEDEX_Delivering(Entity):
 
         return "mdi:truck-delivery"
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-
-        if self._host is not None:
-            account = login(self._host, self._port, self._user, self._pwd)
-            selectfolder(account, self._folder)
-            self._state = get_count(account, FEDEX_Email,
-                                    FEDEX_Delivering_Subject)
-        else:
-            _LOGGER.debug("FEDEX Delivering: Host was left blank not "
-                          "attempting connection")
+        self.data.update()
+        self._state = self.data._fedex_delivering
 
 
 class FEDEX_Delivered(Entity):
 
     """Representation of a Sensor."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, data):
         """Initialize the sensor."""
-        self._host = config.get(CONF_HOST)
-        self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
-        self._user = config.get(CONF_USERNAME)
-        self._pwd = config.get(CONF_PASSWORD)
+        self.data = data
         self._state = 0
         self.update()
 
@@ -753,20 +683,12 @@ class FEDEX_Delivered(Entity):
 
         return "mdi:package-variant"
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
-
-        if self._host is not None:
-            account = login(self._host, self._port, self._user, self._pwd)
-            selectfolder(account, self._folder)
-            self._state = get_count(account, FEDEX_Email,
-                                    FEDEX_Delivered_Subject)
-        else:
-            _LOGGER.debug("FEDEX Delivered: Host was left blank not "
-                          "attempting connection")
+        self.data.update()
+        self._state = self.data._fedex_delivered
 
 # Login Method
 ###############################################################################
@@ -867,7 +789,7 @@ def get_mails(account, image_output_path):
                                  image_output_path + 'mail_none.gif')
                         copyfile(os.getcwd() +
                                  '/custom_components/mail_and_packages/image-no-mailpieces700.jpg',
-                                 image_output_path + 'image-no-mailpieces700.jpg')                                 
+                                 image_output_path + 'image-no-mailpieces700.jpg')
                     except Exception as err:
                         _LOGGER.critical("Error copying no_mail image: %s",
                                          str(err))
@@ -916,6 +838,10 @@ def get_mails(account, image_output_path):
             # Create numpy array of images
             all_images = [io.imread(image) for image in images]
 
+            _LOGGER.debug("Resizing images to 700x315...")
+            # Resize images to 700x315
+            all_images = resize_images(all_images)
+
             try:
                 _LOGGER.debug("Generating animated GIF")
                 # Use ImageIO to create mail images
@@ -947,6 +873,24 @@ def get_mails(account, image_output_path):
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
 
     return image_count
+
+# Resize images
+# This should keep the aspect ratio of the images
+#################################################
+
+
+def resize_images(images):
+    sized_images = []
+    for image in images:
+        if image.shape[1] < 700:
+            wpercent = 700/image.shape[1]
+            height = int(float(image.shape[0])*float(wpercent))
+            sized_images.append(img_as_ubyte(resize(image, (height, 700))))
+        else:
+            sized_images.append(img_as_ubyte(resize(image, (317, 700))))
+
+    return sized_images
+
 
 # Get Package Count
 ###############################################################################

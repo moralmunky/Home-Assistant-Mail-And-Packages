@@ -11,3 +11,4 @@ custom_components/mail_and_packages/.backup/__init__.py
 custom_components/mail_and_packages/.backup/camera.py
 custom_components/mail_and_packages/.backup/manifest.json
 custom_components/mail_and_packages/.backup/sensor.py
+notes.txt

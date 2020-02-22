@@ -1,5 +1,6 @@
 {
     "name": "Mail and Packages",
-    "domains": [ "sensor"],
-    "homeassistant": "0.95.4"
+    "domains": [ "sensor" ],
+    "homeassistant": "0.95.4",
+    "iot_class": "Cloud Polling"
 }

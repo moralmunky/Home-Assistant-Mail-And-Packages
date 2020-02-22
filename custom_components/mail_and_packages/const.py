@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.0.7"
+VERSION = "0.1.0"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 
 CONF_FOLDER = "folder"
@@ -20,14 +20,13 @@ USPS_Delivered_Subject = 'Item Delivered'
 
 UPS_Email = 'mcinfo@ups.com'
 UPS_Delivering_Subject = 'UPS Update: Package Scheduled for Delivery Today'
+UPS_Delivering_Subject_2 = 'UPS Update: Follow Your Delivery on a Live Map'
 UPS_Delivered_Subject = 'Your UPS Package was delivered'
 
 FEDEX_Email = 'TrackingUpdates@fedex.com'
 FEDEX_Delivering_Subject = 'Delivery scheduled for today'
+FEDEX_Delivering_Subject_2 = 'Your package is scheduled for delivery today'
 FEDEX_Delivered_Subject = 'Your package has been delivered'
 
 GIF_FILE_NAME = 'mail_today.gif'
-GIF_DURATION = 10
-IMG_RESIZE_OPTIONS = ('convert -resize 700x315 ')
-GIF_MAKER_OPTIONS = ('convert -delay 300 -loop 0 -coalesce -fill white '
-                     '-dispose Background ')
+GIF_DURATION = 5

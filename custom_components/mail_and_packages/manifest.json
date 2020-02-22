@@ -5,5 +5,5 @@
   "dependencies": [],
   "codeowners": ["@moralmunky","@firstof9"],
   "config_flow": true,
-  "requirements": [ "imageio" ]
+  "requirements": [ "imageio", "scipy", "scikit-image" ]
 }
