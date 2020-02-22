@@ -780,20 +780,6 @@ def get_mails(account, image_output_path):
                         _LOGGER.critical("Error creating directory: %s",
                                          str(err))
 
-                # Check if the no mail image is present in the image path
-                filecheck = os.path.isfile(image_output_path + 'mail_none.gif')
-                if not filecheck:
-                    try:
-                        copyfile(os.getcwd() +
-                                 '/custom_components/mail_and_packages/mail_none.gif',
-                                 image_output_path + 'mail_none.gif')
-                        copyfile(os.getcwd() +
-                                 '/custom_components/mail_and_packages/image-no-mailpieces700.jpg',
-                                 image_output_path + 'image-no-mailpieces700.jpg')
-                    except Exception as err:
-                        _LOGGER.critical("Error copying no_mail image: %s",
-                                         str(err))
-
                 # Log error message if we are unable to open the filepath for
                 # some reason
                 try:
@@ -817,11 +803,10 @@ def get_mails(account, image_output_path):
         link_pattern = re.compile('image-no-mailpieces700.jpg')
         search = link_pattern.search(html_text)
         if search is not None:
-            images.append(image_output_path + 'image-no-mailpieces700.jpg')
+            images.append(os.getcwd() +
+                                  '/custom_components/mail_and_packages/image-no-mailpieces700.jpg')
             image_count = image_count + 1
-            _LOGGER.debug("Placeholder image found using: " +
-                          image_output_path +
-                          "image-no-mailpieces700.jpg.")
+            _LOGGER.debug("Placeholder image found using: image-no-mailpieces700.jpg.")
 
         # Remove USPS announcement images
         _LOGGER.debug("Removing USPS announcement images.")
