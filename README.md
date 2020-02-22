@@ -135,15 +135,18 @@ You may also want to add a camera to display the image.  Add to the camera porti
 ## Lovelace Custom Card Setup
 
 A few options here as provided by the community:
+Note: The local file camera reloads the file after 10 seconds. If the gif is langer than 10 seconds not all mail with be shown. Please use a [picture entity card](https://www.home-assistant.io/lovelace/picture-entity/) with the camera view set to live.
 
 ### Option 1 (requires [vertical stack in card custom card](https://github.com/ofekashery/vertical-stack-in-card))
 ```
 - type: custom:vertical-stack-in-card
       title: Mail & Package Tracking
       cards:
-        - type: picture-glance
-          camera_image: camera.mail_usps
-          entities: []
+        - aspect_ratio: 50%
+          camera_view: live
+          entity: camera.mail_usps
+          name: Mail
+          type: picture-entity
         - type: entity-filter
           state_filter:
             - operator: ">"
@@ -190,10 +193,11 @@ cards:
         name: UPS
     show_header_toggle: false
     type: glance
-  - aspect_ratio: 0%
-    camera_image: camera.mail_usps
-    entities: []
-    type: picture-glance
+  - aspect_ratio: 50%
+    camera_view: live
+    entity: camera.mail_usps
+    name: Mail
+    type: picture-entity
   - cards: null
     entities:
       - entity: sensor.mail_updated
@@ -203,28 +207,30 @@ type: 'custom:vertical-stack-in-card'
 ```
 ### Option 3 (no custom card required)
 ```
-    - type: vertical-stack
-      title: Mail Today
-      cards:
-        - type: picture-glance
-          camera_image: camera.mail_usps
-          entities: []
-        - type: entity-filter
+ - cards:
+    - aspect_ratio: 50%
+      camera_view: live
+      entity: camera.mail_usps
+      name: Mail
+      type: picture-entity
+    - entities:
+        - entity: sensor.mail_usps_mail
+          name: USPS Mail
+        - entity: sensor.mail_usps_packages
+          name: USPS Packages
+        - entity: sensor.fedex_packages
+          name: FedEx Packages
+        - sensor.mail_ups_packages
+        - sensor.mail_packages_in_transit
+        - sensor.mail_packages_delivered
+        - entity: sensor.mail_updated
           state_filter:
-            - operator: '>'
-              value: '0'
-          entities:
-            - entity: sensor.mail_usps_mail
-              name: USPS Mail
-            - entity: sensor.mail_usps_packages
-              name: USPS Packages
-            - entity: sensor.fedex_packages
-              name: FedEx Packages
-            - sensor.mail_ups_packages
-            - sensor.mail_packages_in_transit
-            - sensor.mail_packages_delivered
-            - entity: sensor.mail_updated
-              state_filter:
-                - operator: regex
-                  value: 20
+            - operator: regex
+              value: 20
+      state_filter:
+        - operator: '>'
+          value: '0'
+      type: entity-filter
+  title: Mail Today
+  type: vertical-stack
 ```
