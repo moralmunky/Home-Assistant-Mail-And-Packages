@@ -825,7 +825,7 @@ def get_mails(account, image_output_path):
 
         # Remove USPS announcement images
         _LOGGER.debug("Removing USPS announcement images.")
-        remove_terms = ['mailerProvidedImage', 'ra_0']
+        remove_terms = ['mailerProvidedImage', 'ra_0' , 'Mail Attachment.txt']
         images = [el for el in images if not any(ignore in el for ignore
                                                  in remove_terms)]
         image_count = len(images)
