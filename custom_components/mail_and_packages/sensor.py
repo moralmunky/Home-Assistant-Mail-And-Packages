@@ -867,7 +867,8 @@ def get_mails(account, image_output_path):
                 _LOGGER.error("Error attempting to remove image: %s", str(err))
             try:
                 _LOGGER.debug("Copying nomail gif")
-                copyfile(image_output_path + 'mail_none.gif',
+                copyfile(os.getcwd() +
+                                 '/custom_components/mail_and_packages/mail_none.gif',
                          image_output_path + GIF_FILE_NAME)
             except Exception as err:
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
