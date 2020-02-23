@@ -796,7 +796,7 @@ def get_mails(account, image_output_path):
         images = list(dict.fromkeys(images))
 
         # Create copy of image list for deleting temporary images
-        imagesDelete = images
+        imagesDelete = images[:]
 
         # Look for mail pieces without images image
         html_text = str(msg)
