@@ -804,14 +804,15 @@ def get_mails(account, image_output_path):
         link_pattern = re.compile('image-no-mailpieces700.jpg')
         search = link_pattern.search(html_text)
         if search is not None:
-            images.append(os.getcwd() +
-                                  '/custom_components/mail_and_packages/image-no-mailpieces700.jpg')
+            images.append(os.path.dirname(__file__) +
+                          '/image-no-mailpieces700.jpg')
             image_count = image_count + 1
-            _LOGGER.debug("Placeholder image found using: image-no-mailpieces700.jpg.")
+            _LOGGER.debug("Placeholder image found using: " +
+                          "image-no-mailpieces700.jpg.")
 
         # Remove USPS announcement images
         _LOGGER.debug("Removing USPS announcement images.")
-        remove_terms = ['mailerProvidedImage', 'ra_0' , 'Mail Attachment.txt']
+        remove_terms = ['mailerProvidedImage', 'ra_0', 'Mail Attachment.txt']
         images = [el for el in images if not any(ignore in el for ignore
                                                  in remove_terms)]
         image_count = len(images)
@@ -853,8 +854,7 @@ def get_mails(account, image_output_path):
                 _LOGGER.error("Error attempting to remove image: %s", str(err))
             try:
                 _LOGGER.debug("Copying nomail gif")
-                copyfile(os.getcwd() +
-                                 '/custom_components/mail_and_packages/mail_none.gif',
+                copyfile(os.path.dirname(__file__) + '/mail_none.gif',
                          image_output_path + GIF_FILE_NAME)
             except Exception as err:
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
@@ -869,12 +869,13 @@ def get_mails(account, image_output_path):
 def resize_images(images):
     sized_images = []
     for image in images:
-        if image.shape[1] < 700:
-            wpercent = 700/image.shape[1]
-            height = int(float(image.shape[0])*float(wpercent))
-            sized_images.append(img_as_ubyte(resize(image, (height, 700))))
-        else:
-            sized_images.append(img_as_ubyte(resize(image, (317, 700))))
+    #     if image.shape[1] < 700:
+    #         wpercent = 700/image.shape[1]
+    #         height = int(float(image.shape[0])*float(wpercent))
+    #         sized_images.append(img_as_ubyte(resize(image, (height, 700))))
+    #     else:
+        sized_images.append(img_as_ubyte(resize(image, (317, 700),
+                            mode='median')))
 
     return sized_images
 
