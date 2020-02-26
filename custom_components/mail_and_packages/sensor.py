@@ -5,12 +5,11 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 
-# import voluptuous as vol
-import logging
 import asyncio
+import logging
 import imageio as io
-from skimage.transform import resize
-from skimage import img_as_ubyte
+# from skimage.transform import resize
+# from skimage import img_as_ubyte
 import os
 import re
 import imaplib
@@ -27,6 +26,7 @@ from homeassistant.const import (
 from .const import (
     CONF_FOLDER,
     CONF_PATH,
+    CONF_DURATION,
     USPS_Mail_Email,
     USPS_Packages_Email,
     USPS_Mail_Subject,
@@ -41,9 +41,6 @@ from .const import (
     FEDEX_Delivering_Subject_2,
     FEDEX_Delivered_Subject,
     GIF_FILE_NAME,
-    GIF_DURATION,
-    VERSION,
-    ISSUE_URL,
 )
 
 from homeassistant.util import Throttle
@@ -52,11 +49,10 @@ _LOGGER = logging.getLogger(__name__)
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
 
-@asyncio.coroutine
 async def async_setup_entry(hass, entry, async_add_entities):
 
-    _LOGGER.info('version %s is starting, if you have any issues please report'
-                 ' them here: %s', VERSION, ISSUE_URL)
+    # _LOGGER.info('version %s is starting, if you have any issues please report'
+    #              ' them here: %s', VERSION, ISSUE_URL)
 
     config = {
         CONF_HOST: entry.data[CONF_HOST],
@@ -64,12 +60,13 @@ async def async_setup_entry(hass, entry, async_add_entities):
         CONF_PASSWORD: entry.data[CONF_PASSWORD],
         CONF_PORT: entry.data[CONF_PORT],
         CONF_FOLDER: entry.data[CONF_FOLDER],
-        CONF_PATH: entry.data[CONF_PATH]
+        CONF_PATH: entry.data[CONF_PATH],
+        CONF_DURATION: entry.data[CONF_DURATION]
     }
 
     data = EmailData(hass, config)
 
-    async_add_entities([MailCheck(), USPS_Mail(hass, data),
+    async_add_entities([MailCheck(data), USPS_Mail(hass, data),
                        USPS_Packages(hass, data),
                        USPS_Delivering(hass, data),
                        USPS_Delivered(hass, data),
@@ -80,7 +77,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                        FEDEX_Delivering(hass, data),
                        FEDEX_Delivered(hass, data),
                        Packages_Delivered(hass, data),
-                       Packages_Transit(hass, data)])
+                       Packages_Transit(hass, data)], True)
 
 
 class EmailData:
@@ -94,6 +91,7 @@ class EmailData:
         self._user = config.get(CONF_USERNAME)
         self._pwd = config.get(CONF_PASSWORD)
         self._img_out_path = config.get(CONF_PATH)
+        self._gif_duration = config.get(CONF_DURATION)
         self._fedex_delivered = None
         self._fedex_delivering = None
         self._fedex_packages = None
@@ -116,7 +114,8 @@ class EmailData:
             selectfolder(account, self._folder)
 
             # Tally emails and generate mail images
-            self._usps_mail = get_mails(account, self._img_out_path)
+            self._usps_mail = get_mails(account, self._img_out_path,
+                                        self._gif_duration)
             self._usps_delivering = get_count(account, USPS_Packages_Email,
                                               USPS_Delivering_Subject)
             self._usps_delivered = get_count(account, USPS_Packages_Email,
@@ -156,17 +155,23 @@ class MailCheck(Entity):
 
     """Representation of a Sensor."""
 
-    def __init__(self):
+    def __init__(self, data):
         """Initialize the sensor."""
-
+        self._name = 'Mail Updated'
+        self.data = data
         self._state = None
         self.update()
+
+    @property
+    def unique_id(self):
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self.data._host}_{self._name}"
 
     @property
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Mail Updated'
+        return self._name
 
     @property
     def state(self):
@@ -195,15 +200,21 @@ class USPS_Mail(Entity):
 
     def __init__(self, hass, data):
         """Initialize the sensor."""
+        self._name = 'Mail USPS Mail'
         self.data = data
         self._state = 0
         self.update()
 
     @property
+    def unique_id(self):
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self.data._host}_{self._name}"
+
+    @property
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Mail USPS Mail'
+        return self._name
 
     @property
     def state(self):
@@ -237,15 +248,21 @@ class USPS_Packages(Entity):
 
     def __init__(self, hass, data):
         """Initialize the sensor."""
+        self._name = 'Mail USPS Packages'
         self.data = data
         self._state = 0
         self.update()
 
     @property
+    def unique_id(self):
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self.data._host}_{self._name}"
+
+    @property
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Mail USPS Packages'
+        return self._name
 
     @property
     def state(self):
@@ -279,15 +296,21 @@ class USPS_Delivering(Entity):
 
     def __init__(self, hass, data):
         """Initialize the sensor."""
+        self._name = 'Mail USPS Delivering'
         self.data = data
         self._state = 0
         self.update()
 
     @property
+    def unique_id(self):
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self.data._host}_{self._name}"
+
+    @property
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Mail USPS Delivering'
+        return self._name
 
     @property
     def state(self):
@@ -321,15 +344,21 @@ class USPS_Delivered(Entity):
 
     def __init__(self, hass, data):
         """Initialize the sensor."""
+        self._name = 'Mail USPS Delivered'
         self.data = data
         self._state = 0
         self.update()
 
     @property
+    def unique_id(self):
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self.data._host}_{self._name}"
+
+    @property
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Mail USPS Delivered'
+        return self._name
 
     @property
     def state(self):
@@ -363,15 +392,21 @@ class Packages_Delivered(Entity):
 
     def __init__(self, hass, data):
         """Initialize the sensor."""
+        self._name = 'Mail Packages Delivered'
         self.data = data
         self._state = 0
         self.update()
 
     @property
+    def unique_id(self):
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self.data._host}_{self._name}"
+
+    @property
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Mail Packages Delivered'
+        return self._name
 
     @property
     def state(self):
@@ -404,15 +439,21 @@ class Packages_Transit(Entity):
 
     def __init__(self, hass, data):
         """Initialize the sensor."""
+        self._name = 'Mail Packages In Transit'
         self.data = data
         self._state = 0
         self.update()
 
     @property
+    def unique_id(self):
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self.data._host}_{self._name}"
+
+    @property
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Mail Packages In Transit'
+        return self._name
 
     @property
     def state(self):
@@ -445,15 +486,21 @@ class UPS_Packages(Entity):
 
     def __init__(self, hass, data):
         """Initialize the sensor."""
+        self._name = 'Mail UPS Packages'
         self.data = data
         self._state = 0
         self.update()
 
     @property
+    def unique_id(self):
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self.data._host}_{self._name}"
+
+    @property
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Mail UPS Packages'
+        return self._name
 
     @property
     def state(self):
@@ -487,15 +534,21 @@ class UPS_Delivering(Entity):
 
     def __init__(self, hass, data):
         """Initialize the sensor."""
+        self._name = 'Mail UPS Delivering'
         self.data = data
         self._state = 0
         self.update()
 
     @property
+    def unique_id(self):
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self.data._host}_{self._name}"
+
+    @property
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Mail UPS Delivering'
+        return self._name
 
     @property
     def state(self):
@@ -529,15 +582,21 @@ class UPS_Delivered(Entity):
 
     def __init__(self, hass, data):
         """Initialize the sensor."""
+        self._name = 'Mail UPS Delivered'
         self.data = data
         self._state = 0
         self.update()
 
     @property
+    def unique_id(self):
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self.data._host}_{self._name}"
+
+    @property
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Mail UPS Delivered'
+        return self._name
 
     @property
     def state(self):
@@ -571,15 +630,21 @@ class FEDEX_Packages(Entity):
 
     def __init__(self, hass, data):
         """Initialize the sensor."""
+        self._name = 'Mail FEDEX Packages'
         self.data = data
         self._state = 0
         self.update()
 
     @property
+    def unique_id(self):
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self.data._host}_{self._name}"
+
+    @property
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Mail FEDEX Packages'
+        return self._name
 
     @property
     def state(self):
@@ -613,15 +678,21 @@ class FEDEX_Delivering(Entity):
 
     def __init__(self, hass, data):
         """Initialize the sensor."""
+        self._name = 'Mail FEDEX Delivering'
         self.data = data
         self._state = 0
         self.update()
 
     @property
+    def unique_id(self):
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self.data._host}_{self._name}"
+
+    @property
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Mail FEDEX Delivering'
+        return self._name
 
     @property
     def state(self):
@@ -655,15 +726,21 @@ class FEDEX_Delivered(Entity):
 
     def __init__(self, hass, data):
         """Initialize the sensor."""
+        self._name = 'Mail FEDEX Delivered'
         self.data = data
         self._state = 0
         self.update()
 
     @property
+    def unique_id(self):
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self.data._host}_{self._name}"
+
+    @property
     def name(self):
         """Return the name of the sensor."""
 
-        return 'Mail FEDEX Delivered'
+        return self._name
 
     @property
     def state(self):
@@ -738,7 +815,7 @@ def update_time():
 # Creates GIF image based on the attachments in the inbox
 ###############################################################################
 
-def get_mails(account, image_output_path):
+def get_mails(account, image_output_path, gif_duration):
     today = get_formatted_date()
     image_count = 0
     images = []
@@ -807,11 +884,12 @@ def get_mails(account, image_output_path):
             images.append(os.path.dirname(__file__) +
                           '/image-no-mailpieces700.jpg')
             image_count = image_count + 1
-            _LOGGER.debug("Placeholder image found using: image-no-mailpieces700.jpg.")
+            _LOGGER.debug("Placeholder image found using: " +
+                          "image-no-mailpieces700.jpg.")
 
         # Remove USPS announcement images
         _LOGGER.debug("Removing USPS announcement images.")
-        remove_terms = ['mailerProvidedImage', 'ra_0' , 'Mail Attachment.txt']
+        remove_terms = ['mailerProvidedImage', 'ra_0', 'Mail Attachment.txt']
         images = [el for el in images if not any(ignore in el for ignore
                                                  in remove_terms)]
         image_count = len(images)
@@ -820,19 +898,19 @@ def get_mails(account, image_output_path):
         if image_count > 0:
             all_images = []
 
+            # _LOGGER.debug("Resizing images to 700x315...")
+            # # Resize images to 700x315
+            # all_images = resize_images(all_images)
+
             _LOGGER.debug("Creating array of image files...")
             # Create numpy array of images
             all_images = [io.imread(image) for image in images]
-
-            _LOGGER.debug("Resizing images to 700x315...")
-            # Resize images to 700x315
-            all_images = resize_images(all_images)
 
             try:
                 _LOGGER.debug("Generating animated GIF")
                 # Use ImageIO to create mail images
                 io.mimwrite(os.path.join(image_output_path, GIF_FILE_NAME),
-                            all_images, duration=GIF_DURATION)
+                            all_images, duration=gif_duration)
                 _LOGGER.info("Mail image generated.")
             except Exception as err:
                 _LOGGER.error("Error attempting to generate image: %s",
@@ -865,17 +943,19 @@ def get_mails(account, image_output_path):
 #################################################
 
 
-def resize_images(images):
-    sized_images = []
-    for image in images:
-        if image.shape[1] < 700:
-            wpercent = 700/image.shape[1]
-            height = int(float(image.shape[0])*float(wpercent))
-            sized_images.append(img_as_ubyte(resize(image, (height, 700))))
-        else:
-            sized_images.append(img_as_ubyte(resize(image, (317, 700))))
+# def resize_images(images):
+    # sized_images = []
+    # for image in images:
+    #     if image.shape[1] < 700:
+    #         wpercent = 700/image.shape[1]
+    #         height = int(float(image.shape[0])*float(wpercent))
+    #         sized_images.append(img_as_ubyte(resize(image, (height, 700))))
+    #     else:
+        # sized_images.append(img_as_ubyte(resize(image, (317, 700),
+        #                     mode='symmetric')))
 
-    return sized_images
+
+    # return sized_images
 
 
 # Get Package Count
