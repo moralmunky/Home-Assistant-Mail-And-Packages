@@ -74,6 +74,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 folder = user_input["folder"]
             if "image_path" in user_input:
                 image_path = user_input["image_path"]
+            if "gif_duration" in user_input:
+                image_path = user_input["gif_duration"]
 
         data_schema = OrderedDict()
         data_schema[vol.Required("host", default=host)] = str
@@ -81,6 +83,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         data_schema[vol.Required("username", default=username)] = str
         data_schema[vol.Required("password", default=password)] = str
         data_schema[vol.Optional("folder", default=folder)] = str
+        data_schema[vol.Optional("gif_duration", default=5)] = vol.Coerce(int)
         data_schema[vol.Optional("image_path", default=image_path)] = str
         return self.async_show_form(
             step_id="user", data_schema=vol.Schema(data_schema),

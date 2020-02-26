@@ -1,9 +1,10 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
+CONF_DURATION = "gif_duration"
 
 DEFAULT_NAME = "Mail And Packages"
 DEFAULT_PORT = '993'
