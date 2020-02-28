@@ -110,7 +110,7 @@ class EmailData:
         """Get the latest data"""
         if self._host is not None:
             # Login to email server and select the folder
-            account = login(self._host, self._port, self._user, self._pwd)
+            account = await login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
 
             # Tally emails and generate mail images
@@ -792,12 +792,18 @@ def login(host, port, user, pwd):
 
 
 def selectfolder(account, folder):
-    rv, mailboxes = account.list()
-    rv, data = account.select(folder)
-
+    try:
+        rv, mailboxes = account.list()
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("Error listing folders: %s", str(err))
+    try:
+        rv, data = account.select(folder)
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("Error selecting folder: %s", str(err))
 
 # Returns today in specific format
 ###############################################################################
+
 
 def get_formatted_date():
     return datetime.datetime.today().strftime('%d-%b-%Y')
@@ -805,6 +811,7 @@ def get_formatted_date():
 
 # gets update time
 ###############################################################################
+
 
 def update_time():
     updated = datetime.datetime.now().strftime('%b-%d-%Y %I:%M %p')
@@ -827,11 +834,6 @@ def get_mails(account, image_output_path, gif_duration):
     (rv, data) = account.search(None,
                                 '(FROM "' + USPS_Mail_Email + '" SUBJECT "' +
                                 USPS_Mail_Subject + '" ON "' + today + '")')
-
-    # Get number of emails found
-    # messageIDsString = str(data[0], encoding='utf8')
-    # listOfSplitStrings = messageIDsString.split(" ")
-    # msg_count = len(listOfSplitStrings)
 
     if rv == 'OK':
         _LOGGER.debug("Informed Delivery email found processing...")
@@ -951,10 +953,8 @@ def get_mails(account, image_output_path, gif_duration):
     #         height = int(float(image.shape[0])*float(wpercent))
     #         sized_images.append(img_as_ubyte(resize(image, (height, 700))))
     #     else:
-        # sized_images.append(img_as_ubyte(resize(image, (317, 700),
-        #                     mode='symmetric')))
-
-
+    # sized_images.append(img_as_ubyte(resize(image, (317, 700),
+    #                     mode='symmetric')))
     # return sized_images
 
 
@@ -968,9 +968,11 @@ def get_count(account, email, subject):
 
     _LOGGER.debug("Attempting to find mail from %s with subject %s", email,
                   subject)
-
-    (rv, data) = account.search(None, '(FROM "' + email + '" SUBJECT "'
-                                + subject + '" ON "' + today + '")')
+    try:
+        (rv, data) = account.search(None, '(FROM "' + email + '" SUBJECT "'
+                                    + subject + '" ON "' + today + '")')
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("Error searching emails: %s", str(err))
 
     if rv == 'OK':
         count = len(data[0].split())

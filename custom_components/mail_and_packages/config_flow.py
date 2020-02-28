@@ -89,28 +89,18 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=vol.Schema(data_schema),
             errors=self._errors)
 
-    # async def async_step_import(self, user_input):
-    #     """Import a config entry.
-    #     Special type of import, we're not actually going to store any data.
-    #     Instead, we're going to rely on the values that are in config file.
-    #     """
-    #     if self._async_current_entries():
-    #         return self.async_abort(reason="single_instance_allowed")
-
-    #     return self.async_create_entry(title="configuration.yaml", data={})
-
     async def _test_login(self, host, port, user, pwd):
         """function used to login"""
         # Attempt to catch invalid mail server hosts
         try:
             account = imaplib.IMAP4_SSL(host, port)
         except imaplib.IMAP4.error as err:
-            _LOGGER.info("Error connecting into IMAP Server: %s", str(err))
+            _LOGGER.error("Error connecting into IMAP Server: %s", str(err))
             return False
         # Validate we can login to mail server
         try:
             rv, data = account.login(user, pwd)
             return True
         except imaplib.IMAP4.error as err:
-            _LOGGER.info("Error logging into IMAP Server: %s", str(err))
+            _LOGGER.error("Error logging into IMAP Server: %s", str(err))
             return False
