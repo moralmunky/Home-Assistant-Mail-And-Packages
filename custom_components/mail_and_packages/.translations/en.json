@@ -23,5 +23,27 @@
             }
         },
         "title": "Mail and Packages"
-    }
+    },
+    "options": {
+        "error": {
+            "communication": "Unable to connect or login to the mail server. Please check the log for details."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Host",
+                    "folder": "Folder",
+                    "image_path": "Path to store mail images",
+                    "password": "Password",
+                    "port": "Port",
+                    "username": "Username",
+                    "gif_duration": "Time in seconds per image"
+
+                },
+                "description": "Please enter the connection information of your mail server and the path to store mail images.\n\nHassIO users should use /config/www/mail_and_packages as the image path.",
+                "title": "Mail and Packages"
+            }
+        },
+        "title": "Mail and Packages"
+    }    
 }

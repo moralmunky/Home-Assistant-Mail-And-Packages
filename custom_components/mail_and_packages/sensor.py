@@ -110,7 +110,7 @@ class EmailData:
         """Get the latest data"""
         if self._host is not None:
             # Login to email server and select the folder
-            account = await login(self._host, self._port, self._user, self._pwd)
+            account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
 
             # Tally emails and generate mail images
