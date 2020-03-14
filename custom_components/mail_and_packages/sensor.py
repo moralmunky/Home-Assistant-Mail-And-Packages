@@ -51,9 +51,6 @@ MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
 async def async_setup_entry(hass, entry, async_add_entities):
 
-    # _LOGGER.info('version %s is starting, if you have any issues please report'
-    #              ' them here: %s', VERSION, ISSUE_URL)
-
     config = {
         CONF_HOST: entry.data[CONF_HOST],
         CONF_USERNAME: entry.data[CONF_USERNAME],
@@ -77,7 +74,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
                        FEDEX_Delivering(hass, data),
                        FEDEX_Delivered(hass, data),
                        Packages_Delivered(hass, data),
-                       Packages_Transit(hass, data)], True)
+                       Packages_Transit(hass, data),
+                       Amazon_Packages(hass, data)], True)
 
 
 class EmailData:
@@ -104,6 +102,8 @@ class EmailData:
         self._usps_mail = None
         self._packages_delivered = None
         self._packages_transit = None
+        self._amazon_packages = None
+        self._amazon_items = None
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
@@ -145,6 +145,9 @@ class EmailData:
             self._packages_delivered = (self._fedex_delivered +
                                         self._ups_delivered +
                                         self._usps_delivered)
+            self._amazon_packages = get_items(account, "count")
+            self._amazon_items = get_items(account, "items")
+            self._amazon_order = get_items(account, "order")
 
             # Subtract the number of delivered packages from those in transit
             if self._packages_transit >= self._packages_delivered:
@@ -167,7 +170,9 @@ class MailCheck(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -197,6 +202,66 @@ class MailCheck(Entity):
         self._state = update_time()
 
 
+class Amazon_Packages(Entity):
+
+    """Representation of a Sensor."""
+
+    def __init__(self, hass, data):
+        """Initialize the sensor."""
+        self._name = 'Mail Amazon Packages'
+        self.data = data
+        self._state = 0
+        self._attributes = []
+        self.update()
+
+    @property
+    def unique_id(self):
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
+        return f"{self.data._host}_{self._name}"
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+
+        return self._name
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+
+        return self._state
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement."""
+
+        return 'Packages'
+
+    @property
+    def icon(self):
+        """Return the unit of measurement."""
+
+        return "mdi:amazon"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["items"] = self.data._amazon_items
+            attr["order"] = self.data._amazon_order
+        return attr
+
+    def update(self):
+        """Fetch new state data for the sensor.
+        This is the only method that should fetch new data for Home Assistant.
+        """
+        self.data.update()
+        self._state = self.data._amazon_packages
+
+
 class USPS_Mail(Entity):
 
     """Representation of a Sensor."""
@@ -210,7 +275,9 @@ class USPS_Mail(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -258,7 +325,9 @@ class USPS_Packages(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -306,7 +375,9 @@ class USPS_Delivering(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -354,7 +425,9 @@ class USPS_Delivered(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -402,7 +475,9 @@ class Packages_Delivered(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -449,7 +524,9 @@ class Packages_Transit(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -496,7 +573,9 @@ class UPS_Packages(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -544,7 +623,9 @@ class UPS_Delivering(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -592,7 +673,9 @@ class UPS_Delivered(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -640,7 +723,9 @@ class FEDEX_Packages(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -688,7 +773,9 @@ class FEDEX_Delivering(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -736,7 +823,9 @@ class FEDEX_Delivered(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -981,3 +1070,69 @@ def get_count(account, email, subject):
         count = len(data[0].split())
 
     return count
+
+
+# Get Items
+###############################################################################
+
+
+def get_items(account, param):
+    _LOGGER.debug("Attempting to find Amazon email with item list ...")
+    # Limit to past 3 days (plan to make this configurable)
+    past_date = datetime.date.today() - datetime.timedelta(days=3)
+    tfmt = past_date.strftime('%d-%b-%Y')
+    deliveriesToday = []
+    orderNum = []
+
+    try:
+        (rv, sdata) = account.search(None, '(FROM "amazon.com" SINCE ' + tfmt +
+                                     ')')
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("Error searching emails: %s", str(err))
+
+    else:
+        mail_ids = sdata[0]
+        id_list = mail_ids.split()
+        _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
+        for i in id_list:
+            typ, data = account.fetch(i, '(RFC822)')
+            for response_part in data:
+                if isinstance(response_part, tuple):
+                    msg = email.message_from_bytes(response_part[1])
+                    email_subject = msg['subject']
+                    # email_from = msg['from']
+                    email_msg = str(msg.get_payload(0))
+                    # today_month = datetime.date.today().month
+                    # today_day = datetime.date.today().day
+                    if "will arrive:" in email_msg:
+                        start = (email_msg.find("will arrive:") +
+                                 len("will arrive:"))
+                        end = email_msg.find("Track your package:")
+                        arrive_date = email_msg[start:end].strip()
+                        arrive_date = arrive_date.split(" ")
+                        arrive_date = arrive_date[0:3]
+                        arrive_date[2] = arrive_date[2][:2]
+                        arrive_date = " ".join(arrive_date).strip()
+                        dateobj = datetime.datetime.strptime(arrive_date,
+                                                             '%A, %B %d')
+                        if (dateobj.day == datetime.date.today().day and
+                           dateobj.month == datetime.date.today().month):
+                            subj_parts = email_subject.split('"')
+                            if len(subj_parts) > 1:
+                                deliveriesToday.append(subj_parts[1])
+                            else:
+                                deliveriesToday.append("Amazon Order")
+
+                            subj_order = email_subject.split(' ')
+                            if len(subj_order) == 6:
+                                orderNum.append(str(subj_order[3]).strip('#'))
+
+        if (param == "count"):
+            _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
+            return len(deliveriesToday)
+        elif (param == "order"):
+            _LOGGER.debug("Amazon order: %s", str(orderNum))
+            return orderNum
+        else:
+            _LOGGER.debug("Amazon json: %s", str(deliveriesToday))
+            return deliveriesToday
