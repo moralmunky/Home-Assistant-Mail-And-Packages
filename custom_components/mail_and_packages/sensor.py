@@ -8,7 +8,6 @@ Configuration code contribution from @firstof9 https://github.com/firstof9/
 import asyncio
 import logging
 import imageio as io
-import json
 # from skimage.transform import resize
 # from skimage import img_as_ubyte
 import os
