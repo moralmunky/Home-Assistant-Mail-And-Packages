@@ -147,6 +147,7 @@ class EmailData:
                                         self._usps_delivered)
             self._amazon_packages = get_items(account, "count")
             self._amazon_items = get_items(account, "items")
+            self._amazon_order = get_items(account, "order")
 
             # Subtract the number of delivered packages from those in transit
             if self._packages_transit >= self._packages_delivered:
@@ -246,6 +247,7 @@ class Amazon_Packages(Entity):
         attr = {}
         if self._state:
             attr["items"] = self.data._amazon_items
+            attr["order"] = self.data._amazon_order
         return attr
 
     def update(self):
@@ -1052,6 +1054,7 @@ def get_items(account, param):
     past_date = datetime.date.today() - datetime.timedelta(days=3)
     tfmt = past_date.strftime('%d-%b-%Y')
     deliveriesToday = []
+    orderNum = []
 
     try:
         (rv, sdata) = account.search(None, '(FROM "amazon.com" SINCE ' + tfmt +
@@ -1090,10 +1093,17 @@ def get_items(account, param):
                                 deliveriesToday.append(subj_parts[1])
                             else:
                                 deliveriesToday.append("Amazon Order")
+                            
+                            subj_order = email_subject.split(' ')
+                            if len(subj_order) == 6:
+                                orderNum.append(str(subj_order[3]).strip('#'))
+
         if (param == "count"):
             _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
             return len(deliveriesToday)
+        elif (param == "order"):
+            _LOGGER.debug("Amazon order: %s", str(orderNum))
+            return orderNum
         else:
             _LOGGER.debug("Amazon json: %s", str(deliveriesToday))
             return deliveriesToday
-
