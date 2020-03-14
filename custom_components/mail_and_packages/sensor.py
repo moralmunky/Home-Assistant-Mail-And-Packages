@@ -1056,10 +1056,15 @@ def get_items(account, param):
     deliveriesToday = []
 
     try:
-        (rv, data) = account.search(None, '(FROM "amazon.com" SINCE ' + tfmt +
+        (rv, sdata) = account.search(None, '(FROM "amazon.com" SINCE ' + tfmt +
                                      ')')
-        mail_ids = data[0]
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("Error searching emails: %s", str(err))
+
+    else:
+        mail_ids = sdata[0]
         id_list = mail_ids.split()
+        _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
         for i in id_list:
             typ, data = account.fetch(i, '(RFC822)')
             for response_part in data:
@@ -1094,5 +1099,3 @@ def get_items(account, param):
             _LOGGER.debug("Amazon json: %s", str(json.dumps(deliveriesToday)))
             return json.dumps(deliveriesToday)
 
-    except imaplib.IMAP4.error as err:
-        _LOGGER.error("Error searching emails: %s", str(err))
