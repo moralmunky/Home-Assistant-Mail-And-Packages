@@ -209,7 +209,7 @@ class Amazon_Packages(Entity):
         self._name = 'Amazon Packages'
         self.data = data
         self._state = 0
-        self._attributes = {}
+        self._attributes = None
         self.update()
 
     @property
@@ -252,7 +252,10 @@ class Amazon_Packages(Entity):
         """
         self.data.update()
         self._state = self.data._amazon_packages
-        self._attributes = self.data._amazon_items
+        if self._state > 0:
+            for key, value in self.data._amazon_items:
+                self._attributes[key] = value
+        # self._attributes = self.data._amazon_items
 
 
 class USPS_Mail(Entity):
@@ -1085,8 +1088,10 @@ def get_items(account, param):
                             else:
                                 deliveriesToday.append("Amazon Order")
         if (param == "count"):
+            _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
             return len(deliveriesToday)
         else:
+            _LOGGER.debug("Amazon json: %s", str(json.dumps(deliveriesToday)))
             return json.dumps(deliveriesToday)
 
     except imaplib.IMAP4.error as err:
