@@ -133,17 +133,14 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_init(self, user_input=None):
         """Manage Mail and Packages options."""
-        return await self.async_step_mail_options()
-
-    async def async_step_mail_options(self, user_input=None):
-        """Manage Mail and Packages Options."""
-
         if user_input is not None:
+            self._data.update(user_input)
+
             valid = await self._test_login(
                 user_input[CONF_HOST], user_input[CONF_PORT],
                 user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
             if valid:
-                self._data.update(user_input)
+                return self.async_create_entry(title="", data=self._data)
             else:
                 self._errors["base"] = "communication"
 
