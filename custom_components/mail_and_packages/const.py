@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.1.3-b3"
+VERSION = "0.1.3-b4"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 
 CONF_FOLDER = "folder"
@@ -8,7 +8,7 @@ CONF_DURATION = "gif_duration"
 
 DEFAULT_NAME = "Mail And Packages"
 DEFAULT_PORT = '993'
-DEFAULT_FOLDER = 'Inbox'
+DEFAULT_FOLDER = 'INBOX'
 DEFAULT_PATH = '/home/homeassistant/.homeassistant/www/mail_and_packages/'
 DATA_LOCAL_FILE = 'mail_today.gif'
 CAMERA_NAME = "Mail USPS"

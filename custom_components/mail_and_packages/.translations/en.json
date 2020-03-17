@@ -10,16 +10,21 @@
             "user": {
                 "data": {
                     "host": "Host",
-                    "folder": "Folder",
-                    "image_path": "Path to store mail images",
                     "password": "Password",
                     "port": "Port",
-                    "username": "Username",
-                    "gif_duration": "Time in seconds per image"
-
+                    "username": "Username"
                 },
-                "description": "Please enter the connection information of your mail server and the path to store mail images.\n\nHassIO users should use /config/www/mail_and_packages as the image path.",
-                "title": "Mail and Packages"
+                "description": "Please enter the connection information of your mail server.",
+                "title": "Mail and Packages (Step 1)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "Folder",
+                    "image_path": "Path to store mail images",
+                    "gif_duration": "Time in seconds per image"                
+                },
+                "description": "Please select the mail folder your deliveries go into, if you are unsure keep the default: Inbox\n\nHassIO users should use /config/www/mail_and_packages as the image path.",
+                "title": "Mail and Packages (Step 2)"                 
             }
         },
         "title": "Mail and Packages"
@@ -32,16 +37,21 @@
             "init": {
                 "data": {
                     "host": "Host",
-                    "folder": "Folder",
-                    "image_path": "Path to store mail images",
                     "password": "Password",
                     "port": "Port",
-                    "username": "Username",
-                    "gif_duration": "Time in seconds per image"
-
+                    "username": "Username"
                 },
-                "description": "Please enter the connection information of your mail server and the path to store mail images.\n\nHassIO users should use /config/www/mail_and_packages as the image path.",
-                "title": "Mail and Packages"
+                "description": "Please enter the connection information of your mail server.",
+                "title": "Mail and Packages (Step 1)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "Folder",
+                    "image_path": "Path to store mail images",
+                    "gif_duration": "Time in seconds per image"
+                },
+                "description": "Please select the mail folder your deliveries go into, if you are unsure keep the default: Inbox\n\nHassIO users should use /config/www/mail_and_packages as the image path.",
+                "title": "Mail and Packages (Step 2)"
             }
         },
         "title": "Mail and Packages"

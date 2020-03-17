@@ -36,6 +36,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     def __init__(self):
         """Initialize."""
+        self._data = {}
         self._errors = {}
 
     async def async_step_user(self, user_input={}):
@@ -47,12 +48,12 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="single_instance_allowed")
 
         if user_input is not None:
+            self._data.update(user_input)
             valid = await self._test_login(
                 user_input[CONF_HOST], user_input[CONF_PORT],
                 user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
             if valid:
-                return self.async_create_entry(title=user_input[CONF_HOST],
-                                               data=user_input)
+                return await self.async_step_config_2()
             else:
                 self._errors["base"] = "communication"
 
@@ -68,9 +69,6 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         port = DEFAULT_PORT
         username = ""
         password = ""
-        folder = DEFAULT_FOLDER
-        image_path = DEFAULT_PATH
-        gif_duration = GIF_DURATION
 
         if user_input is not None:
             if "host" in user_input:
@@ -81,6 +79,50 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 username = user_input["username"]
             if "password" in user_input:
                 password = user_input["password"]
+
+        data_schema = OrderedDict()
+        data_schema[vol.Required("host", default=host)] = str
+        data_schema[vol.Required("port", default=port)] = vol.Coerce(int)
+        data_schema[vol.Required("username", default=username)] = str
+        data_schema[vol.Required("password", default=password)] = str
+        return self.async_show_form(
+            step_id="user", data_schema=vol.Schema(data_schema),
+            errors=self._errors)
+
+    async def async_step_config_2(self, user_input=None):
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            if user_input["folder"] is not None:
+                return self.async_create_entry(title=self._data[CONF_HOST],
+                                               data=self._data)
+            else:
+                return await self._show_config_2(user_input)
+        return await self._show_config_2(user_input)
+
+    async def _show_config_2(self, user_input):
+        """ Step 2 setup """
+
+        # Defaults
+        folder = DEFAULT_FOLDER
+        image_path = DEFAULT_PATH
+        gif_duration = GIF_DURATION
+
+        account = imaplib.IMAP4_SSL(self._data["host"], self._data["port"])
+        status, data = account.login(self._data["username"],
+                                     self._data["password"])
+        if status != "OK":
+            _LOGGER.error("IMAP Login failed!")
+        status, folderlist = account.list()
+        mailboxes = []
+        if status != "OK":
+            _LOGGER.error("Error listing mailboxes ... using default")
+            mailboxes.append(DEFAULT_FOLDER)
+        else:
+            for i in folderlist:
+                mailboxes.append(i.decode().split(' "/" ')[1].strip('"'))
+
+        if user_input is not None:
             if "folder" in user_input:
                 folder = user_input["folder"]
             if "image_path" in user_input:
@@ -89,15 +131,13 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 image_path = user_input["gif_duration"]
 
         data_schema = OrderedDict()
-        data_schema[vol.Required("host", default=host)] = str
-        data_schema[vol.Required("port", default=port)] = vol.Coerce(int)
-        data_schema[vol.Required("username", default=username)] = str
-        data_schema[vol.Required("password", default=password)] = str
-        data_schema[vol.Optional("folder", default=folder)] = str
-        data_schema[vol.Optional("gif_duration", default=gif_duration)] = vol.Coerce(int)
+        data_schema[vol.Required("folder",
+                                 default=folder)] = vol.In(mailboxes)
+        data_schema[vol.Optional("gif_duration",
+                                 default=gif_duration)] = vol.Coerce(int)
         data_schema[vol.Optional("image_path", default=image_path)] = str
         return self.async_show_form(
-            step_id="user", data_schema=vol.Schema(data_schema),
+            step_id="config_2", data_schema=vol.Schema(data_schema),
             errors=self._errors)
 
     async def _test_login(self, host, port, user, pwd):
@@ -140,7 +180,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
                 user_input[CONF_HOST], user_input[CONF_PORT],
                 user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
             if valid:
-                return self.async_create_entry(title="", data=self._data)
+                return await self.async_step_options_2()
             else:
                 self._errors["base"] = "communication"
 
@@ -156,9 +196,6 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         port = self.config.options.get(CONF_PORT)
         username = self.config.options.get(CONF_USERNAME)
         password = self.config.options.get(CONF_PASSWORD)
-        folder = self.config.options.get(CONF_FOLDER)
-        image_path = self.config.options.get(CONF_PATH)
-        gif_duration = self.config.options.get(CONF_DURATION)
 
         if user_input is not None:
             if "host" in user_input:
@@ -169,23 +206,63 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
                 username = user_input["username"]
             if "password" in user_input:
                 password = user_input["password"]
-            if "folder" in user_input:
-                folder = user_input["folder"]
-            if "image_path" in user_input:
-                image_path = user_input["image_path"]
-            if "gif_duration" in user_input:
-                image_path = user_input["gif_duration"]
 
         data_schema = OrderedDict()
         data_schema[vol.Required("host", default=host)] = str
         data_schema[vol.Required("port", default=port)] = vol.Coerce(int)
         data_schema[vol.Required("username", default=username)] = str
         data_schema[vol.Required("password", default=password)] = str
-        data_schema[vol.Optional("folder", default=folder)] = str
-        data_schema[vol.Optional("gif_duration", default=gif_duration)] = vol.Coerce(int)
-        data_schema[vol.Optional("image_path", default=image_path)] = str
         return self.async_show_form(
             step_id="init", data_schema=vol.Schema(data_schema),
+            errors=self._errors)
+
+    async def async_step_options_2(self, user_input=None):
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            if user_input["folder"] is not None:
+                return self.async_create_entry(title="", data=self._data)
+            else:
+                return await self._show_step_options_2(user_input)
+        return await self._show_step_options_2(user_input)
+
+    async def _show_step_options_2(self, user_input):
+        """Step 2 of options."""
+
+        # Defaults
+        folder = self.config.options.get(CONF_FOLDER)
+        image_path = self.config.options.get(CONF_PATH)
+        gif_duration = self.config.options.get(CONF_DURATION)
+
+        account = imaplib.IMAP4_SSL(self._data["host"], self._data["port"])
+        status, data = account.login(self._data["username"],
+                                     self._data["password"])
+        if status != "OK":
+            _LOGGER.error("IMAP Login failed!")
+        status, folderlist = account.list()
+        mailboxes = []
+        if status != "OK":
+            _LOGGER.error("Error listing mailboxes ... using default")
+            mailboxes.append(DEFAULT_FOLDER)
+        else:
+            for i in folderlist:
+                mailboxes.append(i.decode().split(' "/" ')[1].strip('"'))
+
+        if user_input is not None:
+            if "folder" in user_input:
+                folder = user_input["folder"]
+            if "image_path" in user_input:
+                image_path = user_input["image_path"]
+            if "gif_duration" in user_input:
+                image_path = user_input["gif_duration"]
+        data_schema = OrderedDict()
+        data_schema[vol.Required("folder",
+                                 default=folder)] = vol.In(mailboxes)
+        data_schema[vol.Optional("gif_duration",
+                                 default=gif_duration)] = vol.Coerce(int)
+        data_schema[vol.Optional("image_path", default=image_path)] = str
+        return self.async_show_form(
+            step_id="options_2", data_schema=vol.Schema(data_schema),
             errors=self._errors)
 
     async def _test_login(self, host, port, user, pwd):
