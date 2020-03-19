@@ -9,7 +9,7 @@ CONF_DURATION = "gif_duration"
 DEFAULT_NAME = "Mail And Packages"
 DEFAULT_PORT = '993'
 DEFAULT_FOLDER = 'Inbox'
-DEFAULT_PATH = '/home/homeassistant/.homeassistant/www/mail_and_packages/'
+DEFAULT_PATH = '/home/homeassistant/.homeassistant/images/mail_and_packages/'
 DATA_LOCAL_FILE = 'mail_today.gif'
 CAMERA_NAME = "Mail USPS"
 
