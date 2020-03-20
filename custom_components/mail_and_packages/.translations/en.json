@@ -18,7 +18,7 @@
                     "gif_duration": "Time in seconds per image"
 
                 },
-                "description": "Please enter the connection information of your mail server and the path to store mail images.\n\nHassIO users should use /config/www/mail_and_packages as the image path.",
+                "description": "Please enter the connection information of your mail server and the path to store mail images.\n\nHassIO users should use /config/images/mail_and_packages as the image path.",
                 "title": "Mail and Packages"
             }
         },
