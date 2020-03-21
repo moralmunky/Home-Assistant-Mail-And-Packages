@@ -901,7 +901,10 @@ def selectfolder(account, folder):
 
 
 def get_formatted_date():
-    return datetime.datetime.today().strftime('%d-%b-%Y')
+    today = datetime.datetime.today().strftime('%d-%b-%Y')
+    #for testing
+    #today = '18-Mar-2020'
+    return today
 
 
 # gets update time
