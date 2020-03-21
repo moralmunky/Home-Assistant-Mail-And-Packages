@@ -49,10 +49,13 @@ Supports only Lovelace UI. Last tested in 0.105.x.
    * You will need to create the `custom_components` folder if it does not exist
    * On HomeAssistant (formerly hass.io) the final location will be `/config/custom_components/mail_and_packages`
    * On Hassbian the final location will be `/home/homeassistant/.homeassistant/custom_components/mail_and_packages`
-3. Copy/move `image-no-mailpieces700.jpg` and `mail_none.gif` to the www directory (recommend `<config_dir>/www/mail_and_packages` as the path)
+3. Copy/move `image-no-mailpieces700.jpg` and `mail_none.gif` to the images directory (recommend `<config_dir>/images/mail_and_packages` as the path)
 
 ## Configuration/HASS Set Up
 Once you have finished either installing via HACS or manually (and rebooted HASS), go into ```Configuration -> Integration``` select the ```+```and add the ```Mail And Packages``` integration you will be prompted to input your mail server settings.
+
+## Privacy / Security Note
+Please note that anything in the ```www``` folder is techncially publicly accessable unless you have taken security measures like a reverse proxy with authentication enabled. You can place the images in an ```images``` directory and still send notifications via most notification integrations.
 
 ### Template
 Use the following to create a deliveries summary sensor (under the sensor portion of configuartion.yaml):
@@ -63,7 +66,9 @@ Use the following to create a deliveries summary sensor (under the sensor portio
       friendly_name: "Deliveries Summary"
       entity_id: 
         - sensor.mail_usps_mail
-        - sensor.packages_in_transit
+        - sensor.mail_usps_delivering
+        - sensor.mail_fedex_delivering
+        - sensor.mail_ups_delivering
       value_template: > 
         {# Deliveries Sentence #}
           {% macro deliveries_sentence() -%}
@@ -74,21 +79,57 @@ Use the following to create a deliveries summary sensor (under the sensor portio
                 {%- endif -%}
               {{' '}} 
                 {%- if states("sensor.mail_usps_mail")|int <= 1 -%}
-                  mail
+                  pieces of mail
                 {%- else -%}
                   pieces of mail
                 {%- endif -%}
               {{' '}}will be delivered.{{' '}} 
-                {%- if states("sensor.mail_packages_in_transit")|int == 0 -%}
+                {%- if states("sensor.mail_usps_delivering")|int == 0 -%}
                   No
                 {%- else -%}
-                  {{states("sensor.mail_packages_in_transit")|int}}
+                  {{states("sensor.mail_usps_delivering")|int}}
                 {%- endif -%}
               {{' '}} 
-                {%- if states("sensor.mail_packages_in_transit")|int == 1 -%}
-                  package is
+                {%- if states("sensor.mail_usps_delivering")|int == 1 -%}
+                  USPS package is
                 {%- else -%}
-                  packages are
+                  USPS packages are
+                {%- endif -%}
+              {{' '}}in transit.{{' '}}
+                {%- if states("sensor.mail_fedex_delivering")|int == 0 -%}
+                  No
+                {%- else -%}
+                  {{states("sensor.mail_fedex_delivering")|int}}
+                {%- endif -%}
+              {{' '}} 
+                {%- if states("sensor.mail_fedex_delivering")|int == 1 -%}
+                  FedEx package is
+                {%- else -%}
+                  Fedex packages are
+                {%- endif -%}
+              {{' '}}in transit.{{' '}}
+              {%- if states("sensor.mail_ups_delivering")|int == 0 -%}
+                  No
+                {%- else -%}
+                  {{states("sensor.mail_ups_delivering")|int}}
+                {%- endif -%}
+              {{' '}} 
+                {%- if states("sensor.mail_ups_delivering")|int == 1 -%}
+                  UPS package is
+                {%- else -%}
+                  UPS packages are
+                {%- endif -%}
+              {{' '}}in transit.{{' '}}
+              {%- if states("sensor.mail_amazon_packages")|int == 0 -%}
+                  No
+                {%- else -%}
+                  {{states("sensor.mail_amazon_packages")|int}}
+                {%- endif -%}
+              {{' '}} 
+                {%- if states("sensor.mail_amazon_packages")|int == 1 -%}
+                  Amazon package is
+                {%- else -%}
+                  Amazon packages are
                 {%- endif -%}
               {{' '}}in transit.{{' '}}
           {%- endmacro %}
@@ -98,7 +139,7 @@ Use the following to create a deliveries summary sensor (under the sensor portio
 You may also want to add a camera to display the image.  Add to the camera portion of configuration.yaml.
 ```
   - platform: local_file
-    file_path: /config/www/mail_and_packages/mail_today.gif
+    file_path: /config/images/mail_and_packages/mail_today.gif
     name: mail_usps
 ```
 ### Automation
