@@ -165,7 +165,7 @@ class MailCheck(Entity):
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return "{self.data._host}_{self._name}"
 
     @property
     def name(self):
@@ -208,7 +208,7 @@ class USPS_Mail(Entity):
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return "{self.data._host}_{self._name}"
 
     @property
     def name(self):
@@ -256,7 +256,7 @@ class USPS_Packages(Entity):
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return "{self.data._host}_{self._name}"
 
     @property
     def name(self):
@@ -304,7 +304,7 @@ class USPS_Delivering(Entity):
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return "{self.data._host}_{self._name}"
 
     @property
     def name(self):
@@ -352,7 +352,7 @@ class USPS_Delivered(Entity):
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return "{self.data._host}_{self._name}"
 
     @property
     def name(self):
@@ -400,7 +400,7 @@ class Packages_Delivered(Entity):
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return "{self.data._host}_{self._name}"
 
     @property
     def name(self):
@@ -447,7 +447,7 @@ class Packages_Transit(Entity):
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return "{self.data._host}_{self._name}"
 
     @property
     def name(self):
@@ -494,7 +494,7 @@ class UPS_Packages(Entity):
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return "{self.data._host}_{self._name}"
 
     @property
     def name(self):
@@ -542,7 +542,7 @@ class UPS_Delivering(Entity):
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return "{self.data._host}_{self._name}"
 
     @property
     def name(self):
@@ -590,7 +590,7 @@ class UPS_Delivered(Entity):
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return "{self.data._host}_{self._name}"
 
     @property
     def name(self):
@@ -638,7 +638,7 @@ class FEDEX_Packages(Entity):
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return "{self.data._host}_{self._name}"
 
     @property
     def name(self):
@@ -686,7 +686,7 @@ class FEDEX_Delivering(Entity):
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return "{self.data._host}_{self._name}"
 
     @property
     def name(self):
@@ -734,7 +734,7 @@ class FEDEX_Delivered(Entity):
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return "{self.data._host}_{self._name}"
 
     @property
     def name(self):

@@ -75,7 +75,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             if "image_path" in user_input:
                 image_path = user_input["image_path"]
             if "gif_duration" in user_input:
-                image_path = user_input["gif_duration"]
+                gif_duration = user_input["gif_duration"]
 
         data_schema = OrderedDict()
         data_schema[vol.Required("host", default=host)] = str
