@@ -104,6 +104,7 @@ class EmailData:
         self._usps_mail = None
         self._packages_delivered = None
         self._packages_transit = None
+        self._mailcheck = None
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
@@ -142,6 +143,7 @@ class EmailData:
             self._packages_delivered = (self._fedex_delivered +
                                         self._ups_delivered +
                                         self._usps_delivered)
+            self._mailcheck = update_time()
 
             # Subtract the number of delivered packages from those in transit
             if self._packages_transit >= self._packages_delivered:
@@ -191,7 +193,8 @@ class MailCheck(Entity):
         This is the only method that should fetch new data for Home Assistant.
         """
 
-        self._state = update_time()
+        self.data.update()
+        self._state = self._mailcheck
 
 
 class USPS_Mail(Entity):
