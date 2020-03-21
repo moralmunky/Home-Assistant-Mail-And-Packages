@@ -20,7 +20,7 @@ port = 993
 username = 'email@email.com'
 password = 'password'
 folder = 'Inbox'
-image_output_path = '/home/homeassistant/.homeassistant/www/mail_and_packages/'
+image_output_path = '/home/homeassistant/.homeassistant/images/mail_and_packages/'
 
 USPS_Email = 'USPSInformedDelivery@usps.gov'
 USPS_Mail_Subject = 'Informed Delivery Daily Digest'
