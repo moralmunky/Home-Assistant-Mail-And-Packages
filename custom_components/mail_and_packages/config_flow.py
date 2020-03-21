@@ -168,7 +168,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
     def __init__(self, config_entry):
         """Initialize."""
         self.config = config_entry
-        self._data = config_entry.options
+        self._data = dict(config_entry.options)
         self._errors = {}
 
     async def async_step_init(self, user_input=None):
