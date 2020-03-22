@@ -19,6 +19,7 @@ from datetime import timedelta
 from shutil import copyfile
 
 from homeassistant.helpers.entity import Entity
+from homeassistant.util import Throttle
 
 from homeassistant.const import (
      CONF_HOST, CONF_PORT, CONF_USERNAME, CONF_PASSWORD)
@@ -27,6 +28,7 @@ from .const import (
     CONF_FOLDER,
     CONF_PATH,
     CONF_DURATION,
+    CONF_SCAN_INTERVAL,
     USPS_Mail_Email,
     USPS_Packages_Email,
     USPS_Mail_Subject,
@@ -43,11 +45,7 @@ from .const import (
     GIF_FILE_NAME,
 )
 
-from homeassistant.util import Throttle
-
 _LOGGER = logging.getLogger(__name__)
-MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
-
 
 async def async_setup_entry(hass, entry, async_add_entities):
 
@@ -58,7 +56,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
         CONF_PORT: entry.data[CONF_PORT],
         CONF_FOLDER: entry.data[CONF_FOLDER],
         CONF_PATH: entry.data[CONF_PATH],
-        CONF_DURATION: entry.data[CONF_DURATION]
+        CONF_DURATION: entry.data[CONF_DURATION],
+        CONF_SCAN_INTERVAL: entry.data[CONF_SCAN_INTERVAL]
     }
 
     data = EmailData(hass, config)
@@ -90,6 +89,7 @@ class EmailData:
         self._pwd = config.get(CONF_PASSWORD)
         self._img_out_path = config.get(CONF_PATH)
         self._gif_duration = config.get(CONF_DURATION)
+        self._scan_interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
         self._fedex_delivered = None
         self._fedex_delivering = None
         self._fedex_packages = None
@@ -104,8 +104,10 @@ class EmailData:
         self._packages_transit = None
         self._amazon_packages = None
         self._amazon_items = None
+        _LOGGER.debug("Config scan interval: %s", self._scan_interval)
+        
+        self.update = Throttle(self._scan_interval)(self.update)
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Get the latest data"""
         if self._host is not None:

@@ -1,10 +1,11 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.1.3-b6"
+VERSION = "0.1.3-b7"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
 CONF_DURATION = "gif_duration"
+CONF_SCAN_INTERVAL = "scan_interval"
 
 DEFAULT_NAME = "Mail And Packages"
 DEFAULT_PORT = '993'
@@ -31,3 +32,5 @@ FEDEX_Delivered_Subject = 'Your package has been delivered'
 
 GIF_FILE_NAME = 'mail_today.gif'
 GIF_DURATION = 5
+
+SCAN_INTERVAL = 5
