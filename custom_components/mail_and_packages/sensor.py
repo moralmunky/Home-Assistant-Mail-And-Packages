@@ -160,6 +160,9 @@ class EmailData:
 
         else:
             _LOGGER.debug("Host was left blank not attempting connection")
+        
+        self._scan_time = update_time()
+        _LOGGER.debug("Updated scan time: %s", self._scan_time)
 
 
 class MailCheck(Entity):
@@ -198,13 +201,13 @@ class MailCheck(Entity):
 
         return "mdi:update"
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
 
-        self._state = update_time()
+        self.data.update()
+        self._state = self.data._scan_time
 
 
 class Amazon_Packages(Entity):
