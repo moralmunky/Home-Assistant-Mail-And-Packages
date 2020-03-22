@@ -31,7 +31,7 @@ async def async_setup_entry(hass, config_entry):
     return True
 
 
-async def async_remove_entry(hass, config_entry):
+async def async_unload_entry(hass, config_entry):
     """Handle removal of an entry."""
     try:
         await hass.config_entries.async_forward_entry_unload(config_entry,
@@ -41,6 +41,7 @@ async def async_remove_entry(hass, config_entry):
         )
     except ValueError:
         pass
+    return True
 
 
 async def update_listener(hass, entry):

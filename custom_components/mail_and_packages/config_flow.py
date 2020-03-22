@@ -124,9 +124,11 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         else:
             for i in folderlist:
                 mailboxes.append(i.decode().split(' "/" ')[1].strip('"'))
-            #comment the two lines before and uncomment line after
-            #if line 126 is giving error
-            #mailboxes.append(DEFAULT_FOLDER)
+            """
+            # comment the two lines before and uncomment line after
+            # if line 126 is giving error
+            mailboxes.append(DEFAULT_FOLDER)
+            """
 
         if user_input is not None:
             if "folder" in user_input:
@@ -258,9 +260,11 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         else:
             for i in folderlist:
                 mailboxes.append(i.decode().split(' "/" ')[1].strip('"'))
-            #comment the two lines before and uncomment line after
-            #if line 258 is giving error
-            #mailboxes.append(DEFAULT_FOLDER)
+            """
+            # comment the two lines before and uncomment line after
+            # if line 258 is giving error
+            mailboxes.append(DEFAULT_FOLDER)
+            """
 
         if user_input is not None:
             if "folder" in user_input:
@@ -271,7 +275,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
                 gif_duration = user_input["gif_duration"]
             if "scan_interval" in user_input:
                 scan_interval = user_input["scan_interval"]
-                
+
         data_schema = OrderedDict()
         data_schema[vol.Required("folder",
                                  default=folder)] = vol.In(mailboxes)
