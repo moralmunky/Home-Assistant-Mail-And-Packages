@@ -13,7 +13,9 @@ from .const import (
     DEFAULT_PATH,
     DEFAULT_FOLDER,
     GIF_DURATION,
+    SCAN_INTERVAL,
     CONF_DURATION,
+    CONF_SCAN_INTERVAL,
     CONF_FOLDER,
     CONF_PATH
 )
@@ -107,6 +109,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         folder = DEFAULT_FOLDER
         image_path = DEFAULT_PATH
         gif_duration = GIF_DURATION
+        scan_interval = SCAN_INTERVAL
 
         account = imaplib.IMAP4_SSL(self._data["host"], self._data["port"])
         status, data = account.login(self._data["username"],
@@ -121,6 +124,9 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         else:
             for i in folderlist:
                 mailboxes.append(i.decode().split(' "/" ')[1].strip('"'))
+            #comment the two lines before and uncomment line after
+            #if line 126 is giving error
+            #mailboxes.append(DEFAULT_FOLDER)
 
         if user_input is not None:
             if "folder" in user_input:
@@ -128,13 +134,17 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             if "image_path" in user_input:
                 image_path = user_input["image_path"]
             if "gif_duration" in user_input:
-                image_path = user_input["gif_duration"]
+                gif_duration = user_input["gif_duration"]
+            if "scan_interval" in user_input:
+                scan_interval = user_input["scan_interval"]
 
         data_schema = OrderedDict()
         data_schema[vol.Required("folder",
                                  default=folder)] = vol.In(mailboxes)
         data_schema[vol.Optional("gif_duration",
                                  default=gif_duration)] = vol.Coerce(int)
+        data_schema[vol.Optional("scan_interval",
+                                 default=scan_interval)] = vol.Coerce(int)
         data_schema[vol.Optional("image_path", default=image_path)] = str
         return self.async_show_form(
             step_id="config_2", data_schema=vol.Schema(data_schema),
@@ -168,7 +178,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
     def __init__(self, config_entry):
         """Initialize."""
         self.config = config_entry
-        self._data = config_entry.options
+        self._data = dict(config_entry.options)
         self._errors = {}
 
     async def async_step_init(self, user_input=None):
@@ -233,6 +243,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         folder = self.config.options.get(CONF_FOLDER)
         image_path = self.config.options.get(CONF_PATH)
         gif_duration = self.config.options.get(CONF_DURATION)
+        scan_interval = self.config.options.get(CONF_SCAN_INTERVAL)
 
         account = imaplib.IMAP4_SSL(self._data["host"], self._data["port"])
         status, data = account.login(self._data["username"],
@@ -247,6 +258,9 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         else:
             for i in folderlist:
                 mailboxes.append(i.decode().split(' "/" ')[1].strip('"'))
+            #comment the two lines before and uncomment line after
+            #if line 258 is giving error
+            #mailboxes.append(DEFAULT_FOLDER)
 
         if user_input is not None:
             if "folder" in user_input:
@@ -254,12 +268,17 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             if "image_path" in user_input:
                 image_path = user_input["image_path"]
             if "gif_duration" in user_input:
-                image_path = user_input["gif_duration"]
+                gif_duration = user_input["gif_duration"]
+            if "scan_interval" in user_input:
+                scan_interval = user_input["scan_interval"]
+                
         data_schema = OrderedDict()
         data_schema[vol.Required("folder",
                                  default=folder)] = vol.In(mailboxes)
         data_schema[vol.Optional("gif_duration",
                                  default=gif_duration)] = vol.Coerce(int)
+        data_schema[vol.Optional("scan_interval",
+                                 default=scan_interval)] = vol.Coerce(int)
         data_schema[vol.Optional("image_path", default=image_path)] = str
         return self.async_show_form(
             step_id="options_2", data_schema=vol.Schema(data_schema),

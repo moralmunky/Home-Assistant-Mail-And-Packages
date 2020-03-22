@@ -15,16 +15,17 @@
                     "username": "Username"
                 },
                 "description": "Please enter the connection information of your mail server.",
-                "title": "Mail and Packages (Step 1)"
+                "title": "Mail and Packages (Step 1 of 2)"
             },
             "config_2": {
                 "data": {
                     "folder": "Folder",
                     "image_path": "Path to store mail images",
-                    "gif_duration": "Time in seconds per image"                
+                    "gif_duration": "Time in seconds per image",
+                    "scan_interval": "Time in minutes to scan for new email notifications"
                 },
                 "description": "Please select the mail folder your deliveries go into, if you are unsure keep the default: Inbox\n\nHassIO users should use /config/images/mail_and_packages as the image path.",
-                "title": "Mail and Packages (Step 2)"                 
+                "title": "Mail and Packages (Step 2 of 2)"                 
             }
         },
         "title": "Mail and Packages"
@@ -42,16 +43,17 @@
                     "username": "Username"
                 },
                 "description": "Please enter the connection information of your mail server.",
-                "title": "Mail and Packages (Step 1)"
+                "title": "Mail and Packages (Step 1 of 2)"
             },
             "options_2": {
                 "data": {
                     "folder": "Folder",
                     "image_path": "Path to store mail images",
-                    "gif_duration": "Time in seconds per image"
+                    "gif_duration": "Time in seconds per image",
+                    "scan_interval": "Time in minutes to scan for new email notifications"
                 },
                 "description": "Please select the mail folder your deliveries go into, if you are unsure keep the default: Inbox\n\nHassIO users should use /config/images/mail_and_packages as the image path.",
-                "title": "Mail and Packages (Step 2)"
+                "title": "Mail and Packages (Step 2 of 2)"
             }
         },
         "title": "Mail and Packages"
