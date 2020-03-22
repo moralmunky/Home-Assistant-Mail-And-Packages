@@ -122,12 +122,17 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             _LOGGER.error("Error listing mailboxes ... using default")
             mailboxes.append(DEFAULT_FOLDER)
         else:
-            for i in folderlist:
-                mailboxes.append(i.decode().split(' "/" ')[1].strip('"'))
-            """
-            # comment the two lines before and uncomment line after
-            # if line 126 is giving error
-            mailboxes.append(DEFAULT_FOLDER)
+            try:
+                for i in folderlist:
+                    mailboxes.append(i.decode().split(' "/" ')[1].strip('"'))
+            except IndexError:
+                _LOGGER.error("Error creating folder array trying period")
+                try:
+                    for i in folderlist:
+                        mailboxes.append(i.decode().split(' "." ')[1].strip('"'))
+                except IndexError:
+                    _LOGGER.error("Error creating folder array, using INBOX")
+                    mailboxes.append(DEFAULT_FOLDER)
             """
 
         if user_input is not None:
@@ -258,13 +263,17 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             _LOGGER.error("Error listing mailboxes ... using default")
             mailboxes.append(DEFAULT_FOLDER)
         else:
-            for i in folderlist:
-                mailboxes.append(i.decode().split(' "/" ')[1].strip('"'))
-            """
-            # comment the two lines before and uncomment line after
-            # if line 258 is giving error
-            mailboxes.append(DEFAULT_FOLDER)
-            """
+            try:
+                for i in folderlist:
+                    mailboxes.append(i.decode().split(' "/" ')[1].strip('"'))
+            except IndexError:
+                _LOGGER.error("Error creating folder array trying period")
+                try:
+                    for i in folderlist:
+                        mailboxes.append(i.decode().split(' "." ')[1].strip('"'))
+                except IndexError:
+                    _LOGGER.error("Error creating folder array, using INBOX")
+                    mailboxes.append(DEFAULT_FOLDER)
 
         if user_input is not None:
             if "folder" in user_input:
