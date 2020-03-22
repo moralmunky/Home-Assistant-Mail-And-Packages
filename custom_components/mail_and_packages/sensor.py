@@ -47,6 +47,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup_entry(hass, entry, async_add_entities):
 
     config = {
@@ -105,7 +106,7 @@ class EmailData:
         self._amazon_packages = None
         self._amazon_items = None
         _LOGGER.debug("Config scan interval: %s", self._scan_interval)
-        
+
         self.update = Throttle(self._scan_interval)(self.update)
 
     def update(self):
@@ -160,7 +161,7 @@ class EmailData:
 
         else:
             _LOGGER.debug("Host was left blank not attempting connection")
-        
+
         self._scan_time = update_time()
         _LOGGER.debug("Updated scan time: %s", self._scan_time)
 
@@ -907,8 +908,10 @@ def selectfolder(account, folder):
 
 def get_formatted_date():
     today = datetime.datetime.today().strftime('%d-%b-%Y')
-    #for testing
-    #today = '18-Mar-2020'
+    """
+    # for testing
+    # today = '18-Mar-2020'
+    """
     return today
 
 
@@ -938,6 +941,14 @@ def get_mails(account, image_output_path, gif_duration):
                                 '(FROM "' + USPS_Mail_Email + '" SUBJECT "' +
                                 USPS_Mail_Subject + '" ON "' + today + '")')
 
+    # Check to see if the path exists, if not make it
+    pathcheck = os.path.isdir(image_output_path)
+    if not pathcheck:
+        try:
+            os.makedirs(image_output_path)
+        except Exception as err:
+            _LOGGER.critical("Error creating directory: %s", str(err))
+
     if rv == 'OK':
         _LOGGER.debug("Informed Delivery email found processing...")
         for num in data[0].split():
@@ -953,15 +964,6 @@ def get_mails(account, image_output_path, gif_duration):
 
                 _LOGGER.debug("Extracting image from email")
                 filepath = image_output_path + part.get_filename()
-
-                # Check to see if the path exists, if not make it
-                pathcheck = os.path.isdir(image_output_path)
-                if not pathcheck:
-                    try:
-                        os.mkdir(image_output_path)
-                    except Exception as err:
-                        _LOGGER.critical("Error creating directory: %s",
-                                         str(err))
 
                 # Log error message if we are unable to open the filepath for
                 # some reason
@@ -1029,11 +1031,15 @@ def get_mails(account, image_output_path, gif_duration):
 
         elif image_count == 0:
             _LOGGER.info("No mail found.")
-            try:
-                _LOGGER.debug("Removing " + image_output_path + GIF_FILE_NAME)
-                os.remove(image_output_path + GIF_FILE_NAME)
-            except Exception as err:
-                _LOGGER.error("Error attempting to remove image: %s", str(err))
+            filecheck = os.path.isfile(image_output_path + GIF_FILE_NAME)
+            if filecheck:
+                try:
+                    _LOGGER.debug("Removing " + image_output_path +
+                                  GIF_FILE_NAME)
+                    os.remove(image_output_path + GIF_FILE_NAME)
+                except Exception as err:
+                    _LOGGER.error("Error attempting to remove image: %s",
+                                  str(err))
             try:
                 _LOGGER.debug("Copying nomail gif")
                 copyfile(os.path.dirname(__file__) + '/mail_none.gif',

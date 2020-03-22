@@ -283,7 +283,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
                 gif_duration = user_input["gif_duration"]
             if "scan_interval" in user_input:
                 scan_interval = user_input["scan_interval"]
-                
+
         data_schema = OrderedDict()
         data_schema[vol.Required("folder",
                                  default=folder)] = vol.In(mailboxes)

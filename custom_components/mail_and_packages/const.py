@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.1.3-b7"
+VERSION = "0.1.3-b8"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 
 CONF_FOLDER = "folder"
@@ -32,5 +32,4 @@ FEDEX_Delivered_Subject = 'Your package has been delivered'
 
 GIF_FILE_NAME = 'mail_today.gif'
 GIF_DURATION = 5
-
 SCAN_INTERVAL = 5
