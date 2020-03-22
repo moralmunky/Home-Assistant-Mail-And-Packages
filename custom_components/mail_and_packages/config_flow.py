@@ -133,7 +133,6 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 except IndexError:
                     _LOGGER.error("Error creating folder array, using INBOX")
                     mailboxes.append(DEFAULT_FOLDER)
-            """
 
         if user_input is not None:
             if "folder" in user_input:
