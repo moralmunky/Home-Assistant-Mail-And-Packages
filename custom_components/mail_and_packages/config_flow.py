@@ -124,12 +124,12 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         else:
             try:
                 for i in folderlist:
-                    mailboxes.append(i.decode().split(' "/" ')[1].strip('"'))
+                    mailboxes.append(i.decode().split(' "/" ')[1])
             except IndexError:
                 _LOGGER.error("Error creating folder array trying period")
                 try:
                     for i in folderlist:
-                        mailboxes.append(i.decode().split(' "." ')[1].strip('"'))
+                        mailboxes.append(i.decode().split(' "." ')[1])
                 except IndexError:
                     _LOGGER.error("Error creating folder array, using INBOX")
                     mailboxes.append(DEFAULT_FOLDER)
@@ -264,12 +264,12 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         else:
             try:
                 for i in folderlist:
-                    mailboxes.append(i.decode().split(' "/" ')[1].strip('"'))
+                    mailboxes.append(i.decode().split(' "/" ')[1])
             except IndexError:
                 _LOGGER.error("Error creating folder array trying period")
                 try:
                     for i in folderlist:
-                        mailboxes.append(i.decode().split(' "." ')[1].strip('"'))
+                        mailboxes.append(i.decode().split(' "." ')[1])
                 except IndexError:
                     _LOGGER.error("Error creating folder array, using INBOX")
                     mailboxes.append(DEFAULT_FOLDER)
