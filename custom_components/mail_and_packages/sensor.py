@@ -939,7 +939,8 @@ def get_mails(account, image_output_path, gif_duration):
 
     (rv, data) = account.search(None,
                                 '(FROM "' + USPS_Mail_Email + '" SUBJECT "' +
-                                USPS_Mail_Subject + '" ON "' + today + '")')
+                                USPS_Mail_Subject + '" SENTON "' + today + '")'
+                                )
 
     # Check to see if the path exists, if not make it
     pathcheck = os.path.isdir(image_output_path)
@@ -1009,8 +1010,8 @@ def get_mails(account, image_output_path, gif_duration):
             # # Resize images to 700x315
             # all_images = resize_images(all_images)
 
-            _LOGGER.debug("Creating array of image files...")
             # Create numpy array of images
+            _LOGGER.debug("Creating array of image files...")
             all_images = [io.imread(image) for image in images]
 
             try:
@@ -1079,9 +1080,10 @@ def get_count(account, email, subject):
                   subject)
     try:
         (rv, data) = account.search(None, '(FROM "' + email + '" SUBJECT "'
-                                    + subject + '" ON "' + today + '")')
+                                    + subject + '" SENTON "' + today + '")')
     except imaplib.IMAP4.error as err:
         _LOGGER.error("Error searching emails: %s", str(err))
+        return False
 
     if rv == 'OK':
         count = len(data[0].split())
