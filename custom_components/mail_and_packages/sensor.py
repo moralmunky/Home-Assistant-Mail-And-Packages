@@ -962,6 +962,7 @@ def get_mails(account, image_output_path, gif_duration, image_name):
             _LOGGER.critical("Error creating directory: %s", str(err))
 
     # Clean up image directory
+    _LOGGER.debug("Cleaning up image directory: %s", str(image_output_path))
     cleanup_images(image_output_path)
 
     if rv == 'OK':
