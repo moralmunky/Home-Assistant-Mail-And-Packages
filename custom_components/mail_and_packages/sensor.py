@@ -202,6 +202,14 @@ class MailCheck(Entity):
 
         return "mdi:update"
 
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
+
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -220,7 +228,6 @@ class Amazon_Packages(Entity):
         self._name = 'Mail Amazon Packages'
         self.data = data
         self._state = 0
-        self._attributes = []
         self.update()
 
     @property
@@ -259,6 +266,7 @@ class Amazon_Packages(Entity):
         """Return device specific state attributes."""
         attr = {}
         if self._state:
+            attr["server"] = self.data._host
             attr["items"] = self.data._amazon_items
             attr["order"] = self.data._amazon_order
         return attr
@@ -313,6 +321,14 @@ class USPS_Mail(Entity):
 
         return "mdi:mailbox-up"
 
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
+
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -362,6 +378,14 @@ class USPS_Packages(Entity):
         """Return the unit of measurement."""
 
         return "mdi:package-variant-closed"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -413,6 +437,14 @@ class USPS_Delivering(Entity):
 
         return "mdi:truck-delivery"
 
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
+
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -463,6 +495,14 @@ class USPS_Delivered(Entity):
 
         return "mdi:package-variant-closed"
 
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
+
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -512,6 +552,14 @@ class Packages_Delivered(Entity):
         """Return the unit of measurement."""
         return "mdi:package-variant"
 
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
+
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -560,6 +608,14 @@ class Packages_Transit(Entity):
     def icon(self):
         """Return the unit of measurement."""
         return "mdi:truck-delivery"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -611,6 +667,14 @@ class UPS_Packages(Entity):
 
         return "mdi:package-variant-closed"
 
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
+
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -660,6 +724,14 @@ class UPS_Delivering(Entity):
         """Return the unit of measurement."""
 
         return "mdi:truck-delivery"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -711,6 +783,14 @@ class UPS_Delivered(Entity):
 
         return "mdi:package-variant-closed"
 
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
+
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -760,6 +840,14 @@ class FEDEX_Packages(Entity):
         """Return the unit of measurement."""
 
         return "mdi:package-variant-closed"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -811,6 +899,14 @@ class FEDEX_Delivering(Entity):
 
         return "mdi:truck-delivery"
 
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
+
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -860,6 +956,14 @@ class FEDEX_Delivered(Entity):
         """Return the unit of measurement."""
 
         return "mdi:package-variant"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Fetch new state data for the sensor.
