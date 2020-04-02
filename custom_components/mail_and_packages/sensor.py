@@ -117,7 +117,7 @@ class EmailData:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
 
-            self._image_name = uuid.uuid4() + ".gif"
+            self._image_name = str(uuid.uuid4()) + ".gif"
 
             # Tally emails and generate mail images
             self._usps_mail = get_mails(account, self._img_out_path,
