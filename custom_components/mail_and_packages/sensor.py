@@ -60,8 +60,8 @@ SENSOR_TYPES = {
         "pieces",
         "mdi:mailbox-up",
     ],
-    "usps_packages": [
-        "Mail USPS Packages",
+    "usps_delivered": [
+        "Mail USPS Delivered",
         "packages",
         "mdi:package-variant-closed",
     ],
@@ -70,13 +70,8 @@ SENSOR_TYPES = {
         "packages",
         "mdi:truck-delivery",
     ],
-    "usps_delivered": [
-        "Mail USPS Delivered",
-        "packages",
-        "mdi:package-variant-closed",
-    ],
-    "ups_packages": [
-        "Mail UPS Packages",
+    "usps_packages": [
+        "Mail USPS Packages",
         "packages",
         "mdi:package-variant-closed",
     ],
@@ -90,8 +85,8 @@ SENSOR_TYPES = {
         "packages",
         "mdi:truck-delivery",
     ],
-    "fedex_packages": [
-        "Mail FedEx Packages",
+    "ups_packages": [
+        "Mail UPS Packages",
         "packages",
         "mdi:package-variant-closed",
     ],
@@ -104,6 +99,11 @@ SENSOR_TYPES = {
         "Mail FedEx Delivering",
         "packages",
         "mdi:truck-delivery",
+    ],
+    "fedex_packages": [
+        "Mail FedEx Packages",
+        "packages",
+        "mdi:package-variant-closed",
     ],
     "packages_delivered": [
         "Mail Packages Delivered",
@@ -181,7 +181,24 @@ class EmailData:
                 elif sensor == "amazon_packages":
                     count[sensor] = get_items(account, "count")
                     count["amazon_order"] = get_items(account, "order")
-                # more elif to subtract delivered from delivering
+                elif sensor == "usps_packages":
+                    total = data["usps_delivering"] + data["usps_delivered"]
+                    count[sensor] = total
+                elif sensor == "ups_packages":
+                    total = data["ups_delivering"] + data["ups_delivered"]
+                    count[sensor] = total
+                elif sensor == "fedex_packages":
+                    total = data["fedex_delivering"] + data["fedex_delivered"]
+                    count[sensor] = total
+                elif sensor == "usps_delivering":
+                    total = get_count(account, sensor) - data["usps_delivered"]
+                    count[sensor] = total
+                elif sensor == "fedex_delivering":
+                    total = get_count(account, sensor) - data["fedex_delivered"]
+                    count[sensor] = total
+                elif sensor == "ups_delivering":
+                    total = get_count(account, sensor) - data["ups_delivered"]
+                    count[sensor] = total
                 elif sensor == "packages_delivered":
                     count[sensor] = data["fedex_delivered"] + data["ups_delivered"] + data["usps_delivered"]
                 elif sensor == "packages_transit":
