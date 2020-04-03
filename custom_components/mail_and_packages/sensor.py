@@ -81,12 +81,12 @@ SENSOR_TYPES = {
         "mdi:package-variant-closed",
     ],
     "ups_delivered": [
-        "Mail UPS Packages",
+        "Mail UPS Delivered",
         "packages",
         "mdi:package-variant-closed",
     ],
     "ups_delivering": [
-        "Mail UPS Packages",
+        "Mail UPS Delivering",
         "packages",
         "mdi:truck-delivery",
     ],
