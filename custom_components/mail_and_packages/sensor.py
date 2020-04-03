@@ -171,7 +171,7 @@ class EmailData:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
 
-            data = []
+            data = {}
 
             for sensor in SENSOR_TYPES:
                 count = {}
@@ -180,38 +180,40 @@ class EmailData:
                                               self._gif_duration)
                 elif sensor == "amazon_packages":
                     count[sensor] = get_items(account, "count")
-                    count["amazon_order"] = get_items(account, "order")
+                    count['amazon_order'] = get_items(account, "order")
                 elif sensor == "usps_packages":
-                    total = data["usps_delivering"] + data["usps_delivered"]
+                    total = data['usps_delivering'] + data['usps_delivered']
                     count[sensor] = total
                 elif sensor == "ups_packages":
-                    total = data["ups_delivering"] + data["ups_delivered"]
+                    total = data['ups_delivering'] + data['ups_delivered']
                     count[sensor] = total
                 elif sensor == "fedex_packages":
-                    total = data["fedex_delivering"] + data["fedex_delivered"]
+                    total = data['fedex_delivering'] + data['fedex_delivered']
                     count[sensor] = total
                 elif sensor == "usps_delivering":
-                    total = get_count(account, sensor) - data["usps_delivered"]
+                    total = int(get_count(account, sensor)) - data['usps_delivered']
                     count[sensor] = total
                 elif sensor == "fedex_delivering":
-                    total = get_count(account, sensor) - data["fedex_delivered"]
+                    total = int(get_count(account, sensor)) - data['fedex_delivered']
                     count[sensor] = total
                 elif sensor == "ups_delivering":
-                    total = get_count(account, sensor) - data["ups_delivered"]
+                    total = int(get_count(account, sensor)) - data['ups_delivered']
                     count[sensor] = total
                 elif sensor == "packages_delivered":
-                    count[sensor] = data["fedex_delivered"] + data["ups_delivered"] + data["usps_delivered"]
+                    count[sensor] = data['fedex_delivered'] + data['ups_delivered'] + data['usps_delivered']
                 elif sensor == "packages_transit":
-                    out = data["fedex_delivering"] + data["ups_delivering"] + data["usps_delivering"]
-                    delivered = data["packages_delivered"]
+                    out = data['fedex_delivering'] + data['ups_delivering'] + data['usps_delivering']
+                    delivered = data['packages_delivered']
                     total = out - delivered
                     if total < 0:
                         total = 0
                     count[sensor] = total
+                elif sensor == "mail_updated":
+                    count[sensor] = update_time()
                 else:
                     count[sensor] = get_count(account, sensor)
 
-                data.append(count)
+                data.update(count)
             self._data = data
         else:
             _LOGGER.error("Host was left blank not attempting connection")
