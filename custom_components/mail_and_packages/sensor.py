@@ -158,20 +158,8 @@ class EmailData:
         self._img_out_path = config.get(CONF_PATH)
         self._gif_duration = config.get(CONF_DURATION)
         self._scan_interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
-        self._fedex_delivered = None
-        self._fedex_delivering = None
-        self._fedex_packages = None
-        self._ups_packages = None
-        self._ups_delivering = None
-        self._ups_delivered = None
-        self._usps_packages = None
-        self._usps_delivering = None
-        self._usps_delivered = None
-        self._usps_mail = None
-        self._packages_delivered = None
-        self._packages_transit = None
-        self._amazon_packages = None
-        self._amazon_items = None
+        self._data = None
+
         _LOGGER.debug("Config scan interval: %s", self._scan_interval)
 
         self.update = Throttle(self._scan_interval)(self.update)
@@ -207,14 +195,7 @@ class EmailData:
                     count[sensor] = get_count(account, sensor)
 
                 data.append(count)
-
-            # Subtract the number of delivered packages from those in transit
-            if (self._packages_transit >= self._packages_delivered and
-               ((self._packages_transit - self._packages_delivered) > 0)):
-                self._packages_transit -= self._packages_delivered
-            else:
-                self._packages_transit = 0
-
+            self._data = data
         else:
             _LOGGER.error("Host was left blank not attempting connection")
 
@@ -263,9 +244,9 @@ class PackagesSensor(Entity):
     def device_state_attributes(self):
         """Return device specific state attributes."""
         attr = {}
-        attr["host"] = self.data['host']
+        attr["server"] = self.data._host
         if "amazon" in self._name:
-            attr["order"] = self.data['amazon_order']
+            attr["order"] = self.data._data['amazon_order']
         return attr
 
     def update(self):
@@ -274,8 +255,8 @@ class PackagesSensor(Entity):
         """
 
         self.data.update()
-        # Convert the data to a JSON reply based on sensor_type then look up via sensor_type
-        self._state = self.data[self.type]
+        # Using a dict to send the data back
+        self._state = self.data._data[self.type]
 
 # Login Method
 ###############################################################################
