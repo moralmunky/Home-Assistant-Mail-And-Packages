@@ -210,6 +210,8 @@ class PackagesSensor(Entity):
     def __init__(self, data, sensor_type):
         """ Initialize the sensor """
         self._name = SENSOR_TYPES[sensor_type][0]
+        self._icon = SENSOR_TYPES[sensor_type][2]
+        self._unit_of_measurement = SENSOR_TYPES[sensor_type][1]
         self.type = sensor_type
         self.data = data
         self._state = None
@@ -235,10 +237,15 @@ class PackagesSensor(Entity):
         return self._state
 
     @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity, if any."""
+        return self._unit_of_measurement
+
+    @property
     def icon(self):
         """Return the unit of measurement."""
 
-        return "mdi:update"
+        return self._icon
 
     @property
     def device_state_attributes(self):
