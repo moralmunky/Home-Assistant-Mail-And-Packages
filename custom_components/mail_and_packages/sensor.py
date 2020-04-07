@@ -15,6 +15,7 @@ import re
 import imaplib
 import email
 import datetime
+import uuid
 from datetime import timedelta
 from shutil import copyfile
 
@@ -42,7 +43,6 @@ from .const import (
     FEDEX_Delivering_Subject,
     FEDEX_Delivering_Subject_2,
     FEDEX_Delivered_Subject,
-    GIF_FILE_NAME,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -159,6 +159,7 @@ class EmailData:
         self._gif_duration = config.get(CONF_DURATION)
         self._scan_interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
         self._data = None
+        self._image_name = None
 
         _LOGGER.debug("Config scan interval: %s", self._scan_interval)
 
@@ -170,6 +171,8 @@ class EmailData:
             # Login to email server and select the folder
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
+
+            self._image_name = str(uuid.uuid4()) + ".gif"
 
             data = {}
 
@@ -273,6 +276,8 @@ class PackagesSensor(Entity):
         attr["server"] = self.data._host
         if "amazon" in self._name:
             attr["order"] = self.data._data['amazon_order']
+        elif "Mail USPS Mail" == self._name:
+            attr["image"] = self.data._image_name
         return attr
 
     def update(self):
@@ -344,7 +349,7 @@ def update_time():
 # Creates GIF image based on the attachments in the inbox
 ###############################################################################
 
-def get_mails(account, image_output_path, gif_duration):
+def get_mails(account, image_output_path, gif_duration, image_name):
     today = get_formatted_date()
     image_count = 0
     images = []
@@ -365,6 +370,10 @@ def get_mails(account, image_output_path, gif_duration):
             os.makedirs(image_output_path)
         except Exception as err:
             _LOGGER.critical("Error creating directory: %s", str(err))
+
+    # Clean up image directory
+    _LOGGER.debug("Cleaning up image directory: %s", str(image_output_path))
+    cleanup_images(image_output_path)
 
     if rv == 'OK':
         _LOGGER.debug("Informed Delivery email found processing...")
@@ -433,7 +442,7 @@ def get_mails(account, image_output_path, gif_duration):
             try:
                 _LOGGER.debug("Generating animated GIF")
                 # Use ImageIO to create mail images
-                io.mimwrite(os.path.join(image_output_path, GIF_FILE_NAME),
+                io.mimwrite(os.path.join(image_output_path, image_name),
                             all_images, duration=gif_duration)
                 _LOGGER.info("Mail image generated.")
             except Exception as err:
@@ -448,19 +457,19 @@ def get_mails(account, image_output_path, gif_duration):
 
         elif image_count == 0:
             _LOGGER.info("No mail found.")
-            filecheck = os.path.isfile(image_output_path + GIF_FILE_NAME)
+            filecheck = os.path.isfile(image_output_path + image_name)
             if filecheck:
                 try:
                     _LOGGER.debug("Removing " + image_output_path +
-                                  GIF_FILE_NAME)
-                    os.remove(image_output_path + GIF_FILE_NAME)
+                                  image_name)
+                    os.remove(image_output_path + image_name)
                 except Exception as err:
                     _LOGGER.error("Error attempting to remove image: %s",
                                   str(err))
             try:
                 _LOGGER.debug("Copying nomail gif")
                 copyfile(os.path.dirname(__file__) + '/mail_none.gif',
-                         image_output_path + GIF_FILE_NAME)
+                         image_output_path + image_name)
             except Exception as err:
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
 
@@ -483,6 +492,14 @@ def get_mails(account, image_output_path, gif_duration):
     #                     mode='symmetric')))
     # return sized_images
 
+# Clean up image storage directory
+# Only supose to delete .gif files
+####################################
+
+def cleanup_images(path):
+    for file in os.listdir(path):
+        if file.endswith(".gif"):
+            os.remove(path + file)
 
 # Get Package Count
 # add IF clauses to filter by sensor_type for email and subjects
