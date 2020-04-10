@@ -29,7 +29,9 @@ from .const import (
     CONF_FOLDER,
     CONF_PATH,
     CONF_DURATION,
+    CONF_IMAGE_SECURITY,
     CONF_SCAN_INTERVAL,
+    GIF_FILE_NAME,
     USPS_Mail_Email,
     USPS_Packages_Email,
     USPS_Mail_Subject,
@@ -58,6 +60,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         CONF_FOLDER: entry.data[CONF_FOLDER],
         CONF_PATH: entry.data[CONF_PATH],
         CONF_DURATION: entry.data[CONF_DURATION],
+        CONF_IMAGE_SECURITY: entry.data[CONF_IMAGE_SECURITY],
         CONF_SCAN_INTERVAL: entry.data[CONF_SCAN_INTERVAL]
     }
 
@@ -90,6 +93,7 @@ class EmailData:
         self._pwd = config.get(CONF_PASSWORD)
         self._img_out_path = config.get(CONF_PATH)
         self._gif_duration = config.get(CONF_DURATION)
+        self._image_security = config.get(CONF_IMAGE_SECURITY)
         self._scan_interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
         self._fedex_delivered = None
         self._fedex_delivering = None
@@ -117,7 +121,10 @@ class EmailData:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
 
-            self._image_name = str(uuid.uuid4()) + ".gif"
+            if self._image_security:
+                self._image_name = str(uuid.uuid4()) + ".gif"
+            else:
+                self._image_name = GIF_FILE_NAME
 
             # Tally emails and generate mail images
             self._usps_mail = get_mails(account, self._img_out_path,
