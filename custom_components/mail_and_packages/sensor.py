@@ -209,18 +209,25 @@ class EmailData:
                     total = data['fedex_delivering'] + data['fedex_delivered']
                     count[sensor] = total
                 elif sensor == "usps_delivering":
-                    total = int(get_count(account, sensor)) - data['usps_delivered']
+                    total = (int(get_count(account, sensor))
+                             - data['usps_delivered'])
                     count[sensor] = total
                 elif sensor == "fedex_delivering":
-                    total = int(get_count(account, sensor)) - data['fedex_delivered']
+                    total = (int(get_count(account, sensor))
+                             - data['fedex_delivered'])
                     count[sensor] = total
                 elif sensor == "ups_delivering":
-                    total = int(get_count(account, sensor)) - data['ups_delivered']
+                    total = (int(get_count(account, sensor))
+                             - data['ups_delivered'])
                     count[sensor] = total
                 elif sensor == "packages_delivered":
-                    count[sensor] = data['fedex_delivered'] + data['ups_delivered'] + data['usps_delivered']
+                    count[sensor] = (data['fedex_delivered']
+                                     + data['ups_delivered']
+                                     + data['usps_delivered'])
                 elif sensor == "packages_transit":
-                    out = data['fedex_delivering'] + data['ups_delivering'] + data['usps_delivering']
+                    out = (data['fedex_delivering']
+                           + data['ups_delivering']
+                           + data['usps_delivering'])
                     delivered = data['packages_delivered']
                     total = out - delivered
                     if total < 0:
@@ -568,7 +575,8 @@ def get_count(account, sensor_type):
     if subject_2 is not None:
         try:
             (rv, data) = account.search(None, '(FROM "' + email + '" SUBJECT "'
-                                        + subject_2 + '" SENTON "' + today + '")')
+                                        + subject_2 + '" SENTON "' + today
+                                        + '")')
         except imaplib.IMAP4.error as err:
             _LOGGER.error("Error searching emails: %s", str(err))
             return False

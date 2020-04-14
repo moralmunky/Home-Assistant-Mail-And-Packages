@@ -151,7 +151,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         data_schema = OrderedDict()
         data_schema[vol.Required("folder",
                                  default=folder)] = vol.In(mailboxes)
-        data_schema[vol.Optional("image_security", default=image_security)] = bool
+        data_schema[vol.Optional("image_security",
+                                 default=image_security)] = bool
         data_schema[vol.Optional("gif_duration",
                                  default=gif_duration)] = vol.Coerce(int)
         data_schema[vol.Optional("scan_interval",
@@ -298,7 +299,8 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         data_schema = OrderedDict()
         data_schema[vol.Required("folder",
                                  default=folder)] = vol.In(mailboxes)
-        data_schema[vol.Optional("image_security", default=image_security)] = bool
+        data_schema[vol.Optional("image_security",
+                                 default=image_security)] = bool
         data_schema[vol.Optional("gif_duration",
                                  default=gif_duration)] = vol.Coerce(int)
         data_schema[vol.Optional("scan_interval",
