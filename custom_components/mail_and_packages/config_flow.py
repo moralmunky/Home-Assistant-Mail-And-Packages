@@ -12,12 +12,14 @@ from .const import (
     DEFAULT_PORT,
     DEFAULT_PATH,
     DEFAULT_FOLDER,
+    DEFAULT_IMAGE_SECURITY,
     GIF_DURATION,
     SCAN_INTERVAL,
     CONF_DURATION,
     CONF_SCAN_INTERVAL,
     CONF_FOLDER,
-    CONF_PATH
+    CONF_PATH,
+    CONF_IMAGE_SECURITY,
 )
 from homeassistant.const import (
     CONF_HOST,
@@ -44,10 +46,6 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input={}):
         """Handle a flow initialized by the user."""
         self._errors = {}
-        if self._async_current_entries():
-            return self.async_abort(reason="single_instance_allowed")
-        if self.hass.data.get(DOMAIN):
-            return self.async_abort(reason="single_instance_allowed")
 
         if user_input is not None:
             self._data.update(user_input)
@@ -96,6 +94,9 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._data.update(user_input)
             if user_input["folder"] is not None:
+                if not user_input["image_path"].endswith("/"):
+                    user_input["image_path"] += "/"
+                    self._data.update(user_input)
                 return self.async_create_entry(title=self._data[CONF_HOST],
                                                data=self._data)
             else:
@@ -109,6 +110,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         folder = DEFAULT_FOLDER
         image_path = DEFAULT_PATH
         gif_duration = GIF_DURATION
+        image_security = DEFAULT_IMAGE_SECURITY
         scan_interval = SCAN_INTERVAL
 
         account = imaplib.IMAP4_SSL(self._data["host"], self._data["port"])
@@ -141,12 +143,15 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 image_path = user_input["image_path"]
             if "gif_duration" in user_input:
                 gif_duration = user_input["gif_duration"]
+            if "image_security" in user_input:
+                image_security = user_input["image_security"]
             if "scan_interval" in user_input:
                 scan_interval = user_input["scan_interval"]
 
         data_schema = OrderedDict()
         data_schema[vol.Required("folder",
                                  default=folder)] = vol.In(mailboxes)
+        data_schema[vol.Optional("image_security", default=image_security)] = bool
         data_schema[vol.Optional("gif_duration",
                                  default=gif_duration)] = vol.Coerce(int)
         data_schema[vol.Optional("scan_interval",
@@ -237,6 +242,9 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             self._data.update(user_input)
             if user_input["folder"] is not None:
+                if not user_input["image_path"].endswith("/"):
+                    user_input["image_path"] += "/"
+                    self._data.update(user_input)
                 return self.async_create_entry(title="", data=self._data)
             else:
                 return await self._show_step_options_2(user_input)
@@ -250,6 +258,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         image_path = self.config.options.get(CONF_PATH)
         gif_duration = self.config.options.get(CONF_DURATION)
         scan_interval = self.config.options.get(CONF_SCAN_INTERVAL)
+        image_security = self.config.options.get(CONF_IMAGE_SECURITY)
 
         account = imaplib.IMAP4_SSL(self._data["host"], self._data["port"])
         status, data = account.login(self._data["username"],
@@ -281,12 +290,15 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
                 image_path = user_input["image_path"]
             if "gif_duration" in user_input:
                 gif_duration = user_input["gif_duration"]
+            if "image_security" in user_input:
+                image_security = user_input["image_security"]
             if "scan_interval" in user_input:
                 scan_interval = user_input["scan_interval"]
 
         data_schema = OrderedDict()
         data_schema[vol.Required("folder",
                                  default=folder)] = vol.In(mailboxes)
+        data_schema[vol.Optional("image_security", default=image_security)] = bool
         data_schema[vol.Optional("gif_duration",
                                  default=gif_duration)] = vol.Coerce(int)
         data_schema[vol.Optional("scan_interval",

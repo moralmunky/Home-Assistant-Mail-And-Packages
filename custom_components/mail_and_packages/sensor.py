@@ -29,7 +29,9 @@ from .const import (
     CONF_FOLDER,
     CONF_PATH,
     CONF_DURATION,
+    CONF_IMAGE_SECURITY,
     CONF_SCAN_INTERVAL,
+    GIF_FILE_NAME,
     USPS_Mail_Email,
     USPS_Packages_Email,
     USPS_Mail_Subject,
@@ -165,6 +167,14 @@ class EmailData:
 
         self.update = Throttle(self._scan_interval)(self.update)
 
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
+
     def update(self):
         """Get the latest data"""
         if self._host is not None:
@@ -278,6 +288,14 @@ class PackagesSensor(Entity):
             attr["order"] = self.data._data['amazon_order']
         elif "Mail USPS Mail" == self._name:
             attr["image"] = self.data._image_name
+        return attr
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
         return attr
 
     def update(self):
