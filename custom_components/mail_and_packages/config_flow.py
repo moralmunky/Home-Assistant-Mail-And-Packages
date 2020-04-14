@@ -94,6 +94,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._data.update(user_input)
             if user_input["folder"] is not None:
+                if not user_input["image_path"].endswith("/"):
+                    user_input["image_path"] += "/"
                 return self.async_create_entry(title=self._data[CONF_HOST],
                                                data=self._data)
             else:
@@ -239,6 +241,8 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             self._data.update(user_input)
             if user_input["folder"] is not None:
+                if not user_input["image_path"].endswith("/"):
+                    user_input["image_path"] += "/"
                 return self.async_create_entry(title="", data=self._data)
             else:
                 return await self._show_step_options_2(user_input)
