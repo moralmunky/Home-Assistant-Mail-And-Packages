@@ -135,6 +135,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         CONF_FOLDER: entry.data[CONF_FOLDER],
         CONF_PATH: entry.data[CONF_PATH],
         CONF_DURATION: entry.data[CONF_DURATION],
+        CONF_IMAGE_SECURITY: entry.data[CONF_IMAGE_SECURITY],
         CONF_SCAN_INTERVAL: entry.data[CONF_SCAN_INTERVAL]
     }
 
@@ -159,6 +160,7 @@ class EmailData:
         self._pwd = config.get(CONF_PASSWORD)
         self._img_out_path = config.get(CONF_PATH)
         self._gif_duration = config.get(CONF_DURATION)
+        self._image_security = config.get(CONF_IMAGE_SECURITY)
         self._scan_interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
         self._data = None
         self._image_name = None
@@ -182,7 +184,10 @@ class EmailData:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
 
-            self._image_name = str(uuid.uuid4()) + ".gif"
+            if self._image_security:
+                self._image_name = str(uuid.uuid4()) + ".gif"
+            else:
+                self._image_name = GIF_FILE_NAME
 
             data = {}
 
@@ -288,14 +293,6 @@ class PackagesSensor(Entity):
             attr["order"] = self.data._data['amazon_order']
         elif "Mail USPS Mail" == self._name:
             attr["image"] = self.data._image_name
-        return attr
-
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        attr = {}
-        if self._state:
-            attr["server"] = self.data._host
         return attr
 
     def update(self):
