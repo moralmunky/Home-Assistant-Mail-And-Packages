@@ -21,20 +21,17 @@ async def async_setup_entry(hass, config_entry):
     """Load the saved entities."""
     # Print startup message
     _LOGGER.info('Version %s is starting, if you have any issues please report'
-                 ' them here: %s', VERSION, ISSUE_URL)    
+                 ' them here: %s', VERSION, ISSUE_URL)
     config_entry.options = config_entry.data
     config_entry.add_update_listener(update_listener)
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(config_entry, "sensor")
     )
-    # hass.async_create_task(
-    #     hass.config_entries.async_forward_entry_setup(entry, "camera")
-    # )
 
     return True
 
 
-async def async_remove_entry(hass, config_entry):
+async def async_unload_entry(hass, config_entry):
     """Handle removal of an entry."""
     try:
         await hass.config_entries.async_forward_entry_unload(config_entry,
@@ -44,6 +41,7 @@ async def async_remove_entry(hass, config_entry):
         )
     except ValueError:
         pass
+    return True
 
 
 async def update_listener(hass, entry):

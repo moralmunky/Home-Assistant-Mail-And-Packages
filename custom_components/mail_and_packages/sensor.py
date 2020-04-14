@@ -15,10 +15,12 @@ import re
 import imaplib
 import email
 import datetime
+import uuid
 from datetime import timedelta
 from shutil import copyfile
 
 from homeassistant.helpers.entity import Entity
+from homeassistant.util import Throttle
 
 from homeassistant.const import (
      CONF_HOST, CONF_PORT, CONF_USERNAME, CONF_PASSWORD)
@@ -27,6 +29,9 @@ from .const import (
     CONF_FOLDER,
     CONF_PATH,
     CONF_DURATION,
+    CONF_IMAGE_SECURITY,
+    CONF_SCAN_INTERVAL,
+    GIF_FILE_NAME,
     USPS_Mail_Email,
     USPS_Packages_Email,
     USPS_Mail_Subject,
@@ -40,19 +45,12 @@ from .const import (
     FEDEX_Delivering_Subject,
     FEDEX_Delivering_Subject_2,
     FEDEX_Delivered_Subject,
-    GIF_FILE_NAME,
 )
 
-from homeassistant.util import Throttle
-
 _LOGGER = logging.getLogger(__name__)
-MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-
-    # _LOGGER.info('version %s is starting, if you have any issues please report'
-    #              ' them here: %s', VERSION, ISSUE_URL)
 
     config = {
         CONF_HOST: entry.data[CONF_HOST],
@@ -61,7 +59,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
         CONF_PORT: entry.data[CONF_PORT],
         CONF_FOLDER: entry.data[CONF_FOLDER],
         CONF_PATH: entry.data[CONF_PATH],
-        CONF_DURATION: entry.data[CONF_DURATION]
+        CONF_DURATION: entry.data[CONF_DURATION],
+        CONF_IMAGE_SECURITY: entry.data[CONF_IMAGE_SECURITY],
+        CONF_SCAN_INTERVAL: entry.data[CONF_SCAN_INTERVAL]
     }
 
     data = EmailData(hass, config)
@@ -77,7 +77,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
                        FEDEX_Delivering(hass, data),
                        FEDEX_Delivered(hass, data),
                        Packages_Delivered(hass, data),
-                       Packages_Transit(hass, data)], True)
+                       Packages_Transit(hass, data),
+                       Amazon_Packages(hass, data)], True)
 
 
 class EmailData:
@@ -92,6 +93,8 @@ class EmailData:
         self._pwd = config.get(CONF_PASSWORD)
         self._img_out_path = config.get(CONF_PATH)
         self._gif_duration = config.get(CONF_DURATION)
+        self._image_security = config.get(CONF_IMAGE_SECURITY)
+        self._scan_interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
         self._fedex_delivered = None
         self._fedex_delivering = None
         self._fedex_packages = None
@@ -104,8 +107,13 @@ class EmailData:
         self._usps_mail = None
         self._packages_delivered = None
         self._packages_transit = None
+        self._amazon_packages = None
+        self._amazon_items = None
+        self._image_name = None
+        _LOGGER.debug("Config scan interval: %s", self._scan_interval)
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+        self.update = Throttle(self._scan_interval)(self.update)
+
     def update(self):
         """Get the latest data"""
         if self._host is not None:
@@ -113,27 +121,35 @@ class EmailData:
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
 
+            if self._image_security:
+                self._image_name = str(uuid.uuid4()) + ".gif"
+            else:
+                self._image_name = GIF_FILE_NAME
+
             # Tally emails and generate mail images
             self._usps_mail = get_mails(account, self._img_out_path,
-                                        self._gif_duration)
-            self._usps_delivering = get_count(account, USPS_Packages_Email,
-                                              USPS_Delivering_Subject)
+                                        self._gif_duration, self._image_name)
             self._usps_delivered = get_count(account, USPS_Packages_Email,
                                              USPS_Delivered_Subject)
+            self._usps_delivering = (get_count(account, USPS_Packages_Email,
+                                               USPS_Delivering_Subject) -
+                                     self._usps_delivered)
             self._usps_packages = self._usps_delivering + self._usps_delivered
             self._ups_delivered = get_count(account, UPS_Email,
                                             UPS_Delivered_Subject)
-            self._ups_delivering = (get_count(account, UPS_Email,
-                                              UPS_Delivering_Subject) +
+            self._ups_delivering = ((get_count(account, UPS_Email,
+                                               UPS_Delivering_Subject) +
                                     get_count(account, UPS_Email,
-                                              UPS_Delivering_Subject_2))
+                                              UPS_Delivering_Subject_2)) -
+                                    self._ups_delivered)
             self._ups_packages = self._ups_delivered + self._ups_delivering
             self._fedex_delivered = get_count(account, FEDEX_Email,
                                               FEDEX_Delivered_Subject)
-            self._fedex_delivering = (get_count(account, FEDEX_Email,
-                                                FEDEX_Delivering_Subject) +
+            self._fedex_delivering = ((get_count(account, FEDEX_Email,
+                                                 FEDEX_Delivering_Subject) +
                                       get_count(account, FEDEX_Email,
-                                                FEDEX_Delivering_Subject_2))
+                                                FEDEX_Delivering_Subject_2)) -
+                                      self._fedex_delivered)
             self._fedex_packages = (self._fedex_delivered +
                                     self._fedex_delivering)
             self._packages_transit = (self._fedex_delivering +
@@ -142,13 +158,22 @@ class EmailData:
             self._packages_delivered = (self._fedex_delivered +
                                         self._ups_delivered +
                                         self._usps_delivered)
+            self._amazon_packages = get_items(account, "count")
+            self._amazon_items = get_items(account, "items")
+            self._amazon_order = get_items(account, "order")
 
             # Subtract the number of delivered packages from those in transit
-            if self._packages_transit >= self._packages_delivered:
+            if (self._packages_transit >= self._packages_delivered and
+               ((self._packages_transit - self._packages_delivered) > 0)):
                 self._packages_transit -= self._packages_delivered
+            else:
+                self._packages_transit = 0
 
         else:
             _LOGGER.debug("Host was left blank not attempting connection")
+
+        self._scan_time = update_time()
+        _LOGGER.debug("Updated scan time: %s", self._scan_time)
 
 
 class MailCheck(Entity):
@@ -164,7 +189,9 @@ class MailCheck(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -185,13 +212,81 @@ class MailCheck(Entity):
 
         return "mdi:update"
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
+
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
 
-        self._state = update_time()
+        self.data.update()
+        self._state = self.data._scan_time
+
+
+class Amazon_Packages(Entity):
+
+    """Representation of a Sensor."""
+
+    def __init__(self, hass, data):
+        """Initialize the sensor."""
+        self._name = 'Mail Amazon Packages'
+        self.data = data
+        self._state = 0
+        self.update()
+
+    @property
+    def unique_id(self):
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
+        return f"{self.data._host}_{self._name}"
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+
+        return self._name
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+
+        return self._state
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement."""
+
+        return 'Packages'
+
+    @property
+    def icon(self):
+        """Return the unit of measurement."""
+
+        return "mdi:amazon"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+            attr["items"] = self.data._amazon_items
+            attr["order"] = self.data._amazon_order
+        return attr
+
+    def update(self):
+        """Fetch new state data for the sensor.
+        This is the only method that should fetch new data for Home Assistant.
+        """
+        self.data.update()
+        self._state = self.data._amazon_packages
 
 
 class USPS_Mail(Entity):
@@ -207,7 +302,9 @@ class USPS_Mail(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -234,6 +331,15 @@ class USPS_Mail(Entity):
 
         return "mdi:mailbox-up"
 
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+            attr["image"] = self.data._image_name
+        return attr
+
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -255,7 +361,9 @@ class USPS_Packages(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -281,6 +389,14 @@ class USPS_Packages(Entity):
         """Return the unit of measurement."""
 
         return "mdi:package-variant-closed"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -303,7 +419,9 @@ class USPS_Delivering(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -329,6 +447,14 @@ class USPS_Delivering(Entity):
         """Return the unit of measurement."""
 
         return "mdi:truck-delivery"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -351,7 +477,9 @@ class USPS_Delivered(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -377,6 +505,14 @@ class USPS_Delivered(Entity):
         """Return the unit of measurement."""
 
         return "mdi:package-variant-closed"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -399,7 +535,9 @@ class Packages_Delivered(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -424,6 +562,14 @@ class Packages_Delivered(Entity):
     def icon(self):
         """Return the unit of measurement."""
         return "mdi:package-variant"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -446,7 +592,9 @@ class Packages_Transit(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -471,6 +619,14 @@ class Packages_Transit(Entity):
     def icon(self):
         """Return the unit of measurement."""
         return "mdi:truck-delivery"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -493,7 +649,9 @@ class UPS_Packages(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -519,6 +677,14 @@ class UPS_Packages(Entity):
         """Return the unit of measurement."""
 
         return "mdi:package-variant-closed"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -541,7 +707,9 @@ class UPS_Delivering(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -567,6 +735,14 @@ class UPS_Delivering(Entity):
         """Return the unit of measurement."""
 
         return "mdi:truck-delivery"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -589,7 +765,9 @@ class UPS_Delivered(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -615,6 +793,14 @@ class UPS_Delivered(Entity):
         """Return the unit of measurement."""
 
         return "mdi:package-variant-closed"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -637,7 +823,9 @@ class FEDEX_Packages(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -664,6 +852,14 @@ class FEDEX_Packages(Entity):
 
         return "mdi:package-variant-closed"
 
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
+
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -685,7 +881,9 @@ class FEDEX_Delivering(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -712,6 +910,14 @@ class FEDEX_Delivering(Entity):
 
         return "mdi:truck-delivery"
 
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
+
     def update(self):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
@@ -733,7 +939,9 @@ class FEDEX_Delivered(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique, Home Assistant friendly identifier for this entity."""
+        """
+        Return a unique, Home Assistant friendly identifier for this entity.
+        """
         return f"{self.data._host}_{self._name}"
 
     @property
@@ -759,6 +967,14 @@ class FEDEX_Delivered(Entity):
         """Return the unit of measurement."""
 
         return "mdi:package-variant"
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Fetch new state data for the sensor.
@@ -792,19 +1008,31 @@ def login(host, port, user, pwd):
 
 
 def selectfolder(account, folder):
-    rv, mailboxes = account.list()
-    rv, data = account.select(folder)
-
+    try:
+        rv, mailboxes = account.list()
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("Error listing folders: %s", str(err))
+    try:
+        rv, data = account.select(folder)
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("Error selecting folder: %s", str(err))
 
 # Returns today in specific format
 ###############################################################################
 
+
 def get_formatted_date():
-    return datetime.datetime.today().strftime('%d-%b-%Y')
+    today = datetime.datetime.today().strftime('%d-%b-%Y')
+    """
+    # for testing
+    # today = '18-Mar-2020'
+    """
+    return today
 
 
 # gets update time
 ###############################################################################
+
 
 def update_time():
     updated = datetime.datetime.now().strftime('%b-%d-%Y %I:%M %p')
@@ -815,7 +1043,7 @@ def update_time():
 # Creates GIF image based on the attachments in the inbox
 ###############################################################################
 
-def get_mails(account, image_output_path, gif_duration):
+def get_mails(account, image_output_path, gif_duration, image_name):
     today = get_formatted_date()
     image_count = 0
     images = []
@@ -826,12 +1054,20 @@ def get_mails(account, image_output_path, gif_duration):
 
     (rv, data) = account.search(None,
                                 '(FROM "' + USPS_Mail_Email + '" SUBJECT "' +
-                                USPS_Mail_Subject + '" ON "' + today + '")')
+                                USPS_Mail_Subject + '" SENTON "' + today + '")'
+                                )
 
-    # Get number of emails found
-    # messageIDsString = str(data[0], encoding='utf8')
-    # listOfSplitStrings = messageIDsString.split(" ")
-    # msg_count = len(listOfSplitStrings)
+    # Check to see if the path exists, if not make it
+    pathcheck = os.path.isdir(image_output_path)
+    if not pathcheck:
+        try:
+            os.makedirs(image_output_path)
+        except Exception as err:
+            _LOGGER.critical("Error creating directory: %s", str(err))
+
+    # Clean up image directory
+    _LOGGER.debug("Cleaning up image directory: %s", str(image_output_path))
+    cleanup_images(image_output_path)
 
     if rv == 'OK':
         _LOGGER.debug("Informed Delivery email found processing...")
@@ -848,15 +1084,6 @@ def get_mails(account, image_output_path, gif_duration):
 
                 _LOGGER.debug("Extracting image from email")
                 filepath = image_output_path + part.get_filename()
-
-                # Check to see if the path exists, if not make it
-                pathcheck = os.path.isdir(image_output_path)
-                if not pathcheck:
-                    try:
-                        os.mkdir(image_output_path)
-                    except Exception as err:
-                        _LOGGER.critical("Error creating directory: %s",
-                                         str(err))
 
                 # Log error message if we are unable to open the filepath for
                 # some reason
@@ -902,14 +1129,14 @@ def get_mails(account, image_output_path, gif_duration):
             # # Resize images to 700x315
             # all_images = resize_images(all_images)
 
-            _LOGGER.debug("Creating array of image files...")
             # Create numpy array of images
+            _LOGGER.debug("Creating array of image files...")
             all_images = [io.imread(image) for image in images]
 
             try:
                 _LOGGER.debug("Generating animated GIF")
                 # Use ImageIO to create mail images
-                io.mimwrite(os.path.join(image_output_path, GIF_FILE_NAME),
+                io.mimwrite(os.path.join(image_output_path, image_name),
                             all_images, duration=gif_duration)
                 _LOGGER.info("Mail image generated.")
             except Exception as err:
@@ -924,15 +1151,19 @@ def get_mails(account, image_output_path, gif_duration):
 
         elif image_count == 0:
             _LOGGER.info("No mail found.")
-            try:
-                _LOGGER.debug("Removing " + image_output_path + GIF_FILE_NAME)
-                os.remove(image_output_path + GIF_FILE_NAME)
-            except Exception as err:
-                _LOGGER.error("Error attempting to remove image: %s", str(err))
+            filecheck = os.path.isfile(image_output_path + image_name)
+            if filecheck:
+                try:
+                    _LOGGER.debug("Removing " + image_output_path +
+                                  image_name)
+                    os.remove(image_output_path + image_name)
+                except Exception as err:
+                    _LOGGER.error("Error attempting to remove image: %s",
+                                  str(err))
             try:
                 _LOGGER.debug("Copying nomail gif")
                 copyfile(os.path.dirname(__file__) + '/mail_none.gif',
-                         image_output_path + GIF_FILE_NAME)
+                         image_output_path + image_name)
             except Exception as err:
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
 
@@ -951,11 +1182,18 @@ def get_mails(account, image_output_path, gif_duration):
     #         height = int(float(image.shape[0])*float(wpercent))
     #         sized_images.append(img_as_ubyte(resize(image, (height, 700))))
     #     else:
-        # sized_images.append(img_as_ubyte(resize(image, (317, 700),
-        #                     mode='symmetric')))
-
-
+    # sized_images.append(img_as_ubyte(resize(image, (317, 700),
+    #                     mode='symmetric')))
     # return sized_images
+
+# Clean up image storage directory
+# Only supose to delete .gif files
+####################################
+
+def cleanup_images(path):
+    for file in os.listdir(path):
+        if file.endswith(".gif"):
+            os.remove(path + file)
 
 
 # Get Package Count
@@ -968,11 +1206,80 @@ def get_count(account, email, subject):
 
     _LOGGER.debug("Attempting to find mail from %s with subject %s", email,
                   subject)
-
-    (rv, data) = account.search(None, '(FROM "' + email + '" SUBJECT "'
-                                + subject + '" ON "' + today + '")')
+    try:
+        (rv, data) = account.search(None, '(FROM "' + email + '" SUBJECT "'
+                                    + subject + '" SENTON "' + today + '")')
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("Error searching emails: %s", str(err))
+        return False
 
     if rv == 'OK':
         count = len(data[0].split())
 
     return count
+
+
+# Get Items
+###############################################################################
+
+
+def get_items(account, param):
+    _LOGGER.debug("Attempting to find Amazon email with item list ...")
+    # Limit to past 3 days (plan to make this configurable)
+    past_date = datetime.date.today() - datetime.timedelta(days=3)
+    tfmt = past_date.strftime('%d-%b-%Y')
+    deliveriesToday = []
+    orderNum = []
+
+    try:
+        (rv, sdata) = account.search(None, '(FROM "amazon.com" SINCE ' + tfmt +
+                                     ')')
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("Error searching emails: %s", str(err))
+
+    else:
+        mail_ids = sdata[0]
+        id_list = mail_ids.split()
+        _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
+        for i in id_list:
+            typ, data = account.fetch(i, '(RFC822)')
+            for response_part in data:
+                if isinstance(response_part, tuple):
+                    msg = email.message_from_bytes(response_part[1])
+                    email_subject = msg['subject']
+                    # email_from = msg['from']
+                    email_msg = str(msg.get_payload(0))
+                    # today_month = datetime.date.today().month
+                    # today_day = datetime.date.today().day
+                    if "will arrive:" in email_msg:
+                        start = (email_msg.find("will arrive:") +
+                                 len("will arrive:"))
+                        end = email_msg.find("Track your package:")
+                        arrive_date = email_msg[start:end].strip()
+                        arrive_date = arrive_date.split(" ")
+                        arrive_date = arrive_date[0:3]
+                        arrive_date[2] = arrive_date[2][:2]
+                        arrive_date = " ".join(arrive_date).strip()
+                        dateobj = datetime.datetime.strptime(arrive_date,
+                                                             '%A, %B %d')
+                        if (dateobj.day == datetime.date.today().day and
+                           dateobj.month == datetime.date.today().month):
+                            subj_parts = email_subject.split('"')
+                            if len(subj_parts) > 1:
+                                deliveriesToday.append(subj_parts[1])
+                            else:
+                                deliveriesToday.append("Amazon Order")
+
+                            subj_order = email_subject.split(' ')
+                            if len(subj_order) == 6:
+                                orderNum.append(str(subj_order[3]).strip('#'))
+
+        if (param == "count"):
+            _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
+            return len(deliveriesToday)
+        elif (param == "order"):
+            _LOGGER.debug("Amazon order: %s", str(orderNum))
+            return orderNum
+        else:
+            _LOGGER.debug("Amazon json: %s", str(deliveriesToday))
+            return deliveriesToday

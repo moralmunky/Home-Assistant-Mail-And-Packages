@@ -1,15 +1,18 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.1.2-1"
+VERSION = "0.1.3-b11"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
 CONF_DURATION = "gif_duration"
+CONF_SCAN_INTERVAL = "scan_interval"
+CONF_IMAGE_SECURITY = "image_security"
 
 DEFAULT_NAME = "Mail And Packages"
 DEFAULT_PORT = '993'
-DEFAULT_FOLDER = 'Inbox'
+DEFAULT_FOLDER = '"INBOX"'
 DEFAULT_PATH = '/home/homeassistant/.homeassistant/images/mail_and_packages/'
+DEFAULT_IMAGE_SECURITY = True
 DATA_LOCAL_FILE = 'mail_today.gif'
 CAMERA_NAME = "Mail USPS"
 
@@ -31,3 +34,4 @@ FEDEX_Delivered_Subject = 'Your package has been delivered'
 
 GIF_FILE_NAME = 'mail_today.gif'
 GIF_DURATION = 5
+SCAN_INTERVAL = 5
