@@ -225,11 +225,9 @@ class EmailData:
                                      + data['ups_delivered']
                                      + data['usps_delivered'])
                 elif sensor == "packages_transit":
-                    out = (data['fedex_delivering']
+                    total = (data['fedex_delivering']
                            + data['ups_delivering']
                            + data['usps_delivering'])
-                    delivered = data['packages_delivered']
-                    total = out - delivered
                     if total < 0:
                         total = 0
                     count[sensor] = total
