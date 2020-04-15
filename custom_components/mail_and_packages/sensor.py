@@ -163,10 +163,7 @@ class EmailData:
             self._amazon_order = get_items(account, "order")
 
             # Subtract the number of delivered packages from those in transit
-            if (self._packages_transit >= self._packages_delivered and
-               ((self._packages_transit - self._packages_delivered) > 0)):
-                self._packages_transit -= self._packages_delivered
-            else:
+            if self._packages_transit < 0:
                 self._packages_transit = 0
 
         else:
