@@ -195,7 +195,8 @@ class EmailData:
                 count = {}
                 if sensor == "usps_mail":
                     count[sensor] = get_mails(account, self._img_out_path,
-                                              self._gif_duration)
+                                              self._gif_duration,
+                                              self._image_name)
                 elif sensor == "amazon_packages":
                     count[sensor] = get_items(account, "count")
                     count['amazon_order'] = get_items(account, "order")
@@ -226,8 +227,8 @@ class EmailData:
                                      + data['usps_delivered'])
                 elif sensor == "packages_transit":
                     total = (data['fedex_delivering']
-                           + data['ups_delivering']
-                           + data['usps_delivering'])
+                             + data['ups_delivering']
+                             + data['usps_delivering'])
                     if total < 0:
                         total = 0
                     count[sensor] = total
