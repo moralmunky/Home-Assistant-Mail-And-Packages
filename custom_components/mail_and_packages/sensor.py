@@ -559,7 +559,7 @@ def get_count(account, sensor_type):
         _LOGGER.error("Unknown sensor type: %s", str(sensor_type))
         return False
 
-    _LOGGER.debug("Attempting to find mail from %s with subject %s", email,
+    _LOGGER.debug("Attempting to find mail from %s with subject 1 %s", email,
                   subject)
     try:
         (rv, data) = account.search(None, '(FROM "' + email + '" SUBJECT "'
@@ -570,8 +570,11 @@ def get_count(account, sensor_type):
 
     if rv == 'OK':
         count = len(data[0].split())
+        _LOGGER.debug("Found from %s with subject 1 %s, %s", email, subject, data[0])
 
     if subject_2 is not None:
+        _LOGGER.debug("Attempting to find mail from %s with subject 2 %s", email,
+                  subject_2)
         try:
             (rv, data) = account.search(None, '(FROM "' + email + '" SUBJECT "'
                                         + subject_2 + '" SENTON "' + today
@@ -580,8 +583,9 @@ def get_count(account, sensor_type):
             _LOGGER.error("Error searching emails: %s", str(err))
             return False
 
-    if rv == 'OK':
-        count += len(data[0].split())
+        if rv == 'OK':
+            count += len(data[0].split())
+            _LOGGER.debug("Found from %s with subject 2 %s, %s", email, subject_2, data[0])
 
     return count
 
