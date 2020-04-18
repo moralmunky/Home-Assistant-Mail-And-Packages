@@ -8,9 +8,9 @@
 
 # HomeAssistant Mail and Packages
 
-Card, Custom Component, and Notifications for getting UPS, USPS, and FedEx delivery information in Home Assistant. This component only shows a snapshot of the current days packages that are in transit for delviery on the current day or have already been deliveredon in the current day. It also generates the number of USPS mail pieces and images (if avaiable) for the current day.
+This provides a Card, Custom Component, and Notifications for getting UPS, USPS, and FedEx delivery information in Home Assistant. This component shows a snapshot of the current days packages that are in transit for delivery on the current day or have already been delivered on the current day. It also generates the number of USPS mail pieces and images, if available, for the current day.
 
-The component conencts to the email account you supply where your shipment notifcations are deleivers. It looks at the subject lines of the current days emails from the shipping companies. It counts the subject line matches to the known standard subject lines from the shipping companies. For USPS informed delviery emails, it also downloads the mail images to combined them into a rotating GIF.
+The component connects to the email account you supply where your shipment notifications are sent. It looks at the subject lines of the current day's emails from the shipping companies and counts the subject line matches to the known standard subject lines from the shipping companies. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF.
 
 All procedures are done locally on your machine.
 
@@ -52,7 +52,7 @@ Supports only Lovelace UI. Last tested in 0.105.x.
 3. Copy/move `image-no-mailpieces700.jpg` and `mail_none.gif` to the images directory (recommend `<config_dir>/images/mail_and_packages` as the path)
 
 ## Configuration/HASS Set Up
-Once you have finished either installing via HACS or manually (and rebooted HASS), go into ```Configuration -> Integration``` select the ```+```and add the ```Mail And Packages``` integration you will be prompted to input your mail server settings.
+Once you have finished either installing via HACS or manually (and rebooted HASS), go into ```Configuration -> Integration``` select the ```+```and add the ```Mail And Packages``` integration. You will be prompted to input your mail server settings.
 
 ## Privacy / Security Note
 Please note that anything in the ```www``` folder is techncially publicly accessable unless you have taken security measures like a reverse proxy with authentication enabled. You can place the images in an ```images``` directory and still send notifications via most notification integrations.
@@ -176,7 +176,7 @@ You may also want to add a camera to display the image.  Add to the camera porti
 ## Lovelace Custom Card Setup
 
 A few options here as provided by the community:
-Note: The local file camera reloads the file after 10 seconds. If the gif is langer than 10 seconds not all mail with be shown. Please use a [picture entity card](https://www.home-assistant.io/lovelace/picture-entity/) with the camera view set to live.
+Note: The local file camera reloads the file after 10 seconds. If the gif is longer than 10 seconds not all mail with be shown. Please use a [picture entity card](https://www.home-assistant.io/lovelace/picture-entity/) with the camera view set to live.
 
 ### Option 1 (requires [vertical stack in card custom card](https://github.com/ofekashery/vertical-stack-in-card))
 ```
