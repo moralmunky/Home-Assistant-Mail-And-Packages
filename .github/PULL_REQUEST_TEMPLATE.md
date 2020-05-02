@@ -27,7 +27,7 @@
 
 - [ ] Dependency upgrade
 - [ ] Bugfix (non-breaking change which fixes an issue)
-- [ ] New feature (which adds functionality to an existing integration)
+- [ ] New feature (which adds functionality)
 - [ ] Breaking change (fix/feature causing existing functionality to break)
 - [ ] Code quality improvements to existing code or addition of tests
 

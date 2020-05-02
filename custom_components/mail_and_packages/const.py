@@ -32,6 +32,9 @@ FEDEX_Delivering_Subject = 'Delivery scheduled for today'
 FEDEX_Delivering_Subject_2 = 'Your package is scheduled for delivery today'
 FEDEX_Delivered_Subject = 'Your package has been delivered'
 
+Amazon_Email = 'shipment-tracking@amazon.com'
+Amazon_Email_2 = 'shipment-tracking@amazon.ca'  # Canadian Amazon
+
 GIF_FILE_NAME = 'mail_today.gif'
 GIF_DURATION = 5
 SCAN_INTERVAL = 5
