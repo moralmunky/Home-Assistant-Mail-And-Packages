@@ -30,7 +30,7 @@ Supports only Lovelace UI. Last tested in 0.105.x.
 
 <img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/USPS_Delivery_Notifications.jpg" alt="USPS Informed Delivery notification settings."  width="350"/>
 
-[FedEx Delivery Manager:](https://www.fedex.com/apps/fdmenrollment/) account and all nortifications turned on for email with the email address you will have the component check.
+[FedEx Delivery Manager:](https://www.fedex.com/apps/fdmenrollment/) account and all notifications turned on for email with the email address you will have the component check.
 
 <img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/FedEx_Delivery_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
 
