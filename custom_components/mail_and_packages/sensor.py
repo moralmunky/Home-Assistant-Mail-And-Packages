@@ -5,7 +5,8 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 
-import asyncio
+
+# import asyncio
 import logging
 import imageio as io
 # from skimage.transform import resize
@@ -37,6 +38,7 @@ from .const import (
     USPS_Mail_Subject,
     USPS_Delivering_Subject,
     USPS_Delivered_Subject,
+    USPS_Body_Text,
     UPS_Email,
     UPS_Delivering_Subject,
     UPS_Delivering_Subject_2,
@@ -354,7 +356,7 @@ def get_formatted_date():
     today = datetime.datetime.today().strftime('%d-%b-%Y')
     """
     # for testing
-    # today = '18-Mar-2020'
+    # today = '06-May-2020'
     """
     return today
 
@@ -536,6 +538,7 @@ def get_count(account, sensor_type):
     email = None
     subject = None
     subject_2 = None
+    filter_text = None
 
     if sensor_type == "usps_delivered":
         email = USPS_Packages_Email
@@ -543,6 +546,7 @@ def get_count(account, sensor_type):
     elif sensor_type == "usps_delivering":
         email = USPS_Packages_Email
         subject = USPS_Delivering_Subject
+        filter_text = USPS_Body_Text
     elif sensor_type == "ups_delivered":
         email = UPS_Email
         subject = UPS_Delivered_Subject
@@ -571,7 +575,10 @@ def get_count(account, sensor_type):
         return False
 
     if rv == 'OK':
-        count = len(data[0].split())
+        if filter_text is not None:
+            count += find_text(data[0], account, filter_text)
+        else:
+            count += len(data[0].split())
         _LOGGER.debug("Found from %s with subject 1 %s, %s", email, subject,
                       data[0])
 
@@ -587,9 +594,33 @@ def get_count(account, sensor_type):
             return False
 
         if rv == 'OK':
-            count += len(data[0].split())
+            if filter_text is not None:
+                count += find_text(data[0], account, filter_text)
+            else:
+                count += len(data[0].split())
             _LOGGER.debug("Found from %s with subject 2 %s, %s", email,
                           subject_2, data[0])
+
+    return count
+
+
+# Filter for specific words in email
+###############################################################################
+
+def find_text(sdata, account, search):
+    _LOGGER.debug("Searching for %s in emails", search)
+    mail_list = sdata.split()
+    count = 0
+
+    for i in mail_list:
+        typ, data = account.fetch(i, '(RFC822)')
+        for response_part in data:
+            if isinstance(response_part, tuple):
+                msg = email.message_from_bytes(response_part[1])
+                email_msg = str(msg.get_payload(0))
+                if search in email_msg:
+                    _LOGGER.debug("Found %s in email", search)
+                    count += 1
 
     return count
 
@@ -639,7 +670,7 @@ def get_items(account, param):
                 # today_day = datetime.date.today().day
                 if "will arrive:" in email_msg:
                     start = (email_msg.find("will arrive:") +
-                                len("will arrive:"))
+                             len("will arrive:"))
                     end = email_msg.find("Track your package:")
                     arrive_date = email_msg[start:end].strip()
                     arrive_date = arrive_date.split(" ")
@@ -647,9 +678,9 @@ def get_items(account, param):
                     arrive_date[2] = arrive_date[2][:2]
                     arrive_date = " ".join(arrive_date).strip()
                     dateobj = datetime.datetime.strptime(arrive_date,
-                                                            '%A, %B %d')
+                                                         '%A, %B %d')
                     if (dateobj.day == datetime.date.today().day and
-                        dateobj.month == datetime.date.today().month):
+                       dateobj.month == datetime.date.today().month):
                         subj_parts = email_subject.split('"')
                         if len(subj_parts) > 1:
                             deliveriesToday.append(subj_parts[1])
