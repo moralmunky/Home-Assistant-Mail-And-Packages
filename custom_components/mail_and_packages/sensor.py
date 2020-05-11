@@ -436,7 +436,7 @@ def get_mails(account, image_output_path, gif_duration, image_name):
 
         # Look for mail pieces without images image
         html_text = str(msg)
-        link_pattern = re.compile('image-no-mailpieces700.jpg')
+        link_pattern = re.compile(r'\bimage-no-mailpieces?700\.jpg\b')
         search = link_pattern.search(html_text)
         if search is not None:
             images.append(os.path.dirname(__file__) +
