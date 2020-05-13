@@ -4,7 +4,8 @@
             "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed."
         },
         "error": {
-            "communication": "Unable to connect or login to the mail server. Please check the log for details."
+            "communication": "Unable to connect or login to the mail server. Please check the log for details.",
+            "invalid_path": "Please store the images in another directory."
         },
         "step": {
             "user": {
@@ -33,7 +34,8 @@
     },
     "options": {
         "error": {
-            "communication": "Unable to connect or login to the mail server. Please check the log for details."
+            "communication": "Unable to connect or login to the mail server. Please check the log for details.",
+            "invalid_path": "Please store the images in another directory."
         },
         "step": {
             "init": {

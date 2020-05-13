@@ -4,6 +4,7 @@ from collections import OrderedDict
 
 import voluptuous as vol
 import imaplib
+import os
 
 from homeassistant.core import callback
 from homeassistant import config_entries
@@ -93,14 +94,20 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self._errors = {}
         if user_input is not None:
             self._data.update(user_input)
-            if user_input["folder"] is not None:
-                if not user_input["image_path"].endswith("/"):
-                    user_input["image_path"] += "/"
-                    self._data.update(user_input)
+            valid = await self._validate_path(user_input["image_path"])
+
+            if valid:
+                if user_input["folder"] is not None:
+                    if not user_input["image_path"].endswith("/"):
+                        user_input["image_path"] += "/"
+                        self._data.update(user_input)
                 return self.async_create_entry(title=self._data[CONF_HOST],
                                                data=self._data)
             else:
-                return await self._show_config_2(user_input)
+                self._errors["base"] = "invalid_path"
+
+            return await self._show_config_2(user_input)
+
         return await self._show_config_2(user_input)
 
     async def _show_config_2(self, user_input):
@@ -178,6 +185,13 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             _LOGGER.error("Error logging into IMAP Server: %s", str(err))
             return False
 
+    async def _validate_path(self, path):
+        """ make sure path is valid """
+        if path in os.path.dirname(__file__):
+            return False
+        else:
+            return True
+
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
@@ -242,13 +256,20 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         self._errors = {}
         if user_input is not None:
             self._data.update(user_input)
-            if user_input["folder"] is not None:
-                if not user_input["image_path"].endswith("/"):
-                    user_input["image_path"] += "/"
-                    self._data.update(user_input)
+            valid = await self._validate_path(user_input["image_path"])
+
+            if valid:
+                if user_input["folder"] is not None:
+                    if not user_input["image_path"].endswith("/"):
+                        user_input["image_path"] += "/"
+                        self._data.update(user_input)
+
                 return self.async_create_entry(title="", data=self._data)
             else:
-                return await self._show_step_options_2(user_input)
+                self._errors["base"] = "invalid_path"
+
+            return await self._show_step_options_2(user_input)
+
         return await self._show_step_options_2(user_input)
 
     async def _show_step_options_2(self, user_input):
@@ -325,3 +346,10 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         except imaplib.IMAP4.error as err:
             _LOGGER.error("Error logging into IMAP Server: %s", str(err))
             return False
+
+    async def _validate_path(self, path):
+        """ make sure path is valid """
+        if os.path.dirname(__file__) in path:
+            return False
+        else:
+            return True
