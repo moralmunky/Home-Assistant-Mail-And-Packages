@@ -662,7 +662,7 @@ def get_items(account, param):
         typ, data = account.fetch(i, '(RFC822)')
         for response_part in data:
             if isinstance(response_part, tuple):
-                msg = email.message_from_bytes(response_part[1])
+                msg = email.message_from_string(data[0][1].decode('utf-8'))
                 email_subject = msg['subject']
                 # email_from = msg['from']
                 email_msg = str(msg.get_payload(0))
