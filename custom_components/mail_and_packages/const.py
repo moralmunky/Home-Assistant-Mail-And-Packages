@@ -40,7 +40,6 @@ FEDEX_Delivered_Subject = 'Your package has been delivered'
 # Amazon Emails
 Amazon_Email = 'shipment-tracking@amazon.com'
 Amazon_Email_2 = 'shipment-tracking@amazon.ca'  # Canadian Amazon
-Amazon_Subject = '\bYour Amazon\.com order #[0-9]{3}-[0-9]{7}-[0-9]{7} has shipped\b'
 
 # GIF Properties
 GIF_FILE_NAME = 'mail_today.gif'

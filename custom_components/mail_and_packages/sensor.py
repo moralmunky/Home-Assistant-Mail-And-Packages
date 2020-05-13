@@ -647,7 +647,7 @@ def get_items(account, param):
 
     try:
         (rv, sdata2) = account.search(None, '(FROM "' + email_addr_2 + '" SINCE '
-                                    + tfmt + ')')
+                                      + tfmt + ')')
     except imaplib.IMAP4.error as err:
         _LOGGER.error("Error searching emails: %s", str(err))
 
