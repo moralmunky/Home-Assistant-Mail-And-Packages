@@ -665,13 +665,23 @@ def get_items(account, param):
                 msg = email.message_from_string(data[0][1].decode('utf-8'))
                 email_subject = msg['subject']
                 # email_from = msg['from']
-                try:
-                    email_msg = str(msg.get_payload(0))
-                except Exception as err:
-                    _LOGGER.debug("Amazon skipped due to payload issues: %s",
-                                  email_subject)
-                    _LOGGER.debug("Error message: %s", str(err))                                
-                    continue
+
+                if msg.is_multipart():
+                    try:
+                        msg.get_payload()[0].get_payload()
+                    except Exception as err:
+                        _LOGGER.debug("Amazon skipped due to payload issues: %s",
+                                    email_subject)
+                        _LOGGER.debug("Error message: %s", str(err))                                
+                        continue                        
+                else:
+                    try:
+                        email_msg = str(msg.get_payload(0))
+                    except Exception as err:
+                        _LOGGER.debug("Amazon skipped due to payload issues: %s",
+                                    email_subject)
+                        _LOGGER.debug("Error message: %s", str(err))                                
+                        continue
                 
                 # today_month = datetime.date.today().month
                 # today_day = datetime.date.today().day
