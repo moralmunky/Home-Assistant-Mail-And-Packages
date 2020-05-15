@@ -216,14 +216,20 @@ class EmailData:
                 elif sensor == "usps_delivering":
                     total = (int(get_count(account, sensor))
                              - data['usps_delivered'])
+                    if total < 0:
+                        total = 0
                     count[sensor] = total
                 elif sensor == "fedex_delivering":
                     total = (int(get_count(account, sensor))
                              - data['fedex_delivered'])
+                    if total < 0:
+                        total = 0
                     count[sensor] = total
                 elif sensor == "ups_delivering":
                     total = (int(get_count(account, sensor))
                              - data['ups_delivered'])
+                    if total < 0:
+                        total = 0
                     count[sensor] = total
                 elif sensor == "packages_delivered":
                     count[sensor] = (data['fedex_delivered']
