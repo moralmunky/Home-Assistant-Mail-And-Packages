@@ -5,7 +5,8 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 
-import asyncio
+
+# import asyncio
 import logging
 import imageio as io
 # from skimage.transform import resize
@@ -37,6 +38,7 @@ from .const import (
     USPS_Mail_Subject,
     USPS_Delivering_Subject,
     USPS_Delivered_Subject,
+    USPS_Body_Text,
     UPS_Email,
     UPS_Delivering_Subject,
     UPS_Delivering_Subject_2,
@@ -45,6 +47,8 @@ from .const import (
     FEDEX_Delivering_Subject,
     FEDEX_Delivering_Subject_2,
     FEDEX_Delivered_Subject,
+    Amazon_Email,
+    Amazon_Email_2,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -212,14 +216,20 @@ class EmailData:
                 elif sensor == "usps_delivering":
                     total = (int(get_count(account, sensor))
                              - data['usps_delivered'])
+                    if total < 0:
+                        total = 0
                     count[sensor] = total
                 elif sensor == "fedex_delivering":
                     total = (int(get_count(account, sensor))
                              - data['fedex_delivered'])
+                    if total < 0:
+                        total = 0
                     count[sensor] = total
                 elif sensor == "ups_delivering":
                     total = (int(get_count(account, sensor))
                              - data['ups_delivered'])
+                    if total < 0:
+                        total = 0
                     count[sensor] = total
                 elif sensor == "packages_delivered":
                     count[sensor] = (data['fedex_delivered']
@@ -352,7 +362,7 @@ def get_formatted_date():
     today = datetime.datetime.today().strftime('%d-%b-%Y')
     """
     # for testing
-    # today = '18-Mar-2020'
+    # today = '06-May-2020'
     """
     return today
 
@@ -432,7 +442,7 @@ def get_mails(account, image_output_path, gif_duration, image_name):
 
         # Look for mail pieces without images image
         html_text = str(msg)
-        link_pattern = re.compile('image-no-mailpieces700.jpg')
+        link_pattern = re.compile(r'\bimage-no-mailpieces?700\.jpg\b')
         search = link_pattern.search(html_text)
         if search is not None:
             images.append(os.path.dirname(__file__) +
@@ -534,6 +544,7 @@ def get_count(account, sensor_type):
     email = None
     subject = None
     subject_2 = None
+    filter_text = None
 
     if sensor_type == "usps_delivered":
         email = USPS_Packages_Email
@@ -541,6 +552,7 @@ def get_count(account, sensor_type):
     elif sensor_type == "usps_delivering":
         email = USPS_Packages_Email
         subject = USPS_Delivering_Subject
+        filter_text = USPS_Body_Text
     elif sensor_type == "ups_delivered":
         email = UPS_Email
         subject = UPS_Delivered_Subject
@@ -569,12 +581,16 @@ def get_count(account, sensor_type):
         return False
 
     if rv == 'OK':
-        count = len(data[0].split())
-        _LOGGER.debug("Found from %s with subject 1 %s, %s", email, subject, data[0])
+        if filter_text is not None:
+            count += find_text(data[0], account, filter_text)
+        else:
+            count += len(data[0].split())
+        _LOGGER.debug("Found from %s with subject 1 %s, %s", email, subject,
+                      data[0])
 
     if subject_2 is not None:
-        _LOGGER.debug("Attempting to find mail from %s with subject 2 %s", email,
-                  subject_2)
+        _LOGGER.debug("Attempting to find mail from %s with subject 2 %s",
+                      email, subject_2)
         try:
             (rv, data) = account.search(None, '(FROM "' + email + '" SUBJECT "'
                                         + subject_2 + '" SENTON "' + today
@@ -584,8 +600,33 @@ def get_count(account, sensor_type):
             return False
 
         if rv == 'OK':
-            count += len(data[0].split())
-            _LOGGER.debug("Found from %s with subject 2 %s, %s", email, subject_2, data[0])
+            if filter_text is not None:
+                count += find_text(data[0], account, filter_text)
+            else:
+                count += len(data[0].split())
+            _LOGGER.debug("Found from %s with subject 2 %s, %s", email,
+                          subject_2, data[0])
+
+    return count
+
+
+# Filter for specific words in email
+###############################################################################
+
+def find_text(sdata, account, search):
+    _LOGGER.debug("Searching for %s in emails", search)
+    mail_list = sdata.split()
+    count = 0
+
+    for i in mail_list:
+        typ, data = account.fetch(i, '(RFC822)')
+        for response_part in data:
+            if isinstance(response_part, tuple):
+                msg = email.message_from_bytes(response_part[1])
+                email_msg = str(msg.get_payload(0))
+                if email_msg.find(search):
+                    _LOGGER.debug("Found %s in email", search)
+                    count += 1
 
     return count
 
@@ -601,56 +642,85 @@ def get_items(account, param):
     tfmt = past_date.strftime('%d-%b-%Y')
     deliveriesToday = []
     orderNum = []
+    email_addr = Amazon_Email
+    email_addr_2 = Amazon_Email_2
 
     try:
-        (rv, sdata) = account.search(None, '(FROM "amazon.com" SINCE ' + tfmt +
-                                     ')')
+        (rv, sdata) = account.search(None, '(FROM "' + email_addr +
+                                     '" SINCE ' + tfmt + ')')
     except imaplib.IMAP4.error as err:
         _LOGGER.error("Error searching emails: %s", str(err))
 
-    else:
+    try:
+        (rv, sdata2) = account.search(None, '(FROM "' + email_addr_2 +
+                                      '" SINCE ' + tfmt + ')')
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("Error searching emails: %s", str(err))
+
+    if sdata is not None:
         mail_ids = sdata[0]
-        id_list = mail_ids.split()
-        _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
-        for i in id_list:
-            typ, data = account.fetch(i, '(RFC822)')
-            for response_part in data:
-                if isinstance(response_part, tuple):
-                    msg = email.message_from_bytes(response_part[1])
-                    email_subject = msg['subject']
-                    # email_from = msg['from']
-                    email_msg = str(msg.get_payload(0))
-                    # today_month = datetime.date.today().month
-                    # today_day = datetime.date.today().day
-                    if "will arrive:" in email_msg:
-                        start = (email_msg.find("will arrive:") +
-                                 len("will arrive:"))
-                        end = email_msg.find("Track your package:")
-                        arrive_date = email_msg[start:end].strip()
-                        arrive_date = arrive_date.split(" ")
-                        arrive_date = arrive_date[0:3]
-                        arrive_date[2] = arrive_date[2][:2]
-                        arrive_date = " ".join(arrive_date).strip()
-                        dateobj = datetime.datetime.strptime(arrive_date,
-                                                             '%A, %B %d')
-                        if (dateobj.day == datetime.date.today().day and
-                           dateobj.month == datetime.date.today().month):
-                            subj_parts = email_subject.split('"')
-                            if len(subj_parts) > 1:
-                                deliveriesToday.append(subj_parts[1])
-                            else:
-                                deliveriesToday.append("Amazon Order")
+    elif sdata2 is not None:
+        mail_ids = sdata2[0]
 
-                            subj_order = email_subject.split(' ')
-                            if len(subj_order) == 6:
-                                orderNum.append(str(subj_order[3]).strip('#'))
+    id_list = mail_ids.split()
+    _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
+    for i in id_list:
+        typ, data = account.fetch(i, '(RFC822)')
+        for response_part in data:
 
-        if (param == "count"):
-            _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
-            return len(deliveriesToday)
-        elif (param == "order"):
-            _LOGGER.debug("Amazon order: %s", str(orderNum))
-            return orderNum
-        else:
-            _LOGGER.debug("Amazon json: %s", str(deliveriesToday))
-            return deliveriesToday
+            if isinstance(response_part, tuple):
+                msg = email.message_from_string(data[0][1].decode('utf-8'))
+                email_subject = msg['subject']
+                # email_from = msg['from']
+
+                if msg.is_multipart():
+                    try:
+                        email_msg = msg.get_payload()[0].get_payload()
+                    except Exception as err:
+                        _LOGGER.debug("Amazon skipped due to payload " +
+                                      "issues: %s", email_subject)
+                        _LOGGER.debug("Error message: %s", str(err))
+                        continue
+                else:
+                    try:
+                        email_msg = str(msg.get_payload(0))
+                    except Exception as err:
+                        _LOGGER.debug("Amazon skipped due to payload " +
+                                      "issues: %s", email_subject)
+                        _LOGGER.debug("Error message: %s", str(err))
+                        continue
+
+                # today_month = datetime.date.today().month
+                # today_day = datetime.date.today().day
+                if "will arrive:" in email_msg:
+                    start = (email_msg.find("will arrive:") +
+                             len("will arrive:"))
+                    end = email_msg.find("Track your package:")
+                    arrive_date = email_msg[start:end].strip()
+                    arrive_date = arrive_date.split(" ")
+                    arrive_date = arrive_date[0:3]
+                    arrive_date[2] = arrive_date[2][:2]
+                    arrive_date = " ".join(arrive_date).strip()
+                    dateobj = datetime.datetime.strptime(arrive_date,
+                                                         '%A, %B %d')
+                    if (dateobj.day == datetime.date.today().day and
+                       dateobj.month == datetime.date.today().month):
+                        subj_parts = email_subject.split('"')
+                        if len(subj_parts) > 1:
+                            deliveriesToday.append(subj_parts[1])
+                        else:
+                            deliveriesToday.append("Amazon Order")
+
+                        subj_order = email_subject.split(' ')
+                        if len(subj_order) == 6:
+                            orderNum.append(str(subj_order[3]).strip('#'))
+
+    if (param == "count"):
+        _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
+        return len(deliveriesToday)
+    elif (param == "order"):
+        _LOGGER.debug("Amazon order: %s", str(orderNum))
+        return orderNum
+    else:
+        _LOGGER.debug("Amazon json: %s", str(deliveriesToday))
+        return deliveriesToday
