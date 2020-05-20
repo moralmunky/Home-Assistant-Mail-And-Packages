@@ -216,14 +216,20 @@ class EmailData:
                 elif sensor == "usps_delivering":
                     total = (int(get_count(account, sensor))
                              - data['usps_delivered'])
+                    if total < 0:
+                        total = 0
                     count[sensor] = total
                 elif sensor == "fedex_delivering":
                     total = (int(get_count(account, sensor))
                              - data['fedex_delivered'])
+                    if total < 0:
+                        total = 0
                     count[sensor] = total
                 elif sensor == "ups_delivering":
                     total = (int(get_count(account, sensor))
                              - data['ups_delivered'])
+                    if total < 0:
+                        total = 0
                     count[sensor] = total
                 elif sensor == "packages_delivered":
                     count[sensor] = (data['fedex_delivered']
@@ -640,14 +646,14 @@ def get_items(account, param):
     email_addr_2 = Amazon_Email_2
 
     try:
-        (rv, sdata) = account.search(None, '(FROM "' + email_addr + '" SINCE '
-                                     + tfmt + ')')
+        (rv, sdata) = account.search(None, '(FROM "' + email_addr +
+                                     '" SINCE ' + tfmt + ')')
     except imaplib.IMAP4.error as err:
         _LOGGER.error("Error searching emails: %s", str(err))
 
     try:
-        (rv, sdata2) = account.search(None, '(FROM "' + email_addr_2 + '" SINCE '
-                                      + tfmt + ')')
+        (rv, sdata2) = account.search(None, '(FROM "' + email_addr_2 +
+                                      '" SINCE ' + tfmt + ')')
     except imaplib.IMAP4.error as err:
         _LOGGER.error("Error searching emails: %s", str(err))
 
@@ -661,6 +667,7 @@ def get_items(account, param):
     for i in id_list:
         typ, data = account.fetch(i, '(RFC822)')
         for response_part in data:
+
             if isinstance(response_part, tuple):
                 msg = email.message_from_string(data[0][1].decode('utf-8'))
                 email_subject = msg['subject']
@@ -670,16 +677,16 @@ def get_items(account, param):
                     try:
                         email_msg = msg.get_payload()[0].get_payload()
                     except Exception as err:
-                        _LOGGER.debug("Amazon skipped due to payload issues: %s",
-                                      email_subject)
+                        _LOGGER.debug("Amazon skipped due to payload " +
+                                      "issues: %s", email_subject)
                         _LOGGER.debug("Error message: %s", str(err))
                         continue
                 else:
                     try:
                         email_msg = str(msg.get_payload(0))
                     except Exception as err:
-                        _LOGGER.debug("Amazon skipped due to payload issues: %s",
-                                      email_subject)
+                        _LOGGER.debug("Amazon skipped due to payload " +
+                                      "issues: %s", email_subject)
                         _LOGGER.debug("Error message: %s", str(err))
                         continue
 
