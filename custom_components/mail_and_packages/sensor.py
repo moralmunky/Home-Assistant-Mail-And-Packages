@@ -37,6 +37,7 @@ from .const import (
     USPS_Mail_Subject,
     USPS_Delivering_Subject,
     USPS_Delivered_Subject,
+    USPS_Body_Text,
     UPS_Email,
     UPS_Delivering_Subject,
     UPS_Delivering_Subject_2,
@@ -229,14 +230,20 @@ class EmailData:
                 elif sensor == "usps_delivering":
                     total = (int(get_count(account, sensor))
                              - data['usps_delivered'])
+                    if total < 0:
+                        total = 0
                     count[sensor] = total
                 elif sensor == "fedex_delivering":
                     total = (int(get_count(account, sensor))
                              - data['fedex_delivered'])
+                    if total < 0:
+                        total = 0
                     count[sensor] = total
                 elif sensor == "ups_delivering":
                     total = (int(get_count(account, sensor))
                              - data['ups_delivered'])
+                    if total < 0:
+                        total = 0
                     count[sensor] = total
                 elif sensor == "packages_delivered":
                     count[sensor] = (data['fedex_delivered']
@@ -370,7 +377,7 @@ def get_formatted_date():
     today = datetime.datetime.today().strftime('%d-%b-%Y')
     """
     # for testing
-    # today = '18-Mar-2020'
+    # today = '06-May-2020'
     """
     return today
 
@@ -450,7 +457,7 @@ def get_mails(account, image_output_path, gif_duration, image_name):
 
         # Look for mail pieces without images image
         html_text = str(msg)
-        link_pattern = re.compile('image-no-mailpieces700.jpg')
+        link_pattern = re.compile(r'\bimage-no-mailpieces?700\.jpg\b')
         search = link_pattern.search(html_text)
         if search is not None:
             images.append(os.path.dirname(__file__) +
@@ -552,6 +559,7 @@ def get_count(account, sensor_type):
     email = None
     subject = None
     subject_2 = None
+    filter_text = None
 
     if sensor_type == "usps_delivered":
         email = USPS_Packages_Email
@@ -559,6 +567,7 @@ def get_count(account, sensor_type):
     elif sensor_type == "usps_delivering":
         email = USPS_Packages_Email
         subject = USPS_Delivering_Subject
+        filter_text = USPS_Body_Text
     elif sensor_type == "ups_delivered":
         email = UPS_Email
         subject = UPS_Delivered_Subject
@@ -590,7 +599,10 @@ def get_count(account, sensor_type):
         return False
 
     if rv == 'OK':
-        count = len(data[0].split())
+        if filter_text is not None:
+            count += find_text(data[0], account, filter_text)
+        else:
+            count += len(data[0].split())
         _LOGGER.debug("Search for %s with subject 1 %s results: %s", email,
                       subject, data[0])
 
@@ -606,9 +618,33 @@ def get_count(account, sensor_type):
             return False
 
         if rv == 'OK':
-            count += len(data[0].split())
+            if filter_text is not None:
+                count += find_text(data[0], account, filter_text)
+            else:
+                count += len(data[0].split())
             _LOGGER.debug("Search for %s with subject 2 %s results: %s", email,
                           subject_2, data[0])
+
+    return count
+
+
+# Filter for specific words in email
+###############################################################################
+
+def find_text(sdata, account, search):
+    _LOGGER.debug("Searching for %s in emails", search)
+    mail_list = sdata.split()
+    count = 0
+
+    for i in mail_list:
+        typ, data = account.fetch(i, '(RFC822)')
+        for response_part in data:
+            if isinstance(response_part, tuple):
+                msg = email.message_from_bytes(response_part[1])
+                email_msg = str(msg.get_payload(0))
+                if email_msg.find(search):
+                    _LOGGER.debug("Found %s in email", search)
+                    count += 1
 
     return count
 
