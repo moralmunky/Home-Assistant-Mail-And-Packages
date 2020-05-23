@@ -14,7 +14,7 @@ from .const import (
     DEFAULT_PATH,
     DEFAULT_FOLDER,
     DEFAULT_IMAGE_SECURITY,
-    GIF_DURATION,
+    DEFAULT_GIF_DURATION,
     DEFAULT_SCAN_INTERVAL,
     CONF_DURATION,
     CONF_SCAN_INTERVAL,
@@ -116,7 +116,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         # Defaults
         folder = DEFAULT_FOLDER
         image_path = DEFAULT_PATH
-        gif_duration = GIF_DURATION
+        gif_duration = DEFAULT_GIF_DURATION
         image_security = DEFAULT_IMAGE_SECURITY
         scan_interval = DEFAULT_SCAN_INTERVAL
 

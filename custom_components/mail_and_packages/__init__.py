@@ -1,5 +1,5 @@
 """Mail and Packages Integration."""
-from homeassistant import config_entries
+# from homeassistant import config_entries
 
 import logging
 from .const import (

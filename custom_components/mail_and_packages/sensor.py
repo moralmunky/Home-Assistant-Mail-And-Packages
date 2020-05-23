@@ -5,7 +5,6 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 
-
 # import asyncio
 import logging
 import imageio as io
@@ -32,7 +31,7 @@ from .const import (
     CONF_DURATION,
     CONF_IMAGE_SECURITY,
     CONF_SCAN_INTERVAL,
-    GIF_FILE_NAME,
+    DEFAULT_GIF_FILE_NAME,
     USPS_Mail_Email,
     USPS_Packages_Email,
     USPS_Mail_Subject,
@@ -47,8 +46,9 @@ from .const import (
     FEDEX_Delivering_Subject,
     FEDEX_Delivering_Subject_2,
     FEDEX_Delivered_Subject,
-    Amazon_Email,
-    Amazon_Email_2,
+    Amazon_Domains,
+    CAPost_Email,
+    CAPost_Delivered_Subject,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -63,68 +63,79 @@ SENSOR_TYPES = {
     ],
     "usps_mail": [
         "Mail USPS Mail",
-        "pieces",
+        "piece(s)",
         "mdi:mailbox-up",
     ],
     "usps_delivered": [
         "Mail USPS Delivered",
-        "packages",
+        "package(s)",
         "mdi:package-variant-closed",
     ],
     "usps_delivering": [
         "Mail USPS Delivering",
-        "packages",
+        "package(s)",
         "mdi:truck-delivery",
     ],
     "usps_packages": [
         "Mail USPS Packages",
-        "packages",
+        "package(s)",
         "mdi:package-variant-closed",
     ],
     "ups_delivered": [
         "Mail UPS Delivered",
-        "packages",
+        "package(s)",
         "mdi:package-variant-closed",
     ],
     "ups_delivering": [
         "Mail UPS Delivering",
-        "packages",
+        "package(s)",
         "mdi:truck-delivery",
     ],
     "ups_packages": [
         "Mail UPS Packages",
-        "packages",
+        "package(s)",
         "mdi:package-variant-closed",
     ],
     "fedex_delivered": [
         "Mail FedEx Delivered",
-        "packages",
+        "package(s)",
         "mdi:package-variant-closed",
     ],
     "fedex_delivering": [
         "Mail FedEx Delivering",
-        "packages",
+        "package(s)",
         "mdi:truck-delivery",
     ],
     "fedex_packages": [
         "Mail FedEx Packages",
-        "packages",
+        "package(s)",
         "mdi:package-variant-closed",
     ],
+    "amazon_packages": [
+        "Mail Amazon Packages",
+        "package(s)",
+        "mdi:amazon",
+    ],
+    "capost_delivered": [
+        "Mail Canada Post Delivered",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
+    "capost_packages": [
+        "Mail Canada Post Packages",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
+    # Insert new sensors above these two
     "packages_delivered": [
         "Mail Packages Delivered",
-        "packages",
+        "package(s)",
         "mdi:package-variant",
     ],
     "packages_transit": [
         "Mail Packages In Transit",
-        "packages",
+        "package(s)",
         "mdi:truck-delivery",
-    ],
-    "amazon_packages": [
-        "Mail Amazon Packages",
-        "packages",
-        "mdi:amazon",
     ],
 }
 
@@ -191,7 +202,7 @@ class EmailData:
             if self._image_security:
                 self._image_name = str(uuid.uuid4()) + ".gif"
             else:
-                self._image_name = GIF_FILE_NAME
+                self._image_name = DEFAULT_GIF_FILE_NAME
 
             data = {}
 
@@ -212,6 +223,9 @@ class EmailData:
                     count[sensor] = total
                 elif sensor == "fedex_packages":
                     total = data['fedex_delivering'] + data['fedex_delivered']
+                    count[sensor] = total
+                elif sensor == "capost_packages":
+                    total = data['capost_delivered']
                     count[sensor] = total
                 elif sensor == "usps_delivering":
                     total = (int(get_count(account, sensor))
@@ -234,7 +248,8 @@ class EmailData:
                 elif sensor == "packages_delivered":
                     count[sensor] = (data['fedex_delivered']
                                      + data['ups_delivered']
-                                     + data['usps_delivered'])
+                                     + data['usps_delivered']
+                                     + data['capost_delivered'])
                 elif sensor == "packages_transit":
                     total = (data['fedex_delivering']
                              + data['ups_delivering']
@@ -567,6 +582,9 @@ def get_count(account, sensor_type):
     elif sensor_type == "fedex_delivered":
         email = FEDEX_Email
         subject = FEDEX_Delivered_Subject
+    elif sensor_type == "capost_delivered":
+        email = CAPost_Email
+        subject = CAPost_Delivered_Subject
     else:
         _LOGGER.error("Unknown sensor type: %s", str(sensor_type))
         return False
@@ -585,8 +603,8 @@ def get_count(account, sensor_type):
             count += find_text(data[0], account, filter_text)
         else:
             count += len(data[0].split())
-        _LOGGER.debug("Found from %s with subject 1 %s, %s", email, subject,
-                      data[0])
+        _LOGGER.debug("Search for %s with subject 1 %s results: %s", email,
+                      subject, data[0])
 
     if subject_2 is not None:
         _LOGGER.debug("Attempting to find mail from %s with subject 2 %s",
@@ -604,7 +622,7 @@ def get_count(account, sensor_type):
                 count += find_text(data[0], account, filter_text)
             else:
                 count += len(data[0].split())
-            _LOGGER.debug("Found from %s with subject 2 %s, %s", email,
+            _LOGGER.debug("Search for %s with subject 2 %s results: %s", email,
                           subject_2, data[0])
 
     return count
@@ -642,78 +660,51 @@ def get_items(account, param):
     tfmt = past_date.strftime('%d-%b-%Y')
     deliveriesToday = []
     orderNum = []
-    email_addr = Amazon_Email
-    email_addr_2 = Amazon_Email_2
+    domains = Amazon_Domains.split(",")
 
-    try:
-        (rv, sdata) = account.search(None, '(FROM "' + email_addr +
-                                     '" SINCE ' + tfmt + ')')
-    except imaplib.IMAP4.error as err:
-        _LOGGER.error("Error searching emails: %s", str(err))
+    for domain in domains:
+        try:
+            (rv, sdata) = account.search(None, '(FROM "' + domain + '" SINCE '
+                                         + tfmt + ')')
+        except imaplib.IMAP4.error as err:
+            _LOGGER.error("Error searching emails: %s", str(err))
 
-    try:
-        (rv, sdata2) = account.search(None, '(FROM "' + email_addr_2 +
-                                      '" SINCE ' + tfmt + ')')
-    except imaplib.IMAP4.error as err:
-        _LOGGER.error("Error searching emails: %s", str(err))
-
-    if sdata is not None:
-        mail_ids = sdata[0]
-    elif sdata2 is not None:
-        mail_ids = sdata2[0]
-
-    id_list = mail_ids.split()
-    _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
-    for i in id_list:
-        typ, data = account.fetch(i, '(RFC822)')
-        for response_part in data:
-
-            if isinstance(response_part, tuple):
-                msg = email.message_from_string(data[0][1].decode('utf-8'))
-                email_subject = msg['subject']
-                # email_from = msg['from']
-
-                if msg.is_multipart():
-                    try:
-                        email_msg = msg.get_payload()[0].get_payload()
-                    except Exception as err:
-                        _LOGGER.debug("Amazon skipped due to payload " +
-                                      "issues: %s", email_subject)
-                        _LOGGER.debug("Error message: %s", str(err))
-                        continue
-                else:
-                    try:
+        else:
+            mail_ids = sdata[0]
+            id_list = mail_ids.split()
+            _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
+            for i in id_list:
+                typ, data = account.fetch(i, '(RFC822)')
+                for response_part in data:
+                    if isinstance(response_part, tuple):
+                        msg = email.message_from_bytes(response_part[1])
+                        email_subject = msg['subject']
+                        # email_from = msg['from']
                         email_msg = str(msg.get_payload(0))
-                    except Exception as err:
-                        _LOGGER.debug("Amazon skipped due to payload " +
-                                      "issues: %s", email_subject)
-                        _LOGGER.debug("Error message: %s", str(err))
-                        continue
+                        # today_month = datetime.date.today().month
+                        # today_day = datetime.date.today().day
+                        if "will arrive:" in email_msg:
+                            start = (email_msg.find("will arrive:") +
+                                     len("will arrive:"))
+                            end = email_msg.find("Track your package:")
+                            arrive_date = email_msg[start:end].strip()
+                            arrive_date = arrive_date.split(" ")
+                            arrive_date = arrive_date[0:3]
+                            arrive_date[2] = arrive_date[2][:2]
+                            arrive_date = " ".join(arrive_date).strip()
+                            dateobj = datetime.datetime.strptime(arrive_date,
+                                                                 '%A, %B %d')
+                            if (dateobj.day == datetime.date.today().day and
+                               dateobj.month == datetime.date.today().month):
+                                subj_parts = email_subject.split('"')
+                                if len(subj_parts) > 1:
+                                    deliveriesToday.append(subj_parts[1])
+                                else:
+                                    deliveriesToday.append("Amazon Order")
 
-                # today_month = datetime.date.today().month
-                # today_day = datetime.date.today().day
-                if "will arrive:" in email_msg:
-                    start = (email_msg.find("will arrive:") +
-                             len("will arrive:"))
-                    end = email_msg.find("Track your package:")
-                    arrive_date = email_msg[start:end].strip()
-                    arrive_date = arrive_date.split(" ")
-                    arrive_date = arrive_date[0:3]
-                    arrive_date[2] = arrive_date[2][:2]
-                    arrive_date = " ".join(arrive_date).strip()
-                    dateobj = datetime.datetime.strptime(arrive_date,
-                                                         '%A, %B %d')
-                    if (dateobj.day == datetime.date.today().day and
-                       dateobj.month == datetime.date.today().month):
-                        subj_parts = email_subject.split('"')
-                        if len(subj_parts) > 1:
-                            deliveriesToday.append(subj_parts[1])
-                        else:
-                            deliveriesToday.append("Amazon Order")
-
-                        subj_order = email_subject.split(' ')
-                        if len(subj_order) == 6:
-                            orderNum.append(str(subj_order[3]).strip('#'))
+                                subj_order = email_subject.split(' ')
+                                if len(subj_order) == 6:
+                                    orderNum.append(str(subj_order[3]).strip('#'))
 
     if (param == "count"):
         _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
