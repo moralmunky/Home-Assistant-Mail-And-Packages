@@ -13,8 +13,8 @@ from .const import (
     DEFAULT_PATH,
     DEFAULT_FOLDER,
     DEFAULT_IMAGE_SECURITY,
-    GIF_DURATION,
-    SCAN_INTERVAL,
+    DEFAULT_GIF_DURATION,
+    DEFAULT_SCAN_INTERVAL,
     CONF_DURATION,
     CONF_SCAN_INTERVAL,
     CONF_FOLDER,
@@ -109,9 +109,9 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         # Defaults
         folder = DEFAULT_FOLDER
         image_path = DEFAULT_PATH
-        gif_duration = GIF_DURATION
+        gif_duration = DEFAULT_GIF_DURATION
         image_security = DEFAULT_IMAGE_SECURITY
-        scan_interval = SCAN_INTERVAL
+        scan_interval = DEFAULT_SCAN_INTERVAL
 
         account = imaplib.IMAP4_SSL(self._data["host"], self._data["port"])
         status, data = account.login(self._data["username"],
