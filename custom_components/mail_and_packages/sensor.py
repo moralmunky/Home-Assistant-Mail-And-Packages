@@ -680,7 +680,14 @@ def get_items(account, param):
                         msg = email.message_from_bytes(response_part[1])
                         email_subject = msg['subject']
                         # email_from = msg['from']
-                        email_msg = str(msg.get_payload(0))
+
+                        # Catch bad format emails
+                        try:
+                            email_msg = str(msg.get_payload(0))
+                        except Exception as err:
+                            _LOGGER.error("Error attempting prase Amazon " +
+                                          "email: %s", str(err))
+
                         # today_month = datetime.date.today().month
                         # today_day = datetime.date.today().day
                         if "will arrive:" in email_msg:
