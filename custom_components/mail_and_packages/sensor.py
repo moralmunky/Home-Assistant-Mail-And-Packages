@@ -685,7 +685,7 @@ def get_items(account, param):
                         try:
                             email_msg = str(msg.get_payload(0))
                         except Exception as err:
-                            _LOGGER.error("Error attempting prase Amazon " +
+                            _LOGGER.debug("Error attempting prase Amazon " +
                                           "email: %s", str(err))
 
                         # today_month = datetime.date.today().month
