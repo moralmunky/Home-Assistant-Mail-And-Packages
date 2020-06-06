@@ -29,7 +29,7 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 
 ## Credits:
 
-* @
+* Huge contirbutions from @firstof9 moving the project forward and keeping it active!
 * Mail.py script based on @skalavala work at [skalavala blog](https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html)
 * Package and macros based on happyleavesaoc work at [happyleavesaoc/my-home-automation](https://github.com/happyleavesaoc/my-home-automation)
 
