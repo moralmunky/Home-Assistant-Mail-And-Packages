@@ -22,14 +22,12 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 Once you have finished installing through [HACS or manually](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages#installation) go into ```Configuration -> Integration``` select the ```+```and add the ```Mail And Packages``` integration. You first be prompted to input your mail server settings and then additonal settings.
 
 Setting | Description
------------- | -------------
+---------------------------- | -------------
 Mail Folder | The folder in your email account that the notification messages are stored. The default is Inbox.
 Scanning Interval (minutes)| The amount of time that will pass between checking for new email nortifications
 Image Path* | This is the absolute path to the folder where [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) will save the compiled USPS informed delivery gif.
 Image Duration (seconds) | The amount of time each USPS Informed Delivery image is shown in the generated rotating GIF.
 Random Image Filename* | Change the file name of the generated gif from mail_today.gif to a random string for increased secuirty in situations where it is required to store the  image in the ```www``` directory
-
-#####
 
 ##### *Privacy / Security Note
 Please note that files stored in the ```www``` Home Assistant folder is [publicly accessible](https://www.home-assistant.io/integrations/http/#hosting-files) unless you have taken security measures outside of Home Assistant to secure it. You can place the images in an ```images``` directory inside Home Assistants root folder and still send notifications via most notification integrations.

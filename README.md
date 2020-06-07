@@ -24,6 +24,23 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 * **No external services are used to process your email.**
 * **No data is sent outside of your local instance of Home Assistant**
 
+#### Search Terms
+
+#####
+
+Shipper | Email | Subject | Body Text
+------ | ----------------- | -------------------- | --------
+USPS | USPSInformedDelivery@usps.gov|Informed Delivery Daily Digest|none
+USPS | auto-reply@usps.com|Expected Delivery on|out for delivery
+USPS | auto-reply@usps.com|Item Delivered|none
+UPS | mcinfo@ups.com|UPS Update: Package Scheduled for Delivery Today|none
+UPS | mcinfo@ups.com|UPS Update: Follow Your Delivery on a Live Map|none
+UPS | mcinfo@ups.com|Your UPS Package was delivered|none
+FEDEX | TrackingUpdates@fedex.com |Delivery scheduled for today
+FEDEX | TrackingUpdates@fedex.com |Your package is scheduled for delivery today
+FEDEX | TrackingUpdates@fedex.com |Your package has been delivered
+Amazon |shipment-tracking@amazon.com|regex order numbers
+Amazon |shipment-tracking@amazon.ca|regex order numbers
 
 <a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" height="51px" width="217px" /></a>
 
