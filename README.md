@@ -14,9 +14,16 @@ The component connects to the email account you supply where your shipment notif
 
 All procedures are done locally on your machine.
 
-Supports only Lovelace UI. Last tested in 0.105.x.
+Supports only Lovelace UI. Last tested in 0.110.x.
 
-### How it works
+## Credits:
+
+* Huge contributions from [@firstof9](https://github.com/firstof9) moving the project forward and keeping it active!
+
+<br/>
+<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" height="51px" width="217px" /></a>
+
+## How it works
 
 From your instance of HASS, the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) connects to the email account you supply where your shipment notifications are sent. It reviews at the subject lines of the current day's emails from the shipping companies and counts the subject lines that match known language from the shipping companies about their trasnit status. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF.
 
@@ -24,14 +31,21 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 * **No external services are used to process your email.**
 * **No data is sent outside of your local instance of Home Assistant**
 
+#### Search Terms
 
-<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" height="51px" width="217px" /></a>
-
-## Credits:
-
-* Huge contirbutions from [@firstof9](https://github.com/firstof9) moving the project forward and keeping it active!
-* Mail.py script based on @skalavala work at [skalavala blog](https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html)
-* Package and macros based on happyleavesaoc work at [happyleavesaoc/my-home-automation](https://github.com/happyleavesaoc/my-home-automation)
+Shipper | Email | Subject | Body Text
+--- | --- | --- | ---
+USPS | USPSInformedDelivery@usps.gov|Informed Delivery Daily Digest|none
+USPS | auto-reply@usps.com|Expected Delivery on|out for delivery
+USPS | auto-reply@usps.com|Item Delivered|none
+UPS | mcinfo@ups.com|UPS Update: Package Scheduled for Delivery Today|none
+UPS | mcinfo@ups.com|UPS Update: Follow Your Delivery on a Live Map|none
+UPS | mcinfo@ups.com|Your UPS Package was delivered|none
+FEDEX | TrackingUpdates@fedex.com |Delivery scheduled for today|none
+FEDEX | TrackingUpdates@fedex.com |Your package is scheduled for delivery today|none
+FEDEX | TrackingUpdates@fedex.com |Your package has been delivered|none
+Amazon |shipment-tracking@amazon.com|none|regex order numbers
+Amazon |shipment-tracking@amazon.ca|none |regex order numbers
 
 ## Installation
 ### [HACS](https://hacs.xyz) (Recommended)
@@ -41,10 +55,10 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 
 ### Manual Installation
 1. Download this repository as a ZIP (green button, top right) and unzip the archive
-2. Copy the `mail_and_packages` folder inside the `custom_components` folder to the Home Assistant `<config_dir>/custom_components/` directory
+2. Copy the `mail_and_packages` folder inside the `custom_components` folder to the Home Assistant `/<config path>/custom_components/` directory
    * You may need to create the `custom_components` in your Home Assistant installation folder if it does not exist
-   * On HomeAssistant (formerly hass.io) the final location will be `/config/custom_components/mail_and_packages`
-   * On Hassbian the final location will be `/home/homeassistant/.homeassistant/custom_components/mail_and_packages`
+   * On Home Assistant (formerly Hass.io) and Home Assistant Container the final location should be `/config/custom_components/mail_and_packages`
+   * On Home Assistant Supervised, Home Assistant Core, and Hassbian the final location should be `/home/homeassistant/.homeassistant/custom_components/mail_and_packages`
 3. Restart your instance.
 
 ## Configuration
