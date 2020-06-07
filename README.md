@@ -43,8 +43,8 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 1. Download this repository as a ZIP (green button, top right) and unzip the archive
 2. Copy the `mail_and_packages` folder inside the `custom_components` folder to the Home Assistant `<config_dir>/custom_components/` directory
    * You may need to create the `custom_components` in your Home Assistant installation folder if it does not exist
-   * On HomeAssistant (formerly hass.io) the final location will be `/config/custom_components/mail_and_packages`
-   * On Hassbian the final location will be `/home/homeassistant/.homeassistant/custom_components/mail_and_packages`
+   * On Home Assistant (formerly Hass.io) and Home Assistant Container the final location will be `/config/custom_components/mail_and_packages`
+   * On Home Assistant Supervised, Home Assistant Core, and Hassbian the final location will be `/home/homeassistant/.homeassistant/custom_components/mail_and_packages`
 3. Restart your instance.
 
 ## Configuration
