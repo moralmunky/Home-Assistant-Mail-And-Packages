@@ -14,7 +14,7 @@ The component connects to the email account you supply where your shipment notif
 
 All procedures are done locally on your machine.
 
-Supports only Lovelace UI. Last tested in 0.105.x.
+Supports only Lovelace UI. Last tested in 0.110.x.
 
 ### How it works
 
@@ -30,8 +30,8 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 ## Credits:
 
 * Huge contirbutions from [@firstof9](https://github.com/firstof9) moving the project forward and keeping it active!
-* Mail.py script based on @skalavala work at [skalavala blog](https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html)
-* Package and macros based on happyleavesaoc work at [happyleavesaoc/my-home-automation](https://github.com/happyleavesaoc/my-home-automation)
+* Mail.py script based on [@skalavala](https://github.com/skalavala) work at [skalavala blog](https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html)
+* Package and macros based on [@happyleavesaoc](https://github.com/happyleavesaoc) work at [happyleavesaoc/my-home-automation](https://github.com/happyleavesaoc/my-home-automation)
 
 ## Installation
 ### [HACS](https://hacs.xyz) (Recommended)
@@ -41,10 +41,10 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 
 ### Manual Installation
 1. Download this repository as a ZIP (green button, top right) and unzip the archive
-2. Copy the `mail_and_packages` folder inside the `custom_components` folder to the Home Assistant `<config_dir>/custom_components/` directory
+2. Copy the `mail_and_packages` folder inside the `custom_components` folder to the Home Assistant `/<config path>/custom_components/` directory
    * You may need to create the `custom_components` in your Home Assistant installation folder if it does not exist
-   * On Home Assistant (formerly Hass.io) and Home Assistant Container the final location will be `/config/custom_components/mail_and_packages`
-   * On Home Assistant Supervised, Home Assistant Core, and Hassbian the final location will be `/home/homeassistant/.homeassistant/custom_components/mail_and_packages`
+   * On Home Assistant (formerly Hass.io) and Home Assistant Container the final location should be `/config/custom_components/mail_and_packages`
+   * On Home Assistant Supervised, Home Assistant Core, and Hassbian the final location should be `/home/homeassistant/.homeassistant/custom_components/mail_and_packages`
 3. Restart your instance.
 
 ## Configuration
