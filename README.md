@@ -25,11 +25,11 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 * **No data is sent outside of your local instance of Home Assistant**
 
 
-<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/docs/coffee.png" alt="Buy Us A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
+<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" style="height: 51px !important;width: 217px !important;" /></a>
 
 ## Credits:
 
-* Huge contirbutions from @firstof9 moving the project forward and keeping it active!
+* Huge contirbutions from [@firstof9](https://github.com/firstof9) moving the project forward and keeping it active!
 * Mail.py script based on @skalavala work at [skalavala blog](https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html)
 * Package and macros based on happyleavesaoc work at [happyleavesaoc/my-home-automation](https://github.com/happyleavesaoc/my-home-automation)
 
