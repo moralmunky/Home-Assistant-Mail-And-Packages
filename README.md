@@ -25,7 +25,7 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 * **No data is sent outside of your local instance of Home Assistant**
 
 
-<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-green.png" alt="Buy Us A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
+<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/docs/coffee.png" alt="Buy Us A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
 
 ## Credits:
 
@@ -35,9 +35,9 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 
 ## Installation
 ### [HACS](https://hacs.xyz) (Recommended)
-0. Have [HACS](https://github.com/custom-components/hacs) installed, this will allow you to easily update
-1. Add `https://github.com/moralmunky/Home-Assistant-Mail-And-Packages` as a [custom repository](https://custom-components.github.io/hacs/usage/settings/#add-custom-repositories) and Type: Integration
-2. Click install under "Mail and Packages", restart your instance.
+1. Have [HACS](https://github.com/custom-components/hacs) installed, this will allow you to easily update
+2. Add `https://github.com/moralmunky/Home-Assistant-Mail-And-Packages` as a [custom repository](https://custom-components.github.io/hacs/usage/settings/#add-custom-repositories) and Type: Integration
+3. Click install under "Mail and Packages", restart your instance.
 
 ### Manual Installation
 1. Download this repository as a ZIP (green button, top right) and unzip the archive
