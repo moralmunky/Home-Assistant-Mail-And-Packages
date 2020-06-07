@@ -6,8 +6,11 @@ It may contain bugs or break functionality in addition to adding new features an
 ## About Mail and Packages integration
 
 The [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) creates sensors for supported shippers to show a snapshot of mail and packages that are scheduled to be delivered the current day. It provides a count of in transit and delivered packages that are scheduled to be delivered the current day. It also generates the number of USPS mail pieces and provides a rotating GIF of the USPS provided images of the mail, if available, for the current day.
+<br />
+<br />
+<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" height="51px" width="217px" /></a>
 
-#### How it works
+## How it works
 
 From your instance of HASS, the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) connects to the email account you supply where your shipment notifications are sent. It reviews at the subject lines of the current day's emails from the shipping companies and counts the subject lines that match known language from the shipping companies about their trasnit status. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF.
 
@@ -15,8 +18,21 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 * **No external services are used to process your email.**
 * **No data is sent outside of your local instance of Home Assistant**
 
+#### Search Terms
 
-<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" height="51px" width="217px" /></a>
+Shipper | Email | Subject | Body Text
+--- | --- | --- | ---
+USPS | USPSInformedDelivery@usps.gov|Informed Delivery Daily Digest|none
+USPS | auto-reply@usps.com|Expected Delivery on|out for delivery
+USPS | auto-reply@usps.com|Item Delivered|none
+UPS | mcinfo@ups.com|UPS Update: Package Scheduled for Delivery Today|none
+UPS | mcinfo@ups.com|UPS Update: Follow Your Delivery on a Live Map|none
+UPS | mcinfo@ups.com|Your UPS Package was delivered|none
+FEDEX | TrackingUpdates@fedex.com |Delivery scheduled for today|none
+FEDEX | TrackingUpdates@fedex.com |Your package is scheduled for delivery today|none
+FEDEX | TrackingUpdates@fedex.com |Your package has been delivered|none
+Amazon |shipment-tracking@amazon.com|none|regex order numbers
+Amazon |shipment-tracking@amazon.ca|none |regex order numbers
 
 ## Configuration
 Once you have finished installing through [HACS or manually](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages#installation) go into ```Configuration -> Integration``` select the ```+```and add the ```Mail And Packages``` integration. You first be prompted to input your mail server settings and then additonal settings.

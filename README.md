@@ -18,14 +18,12 @@ Supports only Lovelace UI. Last tested in 0.110.x.
 
 ## Credits:
 
-* Huge contirbutions from [@firstof9](https://github.com/firstof9) moving the project forward and keeping it active!
-* Mail.py script based on [@skalavala](https://github.com/skalavala) work at [skalavala blog](https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html)
-* Package and macros based on [@happyleavesaoc](https://github.com/happyleavesaoc) work at [happyleavesaoc/my-home-automation](https://github.com/happyleavesaoc/my-home-automation)
+* Huge contributions from [@firstof9](https://github.com/firstof9) moving the project forward and keeping it active!
 
 <br/>
 <a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" height="51px" width="217px" /></a>
 
-### How it works
+## How it works
 
 From your instance of HASS, the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) connects to the email account you supply where your shipment notifications are sent. It reviews at the subject lines of the current day's emails from the shipping companies and counts the subject lines that match known language from the shipping companies about their trasnit status. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF.
 
