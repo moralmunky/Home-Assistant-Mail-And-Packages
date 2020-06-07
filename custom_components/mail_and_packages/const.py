@@ -21,8 +21,8 @@ DEFAULT_GIF_FILE_NAME = 'mail_today.gif'
 
 # USPS
 USPS_Mail_Email = 'USPSInformedDelivery@usps.gov'
-USPS_Packages_Email = 'auto-reply@usps.com'
 USPS_Mail_Subject = 'Informed Delivery Daily Digest'
+USPS_Packages_Email = 'auto-reply@usps.com'
 USPS_Delivering_Subject = 'Expected Delivery on'
 USPS_Delivered_Subject = 'Item Delivered'
 USPS_Body_Text = 'out for delivery'

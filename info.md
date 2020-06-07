@@ -6,8 +6,11 @@ It may contain bugs or break functionality in addition to adding new features an
 ## About Mail and Packages integration
 
 The [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) creates sensors for supported shippers to show a snapshot of mail and packages that are scheduled to be delivered the current day. It provides a count of in transit and delivered packages that are scheduled to be delivered the current day. It also generates the number of USPS mail pieces and provides a rotating GIF of the USPS provided images of the mail, if available, for the current day.
+<br />
+<br />
+<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" height="51px" width="217px" /></a>
 
-#### How it works
+## How it works
 
 From your instance of HASS, the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) connects to the email account you supply where your shipment notifications are sent. It reviews at the subject lines of the current day's emails from the shipping companies and counts the subject lines that match known language from the shipping companies about their trasnit status. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF.
 
@@ -15,19 +18,32 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 * **No external services are used to process your email.**
 * **No data is sent outside of your local instance of Home Assistant**
 
+#### Search Terms
 
-<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-green.png" alt="Buy Us A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
+Shipper | Email | Subject | Body Text
+--- | --- | --- | ---
+USPS | USPSInformedDelivery@usps.gov|Informed Delivery Daily Digest|none
+USPS | auto-reply@usps.com|Expected Delivery on|out for delivery
+USPS | auto-reply@usps.com|Item Delivered|none
+UPS | mcinfo@ups.com|UPS Update: Package Scheduled for Delivery Today|none
+UPS | mcinfo@ups.com|UPS Update: Follow Your Delivery on a Live Map|none
+UPS | mcinfo@ups.com|Your UPS Package was delivered|none
+FEDEX | TrackingUpdates@fedex.com |Delivery scheduled for today|none
+FEDEX | TrackingUpdates@fedex.com |Your package is scheduled for delivery today|none
+FEDEX | TrackingUpdates@fedex.com |Your package has been delivered|none
+Amazon |shipment-tracking@amazon.com|none|regex order numbers
+Amazon |shipment-tracking@amazon.ca|none |regex order numbers
 
 ## Configuration
 Once you have finished installing through [HACS or manually](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages#installation) go into ```Configuration -> Integration``` select the ```+```and add the ```Mail And Packages``` integration. You first be prompted to input your mail server settings and then additonal settings.
 
 Setting | Description
------------- | -------------
-Folder | The folder in your email account that the notification messages are stored. The default is Inbox.
-Time in minutes to scan for new emails| The amount of time that will pass between checking for new email nortifications
-Path to store mail images* | This is the absolute path to the folder where [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) will save the compiled USPS informed delivery gif.
-Time in seconds per image | The amount of time each USPS Informed Delivery image is shown in the generated rotating GIF.
-Enable Random image filename* | Change the file name of the generated gif from mail_today.gif to a random string for increased secuirty in situations where it is required to store the  image in the ```www``` directory
+--- | ---
+Mail Folder| The folder in your email account that the notification messages are stored. The default is Inbox.
+<nobr>Scanning Interval (minutes)</nobr>| The amount of time that will pass between checking for new email nortifications
+Image Path* | This is the absolute path to the folder where [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) will save the compiled USPS informed delivery gif.
+<nobr>Image Duration (seconds)</nobr> | The amount of time each USPS Informed Delivery image is shown in the generated rotating GIF.
+<nobr>Random Image Filename*</nobr> | Change the file name of the generated gif from mail_today.gif to a random string for increased secuirty in situations where it is required to store the  image in the ```www``` directory
 
 ##### *Privacy / Security Note
 Please note that files stored in the ```www``` Home Assistant folder is [publicly accessible](https://www.home-assistant.io/integrations/http/#hosting-files) unless you have taken security measures outside of Home Assistant to secure it. You can place the images in an ```images``` directory inside Home Assistants root folder and still send notifications via most notification integrations.
@@ -35,9 +51,9 @@ Please note that files stored in the ```www``` Home Assistant folder is [publicl
 ### Supported Shippers and Requirements:
 Shipper | Notification Settings
 ------------ | -------------
-[USPS Informed Delivery:](https://informeddelivery.usps.com/) account and all nortifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/USPS_Delivery_Notifications.jpg" alt="USPS Informed Delivery notification settings."  width="350"/>
-[FedEx Delivery Manager:](https://www.fedex.com/apps/fdmenrollment/) account and all nortifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/FedEx_Delivery_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
-[UPS MyChoice:](https://wwwapps.ups.com/mcdp?loc=en_US) account and all nortifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
+[USPS Informed Delivery:](https://informeddelivery.usps.com/) account and all nortifications turned on for email with the email address you will have the component check.|<img src="/docs/USPS_Delivery_Notifications.jpg" alt="USPS Informed Delivery notification settings."  width="350"/>
+[FedEx Delivery Manager:](https://www.fedex.com/apps/fdmenrollment/) account and all nortifications turned on for email with the email address you will have the component check.|<img src="/docs/FedEx_Delivery_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
+[UPS MyChoice:](https://www.ups.com/us/en/services/tracking/mychoice.page) account and all nortifications turned on for email with the email address you will have the component check.|<img src="/docs/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
 
 ## Delivery Summary Text Sensor Template (example)
 Use the following to create a sensor with summary text describing the state of your deliveries that can be used in your Lovelace cards or in notifications. Add to the ```sensor:``` portion of the configuartion.yaml.
@@ -121,7 +137,7 @@ Use the following to create a sensor with summary text describing the state of y
 You may also want to add a camera to display the image.  Add to the ```camera:``` portion of configuration.yaml.
 ```
   - platform: local_file
-    file_path: /config/images/mail_and_packages/mail_today.gif
+    file_path: /<config path>/images/mail_and_packages/mail_today.gif
     name: mail_usps
 ```
 ### Notification Automation
@@ -152,7 +168,7 @@ You may also want to add a camera to display the image.  Add to the ```camera:``
         message: "Here is the mail"
         data:
           document:
-            file: "PATH_TO_FILE/mail_today.gif"
+            file: "/<config path>/images/mail_and_packages/mail_today.gif"
 ```
 ## Lovelace Custom Card Setup
 
