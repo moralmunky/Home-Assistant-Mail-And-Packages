@@ -25,7 +25,7 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 * **No data is sent outside of your local instance of Home Assistant**
 
 
-<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" style="height: 51px !important;width: 217px !important;" /></a>
+<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" height="51px" width="217px" /></a>
 
 ## Credits:
 

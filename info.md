@@ -16,7 +16,7 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 * **No data is sent outside of your local instance of Home Assistant**
 
 
-<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-green.png" alt="Buy Us A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
+<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" height="51px" width="217px" /></a>
 
 ## Configuration
 Once you have finished installing through [HACS or manually](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages#installation) go into ```Configuration -> Integration``` select the ```+```and add the ```Mail And Packages``` integration. You first be prompted to input your mail server settings and then additonal settings.
@@ -35,9 +35,9 @@ Please note that files stored in the ```www``` Home Assistant folder is [publicl
 ### Supported Shippers and Requirements:
 Shipper | Notification Settings
 ------------ | -------------
-[USPS Informed Delivery:](https://informeddelivery.usps.com/) account and all nortifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/docs/USPS_Delivery_Notifications.jpg" alt="USPS Informed Delivery notification settings."  width="350"/>
-[FedEx Delivery Manager:](https://www.fedex.com/apps/fdmenrollment/) account and all nortifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/docs/FedEx_Delivery_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
-[UPS MyChoice:](https://wwwapps.ups.com/mcdp?loc=en_US) account and all nortifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/docs/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
+[USPS Informed Delivery:](https://informeddelivery.usps.com/) account and all nortifications turned on for email with the email address you will have the component check.|<img src="/docs/USPS_Delivery_Notifications.jpg" alt="USPS Informed Delivery notification settings."  width="350"/>
+[FedEx Delivery Manager:](https://www.fedex.com/apps/fdmenrollment/) account and all nortifications turned on for email with the email address you will have the component check.|<img src="/docs/FedEx_Delivery_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
+[UPS MyChoice:](https://wwwapps.ups.com/mcdp?loc=en_US) account and all nortifications turned on for email with the email address you will have the component check.|<img src="/docs/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
 
 ## Delivery Summary Text Sensor Template (example)
 Use the following to create a sensor with summary text describing the state of your deliveries that can be used in your Lovelace cards or in notifications. Add to the ```sensor:``` portion of the configuartion.yaml.
