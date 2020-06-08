@@ -690,7 +690,8 @@ def get_items(account, param):
 
                         # Catch bad format emails
                         try:
-                            email_msg = str(msg.get_payload(0))
+                            email_msg = quopri.decodestring(str(msg.get_payload(0)))
+                            email_msg = email_msg.decode("utf-8")
                         except Exception as err:
                             _LOGGER.debug(
                                 "Error attempting prase Amazon " + "email: %s", str(err)
