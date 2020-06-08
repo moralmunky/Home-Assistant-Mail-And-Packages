@@ -645,7 +645,7 @@ def find_text(sdata, account, search):
             if isinstance(response_part, tuple):
                 msg = email.message_from_bytes(response_part[1])
                 email_msg = str(msg.get_payload(0))
-                pattern = re.compile(search)
+                pattern = re.compile(r"\b{search}\b")
                 found = pattern.search(email_msg)
                 if found is not None:
                     _LOGGER.debug("Found %s in email", search)
