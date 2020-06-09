@@ -303,7 +303,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         image_path = self.config.options.get(CONF_PATH)
         gif_duration = self.config.options.get(CONF_DURATION)
         image_security = self.config.options.get(CONF_IMAGE_SECURITY)
-        image_security = self.config.options.get(CONF_GENERATE_MP4)
+        generate_mp4 = self.config.options.get(CONF_GENERATE_MP4)
 
         account = imaplib.IMAP4_SSL(self._data["host"], self._data["port"])
         status, data = account.login(self._data["username"], self._data["password"])

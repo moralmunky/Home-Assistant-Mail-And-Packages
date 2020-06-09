@@ -102,9 +102,9 @@ SENSOR_TYPES = {
         "package(s)",
         "mdi:package-variant-closed",
     ],
-    """
-    !!! Insert new sensors above these two !!!
-    """
+    ###
+    # !!! Insert new sensors above these two !!!
+    ###
     "packages_delivered": [
         "Mail Packages Delivered",
         "package(s)",
@@ -532,7 +532,20 @@ def _generate_mp4(path, image_file):
     """
     gif_image = os.path.join(path, image_file)
     mp4_file = os.path.join(path, image_file.replace(".gif", ".mp4"))
-    subprocess.call(["ffmpeg", "-f", "gif", "-i", gif_image, mp4_file])
+    filecheck = os.path.isfile(mp4_file)
+    _LOGGER.debug("Generating mp4: %s", mp4_file)
+    if filecheck:
+        try:
+            os.remove(mp4_file)
+            _LOGGER.debug("Removing old mp4: %s", mp4_file)
+        except Exception as err:
+            _LOGGER.error("Error attempting to remove mp4: %s", str(err))
+
+    subprocess.call(
+        ["ffmpeg", "-f", "gif", "-i", gif_image, mp4_file],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
 
 def cleanup_images(path):
