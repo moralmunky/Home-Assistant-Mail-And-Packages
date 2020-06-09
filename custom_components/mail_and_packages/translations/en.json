@@ -20,13 +20,13 @@
             },
             "config_2": {
                 "data": {
-                    "folder": "Folder",
-                    "image_path": "Path to store mail images",
-                    "gif_duration": "Time in seconds per image",
-                    "scan_interval": "Time in minutes to scan for new email notifications",
-                    "image_security": "Enable random image filename"
+                    "folder": "Mail Folder",
+                    "scan_interval": "Scanning Interval (minutes)",
+                    "image_path": "Image Path",
+                    "gif_duration": "Image Duration (seconds)",
+                    "image_security": "Random Image Filename"
                 },
-                "description": "Please select the mail folder your deliveries go into, if you are unsure keep the default: Inbox\n\nHassIO users should use /config/images/mail_and_packages as the image path.",
+                "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/info.md#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/info.md#configuration) on GitHub.",
                 "title": "Mail and Packages (Step 2 of 2)"                 
             }
         },
@@ -50,13 +50,13 @@
             },
             "options_2": {
                 "data": {
-                    "folder": "Folder",
-                    "image_path": "Path to store mail images",
-                    "gif_duration": "Time in seconds per image",
-                    "scan_interval": "Time in minutes to scan for new email notifications",
-                    "image_security": "Enable random image filename"                    
+                    "folder": "Mail Folder",
+                    "scan_interval": "Scanning Interval (minutes)",
+                    "image_path": "Image Path",
+                    "gif_duration": "Image Duration (seconds)",
+                    "image_security": "Random Image Filename"                    
                 },
-                "description": "Please select the mail folder your deliveries go into, if you are unsure keep the default: Inbox\n\nHassIO users should use /config/images/mail_and_packages as the image path.",
+                "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/info.md#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/master/info.md#configuration) on GitHub.",
                 "title": "Mail and Packages (Step 2 of 2)"
             }
         },
