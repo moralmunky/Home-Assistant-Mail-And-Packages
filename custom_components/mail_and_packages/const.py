@@ -2,7 +2,7 @@ DOMAIN = "mail_and_packages"
 VERSION = "0.2.1-b3"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 
-# Configuration jazz
+# Configuration Properties
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
 CONF_DURATION = "gif_duration"
