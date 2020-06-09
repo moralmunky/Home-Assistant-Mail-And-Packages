@@ -130,6 +130,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         CONF_DURATION: entry.data[CONF_DURATION],
         CONF_IMAGE_SECURITY: entry.data[CONF_IMAGE_SECURITY],
         CONF_SCAN_INTERVAL: entry.data[CONF_SCAN_INTERVAL],
+        CONF_GENERATE_MP4: entry.data[CONF_GENERATE_MP4],
     }
 
     data = EmailData(hass, config)
@@ -154,6 +155,7 @@ class EmailData:
         self._img_out_path = config.get(CONF_PATH)
         self._gif_duration = config.get(CONF_DURATION)
         self._image_security = config.get(CONF_IMAGE_SECURITY)
+        self._generate_mp4 = config.get(CONF_GENERATE_MP4)
         self._scan_interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
         self._data = None
         self._image_name = None
@@ -192,6 +194,7 @@ class EmailData:
                         self._img_out_path,
                         self._gif_duration,
                         self._image_name,
+                        self._generate_mp4,
                     )
                 elif sensor == "amazon_packages":
                     count[sensor] = get_items(account, "count")
@@ -364,7 +367,7 @@ def update_time():
     return updated
 
 
-def get_mails(account, image_output_path, gif_duration, image_name):
+def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4):
     """Creates GIF image based on the attachments in the inbox"""
     today = get_formatted_date()
     image_count = 0
@@ -499,7 +502,8 @@ def get_mails(account, image_output_path, gif_duration, image_name):
             except Exception as err:
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
 
-        _generate_mp4(image_output_path, image_name)
+        if gen_mp4:
+            _generate_mp4(image_output_path, image_name)
 
     return image_count
 
