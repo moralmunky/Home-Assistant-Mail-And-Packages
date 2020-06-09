@@ -19,6 +19,7 @@ import datetime
 import uuid
 from datetime import timedelta
 from shutil import copyfile
+import quopri
 
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
