@@ -2,6 +2,7 @@
   "domain": "mail_and_packages",
   "name": "Mail and Packages",
   "documentation": "https://github.com/moralmunky/Home-Assistant-Mail-And-Packages",
+  "issue_tracker": "https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/issues",
   "dependencies": [],
   "codeowners": ["@moralmunky","@firstof9"],
   "config_flow": true,

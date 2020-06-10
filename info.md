@@ -8,7 +8,7 @@ It may contain bugs or break functionality in addition to adding new features an
 The [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) creates sensors for supported shippers to show a snapshot of mail and packages that are scheduled to be delivered the current day. It provides a count of in transit and delivered packages that are scheduled to be delivered the current day. It also generates the number of USPS mail pieces and provides a rotating GIF of the USPS provided images of the mail, if available, for the current day.
 <br />
 <br />
-<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" height="51px" width="217px" /></a>
+<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/raw/master/docs/coffee.png" alt="Buy Us A Coffee" height="51px" width="217px" /></a>
 
 ## How it works
 
@@ -51,9 +51,9 @@ Please note that files stored in the ```www``` Home Assistant folder is [publicl
 ### Supported Shippers and Requirements:
 Shipper | Notification Settings
 ------------ | -------------
-[USPS Informed Delivery:](https://informeddelivery.usps.com/) account and all nortifications turned on for email with the email address you will have the component check.|<img src="/docs/USPS_Delivery_Notifications.jpg" alt="USPS Informed Delivery notification settings."  width="350"/>
-[FedEx Delivery Manager:](https://www.fedex.com/apps/fdmenrollment/) account and all nortifications turned on for email with the email address you will have the component check.|<img src="/docs/FedEx_Delivery_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
-[UPS MyChoice:](https://www.ups.com/us/en/services/tracking/mychoice.page) account and all nortifications turned on for email with the email address you will have the component check.|<img src="/docs/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
+[USPS Informed Delivery:](https://informeddelivery.usps.com/) account and all nortifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/raw/master/docs/USPS_Delivery_Notifications.jpg" alt="USPS Informed Delivery notification settings."  width="350"/>
+[FedEx Delivery Manager:](https://www.fedex.com/apps/fdmenrollment/) account and all nortifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/raw/master/docs/FedEx_Delivery_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
+[UPS MyChoice:](https://www.ups.com/us/en/services/tracking/mychoice.page) account and all nortifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/raw/master/docs/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
 
 ## Delivery Summary Text Sensor Template (example)
 Use the following to create a sensor with summary text describing the state of your deliveries that can be used in your Lovelace cards or in notifications. Add to the ```sensor:``` portion of the configuartion.yaml.
