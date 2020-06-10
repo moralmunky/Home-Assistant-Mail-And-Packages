@@ -25,3 +25,4 @@ If applicable, add screenshots to help explain your problem.
 
 **Additional context**
 Add any other context about the problem here.
+Please add emails in plain/text format if possible and applicable.
