@@ -20,19 +20,19 @@ From your instance of HASS, the [Mail and Packages integration](https://github.c
 
 #### Search Terms
 
-Shipper | Email | Subject | Body Text
---- | --- | --- | ---
-USPS | USPSInformedDelivery@usps.gov|Informed Delivery Daily Digest|none
-USPS | auto-reply@usps.com|Expected Delivery on|out for delivery
-USPS | auto-reply@usps.com|Item Delivered|none
-UPS | mcinfo@ups.com|UPS Update: Package Scheduled for Delivery Today|none
-UPS | mcinfo@ups.com|UPS Update: Follow Your Delivery on a Live Map|none
-UPS | mcinfo@ups.com|Your UPS Package was delivered|none
-FEDEX | TrackingUpdates@fedex.com |Delivery scheduled for today|none
-FEDEX | TrackingUpdates@fedex.com |Your package is scheduled for delivery today|none
-FEDEX | TrackingUpdates@fedex.com |Your package has been delivered|none
-Amazon |shipment-tracking@amazon.com|none|regex order numbers
-Amazon |shipment-tracking@amazon.ca|none |regex order numbers
+Sensors | Shipper | Email | Subject | Body Text
+--- | --- | --- | --- | ---
+sensor.mail_usps_mail, mail_today.gif |USPS | USPSInformedDelivery@usps.gov|Informed Delivery Daily Digest|none
+sensor.mail_usps_delivering |USPS | auto-reply@usps.com|Expected Delivery on|out for delivery
+sensor.mail_usps_delivered |USPS | auto-reply@usps.com|Item Delivered|none
+sensor.mail_ups_delivering |UPS | mcinfo@ups.com|UPS Update: Package Scheduled for Delivery Today|none
+sensor.mail_ups_delivering |UPS | mcinfo@ups.com|UPS Update: Follow Your Delivery on a Live Map|none
+sensor.mail_ups_delivered |UPS | mcinfo@ups.com|Your UPS Package was delivered|none
+sensor.mail_fedex_delivering |FEDEX | TrackingUpdates@fedex.com |Delivery scheduled for today|none
+sensor.mail_fedex_delivering |FEDEX | TrackingUpdates@fedex.com |Your package is scheduled for delivery today|none
+sensor.mail_fedex_delivered |FEDEX | TrackingUpdates@fedex.com |Your package has been delivered|none
+sensor.mail_amazon_packages |Amazon |shipment-tracking@amazon.com|none|regex order numbers
+sensor.mail_amazon_packages |Amazon |shipment-tracking@amazon.ca|none |regex order numbers
 
 ## Configuration
 Once you have finished installing through [HACS or manually](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages#installation) go into ```Configuration -> Integration``` select the ```+```and add the ```Mail And Packages``` integration. You first be prompted to input your mail server settings and then additonal settings.
