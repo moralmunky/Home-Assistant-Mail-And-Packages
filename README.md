@@ -25,7 +25,7 @@ Supports only Lovelace UI. Last tested in 0.110.x.
 
 ## How it works
 
-From your instance of HASS, the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) connects to the email account you supply where your shipment notifications are sent. It reviews at the subject lines of the current day's emails from the shipping companies and counts the subject lines that match known language from the shipping companies about their trasnit status. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF.
+From your instance of HASS, the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) connects to the email account you supply where your shipment notifications are sent. It reviews at the subject lines of the current day's emails from the shipping companies and counts the subject lines that match known language from the shipping companies about their transit status. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF.
 
 * **All procedures are done locally on your machine.**
 * **No external services are used to process your email.**
