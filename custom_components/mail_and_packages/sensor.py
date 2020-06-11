@@ -697,6 +697,7 @@ def get_items(account, param):
                             _LOGGER.debug(
                                 "Error attempting prase Amazon " + "email: %s", str(err)
                             )
+                            pass
 
                         # today_month = datetime.date.today().month
                         # today_day = datetime.date.today().day
