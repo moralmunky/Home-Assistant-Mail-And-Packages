@@ -64,4 +64,4 @@ Shipper | Notification Settings
 [UPS MyChoice:](https://www.ups.com/us/en/services/tracking/mychoice.page) account and all nortifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/raw/master/docs/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
 
 ## Automation and Template Examples
-[Go to the Example Automations and Templates section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Example-Automations-and-Templates#delivery-summary-text-sensor-template-example)
+[Go to the Example Automations and Templates wiki section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Example-Automations-and-Templates#delivery-summary-text-sensor-template-example)
