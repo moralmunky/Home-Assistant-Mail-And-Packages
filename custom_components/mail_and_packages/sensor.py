@@ -697,12 +697,40 @@ def get_items(account, param):
                             _LOGGER.debug(
                                 "Error attempting prase Amazon " + "email: %s", str(err)
                             )
+                            continue
 
                         # today_month = datetime.date.today().month
                         # today_day = datetime.date.today().day
                         if "will arrive:" in email_msg:
                             start = email_msg.find("will arrive:") + len("will arrive:")
                             end = email_msg.find("Track your package:")
+                            arrive_date = email_msg[start:end].strip()
+                            arrive_date = arrive_date.split(" ")
+                            arrive_date = arrive_date[0:3]
+                            arrive_date[2] = arrive_date[2][:2]
+                            arrive_date = " ".join(arrive_date).strip()
+                            dateobj = datetime.datetime.strptime(
+                                arrive_date, "%A, %B %d"
+                            )
+                            if (
+                                dateobj.day == datetime.date.today().day
+                                and dateobj.month == datetime.date.today().month
+                            ):
+                                subj_parts = email_subject.split('"')
+                                if len(subj_parts) > 1:
+                                    deliveriesToday.append(subj_parts[1])
+                                else:
+                                    deliveriesToday.append("Amazon Order")
+
+                                subj_order = email_subject.split(" ")
+                                if len(subj_order) == 6:
+                                    orderNum.append(str(subj_order[3]).strip("#"))
+
+                        elif "estimated delivery date is:" in email_msg:
+                            start = email_msg.find("estimated delivery date is:") + len(
+                                "estimated delivery date is:"
+                            )
+                            end = email_msg.find("Track your package at")
                             arrive_date = email_msg[start:end].strip()
                             arrive_date = arrive_date.split(" ")
                             arrive_date = arrive_date[0:3]
