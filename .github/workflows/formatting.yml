@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Formatting check
+name: Formatting and Lint
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
@@ -21,6 +21,9 @@ jobs:
     steps:
     - name: Black Check
       uses: jpetrucciani/black-check@19.10b0
-      with:
-        # File or directory to run black on
-        path: # optional, default is .
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: cclauss/Find-Python-syntax-errors-action@master
