@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Formatting and Lint
+name: Lint
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
@@ -20,11 +20,9 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - name: Black Check
-      uses: jpetrucciani/black-check@19.10b0
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: cclauss/Find-Python-syntax-errors-action@master
+      - uses: actions/checkout@v1
+      - uses: ricardochaves/python-lint@v1.1.0
+        with:
+          use-flake8: true
+          use-black: true
+          use-isort: true
