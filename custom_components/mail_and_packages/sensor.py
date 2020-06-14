@@ -671,8 +671,9 @@ def get_items(account, param):
 
     for domain in domains:
         try:
+            email_address = "shipment-tracking@" + domain
             (rv, sdata) = account.search(
-                None, '(FROM "' + domain + '" SINCE ' + tfmt + ")"
+                None, '(FROM "' + email_address + '" SINCE ' + tfmt + ")"
             )
         except imaplib.IMAP4.error as err:
             _LOGGER.error("Error searching emails: %s", str(err))
@@ -750,7 +751,7 @@ def get_items(account, param):
                                     deliveriesToday.append("Amazon Order")
 
                                 subj_order = email_subject.split(" ")
-                                if len(subj_order) == 6:
+                                if len(subj_order) == 10:
                                     orderNum.append(str(subj_order[3]).strip("#"))
 
     if param == "count":
