@@ -50,7 +50,7 @@ Amazon |shipment-tracking@amazon.ca|none |regex order numbers
 ## Installation
 ### [HACS](https://hacs.xyz) (Recommended)
 1. Have [HACS](https://github.com/custom-components/hacs) installed, this will allow you to easily update
-2. Add `https://github.com/moralmunky/Home-Assistant-Mail-And-Packages` as a [custom repository](https://custom-components.github.io/hacs/usage/settings/#add-custom-repositories) and Type: Integration
+2. Add `https://github.com/moralmunky/Home-Assistant-Mail-And-Packages` as a [custom repository](https://hacs.xyz/docs/faq/custom_repositories) and Type: Integration
 3. Click install under "Mail and Packages", restart your instance.
 
 ### Manual Installation
