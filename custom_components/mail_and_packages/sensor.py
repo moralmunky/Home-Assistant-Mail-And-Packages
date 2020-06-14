@@ -696,7 +696,7 @@ def get_items(account, param):
                             email_msg = email_msg.decode("utf-8")
                         except Exception as err:
                             _LOGGER.debug(
-                                "Error attempting prase Amazon " + "email: %s", str(err)
+                                "Error while attempting to parse Amazon " + "email: %s", str(err)
                             )
                             continue
 
