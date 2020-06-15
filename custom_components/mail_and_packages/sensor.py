@@ -164,7 +164,6 @@ class EmailData:
     def update(self):
         """Get the latest data"""
         if self._host is not None:
-            # Login to email server and select the folder
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
 
@@ -663,8 +662,13 @@ def get_items(account, param):
                 for response_part in data:
                     if isinstance(response_part, tuple):
                         msg = email.message_from_bytes(response_part[1])
+
+                        """Get order number from subject line"""
                         email_subject = msg["subject"]
-                        # email_from = msg['from']
+                        pattern = re.compile(r"#[0-9]{3}-[0-9]{7}-[0-9]{7}")
+                        found = pattern.findall(email_subject)
+                        if found is not None:
+                            orderNum.append(found[0])
 
                         """Catch bad format emails"""
                         try:
@@ -672,12 +676,11 @@ def get_items(account, param):
                             email_msg = email_msg.decode("utf-8")
                         except Exception as err:
                             _LOGGER.debug(
-                                "Error while attempting to parse Amazon " + "email: %s", str(err)
+                                "Error while attempting to parse Amazon " + "email: %s",
+                                str(err),
                             )
                             continue
 
-                        # today_month = datetime.date.today().month
-                        # today_day = datetime.date.today().day
                         if "will arrive:" in email_msg:
                             start = email_msg.find("will arrive:") + len("will arrive:")
                             end = email_msg.find("Track your package:")
@@ -693,15 +696,7 @@ def get_items(account, param):
                                 dateobj.day == datetime.date.today().day
                                 and dateobj.month == datetime.date.today().month
                             ):
-                                subj_parts = email_subject.split('"')
-                                if len(subj_parts) > 1:
-                                    deliveriesToday.append(subj_parts[1])
-                                else:
-                                    deliveriesToday.append("Amazon Order")
-
-                                subj_order = email_subject.split(" ")
-                                if len(subj_order) == 6:
-                                    orderNum.append(str(subj_order[3]).strip("#"))
+                            deliveriesToday.append("Amazon Order")
 
                         elif "estimated delivery date is:" in email_msg:
                             start = email_msg.find("estimated delivery date is:") + len(
@@ -720,15 +715,7 @@ def get_items(account, param):
                                 dateobj.day == datetime.date.today().day
                                 and dateobj.month == datetime.date.today().month
                             ):
-                                subj_parts = email_subject.split('"')
-                                if len(subj_parts) > 1:
-                                    deliveriesToday.append(subj_parts[1])
-                                else:
-                                    deliveriesToday.append("Amazon Order")
-
-                                subj_order = email_subject.split(" ")
-                                if len(subj_order) == 10:
-                                    orderNum.append(str(subj_order[3]).strip("#"))
+                            deliveriesToday.append("Amazon Order")
 
     if param == "count":
         _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
