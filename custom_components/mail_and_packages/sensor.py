@@ -715,7 +715,7 @@ def get_items(account, param):
                                 dateobj.day == datetime.date.today().day
                                 and dateobj.month == datetime.date.today().month
                             ):
-                            deliveriesToday.append("Amazon Order")
+                                deliveriesToday.append("Amazon Order")
 
     if param == "count":
         _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
