@@ -3,6 +3,7 @@ name: Validate with hassfest
 on:
   push:
   pull_request:
+    types: [opened, edited, reopened, synchronize]
   schedule:
     - cron:  '0 0 * * *'
 
