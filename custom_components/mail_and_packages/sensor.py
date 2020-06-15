@@ -696,7 +696,7 @@ def get_items(account, param):
                                 dateobj.day == datetime.date.today().day
                                 and dateobj.month == datetime.date.today().month
                             ):
-                            deliveriesToday.append("Amazon Order")
+                                deliveriesToday.append("Amazon Order")
 
                         elif "estimated delivery date is:" in email_msg:
                             start = email_msg.find("estimated delivery date is:") + len(

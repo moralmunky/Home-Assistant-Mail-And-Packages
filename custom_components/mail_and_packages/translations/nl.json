@@ -29,8 +29,7 @@
                 "description": "Voltooi de configuratie door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie. \n\n Voor meer informatie over de [E-mail en pakketten integratie] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties bekijk de [configuratie, sjablonen , en automatisering sectie] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.",
                 "title": "Mail en pakketten (stap 2 van 2)"
             }
-        },
-        "title": "Mail en pakketten"
+        }
     },
     "options": {
         "error": {
