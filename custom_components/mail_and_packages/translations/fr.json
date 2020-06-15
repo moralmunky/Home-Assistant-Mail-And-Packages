@@ -59,7 +59,6 @@
                 "description": "Terminez la configuration en personnalisant les éléments suivants en fonction de votre structure de messagerie et de l'installation de Home Assistant. \n\n Pour plus de détails sur les [Intégration de messagerie et de packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), passez en revue les [configuration, modèles et section automatisations] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sur GitHub.",
                 "title": "Courrier et colis (étape 2 sur 2)"
             }
-        },
-        "title": "Courrier et colis"
+        }
     }
 }
