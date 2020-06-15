@@ -671,8 +671,9 @@ def get_items(account, param):
 
     for domain in domains:
         try:
+            email_address = "shipment-tracking@" + domain
             (rv, sdata) = account.search(
-                None, '(FROM "' + domain + '" SINCE ' + tfmt + ")"
+                None, '(FROM "' + email_address + '" SINCE ' + tfmt + ")"
             )
         except imaplib.IMAP4.error as err:
             _LOGGER.error("Error searching emails: %s", str(err))
@@ -695,7 +696,7 @@ def get_items(account, param):
                             email_msg = email_msg.decode("utf-8")
                         except Exception as err:
                             _LOGGER.debug(
-                                "Error attempting prase Amazon " + "email: %s", str(err)
+                                "Error while attempting to parse Amazon " + "email: %s", str(err)
                             )
                             continue
 
@@ -750,7 +751,7 @@ def get_items(account, param):
                                     deliveriesToday.append("Amazon Order")
 
                                 subj_order = email_subject.split(" ")
-                                if len(subj_order) == 6:
+                                if len(subj_order) == 10:
                                     orderNum.append(str(subj_order[3]).strip("#"))
 
     if param == "count":
