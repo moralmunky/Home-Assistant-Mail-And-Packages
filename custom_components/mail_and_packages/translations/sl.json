@@ -29,8 +29,7 @@
                 "description": "Končajte konfiguracijo s prilagoditvijo naslednjih na podlagi strukture e-pošte in namestitve Home Assistant. \n\n Za podrobnosti o možnostih [Integracija pošte in paketov] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) preglejte [konfiguracijo, predloge in oddelku za avtomatizacije] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
                 "title": "Pošta in paketi (2. korak od 2)"
             }
-        },
-        "title": "Pošta in paketi"
+        }
     },
     "options": {
         "error": {
