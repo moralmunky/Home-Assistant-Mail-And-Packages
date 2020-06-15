@@ -59,7 +59,6 @@
                 "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
                 "title": "Mail och paket (steg 2 av 2)"
             }
-        },
-        "title": "Mail och paket"
+        }
     }
 }

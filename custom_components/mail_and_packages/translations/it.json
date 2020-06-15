@@ -59,7 +59,6 @@
                 "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua e-mail e all'installazione di Home Assistant. \n\n Per i dettagli sulle opzioni [Integrazione posta e pacchetti] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) rivedere le [configurazione, modelli e sezione automazioni] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) su GitHub.",
                 "title": "Posta e pacchi (passaggio 2 di 2)"
             }
-        },
-        "title": "Posta e pacchi"
+        }
     }
 }

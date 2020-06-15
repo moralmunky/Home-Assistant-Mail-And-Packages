@@ -5,12 +5,8 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 
-# import asyncio
 import logging
 import imageio as io
-
-# from skimage.transform import resize
-# from skimage import img_as_ubyte
 import os
 import re
 import imaplib
@@ -168,7 +164,6 @@ class EmailData:
     def update(self):
         """Get the latest data"""
         if self._host is not None:
-            # Login to email server and select the folder
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
 
@@ -313,10 +308,6 @@ class PackagesSensor(Entity):
         self._state = self.data._data[self.type]
 
 
-# Login Method
-###############################################################################
-
-
 def login(host, port, user, pwd):
     """function used to login"""
 
@@ -334,11 +325,8 @@ def login(host, port, user, pwd):
     return account
 
 
-# Select folder inside the mailbox
-###############################################################################
-
-
 def selectfolder(account, folder):
+    """function to select the imap folder"""
     try:
         rv, mailboxes = account.list()
     except imaplib.IMAP4.error as err:
@@ -349,11 +337,8 @@ def selectfolder(account, folder):
         _LOGGER.error("Error selecting folder: %s", str(err))
 
 
-# Returns today in specific format
-###############################################################################
-
-
 def get_formatted_date():
+    """returns today in specific format"""
     today = datetime.datetime.today().strftime("%d-%b-%Y")
     """
     # for testing
@@ -362,21 +347,15 @@ def get_formatted_date():
     return today
 
 
-# gets update time
-###############################################################################
-
-
 def update_time():
+    """gets update time"""
     updated = datetime.datetime.now().strftime("%b-%d-%Y %I:%M %p")
 
     return updated
 
 
-# Creates GIF image based on the attachments in the inbox
-###############################################################################
-
-
 def get_mails(account, image_output_path, gif_duration, image_name):
+    """creates GIF image based on the attachments in the email"""
     today = get_formatted_date()
     image_count = 0
     images = []
@@ -396,7 +375,7 @@ def get_mails(account, image_output_path, gif_duration, image_name):
         + '")',
     )
 
-    # Check to see if the path exists, if not make it
+    """Check to see if the path exists, if not make it"""
     pathcheck = os.path.isdir(image_output_path)
     if not pathcheck:
         try:
@@ -404,7 +383,7 @@ def get_mails(account, image_output_path, gif_duration, image_name):
         except Exception as err:
             _LOGGER.critical("Error creating directory: %s", str(err))
 
-    # Clean up image directory
+    """Clean up image directory"""
     _LOGGER.debug("Cleaning up image directory: %s", str(image_output_path))
     cleanup_images(image_output_path)
 
@@ -414,7 +393,7 @@ def get_mails(account, image_output_path, gif_duration, image_name):
             (rv, data) = account.fetch(num, "(RFC822)")
             msg = email.message_from_string(data[0][1].decode("utf-8"))
 
-            # walking through the email parts to find images
+            """walking through the email parts to find images"""
             for part in msg.walk():
                 if part.get_content_maintype() == "multipart":
                     continue
@@ -424,8 +403,8 @@ def get_mails(account, image_output_path, gif_duration, image_name):
                 _LOGGER.debug("Extracting image from email")
                 filepath = image_output_path + part.get_filename()
 
-                # Log error message if we are unable to open the filepath for
-                # some reason
+                """Log error message if we are unable to open the filepath for"""
+                """some reason"""
                 try:
                     fp = open(filepath, "wb")
                 except Exception as err:
@@ -435,14 +414,14 @@ def get_mails(account, image_output_path, gif_duration, image_name):
                 image_count = image_count + 1
                 fp.close()
 
-        # Remove duplicate images
+        """Remove duplicate images"""
         _LOGGER.debug("Removing duplicate images.")
         images = list(dict.fromkeys(images))
 
-        # Create copy of image list for deleting temporary images
+        """Create copy of image list for deleting temporary images"""
         imagesDelete = images[:]
 
-        # Look for mail pieces without images image
+        """Look for mail pieces without images image"""
         html_text = str(msg)
         link_pattern = re.compile(r"\bimage-no-mailpieces?700\.jpg\b")
         search = link_pattern.search(html_text)
@@ -453,7 +432,7 @@ def get_mails(account, image_output_path, gif_duration, image_name):
                 "Placeholder image found using: " + "image-no-mailpieces700.jpg."
             )
 
-        # Remove USPS announcement images
+        """Remove USPS announcement images"""
         _LOGGER.debug("Removing USPS announcement images.")
         remove_terms = ["mailerProvidedImage", "ra_0", "Mail Attachment.txt"]
         images = [
@@ -465,17 +444,19 @@ def get_mails(account, image_output_path, gif_duration, image_name):
         if image_count > 0:
             all_images = []
 
+            """
             # _LOGGER.debug("Resizing images to 700x315...")
             # # Resize images to 700x315
             # all_images = resize_images(all_images)
+            """
 
-            # Create numpy array of images
+            """Create numpy array of images"""
             _LOGGER.debug("Creating array of image files...")
             all_images = [io.imread(image) for image in images]
 
             try:
                 _LOGGER.debug("Generating animated GIF")
-                # Use ImageIO to create mail images
+                """Use ImageIO to create mail images"""
                 io.mimwrite(
                     os.path.join(image_output_path, image_name),
                     all_images,
@@ -528,9 +509,10 @@ def get_mails(account, image_output_path, gif_duration, image_name):
 #                     mode='symmetric')))
 # return sized_images
 
-# Clean up image storage directory
-# Only supose to delete .gif files
-####################################
+"""
+Clean up image storage directory
+Only supose to delete .gif files
+"""
 
 
 def cleanup_images(path):
@@ -539,13 +521,12 @@ def cleanup_images(path):
             os.remove(path + file)
 
 
-# Get Package Count
-# add IF clauses to filter by sensor_type for email and subjects
-# todo: convert subjects to list and use a for loop
-###############################################################################
-
-
 def get_count(account, sensor_type):
+    """
+    Get Package Count
+    add IF clauses to filter by sensor_type for email and subjects
+    todo: convert subjects to list and use a for loop
+    """
     count = 0
     today = get_formatted_date()
     email = None
@@ -631,11 +612,8 @@ def get_count(account, sensor_type):
     return count
 
 
-# Filter for specific words in email
-###############################################################################
-
-
 def find_text(sdata, account, search):
+    """Filter for specific words in email"""
     _LOGGER.debug("Searching for %s in emails", search)
     mail_list = sdata.split()
     count = 0
@@ -656,13 +634,10 @@ def find_text(sdata, account, search):
     return count
 
 
-# Get Items
-###############################################################################
-
-
 def get_items(account, param):
+    """Get Amazon dates and order numbers"""
     _LOGGER.debug("Attempting to find Amazon email with item list ...")
-    # Limit to past 3 days (plan to make this configurable)
+    """Limit to past 3 days (plan to make this configurable)"""
     past_date = datetime.date.today() - datetime.timedelta(days=3)
     tfmt = past_date.strftime("%d-%b-%Y")
     deliveriesToday = []
@@ -687,21 +662,25 @@ def get_items(account, param):
                 for response_part in data:
                     if isinstance(response_part, tuple):
                         msg = email.message_from_bytes(response_part[1])
-                        email_subject = msg["subject"]
-                        # email_from = msg['from']
 
-                        # Catch bad format emails
+                        """Get order number from subject line"""
+                        email_subject = msg["subject"]
+                        pattern = re.compile(r"#[0-9]{3}-[0-9]{7}-[0-9]{7}")
+                        found = pattern.findall(email_subject)
+                        if found is not None:
+                            orderNum.append(found[0])
+
+                        """Catch bad format emails"""
                         try:
                             email_msg = quopri.decodestring(str(msg.get_payload(0)))
                             email_msg = email_msg.decode("utf-8")
                         except Exception as err:
                             _LOGGER.debug(
-                                "Error while attempting to parse Amazon " + "email: %s", str(err)
+                                "Error while attempting to parse Amazon " + "email: %s",
+                                str(err),
                             )
                             continue
 
-                        # today_month = datetime.date.today().month
-                        # today_day = datetime.date.today().day
                         if "will arrive:" in email_msg:
                             start = email_msg.find("will arrive:") + len("will arrive:")
                             end = email_msg.find("Track your package:")
@@ -717,15 +696,7 @@ def get_items(account, param):
                                 dateobj.day == datetime.date.today().day
                                 and dateobj.month == datetime.date.today().month
                             ):
-                                subj_parts = email_subject.split('"')
-                                if len(subj_parts) > 1:
-                                    deliveriesToday.append(subj_parts[1])
-                                else:
-                                    deliveriesToday.append("Amazon Order")
-
-                                subj_order = email_subject.split(" ")
-                                if len(subj_order) == 6:
-                                    orderNum.append(str(subj_order[3]).strip("#"))
+                            deliveriesToday.append("Amazon Order")
 
                         elif "estimated delivery date is:" in email_msg:
                             start = email_msg.find("estimated delivery date is:") + len(
@@ -744,15 +715,7 @@ def get_items(account, param):
                                 dateobj.day == datetime.date.today().day
                                 and dateobj.month == datetime.date.today().month
                             ):
-                                subj_parts = email_subject.split('"')
-                                if len(subj_parts) > 1:
-                                    deliveriesToday.append(subj_parts[1])
-                                else:
-                                    deliveriesToday.append("Amazon Order")
-
-                                subj_order = email_subject.split(" ")
-                                if len(subj_order) == 10:
-                                    orderNum.append(str(subj_order[3]).strip("#"))
+                            deliveriesToday.append("Amazon Order")
 
     if param == "count":
         _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
