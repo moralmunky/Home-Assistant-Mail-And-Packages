@@ -15,6 +15,8 @@ import datetime
 import uuid
 from datetime import timedelta
 from shutil import copyfile
+from PIL import Image
+from resizeimage import resizeimage
 import quopri
 
 from homeassistant.helpers.entity import Entity
@@ -444,15 +446,17 @@ def get_mails(account, image_output_path, gif_duration, image_name):
         if image_count > 0:
             all_images = []
 
-            """
-            # _LOGGER.debug("Resizing images to 700x315...")
-            # # Resize images to 700x315
-            # all_images = resize_images(all_images)
-            """
+            _LOGGER.debug("Resizing images to 724x320...")
+            """Resize images to 724x320"""
+            all_images = resize_images(images, 724, 320)
+
+            """Create copy of image list for deleting temporary images"""
+            for image in all_images:
+                imagesDelete.append(image)
 
             """Create numpy array of images"""
             _LOGGER.debug("Creating array of image files...")
-            all_images = [io.imread(image) for image in images]
+            all_images = [io.imread(image) for image in all_images]
 
             try:
                 _LOGGER.debug("Generating animated GIF")
@@ -492,30 +496,38 @@ def get_mails(account, image_output_path, gif_duration, image_name):
     return image_count
 
 
-# Resize images
-# This should keep the aspect ratio of the images
-#################################################
+def resize_images(images, width, height):
+    """
+    Resize images
+    This should keep the aspect ratio of the images
+    """
+    all_images = []
+    for image in images:
+        try:
+            fd_img = open(image, "rb")
+        except Exception as err:
+            _LOGGER.error("Error attempting to open image %s: %s", str(image), str(err))
+            continue
+        try:
+            img = Image.open(fd_img)
+        except Exception as err:
+            _LOGGER.error("Error attempting to read image %s: %s", str(image), str(err))
+            continue
+        img = resizeimage.resize_contain(img, [width, height])
+        pre, ext = os.path.splitext(image)
+        image = pre + ".gif"
+        img.save(image, img.format)
+        fd_img.close()
+        all_images.append(image)
 
-
-# def resize_images(images):
-# sized_images = []
-# for image in images:
-#     if image.shape[1] < 700:
-#         wpercent = 700/image.shape[1]
-#         height = int(float(image.shape[0])*float(wpercent))
-#         sized_images.append(img_as_ubyte(resize(image, (height, 700))))
-#     else:
-# sized_images.append(img_as_ubyte(resize(image, (317, 700),
-#                     mode='symmetric')))
-# return sized_images
-
-"""
-Clean up image storage directory
-Only supose to delete .gif files
-"""
+    return all_images
 
 
 def cleanup_images(path):
+    """
+    Clean up image storage directory
+    Only supose to delete .gif files
+    """
     for file in os.listdir(path):
         if file.endswith(".gif"):
             os.remove(path + file)

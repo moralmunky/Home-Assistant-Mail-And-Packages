@@ -26,7 +26,7 @@
                     "gif_duration": "Bilddauer (Sekunden)",
                     "image_security": "Zufälliger Bilddateiname"
                 },
-                "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
+                "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
                 "title": "Post und Pakete (Schritt 2 von 2)"
             }
         }
@@ -55,7 +55,7 @@
                     "gif_duration": "Bilddauer (Sekunden)",
                     "image_security": "Zufälliger Bilddateiname"
                 },
-                "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
+                "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
                 "title": "Post und Pakete (Schritt 2 von 2)"
             }
         }

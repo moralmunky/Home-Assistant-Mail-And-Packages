@@ -26,7 +26,7 @@
                     "gif_duration": "Duración de la imagen (segundos)",
                     "image_security": "Nombre de archivo de imagen aleatoria"
                 },
-                "description": "Termine la configuración personalizando lo siguiente según su estructura de correo electrónico y la instalación de Home Assistant. \n\n Para obtener detalles sobre las opciones [Integración de correo y paquetes] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) revise las [configuración, plantillas , y la sección de automatizaciones] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) en GitHub.",
+                "description": "Termine la configuración personalizando lo siguiente según su estructura de correo electrónico y la instalación de Home Assistant. \n\n Para obtener detalles sobre las opciones [Integración de correo y paquetes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) revise las [configuración, plantillas , y la sección de automatizaciones](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) en GitHub.",
                 "title": "Correo y paquetes (Paso 2 de 2)"
             }
         }
@@ -55,7 +55,7 @@
                     "gif_duration": "Duración de la imagen (segundos)",
                     "image_security": "Nombre de archivo de imagen aleatoria"
                 },
-                "description": "Termine la configuración personalizando lo siguiente según su estructura de correo electrónico y la instalación de Home Assistant. \n\n Para obtener detalles sobre las opciones [Integración de correo y paquetes] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) revise las [configuración, plantillas , y la sección de automatizaciones] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) en GitHub.",
+                "description": "Termine la configuración personalizando lo siguiente según su estructura de correo electrónico y la instalación de Home Assistant. \n\n Para obtener detalles sobre las opciones [Integración de correo y paquetes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) revise las [configuración, plantillas , y la sección de automatizaciones](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) en GitHub.",
                 "title": "Correo y paquetes (Paso 2 de 2)"
             }
         }
