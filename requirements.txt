@@ -1,1 +1,2 @@
 imageio
+python-resize-image
