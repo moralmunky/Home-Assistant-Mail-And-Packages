@@ -26,7 +26,7 @@
                     "gif_duration": "Durada de la imatge (segons)",
                     "image_security": "Nom del fitxer d’imatge aleatòria"
                 },
-                "description": "Finalitzeu la configuració personalitzant la següent en funció de la vostra instal·lació de correu electrònic i la instal·lació d’assistència a casa. \n\n Per obtenir més informació sobre les opcions [Integració de paquets i correus] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), reviseu les opcions [configuració, plantilles , secció i automatitzacions] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHub.",
+                "description": "Finalitzeu la configuració personalitzant la següent en funció de la vostra instal·lació de correu electrònic i la instal·lació d’assistència a casa. \n\n Per obtenir més informació sobre les opcions [Integració de paquets i correus](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), reviseu les opcions [configuració, plantilles , secció i automatitzacions](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHub.",
                 "title": "Correu i paquets (pas 2 de 2)"
             }
         }
@@ -55,7 +55,7 @@
                     "gif_duration": "Durada de la imatge (segons)",
                     "image_security": "Nom del fitxer d’imatge aleatòria"
                 },
-                "description": "Finalitzeu la configuració personalitzant la següent en funció de la vostra instal·lació de correu electrònic i la instal·lació d’assistència a casa. \n\n Per obtenir més informació sobre les opcions [Integració de paquets i correus] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), reviseu les opcions [configuració, plantilles , secció i automatitzacions] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHub.",
+                "description": "Finalitzeu la configuració personalitzant la següent en funció de la vostra instal·lació de correu electrònic i la instal·lació d’assistència a casa. \n\n Per obtenir més informació sobre les opcions [Integració de paquets i correus](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), reviseu les opcions [configuració, plantilles , secció i automatitzacions](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHub.",
                 "title": "Correu i paquets (pas 2 de 2)"
             }
         }
