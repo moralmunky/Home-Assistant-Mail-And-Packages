@@ -507,26 +507,6 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4):
     return image_count
 
 
-"""
-# Resize images
-# This should keep the aspect ratio of the images
-#################################################
-
-
-# def resize_images(images):
-# sized_images = []
-# for image in images:
-#     if image.shape[1] < 700:
-#         wpercent = 700/image.shape[1]
-#         height = int(float(image.shape[0])*float(wpercent))
-#         sized_images.append(img_as_ubyte(resize(image, (height, 700))))
-#     else:
-# sized_images.append(img_as_ubyte(resize(image, (317, 700),
-#                     mode='symmetric')))
-# return sized_images
-"""
-
-
 def _generate_mp4(path, image_file):
     """ 
     Generate mp4 from gif 
