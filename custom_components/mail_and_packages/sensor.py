@@ -452,7 +452,7 @@ def get_mails(account, image_output_path, gif_duration, image_name):
 
             """Create numpy array of images"""
             _LOGGER.debug("Creating array of image files...")
-            all_images = [io.imread(image) for image in images]
+            all_images = [io.imread(image) for image in all_images]
 
             try:
                 _LOGGER.debug("Generating animated GIF")
@@ -497,18 +497,26 @@ def resize_images(images, width, height):
     Resize images
     This should keep the aspect ratio of the images
     """
+    all_images = []
     for image in images:
         try:
-            fd_img = open(image, "rw")
+            fd_img = open(image, "rb")
         except Exception as err:
             _LOGGER.error("Error attempting to open image %s: %s", str(image), str(err))
             continue
-        img = Image.open(fd_img)
+        try:
+            img = Image.open(fd_img)
+        except Exception as err:
+            _LOGGER.error("Error attempting to read image %s: %s", str(image), str(err))
+            continue
         img = resizeimage.resize_contain(img, [width, height])
+        pre, ext = os.path.splitext(image)
+        image = pre + ".gif"
         img.save(image, img.format)
         fd_img.close()
+        all_images.append(image)
 
-    return images
+    return all_images
 
 
 def cleanup_images(path):
