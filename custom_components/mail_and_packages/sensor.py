@@ -420,9 +420,6 @@ def get_mails(account, image_output_path, gif_duration, image_name):
         _LOGGER.debug("Removing duplicate images.")
         images = list(dict.fromkeys(images))
 
-        """Create copy of image list for deleting temporary images"""
-        imagesDelete = images[:]
-
         """Look for mail pieces without images image"""
         html_text = str(msg)
         link_pattern = re.compile(r"\bimage-no-mailpieces?700\.jpg\b")
@@ -449,6 +446,9 @@ def get_mails(account, image_output_path, gif_duration, image_name):
             _LOGGER.debug("Resizing images to 724x320...")
             """Resize images to 724x320"""
             all_images = resize_images(images, 724, 320)
+
+            """Create copy of image list for deleting temporary images"""
+            imagesDelete = all_images[:]
 
             """Create numpy array of images"""
             _LOGGER.debug("Creating array of image files...")
