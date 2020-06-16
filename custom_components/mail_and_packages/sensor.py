@@ -7,11 +7,6 @@ Configuration code contribution from @firstof9 https://github.com/firstof9/
 
 import logging
 import imageio as io
-
-"""
-from skimage.transform import resize
-from skimage import img_as_ubyte
-"""
 import os
 import subprocess
 import re
@@ -21,6 +16,8 @@ import datetime
 import uuid
 from datetime import timedelta
 from shutil import copyfile
+from PIL import Image
+from resizeimage import resizeimage
 import quopri
 
 from homeassistant.helpers.entity import Entity
@@ -388,7 +385,7 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4):
         + '")',
     )
 
-    """ Check to see if the path exists, if not make it """
+    """Check to see if the path exists, if not make it"""
     pathcheck = os.path.isdir(image_output_path)
     if not pathcheck:
         try:
@@ -457,15 +454,17 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4):
         if image_count > 0:
             all_images = []
 
-            """
-            _LOGGER.debug("Resizing images to 700x315...")
-            ""Resize images to 700x315""
-            all_images = resize_images(all_images)
-            """
+            _LOGGER.debug("Resizing images to 724x320...")
+            """Resize images to 724x320"""
+            all_images = resize_images(images, 724, 320)
+
+            """Create copy of image list for deleting temporary images"""
+            for image in all_images:
+                imagesDelete.append(image)
 
             """Create numpy array of images"""
             _LOGGER.debug("Creating array of image files...")
-            all_images = [io.imread(image) for image in images]
+            all_images = [io.imread(image) for image in all_images]
 
             try:
                 _LOGGER.debug("Generating animated GIF")
@@ -552,6 +551,33 @@ def _generate_mp4(path, image_file):
     )
 
 
+def resize_images(images, width, height):
+    """
+    Resize images
+    This should keep the aspect ratio of the images
+    """
+    all_images = []
+    for image in images:
+        try:
+            fd_img = open(image, "rb")
+        except Exception as err:
+            _LOGGER.error("Error attempting to open image %s: %s", str(image), str(err))
+            continue
+        try:
+            img = Image.open(fd_img)
+        except Exception as err:
+            _LOGGER.error("Error attempting to read image %s: %s", str(image), str(err))
+            continue
+        img = resizeimage.resize_contain(img, [width, height])
+        pre, ext = os.path.splitext(image)
+        image = pre + ".gif"
+        img.save(image, img.format)
+        fd_img.close()
+        all_images.append(image)
+
+    return all_images
+
+
 def cleanup_images(path):
     """
     Clean up image storage directory
@@ -565,6 +591,7 @@ def cleanup_images(path):
 def get_count(account, sensor_type):
     """
     Get Package Count
+    add IF clauses to filter by sensor_type for email and subjects
     todo: convert subjects to list and use a for loop
     """
     count = 0
@@ -653,7 +680,7 @@ def get_count(account, sensor_type):
 
 
 def find_text(sdata, account, search):
-    """ Filter for specific words in email """
+    """Filter for specific words in email"""
     _LOGGER.debug("Searching for %s in emails", search)
     mail_list = sdata.split()
     count = 0
@@ -688,8 +715,9 @@ def get_items(account, param):
 
     for domain in domains:
         try:
+            email_address = "shipment-tracking@" + domain
             (rv, sdata) = account.search(
-                None, '(FROM "' + domain + '" SINCE ' + tfmt + ")"
+                None, '(FROM "' + email_address + '" SINCE ' + tfmt + ")"
             )
         except imaplib.IMAP4.error as err:
             _LOGGER.error("Error searching emails: %s", str(err))
@@ -703,15 +731,25 @@ def get_items(account, param):
                 for response_part in data:
                     if isinstance(response_part, tuple):
                         msg = email.message_from_bytes(response_part[1])
+
+                        """Get order number from subject line"""
                         email_subject = msg["subject"]
+                        pattern = re.compile(r"#[0-9]{3}-[0-9]{7}-[0-9]{7}")
+                        found = pattern.findall(email_subject)
+                        if found is not None:
+                            orderNum.append(found[0])
+
                         """Catch bad format emails"""
                         try:
                             email_msg = quopri.decodestring(str(msg.get_payload(0)))
                             email_msg = email_msg.decode("utf-8")
                         except Exception as err:
                             _LOGGER.debug(
-                                "Error attempting prase Amazon " + "email: %s", str(err)
+                                "Error while attempting to parse Amazon " + "email: %s",
+                                str(err),
                             )
+                            continue
+
                         if "will arrive:" in email_msg:
                             start = email_msg.find("will arrive:") + len("will arrive:")
                             end = email_msg.find("Track your package:")
@@ -727,15 +765,26 @@ def get_items(account, param):
                                 dateobj.day == datetime.date.today().day
                                 and dateobj.month == datetime.date.today().month
                             ):
-                                subj_parts = email_subject.split('"')
-                                if len(subj_parts) > 1:
-                                    deliveriesToday.append(subj_parts[1])
-                                else:
-                                    deliveriesToday.append("Amazon Order")
+                                deliveriesToday.append("Amazon Order")
 
-                                subj_order = email_subject.split(" ")
-                                if len(subj_order) == 6:
-                                    orderNum.append(str(subj_order[3]).strip("#"))
+                        elif "estimated delivery date is:" in email_msg:
+                            start = email_msg.find("estimated delivery date is:") + len(
+                                "estimated delivery date is:"
+                            )
+                            end = email_msg.find("Track your package at")
+                            arrive_date = email_msg[start:end].strip()
+                            arrive_date = arrive_date.split(" ")
+                            arrive_date = arrive_date[0:3]
+                            arrive_date[2] = arrive_date[2][:2]
+                            arrive_date = " ".join(arrive_date).strip()
+                            dateobj = datetime.datetime.strptime(
+                                arrive_date, "%A, %B %d"
+                            )
+                            if (
+                                dateobj.day == datetime.date.today().day
+                                and dateobj.month == datetime.date.today().month
+                            ):
+                                deliveriesToday.append("Amazon Order")
 
     if param == "count":
         _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))

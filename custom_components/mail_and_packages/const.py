@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.2.1-b3"
+VERSION = "0.2.1-b8-resize"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 
 # Configuration Properties
@@ -42,7 +42,7 @@ FEDEX_Delivering_Subject_2 = "Your package is scheduled for delivery today"
 FEDEX_Delivered_Subject = "Your package has been delivered"
 
 # Amazon
-Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk"
+Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in"
 
 # Canada Post
 CAPost_Email = "donotreply@canadapost.postescanada.ca"

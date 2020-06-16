@@ -3,7 +3,13 @@
   "name": "Mail and Packages",
   "documentation": "https://github.com/moralmunky/Home-Assistant-Mail-And-Packages",
   "dependencies": [],
-  "codeowners": ["@moralmunky","@firstof9"],
+  "codeowners": [
+    "@moralmunky",
+    "@firstof9"
+  ],
   "config_flow": true,
-  "requirements": [ "imageio" ]
+  "requirements": [
+    "imageio",
+    "python-resize-image"
+  ]
 }
