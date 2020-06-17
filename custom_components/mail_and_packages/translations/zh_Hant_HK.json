@@ -24,9 +24,10 @@
                     "scan_interval": "掃描間隔（分鐘）",
                     "image_path": "圖像路徑",
                     "gif_duration": "圖像持續時間（秒）",
-                    "image_security": "隨機圖像文件名"
+                    "image_security": "隨機圖像文件名",
+                    "generate_mp4": "從圖像創建mp4"
                 },
-                "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) 選項的詳細信息，請查看[配置，模板和自動化部分](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHub上的。",
+                "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)選項的詳細信息，請查看[配置，模板和自動化部分](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHub上的。",
                 "title": "郵件和包裹（第2步，共2步）"
             }
         }
@@ -53,9 +54,10 @@
                     "scan_interval": "掃描間隔（分鐘）",
                     "image_path": "圖像路徑",
                     "gif_duration": "圖像持續時間（秒）",
-                    "image_security": "隨機圖像文件名"
+                    "image_security": "隨機圖像文件名",
+                    "generate_mp4": "從圖像創建mp4"
                 },
-                "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) 選項的詳細信息，請查看[配置，模板和自動化部分](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHub上的。",
+                "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)選項的詳細信息，請查看[配置，模板和自動化部分](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHub上的。",
                 "title": "郵件和包裹（第2步，共2步）"
             }
         }

@@ -24,7 +24,8 @@
                     "scan_interval": "Intervalo de digitalização (minutos)",
                     "image_path": "Caminho da imagem",
                     "gif_duration": "Duração da imagem (segundos)",
-                    "image_security": "Nome da imagem aleatória"
+                    "image_security": "Nome da imagem aleatória",
+                    "generate_mp4": "Crie mp4 a partir de imagens"
                 },
                 "description": "Conclua a configuração, personalizando o seguinte com base na sua estrutura de email e instalação do Home Assistant. \n\n Para obter detalhes sobre as opções [integração de Mail e Pacotes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), revise as opções de [configuração, modelos e seção de automações](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) no GitHub.",
                 "title": "Correio e pacotes (Etapa 2 de 2)"
@@ -53,7 +54,8 @@
                     "scan_interval": "Intervalo de digitalização (minutos)",
                     "image_path": "Caminho da imagem",
                     "gif_duration": "Duração da imagem (segundos)",
-                    "image_security": "Nome da imagem aleatória"
+                    "image_security": "Nome da imagem aleatória",
+                    "generate_mp4": "Crie mp4 a partir de imagens"
                 },
                 "description": "Conclua a configuração, personalizando o seguinte com base na sua estrutura de email e instalação do Home Assistant. \n\n Para obter detalhes sobre as opções [integração de Mail e Pacotes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), revise as opções de [configuração, modelos e seção de automações](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) no GitHub.",
                 "title": "Correio e pacotes (Etapa 2 de 2)"
