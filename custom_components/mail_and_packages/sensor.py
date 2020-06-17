@@ -525,7 +525,18 @@ def _generate_mp4(path, image_file):
             _LOGGER.error("Error attempting to remove mp4: %s", str(err))
 
     subprocess.call(
-        ["ffmpeg", "-f", "gif", "-i", gif_image, mp4_file],
+        [
+            "ffmpeg",
+            "-f",
+            "gif",
+            "-i",
+            gif_image,
+            "-pix_fmt",
+            "yuv420p",
+            "-filter:v",
+            "crop='floor(in_w/2)*2:floor(in_h/2)*2'",
+            mp4_file,
+        ],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
