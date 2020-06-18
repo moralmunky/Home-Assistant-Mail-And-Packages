@@ -32,6 +32,7 @@ UPS_Email = "mcinfo@ups.com"
 UPS_Delivering_Subject = "UPS Update: Package Scheduled for Delivery Today"
 UPS_Delivering_Subject_2 = "UPS Update: Follow Your Delivery on a Live Map"
 UPS_Delivered_Subject = "Your UPS Package was delivered"
+UPS_Body_Text = "tracking number"
 
 # FedEx
 FEDEX_Email = "TrackingUpdates@fedex.com"

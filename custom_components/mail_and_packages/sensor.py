@@ -39,6 +39,7 @@ from .const import (
     UPS_Delivering_Subject,
     UPS_Delivering_Subject_2,
     UPS_Delivered_Subject,
+    USP_Body_Text,
     FEDEX_Email,
     FEDEX_Delivering_Subject,
     FEDEX_Delivering_Subject_2,
@@ -561,6 +562,7 @@ def get_count(account, sensor_type, tracking=False):
     elif sensor_type == "ups_delivered":
         email = UPS_Email
         subject = UPS_Delivered_Subject
+        filter_text = UPS_Body_Text
     elif sensor_type == "ups_delivering":
         email = UPS_Email
         subject = UPS_Delivering_Subject
@@ -672,7 +674,10 @@ def get_tracking(sdata, account, shipper):
 
 
 def find_text(sdata, account, search):
-    """Filter for specific words in email"""
+    """
+    Filter for specific words in email
+    Return count of items found
+    """
     _LOGGER.debug("Searching for %s in emails", search)
     mail_list = sdata.split()
     count = 0
@@ -685,8 +690,12 @@ def find_text(sdata, account, search):
                 email_msg = quopri.decodestring(str(msg.get_payload(0)))
                 email_msg = email_msg.decode("utf-8")
                 pattern = re.compile(r"\b{}\b".format(search))
-                found = pattern.search(email_msg)
+                found = pattern.findall(email_msg)
                 if found is not None:
+                    if len(found) > 1:
+                        _LOGGER.debug("Found %s in email matches: %s", search, str(len(found)))
+                        count += len(found)
+                    else:
                     _LOGGER.debug("Found %s in email", search)
                     count += 1
 
