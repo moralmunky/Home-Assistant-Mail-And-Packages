@@ -199,20 +199,26 @@ class EmailData:
                     total = data["capost_delivered"]
                     count[sensor] = total
                 elif sensor == "usps_delivering":
-                    total = int(get_count(account, sensor)) - data["usps_delivered"]
+                    info = get_count(account, sensor, True)
+                    total = int(info["count"]) - data["usps_delivered"]
                     if total < 0:
                         total = 0
                     count[sensor] = total
+                    count["usps_tracking"] = info["tracking"]
                 elif sensor == "fedex_delivering":
-                    total = int(get_count(account, sensor)) - data["fedex_delivered"]
+                    info = get_count(account, sensor True)
+                    total = int(info["count"]) - data["fedex_delivered"]
                     if total < 0:
                         total = 0
                     count[sensor] = total
+                    count["fedex_tracking"] = info["tracking"]
                 elif sensor == "ups_delivering":
-                    total = int(get_count(account, sensor)) - data["ups_delivered"]
+                    info = get_count(account, sensor True)
+                    total = int(info["count"]) - data["ups_delivered"]
                     if total < 0:
                         total = 0
                     count[sensor] = total
+                    count["ups_tracking"] = info["tracking"]
                 elif sensor == "packages_delivered":
                     count[sensor] = (
                         data["fedex_delivered"]
@@ -296,6 +302,12 @@ class PackagesSensor(Entity):
             attr["order"] = self.data._data["amazon_order"]
         elif "Mail USPS Mail" == self._name:
             attr["image"] = self.data._image_name
+        elif self.type == "usps_delivering":
+            attr["tracking_#"] = self.data._data["usps_tracking"]
+        elif self.type == "usp_delivering":
+            attr["tracking_#"] = self.data._data["usp_tracking"]
+        elif self.type == "fedex_delivering":
+            attr["tracking_#"] = self.data._data["fedex_tracking"]                        
         return attr
 
     def update(self):
@@ -521,18 +533,21 @@ def cleanup_images(path):
             os.remove(path + file)
 
 
-def get_count(account, sensor_type):
+def get_count(account, sensor_type, tracking=False):
     """
     Get Package Count
     add IF clauses to filter by sensor_type for email and subjects
     todo: convert subjects to list and use a for loop
     """
     count = 0
+    tracking = []
+    data = []
     today = get_formatted_date()
     email = None
     subject = None
     subject_2 = None
     filter_text = None
+    shipper = None
 
     if sensor_type == "usps_delivered":
         email = USPS_Packages_Email
@@ -541,6 +556,8 @@ def get_count(account, sensor_type):
         email = USPS_Packages_Email
         subject = USPS_Delivering_Subject
         filter_text = USPS_Body_Text
+        if tracking:
+            shipper = "usps"
     elif sensor_type == "ups_delivered":
         email = UPS_Email
         subject = UPS_Delivered_Subject
@@ -548,10 +565,14 @@ def get_count(account, sensor_type):
         email = UPS_Email
         subject = UPS_Delivering_Subject
         subject_2 = UPS_Delivering_Subject_2
+        if tracking:
+            shipper = "ups"
     elif sensor_type == "fedex_delivering":
         email = FEDEX_Email
         subject = FEDEX_Delivering_Subject
         subject_2 = FEDEX_Delivering_Subject_2
+        if tracking:
+            shipper = "fedex"
     elif sensor_type == "fedex_delivered":
         email = FEDEX_Email
         subject = FEDEX_Delivered_Subject
@@ -580,6 +601,8 @@ def get_count(account, sensor_type):
         _LOGGER.debug(
             "Search for %s with subject 1 %s results: %s", email, subject, data[0]
         )
+        if shipper is not None:
+            tracking = get_tracking(data[0], account, shipper)
 
     if subject_2 is not None:
         _LOGGER.debug(
@@ -608,8 +631,44 @@ def get_count(account, sensor_type):
             _LOGGER.debug(
                 "Search for %s with subject 2 %s results: %s", email, subject_2, data[0]
             )
+            if shipper is not None:
+                tracking = get_tracking(data[0], account, shipper)
 
-    return count
+    data["count"] = count
+    if tracking is not None:
+        data["tracking"] = tracking
+
+    return data
+
+
+def get_tracking(sdata, account, shipper):
+    """Parse tracking numbers from email subject lines"""
+    _LOGGER.debug("Searching for tracking numbers for %s", shipper)
+    tracking = []
+    pattern = None
+    mail_list = sdata.split()
+
+    if shipper == "usps":
+        pattern = re.compile(r"\b92\d{15,22}\b")
+    elif shipper == "ups":
+        pattern = re.compile(
+            r"\b(1Z ?[0-9A-Z]{3} ?[0-9A-Z]{3} ?[0-9A-Z]{2} ?[0-9A-Z]{4} ?[0-9A-Z]{3} ?[0-9A-Z]|[\dT]\d\d\d ?\d\d\d\d ?\d\d\d)\b"
+        )
+    elif shipper == "fedex":
+        pattern = re.compile(r"\b\d{15,34}")
+
+    for i in mail_list:
+        typ, data = account.fetch(i, "(RFC822)")
+        for response_part in data:
+            if isinstance(response_part, tuple):
+                msg = email.message_from_bytes(response_part[1])
+                email_subject = msg["subject"]
+                found = pattern.findall(email_subject)
+                if found is not None:
+                    _LOGGER.debug("Found %s tracking number in email", shipper)
+                    tracking.append(found[0])
+
+    return tracking
 
 
 def find_text(sdata, account, search):
