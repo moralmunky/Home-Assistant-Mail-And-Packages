@@ -8,6 +8,7 @@ Configuration code contribution from @firstof9 https://github.com/firstof9/
 import logging
 import imageio as io
 import os
+import subprocess
 import re
 import imaplib
 import email
@@ -30,6 +31,7 @@ from .const import (
     CONF_DURATION,
     CONF_IMAGE_SECURITY,
     CONF_SCAN_INTERVAL,
+    CONF_GENERATE_MP4,
     DEFAULT_GIF_FILE_NAME,
     USPS_Mail_Email,
     USPS_Packages_Email,
@@ -97,7 +99,9 @@ SENSOR_TYPES = {
         "package(s)",
         "mdi:package-variant-closed",
     ],
-    # Insert new sensors above these two
+    ###
+    # !!! Insert new sensors above these two !!!
+    ###
     "packages_delivered": [
         "Mail Packages Delivered",
         "package(s)",
@@ -123,6 +127,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         CONF_DURATION: entry.data[CONF_DURATION],
         CONF_IMAGE_SECURITY: entry.data[CONF_IMAGE_SECURITY],
         CONF_SCAN_INTERVAL: entry.data[CONF_SCAN_INTERVAL],
+        CONF_GENERATE_MP4: entry.data[CONF_GENERATE_MP4],
     }
 
     data = EmailData(hass, config)
@@ -147,6 +152,7 @@ class EmailData:
         self._img_out_path = config.get(CONF_PATH)
         self._gif_duration = config.get(CONF_DURATION)
         self._image_security = config.get(CONF_IMAGE_SECURITY)
+        self._generate_mp4 = config.get(CONF_GENERATE_MP4)
         self._scan_interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
         self._data = None
         self._image_name = None
@@ -166,6 +172,7 @@ class EmailData:
     def update(self):
         """Get the latest data"""
         if self._host is not None:
+            """Login to email server and select the folder"""
             account = login(self._host, self._port, self._user, self._pwd)
             selectfolder(account, self._folder)
 
@@ -184,6 +191,7 @@ class EmailData:
                         self._img_out_path,
                         self._gif_duration,
                         self._image_name,
+                        self._generate_mp4,
                     )
                 elif sensor == "amazon_packages":
                     count[sensor] = get_items(account, "count")
@@ -328,7 +336,7 @@ def login(host, port, user, pwd):
 
 
 def selectfolder(account, folder):
-    """function to select the imap folder"""
+    """Select folder inside the mailbox"""
     try:
         rv, mailboxes = account.list()
     except imaplib.IMAP4.error as err:
@@ -340,7 +348,7 @@ def selectfolder(account, folder):
 
 
 def get_formatted_date():
-    """returns today in specific format"""
+    """Returns today in specific format"""
     today = datetime.datetime.today().strftime("%d-%b-%Y")
     """
     # for testing
@@ -356,8 +364,8 @@ def update_time():
     return updated
 
 
-def get_mails(account, image_output_path, gif_duration, image_name):
-    """creates GIF image based on the attachments in the email"""
+def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=False):
+    """Creates GIF image based on the attachments in the inbox"""
     today = get_formatted_date()
     image_count = 0
     images = []
@@ -405,8 +413,8 @@ def get_mails(account, image_output_path, gif_duration, image_name):
                 _LOGGER.debug("Extracting image from email")
                 filepath = image_output_path + part.get_filename()
 
-                """Log error message if we are unable to open the filepath for"""
-                """some reason"""
+                """Log error message if we are unable to open the filepath for
+                some reason"""
                 try:
                     fp = open(filepath, "wb")
                 except Exception as err:
@@ -493,7 +501,45 @@ def get_mails(account, image_output_path, gif_duration, image_name):
             except Exception as err:
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
 
+        if gen_mp4:
+            _generate_mp4(image_output_path, image_name)
+
     return image_count
+
+
+def _generate_mp4(path, image_file):
+    """ 
+    Generate mp4 from gif 
+    use a subprocess so we don't lock up the thread
+    comamnd: ffmpeg -f gif -i infile.gif outfile.mp4
+    """
+    gif_image = os.path.join(path, image_file)
+    mp4_file = os.path.join(path, image_file.replace(".gif", ".mp4"))
+    filecheck = os.path.isfile(mp4_file)
+    _LOGGER.debug("Generating mp4: %s", mp4_file)
+    if filecheck:
+        try:
+            os.remove(mp4_file)
+            _LOGGER.debug("Removing old mp4: %s", mp4_file)
+        except Exception as err:
+            _LOGGER.error("Error attempting to remove mp4: %s", str(err))
+
+    subprocess.call(
+        [
+            "ffmpeg",
+            "-f",
+            "gif",
+            "-i",
+            gif_image,
+            "-pix_fmt",
+            "yuv420p",
+            "-filter:v",
+            "crop='floor(in_w/2)*2:floor(in_h/2)*2'",
+            mp4_file,
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
 
 def resize_images(images, width, height):
@@ -647,8 +693,10 @@ def find_text(sdata, account, search):
 
 
 def get_items(account, param):
-    """Get Amazon dates and order numbers"""
+    """Parse Amazon emails for delivery date and order number"""
+
     _LOGGER.debug("Attempting to find Amazon email with item list ...")
+
     """Limit to past 3 days (plan to make this configurable)"""
     past_date = datetime.date.today() - datetime.timedelta(days=3)
     tfmt = past_date.strftime("%d-%b-%Y")

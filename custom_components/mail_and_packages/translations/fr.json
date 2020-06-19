@@ -24,7 +24,8 @@
                     "scan_interval": "Intervalle de numérisation (minutes)",
                     "image_path": "Chemin de l'image",
                     "gif_duration": "Durée de l'image (secondes)",
-                    "image_security": "Nom de fichier d'image aléatoire"
+                    "image_security": "Nom de fichier d'image aléatoire",
+                    "generate_mp4": "Créer mp4 à partir d'images"
                 },
                 "description": "Terminez la configuration en personnalisant les éléments suivants en fonction de votre structure de messagerie et de l'installation de Home Assistant. \n\n Pour plus de détails sur les [Intégration de messagerie et de packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), passez en revue les [configuration, modèles et section automatisations](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sur GitHub.",
                 "title": "Courrier et colis (étape 2 sur 2)"
@@ -53,7 +54,8 @@
                     "scan_interval": "Intervalle de numérisation (minutes)",
                     "image_path": "Chemin de l'image",
                     "gif_duration": "Durée de l'image (secondes)",
-                    "image_security": "Nom de fichier d'image aléatoire"
+                    "image_security": "Nom de fichier d'image aléatoire",
+                    "generate_mp4": "Créer mp4 à partir d'images"
                 },
                 "description": "Terminez la configuration en personnalisant les éléments suivants en fonction de votre structure de messagerie et de l'installation de Home Assistant. \n\n Pour plus de détails sur les [Intégration de messagerie et de packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), passez en revue les [configuration, modèles et section automatisations](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sur GitHub.",
                 "title": "Courrier et colis (étape 2 sur 2)"

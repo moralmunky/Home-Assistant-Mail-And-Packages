@@ -24,7 +24,8 @@
                     "scan_interval": "Intervallo di scansione (minuti)",
                     "image_path": "Percorso immagine",
                     "gif_duration": "Durata immagine (secondi)",
-                    "image_security": "Nome file immagine casuale"
+                    "image_security": "Nome file immagine casuale",
+                    "generate_mp4": "Crea mp4 dalle immagini"
                 },
                 "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua e-mail e all'installazione di Home Assistant. \n\n Per i dettagli sulle opzioni [Integrazione posta e pacchetti](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) rivedere le [configurazione, modelli e sezione automazioni](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) su GitHub.",
                 "title": "Posta e pacchi (passaggio 2 di 2)"
@@ -53,7 +54,8 @@
                     "scan_interval": "Intervallo di scansione (minuti)",
                     "image_path": "Percorso immagine",
                     "gif_duration": "Durata immagine (secondi)",
-                    "image_security": "Nome file immagine casuale"
+                    "image_security": "Nome file immagine casuale",
+                    "generate_mp4": "Crea mp4 dalle immagini"
                 },
                 "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua e-mail e all'installazione di Home Assistant. \n\n Per i dettagli sulle opzioni [Integrazione posta e pacchetti](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) rivedere le [configurazione, modelli e sezione automazioni](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) su GitHub.",
                 "title": "Posta e pacchi (passaggio 2 di 2)"
