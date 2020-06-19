@@ -364,7 +364,7 @@ def update_time():
     return updated
 
 
-def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4):
+def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=False):
     """Creates GIF image based on the attachments in the inbox"""
     today = get_formatted_date()
     image_count = 0
