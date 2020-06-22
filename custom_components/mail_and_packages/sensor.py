@@ -572,10 +572,10 @@ def resize_images(images, width, height):
 def cleanup_images(path):
     """
     Clean up image storage directory
-    Only supose to delete .gif files
+    Only supose to delete .gif and .mp4 files
     """
     for file in os.listdir(path):
-        if file.endswith(".gif"):
+        if file.endswith(".gif") or file.endswith(".mp4"):
             os.remove(path + file)
 
 
