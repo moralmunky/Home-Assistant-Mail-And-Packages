@@ -726,7 +726,7 @@ def get_items(account, param):
                         """Get order number from subject line"""
                         email_subject = msg["subject"]
                         pattern = re.compile(r"#[0-9]{3}-[0-9]{7}-[0-9]{7}")
-                        found = pattern.findall(email_subject)
+                        found = pattern.search(email_subject)
                         if found is not None:
                             orderNum.append(found[0])
 
