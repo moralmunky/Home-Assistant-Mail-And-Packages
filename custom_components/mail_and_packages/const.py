@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.2.1-b11"
+VERSION = "0.2.1"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 
 # Configuration Properties
