@@ -8,6 +8,7 @@ CONF_PATH = "image_path"
 CONF_DURATION = "gif_duration"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_IMAGE_SECURITY = "image_security"
+CONF_GENERATE_MP4 = "generate_mp4"
 
 # Defaults
 DEFAULT_NAME = "Mail And Packages"
@@ -18,6 +19,7 @@ DEFAULT_IMAGE_SECURITY = True
 DEFAULT_GIF_DURATION = 5
 DEFAULT_SCAN_INTERVAL = 5
 DEFAULT_GIF_FILE_NAME = "mail_today.gif"
+DEFAULT_FFMPEG = False
 
 # USPS
 USPS_Mail_Email = "USPSInformedDelivery@usps.gov"

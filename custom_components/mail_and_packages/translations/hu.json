@@ -24,7 +24,8 @@
                     "scan_interval": "Beolvasási időköz (perc)",
                     "image_path": "Kép elérési útja",
                     "gif_duration": "Kép időtartama (másodpercben)",
-                    "image_security": "Véletlen képfájlnév"
+                    "image_security": "Véletlen képfájlnév",
+                    "generate_mp4": "Készítsen mp4-et a képekből"
                 },
                 "description": "Végezze el a konfigurációt az alábbiak testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján. \n\n A [Levelek és csomagok integrációja](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opciókkal kapcsolatban tekintse meg a [konfiguráció, sablonok , és az automatizálás szakasz](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHubon.",
                 "title": "Levél és csomagok (2. lépés a 2-ből)"
@@ -53,7 +54,8 @@
                     "scan_interval": "Beolvasási időköz (perc)",
                     "image_path": "Kép elérési útja",
                     "gif_duration": "Kép időtartama (másodpercben)",
-                    "image_security": "Véletlen képfájlnév"
+                    "image_security": "Véletlen képfájlnév",
+                    "generate_mp4": "Készítsen mp4-et a képekből"
                 },
                 "description": "Végezze el a konfigurációt az alábbiak testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján. \n\n A [Levelek és csomagok integrációja](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opciókkal kapcsolatban tekintse meg a [konfiguráció, sablonok , és az automatizálás szakasz](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHubon.",
                 "title": "Levél és csomagok (2. lépés a 2-ből)"
