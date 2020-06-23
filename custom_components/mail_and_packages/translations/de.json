@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Es ist nur eine einzige Konfiguration von Mail und Paketen zulässig."
+        },
+        "error": {
+            "communication": "Es kann keine Verbindung zum Mailserver hergestellt oder angemeldet werden. Bitte überprüfen Sie das Protokoll für Details.",
+            "invalid_path": "Bitte speichern Sie die Bilder in einem anderen Verzeichnis."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Wirt",
+                    "password": "Passwort",
+                    "port": "Hafen",
+                    "username": "Nutzername"
+                },
+                "description": "Bitte geben Sie die Verbindungsinformationen Ihres Mailservers ein.",
+                "title": "Post und Pakete (Schritt 1 von 2)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "E-Mail-Ordner",
+                    "scan_interval": "Scanintervall (Minuten)",
+                    "image_path": "Bildpfad",
+                    "gif_duration": "Bilddauer (Sekunden)",
+                    "image_security": "Zufälliger Bilddateiname",
+                    "generate_mp4": "Erstellen Sie mp4 aus Bildern"
+                },
+                "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
+                "title": "Post und Pakete (Schritt 2 von 2)"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "Es kann keine Verbindung zum Mailserver hergestellt oder angemeldet werden. Bitte überprüfen Sie das Protokoll für Details.",
+            "invalid_path": "Bitte speichern Sie die Bilder in einem anderen Verzeichnis."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Wirt",
+                    "password": "Passwort",
+                    "port": "Hafen",
+                    "username": "Nutzername"
+                },
+                "description": "Bitte geben Sie die Verbindungsinformationen Ihres Mailservers ein.",
+                "title": "Post und Pakete (Schritt 1 von 2)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "E-Mail-Ordner",
+                    "scan_interval": "Scanintervall (Minuten)",
+                    "image_path": "Bildpfad",
+                    "gif_duration": "Bilddauer (Sekunden)",
+                    "image_security": "Zufälliger Bilddateiname",
+                    "generate_mp4": "Erstellen Sie mp4 aus Bildern"
+                },
+                "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
+                "title": "Post und Pakete (Schritt 2 von 2)"
+            }
+        }
+    }
+}

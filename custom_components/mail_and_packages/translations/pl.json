@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Dozwolona jest tylko jedna konfiguracja poczty i pakietów."
+        },
+        "error": {
+            "communication": "Nie można połączyć się lub zalogować do serwera pocztowego. Sprawdź szczegóły w dzienniku.",
+            "invalid_path": "Proszę przechowywać obrazy w innym katalogu."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Gospodarz",
+                    "password": "Hasło",
+                    "port": "Port",
+                    "username": "Nazwa Użytkownika"
+                },
+                "description": "Podaj informacje o połączeniu swojego serwera pocztowego.",
+                "title": "Poczta i paczki (krok 1 z 2)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "Folder poczty",
+                    "scan_interval": "Interwał skanowania (minuty)",
+                    "image_path": "Ścieżka obrazu",
+                    "gif_duration": "Czas trwania obrazu (sekundy)",
+                    "image_security": "Losowa nazwa pliku obrazu",
+                    "generate_mp4": "Utwórz mp4 z obrazów"
+                },
+                "description": "Zakończ konfigurację, dostosowując następujące elementy w oparciu o strukturę poczty e-mail i instalację Home Assistant. \n\n Aby uzyskać szczegółowe informacje na temat opcji [Integracja poczty i pakietów](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sprawdź opcje [konfiguracja, szablony i sekcja automatyzacji](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHub.",
+                "title": "Poczta i paczki (krok 2 z 2)"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "Nie można połączyć się lub zalogować do serwera pocztowego. Sprawdź szczegóły w dzienniku.",
+            "invalid_path": "Proszę przechowywać obrazy w innym katalogu."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Gospodarz",
+                    "password": "Hasło",
+                    "port": "Port",
+                    "username": "Nazwa Użytkownika"
+                },
+                "description": "Podaj informacje o połączeniu swojego serwera pocztowego.",
+                "title": "Poczta i paczki (krok 1 z 2)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "Folder poczty",
+                    "scan_interval": "Interwał skanowania (minuty)",
+                    "image_path": "Ścieżka obrazu",
+                    "gif_duration": "Czas trwania obrazu (sekundy)",
+                    "image_security": "Losowa nazwa pliku obrazu",
+                    "generate_mp4": "Utwórz mp4 z obrazów"
+                },
+                "description": "Zakończ konfigurację, dostosowując następujące elementy w oparciu o strukturę poczty e-mail i instalację Home Assistant. \n\n Aby uzyskać szczegółowe informacje na temat opcji [Integracja poczty i pakietów](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sprawdź opcje [konfiguracja, szablony i sekcja automatyzacji](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHub.",
+                "title": "Poczta i paczki (krok 2 z 2)"
+            }
+        }
+    }
+}

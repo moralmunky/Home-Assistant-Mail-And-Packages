@@ -4,7 +4,13 @@
   "documentation": "https://github.com/moralmunky/Home-Assistant-Mail-And-Packages",
   "issue_tracker": "https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/issues",
   "dependencies": [],
-  "codeowners": ["@moralmunky","@firstof9"],
+  "codeowners": [
+    "@moralmunky",
+    "@firstof9"
+  ],
   "config_flow": true,
-  "requirements": [ "imageio" ]
+  "requirements": [
+    "imageio",
+    "python-resize-image"
+  ]
 }

@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Dovoljena je samo ena konfiguracija pošte in paketov."
+        },
+        "error": {
+            "communication": "Poštnega strežnika ni mogoče povezati ali prijaviti. Za podrobnosti preverite dnevnik.",
+            "invalid_path": "Shranite slike v drugem imeniku."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Gostitelj",
+                    "password": "Geslo",
+                    "port": "Pristanišče",
+                    "username": "Uporabniško ime"
+                },
+                "description": "Vnesite podatke o povezavi vašega poštnega strežnika.",
+                "title": "Pošta in paketi (1. korak od 2)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "Mapa mape",
+                    "scan_interval": "Interval optičnega branja (minute)",
+                    "image_path": "Pot slike",
+                    "gif_duration": "Trajanje slike (sekunde)",
+                    "image_security": "Naključno ime datoteke",
+                    "generate_mp4": "Ustvari mp4 iz slik"
+                },
+                "description": "Končajte konfiguracijo s prilagoditvijo naslednjih na podlagi strukture e-pošte in namestitve Home Assistant. \n\n Za podrobnosti o možnostih [Integracija pošte in paketov](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) preglejte [konfiguracijo, predloge in oddelku za avtomatizacije](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
+                "title": "Pošta in paketi (2. korak od 2)"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "Poštnega strežnika ni mogoče povezati ali prijaviti. Za podrobnosti preverite dnevnik.",
+            "invalid_path": "Shranite slike v drugem imeniku."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Gostitelj",
+                    "password": "Geslo",
+                    "port": "Pristanišče",
+                    "username": "Uporabniško ime"
+                },
+                "description": "Vnesite podatke o povezavi vašega poštnega strežnika.",
+                "title": "Pošta in paketi (1. korak od 2)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "Mapa mape",
+                    "scan_interval": "Interval optičnega branja (minute)",
+                    "image_path": "Pot slike",
+                    "gif_duration": "Trajanje slike (sekunde)",
+                    "image_security": "Naključno ime datoteke",
+                    "generate_mp4": "Ustvari mp4 iz slik"
+                },
+                "description": "Končajte konfiguracijo s prilagoditvijo naslednjih na podlagi strukture e-pošte in namestitve Home Assistant. \n\n Za podrobnosti o možnostih [Integracija pošte in paketov](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) preglejte [konfiguracijo, predloge in oddelku za avtomatizacije](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
+                "title": "Pošta in paketi (2. korak od 2)"
+            }
+        }
+    }
+}

@@ -5,6 +5,7 @@ from collections import OrderedDict
 import voluptuous as vol
 import imaplib
 import os
+from shutil import which
 
 from homeassistant.core import callback
 from homeassistant import config_entries
@@ -14,20 +15,17 @@ from .const import (
     DEFAULT_PATH,
     DEFAULT_FOLDER,
     DEFAULT_IMAGE_SECURITY,
-    GIF_DURATION,
+    DEFAULT_GIF_DURATION,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_FFMPEG,
     CONF_DURATION,
     CONF_SCAN_INTERVAL,
     CONF_FOLDER,
     CONF_PATH,
     CONF_IMAGE_SECURITY,
+    CONF_GENERATE_MP4,
 )
-from homeassistant.const import (
-    CONF_HOST,
-    CONF_PASSWORD,
-    CONF_USERNAME,
-    CONF_PORT
-)
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME, CONF_PORT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,8 +49,11 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._data.update(user_input)
             valid = await self._test_login(
-                user_input[CONF_HOST], user_input[CONF_PORT],
-                user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
+                user_input[CONF_HOST],
+                user_input[CONF_PORT],
+                user_input[CONF_USERNAME],
+                user_input[CONF_PASSWORD],
+            )
             if valid:
                 return await self.async_step_config_2()
             else:
@@ -87,22 +88,26 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         data_schema[vol.Required("username", default=username)] = str
         data_schema[vol.Required("password", default=password)] = str
         return self.async_show_form(
-            step_id="user", data_schema=vol.Schema(data_schema),
-            errors=self._errors)
+            step_id="user", data_schema=vol.Schema(data_schema), errors=self._errors
+        )
 
     async def async_step_config_2(self, user_input=None):
         self._errors = {}
         if user_input is not None:
             self._data.update(user_input)
             valid = await self._validate_path(user_input["image_path"])
-
             if valid:
-                if user_input["folder"] is not None:
-                    if not user_input["image_path"].endswith("/"):
-                        user_input["image_path"] += "/"
-                        self._data.update(user_input)
-                return self.async_create_entry(title=self._data[CONF_HOST],
-                                               data=self._data)
+                valid = await self._check_ffmpeg()
+                if valid:
+                    if user_input["folder"] is not None:
+                        if not user_input["image_path"].endswith("/"):
+                            user_input["image_path"] += "/"
+                            self._data.update(user_input)
+                    return self.async_create_entry(
+                        title=self._data[CONF_HOST], data=self._data
+                    )
+                else:
+                    self._errors["base"] = "ffmpeg_not_found"
             else:
                 self._errors["base"] = "invalid_path"
 
@@ -117,12 +122,12 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         folder = DEFAULT_FOLDER
         scan_interval = DEFAULT_SCAN_INTERVAL
         image_path = DEFAULT_PATH
-        gif_duration = GIF_DURATION
+        gif_duration = DEFAULT_GIF_DURATION
         image_security = DEFAULT_IMAGE_SECURITY
+        generate_mp4 = DEFAULT_FFMPEG
 
         account = imaplib.IMAP4_SSL(self._data["host"], self._data["port"])
-        status, data = account.login(self._data["username"],
-                                     self._data["password"])
+        status, data = account.login(self._data["username"], self._data["password"])
         if status != "OK":
             _LOGGER.error("IMAP Login failed!")
         status, folderlist = account.list()
@@ -154,20 +159,23 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 gif_duration = user_input["gif_duration"]
             if "image_security" in user_input:
                 image_security = user_input["image_security"]
+            if "generate_mp4" in user_input:
+                generate_mp4 = user_input["generate_mp4"]
 
         data_schema = OrderedDict()
-        data_schema[vol.Required("folder",
-                                 default=folder)] = vol.In(mailboxes)
-        data_schema[vol.Optional("scan_interval",
-                                 default=scan_interval)] = vol.Coerce(int)
+        data_schema[vol.Required("folder", default=folder)] = vol.In(mailboxes)
+        data_schema[vol.Optional("scan_interval", default=scan_interval)] = vol.Coerce(
+            int
+        )
         data_schema[vol.Optional("image_path", default=image_path)] = str
-        data_schema[vol.Optional("gif_duration",
-                                 default=gif_duration)] = vol.Coerce(int)
-        data_schema[vol.Optional("image_security",
-                                 default=image_security)] = bool
+        data_schema[vol.Optional("gif_duration", default=gif_duration)] = vol.Coerce(
+            int
+        )
+        data_schema[vol.Optional("image_security", default=image_security)] = bool
+        data_schema[vol.Optional("generate_mp4", default=generate_mp4)] = bool
         return self.async_show_form(
-            step_id="config_2", data_schema=vol.Schema(data_schema),
-            errors=self._errors)
+            step_id="config_2", data_schema=vol.Schema(data_schema), errors=self._errors
+        )
 
     async def _test_login(self, host, port, user, pwd):
         """function used to login"""
@@ -192,6 +200,13 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         else:
             return True
 
+    async def _check_ffmpeg(self):
+        """ check if ffmpeg is installed """
+        if which("ffmpeg") is not None:
+            return True
+        else:
+            return False
+
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
@@ -213,8 +228,11 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             self._data.update(user_input)
 
             valid = await self._test_login(
-                user_input[CONF_HOST], user_input[CONF_PORT],
-                user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
+                user_input[CONF_HOST],
+                user_input[CONF_PORT],
+                user_input[CONF_USERNAME],
+                user_input[CONF_PASSWORD],
+            )
             if valid:
                 return await self.async_step_options_2()
             else:
@@ -249,8 +267,8 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         data_schema[vol.Required("username", default=username)] = str
         data_schema[vol.Required("password", default=password)] = str
         return self.async_show_form(
-            step_id="init", data_schema=vol.Schema(data_schema),
-            errors=self._errors)
+            step_id="init", data_schema=vol.Schema(data_schema), errors=self._errors
+        )
 
     async def async_step_options_2(self, user_input=None):
         self._errors = {}
@@ -259,12 +277,16 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             valid = await self._validate_path(user_input["image_path"])
 
             if valid:
-                if user_input["folder"] is not None:
-                    if not user_input["image_path"].endswith("/"):
-                        user_input["image_path"] += "/"
-                        self._data.update(user_input)
+                valid = await self._check_ffmpeg()
+                if valid:
+                    if user_input["folder"] is not None:
+                        if not user_input["image_path"].endswith("/"):
+                            user_input["image_path"] += "/"
+                            self._data.update(user_input)
 
-                return self.async_create_entry(title="", data=self._data)
+                    return self.async_create_entry(title="", data=self._data)
+                else:
+                    self._errors["base"] = "ffmpeg_not_found"
             else:
                 self._errors["base"] = "invalid_path"
 
@@ -281,10 +303,10 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         image_path = self.config.options.get(CONF_PATH)
         gif_duration = self.config.options.get(CONF_DURATION)
         image_security = self.config.options.get(CONF_IMAGE_SECURITY)
+        generate_mp4 = self.config.options.get(CONF_GENERATE_MP4)
 
         account = imaplib.IMAP4_SSL(self._data["host"], self._data["port"])
-        status, data = account.login(self._data["username"],
-                                     self._data["password"])
+        status, data = account.login(self._data["username"], self._data["password"])
         if status != "OK":
             _LOGGER.error("IMAP Login failed!")
         status, folderlist = account.list()
@@ -316,21 +338,25 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
                 gif_duration = user_input["gif_duration"]
             if "image_security" in user_input:
                 image_security = user_input["image_security"]
-            
+            if "generate_mp4" in user_input:
+                generate_mp4 = user_input["generate_mp4"]
 
         data_schema = OrderedDict()
-        data_schema[vol.Required("folder",
-                                 default=folder)] = vol.In(mailboxes)
-        data_schema[vol.Optional("scan_interval",
-                                 default=scan_interval)] = vol.Coerce(int)
+        data_schema[vol.Required("folder", default=folder)] = vol.In(mailboxes)
+        data_schema[vol.Optional("scan_interval", default=scan_interval)] = vol.Coerce(
+            int
+        )
         data_schema[vol.Optional("image_path", default=image_path)] = str
-        data_schema[vol.Optional("gif_duration",
-                                 default=gif_duration)] = vol.Coerce(int)
-        data_schema[vol.Optional("image_security",
-                                 default=image_security)] = bool
+        data_schema[vol.Optional("gif_duration", default=gif_duration)] = vol.Coerce(
+            int
+        )
+        data_schema[vol.Optional("image_security", default=image_security)] = bool
+        data_schema[vol.Optional("generate_mp4", default=generate_mp4)] = bool
         return self.async_show_form(
-            step_id="options_2", data_schema=vol.Schema(data_schema),
-            errors=self._errors)
+            step_id="options_2",
+            data_schema=vol.Schema(data_schema),
+            errors=self._errors,
+        )
 
     async def _test_login(self, host, port, user, pwd):
         """function used to login"""
@@ -354,3 +380,10 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             return False
         else:
             return True
+
+    async def _check_ffmpeg(self):
+        """ check if ffmpeg is installed """
+        if which("ffmpeg") is not None:
+            return True
+        else:
+            return False

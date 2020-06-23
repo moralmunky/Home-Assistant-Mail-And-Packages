@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Une seule configuration de Mail et Packages est autorisée."
+        },
+        "error": {
+            "communication": "Impossible de se connecter ou de se connecter au serveur de messagerie. Veuillez consulter le journal pour plus de détails.",
+            "invalid_path": "Veuillez stocker les images dans un autre répertoire."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Hôte",
+                    "password": "Mot de passe",
+                    "port": "Port",
+                    "username": "Nom d'utilisateur"
+                },
+                "description": "Veuillez saisir les informations de connexion de votre serveur de messagerie.",
+                "title": "Courrier et colis (étape 1 sur 2)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "Dossier de messagerie",
+                    "scan_interval": "Intervalle de numérisation (minutes)",
+                    "image_path": "Chemin de l'image",
+                    "gif_duration": "Durée de l'image (secondes)",
+                    "image_security": "Nom de fichier d'image aléatoire",
+                    "generate_mp4": "Créer mp4 à partir d'images"
+                },
+                "description": "Terminez la configuration en personnalisant les éléments suivants en fonction de votre structure de messagerie et de l'installation de Home Assistant. \n\n Pour plus de détails sur les [Intégration de messagerie et de packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), passez en revue les [configuration, modèles et section automatisations](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sur GitHub.",
+                "title": "Courrier et colis (étape 2 sur 2)"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "Impossible de se connecter ou de se connecter au serveur de messagerie. Veuillez consulter le journal pour plus de détails.",
+            "invalid_path": "Veuillez stocker les images dans un autre répertoire."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Hôte",
+                    "password": "Mot de passe",
+                    "port": "Port",
+                    "username": "Nom d'utilisateur"
+                },
+                "description": "Veuillez saisir les informations de connexion de votre serveur de messagerie.",
+                "title": "Courrier et colis (étape 1 sur 2)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "Dossier de messagerie",
+                    "scan_interval": "Intervalle de numérisation (minutes)",
+                    "image_path": "Chemin de l'image",
+                    "gif_duration": "Durée de l'image (secondes)",
+                    "image_security": "Nom de fichier d'image aléatoire",
+                    "generate_mp4": "Créer mp4 à partir d'images"
+                },
+                "description": "Terminez la configuration en personnalisant les éléments suivants en fonction de votre structure de messagerie et de l'installation de Home Assistant. \n\n Pour plus de détails sur les [Intégration de messagerie et de packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), passez en revue les [configuration, modèles et section automatisations](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sur GitHub.",
+                "title": "Courrier et colis (étape 2 sur 2)"
+            }
+        }
+    }
+}

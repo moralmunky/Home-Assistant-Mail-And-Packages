@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Endast en enda konfiguration av post och paket är tillåten."
+        },
+        "error": {
+            "communication": "Det går inte att ansluta eller logga in på e-postservern. Kontrollera loggen för mer information.",
+            "invalid_path": "Förvara bilderna i en annan katalog."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Värd",
+                    "password": "Lösenord",
+                    "port": "Hamn",
+                    "username": "Användarnamn"
+                },
+                "description": "Ange anslutningsinformationen för din postserver.",
+                "title": "Mail och paket (steg 1 av 2)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "E-postmapp",
+                    "scan_interval": "Skanningsintervall (minuter)",
+                    "image_path": "Bildväg",
+                    "gif_duration": "Bildens längd (sekunder)",
+                    "image_security": "Slumpmässig bildfilnamn",
+                    "generate_mp4": "Skapa mp4 från bilder"
+                },
+                "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
+                "title": "Mail och paket (steg 2 av 2)"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "Det går inte att ansluta eller logga in på e-postservern. Kontrollera loggen för mer information.",
+            "invalid_path": "Förvara bilderna i en annan katalog."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Värd",
+                    "password": "Lösenord",
+                    "port": "Hamn",
+                    "username": "Användarnamn"
+                },
+                "description": "Ange anslutningsinformationen för din postserver.",
+                "title": "Mail och paket (steg 1 av 2)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "E-postmapp",
+                    "scan_interval": "Skanningsintervall (minuter)",
+                    "image_path": "Bildväg",
+                    "gif_duration": "Bildens längd (sekunder)",
+                    "image_security": "Slumpmässig bildfilnamn",
+                    "generate_mp4": "Skapa mp4 från bilder"
+                },
+                "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
+                "title": "Mail och paket (steg 2 av 2)"
+            }
+        }
+    }
+}

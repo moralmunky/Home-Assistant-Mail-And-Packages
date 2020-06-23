@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "僅允許郵件和軟件包的單個配置。"
+        },
+        "error": {
+            "communication": "無法連接或登錄到郵件服務器。請檢查日誌以獲取詳細信息。",
+            "invalid_path": "請將圖像存儲在另一個目錄中。"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "主辦",
+                    "password": "密碼",
+                    "port": "港口",
+                    "username": "用戶名"
+                },
+                "description": "請輸入您的郵件服務器的連接信息。",
+                "title": "郵件和包裹（第1步，共2步）"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "郵件文件夾",
+                    "scan_interval": "掃描間隔（分鐘）",
+                    "image_path": "圖像路徑",
+                    "gif_duration": "圖像持續時間（秒）",
+                    "image_security": "隨機圖像文件名",
+                    "generate_mp4": "從圖像創建mp4"
+                },
+                "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)選項的詳細信息，請查看[配置，模板和自動化部分](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHub上的。",
+                "title": "郵件和包裹（第2步，共2步）"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "無法連接或登錄到郵件服務器。請檢查日誌以獲取詳細信息。",
+            "invalid_path": "請將圖像存儲在另一個目錄中。"
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "主辦",
+                    "password": "密碼",
+                    "port": "港口",
+                    "username": "用戶名"
+                },
+                "description": "請輸入您的郵件服務器的連接信息。",
+                "title": "郵件和包裹（第1步，共2步）"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "郵件文件夾",
+                    "scan_interval": "掃描間隔（分鐘）",
+                    "image_path": "圖像路徑",
+                    "gif_duration": "圖像持續時間（秒）",
+                    "image_security": "隨機圖像文件名",
+                    "generate_mp4": "從圖像創建mp4"
+                },
+                "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)選項的詳細信息，請查看[配置，模板和自動化部分](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHub上的。",
+                "title": "郵件和包裹（第2步，共2步）"
+            }
+        }
+    }
+}

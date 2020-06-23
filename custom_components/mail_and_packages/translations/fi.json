@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Vain yksi posti- ja pakettien kokoonpano on sallittu."
+        },
+        "error": {
+            "communication": "Ei voida muodostaa yhteyttä tai kirjautua sisään postipalvelimeen. Tarkista lokista yksityiskohdat.",
+            "invalid_path": "Tallenna kuvat toiseen hakemistoon."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "isäntä",
+                    "password": "Salasana",
+                    "port": "portti",
+                    "username": "Käyttäjätunnus"
+                },
+                "description": "Anna sähköpostipalvelimesi yhteydetiedot.",
+                "title": "Posti ja paketit (vaihe 1/2)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "Mail-kansio",
+                    "scan_interval": "Skannausväli (minuutit)",
+                    "image_path": "Kuvan polku",
+                    "gif_duration": "Kuvan kesto (sekunteina)",
+                    "image_security": "Satunnainen kuvatiedostonimi",
+                    "generate_mp4": "Luo mp4 kuvista"
+                },
+                "description": "Viimeistele kokoonpano mukauttamalla seuraava sähköpostirakenteen ja Home Assistant -asennuksen perusteella. \n\n Lisätietoja [Posti ja paketit-integroinnista](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) -asetuksista on [kokoonpano, mallit , ja automaatiot-osio](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHubissa.",
+                "title": "Posti ja paketit (vaihe 2/2)"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "Ei voida muodostaa yhteyttä tai kirjautua sisään postipalvelimeen. Tarkista lokista yksityiskohdat.",
+            "invalid_path": "Tallenna kuvat toiseen hakemistoon."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "isäntä",
+                    "password": "Salasana",
+                    "port": "portti",
+                    "username": "Käyttäjätunnus"
+                },
+                "description": "Anna sähköpostipalvelimesi yhteydetiedot.",
+                "title": "Posti ja paketit (vaihe 1/2)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "Mail-kansio",
+                    "scan_interval": "Skannausväli (minuutit)",
+                    "image_path": "Kuvan polku",
+                    "gif_duration": "Kuvan kesto (sekunteina)",
+                    "image_security": "Satunnainen kuvatiedostonimi",
+                    "generate_mp4": "Luo mp4 kuvista"
+                },
+                "description": "Viimeistele kokoonpano mukauttamalla seuraava sähköpostirakenteen ja Home Assistant -asennuksen perusteella. \n\n Lisätietoja [Posti ja paketit-integroinnista](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) -asetuksista on [kokoonpano, mallit , ja automaatiot-osio](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHubissa.",
+                "title": "Posti ja paketit (vaihe 2/2)"
+            }
+        }
+    }
+}

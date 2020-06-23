@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Slechts een enkele configuratie van Mail en pakketten is toegestaan."
+        },
+        "error": {
+            "communication": "Kan geen verbinding maken met of inloggen op de mailserver. Controleer het logboek voor details.",
+            "invalid_path": "Bewaar de afbeeldingen in een andere map."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Gastheer",
+                    "password": "Wachtwoord",
+                    "port": "Haven",
+                    "username": "Gebruikersnaam"
+                },
+                "description": "Voer de verbindingsgegevens van uw mailserver in.",
+                "title": "Mail en pakketten (stap 1 van 2)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "E-mailmap",
+                    "scan_interval": "Scaninterval (minuten)",
+                    "image_path": "Afbeeldingspad",
+                    "gif_duration": "Beeldduur (seconden)",
+                    "image_security": "Bestandsnaam willekeurige afbeelding",
+                    "generate_mp4": "Maak mp4 van afbeeldingen"
+                },
+                "description": "Voltooi de configuratie door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie. \n\n Voor meer informatie over de [E-mail en pakketten integratie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties bekijk de [configuratie, sjablonen , en automatisering sectie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.",
+                "title": "Mail en pakketten (stap 2 van 2)"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "Kan geen verbinding maken met of inloggen op de mailserver. Controleer het logboek voor details.",
+            "invalid_path": "Bewaar de afbeeldingen in een andere map."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Gastheer",
+                    "password": "Wachtwoord",
+                    "port": "Haven",
+                    "username": "Gebruikersnaam"
+                },
+                "description": "Voer de verbindingsgegevens van uw mailserver in.",
+                "title": "Mail en pakketten (stap 1 van 2)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "E-mailmap",
+                    "scan_interval": "Scaninterval (minuten)",
+                    "image_path": "Afbeeldingspad",
+                    "gif_duration": "Beeldduur (seconden)",
+                    "image_security": "Bestandsnaam willekeurige afbeelding",
+                    "generate_mp4": "Maak mp4 van afbeeldingen"
+                },
+                "description": "Voltooi de configuratie door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie. \n\n Voor meer informatie over de [E-mail en pakketten integratie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties bekijk de [configuratie, sjablonen , en automatisering sectie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.",
+                "title": "Mail en pakketten (stap 2 van 2)"
+            }
+        }
+    }
+}

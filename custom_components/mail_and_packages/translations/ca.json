@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Només es permet una configuració única de correu i paquets."
+        },
+        "error": {
+            "communication": "No es pot connectar o iniciar la sessió al servidor de correu. Consulteu el registre per obtenir més detalls.",
+            "invalid_path": "Guardeu les imatges en un altre directori."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Amfitrió",
+                    "password": "Contrasenya",
+                    "port": "Port",
+                    "username": "Nom d'usuari"
+                },
+                "description": "Introduïu la informació de connexió del vostre servidor de correu.",
+                "title": "Correu i paquets (pas 1 de 2)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "Carpeta de correu",
+                    "scan_interval": "Interval d'exploració (minuts)",
+                    "image_path": "Camí de la imatge",
+                    "gif_duration": "Durada de la imatge (segons)",
+                    "image_security": "Nom del fitxer d’imatge aleatòria",
+                    "generate_mp4": "Crea mp4 a partir d’imatges"
+                },
+                "description": "Finalitzeu la configuració personalitzant la següent en funció de la vostra instal·lació de correu electrònic i la instal·lació d’assistència a casa. \n\n Per obtenir més informació sobre les opcions [Integració de paquets i correus](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), reviseu les opcions [configuració, plantilles , secció i automatitzacions](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHub.",
+                "title": "Correu i paquets (pas 2 de 2)"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "No es pot connectar o iniciar la sessió al servidor de correu. Consulteu el registre per obtenir més detalls.",
+            "invalid_path": "Guardeu les imatges en un altre directori."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Amfitrió",
+                    "password": "Contrasenya",
+                    "port": "Port",
+                    "username": "Nom d'usuari"
+                },
+                "description": "Introduïu la informació de connexió del vostre servidor de correu.",
+                "title": "Correu i paquets (pas 1 de 2)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "Carpeta de correu",
+                    "scan_interval": "Interval d'exploració (minuts)",
+                    "image_path": "Camí de la imatge",
+                    "gif_duration": "Durada de la imatge (segons)",
+                    "image_security": "Nom del fitxer d’imatge aleatòria",
+                    "generate_mp4": "Crea mp4 a partir d’imatges"
+                },
+                "description": "Finalitzeu la configuració personalitzant la següent en funció de la vostra instal·lació de correu electrònic i la instal·lació d’assistència a casa. \n\n Per obtenir més informació sobre les opcions [Integració de paquets i correus](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), reviseu les opcions [configuració, plantilles , secció i automatitzacions](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHub.",
+                "title": "Correu i paquets (pas 2 de 2)"
+            }
+        }
+    }
+}
