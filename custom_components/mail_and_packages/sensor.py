@@ -211,21 +211,21 @@ class EmailData:
                     count[sensor] = total
                 elif sensor == "usps_delivering":
                     info = get_count(account, sensor, True)
-                    total = int(info["count"]) - data["usps_delivered"]
+                    total = info["count"] - data["usps_delivered"]
                     if total < 0:
                         total = 0
                     count[sensor] = total
                     count["usps_tracking"] = info["tracking"]
                 elif sensor == "fedex_delivering":
                     info = get_count(account, sensor, True)
-                    total = int(info["count"]) - data["fedex_delivered"]
+                    total = info["count"] - data["fedex_delivered"]
                     if total < 0:
                         total = 0
                     count[sensor] = total
                     count["fedex_tracking"] = info["tracking"]
                 elif sensor == "ups_delivering":
                     info = get_count(account, sensor, True)
-                    total = int(info["count"]) - data["ups_delivered"]
+                    total = info["count"] - data["ups_delivered"]
                     if total < 0:
                         total = 0
                     count[sensor] = total
@@ -249,7 +249,7 @@ class EmailData:
                 elif sensor == "mail_updated":
                     count[sensor] = update_time()
                 else:
-                    count[sensor] = get_count(account, sensor)
+                    count[sensor] = get_count(account, sensor)["count"]
 
                 data.update(count)
             self._data = data
@@ -600,7 +600,7 @@ def get_count(account, sensor_type, tracking=False):
     """
     count = 0
     tracking = []
-    data = []
+    result = {}
     today = get_formatted_date()
     email = None
     subject = None
@@ -694,11 +694,11 @@ def get_count(account, sensor_type, tracking=False):
             if shipper is not None:
                 tracking = get_tracking(data[0], account, shipper)
 
-    data["count"] = count
+    result["count"] = count
     if tracking is not None:
-        data["tracking"] = tracking
+        result["tracking"] = tracking
 
-    return data
+    return result
 
 
 def get_tracking(sdata, account, shipper):
