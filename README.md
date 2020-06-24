@@ -25,7 +25,7 @@ Supports only Lovelace UI. Last tested in 0.110.x.
 
 ## How it works
 
-From your instance of HASS, the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) connects to the email account you supply where your shipment notifications are sent. It reviews at the subject lines of the current day's emails from the shipping companies and counts the subject lines that match known language from the shipping companies about their trasnit status. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF.
+From your instance of HASS, the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) connects to the email account you supply where your shipment notifications are sent. It reviews at the subject lines of the current day's emails from the shipping companies and counts the subject lines that match known language from the shipping companies about their transit status. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF.
 
 * **All procedures are done locally on your machine.**
 * **No external services are used to process your email.**
@@ -50,7 +50,7 @@ Amazon |shipment-tracking@amazon.ca|none |regex order numbers
 ## Installation
 ### [HACS](https://hacs.xyz) (Recommended)
 1. Have [HACS](https://github.com/custom-components/hacs) installed, this will allow you to easily update
-2. Add `https://github.com/moralmunky/Home-Assistant-Mail-And-Packages` as a [custom repository](https://custom-components.github.io/hacs/usage/settings/#add-custom-repositories) and Type: Integration
+2. Add `https://github.com/moralmunky/Home-Assistant-Mail-And-Packages` as a [custom repository](https://hacs.xyz/docs/faq/custom_repositories) and Type: Integration
 3. Click install under "Mail and Packages", restart your instance.
 
 ### Manual Installation

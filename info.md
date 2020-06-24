@@ -48,7 +48,7 @@ Once you have finished installing through [HACS or manually](https://github.com/
 Setting | Description
 --- | ---
 Mail Folder| The folder in your email account that the notification messages are stored. The default is Inbox.
-<nobr>Scanning Interval (minutes)</nobr>| The amount of time that will pass between checking for new email nortifications
+<nobr>Scanning Interval (minutes)</nobr>| The amount of time that will pass between checking for new email notifications
 Image Path* | This is the absolute path to the folder where [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) will save the compiled USPS informed delivery gif.
 <nobr>Image Duration (seconds)</nobr> | The amount of time each USPS Informed Delivery image is shown in the generated rotating GIF.
 <nobr>Random Image Filename*</nobr> | Change the file name of the generated gif from mail_today.gif to a random string for increased secuirty in situations where it is required to store the  image in the ```www``` directory
@@ -59,9 +59,9 @@ Please note that files stored in the ```www``` Home Assistant folder is [publicl
 ### Supported Shippers and Requirements:
 Shipper | Notification Settings
 ------------ | -------------
-[USPS Informed Delivery:](https://informeddelivery.usps.com/) account and all nortifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/raw/master/docs/USPS_Delivery_Notifications.jpg" alt="USPS Informed Delivery notification settings."  width="350"/>
-[FedEx Delivery Manager:](https://www.fedex.com/apps/fdmenrollment/) account and all nortifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/raw/master/docs/FedEx_Delivery_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
-[UPS MyChoice:](https://www.ups.com/us/en/services/tracking/mychoice.page) account and all nortifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/raw/master/docs/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
+[USPS Informed Delivery:](https://informeddelivery.usps.com/) account and all notifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/raw/master/docs/USPS_Delivery_Notifications.jpg" alt="USPS Informed Delivery notification settings."  width="350"/>
+[FedEx Delivery Manager:](https://www.fedex.com/apps/fdmenrollment/) account and all notifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/raw/master/docs/FedEx_Delivery_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
+[UPS MyChoice:](https://www.ups.com/us/en/services/tracking/mychoice.page) account and all notifications turned on for email with the email address you will have the component check.|<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/raw/master/docs/UPS_My_Choice_Notifications.jpg" alt="FedEx notification settings."  width="350"/>
 
 ## Automation and Template Examples
 [Go to the Example Automations and Templates wiki section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Example-Automations-and-Templates#delivery-summary-text-sensor-template-example)
