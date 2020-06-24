@@ -43,7 +43,7 @@ from .const import (
     UPS_Delivering_Subject,
     UPS_Delivering_Subject_2,
     UPS_Delivered_Subject,
-    USP_Body_Text,
+    UPS_Body_Text,
     FEDEX_Email,
     FEDEX_Delivering_Subject,
     FEDEX_Delivering_Subject_2,
@@ -217,14 +217,14 @@ class EmailData:
                     count[sensor] = total
                     count["usps_tracking"] = info["tracking"]
                 elif sensor == "fedex_delivering":
-                    info = get_count(account, sensor True)
+                    info = get_count(account, sensor, True)
                     total = int(info["count"]) - data["fedex_delivered"]
                     if total < 0:
                         total = 0
                     count[sensor] = total
                     count["fedex_tracking"] = info["tracking"]
                 elif sensor == "ups_delivering":
-                    info = get_count(account, sensor True)
+                    info = get_count(account, sensor, True)
                     total = int(info["count"]) - data["ups_delivered"]
                     if total < 0:
                         total = 0
@@ -318,7 +318,7 @@ class PackagesSensor(Entity):
         elif self.type == "usp_delivering":
             attr["tracking_#"] = self.data._data["usp_tracking"]
         elif self.type == "fedex_delivering":
-            attr["tracking_#"] = self.data._data["fedex_tracking"]                        
+            attr["tracking_#"] = self.data._data["fedex_tracking"]
         return attr
 
     def update(self):
@@ -521,8 +521,8 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
 
 
 def _generate_mp4(path, image_file):
-    """ 
-    Generate mp4 from gif 
+    """
+    Generate mp4 from gif
     use a subprocess so we don't lock up the thread
     comamnd: ffmpeg -f gif -i infile.gif outfile.mp4
     """
@@ -751,11 +751,13 @@ def find_text(sdata, account, search):
                 found = pattern.findall(email_msg)
                 if found is not None:
                     if len(found) > 1:
-                        _LOGGER.debug("Found %s in email matches: %s", search, str(len(found)))
+                        _LOGGER.debug(
+                            "Found %s in email matches: %s", search, str(len(found))
+                        )
                         count += len(found)
                     else:
-                    _LOGGER.debug("Found %s in email", search)
-                    count += 1
+                        _LOGGER.debug("Found %s in email", search)
+                        count += 1
 
     return count
 
