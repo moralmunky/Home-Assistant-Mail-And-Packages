@@ -48,3 +48,10 @@ Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in"
 # Canada Post
 CAPost_Email = "donotreply@canadapost.postescanada.ca"
 CAPost_Delivered_Subject = "Delivery Notification"
+
+# DHL
+DHL_Email = "donotreply_odd@dhl.com"
+DHL_Delivering_Subject = "DHL On Demand Delivery"
+DHL_Delivered_Subject = "DHL On Demand Delivery"
+DHL_Body_Text = "scheduled for delivery TODAY"
+DHL_Body_Text_2 = "has been delivered"
