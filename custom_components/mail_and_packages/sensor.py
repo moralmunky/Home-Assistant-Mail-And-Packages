@@ -19,39 +19,10 @@ from shutil import copyfile
 from PIL import Image
 from resizeimage import resizeimage
 import quopri
-
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
-
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_USERNAME, CONF_PASSWORD
-
-from .const import (
-    CONF_FOLDER,
-    CONF_PATH,
-    CONF_DURATION,
-    CONF_IMAGE_SECURITY,
-    CONF_SCAN_INTERVAL,
-    CONF_GENERATE_MP4,
-    DEFAULT_GIF_FILE_NAME,
-    USPS_Mail_Email,
-    USPS_Packages_Email,
-    USPS_Mail_Subject,
-    USPS_Delivering_Subject,
-    USPS_Delivered_Subject,
-    USPS_Body_Text,
-    UPS_Email,
-    UPS_Delivering_Subject,
-    UPS_Delivering_Subject_2,
-    UPS_Delivered_Subject,
-    UPS_Body_Text,
-    FEDEX_Email,
-    FEDEX_Delivering_Subject,
-    FEDEX_Delivering_Subject_2,
-    FEDEX_Delivered_Subject,
-    Amazon_Domains,
-    CAPost_Email,
-    CAPost_Delivered_Subject,
-)
+from . import const
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -95,11 +66,23 @@ SENSOR_TYPES = {
         "package(s)",
         "mdi:package-variant-closed",
     ],
+    "capost_delivering": [
+        "Mail Canada Post Delivering",
+        "package(s)",
+        "mdi:truck-delivery",
+    ],
     "capost_packages": [
         "Mail Canada Post Packages",
         "package(s)",
         "mdi:package-variant-closed",
     ],
+    "dhl_delivered": [
+        "Mail DHL Delivered",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
+    "dhl_delivering": ["Mail DHL Delivering", "package(s)", "mdi:truck-delivery",],
+    "dhl_packages": ["Mail DHL Packages", "package(s)", "mdi:package-variant-closed",],
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -123,12 +106,12 @@ async def async_setup_entry(hass, entry, async_add_entities):
         CONF_USERNAME: entry.data[CONF_USERNAME],
         CONF_PASSWORD: entry.data[CONF_PASSWORD],
         CONF_PORT: entry.data[CONF_PORT],
-        CONF_FOLDER: entry.data[CONF_FOLDER],
-        CONF_PATH: entry.data[CONF_PATH],
-        CONF_DURATION: entry.data[CONF_DURATION],
-        CONF_IMAGE_SECURITY: entry.data[CONF_IMAGE_SECURITY],
-        CONF_SCAN_INTERVAL: entry.data[CONF_SCAN_INTERVAL],
-        CONF_GENERATE_MP4: entry.data[CONF_GENERATE_MP4],
+        const.CONF_FOLDER: entry.data[const.CONF_FOLDER],
+        const.CONF_PATH: entry.data[const.CONF_PATH],
+        const.CONF_DURATION: entry.data[const.CONF_DURATION],
+        const.CONF_IMAGE_SECURITY: entry.data[const.CONF_IMAGE_SECURITY],
+        const.CONF_SCAN_INTERVAL: entry.data[const.CONF_SCAN_INTERVAL],
+        const.CONF_GENERATE_MP4: entry.data[const.CONF_GENERATE_MP4],
     }
 
     data = EmailData(hass, config)
@@ -147,14 +130,14 @@ class EmailData:
         """Initialize the data object."""
         self._host = config.get(CONF_HOST)
         self._port = config.get(CONF_PORT)
-        self._folder = config.get(CONF_FOLDER)
+        self._folder = config.get(const.CONF_FOLDER)
         self._user = config.get(CONF_USERNAME)
         self._pwd = config.get(CONF_PASSWORD)
-        self._img_out_path = config.get(CONF_PATH)
-        self._gif_duration = config.get(CONF_DURATION)
-        self._image_security = config.get(CONF_IMAGE_SECURITY)
-        self._generate_mp4 = config.get(CONF_GENERATE_MP4)
-        self._scan_interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
+        self._img_out_path = config.get(const.CONF_PATH)
+        self._gif_duration = config.get(const.CONF_DURATION)
+        self._image_security = config.get(const.CONF_IMAGE_SECURITY)
+        self._generate_mp4 = config.get(const.CONF_GENERATE_MP4)
+        self._scan_interval = timedelta(minutes=config.get(const.CONF_SCAN_INTERVAL))
         self._data = None
         self._image_name = None
 
@@ -180,7 +163,7 @@ class EmailData:
             if self._image_security:
                 self._image_name = str(uuid.uuid4()) + ".gif"
             else:
-                self._image_name = DEFAULT_GIF_FILE_NAME
+                self._image_name = const.DEFAULT_GIF_FILE_NAME
 
             data = {}
 
@@ -197,51 +180,37 @@ class EmailData:
                 elif sensor == "amazon_packages":
                     count[sensor] = get_items(account, "count")
                     count["amazon_order"] = get_items(account, "order")
-                elif sensor == "usps_packages":
-                    total = data["usps_delivering"] + data["usps_delivered"]
+                elif "_packages" in sensor:
+                    prefix = sensor.split("_")[0]
+                    delivering = prefix + "_delivering"
+                    delivered = prefix + "_delivered"
+                    total = data[delivering] + data[delivered]
                     count[sensor] = total
-                elif sensor == "ups_packages":
-                    total = data["ups_delivering"] + data["ups_delivered"]
-                    count[sensor] = total
-                elif sensor == "fedex_packages":
-                    total = data["fedex_delivering"] + data["fedex_delivered"]
-                    count[sensor] = total
-                elif sensor == "capost_packages":
-                    total = data["capost_delivered"]
-                    count[sensor] = total
-                elif sensor == "usps_delivering":
+                elif "_delivering" in sensor:
+                    prefix = sensor.split("_")[0]
+                    delivering = prefix + "_delivering"
+                    delivered = prefix + "_delivered"
+                    tracking = prefix + "_tracking"
                     info = get_count(account, sensor, True)
-                    total = info["count"] - data["usps_delivered"]
+                    total = info["count"] - data[delivered]
                     if total < 0:
                         total = 0
                     count[sensor] = total
-                    count["usps_tracking"] = info["tracking"]
-                elif sensor == "fedex_delivering":
-                    info = get_count(account, sensor, True)
-                    total = info["count"] - data["fedex_delivered"]
-                    if total < 0:
-                        total = 0
-                    count[sensor] = total
-                    count["fedex_tracking"] = info["tracking"]
-                elif sensor == "ups_delivering":
-                    info = get_count(account, sensor, True)
-                    total = info["count"] - data["ups_delivered"]
-                    if total < 0:
-                        total = 0
-                    count[sensor] = total
-                    count["ups_tracking"] = info["tracking"]
+                    count[tracking] = info["tracking"]
                 elif sensor == "packages_delivered":
                     count[sensor] = (
                         data["fedex_delivered"]
                         + data["ups_delivered"]
                         + data["usps_delivered"]
                         + data["capost_delivered"]
+                        + data["dhl_delivered"]
                     )
                 elif sensor == "packages_transit":
                     total = (
                         data["fedex_delivering"]
                         + data["ups_delivering"]
                         + data["usps_delivering"]
+                        + data["dhl_delivering"]
                     )
                     if total < 0:
                         total = 0
@@ -319,6 +288,8 @@ class PackagesSensor(Entity):
             attr["tracking_#"] = self.data._data["usp_tracking"]
         elif self.type == "fedex_delivering":
             attr["tracking_#"] = self.data._data["fedex_tracking"]
+        elif self.type == "dhl_delivering":
+            attr["tracking_#"] = self.data._data["dhl_tracking"]
         return attr
 
     def update(self):
@@ -390,9 +361,9 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
     (rv, data) = account.search(
         None,
         '(FROM "'
-        + USPS_Mail_Email
+        + const.USPS_Mail_Email
         + '" SUBJECT "'
-        + USPS_Mail_Subject
+        + const.USPS_Mail_Subject
         + '" SENTON "'
         + today
         + '")',
@@ -609,39 +580,51 @@ def get_count(account, sensor_type, tracking=False):
     shipper = None
 
     if sensor_type == "usps_delivered":
-        email = USPS_Packages_Email
-        subject = USPS_Delivered_Subject
+        email = const.USPS_Packages_Email
+        subject = const.USPS_Delivered_Subject
     elif sensor_type == "usps_delivering":
-        email = USPS_Packages_Email
-        subject = USPS_Delivering_Subject
-        filter_text = USPS_Body_Text
+        email = const.USPS_Packages_Email
+        subject = const.USPS_Delivering_Subject
+        filter_text = const.USPS_Body_Text
         if tracking:
             shipper = "usps"
     elif sensor_type == "ups_delivered":
-        email = UPS_Email
-        subject = UPS_Delivered_Subject
-        filter_text = UPS_Body_Text
+        email = const.UPS_Email
+        subject = const.UPS_Delivered_Subject
+        filter_text = const.UPS_Body_Text
     elif sensor_type == "ups_delivering":
-        email = UPS_Email
-        subject = UPS_Delivering_Subject
-        subject_2 = UPS_Delivering_Subject_2
+        email = const.UPS_Email
+        subject = const.UPS_Delivering_Subject
+        subject_2 = const.UPS_Delivering_Subject_2
         if tracking:
             shipper = "ups"
     elif sensor_type == "fedex_delivering":
-        email = FEDEX_Email
-        subject = FEDEX_Delivering_Subject
-        subject_2 = FEDEX_Delivering_Subject_2
+        email = const.FEDEX_Email
+        subject = const.FEDEX_Delivering_Subject
+        subject_2 = const.FEDEX_Delivering_Subject_2
         if tracking:
             shipper = "fedex"
+    elif sensor_type == "dhl_delivering":
+        email = const.DHL_Email
+        subject = const.DHL_Delivering_Subject
+        filter_text = const.DHL_Body_Text_2
+        if tracking:
+            shipper = "dhl"
     elif sensor_type == "fedex_delivered":
-        email = FEDEX_Email
-        subject = FEDEX_Delivered_Subject
+        email = const.FEDEX_Email
+        subject = const.FEDEX_Delivered_Subject
     elif sensor_type == "capost_delivered":
-        email = CAPost_Email
-        subject = CAPost_Delivered_Subject
+        email = const.CAPost_Email
+        subject = const.CAPost_Delivered_Subject
+    elif sensor_type == "dhl_delivered":
+        email = const.DHL_Email
+        subject = const.DHL_Delivered_Subject
+        filter_text = const.DHL_Body_Text
     else:
         _LOGGER.error("Unknown sensor type: %s", str(sensor_type))
-        return False
+        result["count"] = count
+        result["tracking"] = ""
+        return result
 
     _LOGGER.debug("Attempting to find mail from %s with subject 1 %s", email, subject)
     try:
@@ -716,17 +699,33 @@ def get_tracking(sdata, account, shipper):
         )
     elif shipper == "fedex":
         pattern = re.compile(r"\b\d{15,34}")
+    elif shipper == "dhl":
+        body = True
+        pattern = re.compile(r"\b\d{10}\b")
 
     for i in mail_list:
         typ, data = account.fetch(i, "(RFC822)")
         for response_part in data:
             if isinstance(response_part, tuple):
                 msg = email.message_from_bytes(response_part[1])
-                email_subject = msg["subject"]
-                found = pattern.findall(email_subject)
-                if found is not None:
-                    _LOGGER.debug("Found %s tracking number in email", shipper)
-                    tracking.append(found[0])
+                if body is None:
+                    email_subject = msg["subject"]
+                    found = pattern.findall(email_subject)
+                    if found is not None:
+                        _LOGGER.debug(
+                            "Found %s tracking number in email: %s", shipper, found[0]
+                        )
+                        tracking.append(found[0])
+                else:
+                    """Search in email body for tracking number"""
+                    email_msg = quopri.decodestring(str(msg.get_payload(0)))
+                    email_msg = email_msg.decode("utf-8")
+                    found = pattern.findall(email_msg)
+                    if found is not None:
+                        _LOGGER.debug(
+                            "Found %s tracking number in email: %s", shipper, found[0]
+                        )
+                        tracking.append(found[0])
 
     return tracking
 
@@ -772,7 +771,7 @@ def get_items(account, param):
     tfmt = past_date.strftime("%d-%b-%Y")
     deliveriesToday = []
     orderNum = []
-    domains = Amazon_Domains.split(",")
+    domains = const.Amazon_Domains.split(",")
 
     for domain in domains:
         try:
