@@ -1,66 +1,67 @@
 {
-    "config": {
-        "abort": {
-            "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed."
-        },
-        "error": {
-            "communication": "Unable to connect or login to the mail server. Please check the log for details.",
-            "invalid_path": "Please store the images in another directory."
-        },
-        "step": {
-            "user": {
-                "data": {
-                    "host": "Host",
-                    "password": "Password",
-                    "port": "Port",
-                    "username": "Username"
-                },
-                "description": "Please enter the connection information of your mail server.",
-                "title": "Mail and Packages (Step 1 of 2)"
-            },
-            "config_2": {
-                "data": {
-                    "folder": "Mail Folder",
-                    "scan_interval": "Scanning Interval (minutes)",
-                    "image_path": "Image Path",
-                    "gif_duration": "Image Duration (seconds)",
-                    "image_security": "Random Image Filename",
-                    "generate_mp4": "Create mp4 from images"
-                },
-                "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.",
-                "title": "Mail and Packages (Step 2 of 2)"
-            }
-        }
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed."
     },
-    "options": {
-        "error": {
-            "communication": "Unable to connect or login to the mail server. Please check the log for details.",
-            "invalid_path": "Please store the images in another directory."
+    "error": {
+      "communication": "Unable to connect or login to the mail server. Please check the log for details.",
+      "invalid_path": "Please store the images in another directory.",
+      "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "host": "Host",
+          "password": "Password",
+          "port": "Port",
+          "username": "Username"
         },
-        "step": {
-            "init": {
-                "data": {
-                    "host": "Host",
-                    "password": "Password",
-                    "port": "Port",
-                    "username": "Username"
-                },
-                "description": "Please enter the connection information of your mail server.",
-                "title": "Mail and Packages (Step 1 of 2)"
-            },
-            "options_2": {
-                "data": {
-                    "folder": "Mail Folder",
-                    "scan_interval": "Scanning Interval (minutes)",
-                    "image_path": "Image Path",
-                    "gif_duration": "Image Duration (seconds)",
-                    "image_security": "Random Image Filename",
-                    "generate_mp4": "Create mp4 from images"
-
-                },
-                "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.",
-                "title": "Mail and Packages (Step 2 of 2)"
-            }
-        }
+        "description": "Please enter the connection information of your mail server.",
+        "title": "Mail and Packages (Step 1 of 2)"
+      },
+      "config_2": {
+        "data": {
+          "folder": "Mail Folder",
+          "scan_interval": "Scanning Interval (minutes)",
+          "image_path": "Image Path",
+          "gif_duration": "Image Duration (seconds)",
+          "image_security": "Random Image Filename",
+          "generate_mp4": "Create mp4 from images"
+        },
+        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.",
+        "title": "Mail and Packages (Step 2 of 2)"
+      }
     }
+  },
+  "options": {
+    "error": {
+      "communication": "Unable to connect or login to the mail server. Please check the log for details.",
+      "invalid_path": "Please store the images in another directory.",
+      "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
+    },
+    "step": {
+      "init": {
+        "data": {
+          "host": "Host",
+          "password": "Password",
+          "port": "Port",
+          "username": "Username"
+        },
+        "description": "Please enter the connection information of your mail server.",
+        "title": "Mail and Packages (Step 1 of 2)"
+      },
+      "options_2": {
+        "data": {
+          "folder": "Mail Folder",
+          "scan_interval": "Scanning Interval (minutes)",
+          "image_path": "Image Path",
+          "gif_duration": "Image Duration (seconds)",
+          "image_security": "Random Image Filename",
+          "generate_mp4": "Create mp4 from images"
+        },
+        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.",
+        "title": "Mail and Packages (Step 2 of 2)"
+      }
+    }
+  }
 }
