@@ -66,17 +66,22 @@ SENSOR_TYPES = {
         "package(s)",
         "mdi:package-variant-closed",
     ],
+    "capost_delivering": [
+        "Mail Canada Post Delivering",
+        "package(s)",
+        "mdi:truck-delivery",
+    ],
     "capost_packages": [
         "Mail Canada Post Packages",
         "package(s)",
         "mdi:package-variant-closed",
     ],
-    "dhl_delivering": ["Mail DHL Delivering", "package(s)", "mdi:truck-delivery",],
     "dhl_delivered": [
         "Mail DHL Delivered",
         "package(s)",
         "mdi:package-variant-closed",
     ],
+    "dhl_delivering": ["Mail DHL Delivering", "package(s)", "mdi:truck-delivery",],
     "dhl_packages": ["Mail DHL Packages", "package(s)", "mdi:package-variant-closed",],
     ###
     # !!! Insert new sensors above these two !!!
@@ -126,8 +131,8 @@ class EmailData:
         self._host = config.get(CONF_HOST)
         self._port = config.get(CONF_PORT)
         self._folder = config.get(const.CONF_FOLDER)
-        self._user = config.get(const.CONF_USERNAME)
-        self._pwd = config.get(const.CONF_PASSWORD)
+        self._user = config.get(CONF_USERNAME)
+        self._pwd = config.get(CONF_PASSWORD)
         self._img_out_path = config.get(const.CONF_PATH)
         self._gif_duration = config.get(const.CONF_DURATION)
         self._image_security = config.get(const.CONF_IMAGE_SECURITY)
@@ -175,46 +180,23 @@ class EmailData:
                 elif sensor == "amazon_packages":
                     count[sensor] = get_items(account, "count")
                     count["amazon_order"] = get_items(account, "order")
-                elif sensor == "usps_packages":
-                    total = data["usps_delivering"] + data["usps_delivered"]
+                elif "_packages" in sensor:
+                    prefix = sensor.split("_")[0]
+                    delivering = prefix + "_delivering"
+                    delivered = prefix + "_delivered"
+                    total = data[delivering] + data[delivered]
                     count[sensor] = total
-                elif sensor == "ups_packages":
-                    total = data["ups_delivering"] + data["ups_delivered"]
-                    count[sensor] = total
-                elif sensor == "fedex_packages":
-                    total = data["fedex_delivering"] + data["fedex_delivered"]
-                    count[sensor] = total
-                elif sensor == "capost_packages":
-                    total = data["capost_delivered"]
-                    count[sensor] = total
-                elif sensor == "usps_delivering":
+                elif "_delivering" in sensor:
+                    prefix = sensor.split("_")[0]
+                    delivering = prefix + "_delivering"
+                    delivered = prefix + "_delivered"
+                    tracking = prefix + "_tracking"
                     info = get_count(account, sensor, True)
-                    total = info["count"] - data["usps_delivered"]
+                    total = info["count"] - data[delivered]
                     if total < 0:
                         total = 0
                     count[sensor] = total
-                    count["usps_tracking"] = info["tracking"]
-                elif sensor == "fedex_delivering":
-                    info = get_count(account, sensor, True)
-                    total = info["count"] - data["fedex_delivered"]
-                    if total < 0:
-                        total = 0
-                    count[sensor] = total
-                    count["fedex_tracking"] = info["tracking"]
-                elif sensor == "ups_delivering":
-                    info = get_count(account, sensor, True)
-                    total = info["count"] - data["ups_delivered"]
-                    if total < 0:
-                        total = 0
-                    count[sensor] = total
-                    count["ups_tracking"] = info["tracking"]
-                elif sensor == "dhl_delivering":
-                    info = get_count(account, sensor, True)
-                    total = info["count"] - data["dhl_delivered"]
-                    if total < 0:
-                        total = 0
-                    count[sensor] = total
-                    count["dhl_tracking"] = info["tracking"]
+                    count[tracking] = info["tracking"]
                 elif sensor == "packages_delivered":
                     count[sensor] = (
                         data["fedex_delivered"]
@@ -640,7 +622,9 @@ def get_count(account, sensor_type, tracking=False):
         filter_text = const.DHL_Body_Text
     else:
         _LOGGER.error("Unknown sensor type: %s", str(sensor_type))
-        return False
+        result["count"] = count
+        result["tracking"] = ""
+        return result
 
     _LOGGER.debug("Attempting to find mail from %s with subject 1 %s", email, subject)
     try:
