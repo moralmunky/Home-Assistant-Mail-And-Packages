@@ -621,7 +621,7 @@ def get_count(account, sensor_type, tracking=False):
         subject = const.DHL_Delivered_Subject
         filter_text = const.DHL_Body_Text
     else:
-        _LOGGER.error("Unknown sensor type: %s", str(sensor_type))
+        _LOGGER.debug("Unknown sensor type: %s", str(sensor_type))
         result["count"] = count
         result["tracking"] = ""
         return result
