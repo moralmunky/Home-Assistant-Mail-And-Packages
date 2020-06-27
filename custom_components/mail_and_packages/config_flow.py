@@ -97,7 +97,11 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             valid = await self._validate_path(user_input["image_path"])
             if valid:
-                valid = await self._check_ffmpeg()
+                if user_input["generate_mp4"]:
+                    valid = await self._check_ffmpeg()
+                else:
+                    valid = True
+
                 if valid:
                     if user_input["folder"] is not None:
                         if not user_input["image_path"].endswith("/"):
@@ -277,7 +281,11 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             valid = await self._validate_path(user_input["image_path"])
 
             if valid:
-                valid = await self._check_ffmpeg()
+                if user_input["generate_mp4"]:
+                    valid = await self._check_ffmpeg()
+                else:
+                    valid = True
+
                 if valid:
                     if user_input["folder"] is not None:
                         if not user_input["image_path"].endswith("/"):
