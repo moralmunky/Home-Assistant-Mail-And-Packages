@@ -750,7 +750,6 @@ def find_text(sdata, account, search):
                 email_msg = email_msg.decode("utf-8")
                 pattern = re.compile(r"{}".format(search))
                 found = pattern.findall(email_msg)
-                _LOGGER.debug("DEBUG: %s", str(len(found)))
                 if found is not None:
                     if len(found) > 1:
                         _LOGGER.debug(
