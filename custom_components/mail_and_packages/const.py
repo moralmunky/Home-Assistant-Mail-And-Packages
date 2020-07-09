@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.2.2-b3"
+VERSION = "0.2.2-b4"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 
 # Configuration Properties
@@ -34,7 +34,7 @@ UPS_Email = "mcinfo@ups.com"
 UPS_Delivering_Subject = "UPS Update: Package Scheduled for Delivery Today"
 UPS_Delivering_Subject_2 = "UPS Update: Follow Your Delivery on a Live Map"
 UPS_Delivered_Subject = "Your UPS Package was delivered"
-UPS_Body_Text = "tracking number"
+UPS_Body_Text = "Tracking Number"
 
 # FedEx
 FEDEX_Email = "TrackingUpdates@fedex.com"
