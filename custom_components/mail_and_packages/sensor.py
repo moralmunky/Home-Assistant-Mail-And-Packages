@@ -285,7 +285,7 @@ class PackagesSensor(Entity):
         elif self.type == "usps_delivering":
             attr["tracking_#"] = self.data._data["usps_tracking"]
         elif self.type == "usp_delivering":
-            attr["tracking_#"] = self.data._data["usp_tracking"]
+            attr["tracking_#"] = self.data._data["ups_tracking"]
         elif self.type == "fedex_delivering":
             attr["tracking_#"] = self.data._data["fedex_tracking"]
         elif self.type == "dhl_delivering":
@@ -690,12 +690,13 @@ def get_tracking(sdata, account, shipper):
     tracking = []
     pattern = None
     mail_list = sdata.split()
+    body = None
 
     if shipper == "usps":
         pattern = re.compile(r"\b92\d{15,22}\b")
     elif shipper == "ups":
         pattern = re.compile(
-            r"\b(1Z ?[0-9A-Z]{3} ?[0-9A-Z]{3} ?[0-9A-Z]{2} ?[0-9A-Z]{4} ?[0-9A-Z]{3} ?[0-9A-Z]|[\dT]\d\d\d ?\d\d\d\d ?\d\d\d)\b"
+            r"(1Z ?[0-9A-Z]{3} ?[0-9A-Z]{3} ?[0-9A-Z]{2} ?[0-9A-Z]{4} ?[0-9A-Z]{3} ?[0-9A-Z]|[\dT]\d\d\d ?\d\d\d\d ?\d\d\d)$"
         )
     elif shipper == "fedex":
         pattern = re.compile(r"\b\d{15,34}")
@@ -738,6 +739,7 @@ def find_text(sdata, account, search):
     _LOGGER.debug("Searching for %s in emails", search)
     mail_list = sdata.split()
     count = 0
+    found = None
 
     for i in mail_list:
         typ, data = account.fetch(i, "(RFC822)")
@@ -746,8 +748,9 @@ def find_text(sdata, account, search):
                 msg = email.message_from_bytes(response_part[1])
                 email_msg = quopri.decodestring(str(msg.get_payload(0)))
                 email_msg = email_msg.decode("utf-8")
-                pattern = re.compile(r"\b{}\b".format(search))
+                pattern = re.compile(r"{}".format(search))
                 found = pattern.findall(email_msg)
+                _LOGGER.debug("DEBUG: %s", str(len(found)))
                 if found is not None:
                     if len(found) > 1:
                         _LOGGER.debug(
