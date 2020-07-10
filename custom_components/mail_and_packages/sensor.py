@@ -98,6 +98,13 @@ SENSOR_TYPES = {
     ],
 }
 
+ATTR_COUNT = "count"
+ATTR_ORDER = "order"
+ATTR_TRACKING = "tracking"
+ATTR_TRACKING_NUM = "tracking_#"
+ATTR_IMAGE = "image"
+ATTR_SERVER = "server"
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
 
@@ -150,7 +157,7 @@ class EmailData:
         """Return device specific state attributes."""
         attr = {}
         if self._state:
-            attr["server"] = self.data._host
+            attr[ATTR_SERVER] = self.data._host
         return attr
 
     def update(self):
@@ -177,9 +184,9 @@ class EmailData:
                         self._image_name,
                         self._generate_mp4,
                     )
-                elif sensor == "amazon_packages":
-                    count[sensor] = get_items(account, "count")
-                    count["amazon_order"] = get_items(account, "order")
+                elif sensor == const.AMAZON_PACKAGES:
+                    count[sensor] = get_items(account, ATTR_COUNT)
+                    count[const.AMAZON_ORDER] = get_items(account, ATTR_ORDER)
                 elif "_packages" in sensor:
                     prefix = sensor.split("_")[0]
                     delivering = prefix + "_delivering"
@@ -192,25 +199,25 @@ class EmailData:
                     delivered = prefix + "_delivered"
                     tracking = prefix + "_tracking"
                     info = get_count(account, sensor, True)
-                    total = info["count"] - data[delivered]
+                    total = info[ATTR_COUNT] - data[delivered]
                     if total < 0:
                         total = 0
                     count[sensor] = total
-                    count[tracking] = info["tracking"]
+                    count[tracking] = info[ATTR_TRACKING]
                 elif sensor == "packages_delivered":
                     count[sensor] = (
-                        data["fedex_delivered"]
-                        + data["ups_delivered"]
-                        + data["usps_delivered"]
-                        + data["capost_delivered"]
-                        + data["dhl_delivered"]
+                        data[const.FEDEX_DELIVERED]
+                        + data[const.UPS_DELIVERED]
+                        + data[const.USPS_DELIVERED]
+                        + data[const.CAPOST_DELIVERED]
+                        + data[const.DHL_DELIVERED]
                     )
                 elif sensor == "packages_transit":
                     total = (
-                        data["fedex_delivering"]
-                        + data["ups_delivering"]
-                        + data["usps_delivering"]
-                        + data["dhl_delivering"]
+                        data[const.FEDEX_DELIVERING]
+                        + data[const.UPS_DELIVERING]
+                        + data[const.USPS_DELIVERING]
+                        + data[const.DHL_DELIVERING]
                     )
                     if total < 0:
                         total = 0
@@ -218,7 +225,7 @@ class EmailData:
                 elif sensor == "mail_updated":
                     count[sensor] = update_time()
                 else:
-                    count[sensor] = get_count(account, sensor)["count"]
+                    count[sensor] = get_count(account, sensor)[ATTR_COUNT]
 
                 data.update(count)
             self._data = data
@@ -277,19 +284,19 @@ class PackagesSensor(Entity):
     def device_state_attributes(self):
         """Return device specific state attributes."""
         attr = {}
-        attr["server"] = self.data._host
+        attr[ATTR_SERVER] = self.data._host
         if "amazon" in self._name:
-            attr["order"] = self.data._data["amazon_order"]
+            attr[ATTR_ORDER] = self.data._data[const.AMAZON_ORDER]
         elif "Mail USPS Mail" == self._name:
-            attr["image"] = self.data._image_name
-        elif self.type == "usps_delivering":
-            attr["tracking_#"] = self.data._data["usps_tracking"]
-        elif self.type == "usp_delivering":
-            attr["tracking_#"] = self.data._data["ups_tracking"]
-        elif self.type == "fedex_delivering":
-            attr["tracking_#"] = self.data._data["fedex_tracking"]
-        elif self.type == "dhl_delivering":
-            attr["tracking_#"] = self.data._data["dhl_tracking"]
+            attr[ATTR_IMAGE] = self.data._image_name
+        elif self.type == const.USPS_DELIVERING:
+            attr[ATTR_TRACKING_NUM] = self.data._data[const.USPS_TRACKING]
+        elif self.type == const.UPS_DELIVERING:
+            attr[ATTR_TRACKING_NUM] = self.data._data[const.UPS_TRACKING]
+        elif self.type == const.FEDEX_DELIVERING:
+            attr[ATTR_TRACKING_NUM] = self.data._data[const.FEDEX_TRACKING]
+        elif self.type == const.DHL_DELIVERING:
+            attr[ATTR_TRACKING_NUM] = self.data._data[const.DHL_TRACKING]
         return attr
 
     def update(self):
@@ -579,51 +586,51 @@ def get_count(account, sensor_type, tracking=False):
     filter_text = None
     shipper = None
 
-    if sensor_type == "usps_delivered":
+    if sensor_type == const.USPS_DELIVERED:
         email = const.USPS_Packages_Email
         subject = const.USPS_Delivered_Subject
-    elif sensor_type == "usps_delivering":
+    elif sensor_type == const.USPS_DELIVERING:
         email = const.USPS_Packages_Email
         subject = const.USPS_Delivering_Subject
         filter_text = const.USPS_Body_Text
         if tracking:
             shipper = "usps"
-    elif sensor_type == "ups_delivered":
+    elif sensor_type == const.UPS_DELIVERED:
         email = const.UPS_Email
         subject = const.UPS_Delivered_Subject
         filter_text = const.UPS_Body_Text
-    elif sensor_type == "ups_delivering":
+    elif sensor_type == const.UPS_DELIVERING:
         email = const.UPS_Email
         subject = const.UPS_Delivering_Subject
         subject_2 = const.UPS_Delivering_Subject_2
         if tracking:
             shipper = "ups"
-    elif sensor_type == "fedex_delivering":
+    elif sensor_type == const.FEDEX_DELIVERING:
         email = const.FEDEX_Email
         subject = const.FEDEX_Delivering_Subject
         subject_2 = const.FEDEX_Delivering_Subject_2
         if tracking:
             shipper = "fedex"
-    elif sensor_type == "dhl_delivering":
+    elif sensor_type == const.DHL_DELIVERING:
         email = const.DHL_Email
         subject = const.DHL_Delivering_Subject
         filter_text = const.DHL_Body_Text_2
         if tracking:
             shipper = "dhl"
-    elif sensor_type == "fedex_delivered":
+    elif sensor_type == const.FEDEX_DELIVERED:
         email = const.FEDEX_Email
         subject = const.FEDEX_Delivered_Subject
-    elif sensor_type == "capost_delivered":
+    elif sensor_type == const.CAPOST_DELIVERED:
         email = const.CAPost_Email
         subject = const.CAPost_Delivered_Subject
-    elif sensor_type == "dhl_delivered":
+    elif sensor_type == const.DHL_DELIVERED:
         email = const.DHL_Email
         subject = const.DHL_Delivered_Subject
         filter_text = const.DHL_Body_Text
     else:
         _LOGGER.debug("Unknown sensor type: %s", str(sensor_type))
-        result["count"] = count
-        result["tracking"] = ""
+        result[ATTR_COUNT] = count
+        result[ATTR_TRACKING] = ""
         return result
 
     _LOGGER.debug("Attempting to find mail from %s with subject 1 %s", email, subject)
@@ -677,9 +684,9 @@ def get_count(account, sensor_type, tracking=False):
             if shipper is not None:
                 tracking = get_tracking(data[0], account, shipper)
 
-    result["count"] = count
+    result[ATTR_COUNT] = count
     if tracking is not None:
-        result["tracking"] = tracking
+        result[ATTR_TRACKING] = tracking
 
     return result
 
@@ -707,26 +714,27 @@ def get_tracking(sdata, account, shipper):
     for i in mail_list:
         typ, data = account.fetch(i, "(RFC822)")
         for response_part in data:
-            if isinstance(response_part, tuple):
-                msg = email.message_from_bytes(response_part[1])
-                if body is None:
-                    email_subject = msg["subject"]
-                    found = pattern.findall(email_subject)
-                    if found is not None:
-                        _LOGGER.debug(
-                            "Found %s tracking number in email: %s", shipper, found[0]
-                        )
-                        tracking.append(found[0])
-                else:
-                    """Search in email body for tracking number"""
-                    email_msg = quopri.decodestring(str(msg.get_payload(0)))
-                    email_msg = email_msg.decode("utf-8")
-                    found = pattern.findall(email_msg)
-                    if found is not None:
-                        _LOGGER.debug(
-                            "Found %s tracking number in email: %s", shipper, found[0]
-                        )
-                        tracking.append(found[0])
+            if not isinstance(response_part, tuple):
+                continue
+            msg = email.message_from_bytes(response_part[1])
+            if body is None:
+                email_subject = msg["subject"]
+                found = pattern.findall(email_subject)
+                if found is not None:
+                    _LOGGER.debug(
+                        "Found %s tracking number in email: %s", shipper, found[0]
+                    )
+                    tracking.append(found[0])
+            else:
+                """Search in email body for tracking number"""
+                email_msg = quopri.decodestring(str(msg.get_payload(0)))
+                email_msg = email_msg.decode("utf-8")
+                found = pattern.findall(email_msg)
+                if found is not None:
+                    _LOGGER.debug(
+                        "Found %s tracking number in email: %s", shipper, found[0]
+                    )
+                    tracking.append(found[0])
 
     return tracking
 
@@ -736,7 +744,7 @@ def find_text(sdata, account, search):
     Filter for specific words in email
     Return count of items found
     """
-    _LOGGER.debug("Searching for %s in emails", search)
+    _LOGGER.debug("Searching for %s in %s emails", search, len(sdata))
     mail_list = sdata.split()
     count = 0
     found = None
@@ -744,22 +752,17 @@ def find_text(sdata, account, search):
     for i in mail_list:
         typ, data = account.fetch(i, "(RFC822)")
         for response_part in data:
-            if isinstance(response_part, tuple):
-                msg = email.message_from_bytes(response_part[1])
-                email_msg = quopri.decodestring(str(msg.get_payload(0)))
-                email_msg = email_msg.decode("utf-8")
-                pattern = re.compile(r"{}".format(search))
-                found = pattern.findall(email_msg)
-                _LOGGER.debug("DEBUG: %s", str(len(found)))
-                if found is not None:
-                    if len(found) > 1:
-                        _LOGGER.debug(
-                            "Found %s in email matches: %s", search, str(len(found))
-                        )
-                        count += len(found)
-                    else:
-                        _LOGGER.debug("Found %s in email", search)
-                        count += 1
+            if not isinstance(response_part, tuple):
+                continue
+            msg = email.message_from_bytes(response_part[1])
+            email_msg = quopri.decodestring(str(msg.get_payload(0)))
+            email_msg = email_msg.decode("utf-8")
+            pattern = re.compile(r"{}".format(search))
+            found = pattern.findall(email_msg)
+            _LOGGER.debug("Debug: %s", len(found))
+            if len(found) > 0:
+                _LOGGER.debug("Found %s in email matches: %s", search, str(len(found)))
+                count += len(found)
 
     return count
 
@@ -792,62 +795,59 @@ def get_items(account, param):
             for i in id_list:
                 typ, data = account.fetch(i, "(RFC822)")
                 for response_part in data:
-                    if isinstance(response_part, tuple):
-                        msg = email.message_from_bytes(response_part[1])
+                    if not isinstance(response_part, tuple):
+                        continue
+                    msg = email.message_from_bytes(response_part[1])
 
-                        """Get order number from subject line"""
-                        email_subject = msg["subject"]
-                        pattern = re.compile(r"#[0-9]{3}-[0-9]{7}-[0-9]{7}")
-                        found = pattern.search(email_subject)
-                        if found is not None:
-                            orderNum.append(found[0])
+                    """Get order number from subject line"""
+                    email_subject = msg["subject"]
+                    pattern = re.compile(r"#[0-9]{3}-[0-9]{7}-[0-9]{7}")
+                    found = pattern.search(email_subject)
+                    if found is not None:
+                        orderNum.append(found[0])
 
-                        """Catch bad format emails"""
-                        try:
-                            email_msg = quopri.decodestring(str(msg.get_payload(0)))
-                            email_msg = email_msg.decode("utf-8")
-                        except Exception as err:
-                            _LOGGER.debug(
-                                "Error while attempting to parse Amazon " + "email: %s",
-                                str(err),
-                            )
-                            continue
+                    """Catch bad format emails"""
+                    try:
+                        email_msg = quopri.decodestring(str(msg.get_payload(0)))
+                        email_msg = email_msg.decode("utf-8")
+                    except Exception as err:
+                        _LOGGER.debug(
+                            "Error while attempting to parse Amazon " + "email: %s",
+                            str(err),
+                        )
+                        continue
 
-                        if "will arrive:" in email_msg:
-                            start = email_msg.find("will arrive:") + len("will arrive:")
-                            end = email_msg.find("Track your package:")
-                            arrive_date = email_msg[start:end].strip()
-                            arrive_date = arrive_date.split(" ")
-                            arrive_date = arrive_date[0:3]
-                            arrive_date[2] = arrive_date[2][:2]
-                            arrive_date = " ".join(arrive_date).strip()
-                            dateobj = datetime.datetime.strptime(
-                                arrive_date, "%A, %B %d"
-                            )
-                            if (
-                                dateobj.day == datetime.date.today().day
-                                and dateobj.month == datetime.date.today().month
-                            ):
-                                deliveriesToday.append("Amazon Order")
+                    if "will arrive:" in email_msg:
+                        start = email_msg.find("will arrive:") + len("will arrive:")
+                        end = email_msg.find("Track your package:")
+                        arrive_date = email_msg[start:end].strip()
+                        arrive_date = arrive_date.split(" ")
+                        arrive_date = arrive_date[0:3]
+                        arrive_date[2] = arrive_date[2][:2]
+                        arrive_date = " ".join(arrive_date).strip()
+                        dateobj = datetime.datetime.strptime(arrive_date, "%A, %B %d")
+                        if (
+                            dateobj.day == datetime.date.today().day
+                            and dateobj.month == datetime.date.today().month
+                        ):
+                            deliveriesToday.append("Amazon Order")
 
-                        elif "estimated delivery date is:" in email_msg:
-                            start = email_msg.find("estimated delivery date is:") + len(
-                                "estimated delivery date is:"
-                            )
-                            end = email_msg.find("Track your package at")
-                            arrive_date = email_msg[start:end].strip()
-                            arrive_date = arrive_date.split(" ")
-                            arrive_date = arrive_date[0:3]
-                            arrive_date[2] = arrive_date[2][:2]
-                            arrive_date = " ".join(arrive_date).strip()
-                            dateobj = datetime.datetime.strptime(
-                                arrive_date, "%A, %B %d"
-                            )
-                            if (
-                                dateobj.day == datetime.date.today().day
-                                and dateobj.month == datetime.date.today().month
-                            ):
-                                deliveriesToday.append("Amazon Order")
+                    elif "estimated delivery date is:" in email_msg:
+                        start = email_msg.find("estimated delivery date is:") + len(
+                            "estimated delivery date is:"
+                        )
+                        end = email_msg.find("Track your package at")
+                        arrive_date = email_msg[start:end].strip()
+                        arrive_date = arrive_date.split(" ")
+                        arrive_date = arrive_date[0:3]
+                        arrive_date[2] = arrive_date[2][:2]
+                        arrive_date = " ".join(arrive_date).strip()
+                        dateobj = datetime.datetime.strptime(arrive_date, "%A, %B %d")
+                        if (
+                            dateobj.day == datetime.date.today().day
+                            and dateobj.month == datetime.date.today().month
+                        ):
+                            deliveriesToday.append("Amazon Order")
 
     if param == "count":
         _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
