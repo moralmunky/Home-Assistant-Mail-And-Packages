@@ -165,6 +165,11 @@ class EmailData:
         if self._host is not None:
             """Login to email server and select the folder"""
             account = login(self._host, self._port, self._user, self._pwd)
+
+            """Do not process if account returns false"""
+            if not account:
+                return
+
             selectfolder(account, self._folder)
 
             if self._image_security:
@@ -312,13 +317,17 @@ class PackagesSensor(Entity):
 def login(host, port, user, pwd):
     """function used to login"""
 
-    # Catch invalid mail server / host names
+    """Catch invalid mail server / host names"""
     try:
         account = imaplib.IMAP4_SSL(host, port)
     except imaplib.IMAP4.error as err:
         _LOGGER.error("Error connecting into IMAP Server: %s", str(err))
         return False
-    # If login fails give error message
+    except Exception as err:
+        _LOGGER.error("Network error while connecting to server: %s", str(err))
+        return False
+
+    """If login fails give error message"""
     try:
         rv, data = account.login(user, pwd)
     except imaplib.IMAP4.error as err:
