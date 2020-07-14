@@ -22,6 +22,7 @@
       "config_2": {
         "data": {
           "folder": "Mail Folder",
+          "resources": "Sensors List",
           "scan_interval": "Scanning Interval (minutes)",
           "image_path": "Image Path",
           "gif_duration": "Image Duration (seconds)",
@@ -54,6 +55,7 @@
       "options_2": {
         "data": {
           "folder": "Mail Folder",
+          "resources": "Sensors List",
           "scan_interval": "Scanning Interval (minutes)",
           "image_path": "Image Path",
           "gif_duration": "Image Duration (seconds)",
