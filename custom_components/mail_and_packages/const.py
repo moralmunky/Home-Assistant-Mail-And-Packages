@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.2.2-b6"
+VERSION = "0.2.2-b7"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 
 # Configuration Properties
@@ -81,3 +81,80 @@ DHL_DELIVERED = "dhl_delivered"
 DHL_DELIVERING = "dhl_delivering"
 DHL_PACKAGES = "dhl_packages"
 DHL_TRACKING = "dhl_tracking"
+
+# Sensor definitions
+# Name, unit of measure, icon
+SENSOR_TYPES = {
+    "mail_updated": ["Mail Updated", None, "mdi:update",],
+    "usps_mail": ["Mail USPS Mail", "piece(s)", "mdi:mailbox-up",],
+    "usps_delivered": [
+        "Mail USPS Delivered",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
+    "usps_delivering": ["Mail USPS Delivering", "package(s)", "mdi:truck-delivery",],
+    "usps_packages": [
+        "Mail USPS Packages",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
+    "ups_delivered": [
+        "Mail UPS Delivered",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
+    "ups_delivering": ["Mail UPS Delivering", "package(s)", "mdi:truck-delivery",],
+    "ups_packages": ["Mail UPS Packages", "package(s)", "mdi:package-variant-closed",],
+    "fedex_delivered": [
+        "Mail FedEx Delivered",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
+    "fedex_delivering": ["Mail FedEx Delivering", "package(s)", "mdi:truck-delivery",],
+    "fedex_packages": [
+        "Mail FedEx Packages",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
+    "amazon_packages": ["Mail Amazon Packages", "package(s)", "mdi:amazon",],
+    "capost_delivered": [
+        "Mail Canada Post Delivered",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
+    "capost_delivering": [
+        "Mail Canada Post Delivering",
+        "package(s)",
+        "mdi:truck-delivery",
+    ],
+    "capost_packages": [
+        "Mail Canada Post Packages",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
+    "dhl_delivered": [
+        "Mail DHL Delivered",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
+    "dhl_delivering": ["Mail DHL Delivering", "package(s)", "mdi:truck-delivery",],
+    "dhl_packages": ["Mail DHL Packages", "package(s)", "mdi:package-variant-closed",],
+    ###
+    # !!! Insert new sensors above these two !!!
+    ###
+    "packages_delivered": [
+        "Mail Packages Delivered",
+        "package(s)",
+        "mdi:package-variant",
+    ],
+    "packages_transit": [
+        "Mail Packages In Transit",
+        "package(s)",
+        "mdi:truck-delivery",
+    ],
+}
+
+SENSOR_NAME = 0
+SENSOR_UNIT = 1
+SENSOR_ICON = 2
+

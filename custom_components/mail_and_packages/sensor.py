@@ -21,82 +21,16 @@ from resizeimage import resizeimage
 import quopri
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
-from homeassistant.const import CONF_HOST, CONF_PORT, CONF_USERNAME, CONF_PASSWORD
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_PORT,
+    CONF_USERNAME,
+    CONF_PASSWORD,
+    CONF_RESOURCES,
+)
 from . import const
 
 _LOGGER = logging.getLogger(__name__)
-
-# Sensor definitions
-# Name, unit of measure, icon
-SENSOR_TYPES = {
-    "mail_updated": ["Mail Updated", None, "mdi:update",],
-    "usps_mail": ["Mail USPS Mail", "piece(s)", "mdi:mailbox-up",],
-    "usps_delivered": [
-        "Mail USPS Delivered",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "usps_delivering": ["Mail USPS Delivering", "package(s)", "mdi:truck-delivery",],
-    "usps_packages": [
-        "Mail USPS Packages",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "ups_delivered": [
-        "Mail UPS Delivered",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "ups_delivering": ["Mail UPS Delivering", "package(s)", "mdi:truck-delivery",],
-    "ups_packages": ["Mail UPS Packages", "package(s)", "mdi:package-variant-closed",],
-    "fedex_delivered": [
-        "Mail FedEx Delivered",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "fedex_delivering": ["Mail FedEx Delivering", "package(s)", "mdi:truck-delivery",],
-    "fedex_packages": [
-        "Mail FedEx Packages",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "amazon_packages": ["Mail Amazon Packages", "package(s)", "mdi:amazon",],
-    "capost_delivered": [
-        "Mail Canada Post Delivered",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "capost_delivering": [
-        "Mail Canada Post Delivering",
-        "package(s)",
-        "mdi:truck-delivery",
-    ],
-    "capost_packages": [
-        "Mail Canada Post Packages",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "dhl_delivered": [
-        "Mail DHL Delivered",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "dhl_delivering": ["Mail DHL Delivering", "package(s)", "mdi:truck-delivery",],
-    "dhl_packages": ["Mail DHL Packages", "package(s)", "mdi:package-variant-closed",],
-    ###
-    # !!! Insert new sensors above these two !!!
-    ###
-    "packages_delivered": [
-        "Mail Packages Delivered",
-        "package(s)",
-        "mdi:package-variant",
-    ],
-    "packages_transit": [
-        "Mail Packages In Transit",
-        "package(s)",
-        "mdi:truck-delivery",
-    ],
-}
 
 ATTR_COUNT = "count"
 ATTR_ORDER = "order"
@@ -124,7 +58,12 @@ async def async_setup_entry(hass, entry, async_add_entities):
     data = EmailData(hass, config)
     sensors = []
 
-    for variable in SENSOR_TYPES:
+    if CONF_RESOURCES in entry.options:
+        resources = entry.options[CONF_RESOURCES]
+    else:
+        resources = entry.data[CONF_RESOURCES]
+
+    for variable in resources:
         sensors.append(PackagesSensor(data, variable))
 
     async_add_entities(sensors, True)
@@ -179,7 +118,7 @@ class EmailData:
 
             data = {}
 
-            for sensor in SENSOR_TYPES:
+            for sensor in const.SENSOR_TYPES:
                 count = {}
                 if sensor == "usps_mail":
                     count[sensor] = get_mails(
@@ -247,9 +186,9 @@ class PackagesSensor(Entity):
 
     def __init__(self, data, sensor_type):
         """ Initialize the sensor """
-        self._name = SENSOR_TYPES[sensor_type][0]
-        self._icon = SENSOR_TYPES[sensor_type][2]
-        self._unit_of_measurement = SENSOR_TYPES[sensor_type][1]
+        self._name = const.SENSOR_TYPES[sensor_type][const.SENSOR_NAME]
+        self._icon = const.SENSOR_TYPES[sensor_type][const.SENSOR_ICON]
+        self._unit_of_measurement = const.SENSOR_TYPES[sensor_type][const.SENSOR_UNIT]
         self.type = sensor_type
         self.data = data
         self._state = None
