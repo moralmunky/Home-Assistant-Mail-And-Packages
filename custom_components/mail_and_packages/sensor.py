@@ -518,7 +518,7 @@ def cleanup_images(path):
             os.remove(path + file)
 
 
-def get_count(account, sensor_type, tracking=False):
+def get_count(account, sensor_type, get_tracking_num=False):
     """
     Get Package Count
     add IF clauses to filter by sensor_type for email and subjects
@@ -541,7 +541,7 @@ def get_count(account, sensor_type, tracking=False):
         email = const.USPS_Packages_Email
         subject = const.USPS_Delivering_Subject
         filter_text = const.USPS_Body_Text
-        if tracking:
+        if get_tracking_num:
             shipper = "usps"
     elif sensor_type == const.UPS_DELIVERED:
         email = const.UPS_Email
@@ -551,19 +551,19 @@ def get_count(account, sensor_type, tracking=False):
         email = const.UPS_Email
         subject = const.UPS_Delivering_Subject
         subject_2 = const.UPS_Delivering_Subject_2
-        if tracking:
+        if get_tracking_num:
             shipper = "ups"
     elif sensor_type == const.FEDEX_DELIVERING:
         email = const.FEDEX_Email
         subject = const.FEDEX_Delivering_Subject
         subject_2 = const.FEDEX_Delivering_Subject_2
-        if tracking:
+        if get_tracking_num:
             shipper = "fedex"
     elif sensor_type == const.DHL_DELIVERING:
         email = const.DHL_Email
         subject = const.DHL_Delivering_Subject
         filter_text = const.DHL_Body_Text_2
-        if tracking:
+        if get_tracking_num:
             shipper = "dhl"
     elif sensor_type == const.FEDEX_DELIVERED:
         email = const.FEDEX_Email
@@ -599,7 +599,7 @@ def get_count(account, sensor_type, tracking=False):
         _LOGGER.debug(
             "Search for %s with subject 1 %s results: %s", email, subject, data[0]
         )
-        if shipper is not None:
+        if shipper is not None and count > 0:
             tracking = get_tracking(data[0], account, shipper)
 
     if subject_2 is not None:
@@ -629,7 +629,7 @@ def get_count(account, sensor_type, tracking=False):
             _LOGGER.debug(
                 "Search for %s with subject 2 %s results: %s", email, subject_2, data[0]
             )
-            if shipper is not None:
+            if shipper is not None and count > 0:
                 tracking = get_tracking(data[0], account, shipper)
 
     result[ATTR_COUNT] = count
@@ -648,16 +648,14 @@ def get_tracking(sdata, account, shipper):
     body = None
 
     if shipper == "usps":
-        pattern = re.compile(r"\b92\d{15,22}\b")
+        pattern = re.compile(r"{}".format(const.USPS_TRACKING_PATTERN))
     elif shipper == "ups":
-        pattern = re.compile(
-            r"(1Z ?[0-9A-Z]{3} ?[0-9A-Z]{3} ?[0-9A-Z]{2} ?[0-9A-Z]{4} ?[0-9A-Z]{3} ?[0-9A-Z]|[\dT]\d\d\d ?\d\d\d\d ?\d\d\d)$"
-        )
+        pattern = re.compile(r"{}".format(const.UPS_TRACKING_PATTERN))
     elif shipper == "fedex":
-        pattern = re.compile(r"\b\d{15,34}")
+        pattern = re.compile(r"{}".format(const.FEDEX_TRACKING_PATTERN))
     elif shipper == "dhl":
         body = True
-        pattern = re.compile(r"\b\d{10}\b")
+        pattern = re.compile(r"{}".format(const.DHL_TRACKING_PATTERN))
 
     for i in mail_list:
         typ, data = account.fetch(i, "(RFC822)")
@@ -668,11 +666,15 @@ def get_tracking(sdata, account, shipper):
             if body is None:
                 email_subject = msg["subject"]
                 found = pattern.findall(email_subject)
-                if found is not None:
+                if len(found) > 0:
                     _LOGGER.debug(
                         "Found %s tracking number in email: %s", shipper, found[0]
                     )
+                    if found[0] in tracking:
+                        continue
                     tracking.append(found[0])
+                    continue
+                _LOGGER.debug("No tracking number found for %s", shipper)
             else:
                 """Search in email body for tracking number"""
                 email_msg = quopri.decodestring(str(msg.get_payload(0)))
@@ -682,7 +684,11 @@ def get_tracking(sdata, account, shipper):
                     _LOGGER.debug(
                         "Found %s tracking number in email: %s", shipper, found[0]
                     )
+                    if found[0] in tracking:
+                        continue
                     tracking.append(found[0])
+                    continue
+                _LOGGER.debug("No tracking number found for %s", shipper)
 
     return tracking
 
