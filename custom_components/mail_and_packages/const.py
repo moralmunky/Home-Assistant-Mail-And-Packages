@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.2.2-b7"
+VERSION = "0.2.2-b8"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 
 # Configuration Properties
@@ -34,6 +34,8 @@ USPS_DELIVERING = "usps_delivering"
 USPS_PACKAGES = "usps_packages"
 USPS_TRACKING = "usps_tracking"
 
+USPS_TRACKING_PATTERN = "9[24]\d{15,22}"
+
 # UPS
 UPS_Email = "mcinfo@ups.com"
 UPS_Delivering_Subject = "UPS Update: Package Scheduled for Delivery Today"
@@ -46,6 +48,8 @@ UPS_DELIVERING = "ups_delivering"
 UPS_PACKAGES = "ups_packages"
 UPS_TRACKING = "ups_tracking"
 
+UPS_TRACKING_PATTERN = "(1Z ?[0-9A-Z]{3} ?[0-9A-Z]{3} ?[0-9A-Z]{2} ?[0-9A-Z]{4} ?[0-9A-Z]{3} ?[0-9A-Z]|[\dT]\d\d\d ?\d\d\d\d ?\d\d\d)$"
+
 # FedEx
 FEDEX_Email = "TrackingUpdates@fedex.com"
 FEDEX_Delivering_Subject = "Delivery scheduled for today"
@@ -56,6 +60,8 @@ FEDEX_DELIVERED = "fedex_delivered"
 FEDEX_DELIVERING = "fedex_delivering"
 FEDEX_PACKAGES = "fedex_packages"
 FEDEX_TRACKING = "fedex_tracking"
+
+FEDEX_TRACKING_PATTERN = "\d{15,34}"
 
 # Amazon
 Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in"
@@ -81,6 +87,8 @@ DHL_DELIVERED = "dhl_delivered"
 DHL_DELIVERING = "dhl_delivering"
 DHL_PACKAGES = "dhl_packages"
 DHL_TRACKING = "dhl_tracking"
+
+DHL_TRACKING_PATTERN = "\d{10}"
 
 # Sensor definitions
 # Name, unit of measure, icon
