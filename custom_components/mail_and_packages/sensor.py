@@ -229,7 +229,7 @@ class PackagesSensor(Entity):
         """Return device specific state attributes."""
         attr = {}
         attr[ATTR_SERVER] = self.data._host
-        if "amazon" in self._name:
+        if "Amazon" in self._name:
             attr[ATTR_ORDER] = self.data._data[const.AMAZON_ORDER]
         elif "Mail USPS Mail" == self._name:
             attr[ATTR_IMAGE] = self.data._image_name
