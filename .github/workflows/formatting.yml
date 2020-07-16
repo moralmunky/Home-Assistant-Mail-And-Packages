@@ -8,8 +8,14 @@ on:
     - cron:  '0 0 * * *'
 
 jobs:
+  formatting:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: itsvinayak/pylint-and-format@v1.1 
+    
   validate:
     runs-on: "ubuntu-latest"
     steps:
         - uses: "actions/checkout@v2"
         - uses: "home-assistant/actions/hassfest@master"
+
