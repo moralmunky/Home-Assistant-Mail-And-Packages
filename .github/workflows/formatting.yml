@@ -12,8 +12,6 @@ jobs:
       - uses: "actions/checkout@v2"
       - uses: olance/isort-action@v1.1.0
       - uses: fylein/python-pylint-github-action@v4
-      - uses: jpetrucciani/black-check@19.10b0
-      - uses: jpetrucciani/bandit-check@1.6.2
         
   validate:
     name: Validate component
