@@ -2,20 +2,21 @@ name: Validate with hassfest
 
 on:
   push:
-  pull_request:
-    types: [opened, edited, reopened, synchronize]
-  schedule:
-    - cron:  '0 0 * * *'
+  pull_request: ~
 
 jobs:
   formatting:
+    name: Formatting Check
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v2"
+      - uses: olance/isort-action@v1.1.0
       - uses: fylein/python-pylint-github-action@v4
       - uses: wrboyce/python-lint-action@v1.0.0
+      - uses: jpetrucciani/bandit-check@1.6.2
         
   validate:
+    name: Validate component
     runs-on: "ubuntu-latest"
     steps:
         - uses: "actions/checkout@v2"
