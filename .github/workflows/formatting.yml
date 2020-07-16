@@ -11,7 +11,7 @@ jobs:
   formatting:
     runs-on: "ubuntu-latest"
     steps:
-      - uses: itsvinayak/pylint-and-format@v1.1 
+      - uses: fylein/python-pylint-github-action@v4
     
   validate:
     runs-on: "ubuntu-latest"
