@@ -1,12 +1,6 @@
 """Adds config flow for Mail and Packages."""
-import logging
+
 from collections import OrderedDict
-
-import voluptuous as vol
-import imaplib
-import os
-from shutil import which
-
 import homeassistant.helpers.config_validation as cv
 from homeassistant.core import callback
 from homeassistant import config_entries
@@ -35,6 +29,11 @@ from homeassistant.const import (
     CONF_PORT,
     CONF_RESOURCES,
 )
+import imaplib
+import logging
+import os
+from shutil import which
+import voluptuous as vol
 
 _LOGGER = logging.getLogger(__name__)
 

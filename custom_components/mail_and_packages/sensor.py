@@ -4,21 +4,10 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
-
-import logging
-import imageio as io
-import os
-import subprocess
-import re
-import imaplib
-import email
+from . import const
 import datetime
-import uuid
 from datetime import timedelta
-from shutil import copyfile
-from PIL import Image
-from resizeimage import resizeimage
-import quopri
+import email
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 from homeassistant.const import (
@@ -28,7 +17,18 @@ from homeassistant.const import (
     CONF_PASSWORD,
     CONF_RESOURCES,
 )
-from . import const
+import imageio as io
+import imaplib
+import logging
+import os
+from PIL import Image
+import quopri
+import re
+from resizeimage import resizeimage
+from shutil import copyfile
+import subprocess
+import uuid
+
 
 _LOGGER = logging.getLogger(__name__)
 

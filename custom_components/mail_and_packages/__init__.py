@@ -1,7 +1,8 @@
 """Mail and Packages Integration."""
 
-import logging
 from .const import DOMAIN, VERSION, ISSUE_URL
+import logging
+
 
 _LOGGER = logging.getLogger(__name__)
 
