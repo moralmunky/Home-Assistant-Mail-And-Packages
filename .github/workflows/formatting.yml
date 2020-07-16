@@ -11,6 +11,7 @@ jobs:
   formatting:
     runs-on: "ubuntu-latest"
     steps:
+      - uses: "actions/checkout@v2"
       - uses: fylein/python-pylint-github-action@v4
       - uses: wrboyce/python-lint-action@v1.0.0
         
