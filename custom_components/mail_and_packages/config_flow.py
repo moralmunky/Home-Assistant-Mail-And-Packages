@@ -187,7 +187,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         # Defaults
         folder = DEFAULT_FOLDER
         scan_interval = DEFAULT_SCAN_INTERVAL
-        image_path = DEFAULT_PATH
+        image_path = self.hass.config.path() + DEFAULT_PATH
         gif_duration = DEFAULT_GIF_DURATION
         image_security = DEFAULT_IMAGE_SECURITY
         generate_mp4 = DEFAULT_FFMPEG

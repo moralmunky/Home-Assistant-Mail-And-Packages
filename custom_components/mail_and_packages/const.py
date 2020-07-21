@@ -14,7 +14,7 @@ CONF_GENERATE_MP4 = "generate_mp4"
 DEFAULT_NAME = "Mail And Packages"
 DEFAULT_PORT = "993"
 DEFAULT_FOLDER = '"INBOX"'
-DEFAULT_PATH = "/home/homeassistant/.homeassistant/images/mail_and_packages/"
+DEFAULT_PATH = "/images/mail_and_packages/"
 DEFAULT_IMAGE_SECURITY = True
 DEFAULT_GIF_DURATION = 5
 DEFAULT_SCAN_INTERVAL = 5
@@ -165,4 +165,3 @@ SENSOR_TYPES = {
 SENSOR_NAME = 0
 SENSOR_UNIT = 1
 SENSOR_ICON = 2
-
