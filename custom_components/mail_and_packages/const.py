@@ -1,6 +1,7 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.2.2-b9"
+VERSION = "0.2.2-b10"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
+PLATFORM = "sensor"
 
 # Configuration Properties
 CONF_FOLDER = "folder"
@@ -14,7 +15,7 @@ CONF_GENERATE_MP4 = "generate_mp4"
 DEFAULT_NAME = "Mail And Packages"
 DEFAULT_PORT = "993"
 DEFAULT_FOLDER = '"INBOX"'
-DEFAULT_PATH = "/home/homeassistant/.homeassistant/images/mail_and_packages/"
+DEFAULT_PATH = "/images/mail_and_packages/"
 DEFAULT_IMAGE_SECURITY = True
 DEFAULT_GIF_DURATION = 5
 DEFAULT_SCAN_INTERVAL = 5
@@ -150,12 +151,12 @@ SENSOR_TYPES = {
     ###
     # !!! Insert new sensors above these two !!!
     ###
-    "packages_delivered": [
+    "zpackages_delivered": [
         "Mail Packages Delivered",
         "package(s)",
         "mdi:package-variant",
     ],
-    "packages_transit": [
+    "zpackages_transit": [
         "Mail Packages In Transit",
         "package(s)",
         "mdi:truck-delivery",
@@ -165,4 +166,5 @@ SENSOR_TYPES = {
 SENSOR_NAME = 0
 SENSOR_UNIT = 1
 SENSOR_ICON = 2
-
+# For sensors with delivering and delivered statuses
+SHIPPERS = ["capost", "dhl", "fedex", "ups", "usps"]
