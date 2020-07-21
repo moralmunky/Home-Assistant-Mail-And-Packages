@@ -53,15 +53,17 @@ async def async_setup_entry(hass, entry, async_add_entities):
         const.CONF_IMAGE_SECURITY: entry.data[const.CONF_IMAGE_SECURITY],
         const.CONF_SCAN_INTERVAL: entry.data[const.CONF_SCAN_INTERVAL],
         const.CONF_GENERATE_MP4: entry.data[const.CONF_GENERATE_MP4],
+        CONF_RESOURCES: entry.data[CONF_RESOURCES],
     }
 
-    data = EmailData(hass, config)
     sensors = []
 
     if CONF_RESOURCES in entry.options:
         resources = entry.options[CONF_RESOURCES]
     else:
         resources = entry.data[CONF_RESOURCES]
+
+    data = EmailData(hass, config)
 
     for variable in resources:
         sensors.append(PackagesSensor(data, variable))
@@ -84,6 +86,7 @@ class EmailData:
         self._image_security = config.get(const.CONF_IMAGE_SECURITY)
         self._generate_mp4 = config.get(const.CONF_GENERATE_MP4)
         self._scan_interval = timedelta(minutes=config.get(const.CONF_SCAN_INTERVAL))
+        self._resources = config.get(CONF_RESOURCES)
         self._data = None
         self._image_name = None
 
@@ -118,7 +121,8 @@ class EmailData:
 
             data = {}
 
-            for sensor in const.SENSOR_TYPES:
+            """Only update sensors we're intrested in"""
+            for sensor in self._resources:
                 count = {}
                 if sensor == "usps_mail":
                     count[sensor] = get_mails(
@@ -144,28 +148,22 @@ class EmailData:
                     tracking = prefix + "_tracking"
                     info = get_count(account, sensor, True)
                     total = info[ATTR_COUNT] - data[delivered]
-                    if total < 0:
-                        total = 0
+                    total = max(0, min(total, total))
                     count[sensor] = total
                     count[tracking] = info[ATTR_TRACKING]
-                elif sensor == "packages_delivered":
-                    count[sensor] = (
-                        data[const.FEDEX_DELIVERED]
-                        + data[const.UPS_DELIVERED]
-                        + data[const.USPS_DELIVERED]
-                        + data[const.CAPOST_DELIVERED]
-                        + data[const.DHL_DELIVERED]
-                    )
-                elif sensor == "packages_transit":
-                    total = (
-                        data[const.FEDEX_DELIVERING]
-                        + data[const.UPS_DELIVERING]
-                        + data[const.USPS_DELIVERING]
-                        + data[const.DHL_DELIVERING]
-                    )
-                    if total < 0:
-                        total = 0
-                    count[sensor] = total
+                elif sensor == "zpackages_delivered":
+                    count[sensor] = 0  # initialize the variable
+                    for shipper in const.SHIPPERS:
+                        delivered = shipper + "_delivered"
+                        if delivered in data and delivered != sensor:
+                            count[sensor] += data[delivered]
+                elif sensor == "zpackages_transit":
+                    total = 0
+                    for shipper in const.SHIPPERS:
+                        delivering = shipper + "_delivering"
+                        if delivering in data and delivering != sensor:
+                            total += data[delivering]
+                    count[sensor] = max(0, min(total, total))
                 elif sensor == "mail_updated":
                     count[sensor] = update_time()
                 else:

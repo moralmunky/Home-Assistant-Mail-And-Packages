@@ -1,6 +1,7 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.2.2-b9"
+VERSION = "0.2.2-b10"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
+PLATFORM = "sensor"
 
 # Configuration Properties
 CONF_FOLDER = "folder"
@@ -150,12 +151,12 @@ SENSOR_TYPES = {
     ###
     # !!! Insert new sensors above these two !!!
     ###
-    "packages_delivered": [
+    "zpackages_delivered": [
         "Mail Packages Delivered",
         "package(s)",
         "mdi:package-variant",
     ],
-    "packages_transit": [
+    "zpackages_transit": [
         "Mail Packages In Transit",
         "package(s)",
         "mdi:truck-delivery",
@@ -165,3 +166,5 @@ SENSOR_TYPES = {
 SENSOR_NAME = 0
 SENSOR_UNIT = 1
 SENSOR_ICON = 2
+# For sensors with delivering and delivered statuses
+SHIPPERS = ["capost", "dhl", "fedex", "ups", "usps"]

@@ -410,4 +410,3 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             data_schema=vol.Schema(data_schema),
             errors=self._errors,
         )
-
