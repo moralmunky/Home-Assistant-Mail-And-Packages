@@ -66,8 +66,11 @@ FEDEX_TRACKING_PATTERN = "\d{15,34}"
 
 # Amazon
 Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in"
+AMAZON_Delivered_Subject = "Delivered: Your"
+AMAZON_Email = "order-update@amazon"
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
+AMAZONE_DELIVERED = "amazon_delivered"
 
 # Canada Post
 CAPost_Email = "donotreply@canadapost.postescanada.ca"
@@ -94,14 +97,14 @@ DHL_TRACKING_PATTERN = "\d{10}"
 # Sensor definitions
 # Name, unit of measure, icon
 SENSOR_TYPES = {
-    "mail_updated": ["Mail Updated", None, "mdi:update",],
-    "usps_mail": ["Mail USPS Mail", "piece(s)", "mdi:mailbox-up",],
+    "mail_updated": ["Mail Updated", None, "mdi:update"],
+    "usps_mail": ["Mail USPS Mail", "piece(s)", "mdi:mailbox-up"],
     "usps_delivered": [
         "Mail USPS Delivered",
         "package(s)",
         "mdi:package-variant-closed",
     ],
-    "usps_delivering": ["Mail USPS Delivering", "package(s)", "mdi:truck-delivery",],
+    "usps_delivering": ["Mail USPS Delivering", "package(s)", "mdi:truck-delivery"],
     "usps_packages": [
         "Mail USPS Packages",
         "package(s)",
@@ -112,20 +115,25 @@ SENSOR_TYPES = {
         "package(s)",
         "mdi:package-variant-closed",
     ],
-    "ups_delivering": ["Mail UPS Delivering", "package(s)", "mdi:truck-delivery",],
-    "ups_packages": ["Mail UPS Packages", "package(s)", "mdi:package-variant-closed",],
+    "ups_delivering": ["Mail UPS Delivering", "package(s)", "mdi:truck-delivery"],
+    "ups_packages": ["Mail UPS Packages", "package(s)", "mdi:package-variant-closed"],
     "fedex_delivered": [
         "Mail FedEx Delivered",
         "package(s)",
         "mdi:package-variant-closed",
     ],
-    "fedex_delivering": ["Mail FedEx Delivering", "package(s)", "mdi:truck-delivery",],
+    "fedex_delivering": ["Mail FedEx Delivering", "package(s)", "mdi:truck-delivery"],
     "fedex_packages": [
         "Mail FedEx Packages",
         "package(s)",
         "mdi:package-variant-closed",
     ],
-    "amazon_packages": ["Mail Amazon Packages", "package(s)", "mdi:amazon",],
+    "amazon_packages": ["Mail Amazon Packages", "package(s)", "mdi:amazon"],
+    "amazon_delivered": [
+        "Mail Amazon Packages Delivered",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
     "capost_delivered": [
         "Mail Canada Post Delivered",
         "package(s)",
@@ -146,8 +154,8 @@ SENSOR_TYPES = {
         "package(s)",
         "mdi:package-variant-closed",
     ],
-    "dhl_delivering": ["Mail DHL Delivering", "package(s)", "mdi:truck-delivery",],
-    "dhl_packages": ["Mail DHL Packages", "package(s)", "mdi:package-variant-closed",],
+    "dhl_delivering": ["Mail DHL Delivering", "package(s)", "mdi:truck-delivery"],
+    "dhl_packages": ["Mail DHL Packages", "package(s)", "mdi:package-variant-closed"],
     ###
     # !!! Insert new sensors above these two !!!
     ###

@@ -540,7 +540,7 @@ def get_count(account, sensor_type, get_tracking_num=False):
         subject = const.USPS_Delivering_Subject
         filter_text = const.USPS_Body_Text
         if get_tracking_num:
-            shipper = "usps"
+            shipper = const.SHIPPERS[4]
     elif sensor_type == const.UPS_DELIVERED:
         email = const.UPS_Email
         subject = const.UPS_Delivered_Subject
@@ -550,19 +550,19 @@ def get_count(account, sensor_type, get_tracking_num=False):
         subject = const.UPS_Delivering_Subject
         subject_2 = const.UPS_Delivering_Subject_2
         if get_tracking_num:
-            shipper = "ups"
+            shipper = const.SHIPPERS[3]
     elif sensor_type == const.FEDEX_DELIVERING:
         email = const.FEDEX_Email
         subject = const.FEDEX_Delivering_Subject
         subject_2 = const.FEDEX_Delivering_Subject_2
         if get_tracking_num:
-            shipper = "fedex"
+            shipper = const.SHIPPERS[2]
     elif sensor_type == const.DHL_DELIVERING:
         email = const.DHL_Email
         subject = const.DHL_Delivering_Subject
         filter_text = const.DHL_Body_Text_2
         if get_tracking_num:
-            shipper = "dhl"
+            shipper = const.SHIPPERS[1]
     elif sensor_type == const.FEDEX_DELIVERED:
         email = const.FEDEX_Email
         subject = const.FEDEX_Delivered_Subject
@@ -573,6 +573,9 @@ def get_count(account, sensor_type, get_tracking_num=False):
         email = const.DHL_Email
         subject = const.DHL_Delivered_Subject
         filter_text = const.DHL_Body_Text
+    elif sensor_type == const.AMAZON_DELIVERED:
+        email = const.AMAZON_Email
+        subject = const.AMAZON_Delivered_Subject
     else:
         _LOGGER.debug("Unknown sensor type: %s", str(sensor_type))
         result[ATTR_COUNT] = count
@@ -755,7 +758,9 @@ def get_items(account, param):
                     email_subject = msg["subject"]
                     pattern = re.compile(r"#[0-9]{3}-[0-9]{7}-[0-9]{7}")
                     found = pattern.search(email_subject)
-                    if found is not None:
+
+                    """ Don't add the same order number twice """
+                    if len(found) > 0 and found[0] not in orderNum:
                         orderNum.append(found[0])
 
                     """Catch bad format emails"""
