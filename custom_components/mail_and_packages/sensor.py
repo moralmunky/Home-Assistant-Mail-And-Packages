@@ -148,7 +148,7 @@ class EmailData:
                     tracking = prefix + "_tracking"
                     info = get_count(account, sensor, True)
                     total = info[ATTR_COUNT] - data[delivered]
-                    total = max(0, min(total, total))
+                    total = max(0, total)
                     count[sensor] = total
                     count[tracking] = info[ATTR_TRACKING]
                 elif sensor == "zpackages_delivered":
@@ -163,7 +163,7 @@ class EmailData:
                         delivering = shipper + "_delivering"
                         if delivering in data and delivering != sensor:
                             total += data[delivering]
-                    count[sensor] = max(0, min(total, total))
+                    count[sensor] = max(0, total)
                 elif sensor == "mail_updated":
                     count[sensor] = update_time()
                 else:
