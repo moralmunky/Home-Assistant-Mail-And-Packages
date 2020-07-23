@@ -5,9 +5,11 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 from . import const
+import aiohttp
 import datetime
 from datetime import timedelta
 import email
+from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 from homeassistant.const import (
@@ -76,6 +78,7 @@ class EmailData:
 
     def __init__(self, hass, config):
         """Initialize the data object."""
+        self._hass = hass
         self._host = config.get(CONF_HOST)
         self._port = config.get(CONF_PORT)
         self._folder = config.get(const.CONF_FOLDER)
@@ -167,7 +170,9 @@ class EmailData:
                 elif sensor == "mail_updated":
                     count[sensor] = update_time()
                 else:
-                    count[sensor] = get_count(account, sensor)[ATTR_COUNT]
+                    count[sensor] = get_count(
+                        account, sensor, False, self._img_out_path, self._hass
+                    )[ATTR_COUNT]
 
                 data.update(count)
             self._data = data
@@ -516,7 +521,7 @@ def cleanup_images(path):
             os.remove(path + file)
 
 
-def get_count(account, sensor_type, get_tracking_num=False):
+def get_count(account, sensor_type, get_tracking_num=False, image_path=None, hass=None):
     """
     Get Package Count
     add IF clauses to filter by sensor_type for email and subjects
@@ -531,6 +536,7 @@ def get_count(account, sensor_type, get_tracking_num=False):
     subject_2 = None
     filter_text = None
     shipper = None
+    amazon = False
 
     if sensor_type == const.USPS_DELIVERED:
         email = const.USPS_Packages_Email
@@ -576,6 +582,7 @@ def get_count(account, sensor_type, get_tracking_num=False):
     elif sensor_type == const.AMAZON_DELIVERED:
         email = const.AMAZON_Email
         subject = const.AMAZON_Delivered_Subject
+        amazon = True
     else:
         _LOGGER.debug("Unknown sensor type: %s", str(sensor_type))
         result[ATTR_COUNT] = count
@@ -595,6 +602,8 @@ def get_count(account, sensor_type, get_tracking_num=False):
     if rv == "OK":
         if filter_text is not None:
             count += find_text(data[0], account, filter_text)
+        if amazon:
+            get_amazon_image(data[0], account, image_path, hass)
         else:
             count += len(data[0].split())
         _LOGGER.debug(
@@ -722,6 +731,61 @@ def find_text(sdata, account, search):
     return count
 
 
+def get_amazon_image(sdata, account, image_path, hass):
+    """ Find Amazon delivery image """
+    _LOGGER.debug("Searching for Amazon image in emails...")
+    search = const.AMAZON_IMG_PATTERN
+
+    img_url = None
+    mail_list = sdata.split()
+    _LOGGER.debug("HTML Amazon emails found: %s", len(mail_list))
+
+    for i in mail_list:
+        typ, data = account.fetch(i, "(RFC822)")
+        for response_part in data:
+            if not isinstance(response_part, tuple):
+                continue
+            msg = email.message_from_bytes(response_part[1])
+            if not msg.is_multipart():
+                continue
+            for part in msg.walk():
+                if part.get_content_type() != "text/html":
+                    continue
+                _LOGGER.debug("Processing HTML email...")
+                body = part.get_payload(decode=True)
+                body = body.decode("utf-8")
+                pattern = re.compile(r"{}".format(search))
+                found = pattern.findall(body)
+                for url in found:
+                    if url[1] != "us-prod-temp.s3.amazonaws.com":
+                        continue
+                    img_url = url[0] + url[1] + url[2]
+                    _LOGGER.debug("Amazon img URL: %s", img_url)
+                    break
+
+    if img_url is not None:
+        """ Download the image we found """
+        hass.add_job(download_img(img_url, image_path))
+
+
+async def download_img(img_url, img_path):
+    """ Download image from url """
+    filepath = img_path + "amazon_delivered.jpg"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(img_url.replace("&amp;", "&")) as resp:
+            if resp.status != 200:
+                _LOGGER.error("Problem downloading file http error: %s", resp.status)
+                return
+            content_type = resp.headers["content-type"]
+            _LOGGER.debug("URL content-type: %s", content_type)
+            if "image" in content_type:
+                data = await resp.read()
+                _LOGGER.debug("Downloading image to: %s", filepath)
+                with open(filepath, "wb") as f:
+                    f.write(data)
+                    _LOGGER.debug("Amazon image downloaded")
+
+
 def get_items(account, param):
     """Parse Amazon emails for delivery date and order number"""
 
@@ -760,7 +824,7 @@ def get_items(account, param):
                     found = pattern.search(email_subject)
 
                     """ Don't add the same order number twice """
-                    if len(found) > 0 and found[0] not in orderNum:
+                    if len(found[0]) > 0 and found[0] not in orderNum:
                         orderNum.append(found[0])
 
                     """Catch bad format emails"""

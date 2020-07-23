@@ -67,10 +67,13 @@ FEDEX_TRACKING_PATTERN = "\d{15,34}"
 # Amazon
 Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in"
 AMAZON_Delivered_Subject = "Delivered: Your"
-AMAZON_Email = "order-update@amazon"
+AMAZON_Email = "order-update@amazon.com"
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
-AMAZONE_DELIVERED = "amazon_delivered"
+AMAZON_DELIVERED = "amazon_delivered"
+AMAZON_IMG_PATTERN = (
+    "(https://)([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-;]*[\w@?^=%&/~+#-;])?"
+)
 
 # Canada Post
 CAPost_Email = "donotreply@canadapost.postescanada.ca"
