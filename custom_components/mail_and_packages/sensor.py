@@ -759,8 +759,8 @@ def amazon_search(account, image_path, hass):
         if rv != "OK":
             continue
 
-        _LOGGER.debug("Found Amazon delivered email")
         count += len(data[0].split())
+        _LOGGER.debug("Amazon delivered email(s) found: %s", count)
         get_amazon_image(data[0], account, image_path, hass)
 
     return count
