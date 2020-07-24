@@ -580,9 +580,9 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
         subject = const.DHL_Delivered_Subject
         filter_text = const.DHL_Body_Text
     elif sensor_type == const.AMAZON_DELIVERED:
-        email = const.AMAZON_Email
-        subject = const.AMAZON_Delivered_Subject
-        amazon = True
+        result[ATTR_COUNT] = amazon_search(account, image_path, hass)
+        result[ATTR_TRACKING] = ""
+        return result
     else:
         _LOGGER.debug("Unknown sensor type: %s", str(sensor_type))
         result[ATTR_COUNT] = count
@@ -727,6 +727,41 @@ def find_text(sdata, account, search):
             if len(found) > 0:
                 _LOGGER.debug("Found %s in email matches: %s", search, str(len(found)))
                 count += len(found)
+
+    return count
+
+
+def amazon_search(account, image_path, hass):
+    """ Find Amazon Delivered email """
+    _LOGGER.debug("Searching for Amazon delivered email(s)...")
+    domains = const.Amazon_Domains.split(",")
+    subject = const.AMAZON_Delivered_Subject
+    today = get_formatted_date()
+    count = 0
+
+    for domain in domains:
+        email = const.AMAZON_Email + domain
+        try:
+            (rv, data) = account.search(
+                None,
+                '(FROM "'
+                + email
+                + '" SUBJECT "'
+                + subject
+                + '" SENTON "'
+                + today
+                + '")',
+            )
+        except imaplib.IMAP4.error as err:
+            _LOGGER.error("Error searching Amazon emails: %s", str(err))
+            return False
+
+        if rv != "OK":
+            continue
+
+        _LOGGER.debug("Found Amazon delivered email")
+        count += len(data[0].split())
+        get_amazon_image(data[0], account, image_path, hass)
 
     return count
 
