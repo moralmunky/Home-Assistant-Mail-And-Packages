@@ -722,11 +722,11 @@ def find_text(sdata, account, search):
             email_msg = quopri.decodestring(str(msg.get_payload(0)))
             email_msg = email_msg.decode("utf-8")
             pattern = re.compile(r"{}".format(search))
-            found = pattern.findall(email_msg)
-            _LOGGER.debug("Debug: %s", len(found))
-            if len(found) > 0:
-                _LOGGER.debug("Found %s in email matches: %s", search, str(len(found)))
-                count += len(found)
+            found = pattern.search(email_msg)
+            _LOGGER.debug("find_text Debug: %s", found)
+            if found is not None:
+                _LOGGER.debug("Found %s in email", search)
+                count += 1
 
     return count
 
@@ -868,7 +868,7 @@ def get_items(account, param):
                         email_msg = email_msg.decode("utf-8")
                     except Exception as err:
                         _LOGGER.debug(
-                            "Error while attempting to parse Amazon " + "email: %s",
+                            "Error while attempting to parse Amazon email: %s",
                             str(err),
                         )
                         continue
