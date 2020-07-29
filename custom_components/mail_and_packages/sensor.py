@@ -720,7 +720,13 @@ def find_text(sdata, account, search):
                 continue
             msg = email.message_from_bytes(response_part[1])
             email_msg = quopri.decodestring(str(msg.get_payload(0)))
-            email_msg = email_msg.decode("utf-8")
+            try:
+                email_msg = email_msg.decode("utf-8")
+            except Exception as err:
+                _LOGGER.warning(
+                    "Error while attempting to find %s in email: %s", search, str(err),
+                )
+                continue
             pattern = re.compile(r"{}".format(search))
             found = pattern.search(email_msg)
             _LOGGER.debug("find_text Debug: %s", found)
@@ -753,7 +759,7 @@ def amazon_search(account, image_path, hass):
                 + '")',
             )
         except imaplib.IMAP4.error as err:
-            _LOGGER.error("Error searching Amazon emails: %s", str(err))
+            _LOGGER.warning("Error searching Amazon emails: %s", str(err))
             return False
 
         if rv != "OK":
