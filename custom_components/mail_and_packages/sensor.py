@@ -536,7 +536,6 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     subject_2 = None
     filter_text = None
     shipper = None
-    amazon = False
 
     if sensor_type == const.USPS_DELIVERED:
         email = const.USPS_Packages_Email
@@ -589,7 +588,9 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
         result[ATTR_TRACKING] = ""
         return result
 
-    _LOGGER.debug("Attempting to find mail from %s with subject 1 %s", email, subject)
+    _LOGGER.debug(
+        "Attempting to find mail from (%s) with subject 1 (%s)", email, subject
+    )
     try:
         (rv, data) = account.search(
             None,
@@ -602,19 +603,21 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     if rv == "OK":
         if filter_text is not None:
             count += find_text(data[0], account, filter_text)
-        if amazon:
-            get_amazon_image(data[0], account, image_path, hass)
         else:
             count += len(data[0].split())
         _LOGGER.debug(
-            "Search for %s with subject 1 %s results: %s", email, subject, data[0]
+            "Search for (%s) with subject 1 (%s) results: %s count: %s",
+            email,
+            subject,
+            data[0],
+            count,
         )
         if shipper is not None and count > 0:
             tracking = get_tracking(data[0], account, shipper)
 
     if subject_2 is not None:
         _LOGGER.debug(
-            "Attempting to find mail from %s with subject 2 %s", email, subject_2
+            "Attempting to find mail from (%s) with subject 2 (%s)", email, subject_2
         )
         try:
             (rv, data) = account.search(
@@ -637,7 +640,11 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
             else:
                 count += len(data[0].split())
             _LOGGER.debug(
-                "Search for %s with subject 2 %s results: %s", email, subject_2, data[0]
+                "Search for (%s) with subject 2 (%s) results: %s count: %s",
+                email,
+                subject_2,
+                data[0],
+                count,
             )
             if shipper is not None and count > 0:
                 tracking = get_tracking(data[0], account, shipper)
@@ -651,7 +658,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
 
 def get_tracking(sdata, account, shipper):
     """Parse tracking numbers from email subject lines"""
-    _LOGGER.debug("Searching for tracking numbers for %s", shipper)
+    _LOGGER.debug("Searching for tracking numbers for (%s)", shipper)
     tracking = []
     pattern = None
     mail_list = sdata.split()
@@ -678,7 +685,7 @@ def get_tracking(sdata, account, shipper):
                 found = pattern.findall(email_subject)
                 if len(found) > 0:
                     _LOGGER.debug(
-                        "Found %s tracking number in email: %s", shipper, found[0]
+                        "Found (%s) tracking number in email: (%s)", shipper, found[0]
                     )
                     if found[0] in tracking:
                         continue
@@ -690,9 +697,9 @@ def get_tracking(sdata, account, shipper):
                 email_msg = quopri.decodestring(str(msg.get_payload(0)))
                 email_msg = email_msg.decode("utf-8")
                 found = pattern.findall(email_msg)
-                if found is not None:
+                if len(found) > 0:
                     _LOGGER.debug(
-                        "Found %s tracking number in email: %s", shipper, found[0]
+                        "Found (%s) tracking number in email: %s", shipper, found[0]
                     )
                     if found[0] in tracking:
                         continue
@@ -708,7 +715,7 @@ def find_text(sdata, account, search):
     Filter for specific words in email
     Return count of items found
     """
-    _LOGGER.debug("Searching for %s in %s emails", search, len(sdata))
+    _LOGGER.debug("Searching for (%s) in (%s) emails", search, len(sdata))
     mail_list = sdata.split()
     count = 0
     found = None
@@ -724,16 +731,19 @@ def find_text(sdata, account, search):
                 email_msg = email_msg.decode("utf-8")
             except Exception as err:
                 _LOGGER.warning(
-                    "Error while attempting to find %s in email: %s", search, str(err),
+                    "Error while attempting to find (%s) in email: %s",
+                    search,
+                    str(err),
                 )
                 continue
             pattern = re.compile(r"{}".format(search))
             found = pattern.search(email_msg)
             _LOGGER.debug("find_text Debug: %s", found)
             if found is not None:
-                _LOGGER.debug("Found %s in email", search)
+                _LOGGER.debug("Found (%s) in email", search)
                 count += 1
 
+    _LOGGER.debug("Search for (%s) count results: %s", search, count)
     return count
 
 

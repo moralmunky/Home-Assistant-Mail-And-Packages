@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.2.2-b14"
+VERSION = "0.2.2-b15"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 
@@ -35,7 +35,7 @@ USPS_DELIVERING = "usps_delivering"
 USPS_PACKAGES = "usps_packages"
 USPS_TRACKING = "usps_tracking"
 
-USPS_TRACKING_PATTERN = "9[24]\d{15,22}"
+USPS_TRACKING_PATTERN = "9[234]\d{15,22}"
 
 # UPS
 UPS_Email = "mcinfo@ups.com"
