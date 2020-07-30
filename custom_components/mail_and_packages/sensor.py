@@ -536,7 +536,6 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     subject_2 = None
     filter_text = None
     shipper = None
-    amazon = False
 
     if sensor_type == const.USPS_DELIVERED:
         email = const.USPS_Packages_Email
@@ -604,8 +603,6 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     if rv == "OK":
         if filter_text is not None:
             count += find_text(data[0], account, filter_text)
-        if amazon:
-            get_amazon_image(data[0], account, image_path, hass)
         else:
             count += len(data[0].split())
         _LOGGER.debug(
