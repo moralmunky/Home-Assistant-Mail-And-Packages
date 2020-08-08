@@ -876,11 +876,11 @@ def get_items(account, param):
                     """Get order number from subject line"""
                     email_subject = msg["subject"]
                     pattern = re.compile(r"#[0-9]{3}-[0-9]{7}-[0-9]{7}")
-                    found = pattern.search(email_subject)
+                    found = pattern.findall(email_subject)
 
                     """ Don't add the same order number twice """
-                    if found is not None and found not in orderNum:
-                        orderNum.append(found)
+                    if len(found[0]) > 0 and found[0] not in orderNum:
+                        orderNum.append(found[0])
 
                     """Catch bad format emails"""
                     try:
