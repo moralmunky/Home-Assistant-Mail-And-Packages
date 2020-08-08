@@ -649,10 +649,13 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
             if shipper is not None and count > 0:
                 tracking = get_tracking(data[0], account, shipper)
 
-    result[ATTR_COUNT] = count
     if tracking is not None:
+        # Try to guard against duplicate emails via tracking number
+        if len(tracking) < len(count):
+            count = len(tracking)
         result[ATTR_TRACKING] = tracking
 
+    result[ATTR_COUNT] = count
     return result
 
 
@@ -875,8 +878,8 @@ def get_items(account, param):
                     found = pattern.search(email_subject)
 
                     """ Don't add the same order number twice """
-                    if len(found[0]) > 0 and found[0] not in orderNum:
-                        orderNum.append(found[0])
+                    if found is not None and found not in orderNum:
+                        orderNum.append(found)
 
                     """Catch bad format emails"""
                     try:
