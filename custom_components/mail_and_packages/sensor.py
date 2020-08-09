@@ -803,7 +803,7 @@ def get_amazon_image(sdata, account, image_path, hass):
             msg = email.message_from_bytes(response_part[1])
             _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
             _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
-            if not msg.is_multipart():
+            if not msg.is_multipart() and msg.get_content_type() != "text/html":
                 continue
             for part in msg.walk():
                 if part.get_content_type() != "text/html":
