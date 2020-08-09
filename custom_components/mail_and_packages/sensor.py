@@ -881,7 +881,7 @@ def get_items(account, param):
                     found = pattern.findall(email_subject)
 
                     """ Don't add the same order number twice """
-                    if len(found[0]) > 0 and found[0] not in orderNum:
+                    if len(found) > 0 and found[0] not in orderNum:
                         orderNum.append(found[0])
 
                     """Catch bad format emails"""
