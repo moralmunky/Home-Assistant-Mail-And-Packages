@@ -9,7 +9,6 @@ import aiohttp
 import datetime
 from datetime import timedelta
 import email
-from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 from homeassistant.const import (
@@ -184,7 +183,6 @@ class EmailData:
 
 
 class PackagesSensor(Entity):
-
     """ Represntation of a sensor """
 
     def __init__(self, data, sensor_type):
