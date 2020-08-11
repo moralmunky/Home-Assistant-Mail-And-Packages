@@ -2,6 +2,15 @@ DOMAIN = "mail_and_packages"
 VERSION = "0.2.2-b21"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
+DATA = "data"
+
+# Attributes
+ATTR_COUNT = "count"
+ATTR_ORDER = "order"
+ATTR_TRACKING = "tracking"
+ATTR_TRACKING_NUM = "tracking_#"
+ATTR_IMAGE = "image"
+ATTR_SERVER = "server"
 
 # Configuration Properties
 CONF_FOLDER = "folder"
