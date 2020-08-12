@@ -1,7 +1,7 @@
 """Mail and Packages Integration."""
 from . import const
 import aiohttp
-
+import async_timeout
 import datetime
 from datetime import timedelta
 import email
@@ -12,6 +12,8 @@ from homeassistant.const import (
     CONF_PASSWORD,
     CONF_RESOURCES,
 )
+from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import Throttle
 import imageio as io
 import imaplib
@@ -48,7 +50,30 @@ async def async_setup_entry(hass, config_entry):
 
     data = EmailData(hass, config)
 
-    hass.data[const.DOMAIN][config_entry.entry_id] = {
+    async def async_update_data():
+        """Fetch data from NUT."""
+        async with async_timeout.timeout(10):
+            await hass.async_add_executor_job(data.update)
+            if not data:
+                raise UpdateFailed("Error fetching emails")
+
+    coordinator = DataUpdateCoordinator(
+        hass,
+        _LOGGER,
+        name="Mail and Packages Updater",
+        update_method=async_update_data,
+        update_interval=timedelta(
+            minutes=config_entry.options.get(const.CONF_SCAN_INTERVAL)
+        ),
+    )
+
+    # Fetch initial data so we have data when entities subscribe
+    await coordinator.async_refresh()
+
+    if const.DOMAIN_DATA not in hass.data:
+        hass.data[const.DOMAIN_DATA] = {}
+
+    hass.data[const.DOMAIN_DATA][config_entry.entry_id] = {
         const.DATA: data,
     }
 
@@ -74,13 +99,10 @@ async def async_unload_entry(hass, config_entry):
     return True
 
 
-async def update_listener(hass, entry):
+async def update_listener(hass, config_entry):
     """Update listener."""
-    entry.data = entry.options
-    await hass.config_entries.async_forward_entry_unload(entry, const.PLATFORM)
-    hass.async_add_job(
-        hass.config_entries.async_forward_entry_setup(entry, const.PLATFORM)
-    )
+    config_entry.data = config_entry.options
+    await hass.config_entries.async_reload(config_entry.entry_id)
 
 
 class EmailData:
