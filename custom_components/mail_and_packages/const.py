@@ -4,6 +4,7 @@ VERSION = "0.3.0-b0"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 DATA = "data"
+COORDINATOR = "coordinator"
 
 # Attributes
 ATTR_COUNT = "count"

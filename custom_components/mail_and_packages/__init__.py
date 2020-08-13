@@ -75,6 +75,7 @@ async def async_setup_entry(hass, config_entry):
 
     hass.data[const.DOMAIN_DATA][config_entry.entry_id] = {
         const.DATA: data,
+        const.COORDINATOR: coordinator,
     }
 
     config_entry.add_update_listener(update_listener)
@@ -126,8 +127,6 @@ class EmailData:
         self._image_name = None
 
         _LOGGER.debug("Config scan interval: %s", self._scan_interval)
-
-        self.update = Throttle(self._scan_interval)(self.update)
 
     @property
     def device_state_attributes(self):
