@@ -39,6 +39,7 @@ ATTR_TRACKING = "tracking"
 ATTR_TRACKING_NUM = "tracking_#"
 ATTR_IMAGE = "image"
 ATTR_SERVER = "server"
+ATTR_AMAZON_FWDS = "amazon_fwds"
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -91,6 +92,7 @@ class EmailData:
         self._resources = config.get(CONF_RESOURCES)
         self._data = None
         self._image_name = None
+        self._amazon_fwds = config.get(const.CONF_AMAZON_FWDS)
 
         _LOGGER.debug("Config scan interval: %s", self._scan_interval)
 
@@ -135,8 +137,10 @@ class EmailData:
                         self._generate_mp4,
                     )
                 elif sensor == const.AMAZON_PACKAGES:
-                    count[sensor] = get_items(account, ATTR_COUNT)
-                    count[const.AMAZON_ORDER] = get_items(account, ATTR_ORDER)
+                    count[sensor] = get_items(account, ATTR_COUNT, self._amazon_fwds)
+                    count[const.AMAZON_ORDER] = get_items(
+                        account, ATTR_ORDER, self._amazon_fwds
+                    )
                 elif "_packages" in sensor:
                     prefix = sensor.split("_")[0]
                     delivering = prefix + "_delivering"
@@ -841,7 +845,7 @@ async def download_img(img_url, img_path):
                     _LOGGER.debug("Amazon image downloaded")
 
 
-def get_items(account, param):
+def get_items(account, param, fwds=None):
     """Parse Amazon emails for delivery date and order number"""
 
     _LOGGER.debug("Attempting to find Amazon email with item list ...")
@@ -852,10 +856,16 @@ def get_items(account, param):
     deliveriesToday = []
     orderNum = []
     domains = const.Amazon_Domains.split(",")
+    if fwds:
+        domains.append(fwds.split(","))
 
     for domain in domains:
         try:
-            email_address = "shipment-tracking@" + domain
+            if "@" in domain:
+                email_address = domain
+            else:
+                email_address = "shipment-tracking@" + domain
+
             (rv, sdata) = account.search(
                 None, '(FROM "' + email_address + '" SINCE ' + tfmt + ")"
             )

@@ -5,6 +5,13 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.core import callback
 from homeassistant import config_entries
 from .const import (
+    CONF_AMAZON_FWDS,
+    CONF_DURATION,
+    CONF_SCAN_INTERVAL,
+    CONF_FOLDER,
+    CONF_PATH,
+    CONF_IMAGE_SECURITY,
+    CONF_GENERATE_MP4,
     DOMAIN,
     DEFAULT_PORT,
     DEFAULT_PATH,
@@ -13,12 +20,6 @@ from .const import (
     DEFAULT_GIF_DURATION,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_FFMPEG,
-    CONF_DURATION,
-    CONF_SCAN_INTERVAL,
-    CONF_FOLDER,
-    CONF_PATH,
-    CONF_IMAGE_SECURITY,
-    CONF_GENERATE_MP4,
     SENSOR_TYPES,
     SENSOR_NAME,
 )
@@ -47,6 +48,7 @@ ATTR_SCAN_INTERVAL = "scan_interval"
 ATTR_GIF_DURATION = "gif_duration"
 ATTR_IMAGE_SECURITY = "image_security"
 ATTR_GENERATE_MP4 = "generate_mp4"
+ATTR_AMAZON_FWDS = "amazon_fwds"
 
 
 def get_resources():
@@ -192,6 +194,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         image_security = DEFAULT_IMAGE_SECURITY
         generate_mp4 = DEFAULT_FFMPEG
         known_available_resources = get_resources()
+        amazon_fwds = ""
 
         account = imaplib.IMAP4_SSL(self._data[ATTR_HOST], self._data[ATTR_PORT])
         status, data = account.login(
@@ -230,12 +233,15 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 image_security = user_input[ATTR_IMAGE_SECURITY]
             if ATTR_GENERATE_MP4 in user_input:
                 generate_mp4 = user_input[ATTR_GENERATE_MP4]
+            if ATTR_AMAZON_FWDS in user_input:
+                amazon_fwds = user_input[ATTR_AMAZON_FWDS]
 
         data_schema = OrderedDict()
         data_schema[vol.Required(ATTR_FOLDER, default=folder)] = vol.In(mailboxes)
         data_schema[vol.Required(CONF_RESOURCES, default=[])] = cv.multi_select(
             known_available_resources
         )
+        data_schema[vol.Optional(ATTR_AMAZON_FWDS, default=amazon_fwds)] = str
         data_schema[
             vol.Optional(ATTR_SCAN_INTERVAL, default=scan_interval)
         ] = vol.Coerce(int)
@@ -352,6 +358,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         generate_mp4 = self.config.options.get(CONF_GENERATE_MP4)
         resources = self.config.options.get(CONF_RESOURCES)
         known_available_resources = get_resources()
+        amazon_fwds = self.config.options.get(CONF_AMAZON_FWDS)
 
         account = imaplib.IMAP4_SSL(self._data[ATTR_HOST], self._data[ATTR_PORT])
         status, data = account.login(
@@ -390,12 +397,15 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
                 image_security = user_input[ATTR_IMAGE_SECURITY]
             if ATTR_GENERATE_MP4 in user_input:
                 generate_mp4 = user_input[ATTR_GENERATE_MP4]
+            if ATTR_AMAZON_FWDS in user_input:
+                amazon_fwds = user_input[ATTR_AMAZON_FWDS]
 
         data_schema = OrderedDict()
         data_schema[vol.Required(ATTR_FOLDER, default=folder)] = vol.In(mailboxes)
         data_schema[vol.Required(CONF_RESOURCES, default=resources)] = cv.multi_select(
             known_available_resources
         )
+        data_schema[vol.Optional(ATTR_AMAZON_FWDS, default=amazon_fwds)] = str
         data_schema[
             vol.Optional(ATTR_SCAN_INTERVAL, default=scan_interval)
         ] = vol.Coerce(int)
