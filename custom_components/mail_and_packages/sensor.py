@@ -445,6 +445,7 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
 
         if gen_mp4:
             _generate_mp4(image_output_path, image_name)
+            _generate_mp4_loop(image_output_path, image_name)
 
     return image_count
 
@@ -456,7 +457,7 @@ def _generate_mp4(path, image_file):
     comamnd: ffmpeg -f gif -i infile.gif outfile.mp4
     """
     gif_image = os.path.join(path, image_file)
-    mp4_file = os.path.join(path, image_file.replace(".gif", ".mp4"))
+    mp4_file = os.path.join(path, image_file.replace(".gif", "2.mp4"))
     filecheck = os.path.isfile(mp4_file)
     _LOGGER.debug("Generating mp4: %s", mp4_file)
     if filecheck:
@@ -473,15 +474,49 @@ def _generate_mp4(path, image_file):
             "gif",
             "-i",
             gif_image,
+            "-filter_complex",
+            "color=c=white:s=700x300:d=8 [base]; [base][0:v] overlay",
             "-pix_fmt",
             "yuv420p",
-            "-filter:v",
-            "crop='floor(in_w/2)*2:floor(in_h/2)*2'",
             mp4_file,
         ],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
+
+def _generate_mp4_loop(path, image_file):
+    """
+    Generate mp4 from gif
+    use a subprocess so we don't lock up the thread
+    comamnd: ffmpeg -f gif -i infile.gif outfile.mp4
+    """
+    mp4_file = os.path.join(path, image_file.replace(".gif", "2.mp4"))
+    mp4_file_out = os.path.join(path, image_file.replace(".gif", ".mp4"))
+    _LOGGER.debug("Generating loop mp4: %s", mp4_file_out)
+ 
+    subprocess.call(
+        [
+            "ffmpeg",
+            "-y",
+            "-stream_loop",
+            "6",
+            "-i",
+            mp4_file,
+            "-c",
+            "copy",
+            mp4_file_out,
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    
+    filecheck = os.path.isfile(mp4_file)
+    if filecheck:
+        try:
+            os.remove(mp4_file)
+            _LOGGER.debug("Removing old mp4: %s", mp4_file)
+        except Exception as err:
+            _LOGGER.error("Error attempting to remove mp4: %s", str(err))
 
 
 def resize_images(images, width, height):
