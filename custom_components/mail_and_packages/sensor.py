@@ -479,6 +479,8 @@ def _generate_mp4(path, image_file):
             "yuv420p",
             "-filter:v",
             "crop='floor(in_w/2)*2:floor(in_h/2)*2'",
+            "-filter_complex",
+            "loop=2",
             mp4_file,
         ],
         stdout=subprocess.DEVNULL,
@@ -551,6 +553,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     elif sensor_type == const.UPS_DELIVERED:
         email = const.UPS_Email
         subject = const.UPS_Delivered_Subject
+        subject_2 = const.UPS_Delivered_Subject_2
         filter_text = const.UPS_Body_Text
     elif sensor_type == const.UPS_DELIVERING:
         email = const.UPS_Email
