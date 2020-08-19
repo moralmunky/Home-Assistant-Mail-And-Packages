@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.2.2-b21"
+VERSION = "0.2.2-b22"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 
@@ -10,6 +10,7 @@ CONF_DURATION = "gif_duration"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_IMAGE_SECURITY = "image_security"
 CONF_GENERATE_MP4 = "generate_mp4"
+CONF_AMAZON_FWDS = "amazon_fwds"
 
 # Defaults
 DEFAULT_NAME = "Mail And Packages"
@@ -42,6 +43,7 @@ UPS_Email = "mcinfo@ups.com"
 UPS_Delivering_Subject = "UPS Update: Package Scheduled for Delivery Today"
 UPS_Delivering_Subject_2 = "UPS Update: Follow Your Delivery on a Live Map"
 UPS_Delivered_Subject = "Your UPS Package was delivered"
+UPS_Delivered_Subject_2 = "Your UPS Packages were delivered"
 UPS_Body_Text = "Tracking Number"
 
 UPS_DELIVERED = "ups_delivered"

@@ -9,7 +9,6 @@ import aiohttp
 import datetime
 from datetime import timedelta
 import email
-from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 from homeassistant.const import (
@@ -40,6 +39,7 @@ ATTR_TRACKING = "tracking"
 ATTR_TRACKING_NUM = "tracking_#"
 ATTR_IMAGE = "image"
 ATTR_SERVER = "server"
+ATTR_AMAZON_FWDS = "amazon_fwds"
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -92,6 +92,7 @@ class EmailData:
         self._resources = config.get(CONF_RESOURCES)
         self._data = None
         self._image_name = None
+        self._amazon_fwds = config.get(const.CONF_AMAZON_FWDS)
 
         _LOGGER.debug("Config scan interval: %s", self._scan_interval)
 
@@ -136,8 +137,10 @@ class EmailData:
                         self._generate_mp4,
                     )
                 elif sensor == const.AMAZON_PACKAGES:
-                    count[sensor] = get_items(account, ATTR_COUNT)
-                    count[const.AMAZON_ORDER] = get_items(account, ATTR_ORDER)
+                    count[sensor] = get_items(account, ATTR_COUNT, self._amazon_fwds)
+                    count[const.AMAZON_ORDER] = get_items(
+                        account, ATTR_ORDER, self._amazon_fwds
+                    )
                 elif "_packages" in sensor:
                     prefix = sensor.split("_")[0]
                     delivering = prefix + "_delivering"
@@ -184,7 +187,6 @@ class EmailData:
 
 
 class PackagesSensor(Entity):
-
     """ Represntation of a sensor """
 
     def __init__(self, data, sensor_type):
@@ -477,6 +479,8 @@ def _generate_mp4(path, image_file):
             "yuv420p",
             "-filter:v",
             "crop='floor(in_w/2)*2:floor(in_h/2)*2'",
+            "-filter_complex",
+            "loop=2",
             mp4_file,
         ],
         stdout=subprocess.DEVNULL,
@@ -549,6 +553,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     elif sensor_type == const.UPS_DELIVERED:
         email = const.UPS_Email
         subject = const.UPS_Delivered_Subject
+        subject_2 = const.UPS_Delivered_Subject_2
         filter_text = const.UPS_Body_Text
     elif sensor_type == const.UPS_DELIVERING:
         email = const.UPS_Email
@@ -843,7 +848,7 @@ async def download_img(img_url, img_path):
                     _LOGGER.debug("Amazon image downloaded")
 
 
-def get_items(account, param):
+def get_items(account, param, fwds=None):
     """Parse Amazon emails for delivery date and order number"""
 
     _LOGGER.debug("Attempting to find Amazon email with item list ...")
@@ -854,10 +859,16 @@ def get_items(account, param):
     deliveriesToday = []
     orderNum = []
     domains = const.Amazon_Domains.split(",")
+    if fwds:
+        domains.append(fwds.split(","))
 
     for domain in domains:
         try:
-            email_address = "shipment-tracking@" + domain
+            if "@" in domain:
+                email_address = domain
+            else:
+                email_address = "shipment-tracking@" + domain
+
             (rv, sdata) = account.search(
                 None, '(FROM "' + email_address + '" SINCE ' + tfmt + ")"
             )
