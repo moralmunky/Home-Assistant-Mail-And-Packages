@@ -886,6 +886,9 @@ def get_items(account, param, fwds=None):
                         continue
                     msg = email.message_from_bytes(response_part[1])
 
+                    _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
+                    _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
+
                     """Get order number from subject line"""
                     email_subject = msg["subject"]
                     pattern = re.compile(r"#[0-9]{3}-[0-9]{7}-[0-9]{7}")
