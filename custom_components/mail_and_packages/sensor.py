@@ -901,10 +901,18 @@ def get_items(account, param, fwds=None):
                     """Catch bad format emails"""
                     try:
                         email_msg = quopri.decodestring(str(msg.get_payload(0)))
+                    except Exception as err:
+                        _LOGGER.debug(
+                            "Error while attempting to decode payload Amazon email: %s",
+                            str(err),
+                        )
+                        continue
+
+                    try:
                         email_msg = email_msg.decode("utf-8")
                     except Exception as err:
                         _LOGGER.debug(
-                            "Error while attempting to parse Amazon email: %s",
+                            "Error while attempting to decode Amazon email: %s",
                             str(err),
                         )
                         continue
