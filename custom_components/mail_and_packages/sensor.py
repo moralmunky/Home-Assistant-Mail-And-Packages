@@ -744,7 +744,7 @@ def find_text(sdata, account, search):
                 )
                 continue
             pattern = re.compile(r"{}".format(search))
-            found = pattern.search(email_msg)
+            found = pattern.findall(email_msg)
             _LOGGER.debug("find_text Debug: %s", found)
             if found is not None:
                 _LOGGER.debug("Found (%s) in email", search)
