@@ -358,7 +358,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         generate_mp4 = self.config.options.get(CONF_GENERATE_MP4)
         resources = self.config.options.get(CONF_RESOURCES)
         known_available_resources = get_resources()
-        amazon_fwds = self.config.options.get(CONF_AMAZON_FWDS)
+        amazon_fwds = self.config.options.get(CONF_AMAZON_FWDS) or ""
 
         account = imaplib.IMAP4_SSL(self._data[ATTR_HOST], self._data[ATTR_PORT])
         status, data = account.login(
