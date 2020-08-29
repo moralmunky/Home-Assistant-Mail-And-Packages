@@ -724,7 +724,7 @@ def find_text(sdata, account, search):
     """
     _LOGGER.debug("Searching for (%s) in (%s) emails", search, len(sdata))
     mail_list = sdata.split()
-    found = 0
+    found = []
 
     for i in mail_list:
         typ, data = account.fetch(i, "(RFC822)")
