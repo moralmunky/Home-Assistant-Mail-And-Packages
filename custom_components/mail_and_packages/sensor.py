@@ -724,8 +724,7 @@ def find_text(sdata, account, search):
     """
     _LOGGER.debug("Searching for (%s) in (%s) emails", search, len(sdata))
     mail_list = sdata.split()
-    count = 0
-    found = None
+    found = 0
 
     for i in mail_list:
         typ, data = account.fetch(i, "(RFC822)")
@@ -746,12 +745,9 @@ def find_text(sdata, account, search):
             pattern = re.compile(r"{}".format(search))
             found = pattern.findall(email_msg)
             _LOGGER.debug("find_text Debug: %s", found)
-            if found is not None:
-                _LOGGER.debug("Found (%s) in email", search)
-                count += 1
 
-    _LOGGER.debug("Search for (%s) count results: %s", search, count)
-    return count
+    _LOGGER.debug("Search for (%s) count results: %s", search, len(found))
+    return len(found)
 
 
 def amazon_search(account, image_path, hass):
