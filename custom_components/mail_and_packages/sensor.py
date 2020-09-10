@@ -594,10 +594,29 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
         "Attempting to find mail from (%s) with subject 1 (%s)", email, subject
     )
     try:
-        (rv, data) = account.search(
-            None,
-            '(FROM "' + email + '" SUBJECT "' + subject + '" SENTON "' + today + '")',
-        )
+        if isinstance(email, list):
+            email_search = " OR FROM ".join(email)
+            (rv, data) = account.search(
+                None,
+                '(FROM "'
+                + email_search
+                + '" SUBJECT "'
+                + subject
+                + '" SENTON "'
+                + today
+                + '")',
+            )
+        else:
+            (rv, data) = account.search(
+                None,
+                '(FROM "'
+                + email
+                + '" SUBJECT "'
+                + subject
+                + '" SENTON "'
+                + today
+                + '")',
+            )
     except imaplib.IMAP4.error as err:
         _LOGGER.error("Error searching emails: %s", str(err))
         return False
