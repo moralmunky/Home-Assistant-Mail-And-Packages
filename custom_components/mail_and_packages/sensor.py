@@ -947,6 +947,23 @@ def get_items(account, param, fwds=None):
                         ):
                             deliveriesToday.append("Amazon Order")
 
+                    elif "guaranteed delivery date is:" in email_msg:
+                        start = email_msg.find("guaranteed delivery date is:") + len(
+                            "guaranteed delivery date is:"
+                        )
+                        end = email_msg.find("Track your package at")
+                        arrive_date = email_msg[start:end].strip()
+                        arrive_date = arrive_date.split(" ")
+                        arrive_date = arrive_date[0:3]
+                        arrive_date[2] = arrive_date[2][:2]
+                        arrive_date = " ".join(arrive_date).strip()
+                        dateobj = datetime.datetime.strptime(arrive_date, "%A, %B %d")
+                        if (
+                            dateobj.day == datetime.date.today().day
+                            and dateobj.month == datetime.date.today().month
+                        ):
+                            deliveriesToday.append("Amazon Order")
+
     if param == "count":
         _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
         return len(deliveriesToday)
