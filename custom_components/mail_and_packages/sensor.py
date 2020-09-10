@@ -594,10 +594,29 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
         "Attempting to find mail from (%s) with subject 1 (%s)", email, subject
     )
     try:
-        (rv, data) = account.search(
-            None,
-            '(FROM "' + email + '" SUBJECT "' + subject + '" SENTON "' + today + '")',
-        )
+        if isinstance(email, list):
+            email_search = " OR FROM ".join(email)
+            (rv, data) = account.search(
+                None,
+                '(FROM "'
+                + email_search
+                + '" SUBJECT "'
+                + subject
+                + '" SENTON "'
+                + today
+                + '")',
+            )
+        else:
+            (rv, data) = account.search(
+                None,
+                '(FROM "'
+                + email
+                + '" SUBJECT "'
+                + subject
+                + '" SENTON "'
+                + today
+                + '")',
+            )
     except imaplib.IMAP4.error as err:
         _LOGGER.error("Error searching emails: %s", str(err))
         return False
@@ -933,6 +952,23 @@ def get_items(account, param, fwds=None):
                     elif "estimated delivery date is:" in email_msg:
                         start = email_msg.find("estimated delivery date is:") + len(
                             "estimated delivery date is:"
+                        )
+                        end = email_msg.find("Track your package at")
+                        arrive_date = email_msg[start:end].strip()
+                        arrive_date = arrive_date.split(" ")
+                        arrive_date = arrive_date[0:3]
+                        arrive_date[2] = arrive_date[2][:2]
+                        arrive_date = " ".join(arrive_date).strip()
+                        dateobj = datetime.datetime.strptime(arrive_date, "%A, %B %d")
+                        if (
+                            dateobj.day == datetime.date.today().day
+                            and dateobj.month == datetime.date.today().month
+                        ):
+                            deliveriesToday.append("Amazon Order")
+
+                    elif "guaranteed delivery date is:" in email_msg:
+                        start = email_msg.find("guaranteed delivery date is:") + len(
+                            "guaranteed delivery date is:"
                         )
                         end = email_msg.find("Track your package at")
                         arrive_date = email_msg[start:end].strip()
