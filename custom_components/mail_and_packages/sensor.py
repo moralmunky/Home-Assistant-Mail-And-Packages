@@ -235,11 +235,11 @@ class PackagesSensor(Entity):
         """Return device specific state attributes."""
         attr = {}
         attr[ATTR_SERVER] = self.data._host
-        if self.data._data[const.AMAZON_HUB_CODE]:
+        if self.type == const.AMAZON_HUB and self.data._data[const.AMAZON_HUB_CODE]:
             attr[ATTR_CODE] = self.data._data[const.AMAZON_HUB_CODE]
-        elif "Amazon" in self._name:
+        elif self.type == const.AMAZON_PACKAGES:
             attr[ATTR_ORDER] = self.data._data[const.AMAZON_ORDER]
-        elif "Mail USPS Mail" == self._name:
+        elif self.type == const.USPS_MAIL:
             attr[ATTR_IMAGE] = self.data._image_name
         elif self.type == const.USPS_DELIVERING:
             attr[ATTR_TRACKING_NUM] = self.data._data[const.USPS_TRACKING]

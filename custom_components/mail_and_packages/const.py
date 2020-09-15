@@ -35,6 +35,7 @@ USPS_DELIVERED = "usps_delivered"
 USPS_DELIVERING = "usps_delivering"
 USPS_PACKAGES = "usps_packages"
 USPS_TRACKING = "usps_tracking"
+USPS_MAIL = "usps_mail"
 
 USPS_TRACKING_PATTERN = "9[234]\d{15,22}"
 
