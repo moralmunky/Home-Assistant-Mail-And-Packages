@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.2.2-b25"
+VERSION = "0.2.2-b26"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 
@@ -35,6 +35,7 @@ USPS_DELIVERED = "usps_delivered"
 USPS_DELIVERING = "usps_delivering"
 USPS_PACKAGES = "usps_packages"
 USPS_TRACKING = "usps_tracking"
+USPS_MAIL = "usps_mail"
 
 USPS_TRACKING_PATTERN = "9[234]\d{15,22}"
 
@@ -76,6 +77,10 @@ AMAZON_DELIVERED = "amazon_delivered"
 AMAZON_IMG_PATTERN = (
     "(https://)([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-;]*[\w@?^=%&/~+#-;])?"
 )
+AMAZON_HUB = "amazon_hub"
+AMAZON_HUB_CODE = "amazon_hub_code"
+AMAZON_HUB_EMAIL = "thehub@amazon.com"
+AMAZON_HUB_SUBJECT = "(You have a package to pick up)(.*)- (\d{6})"
 
 # Canada Post
 CAPost_Email = "donotreply@canadapost.postescanada.ca"
@@ -139,6 +144,7 @@ SENSOR_TYPES = {
         "package(s)",
         "mdi:package-variant-closed",
     ],
+    "amazon_hub": ["Mail Amazon Hub Packages", "package(s)", "mdi:amazon"],
     "capost_delivered": [
         "Mail Canada Post Delivered",
         "package(s)",
@@ -176,8 +182,10 @@ SENSOR_TYPES = {
     ],
 }
 
+# Sensor Index
 SENSOR_NAME = 0
 SENSOR_UNIT = 1
 SENSOR_ICON = 2
+
 # For sensors with delivering and delivered statuses
 SHIPPERS = ["capost", "dhl", "fedex", "ups", "usps"]
