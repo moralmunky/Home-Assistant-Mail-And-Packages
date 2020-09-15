@@ -4,6 +4,7 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
+from multiprocessing.util import info
 from . import const
 import aiohttp
 import datetime
@@ -35,6 +36,7 @@ _LOGGER = logging.getLogger(__name__)
 
 ATTR_COUNT = "count"
 ATTR_ORDER = "order"
+ATTR_CODE = "code"
 ATTR_TRACKING = "tracking"
 ATTR_TRACKING_NUM = "tracking_#"
 ATTR_IMAGE = "image"
@@ -141,6 +143,10 @@ class EmailData:
                     count[const.AMAZON_ORDER] = get_items(
                         account, ATTR_ORDER, self._amazon_fwds
                     )
+                elif sensor == const.AMAZON_HUB:
+                    value = amazon_hub(account, self._amazon_fwds)
+                    count[sensor] = value[ATTR_COUNT]
+                    count[const.AMAZON_HUB_CODE] = value[ATTR_CODE]
                 elif "_packages" in sensor:
                     prefix = sensor.split("_")[0]
                     delivering = prefix + "_delivering"
@@ -229,7 +235,9 @@ class PackagesSensor(Entity):
         """Return device specific state attributes."""
         attr = {}
         attr[ATTR_SERVER] = self.data._host
-        if "Amazon" in self._name:
+        if self.data._data[const.AMAZON_HUB_CODE]:
+            attr[ATTR_CODE] = self.data._data[const.AMAZON_HUB_CODE]
+        elif "Amazon" in self._name:
             attr[ATTR_ORDER] = self.data._data[const.AMAZON_ORDER]
         elif "Mail USPS Mail" == self._name:
             attr[ATTR_IMAGE] = self.data._image_name
@@ -859,6 +867,42 @@ async def download_img(img_url, img_path):
                 with open(filepath, "wb") as f:
                     f.write(data)
                     _LOGGER.debug("Amazon image downloaded")
+
+
+def amazon_hub(account, fwds=None):
+    email_address = const.AMAZON_HUB_EMAIL
+    subject_regex = const.AMAZON_HUB_SUBJECT
+    info = {}
+    past_date = datetime.date.today() - datetime.timedelta(days=3)
+    tfmt = past_date.strftime("%d-%b-%Y")
+
+    try:
+        (rv, sdata) = account.search(
+            None, '(FROM "' + email_address + '" SINCE ' + tfmt + ")"
+        )
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("Error searching emails: %s", str(err))
+
+    else:
+        found = []
+        mail_ids = sdata[0]
+        id_list = mail_ids.split()
+        _LOGGER.debug("Amazon hub emails found: %s", str(len(id_list)))
+        for i in id_list:
+            typ, data = account.fetch(i, "(RFC822)")
+            for response_part in data:
+                if not isinstance(response_part, tuple):
+                    continue
+                msg = email.message_from_bytes(response_part[1])
+
+                # Get combo number from subject line
+                email_subject = msg["subject"]
+                re.compile(r"{}".format(subject_regex))
+                found.append(pattern.findall(email_subject))
+
+        info[ATTR_COUNT] = len(found)
+        info[ATTR_CODE] = found
+    return info
 
 
 def get_items(account, param, fwds=None):
