@@ -15,9 +15,7 @@ async def setup_mnp(hass, fixture=None):
 
     entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.mail_and_packages.sensor.EmailData.update"
-    ) as mock_update:
+    with patch("custom_components.mail_and_packages.EmailData.update") as mock_update:
         mock_update.return_value = Mock()
 
         assert await hass.config_entries.async_setup(entry.entry_id)
