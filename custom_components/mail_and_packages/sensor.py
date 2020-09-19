@@ -17,6 +17,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
     data = hass.data[const.DOMAIN_DATA][entry.entry_id][const.DATA]
     coordinator = hass.data[const.DOMAIN_DATA][entry.entry_id][const.COORDINATOR]
 
+    _LOGGER.debug("DEBUG: %s", str(data))
+
     sensors = []
 
     if CONF_RESOURCES in entry.options:
