@@ -2,13 +2,13 @@
 
 from tests.const import FAKE_UPDATE_DATA
 import pytest
+from pytest_homeassistant_custom_component.async_mock import patch
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
 
-@pytest.fixture(name="generic_data", scope="session")
+@pytest.fixture()
 def mock_generic_data():
     """ Mock email data update class values. """
-    data = FAKE_UPDATE_DATA
-
-    return data
+    with patch("custom_components.mail_and_packages.EmailData.update") as mock_update:
+        yield mock_update
