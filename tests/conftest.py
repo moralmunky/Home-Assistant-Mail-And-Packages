@@ -17,5 +17,16 @@ def mock_update():
     ) as mock_update:
         value = Mock()
         value._data = FAKE_UPDATE_DATA
+        value._host = "imap.test.email"
         mock_update.return_value = value
         yield mock_update
+
+
+@pytest.fixture()
+def mock_login_test():
+    """ Mock email server login check. """
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", autospec=True
+    ) as mock_login_test:
+        mock_login_test.return_value = True
+        yield mock_login_test

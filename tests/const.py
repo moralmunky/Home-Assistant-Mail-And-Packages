@@ -51,6 +51,7 @@ FAKE_UPDATE_DATA = {
     "fedex_tracking": ["1234567890"],
     "amazon_packages": 7,
     "amazon_delivered": 2,
+    "amazon_order": ["#123-4567890"],
     "amazon_hub": 2,
     "amazon_hub_code": 123456,
     "capost_delivered": 1,

@@ -261,6 +261,48 @@ def update_time():
     return updated
 
 
+def email_search(account, address, date, subject=None):
+    """ Search emails with from, subject, senton date.
+
+    Returns a tuple
+    """
+    if subject:
+        try:
+            value = account.search(
+                None,
+                '(FROM "'
+                + address
+                + '" SUBJECT "'
+                + subject
+                + '" SENTON "'
+                + date
+                + '")',
+            )
+        except imaplib.IMAP4.error as err:
+            _LOGGER.error("Error searching emails: %s", str(err))
+            return False
+    else:
+        try:
+            value = account.search(
+                None, '(FROM "' + address + '" SENTON "' + date + '")',
+            )
+        except imaplib.IMAP4.error as err:
+            _LOGGER.error("Error searching emails: %s", str(err))
+            return False
+
+    return value
+
+
+def email_fetch(account, num, type):
+    """ Download specified email for parsing.
+
+    Returns tuple
+    """
+    value = account.fetch(num, "(RFC822)")
+
+    return value
+
+
 def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=False):
     """Creates GIF image based on the attachments in the inbox"""
     today = get_formatted_date()
@@ -271,18 +313,11 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
 
     _LOGGER.debug("Attempting to find Informed Delivery mail")
 
-    (rv, data) = account.search(
-        None,
-        '(FROM "'
-        + const.USPS_Mail_Email
-        + '" SUBJECT "'
-        + const.USPS_Mail_Subject
-        + '" SENTON "'
-        + today
-        + '")',
+    (rv, data) = email_search(
+        account, const.USPS_Mail_Email, const.USPS_Mail_Subject, today
     )
 
-    """Check to see if the path exists, if not make it"""
+    # Check to see if the path exists, if not make it
     pathcheck = os.path.isdir(image_output_path)
     if not pathcheck:
         try:
@@ -297,7 +332,7 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
     if rv == "OK":
         _LOGGER.debug("Informed Delivery email found processing...")
         for num in data[0].split():
-            (rv, data) = account.fetch(num, "(RFC822)")
+            (rv, data) = email_fetch(account, num, "(RFC822)")
             msg = email.message_from_string(data[0][1].decode("utf-8"))
 
             """walking through the email parts to find images"""
@@ -546,14 +581,8 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     _LOGGER.debug(
         "Attempting to find mail from (%s) with subject 1 (%s)", email, subject
     )
-    try:
-        (rv, data) = account.search(
-            None,
-            '(FROM "' + email + '" SUBJECT "' + subject + '" SENTON "' + today + '")',
-        )
-    except imaplib.IMAP4.error as err:
-        _LOGGER.error("Error searching emails: %s", str(err))
-        return False
+
+    (rv, data) = email_search(account, email, today, subject)
 
     if rv == "OK":
         if filter_text is not None:
@@ -574,20 +603,8 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
         _LOGGER.debug(
             "Attempting to find mail from (%s) with subject 2 (%s)", email, subject_2
         )
-        try:
-            (rv, data) = account.search(
-                None,
-                '(FROM "'
-                + email
-                + '" SUBJECT "'
-                + subject_2
-                + '" SENTON "'
-                + today
-                + '")',
-            )
-        except imaplib.IMAP4.error as err:
-            _LOGGER.error("Error searching emails: %s", str(err))
-            return False
+
+        (rv, data) = email_search(account, email, today, subject_2)
 
         if rv == "OK":
             if filter_text is not None:
@@ -634,7 +651,7 @@ def get_tracking(sdata, account, shipper):
         pattern = re.compile(r"{}".format(const.DHL_TRACKING_PATTERN))
 
     for i in mail_list:
-        typ, data = account.fetch(i, "(RFC822)")
+        typ, data = email_fetch(account, i, "(RFC822)")
         for response_part in data:
             if not isinstance(response_part, tuple):
                 continue
@@ -680,7 +697,7 @@ def find_text(sdata, account, search):
     found = None
 
     for i in mail_list:
-        typ, data = account.fetch(i, "(RFC822)")
+        typ, data = email_fetch(account, i, "(RFC822)")
         for response_part in data:
             if not isinstance(response_part, tuple):
                 continue
@@ -716,20 +733,7 @@ def amazon_search(account, image_path, hass):
 
     for domain in domains:
         email = const.AMAZON_Email + domain
-        try:
-            (rv, data) = account.search(
-                None,
-                '(FROM "'
-                + email
-                + '" SUBJECT "'
-                + subject
-                + '" SENTON "'
-                + today
-                + '")',
-            )
-        except imaplib.IMAP4.error as err:
-            _LOGGER.warning("Error searching Amazon emails: %s", str(err))
-            return False
+        (rv, data) = email_search(account, email, today, subject)
 
         if rv != "OK":
             continue
@@ -751,7 +755,7 @@ def get_amazon_image(sdata, account, image_path, hass):
     _LOGGER.debug("HTML Amazon emails found: %s", len(mail_list))
 
     for i in mail_list:
-        typ, data = account.fetch(i, "(RFC822)")
+        typ, data = email_fetch(account, i, "(RFC822)")
         for response_part in data:
             if not isinstance(response_part, tuple):
                 continue
@@ -811,20 +815,15 @@ def get_items(account, param):
     domains = const.Amazon_Domains.split(",")
 
     for domain in domains:
-        try:
-            email_address = "shipment-tracking@" + domain
-            (rv, sdata) = account.search(
-                None, '(FROM "' + email_address + '" SINCE ' + tfmt + ")"
-            )
-        except imaplib.IMAP4.error as err:
-            _LOGGER.error("Error searching emails: %s", str(err))
+        email_address = "shipment-tracking@" + domain
+        (rv, sdata) = email_search(account, email_address, tfmt)
 
-        else:
+        if rv == "OK":
             mail_ids = sdata[0]
             id_list = mail_ids.split()
             _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
             for i in id_list:
-                typ, data = account.fetch(i, "(RFC822)")
+                typ, data = email_fetch(account, i, "(RFC822)")
                 for response_part in data:
                     if not isinstance(response_part, tuple):
                         continue
