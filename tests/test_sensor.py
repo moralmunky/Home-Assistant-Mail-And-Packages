@@ -1,12 +1,14 @@
 """ Test Mail and Packages Sensor """
-from custom_components.mail_and_packages import EmailData
+from homeassistant import config_entries
+from homeassistant.components import sensor
+from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from pytest_homeassistant_custom_component.async_mock import patch, PropertyMock
 from tests.const import FAKE_UPDATE_DATA, FAKE_CONFIG_DATA
 from custom_components.mail_and_packages.const import DOMAIN
+from unittest.mock import Mock
 
 
-async def test_sensor(hass):
+async def test_sensor(hass, mock_update):
 
     entry = MockConfigEntry(
         domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
@@ -16,14 +18,9 @@ async def test_sensor(hass):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    with patch("custom_components.mail_and_packages.EmailData.update") as mock_update:
+    assert "mail_and_packages" in hass.config.components
 
-        e = EmailData(hass, FAKE_CONFIG_DATA)
+    state = hass.states.get("sensor.mail_updated")
 
-        with patch.object(e, "_data", FAKE_UPDATE_DATA):
-            assert "mail_and_packages" in hass.config.components
-
-            state = hass.states.get("sensor.mail_updated")
-
-            assert state
-            assert state.state == "Sep-18-2020 06:29 PM"
+    assert state
+    assert state.state == "Sep-18-2020 06:29 PM"
