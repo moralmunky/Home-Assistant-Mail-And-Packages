@@ -6,10 +6,9 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    "title_1,input_1,step_id_2,input_2,title_2,data",
+    "input_1,step_id_2,input_2,title,data",
     [
         (
-            "Mail and Packages (Step 1 of 2)",
             {
                 "host": "imap.test.email",
                 "port": "993",
@@ -18,12 +17,11 @@ import pytest
             },
             "config_2",
             {
-                "amazon_fwds": '""',
                 "folder": '"INBOX"',
-                "generate_mp4": "false",
+                "generate_mp4": False,
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
-                "image_security": "true",
+                "image_security": True,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -46,18 +44,17 @@ import pytest
                     "amazon_delivered",
                 ],
             },
-            "Mail and Packages (Step 2 of 2)",
+            "imap.test.email",
             {
                 "host": "imap.test.email",
-                "port": "993",
+                "port": 993,
                 "username": "test@test.email",
                 "password": "notarealpassword",
-                "amazon_fwds": '""',
                 "folder": '"INBOX"',
-                "generate_mp4": "false",
+                "generate_mp4": False,
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
-                "image_security": "true",
+                "image_security": True,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -84,7 +81,7 @@ import pytest
     ],
 )
 async def test_form(
-    title_1, input_1, step_id_2, input_2, title_2, data, hass, mock_login_test
+    input_1, step_id_2, input_2, title, data, hass, mock_imap,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -96,10 +93,19 @@ async def test_form(
     # assert result["title"] == title_1
 
     with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._validate_path",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
         "custom_components.mail_and_packages.async_setup_entry", return_value=True,
     ) as mock_setup_entry:
+
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -111,7 +117,7 @@ async def test_form(
         )
 
     assert result3["type"] == "create_entry"
-    assert result3["title"] == title_2
+    assert result3["title"] == title
     assert result3["data"] == data
 
     await hass.async_block_till_done()

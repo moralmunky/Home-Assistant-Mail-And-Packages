@@ -217,6 +217,7 @@ def login(host, port, user, pwd):
     """Catch invalid mail server / host names"""
     try:
         account = imaplib.IMAP4_SSL(host, port)
+
     except imaplib.IMAP4.error as err:
         _LOGGER.error("Error connecting into IMAP Server: %s", str(err))
         return False
@@ -266,7 +267,7 @@ def email_search(account, address, date, subject=None):
 
     Returns a tuple
     """
-    if subject:
+    if subject is not None:
         try:
             value = account.search(
                 None,
@@ -314,7 +315,7 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
     _LOGGER.debug("Attempting to find Informed Delivery mail")
 
     (rv, data) = email_search(
-        account, const.USPS_Mail_Email, const.USPS_Mail_Subject, today
+        account, const.USPS_Mail_Email, today, const.USPS_Mail_Subject
     )
 
     # Check to see if the path exists, if not make it

@@ -1,7 +1,40 @@
 """ Constants for tests. """
 
-FAKE_CONFIG_DATA = {
+NEW_FAKE_CONFIG_DATA = {
     "amazon_fwds": '""',
+    "folder": '"INBOX"',
+    "generate_mp4": "false",
+    "gif_duration": 5,
+    "host": "imap.test.email",
+    "image_path": "/config/www/mail_and_packages/",
+    "image_security": "true",
+    "password": "suchfakemuchpassword",
+    "port": 993,
+    "resources": [
+        "amazon_packages",
+        "fedex_delivered",
+        "fedex_delivering",
+        "fedex_packages",
+        "mail_updated",
+        "ups_delivered",
+        "ups_delivering",
+        "ups_packages",
+        "usps_delivered",
+        "usps_delivering",
+        "usps_mail",
+        "usps_packages",
+        "zpackages_delivered",
+        "zpackages_transit",
+        "dhl_delivered",
+        "dhl_delivering",
+        "dhl_packages",
+        "amazon_delivered",
+    ],
+    "scan_interval": 20,
+    "username": "user@fake.email",
+}
+
+FAKE_CONFIG_DATA = {
     "folder": '"INBOX"',
     "generate_mp4": "false",
     "gif_duration": 5,

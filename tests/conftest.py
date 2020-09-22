@@ -1,5 +1,5 @@
 """ Fixtures for Mail and Packages tests. """
-
+import imaplib
 from tests.const import FAKE_UPDATE_DATA
 import pytest
 from pytest_homeassistant_custom_component.async_mock import AsyncMock, patch
@@ -23,10 +23,20 @@ def mock_update():
 
 
 @pytest.fixture()
-def mock_login_test():
-    """ Mock email server login check. """
-    with patch(
-        "custom_components.mail_and_packages.config_flow._test_login", autospec=True
-    ) as mock_login_test:
-        mock_login_test.return_value = True
-        yield mock_login_test
+def mock_imap():
+    """ Mock imap class values. """
+    with patch("custom_components.mail_and_packages.config_flow.imaplib") as mock_imap:
+        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        yield mock_imap
+

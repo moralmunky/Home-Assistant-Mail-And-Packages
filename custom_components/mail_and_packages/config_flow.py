@@ -360,6 +360,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         if status != "OK":
             _LOGGER.error("IMAP Login failed!")
         status, folderlist = account.list()
+        _LOGGER.debug("Folderlist: %s", str(folderlist))
         mailboxes = []
         if status != "OK":
             _LOGGER.error("Error listing mailboxes ... using default")
