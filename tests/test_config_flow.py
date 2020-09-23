@@ -388,13 +388,13 @@ async def test_imap_login(mock_imap):
     assert result
 
 
-async def test_detect_ffmpeg():
-    with patch("shutil.which") as mock_which:
-        mock_which.return_value = True
-        result = await _check_ffmpeg()
-        assert result
+# async def test_detect_ffmpeg():
+#     with patch("shutil.which") as mock_which:
+#         mock_which.return_value = True
+#         result = await _check_ffmpeg()
+#         assert result
 
-        mock_which.return_value = False
-        result = await _check_ffmpeg()
-        assert result
+#         mock_which.return_value = False
+#         result = await _check_ffmpeg()
+#         assert result
 

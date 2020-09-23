@@ -111,8 +111,7 @@ def mock_aiohttp():
     ) as mock_get, patch(
         "custom_components.mail_and_packages.aiohttp.ClientSession.headers"
     ) as mock_headers:
-        mock_conn = Mock(spec=aiohttp.ClientSession)
-        mock_aiohttp.return_value = mock_conn
+        mock_get.return_value = 200
 
         mock_conn.get.return_value = 200
         mock_conn.headers.return_value = "content-type: image/jpeg"
