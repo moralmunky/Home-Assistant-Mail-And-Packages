@@ -1,12 +1,13 @@
 """Tests for init module."""
 import datetime
-from tests.conftest import mock_aiohttp, mock_imap_no_email
-from custom_components.mail_and_packages.const import DOMAIN
+from tests.conftest import mock_aiohttp, mock_imap_no_email, mock_update
+from custom_components.mail_and_packages.const import DOMAIN, DOMAIN_DATA, DATA
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from pytest_homeassistant_custom_component.async_mock import patch, call
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.mail_and_packages import (
     get_formatted_date,
+    process_emails,
     update_time,
     cleanup_images,
     email_search,
@@ -29,7 +30,7 @@ async def test_unload_entry(hass, mock_update):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 18
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 21
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -38,8 +39,8 @@ async def test_unload_entry(hass, mock_update):
     assert len(hass.states.async_entity_ids(DOMAIN)) == 0
 
 
-async def test_unload_entry(hass, mock_imap_no_email):
-    """Test unloading entities. """
+async def test_setup_entry(hass, mock_imap_no_email):
+    """Test settting up entities. """
     entry = MockConfigEntry(
         domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
     )
@@ -51,10 +52,6 @@ async def test_unload_entry(hass, mock_imap_no_email):
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 0
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
-
-    assert await hass.config_entries.async_unload(entries[0].entry_id)
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 0
-    assert len(hass.states.async_entity_ids(DOMAIN)) == 0
 
 
 async def test_get_formatted_date():
@@ -69,7 +66,7 @@ async def test_cleanup_images():
     with patch(
         "os.listdir",
         return_value=["testfile.gif", "anotherfakefile.mp4", "lastfile.txt"],
-    ) as mock_listdir, patch("os.remove") as mock_osremove:
+    ), patch("os.remove") as mock_osremove:
         cleanup_images("/tests/fakedir/")
         calls = [
             call("/tests/fakedir/testfile.gif"),
@@ -79,16 +76,58 @@ async def test_cleanup_images():
 
 
 async def test_process_emails(hass, mock_imap_no_email):
-    entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
-    )
+    with patch(
+        "os.listdir",
+        return_value=["testfile.gif", "anotherfakefile.mp4", "lastfile.txt"],
+    ), patch("os.remove") as mock_osremove, patch(
+        "os.makedirs"
+    ) as mock_osmakedir, patch(
+        "custom_components.mail_and_packages.update_time",
+        return_value="Sep-23-2020 10:28 AM",
+    ):
 
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+        entry = MockConfigEntry(
+            domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+        )
+
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        config = entry.data
+        result = process_emails(hass, config)
+        assert result == {
+            "amazon_delivered": 0,
+            "amazon_order": [],
+            "amazon_packages": 0,
+            "capost_delivered": 0,
+            "capost_delivering": 0,
+            "capost_packages": 0,
+            "capost_tracking": "",
+            "dhl_delivered": 0,
+            "dhl_delivering": 0,
+            "dhl_packages": 0,
+            "dhl_tracking": [],
+            "fedex_delivered": 0,
+            "fedex_delivering": 0,
+            "fedex_packages": 0,
+            "fedex_tracking": [],
+            "mail_updated": "Sep-23-2020 10:28 AM",
+            "ups_delivered": 0,
+            "ups_delivering": 0,
+            "ups_packages": 0,
+            "ups_tracking": [],
+            "usps_delivered": 0,
+            "usps_delivering": 0,
+            "usps_mail": 0,
+            "usps_packages": 0,
+            "usps_tracking": [],
+            "zpackages_delivered": 0,
+            "zpackages_transit": 0,
+        }
 
 
-async def test_process_emails_bad(hass, mock_imap):
+async def test_process_emails_bad(hass, mock_imap_no_email):
     entry = MockConfigEntry(
         domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA_BAD,
     )
