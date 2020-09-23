@@ -35,6 +35,4 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           directory: ./coverage/reports/
-          env_vars: OS,PYTHON
-          fail_ci_if_error: true
           path_to_write_report: ./coverage/codecov_report.gz
