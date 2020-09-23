@@ -1,5 +1,6 @@
 """Tests for init module."""
 import datetime
+from tests.conftest import mock_imap_ups_out_for_delivery
 from custom_components.mail_and_packages.const import DOMAIN, DOMAIN_DATA, DATA
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from pytest_homeassistant_custom_component.async_mock import patch, call
@@ -14,6 +15,7 @@ from custom_components.mail_and_packages import (
     _generate_mp4,
     download_img,
     amazon_search,
+    get_count,
 )
 
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
@@ -163,7 +165,11 @@ async def test_informed_delivery_emails(hass, mock_imap_usps_informed_digest):
     ), patch(
         "builtins.open"
     ), patch(
-        "custom_components.mail_and_packages.resize_images"
+        "custom_components.mail_and_packages.Image"
+    ), patch(
+        "custom_components.mail_and_packages.resizeimage"
+    ), patch(
+        "os.path.splitext", return_value=("test_filename", "gif")
     ), patch(
         "custom_components.mail_and_packages.io"
     ):
@@ -171,6 +177,14 @@ async def test_informed_delivery_emails(hass, mock_imap_usps_informed_digest):
             mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
         )
         assert result == 3
+
+
+async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):
+    result = get_count(
+        mock_imap_ups_out_for_delivery, "ups_delivering", True, "./", hass
+    )
+    assert result["count"] == 2
+    # assert result["tracking"] == ["1Z2345YY0678901234"]
 
 
 async def test_amazon_search(hass, mock_imap_no_email):
