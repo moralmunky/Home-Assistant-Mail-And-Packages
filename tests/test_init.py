@@ -13,6 +13,7 @@ from custom_components.mail_and_packages import (
     get_mails,
     _generate_mp4,
     download_img,
+    amazon_search,
 )
 
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
@@ -109,6 +110,11 @@ async def test_email_search(hass, mock_imap_no_email):
 
 async def test_get_mails(hass, mock_imap_no_email):
     result = get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
+    assert result == 0
+
+
+async def test_amazon_search(hass, mock_imap_no_email):
+    result = amazon_search(mock_imap_no_email, "test/path", hass)
     assert result == 0
 
 

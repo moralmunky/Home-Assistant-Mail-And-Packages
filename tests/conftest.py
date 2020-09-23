@@ -102,7 +102,7 @@ def mock_imap_mailbox_error():
             [b'(\\HasNoChildren) "." "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"0"])
-        yield mock_imap_mailbox_error
+        yield mock_conn
 
 
 @pytest.fixture()
