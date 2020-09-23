@@ -1,6 +1,7 @@
 """Tests for init module."""
 import datetime
-from tests.conftest import mock_imap_ups_out_for_delivery
+from datetime import date
+from tests.conftest import mock_imap_amazon_shipped, mock_imap_ups_out_for_delivery
 from custom_components.mail_and_packages.const import DOMAIN, DOMAIN_DATA, DATA
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from pytest_homeassistant_custom_component.async_mock import patch, call
@@ -16,6 +17,7 @@ from custom_components.mail_and_packages import (
     download_img,
     amazon_search,
     get_count,
+    get_items,
 )
 
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
@@ -193,6 +195,19 @@ async def test_usps_out_for_delivery(hass, mock_imap_usps_out_for_delivery):
     )
     assert result["count"] == 1
     assert result["tracking"] == ["921234565085773077766900"]
+
+
+async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):
+    with patch("datetime.date") as mock_date:
+        mock_date.today.return_value = date(2020, 9, 11)
+
+        result = get_items(mock_imap_amazon_shipped, "count")
+        assert result == 4
+
+
+async def test_amazon_shipped_order(hass, mock_imap_amazon_shipped):
+    result = get_items(mock_imap_amazon_shipped, "order")
+    assert result == ["#123-1234567-1234567"]
 
 
 async def test_amazon_search(hass, mock_imap_no_email):
