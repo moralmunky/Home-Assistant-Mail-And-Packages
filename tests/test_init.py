@@ -187,6 +187,14 @@ async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):
     # assert result["tracking"] == ["1Z2345YY0678901234"]
 
 
+async def test_usps_out_for_delivery(hass, mock_imap_usps_out_for_delivery):
+    result = get_count(
+        mock_imap_usps_out_for_delivery, "usps_delivering", True, "./", hass
+    )
+    assert result["count"] == 1
+    assert result["tracking"] == ["921234565085773077766900"]
+
+
 async def test_amazon_search(hass, mock_imap_no_email):
     result = amazon_search(mock_imap_no_email, "test/path", hass)
     assert result == 0

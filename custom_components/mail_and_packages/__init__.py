@@ -639,7 +639,6 @@ def get_tracking(sdata, account, shipper):
     tracking = []
     pattern = None
     mail_list = sdata.split()
-    body = None
 
     if shipper == "usps":
         pattern = re.compile(r"{}".format(const.USPS_TRACKING_PATTERN))
@@ -648,7 +647,6 @@ def get_tracking(sdata, account, shipper):
     elif shipper == "fedex":
         pattern = re.compile(r"{}".format(const.FEDEX_TRACKING_PATTERN))
     elif shipper == "dhl":
-        body = True
         pattern = re.compile(r"{}".format(const.DHL_TRACKING_PATTERN))
 
     for i in mail_list:
@@ -657,32 +655,36 @@ def get_tracking(sdata, account, shipper):
             if not isinstance(response_part, tuple):
                 continue
             msg = email.message_from_bytes(response_part[1])
-            if body is None:
-                email_subject = msg["subject"]
-                found = pattern.findall(email_subject)
-                if len(found) > 0:
-                    _LOGGER.debug(
-                        "Found (%s) tracking number in email: (%s)", shipper, found[0]
-                    )
-                    if found[0] in tracking:
-                        continue
-                    tracking.append(found[0])
+
+            # Search subject for a tracking number
+            email_subject = msg["subject"]
+            found = pattern.findall(email_subject)
+            if len(found) > 0:
+                _LOGGER.debug(
+                    "Found (%s) tracking number in email subject: (%s)",
+                    shipper,
+                    found[0],
+                )
+                if found[0] in tracking:
                     continue
-                _LOGGER.debug("No tracking number found for %s", shipper)
-            else:
-                """Search in email body for tracking number"""
-                email_msg = quopri.decodestring(str(msg.get_payload(0)))
-                email_msg = email_msg.decode("utf-8")
-                found = pattern.findall(email_msg)
-                if len(found) > 0:
-                    _LOGGER.debug(
-                        "Found (%s) tracking number in email: %s", shipper, found[0]
-                    )
-                    if found[0] in tracking:
-                        continue
-                    tracking.append(found[0])
+                tracking.append(found[0])
+                continue
+
+            # Search in email body for tracking number
+            email_msg = quopri.decodestring(str(msg.get_payload(0)))
+            email_msg = email_msg.decode("utf-8")
+            found = pattern.findall(email_msg)
+            if len(found) > 0:
+                _LOGGER.debug(
+                    "Found (%s) tracking number in email body: %s", shipper, found[0]
+                )
+                if found[0] in tracking:
                     continue
-                _LOGGER.debug("No tracking number found for %s", shipper)
+                tracking.append(found[0])
+                continue
+
+    if len(tracking) == 0:
+        _LOGGER.debug("No tracking number found for %s", shipper)
 
     return tracking
 
@@ -715,7 +717,6 @@ def find_text(sdata, account, search):
                 continue
             pattern = re.compile(r"{}".format(search))
             found = pattern.search(email_msg)
-            _LOGGER.debug("find_text Debug: %s", found)
             if found is not None:
                 _LOGGER.debug("Found (%s) in email", search)
                 count += 1
