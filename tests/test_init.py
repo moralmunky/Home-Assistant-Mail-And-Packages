@@ -1,6 +1,6 @@
 """Tests for init module."""
 import datetime
-from tests.conftest import mock_aiohttp
+from tests.conftest import mock_aiohttp, mock_imap_no_email
 from custom_components.mail_and_packages.const import DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from pytest_homeassistant_custom_component.async_mock import patch, call
@@ -29,6 +29,25 @@ async def test_unload_entry(hass, mock_update):
     await hass.async_block_till_done()
 
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 18
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert await hass.config_entries.async_unload(entries[0].entry_id)
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 0
+    assert len(hass.states.async_entity_ids(DOMAIN)) == 0
+
+
+async def test_unload_entry(hass, mock_imap_no_email):
+    """Test unloading entities. """
+    entry = MockConfigEntry(
+        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 0
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -78,19 +97,19 @@ async def test_process_emails_bad(hass, mock_imap):
     await hass.async_block_till_done()
 
 
-# async def test_email_search(hass, mock_imap_no_email):
-#     result = email_search(mock_imap_no_email, "fake@eamil.address", "01-Jan-20")
-#     assert result
+async def test_email_search(hass, mock_imap_no_email):
+    result = email_search(mock_imap_no_email, "fake@eamil.address", "01-Jan-20")
+    assert result == ("BAD", [])
 
-#     result = email_search(
-#         mock_imap_no_email, "fake@eamil.address", "01-Jan-20", "Fake Subject"
-#     )
-#     assert result
+    result = email_search(
+        mock_imap_no_email, "fake@eamil.address", "01-Jan-20", "Fake Subject"
+    )
+    assert result == ("BAD", [])
 
 
-# async def test_get_mails(hass, mock_imap_no_email):
-#     result = get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
-#     assert result
+async def test_get_mails(hass, mock_imap_no_email):
+    result = get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
+    assert result == 0
 
 
 async def test_generate_mp4():

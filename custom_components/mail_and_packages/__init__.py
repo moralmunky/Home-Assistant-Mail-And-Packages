@@ -269,7 +269,7 @@ def email_search(account, address, date, subject=None):
     """
     if subject is not None:
         try:
-            (rv, value) = account.search(
+            value = account.search(
                 None,
                 '(FROM "'
                 + address
@@ -284,14 +284,14 @@ def email_search(account, address, date, subject=None):
             return False
     else:
         try:
-            (rv, value) = account.search(
+            value = account.search(
                 None, '(FROM "' + address + '" SENTON "' + date + '")',
             )
         except imaplib.IMAP4.error as err:
             _LOGGER.error("Error searching emails: %s", str(err))
             return False
 
-    return (rv, value)
+    return value
 
 
 def email_fetch(account, num, type):

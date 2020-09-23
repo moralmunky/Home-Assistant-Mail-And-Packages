@@ -39,7 +39,8 @@ def mock_imap():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
-        yield mock_imap
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
 
 
 @pytest.fixture()
@@ -57,8 +58,9 @@ def mock_imap_no_email():
             "OK",
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
-        mock_conn.search.return_value = ("OK", [b"0"])
-        yield mock_imap_no_email
+        mock_conn.search.return_value = ("BAD", [])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
 
 
 @pytest.fixture()
