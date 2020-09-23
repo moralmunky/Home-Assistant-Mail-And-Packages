@@ -1,6 +1,5 @@
 """Tests for init module."""
 import datetime
-from tests.conftest import mock_aiohttp, mock_imap_no_email, mock_update
 from custom_components.mail_and_packages.const import DOMAIN, DOMAIN_DATA, DATA
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from pytest_homeassistant_custom_component.async_mock import patch, call
@@ -150,6 +149,28 @@ async def test_email_search(hass, mock_imap_no_email):
 async def test_get_mails(hass, mock_imap_no_email):
     result = get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
     assert result == 0
+
+
+async def test_informed_delivery_emails(hass, mock_imap_usps_informed_digest):
+    with patch(
+        "os.listdir",
+        return_value=["testfile.gif", "anotherfakefile.mp4", "lastfile.txt"],
+    ), patch("os.remove") as mock_osremove, patch(
+        "os.makedirs"
+    ) as mock_osmakedir, patch(
+        "custom_components.mail_and_packages.update_time",
+        return_value="Sep-23-2020 10:28 AM",
+    ), patch(
+        "builtins.open"
+    ), patch(
+        "custom_components.mail_and_packages.resize_images"
+    ), patch(
+        "custom_components.mail_and_packages.io"
+    ):
+        result = get_mails(
+            mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
+        )
+        assert result == 3
 
 
 async def test_amazon_search(hass, mock_imap_no_email):

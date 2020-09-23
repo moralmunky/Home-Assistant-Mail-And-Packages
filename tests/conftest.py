@@ -106,16 +106,25 @@ def mock_imap_mailbox_error():
 
 
 @pytest.fixture()
-def mock_aiohttp():
+def mock_imap_usps_informed_digest():
     """ Mock imap class values. """
     with patch(
-        "custom_components.mail_and_packages.aiohttp.ClientSession.get"
-    ) as mock_get, patch(
-        "custom_components.mail_and_packages.aiohttp.ClientSession.headers"
-    ) as mock_headers:
-        mock_get.return_value = 200
+        "custom_components.mail_and_packages.imaplib"
+    ) as mock_imap_usps_informed_digest:
+        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_usps_informed_digest.IMAP4_SSL.return_value = mock_conn
 
-        mock_conn.get.return_value = 200
-        mock_conn.headers.return_value = "content-type: image/jpeg"
-        mock_conn.read.return_value = "123456"
-        yield mock_aiohttp
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/informed_delivery.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn

@@ -69,11 +69,11 @@ FAKE_CONFIG_DATA_BAD = {
 
 FAKE_CONFIG_DATA = {
     "folder": '"INBOX"',
-    "generate_mp4": "false",
+    "generate_mp4": False,
     "gif_duration": 5,
     "host": "imap.test.email",
     "image_path": "/config/www/mail_and_packages/",
-    "image_security": "true",
+    "image_security": True,
     "password": "suchfakemuchpassword",
     "port": 993,
     "resources": [
