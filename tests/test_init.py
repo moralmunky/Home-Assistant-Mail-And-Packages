@@ -1,5 +1,6 @@
 """Tests for init module."""
 import datetime
+from tests.conftest import mock_imap_no_email
 from custom_components.mail_and_packages.const import DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from pytest_homeassistant_custom_component.async_mock import patch, call
@@ -52,3 +53,31 @@ async def test_cleanup_images():
         ]
         mock_osremove.assert_has_calls(calls)
 
+
+async def test_unload_entry(hass, mock_bad_update):
+    """Test unloading entities. """
+    entry = MockConfigEntry(
+        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 0
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert await hass.config_entries.async_unload(entries[0].entry_id)
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 0
+    assert len(hass.states.async_entity_ids(DOMAIN)) == 0
+
+
+async def test_process_emails(hass, mock_imap_no_email):
+    entry = MockConfigEntry(
+        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()

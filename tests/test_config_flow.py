@@ -1,8 +1,10 @@
 """ Test Mail and Packages config flow """
 from homeassistant import config_entries, setup
 from custom_components.mail_and_packages.const import DOMAIN
+import os
 from pytest_homeassistant_custom_component.async_mock import patch
 import pytest
+from custom_components.mail_and_packages.config_flow import _validate_path, _test_login
 
 
 @pytest.mark.parametrize(
@@ -123,3 +125,20 @@ async def test_form(
     await hass.async_block_till_done()
     assert len(mock_setup.mock_calls) == 1
     assert len(mock_setup_entry.mock_calls) == 1
+
+
+async def test_valid_path():
+    result = await _validate_path(os.path.dirname(__file__))
+    assert result
+
+
+async def test_invalid_path():
+    result = await _validate_path("/should/fail")
+    assert not result
+
+
+async def test_imap_login(mock_imap):
+    result = await _test_login(
+        "imap.test.email", 993, "fakeuser@test.email", "suchfakemuchpassword"
+    )
+    assert result

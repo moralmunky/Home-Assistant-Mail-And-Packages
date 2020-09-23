@@ -61,10 +61,10 @@ def get_resources():
 
 async def _validate_path(path):
     """ make sure path is valid """
-    if path in os.path.dirname(__file__):
-        return False
-    else:
+    if os.path.exists(path):
         return True
+    else:
+        return False
 
 
 async def _check_ffmpeg():
