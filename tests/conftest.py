@@ -131,6 +131,31 @@ def mock_imap_usps_informed_digest():
 
 
 @pytest.fixture()
+def mock_imap_usps_informed_digest_missing():
+    """ Mock imap class values. """
+    with patch(
+        "custom_components.mail_and_packages.imaplib"
+    ) as mock_imap_usps_informed_digest_missing:
+        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_usps_informed_digest_missing.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/informed_delivery_missing_mailpiece.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
 def mock_imap_ups_out_for_delivery():
     """ Mock imap class values. """
     with patch(

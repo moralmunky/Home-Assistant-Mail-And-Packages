@@ -181,6 +181,34 @@ async def test_informed_delivery_emails(hass, mock_imap_usps_informed_digest):
         assert result == 3
 
 
+async def test_informed_delivery_missing_mailpiece(
+    hass, mock_imap_usps_informed_digest_missing
+):
+    with patch(
+        "os.listdir",
+        return_value=["testfile.gif", "anotherfakefile.mp4", "lastfile.txt"],
+    ), patch("os.remove") as mock_osremove, patch(
+        "os.makedirs"
+    ) as mock_osmakedir, patch(
+        "custom_components.mail_and_packages.update_time",
+        return_value="Sep-23-2020 10:28 AM",
+    ), patch(
+        "builtins.open"
+    ), patch(
+        "custom_components.mail_and_packages.Image"
+    ), patch(
+        "custom_components.mail_and_packages.resizeimage"
+    ), patch(
+        "os.path.splitext", return_value=("test_filename", "gif")
+    ), patch(
+        "custom_components.mail_and_packages.io"
+    ):
+        result = get_mails(
+            mock_imap_usps_informed_digest_missing, "./", "5", "mail_today.gif", False
+        )
+        assert result == 5
+
+
 async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):
     result = get_count(
         mock_imap_ups_out_for_delivery, "ups_delivering", True, "./", hass
