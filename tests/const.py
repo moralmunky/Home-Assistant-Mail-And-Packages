@@ -79,6 +79,9 @@ FAKE_CONFIG_DATA = {
     "resources": [
         "amazon_delivered",
         "amazon_packages",
+        "capost_delivered",
+        "capost_delivering",
+        "capost_packages",
         "dhl_delivered",
         "dhl_delivering",
         "dhl_packages",
