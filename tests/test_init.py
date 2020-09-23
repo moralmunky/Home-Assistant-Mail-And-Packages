@@ -210,9 +210,24 @@ async def test_amazon_shipped_order(hass, mock_imap_amazon_shipped):
     assert result == ["#123-1234567-1234567"]
 
 
+async def test_amazon_shipped_order_alt(hass, mock_imap_amazon_shipped_alt):
+    result = get_items(mock_imap_amazon_shipped_alt, "order")
+    assert result == ["#123-1234567-1234567"]
+
+
 async def test_amazon_search(hass, mock_imap_no_email):
     result = amazon_search(mock_imap_no_email, "test/path", hass)
     assert result == 0
+
+
+async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
+    result = amazon_search(mock_imap_amazon_shipped, "test/path", hass)
+    assert result == 4
+
+
+async def test_amazon_search_delivered(hass, mock_imap_amazon_delivered):
+    result = amazon_search(mock_imap_amazon_delivered, "test/path", hass)
+    assert result == 4
 
 
 async def test_generate_mp4():
