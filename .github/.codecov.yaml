@@ -21,3 +21,4 @@ comment:
 
 ignore:
   - "tests/"  # no need to test the tests
+  - "test.py" # doesn't need testing
