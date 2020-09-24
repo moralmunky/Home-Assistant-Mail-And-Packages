@@ -21,6 +21,7 @@ CONF_DURATION = "gif_duration"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_IMAGE_SECURITY = "image_security"
 CONF_GENERATE_MP4 = "generate_mp4"
+CONF_AMAZON_FWDS = "amazon_fwds"
 
 # Defaults
 DEFAULT_NAME = "Mail And Packages"
@@ -45,6 +46,7 @@ USPS_DELIVERED = "usps_delivered"
 USPS_DELIVERING = "usps_delivering"
 USPS_PACKAGES = "usps_packages"
 USPS_TRACKING = "usps_tracking"
+USPS_MAIL = "usps_mail"
 
 USPS_TRACKING_PATTERN = "9[234]\d{15,22}"
 
@@ -53,6 +55,7 @@ UPS_Email = "mcinfo@ups.com"
 UPS_Delivering_Subject = "UPS Update: Package Scheduled for Delivery Today"
 UPS_Delivering_Subject_2 = "UPS Update: Follow Your Delivery on a Live Map"
 UPS_Delivered_Subject = "Your UPS Package was delivered"
+UPS_Delivered_Subject_2 = "Your UPS Packages were delivered"
 UPS_Body_Text = "Tracking Number"
 
 UPS_DELIVERED = "ups_delivered"
@@ -63,7 +66,7 @@ UPS_TRACKING = "ups_tracking"
 UPS_TRACKING_PATTERN = "(1Z ?[0-9A-Z]{3} ?[0-9A-Z]{3} ?[0-9A-Z]{2} ?[0-9A-Z]{4} ?[0-9A-Z]{3} ?[0-9A-Z]|[\dT]\d\d\d ?\d\d\d\d ?\d\d\d)$"
 
 # FedEx
-FEDEX_Email = "TrackingUpdates@fedex.com"
+FEDEX_Email = "TrackingUpdates@fedex.com, fedexcanada@fedex.com"
 FEDEX_Delivering_Subject = "Delivery scheduled for today"
 FEDEX_Delivering_Subject_2 = "Your package is scheduled for delivery today"
 FEDEX_Delivered_Subject = "Your package has been delivered"
@@ -85,6 +88,10 @@ AMAZON_DELIVERED = "amazon_delivered"
 AMAZON_IMG_PATTERN = (
     "(https://)([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-;]*[\w@?^=%&/~+#-;])?"
 )
+AMAZON_HUB = "amazon_hub"
+AMAZON_HUB_CODE = "amazon_hub_code"
+AMAZON_HUB_EMAIL = "thehub@amazon.com"
+AMAZON_HUB_SUBJECT = "(You have a package to pick up)(.*)- (\d{6})"
 
 # Canada Post
 CAPost_Email = "donotreply@canadapost.postescanada.ca"
@@ -148,6 +155,7 @@ SENSOR_TYPES = {
         "package(s)",
         "mdi:package-variant-closed",
     ],
+    "amazon_hub": ["Mail Amazon Hub Packages", "package(s)", "mdi:amazon"],
     "capost_delivered": [
         "Mail Canada Post Delivered",
         "package(s)",
@@ -185,8 +193,10 @@ SENSOR_TYPES = {
     ],
 }
 
+# Sensor Index
 SENSOR_NAME = 0
 SENSOR_UNIT = 1
 SENSOR_ICON = 2
+
 # For sensors with delivering and delivered statuses
 SHIPPERS = ["capost", "dhl", "fedex", "ups", "usps"]

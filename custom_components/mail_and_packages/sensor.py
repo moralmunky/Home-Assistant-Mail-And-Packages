@@ -4,6 +4,7 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
+from multiprocessing.util import info
 from . import const
 from homeassistant.helpers.entity import Entity
 from homeassistant.const import CONF_RESOURCES
@@ -45,21 +46,17 @@ class PackagesSensor(Entity):
 
     @property
     def unique_id(self):
-        """
-        Return a unique, Home Assistant friendly identifier for this entity.
-        """
+        """Return a unique, Home Assistant friendly identifier for this entity."""
         return f"{self.data._host}_{self._name}"
 
     @property
     def name(self):
         """Return the name of the sensor."""
-
         return self._name
 
     @property
     def state(self):
         """Return the state of the sensor."""
-
         return self._state
 
     @property
