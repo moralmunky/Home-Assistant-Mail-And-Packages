@@ -170,6 +170,10 @@ def process_emails(hass, config):
         elif sensor == const.AMAZON_PACKAGES:
             count[sensor] = get_items(account, const.ATTR_COUNT)
             count[const.AMAZON_ORDER] = get_items(account, const.ATTR_ORDER)
+        elif sensor == const.AMAZON_HUB:
+            value = amazon_hub(account, self._amazon_fwds)
+            count[sensor] = value[const.ATTR_COUNT]
+            count[const.AMAZON_HUB_CODE] = value[const.ATTR_CODE]
         elif "_packages" in sensor:
             prefix = sensor.split("_")[0]
             delivering = prefix + "_delivering"
@@ -804,20 +808,63 @@ async def download_img(img_url, img_path):
                     _LOGGER.debug("Amazon image downloaded")
 
 
+def amazon_hub(account, fwds=None):
+    """ Find Amazon Hub info and return it """
+    email_address = const.AMAZON_HUB_EMAIL
+    subject_regex = const.AMAZON_HUB_SUBJECT
+    info = {}
+    past_date = datetime.date.today() - datetime.timedelta(days=3)
+    tfmt = past_date.strftime("%d-%b-%Y")
+
+    try:
+        (rv, sdata) = account.search(
+            None, '(FROM "' + email_address + '" SINCE ' + tfmt + ")"
+        )
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("Error searching emails: %s", str(err))
+
+    else:
+        found = []
+        mail_ids = sdata[0]
+        id_list = mail_ids.split()
+        _LOGGER.debug("Amazon hub emails found: %s", str(len(id_list)))
+        for i in id_list:
+            typ, data = account.fetch(i, "(RFC822)")
+            for response_part in data:
+                if not isinstance(response_part, tuple):
+                    continue
+                msg = email.message_from_bytes(response_part[1])
+
+                # Get combo number from subject line
+                email_subject = msg["subject"]
+                re.compile(r"{}".format(subject_regex))
+                found.append(pattern.findall(email_subject))
+
+        info[ATTR_COUNT] = len(found)
+        info[ATTR_CODE] = found
+    return info
+
+
 def get_items(account, param):
     """Parse Amazon emails for delivery date and order number"""
 
     _LOGGER.debug("Attempting to find Amazon email with item list ...")
 
-    """Limit to past 3 days (plan to make this configurable)"""
+    # Limit to past 3 days (plan to make this configurable)
     past_date = datetime.date.today() - datetime.timedelta(days=3)
     tfmt = past_date.strftime("%d-%b-%Y")
     deliveriesToday = []
     orderNum = []
     domains = const.Amazon_Domains.split(",")
+    if fwds:
+        domains.append(fwds.split(","))
 
     for domain in domains:
-        email_address = "shipment-tracking@" + domain
+        if "@" in domain:
+            email_address = domain
+        else:
+            email_address = "shipment-tracking@" + domain
+
         (rv, sdata) = email_search(account, email_address, tfmt)
 
         if rv == "OK":
@@ -831,16 +878,16 @@ def get_items(account, param):
                         continue
                     msg = email.message_from_bytes(response_part[1])
 
-                    """Get order number from subject line"""
+                    # Get order number from subject line
                     email_subject = msg["subject"]
                     pattern = re.compile(r"#[0-9]{3}-[0-9]{7}-[0-9]{7}")
                     found = pattern.findall(email_subject)
 
-                    """ Don't add the same order number twice """
+                    # Don't add the same order number twice
                     if len(found) > 0 and found[0] not in orderNum:
                         orderNum.append(found[0])
 
-                    """Catch bad format emails"""
+                    # Catch bad format emails
                     try:
                         email_msg = quopri.decodestring(str(msg.get_payload(0)))
                         email_msg = email_msg.decode("utf-8")
@@ -869,6 +916,24 @@ def get_items(account, param):
                     elif "estimated delivery date is:" in email_msg:
                         start = email_msg.find("estimated delivery date is:") + len(
                             "estimated delivery date is:"
+                        )
+                        end = email_msg.find("Track your package at")
+                        arrive_date = email_msg[start:end].strip()
+                        arrive_date = arrive_date.split(" ")
+                        arrive_date = arrive_date[0:3]
+                        arrive_date[2] = arrive_date[2][:2]
+                        arrive_date = " ".join(arrive_date).strip()
+                        dateobj = datetime.datetime.strptime(arrive_date, "%A, %B %d")
+                        if (
+                            dateobj.day == datetime.date.today().day
+                            and dateobj.month == datetime.date.today().month
+                        ):
+                            deliveriesToday.append("Amazon Order")
+
+                    # Amazon Canda language ¯\_(ツ)_/¯
+                    elif "guaranteed delivery date is:" in email_msg:
+                        start = email_msg.find("guaranteed delivery date is:") + len(
+                            "guaranteed delivery date is:"
                         )
                         end = email_msg.find("Track your package at")
                         arrive_date = email_msg[start:end].strip()
