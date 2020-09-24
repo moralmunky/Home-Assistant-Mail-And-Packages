@@ -44,6 +44,20 @@ def mock_imap():
 
 
 @pytest.fixture()
+def mock_imap_error():
+    """ Mock imap class values. """
+    with patch(
+        "custom_components.mail_and_packages.config_flow.imaplib"
+    ) as mock_imap_error:
+        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_error.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.side_effect = Exception("BIG FAT ERROR!")
+
+        yield mock_conn
+
+
+@pytest.fixture()
 def mock_imap_no_email():
     """ Mock imap class values. """
     with patch("custom_components.mail_and_packages.imaplib") as mock_imap_no_email:

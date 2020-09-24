@@ -18,6 +18,7 @@ from custom_components.mail_and_packages import (
     amazon_search,
     get_count,
     get_items,
+    login,
 )
 
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
@@ -278,6 +279,10 @@ async def test_generate_mp4():
             "crop='floor(in_w/2)*2:floor(in_h/2)*2'",
             "testfile.mp4",
         )
+
+
+async def test_login_error(hass, mock_imap_error):
+    login("localhost", 993, "fakeuser", "suchfakemuchpassword")
 
 
 # async def test_download_img(mock_aiohttp):
