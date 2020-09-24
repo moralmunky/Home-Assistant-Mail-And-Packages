@@ -23,6 +23,7 @@ from custom_components.mail_and_packages.config_flow import (
             },
             "config_2",
             {
+                "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
@@ -52,6 +53,7 @@ from custom_components.mail_and_packages.config_flow import (
             },
             "imap.test.email",
             {
+                "amazon_fwds": "",
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -143,6 +145,7 @@ async def test_form(
             },
             "config_2",
             {
+                "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
@@ -172,6 +175,7 @@ async def test_form(
             },
             "imap.test.email",
             {
+                "amazon_fwds": "",
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -263,6 +267,7 @@ async def test_form(
             },
             "config_2",
             {
+                "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
@@ -292,6 +297,7 @@ async def test_form(
             },
             "imap.test.email",
             {
+                "amazon_fwds": "",
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",

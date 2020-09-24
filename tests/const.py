@@ -68,6 +68,7 @@ FAKE_CONFIG_DATA_BAD = {
 }
 
 FAKE_CONFIG_DATA = {
+    "amazon_fwds": "fakeuser@fake.email",
     "folder": '"INBOX"',
     "generate_mp4": False,
     "gif_duration": 5,

@@ -143,6 +143,7 @@ def process_emails(hass, config):
     image_security = config.get(const.CONF_IMAGE_SECURITY)
     generate_mp4 = config.get(const.CONF_GENERATE_MP4)
     resources = config.get(CONF_RESOURCES)
+    amazon_fwds = config.get(const.CONF_AMAZON_FWDS)
 
     """Login to email server and select the folder"""
     account = login(host, port, user, pwd)
@@ -168,10 +169,10 @@ def process_emails(hass, config):
                 account, img_out_path, gif_duration, image_name, generate_mp4,
             )
         elif sensor == const.AMAZON_PACKAGES:
-            count[sensor] = get_items(account, const.ATTR_COUNT)
+            count[sensor] = get_items(account, const.ATTR_COUNT, amazon_fwds)
             count[const.AMAZON_ORDER] = get_items(account, const.ATTR_ORDER)
         elif sensor == const.AMAZON_HUB:
-            value = amazon_hub(account, self._amazon_fwds)
+            value = amazon_hub(account, amazon_fwds)
             count[sensor] = value[const.ATTR_COUNT]
             count[const.AMAZON_HUB_CODE] = value[const.ATTR_CODE]
         elif "_packages" in sensor:
@@ -845,7 +846,7 @@ def amazon_hub(account, fwds=None):
     return info
 
 
-def get_items(account, param):
+def get_items(account, param, fwds=None):
     """Parse Amazon emails for delivery date and order number"""
 
     _LOGGER.debug("Attempting to find Amazon email with item list ...")
@@ -856,8 +857,9 @@ def get_items(account, param):
     deliveriesToday = []
     orderNum = []
     domains = const.Amazon_Domains.split(",")
-    if fwds:
-        domains.append(fwds.split(","))
+    if fwds and fwds != ['""']:
+        for fwd in fwds:
+            domains.append(fwd)
 
     for domain in domains:
         if "@" in domain:
