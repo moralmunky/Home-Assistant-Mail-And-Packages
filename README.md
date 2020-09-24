@@ -5,6 +5,7 @@
 ![Maintenance](https://img.shields.io/maintenance/yes/2020)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/moralmunky/Home-Assistant-Mail-And-Packages)
 ![GitHub last commit](https://img.shields.io/github/last-commit/moralmunky/Home-Assistant-Mail-And-Packages)
+![Codecov branch](https://img.shields.io/codecov/c/github/moralmunky/Home-Assistant-Mail-And-Packages/0.3.x)
 
 # HomeAssistant Mail and Packages
 
