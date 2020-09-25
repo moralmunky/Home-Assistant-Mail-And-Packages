@@ -605,7 +605,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     )
     try:
         if isinstance(email, list):
-            email_search = " OR FROM ".join(email)
+            email_search = "' OR FROM '".join(email)
             (rv, data) = account.search(
                 None,
                 '(FROM "'
