@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.2.2-b29"
+VERSION = "0.2.2-b30"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 
@@ -55,7 +55,7 @@ UPS_TRACKING = "ups_tracking"
 UPS_TRACKING_PATTERN = "(1Z ?[0-9A-Z]{3} ?[0-9A-Z]{3} ?[0-9A-Z]{2} ?[0-9A-Z]{4} ?[0-9A-Z]{3} ?[0-9A-Z]|[\dT]\d\d\d ?\d\d\d\d ?\d\d\d)$"
 
 # FedEx
-FEDEX_Email = "TrackingUpdates@fedex.com, fedexcanada@fedex.com"
+FEDEX_Email = ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"]
 FEDEX_Delivering_Subject = "Delivery scheduled for today"
 FEDEX_Delivering_Subject_2 = "Your package is scheduled for delivery today"
 FEDEX_Delivered_Subject = "Your package has been delivered"
