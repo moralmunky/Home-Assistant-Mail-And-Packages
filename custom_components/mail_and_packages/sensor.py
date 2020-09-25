@@ -648,7 +648,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
             if isinstance(email, list):
                 email_search = '" OR FROM "'.join(email)
                 imap_search = (
-                    f'(FROM "{email_search}" SUBJECT "{subject}" SENTON "{today}")'
+                    f'(FROM "{email_search}" SUBJECT "{subject_2}" SENTON "{today}")'
                 )
                 (rv, data) = account.search(None, imap_search)
             else:
