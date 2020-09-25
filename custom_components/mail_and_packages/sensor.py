@@ -606,16 +606,10 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     try:
         if isinstance(email, list):
             email_search = '" OR FROM "'.join(email)
-            (rv, data) = account.search(
-                None,
-                '(FROM "'
-                + email_search
-                + '" SUBJECT "'
-                + subject
-                + '" SENTON "'
-                + today
-                + '")',
+            imap_search = (
+                f'(FROM "{email_search}" SUBJECT "{subject}" SENTON "{today}")'
             )
+            (rv, data) = account.search(None, imap_search)
         else:
             (rv, data) = account.search(
                 None,
@@ -651,16 +645,23 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
             "Attempting to find mail from (%s) with subject 2 (%s)", email, subject_2
         )
         try:
-            (rv, data) = account.search(
-                None,
-                '(FROM "'
-                + email
-                + '" SUBJECT "'
-                + subject_2
-                + '" SENTON "'
-                + today
-                + '")',
-            )
+            if isinstance(email, list):
+                email_search = '" OR FROM "'.join(email)
+                imap_search = (
+                    f'(FROM "{email_search}" SUBJECT "{subject}" SENTON "{today}")'
+                )
+                (rv, data) = account.search(None, imap_search)
+            else:
+                (rv, data) = account.search(
+                    None,
+                    '(FROM "'
+                    + email
+                    + '" SUBJECT "'
+                    + subject_2
+                    + '" SENTON "'
+                    + today
+                    + '")',
+                )
         except imaplib.IMAP4.error as err:
             _LOGGER.error("Error searching emails: %s", str(err))
             return False
@@ -918,8 +919,9 @@ def get_items(account, param, fwds=None):
     deliveriesToday = []
     orderNum = []
     domains = const.Amazon_Domains.split(",")
-    if fwds:
-        domains.append(fwds.split(","))
+    if fwds and fwds != ['""']:
+        for fwd in fwds:
+            domains.append(fwd)
 
     for domain in domains:
         try:
