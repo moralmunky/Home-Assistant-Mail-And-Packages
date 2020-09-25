@@ -116,7 +116,6 @@ class EmailData:
         self._host = config.get(CONF_HOST)
         self._scan_interval = config.get(const.CONF_SCAN_INTERVAL)
         self._data = None
-        self._image_name = None
 
         _LOGGER.debug("Config scan interval: %s", self._scan_interval)
 

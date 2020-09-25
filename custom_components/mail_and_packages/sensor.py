@@ -4,6 +4,7 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
+from enum import unique
 from multiprocessing.util import info
 from . import const
 from homeassistant.helpers.entity import Entity
@@ -17,6 +18,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     data = hass.data[const.DOMAIN_DATA][entry.entry_id][const.DATA]
     coordinator = hass.data[const.DOMAIN_DATA][entry.entry_id][const.COORDINATOR]
+    unique_id = entry.entry_id
 
     sensors = []
 
@@ -26,7 +28,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         resources = entry.data[CONF_RESOURCES]
 
     for variable in resources:
-        sensors.append(PackagesSensor(data, variable, coordinator))
+        sensors.append(PackagesSensor(data, variable, coordinator, unique_id))
 
     async_add_entities(sensors, True)
 
@@ -34,7 +36,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class PackagesSensor(Entity):
     """ Represntation of a sensor """
 
-    def __init__(self, data, sensor_type, coordinator):
+    def __init__(self, data, sensor_type, coordinator, unique_id):
         """ Initialize the sensor """
         self._coordinator = coordinator
         self._name = const.SENSOR_TYPES[sensor_type][const.SENSOR_NAME]
@@ -43,11 +45,12 @@ class PackagesSensor(Entity):
         self.type = sensor_type
         self.data = data
         self._state = self.data._data[self.type]
+        self.unique_id = unique_id
 
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return f"{self.data._host}_{self._name}_{self.unique_id}"
 
     @property
     def name(self):
