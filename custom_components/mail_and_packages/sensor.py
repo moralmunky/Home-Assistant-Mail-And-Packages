@@ -45,12 +45,12 @@ class PackagesSensor(Entity):
         self.type = sensor_type
         self.data = data
         self._state = self.data._data[self.type]
-        self.unique_id = unique_id
+        self._unique_id = unique_id
 
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}_{self.unique_id}"
+        return f"{self.data._host}_{self._name}_{self._unique_id}"
 
     @property
     def name(self):
