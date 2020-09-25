@@ -4,7 +4,6 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
-from multiprocessing.util import info
 from . import const
 import aiohttp
 import datetime
@@ -60,6 +59,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
         CONF_RESOURCES: entry.data[CONF_RESOURCES],
     }
 
+    unique_id = entry.entry_id
+
     sensors = []
 
     if CONF_RESOURCES in entry.options:
@@ -70,7 +71,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     data = EmailData(hass, config)
 
     for variable in resources:
-        sensors.append(PackagesSensor(data, variable))
+        sensors.append(PackagesSensor(data, variable, unique_id))
 
     async_add_entities(sensors, True)
 
@@ -195,7 +196,7 @@ class EmailData:
 class PackagesSensor(Entity):
     """ Represntation of a sensor """
 
-    def __init__(self, data, sensor_type):
+    def __init__(self, data, sensor_type, unique_id):
         """ Initialize the sensor """
         self._name = const.SENSOR_TYPES[sensor_type][const.SENSOR_NAME]
         self._icon = const.SENSOR_TYPES[sensor_type][const.SENSOR_ICON]
@@ -203,12 +204,13 @@ class PackagesSensor(Entity):
         self.type = sensor_type
         self.data = data
         self._state = None
+        self.unique_id = unique_id
         self.update()
 
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}"
+        return f"{self.data._host}_{self._name}_{self.unique_id}"
 
     @property
     def name(self):
