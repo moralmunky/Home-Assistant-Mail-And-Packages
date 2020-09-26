@@ -1,16 +1,11 @@
 """Tests for init module."""
 import datetime
 from datetime import date
-from tests.conftest import (
-    mock_imap_amazon_shipped,
-    mock_imap_ups_out_for_delivery,
-    mock_session,
-)
 from custom_components.mail_and_packages.const import DOMAIN, DOMAIN_DATA, DATA
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from pytest_homeassistant_custom_component.async_mock import patch, call
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from custom_components.mail_and_packages import (
+from custom_components.mail_and_packages.helpers import (
     get_formatted_date,
     process_emails,
     update_time,
@@ -90,7 +85,7 @@ async def test_process_emails(hass, mock_imap_no_email):
     ), patch("os.remove") as mock_osremove, patch(
         "os.makedirs"
     ) as mock_osmakedir, patch(
-        "custom_components.mail_and_packages.update_time",
+        "custom_components.mail_and_packages.helpers.update_time",
         return_value="Sep-23-2020 10:28 AM",
     ):
 
@@ -167,18 +162,18 @@ async def test_informed_delivery_emails(hass, mock_imap_usps_informed_digest):
     ), patch("os.remove") as mock_osremove, patch(
         "os.makedirs"
     ) as mock_osmakedir, patch(
-        "custom_components.mail_and_packages.update_time",
+        "custom_components.mail_and_packages.helpers.update_time",
         return_value="Sep-23-2020 10:28 AM",
     ), patch(
         "builtins.open"
     ), patch(
-        "custom_components.mail_and_packages.Image"
+        "custom_components.mail_and_packages.helpers.Image"
     ), patch(
-        "custom_components.mail_and_packages.resizeimage"
+        "custom_components.mail_and_packages.helpers.resizeimage"
     ), patch(
         "os.path.splitext", return_value=("test_filename", "gif")
     ), patch(
-        "custom_components.mail_and_packages.io"
+        "custom_components.mail_and_packages.helpers.io"
     ):
         result = get_mails(
             mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
@@ -195,18 +190,18 @@ async def test_informed_delivery_missing_mailpiece(
     ), patch("os.remove") as mock_osremove, patch(
         "os.makedirs"
     ) as mock_osmakedir, patch(
-        "custom_components.mail_and_packages.update_time",
+        "custom_components.mail_and_packages.helpers.update_time",
         return_value="Sep-23-2020 10:28 AM",
     ), patch(
         "builtins.open"
     ), patch(
-        "custom_components.mail_and_packages.Image"
+        "custom_components.mail_and_packages.helpers.Image"
     ), patch(
-        "custom_components.mail_and_packages.resizeimage"
+        "custom_components.mail_and_packages.helpers.resizeimage"
     ), patch(
         "os.path.splitext", return_value=("test_filename", "gif")
     ), patch(
-        "custom_components.mail_and_packages.io"
+        "custom_components.mail_and_packages.helpers.io"
     ):
         result = get_mails(
             mock_imap_usps_informed_digest_missing, "./", "5", "mail_today.gif", False

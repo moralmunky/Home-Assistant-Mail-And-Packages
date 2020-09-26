@@ -8,6 +8,7 @@ COORDINATOR = "coordinator"
 
 # Attributes
 ATTR_COUNT = "count"
+ATTR_CODE = "code"
 ATTR_ORDER = "order"
 ATTR_TRACKING = "tracking"
 ATTR_TRACKING_NUM = "tracking_#"

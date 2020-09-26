@@ -26,7 +26,7 @@ def mock_update():
 @pytest.fixture()
 def mock_imap():
     """ Mock imap class values. """
-    with patch("custom_components.mail_and_packages.config_flow.imaplib") as mock_imap:
+    with patch("custom_components.mail_and_packages.helpers.imaplib") as mock_imap:
         mock_conn = Mock(spec=imaplib.IMAP4_SSL)
         mock_imap.IMAP4_SSL.return_value = mock_conn
 
@@ -47,12 +47,15 @@ def mock_imap():
 def mock_imap_error():
     """ Mock imap class values. """
     with patch(
-        "custom_components.mail_and_packages.config_flow.imaplib"
+        "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_error:
         mock_conn = Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_error.IMAP4_SSL.return_value = mock_conn
 
-        mock_conn.side_effect = Exception("BIG FAT ERROR!")
+        mock_conn.login.return_value = (
+            "BAD",
+            [b"user@fake.email invalid (Failure)"],
+        )
 
         yield mock_conn
 
@@ -60,7 +63,9 @@ def mock_imap_error():
 @pytest.fixture()
 def mock_imap_no_email():
     """ Mock imap class values. """
-    with patch("custom_components.mail_and_packages.imaplib") as mock_imap_no_email:
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_no_email:
         mock_conn = Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_no_email.IMAP4_SSL.return_value = mock_conn
 
@@ -81,7 +86,7 @@ def mock_imap_no_email():
 def mock_imap_index_error():
     """ Mock imap class values. """
     with patch(
-        "custom_components.mail_and_packages.config_flow.imaplib"
+        "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_index_error:
         mock_conn = Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_index_error.IMAP4_SSL.return_value = mock_conn
@@ -102,7 +107,7 @@ def mock_imap_index_error():
 def mock_imap_mailbox_error():
     """ Mock imap class values. """
     with patch(
-        "custom_components.mail_and_packages.config_flow.imaplib"
+        "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_mailbox_error:
         mock_conn = Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_mailbox_error.IMAP4_SSL.return_value = mock_conn
@@ -123,7 +128,7 @@ def mock_imap_mailbox_error():
 def mock_imap_usps_informed_digest():
     """ Mock imap class values. """
     with patch(
-        "custom_components.mail_and_packages.imaplib"
+        "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_usps_informed_digest:
         mock_conn = Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_usps_informed_digest.IMAP4_SSL.return_value = mock_conn
@@ -148,7 +153,7 @@ def mock_imap_usps_informed_digest():
 def mock_imap_usps_informed_digest_missing():
     """ Mock imap class values. """
     with patch(
-        "custom_components.mail_and_packages.imaplib"
+        "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_usps_informed_digest_missing:
         mock_conn = Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_usps_informed_digest_missing.IMAP4_SSL.return_value = mock_conn
@@ -173,7 +178,7 @@ def mock_imap_usps_informed_digest_missing():
 def mock_imap_ups_out_for_delivery():
     """ Mock imap class values. """
     with patch(
-        "custom_components.mail_and_packages.imaplib"
+        "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_ups_out_for_delivery:
         mock_conn = Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_ups_out_for_delivery.IMAP4_SSL.return_value = mock_conn
@@ -198,7 +203,7 @@ def mock_imap_ups_out_for_delivery():
 def mock_imap_usps_out_for_delivery():
     """ Mock imap class values. """
     with patch(
-        "custom_components.mail_and_packages.imaplib"
+        "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_usps_out_for_delivery:
         mock_conn = Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_usps_out_for_delivery.IMAP4_SSL.return_value = mock_conn
@@ -223,7 +228,7 @@ def mock_imap_usps_out_for_delivery():
 def mock_imap_amazon_shipped():
     """ Mock imap class values. """
     with patch(
-        "custom_components.mail_and_packages.imaplib"
+        "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_shipped:
         mock_conn = Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_amazon_shipped.IMAP4_SSL.return_value = mock_conn
@@ -248,7 +253,7 @@ def mock_imap_amazon_shipped():
 def mock_imap_amazon_shipped_alt():
     """ Mock imap class values. """
     with patch(
-        "custom_components.mail_and_packages.imaplib"
+        "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_shipped_alt:
         mock_conn = Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_amazon_shipped_alt.IMAP4_SSL.return_value = mock_conn
@@ -273,7 +278,7 @@ def mock_imap_amazon_shipped_alt():
 def mock_imap_amazon_delivered():
     """ Mock imap class values. """
     with patch(
-        "custom_components.mail_and_packages.imaplib"
+        "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_delivered:
         mock_conn = Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_amazon_delivered.IMAP4_SSL.return_value = mock_conn

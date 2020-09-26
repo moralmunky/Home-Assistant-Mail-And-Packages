@@ -4,6 +4,7 @@ from collections import OrderedDict
 import homeassistant.helpers.config_validation as cv
 from homeassistant.core import callback
 from homeassistant import config_entries
+from .helpers import get_resources, _check_ffmpeg, _test_login, _validate_path, login
 from .const import (
     CONF_AMAZON_FWDS,
     CONF_DURATION,
@@ -20,8 +21,6 @@ from .const import (
     DEFAULT_GIF_DURATION,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_FFMPEG,
-    SENSOR_TYPES,
-    SENSOR_NAME,
 )
 from homeassistant.const import (
     CONF_HOST,
@@ -30,10 +29,7 @@ from homeassistant.const import (
     CONF_PORT,
     CONF_RESOURCES,
 )
-import imaplib
 import logging
-import os
-from shutil import which
 import voluptuous as vol
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,49 +45,6 @@ ATTR_GIF_DURATION = "gif_duration"
 ATTR_IMAGE_SECURITY = "image_security"
 ATTR_GENERATE_MP4 = "generate_mp4"
 ATTR_AMAZON_FWDS = "amazon_fwds"
-
-
-def get_resources():
-    """Resource selection schema."""
-
-    known_available_resources = {
-        sensor_id: sensor[SENSOR_NAME] for sensor_id, sensor in SENSOR_TYPES.items()
-    }
-
-    return known_available_resources
-
-
-async def _validate_path(path):
-    """ make sure path is valid """
-    if os.path.exists(path):
-        return True
-    else:
-        return False
-
-
-async def _check_ffmpeg():
-    """ check if ffmpeg is installed """
-    if which("ffmpeg") is not None:
-        return True
-    else:
-        return False
-
-
-async def _test_login(host, port, user, pwd):
-    """function used to login"""
-    # Attempt to catch invalid mail server hosts
-    try:
-        account = imaplib.IMAP4_SSL(host, port)
-    except imaplib.IMAP4.error as err:
-        _LOGGER.error("Error connecting into IMAP Server: %s", str(err))
-        return False
-    # Validate we can login to mail server
-    try:
-        rv, data = account.login(user, pwd)
-        return True
-    except imaplib.IMAP4.error as err:
-        _LOGGER.error("Error logging into IMAP Server: %s", str(err))
-        return False
 
 
 @config_entries.HANDLERS.register(DOMAIN)
@@ -196,12 +149,13 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         known_available_resources = get_resources()
         amazon_fwds = ""
 
-        account = imaplib.IMAP4_SSL(self._data[ATTR_HOST], self._data[ATTR_PORT])
-        status, data = account.login(
-            self._data[ATTR_USERNAME], self._data[ATTR_PASSWORD]
+        account = login(
+            self._data[ATTR_HOST],
+            self._data[ATTR_PORT],
+            self._data[ATTR_USERNAME],
+            self._data[ATTR_PASSWORD],
         )
-        if status != "OK":
-            _LOGGER.error("IMAP Login failed!")
+
         status, folderlist = account.list()
         mailboxes = []
         if status != "OK":
@@ -360,12 +314,13 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         known_available_resources = get_resources()
         amazon_fwds = self.config.options.get(CONF_AMAZON_FWDS) or ""
 
-        account = imaplib.IMAP4_SSL(self._data[ATTR_HOST], self._data[ATTR_PORT])
-        status, data = account.login(
-            self._data[ATTR_USERNAME], self._data[ATTR_PASSWORD]
+        account = login(
+            self._data[ATTR_HOST],
+            self._data[ATTR_PORT],
+            self._data[ATTR_USERNAME],
+            self._data[ATTR_PASSWORD],
         )
-        if status != "OK":
-            _LOGGER.error("IMAP Login failed!")
+
         status, folderlist = account.list()
         mailboxes = []
         if status != "OK":

@@ -4,7 +4,7 @@ from custom_components.mail_and_packages.const import DOMAIN
 import os
 from pytest_homeassistant_custom_component.async_mock import patch
 import pytest
-from custom_components.mail_and_packages.config_flow import (
+from custom_components.mail_and_packages.helpers import (
     _validate_path,
     _test_login,
     _check_ffmpeg,
@@ -210,7 +210,7 @@ async def test_form(
         ),
     ],
 )
-async def test_form(
+async def test_form_index_error(
     input_1, step_id_2, input_2, title, data, hass, mock_imap_index_error,
 ):
     """Test we get the form."""
@@ -332,7 +332,7 @@ async def test_form(
         ),
     ],
 )
-async def test_form(
+async def test_form_mailbox_error(
     input_1, step_id_2, input_2, title, data, hass, mock_imap_mailbox_error,
 ):
     """Test we get the form."""
