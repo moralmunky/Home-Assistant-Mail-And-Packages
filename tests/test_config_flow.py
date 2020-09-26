@@ -2,6 +2,7 @@
 from homeassistant import config_entries, setup
 from custom_components.mail_and_packages.const import DOMAIN
 import os
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.async_mock import patch
 import pytest
 from custom_components.mail_and_packages.helpers import (
@@ -9,6 +10,7 @@ from custom_components.mail_and_packages.helpers import (
     _test_login,
     _check_ffmpeg,
 )
+from tests.const import FAKE_CONFIG_DATA
 
 
 @pytest.mark.parametrize(
@@ -392,6 +394,129 @@ async def test_imap_login(mock_imap):
         "imap.test.email", 993, "fakeuser@test.email", "suchfakemuchpassword"
     )
     assert result
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,title,data",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+            },
+            "options_2",
+            {
+                "amazon_fwds": "",
+                "folder": '"INBOX"',
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "image_path": "/config/www/mail_and_packages/",
+                "image_security": True,
+                "scan_interval": 20,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                ],
+            },
+            "imap.test.email",
+            {
+                "amazon_fwds": "",
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "folder": '"INBOX"',
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "image_path": "/config/www/mail_and_packages/",
+                "image_security": True,
+                "scan_interval": 20,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                ],
+            },
+        ),
+    ],
+)
+async def test_options_flow(
+    input_1, step_id_2, input_2, title, data, hass, mock_imap,
+):
+    """Test config flow options."""
+    entry = MockConfigEntry(
+        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+    )
+
+    entry.add_to_hass(hass)
+
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+    # assert result["title"] == title_1
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._validate_path",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+    ) as mock_setup_entry:
+
+        result2 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_1
+        )
+        assert result2["type"] == "form"
+        assert result2["step_id"] == step_id_2
+
+        result3 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_2
+        )
+
+    assert result3["type"] == "create_entry"
+    assert entry.options == data
+    await hass.async_block_till_done()
 
 
 # async def test_detect_ffmpeg():
