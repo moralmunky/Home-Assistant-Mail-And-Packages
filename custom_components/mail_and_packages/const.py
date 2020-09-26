@@ -93,6 +93,9 @@ AMAZON_HUB = "amazon_hub"
 AMAZON_HUB_CODE = "amazon_hub_code"
 AMAZON_HUB_EMAIL = "thehub@amazon.com"
 AMAZON_HUB_SUBJECT = "(You have a package to pick up)(.*)- (\d{6})"
+AMAZON_TIME_PATTERN = (
+    "will arrive:,estimated delivery date is:,guaranteed delivery date is:"
+)
 
 # Canada Post
 CAPost_Email = "donotreply@canadapost.postescanada.ca"

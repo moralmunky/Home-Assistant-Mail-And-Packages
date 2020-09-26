@@ -840,44 +840,13 @@ def get_items(account, param, fwds=None):
                         )
                         continue
 
-                    if "will arrive:" in email_msg:
-                        start = email_msg.find("will arrive:") + len("will arrive:")
+                    searches = const.AMAZON_TIME_PATTERN.split(",")
+                    for search in searches:
+                        if search not in email_msg:
+                            continue
+
+                        start = email_msg.find(search) + len(search)
                         end = email_msg.find("Track your package:")
-                        arrive_date = email_msg[start:end].strip()
-                        arrive_date = arrive_date.split(" ")
-                        arrive_date = arrive_date[0:3]
-                        arrive_date[2] = arrive_date[2][:2]
-                        arrive_date = " ".join(arrive_date).strip()
-                        dateobj = datetime.datetime.strptime(arrive_date, "%A, %B %d")
-                        if (
-                            dateobj.day == datetime.date.today().day
-                            and dateobj.month == datetime.date.today().month
-                        ):
-                            deliveriesToday.append("Amazon Order")
-
-                    elif "estimated delivery date is:" in email_msg:
-                        start = email_msg.find("estimated delivery date is:") + len(
-                            "estimated delivery date is:"
-                        )
-                        end = email_msg.find("Track your package at")
-                        arrive_date = email_msg[start:end].strip()
-                        arrive_date = arrive_date.split(" ")
-                        arrive_date = arrive_date[0:3]
-                        arrive_date[2] = arrive_date[2][:2]
-                        arrive_date = " ".join(arrive_date).strip()
-                        dateobj = datetime.datetime.strptime(arrive_date, "%A, %B %d")
-                        if (
-                            dateobj.day == datetime.date.today().day
-                            and dateobj.month == datetime.date.today().month
-                        ):
-                            deliveriesToday.append("Amazon Order")
-
-                    # Amazon Canda language ¯\_(ツ)_/¯
-                    elif "guaranteed delivery date is:" in email_msg:
-                        start = email_msg.find("guaranteed delivery date is:") + len(
-                            "guaranteed delivery date is:"
-                        )
-                        end = email_msg.find("Track your package at")
                         arrive_date = email_msg[start:end].strip()
                         arrive_date = arrive_date.split(" ")
                         arrive_date = arrive_date[0:3]
