@@ -1,7 +1,11 @@
 """Tests for init module."""
 import datetime
 from datetime import date
-from tests.conftest import mock_imap_amazon_shipped, mock_imap_ups_out_for_delivery
+from tests.conftest import (
+    mock_imap_amazon_shipped,
+    mock_imap_ups_out_for_delivery,
+    mock_session,
+)
 from custom_components.mail_and_packages.const import DOMAIN, DOMAIN_DATA, DATA
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from pytest_homeassistant_custom_component.async_mock import patch, call
@@ -254,7 +258,7 @@ async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
     assert result == 4
 
 
-async def test_amazon_search_delivered(hass, mock_imap_amazon_delivered):
+async def test_amazon_search_delivered(hass, mock_imap_amazon_delivered, mock_session):
     result = amazon_search(mock_imap_amazon_delivered, "test/path", hass)
     assert result == 4
 

@@ -271,29 +271,23 @@ def email_search(account, address, date, subject=None):
 
     Returns a tuple
     """
-    if subject is not None:
-        try:
-            value = account.search(
-                None,
-                '(FROM "'
-                + address
-                + '" SUBJECT "'
-                + subject
-                + '" SENTON "'
-                + date
-                + '")',
-            )
-        except imaplib.IMAP4.error as err:
-            _LOGGER.error("Error searching emails: %s", str(err))
-            return False
+
+    imap_search = None  # Holds our IMAP SEARCH command
+
+    if isinstance(address, list) and subject is not None:
+        email_list = '" OR FROM "'.join(address)
+        imap_search = f'(FROM "{email_list}" SUBJECT "{subject}" SENTON "{date}")'
+
+    elif subject is not None:
+        imap_search = f'(FROM "{address}" SUBJECT "{subject}" SENTON "{date}")'
     else:
-        try:
-            value = account.search(
-                None, '(FROM "' + address + '" SENTON "' + date + '")',
-            )
-        except imaplib.IMAP4.error as err:
-            _LOGGER.error("Error searching emails: %s", str(err))
-            return False
+        imap_search = f'(FROM "{address}" SENTON "{date}")'
+
+    try:
+        value = account.search(None, imap_search)
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("Error searching emails: %s", str(err))
+        return "BAD", str(err)
 
     return value
 

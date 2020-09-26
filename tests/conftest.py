@@ -292,3 +292,31 @@ def mock_imap_amazon_delivered():
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
+
+
+@pytest.fixture()
+async def mock_session(aiohttp_client, session=None, mock_object=None):
+    """
+    :param aiohttp.ClientSession session:
+    :param aiohttp.ClientResponse|list[aiohttp.ClientResponse] response:
+    """
+    session = session or aiohttp.ClientSession()
+    request = session._request
+
+    session.mock = mock_object or Mock()
+    if isinstance(aiohttp_client, (list, tuple)):
+        session.mock.side_effect = aiohttp_client
+    else:
+        session.mock.return_value = aiohttp_client
+
+    async def _request(*args, **kwargs):
+        return session.mock(*args, **kwargs)
+
+    session._request = _request
+
+    try:
+        yield session
+    finally:
+        session._request = request
+        delattr(session, "mock")
+
