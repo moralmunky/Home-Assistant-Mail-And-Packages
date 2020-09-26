@@ -104,6 +104,27 @@ def mock_imap_index_error():
 
 
 @pytest.fixture()
+def mock_imap_index_error_2():
+    """ Mock imap class values. """
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_index_error:
+        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_index_error.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) ";" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"0"])
+        yield mock_imap_index_error
+
+
+@pytest.fixture()
 def mock_imap_mailbox_error():
     """ Mock imap class values. """
     with patch(
