@@ -239,12 +239,12 @@ def email_search(account, address, date, subject=None):
     return value
 
 
-def email_fetch(account, num, type):
+def email_fetch(account, num, type="(RFC822)"):
     """ Download specified email for parsing.
 
     Returns tuple
     """
-    value = account.fetch(num, "(RFC822)")
+    value = account.fetch(num, type)
 
     return value
 
@@ -819,6 +819,9 @@ def get_items(account, param, fwds=None):
                     if not isinstance(response_part, tuple):
                         continue
                     msg = email.message_from_bytes(response_part[1])
+
+                    _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
+                    _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
 
                     # Get order number from subject line
                     email_subject = msg["subject"]
