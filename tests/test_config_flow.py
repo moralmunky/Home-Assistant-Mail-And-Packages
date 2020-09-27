@@ -180,6 +180,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
         )
         assert result2["type"] == "form"
         assert result2["step_id"] == step_id_2
+        assert result2["errors"] == {"base": "communication"}
 
 
 @pytest.mark.parametrize(
@@ -297,7 +298,8 @@ async def test_form_invalid_ffmpeg(
         )
 
     assert result3["type"] == "form"
-    assert result2["step_id"] == step_id_2
+    assert result3["step_id"] == step_id_2
+    assert result3["errors"] == {"base": "ffmpeg_not_found"}
 
 
 @pytest.mark.parametrize(
@@ -415,7 +417,8 @@ async def test_form_invalid_path(
         )
 
     assert result3["type"] == "form"
-    assert result2["step_id"] == step_id_2
+    assert result3["step_id"] == step_id_2
+    assert result3["errors"] == {"base": "invalid_path"}
 
 
 @pytest.mark.parametrize(
@@ -975,6 +978,7 @@ async def test_options_flow_connection_error(
         )
         assert result2["type"] == "form"
         assert result2["step_id"] == step_id_2
+        assert result2["errors"] == {"base": "communication"}
 
 
 @pytest.mark.parametrize(
@@ -1096,6 +1100,7 @@ async def test_options_flow_invalid_ffmpeg(
         )
 
     assert result3["type"] == "form"
+    assert result3["errors"] == {"base": "ffmpeg_not_found"}
 
 
 @pytest.mark.parametrize(
@@ -1217,6 +1222,7 @@ async def test_options_flow_invalid_path(
         )
 
     assert result3["type"] == "form"
+    assert result3["errors"] == {"base": "invalid_path"}
 
 
 @pytest.mark.parametrize(

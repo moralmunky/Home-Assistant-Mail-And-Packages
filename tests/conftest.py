@@ -1,6 +1,6 @@
 """ Fixtures for Mail and Packages tests. """
 import imaplib
-import aiohttp
+from aiohttp import web
 from tests.const import FAKE_UPDATE_DATA
 import pytest
 from pytest_homeassistant_custom_component.async_mock import AsyncMock, patch
@@ -321,28 +321,7 @@ def mock_imap_amazon_delivered():
 
 
 @pytest.fixture()
-async def mock_session(aiohttp_client, session=None, mock_object=None):
-    """
-    :param aiohttp.ClientSession session:
-    :param aiohttp.ClientResponse|list[aiohttp.ClientResponse] response:
-    """
-    session = session or aiohttp.ClientSession()
-    request = session._request
+async def mock_aiohttp():
 
-    session.mock = mock_object or Mock()
-    if isinstance(aiohttp_client, (list, tuple)):
-        session.mock.side_effect = aiohttp_client
-    else:
-        session.mock.return_value = aiohttp_client
-
-    async def _request(*args, **kwargs):
-        return session.mock(*args, **kwargs)
-
-    session._request = _request
-
-    try:
-        yield session
-    finally:
-        session._request = request
-        delattr(session, "mock")
+    yield web.Response(text="OK")
 
