@@ -959,10 +959,6 @@ def get_items(account, param, fwds=None):
                     if len(found) > 0 and found[0] not in orderNum:
                         orderNum.append(found[0])
 
-                    # No processing html emails
-                    if msg.get_content_type() == "text/html":
-                        continue
-
                     # Catch bad format emails
                     try:
                         email_msg = quopri.decodestring(str(msg.get_payload(0)))
