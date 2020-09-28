@@ -235,7 +235,7 @@ async def test_informed_delivery_no_mail(mock_imap_usps_informed_digest_no_mail)
         result = get_mails(
             mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
         )
-        assert result == 1
+        assert result == 0
 
 
 async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):
