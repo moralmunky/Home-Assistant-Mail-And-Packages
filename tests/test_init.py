@@ -216,9 +216,9 @@ async def test_informed_delivery_no_mail(mock_imap_usps_informed_digest_no_mail)
     with patch(
         "os.listdir",
         return_value=["testfile.gif", "anotherfakefile.mp4", "lastfile.txt"],
-    ), patch("os.remove") as mock_osremove, patch(
-        "os.makedirs"
-    ) as mock_osmakedir, patch(
+    ), patch("os.remove"), patch("os.makedirs"), patch(
+        "os.path.isfile", return_value=True
+    ), patch(
         "custom_components.mail_and_packages.helpers.update_time",
         return_value="Sep-23-2020 10:28 AM",
     ), patch(
