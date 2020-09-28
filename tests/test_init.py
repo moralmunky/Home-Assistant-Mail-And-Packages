@@ -14,6 +14,7 @@ from custom_components.mail_and_packages.helpers import (
     get_mails,
     _generate_mp4,
     download_img,
+    amazon_hub,
     amazon_search,
     get_count,
     get_items,
@@ -253,9 +254,15 @@ async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
     assert result == 4
 
 
-async def test_amazon_search_delivered(hass, mock_imap_amazon_delivered, mock_aiohttp):
+async def test_amazon_search_delivered(hass, mock_imap_amazon_delivered):
     result = amazon_search(mock_imap_amazon_delivered, "test/path", hass)
     assert result == 4
+
+
+async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
+    result = amazon_hub(mock_imap_amazon_the_hub)
+    assert result["count"] == 1
+    assert result["code"] == ["123456"]
 
 
 async def test_generate_mp4():

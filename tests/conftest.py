@@ -1,11 +1,13 @@
 """ Fixtures for Mail and Packages tests. """
+import functools
 import imaplib
-from aiohttp import web
 from tests.const import FAKE_UPDATE_DATA
+from tests.helpers.aiohttp import AiohttpClientMocker
 import pytest
 from pytest_homeassistant_custom_component.async_mock import AsyncMock, patch
 
-from unittest.mock import Mock
+from unittest import mock
+
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
@@ -16,7 +18,7 @@ def mock_update():
     with patch(
         "custom_components.mail_and_packages.EmailData", autospec=True
     ) as mock_update:
-        value = Mock()
+        value = mock.Mock()
         value._data = FAKE_UPDATE_DATA
         value._host = "imap.test.email"
         mock_update.return_value = value
@@ -27,7 +29,7 @@ def mock_update():
 def mock_imap():
     """ Mock imap class values. """
     with patch("custom_components.mail_and_packages.helpers.imaplib") as mock_imap:
-        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
         mock_imap.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -49,7 +51,7 @@ def mock_imap_error():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_error:
-        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_error.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -66,7 +68,7 @@ def mock_imap_no_email():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_no_email:
-        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_no_email.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -88,7 +90,7 @@ def mock_imap_index_error():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_index_error:
-        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_index_error.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -109,7 +111,7 @@ def mock_imap_index_error_2():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_index_error:
-        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_index_error.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -130,7 +132,7 @@ def mock_imap_mailbox_error():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_mailbox_error:
-        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_mailbox_error.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -151,7 +153,7 @@ def mock_imap_usps_informed_digest():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_usps_informed_digest:
-        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_usps_informed_digest.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -176,7 +178,7 @@ def mock_imap_usps_informed_digest_missing():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_usps_informed_digest_missing:
-        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_usps_informed_digest_missing.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -201,7 +203,7 @@ def mock_imap_ups_out_for_delivery():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_ups_out_for_delivery:
-        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_ups_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -226,7 +228,7 @@ def mock_imap_usps_out_for_delivery():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_usps_out_for_delivery:
-        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_usps_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -251,7 +253,7 @@ def mock_imap_amazon_shipped():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_shipped:
-        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_amazon_shipped.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -276,7 +278,7 @@ def mock_imap_amazon_shipped_alt():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_shipped_alt:
-        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_amazon_shipped_alt.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -301,7 +303,7 @@ def mock_imap_amazon_delivered():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_delivered:
-        mock_conn = Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
         mock_imap_amazon_delivered.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -321,7 +323,52 @@ def mock_imap_amazon_delivered():
 
 
 @pytest.fixture()
-async def mock_aiohttp():
+def mock_imap_amazon_the_hub():
+    """ Mock imap class values. """
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_amazon_the_hub:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_amazon_the_hub.IMAP4_SSL.return_value = mock_conn
 
-    yield web.Response(text="OK")
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/amazon_hub_notice.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+# @pytest.fixture()
+# async def mock_aiohttp_client():
+#     """Context manager to mock aiohttp client."""
+#     mocker = AiohttpClientMocker()
+
+#     with mock.patch("aiohttp.ClientSession") as mock_session:
+#         instance = mock_session()
+
+#         for method in ("get", "post", "put", "options", "delete"):
+#             setattr(instance, method, functools.partial(mocker.match_request, method))
+
+#         yield mocker
+
+
+# @pytest.fixture()
+# async def mock_aiohttp():
+#     async with patch("aiohttp.ClientSession") as mock_aiohttp:
+#         mock_response = Mock()
+#         mock_aiohttp.return_value = mock_response
+
+#         mock_response.status.return_value = 200
+#         mock_response.return_value = "123456"
+
+#         yield mock_response
 

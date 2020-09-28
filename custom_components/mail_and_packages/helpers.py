@@ -754,35 +754,29 @@ def amazon_hub(account, fwds=None):
     email_address = const.AMAZON_HUB_EMAIL
     subject_regex = const.AMAZON_HUB_SUBJECT
     info = {}
-    past_date = datetime.date.today() - datetime.timedelta(days=3)
-    tfmt = past_date.strftime("%d-%b-%Y")
+    today = get_formatted_date()
 
-    try:
-        (rv, sdata) = account.search(
-            None, '(FROM "' + email_address + '" SINCE ' + tfmt + ")"
-        )
-    except imaplib.IMAP4.error as err:
-        _LOGGER.error("Error searching emails: %s", str(err))
+    (rv, sdata) = email_search(account, email_address, today)
 
-    else:
-        found = []
-        mail_ids = sdata[0]
-        id_list = mail_ids.split()
-        _LOGGER.debug("Amazon hub emails found: %s", str(len(id_list)))
-        for i in id_list:
-            typ, data = account.fetch(i, "(RFC822)")
-            for response_part in data:
-                if not isinstance(response_part, tuple):
-                    continue
-                msg = email.message_from_bytes(response_part[1])
+    found = []
+    mail_ids = sdata[0]
+    id_list = mail_ids.split()
+    _LOGGER.debug("Amazon hub emails found: %s", str(len(id_list)))
+    for i in id_list:
+        typ, data = email_fetch(account, i, "(RFC822)")
+        for response_part in data:
+            if not isinstance(response_part, tuple):
+                continue
+            msg = email.message_from_bytes(response_part[1])
 
-                # Get combo number from subject line
-                email_subject = msg["subject"]
-                pattern = re.compile(r"{}".format(subject_regex))
-                found.append(pattern.findall(email_subject))
+            # Get combo number from subject line
+            email_subject = msg["subject"]
+            pattern = re.compile(r"{}".format(subject_regex))
+            found.append(pattern.search(email_subject).group(3))
 
-        info[const.ATTR_COUNT] = len(found)
-        info[const.ATTR_CODE] = found
+    info[const.ATTR_COUNT] = len(found)
+    info[const.ATTR_CODE] = found
+
     return info
 
 
@@ -835,7 +829,7 @@ def get_items(account, param, fwds=None):
                     # Catch bad format emails
                     try:
                         email_msg = quopri.decodestring(str(msg.get_payload(0)))
-                        email_msg = email_msg.decode("utf-8")
+                        email_msg = email_msg.decode("utf-8", "ingore")
                     except Exception as err:
                         _LOGGER.debug(
                             "Error while attempting to parse Amazon email: %s",
