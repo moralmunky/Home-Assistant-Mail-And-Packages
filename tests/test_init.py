@@ -34,7 +34,7 @@ async def test_unload_entry(hass, mock_update):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 21
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 22
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -102,6 +102,8 @@ async def test_process_emails(hass, mock_imap_no_email):
         result = process_emails(hass, config)
         assert result == {
             "amazon_delivered": 0,
+            "amazon_hub": 0,
+            "amazon_hub_code": [],
             "amazon_order": [],
             "amazon_packages": 0,
             "capost_delivered": 0,
@@ -151,12 +153,12 @@ async def test_email_search(hass, mock_imap_no_email):
     assert result == ("BAD", [])
 
 
-async def test_get_mails(hass, mock_imap_no_email):
+async def test_get_mails(mock_imap_no_email):
     result = get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
     assert result == 0
 
 
-async def test_informed_delivery_emails(hass, mock_imap_usps_informed_digest):
+async def test_informed_delivery_emails(mock_imap_usps_informed_digest):
     with patch(
         "os.listdir",
         return_value=["testfile.gif", "anotherfakefile.mp4", "lastfile.txt"],
@@ -183,7 +185,7 @@ async def test_informed_delivery_emails(hass, mock_imap_usps_informed_digest):
 
 
 async def test_informed_delivery_missing_mailpiece(
-    hass, mock_imap_usps_informed_digest_missing
+    mock_imap_usps_informed_digest_missing,
 ):
     with patch(
         "os.listdir",
@@ -208,6 +210,32 @@ async def test_informed_delivery_missing_mailpiece(
             mock_imap_usps_informed_digest_missing, "./", "5", "mail_today.gif", False
         )
         assert result == 5
+
+
+async def test_informed_delivery_no_mail(mock_imap_usps_informed_digest_no_mail):
+    with patch(
+        "os.listdir",
+        return_value=["testfile.gif", "anotherfakefile.mp4", "lastfile.txt"],
+    ), patch("os.remove") as mock_osremove, patch(
+        "os.makedirs"
+    ) as mock_osmakedir, patch(
+        "custom_components.mail_and_packages.helpers.update_time",
+        return_value="Sep-23-2020 10:28 AM",
+    ), patch(
+        "builtins.open"
+    ), patch(
+        "custom_components.mail_and_packages.helpers.Image"
+    ), patch(
+        "custom_components.mail_and_packages.helpers.resizeimage"
+    ), patch(
+        "os.path.splitext", return_value=("test_filename", "gif")
+    ), patch(
+        "custom_components.mail_and_packages.helpers.io"
+    ):
+        result = get_mails(
+            mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
+        )
+        assert result == 1
 
 
 async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):

@@ -758,6 +758,11 @@ def amazon_hub(account, fwds=None):
 
     (rv, sdata) = email_search(account, email_address, today)
 
+    if len(sdata) == 0:
+        info[const.ATTR_COUNT] = 0
+        info[const.ATTR_CODE] = []
+        return info
+
     found = []
     mail_ids = sdata[0]
     id_list = mail_ids.split()

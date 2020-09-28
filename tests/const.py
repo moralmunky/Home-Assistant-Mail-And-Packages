@@ -45,6 +45,7 @@ FAKE_CONFIG_DATA = {
     "port": 993,
     "resources": [
         "amazon_delivered",
+        "amazon_hub",
         "amazon_packages",
         "capost_delivered",
         "capost_delivering",
