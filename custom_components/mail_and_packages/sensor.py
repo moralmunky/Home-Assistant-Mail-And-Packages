@@ -873,15 +873,15 @@ async def download_img(img_url, img_path):
 
 
 def amazon_hub(account, fwds=None):
+    """ Find Amazon Hub info and return it """
     email_address = const.AMAZON_HUB_EMAIL
     subject_regex = const.AMAZON_HUB_SUBJECT
     info = {}
-    past_date = datetime.date.today() - datetime.timedelta(days=3)
-    tfmt = past_date.strftime("%d-%b-%Y")
+    today = get_formatted_date()
 
     try:
         (rv, sdata) = account.search(
-            None, '(FROM "' + email_address + '" SINCE ' + tfmt + ")"
+            None, '(FROM "' + email_address + '" SINCE ' + today + ")"
         )
     except imaplib.IMAP4.error as err:
         _LOGGER.error("Error searching emails: %s", str(err))
@@ -898,13 +898,14 @@ def amazon_hub(account, fwds=None):
                     continue
                 msg = email.message_from_bytes(response_part[1])
 
-                # Get combo number from subject line
-                email_subject = msg["subject"]
-                re.compile(r"{}".format(subject_regex))
-                found.append(pattern.findall(email_subject))
+            # Get combo number from subject line
+            email_subject = msg["subject"]
+            pattern = re.compile(r"{}".format(subject_regex))
+            found.append(pattern.search(email_subject).group(3))
 
         info[ATTR_COUNT] = len(found)
         info[ATTR_CODE] = found
+
     return info
 
 
@@ -958,10 +959,6 @@ def get_items(account, param, fwds=None):
                     #  Don't add the same order number twice
                     if len(found) > 0 and found[0] not in orderNum:
                         orderNum.append(found[0])
-
-                    # No processing html emails
-                    if msg.get_content_type() == "text/html":
-                        continue
 
                     # Catch bad format emails
                     try:
