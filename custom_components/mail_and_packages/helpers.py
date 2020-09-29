@@ -271,7 +271,7 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
         except Exception as err:
             _LOGGER.critical("Error creating directory: %s", str(err))
 
-    """Clean up image directory"""
+    # Clean up image directory
     _LOGGER.debug("Cleaning up image directory: %s", str(image_output_path))
     cleanup_images(image_output_path)
 
@@ -281,7 +281,7 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
             (rv, data) = email_fetch(account, num, "(RFC822)")
             msg = email.message_from_string(data[0][1].decode("utf-8"))
 
-            """walking through the email parts to find images"""
+            # walking through the email parts to find images
             for part in msg.walk():
                 if part.get_content_maintype() == "multipart":
                     continue
@@ -291,8 +291,8 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
                 _LOGGER.debug("Extracting image from email")
                 filepath = image_output_path + part.get_filename()
 
-                """Log error message if we are unable to open the filepath for
-                some reason"""
+                # Log error message if we are unable to open the filepath for
+                # some reason
                 try:
                     fp = open(filepath, "wb")
                 except Exception as err:
@@ -302,14 +302,14 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
                 image_count = image_count + 1
                 fp.close()
 
-        """Remove duplicate images"""
+        # Remove duplicate images
         _LOGGER.debug("Removing duplicate images.")
         images = list(dict.fromkeys(images))
 
-        """Create copy of image list for deleting temporary images"""
+        # Create copy of image list for deleting temporary images
         imagesDelete = images[:]
 
-        """Look for mail pieces without images image"""
+        # Look for mail pieces without images image
         html_text = str(msg)
         link_pattern = re.compile(r"\bimage-no-mailpieces?700\.jpg\b")
         search = link_pattern.search(html_text)
@@ -320,7 +320,7 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
                 "Placeholder image found using: " + "image-no-mailpieces700.jpg."
             )
 
-        """Remove USPS announcement images"""
+        # Remove USPS announcement images
         _LOGGER.debug("Removing USPS announcement images.")
         remove_terms = ["mailerProvidedImage", "ra_0", "Mail Attachment.txt"]
         images = [
@@ -333,20 +333,20 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
             all_images = []
 
             _LOGGER.debug("Resizing images to 724x320...")
-            """Resize images to 724x320"""
+            # Resize images to 724x320
             all_images = resize_images(images, 724, 320)
 
-            """Create copy of image list for deleting temporary images"""
+            # Create copy of image list for deleting temporary images
             for image in all_images:
                 imagesDelete.append(image)
 
-            """Create numpy array of images"""
+            # Create numpy array of images
             _LOGGER.debug("Creating array of image files...")
             all_images = [io.imread(image) for image in all_images]
 
             try:
                 _LOGGER.debug("Generating animated GIF")
-                """Use ImageIO to create mail images"""
+                # Use ImageIO to create mail images
                 io.mimwrite(
                     os.path.join(image_output_path, image_name),
                     all_images,
@@ -357,7 +357,7 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
                 _LOGGER.error("Error attempting to generate image: %s", str(err))
             for image in imagesDelete:
                 try:
-                    os.remove(image)
+                    cleanup_images(os.path.split(image))
                 except Exception as err:
                     _LOGGER.error("Error attempting to remove image: %s", str(err))
 
@@ -365,11 +365,9 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
             _LOGGER.info("No mail found.")
             filecheck = os.path.isfile(image_output_path + image_name)
             if filecheck:
-                try:
-                    _LOGGER.debug("Removing " + image_output_path + image_name)
-                    os.remove(image_output_path + image_name)
-                except Exception as err:
-                    _LOGGER.error("Error attempting to remove image: %s", str(err))
+                _LOGGER.debug("Removing " + image_output_path + image_name)
+                cleanup_images(image_output_path, image_name)
+
             try:
                 _LOGGER.debug("Copying nomail gif")
                 copyfile(
@@ -396,11 +394,8 @@ def _generate_mp4(path, image_file):
     filecheck = os.path.isfile(mp4_file)
     _LOGGER.debug("Generating mp4: %s", mp4_file)
     if filecheck:
-        try:
-            os.remove(mp4_file)
-            _LOGGER.debug("Removing old mp4: %s", mp4_file)
-        except Exception as err:
-            _LOGGER.error("Error attempting to remove mp4: %s", str(err))
+        cleanup_images(os.path.split(mp4_file))
+        _LOGGER.debug("Removing old mp4: %s", mp4_file)
 
     subprocess.call(
         [
@@ -447,11 +442,19 @@ def resize_images(images, width, height):
     return all_images
 
 
-def cleanup_images(path):
+def cleanup_images(path, image=None):
     """
     Clean up image storage directory
     Only supose to delete .gif and .mp4 files
     """
+
+    if image is not None:
+        try:
+            os.remove(path + image)
+        except Exception as err:
+            _LOGGER.error("Error attempting to remove image: %s", str(err))
+        return
+
     for file in os.listdir(path):
         if file.endswith(".gif") or file.endswith(".mp4"):
             os.remove(path + file)
