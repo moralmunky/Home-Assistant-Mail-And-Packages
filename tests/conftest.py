@@ -2,11 +2,11 @@
 import functools
 import imaplib
 from tests.const import FAKE_UPDATE_DATA
-from tests.helpers.aiohttp import AiohttpClientMocker
 import pytest
 from pytest_homeassistant_custom_component.async_mock import AsyncMock, patch
-
+from tests.helpers.aiohttp import mock_aiohttp_client  # noqa: E402, isort:skip
 from unittest import mock
+from aiohttp.test_utils import make_mocked_request
 
 
 pytest_plugins = "pytest_homeassistant_custom_component"
@@ -372,28 +372,9 @@ def mock_imap_amazon_the_hub():
         yield mock_conn
 
 
-# @pytest.fixture()
-# async def mock_aiohttp_client():
-#     """Context manager to mock aiohttp client."""
-#     mocker = AiohttpClientMocker()
-
-#     with mock.patch("aiohttp.ClientSession") as mock_session:
-#         instance = mock_session()
-
-#         for method in ("get", "post", "put", "options", "delete"):
-#             setattr(instance, method, functools.partial(mocker.match_request, method))
-
-#         yield mocker
-
-
-# @pytest.fixture()
-# async def mock_aiohttp():
-#     async with patch("aiohttp.ClientSession") as mock_aiohttp:
-#         mock_response = Mock()
-#         mock_aiohttp.return_value = mock_response
-
-#         mock_response.status.return_value = 200
-#         mock_response.return_value = "123456"
-
-#         yield mock_response
+@pytest.fixture
+def aioclient_mock():
+    """Fixture to mock aioclient calls."""
+    with mock_aiohttp_client() as mock_session:
+        yield mock_session
 
