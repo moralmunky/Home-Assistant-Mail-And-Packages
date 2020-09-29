@@ -4,6 +4,7 @@ import imaplib
 from tests.const import FAKE_UPDATE_DATA
 import pytest
 from pytest_homeassistant_custom_component.async_mock import AsyncMock, patch
+from shutil import which
 from tests.helpers.aiohttp import mock_aiohttp_client  # noqa: E402, isort:skip
 from unittest import mock
 
@@ -377,3 +378,18 @@ def aioclient_mock():
     with mock_aiohttp_client() as mock_session:
         yield mock_session
 
+
+@pytest.fixture
+def test_valid_ffmpeg():
+    """ Fixture to mock which """
+    with patch("custom_components.mail_and_packages.helpers.which") as mock_which:
+        mock_which.return_value = "anything"
+        yield mock_which
+
+
+@pytest.fixture
+def test_invalid_ffmpeg():
+    """ Fixture to mock which """
+    with patch("custom_components.mail_and_packages.helpers.which") as mock_which:
+        mock_which.return_value = None
+        yield mock_which

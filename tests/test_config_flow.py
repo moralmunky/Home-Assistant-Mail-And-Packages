@@ -797,6 +797,16 @@ async def test_invalid_path():
     assert not result
 
 
+async def test_valid_ffmpeg(test_valid_ffmpeg):
+    result = await _check_ffmpeg()
+    assert result
+
+
+async def test_invalid_ffmpeg(test_invalid_ffmpeg):
+    result = await _check_ffmpeg()
+    assert not result
+
+
 async def test_imap_login(mock_imap):
     result = await _test_login(
         "imap.test.email", 993, "fakeuser@test.email", "suchfakemuchpassword"
