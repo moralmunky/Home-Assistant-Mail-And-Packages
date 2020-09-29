@@ -90,10 +90,10 @@ def process_emails(hass, config):
     resources = config.get(CONF_RESOURCES)
     amazon_fwds = config.get(const.CONF_AMAZON_FWDS)
 
-    """Login to email server and select the folder"""
+    # Login to email server and select the folder
     account = login(host, port, user, pwd)
 
-    """Do not process if account returns false"""
+    # Do not process if account returns false
     if not account:
         return
 
@@ -106,7 +106,7 @@ def process_emails(hass, config):
 
     data = {}
 
-    """Only update sensors we're intrested in"""
+    # Only update sensors we're intrested in
     for sensor in resources:
         count = {}
         if sensor == "usps_mail":
@@ -164,7 +164,7 @@ def process_emails(hass, config):
 def login(host, port, user, pwd):
     """function used to login"""
 
-    """Catch invalid mail server / host names"""
+    # Catch invalid mail server / host names
     try:
         account = imaplib.IMAP4_SSL(host, port)
 
@@ -175,7 +175,7 @@ def login(host, port, user, pwd):
         _LOGGER.error("Network error while connecting to server: %s", str(err))
         return False
 
-    """If login fails give error message"""
+    # If login fails give error message
     try:
         rv, data = account.login(user, pwd)
     except imaplib.IMAP4.error as err:
@@ -199,10 +199,10 @@ def selectfolder(account, folder):
 def get_formatted_date():
     """Returns today in specific format"""
     today = datetime.datetime.today().strftime("%d-%b-%Y")
-    """
+    #
     # for testing
     # today = '06-May-2020'
-    """
+    #
     return today
 
 
@@ -582,7 +582,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
 
 
 def get_tracking(sdata, account, shipper):
-    """Parse tracking numbers from email subject lines"""
+    """Parse tracking numbers from email """
     _LOGGER.debug("Searching for tracking numbers for (%s)", shipper)
     tracking = []
     pattern = None
@@ -730,7 +730,7 @@ def get_amazon_image(sdata, account, image_path, hass):
                     break
 
     if img_url is not None:
-        """ Download the image we found """
+        # Download the image we found
         hass.add_job(download_img(img_url, image_path))
 
 

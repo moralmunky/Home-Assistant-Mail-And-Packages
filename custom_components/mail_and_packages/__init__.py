@@ -31,7 +31,7 @@ async def async_setup_entry(hass, config_entry):
     data = EmailData(hass, config)
 
     async def async_update_data():
-        """Fetch data from NUT."""
+        """Fetch data """
         async with async_timeout.timeout(10):
             await hass.async_add_executor_job(data.update)
             if not data:
@@ -102,7 +102,7 @@ class EmailData:
     def update(self):
         """Get the latest data"""
         if self._host is not None:
-            """Login to email server and select the folder"""
+            # Login to email server and select the folder
             self._data = process_emails(self._hass, self._config)
         else:
             _LOGGER.error("Host was left blank not attempting connection")
