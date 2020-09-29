@@ -6,7 +6,6 @@ import pytest
 from pytest_homeassistant_custom_component.async_mock import AsyncMock, patch
 from tests.helpers.aiohttp import mock_aiohttp_client  # noqa: E402, isort:skip
 from unittest import mock
-from aiohttp.test_utils import make_mocked_request
 
 
 pytest_plugins = "pytest_homeassistant_custom_component"

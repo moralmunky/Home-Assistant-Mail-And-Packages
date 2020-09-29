@@ -283,10 +283,8 @@ async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
 
 
 async def test_amazon_search_delivered(hass, mock_imap_amazon_delivered):
-    with patch("custom_components.mail_and_packages.helpers.download_img"):
-
-        result = amazon_search(mock_imap_amazon_delivered, "test/path", hass)
-        assert result == 4
+    result = amazon_search(mock_imap_amazon_delivered, "test/path", hass)
+    assert result == 4
 
 
 async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
@@ -322,5 +320,7 @@ async def test_login_error(hass, mock_imap_error):
 
 
 # async def test_download_img(aioclient_mock):
-#     await download_img("http://fake.website.com", "/not/a/real/website/image.jpg")
+#     with patch("aiohttp.ClientSession") as mock_client:
+#         mock_client = aioclient_mock
+#         await download_img("http://fake.website.com", "/not/a/real/website/image.jpg")
 
