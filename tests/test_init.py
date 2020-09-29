@@ -295,12 +295,12 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
 
 async def test_generate_mp4():
     with patch("os.path.join") as mock_path_join, patch(
-        "os.remove"
+        "custom_components.mail_and_packages.helpers.cleanup_images"
     ) as mock_remove, patch("subprocess.call") as mock_subprocess:
         _generate_mp4("./", "testfile.gif")
 
         mock_path_join.called_with("./", "testfile.gif")
-        mock_remove.called_with("testfile.mp4")
+        mock_remove.called_with("./", "testfile.mp4")
         mock_subprocess.called_with(
             "ffmpeg",
             "-f",
