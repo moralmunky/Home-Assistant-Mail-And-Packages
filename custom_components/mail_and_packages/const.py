@@ -49,7 +49,7 @@ USPS_PACKAGES = "usps_packages"
 USPS_TRACKING = "usps_tracking"
 USPS_MAIL = "usps_mail"
 
-USPS_TRACKING_PATTERN = "9[234]\d{15,22}"
+USPS_TRACKING_PATTERN = "9[234]\\d{15,22}"
 
 # UPS
 UPS_Email = "mcinfo@ups.com"
@@ -64,7 +64,7 @@ UPS_DELIVERING = "ups_delivering"
 UPS_PACKAGES = "ups_packages"
 UPS_TRACKING = "ups_tracking"
 
-UPS_TRACKING_PATTERN = "(1Z ?[0-9A-Z]{3} ?[0-9A-Z]{3} ?[0-9A-Z]{2} ?[0-9A-Z]{4} ?[0-9A-Z]{3} ?[0-9A-Z]|[\dT]\d\d\d ?\d\d\d\d ?\d\d\d)$"
+UPS_TRACKING_PATTERN = "(1Z ?[0-9A-Z]{3} ?[0-9A-Z]{3} ?[0-9A-Z]{2} ?[0-9A-Z]{4} ?[0-9A-Z]{3} ?[0-9A-Z]|[\\dT]\\d\\d\\d ?\\d\\d\\d\\d ?\\d\\d\\d)$"
 
 # FedEx
 FEDEX_Email = ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"]
@@ -77,7 +77,7 @@ FEDEX_DELIVERING = "fedex_delivering"
 FEDEX_PACKAGES = "fedex_packages"
 FEDEX_TRACKING = "fedex_tracking"
 
-FEDEX_TRACKING_PATTERN = "\d{15,34}"
+FEDEX_TRACKING_PATTERN = "\\d{15,34}"
 
 # Amazon
 Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in"
@@ -87,12 +87,12 @@ AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
 AMAZON_DELIVERED = "amazon_delivered"
 AMAZON_IMG_PATTERN = (
-    "(https://)([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-;]*[\w@?^=%&/~+#-;])?"
+    "(https://)([\\w_-]+(?:(?:\\.[\\w_-]+)+))([\\w.,@?^=%&:/~+#-;]*[\\w@?^=%&/~+#-;])?"
 )
 AMAZON_HUB = "amazon_hub"
 AMAZON_HUB_CODE = "amazon_hub_code"
 AMAZON_HUB_EMAIL = "thehub@amazon.com"
-AMAZON_HUB_SUBJECT = "(You have a package to pick up)(.*)- (\d{6})"
+AMAZON_HUB_SUBJECT = "(You have a package to pick up)(.*)- (\\d{6})"
 AMAZON_TIME_PATTERN = (
     "will arrive:,estimated delivery date is:,guaranteed delivery date is:"
 )
@@ -117,7 +117,7 @@ DHL_DELIVERING = "dhl_delivering"
 DHL_PACKAGES = "dhl_packages"
 DHL_TRACKING = "dhl_tracking"
 
-DHL_TRACKING_PATTERN = "number \d{10} from"
+DHL_TRACKING_PATTERN = "number \\d{10} from"
 
 # Sensor definitions
 # Name, unit of measure, icon
