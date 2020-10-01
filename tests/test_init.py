@@ -421,8 +421,13 @@ async def test_generate_mp4():
         )
 
 
-async def test_login_error(hass, mock_imap_error):
-    login("localhost", 993, "fakeuser", "suchfakemuchpassword")
+async def test_login_error(caplog):
+    result = login("localhost", 993, "fakeuser", "suchfakemuchpassword")
+    assert not result
+    assert (
+        "Network error while connecting to server: [Errno 111] Connection refused"
+        in caplog.text
+    )
 
 
 # async def test_download_img(aioclient_mock):

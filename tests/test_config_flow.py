@@ -809,9 +809,17 @@ async def test_invalid_ffmpeg(test_invalid_ffmpeg):
 
 async def test_imap_login(mock_imap):
     result = await _test_login(
-        "imap.test.email", 993, "fakeuser@test.email", "suchfakemuchpassword"
+        "127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword"
     )
     assert result
+
+
+async def test_imap_login_error(caplog):
+    await _test_login("127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword")
+    assert (
+        "Error connecting into IMAP Server: [Errno 111] Connection refused"
+        in caplog.text
+    )
 
 
 @pytest.mark.parametrize(

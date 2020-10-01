@@ -61,14 +61,14 @@ async def _test_login(host, port, user, pwd):
     # Attempt to catch invalid mail server hosts
     try:
         account = imaplib.IMAP4_SSL(host, port)
-    except imaplib.IMAP4.error as err:
+    except Exception as err:
         _LOGGER.error("Error connecting into IMAP Server: %s", str(err))
         return False
     # Validate we can login to mail server
     try:
         rv, data = account.login(user, pwd)
         return True
-    except imaplib.IMAP4.error as err:
+    except Exception as err:
         _LOGGER.error("Error logging into IMAP Server: %s", str(err))
         return False
 
@@ -168,9 +168,6 @@ def login(host, port, user, pwd):
     try:
         account = imaplib.IMAP4_SSL(host, port)
 
-    except imaplib.IMAP4.error as err:
-        _LOGGER.error("Error connecting into IMAP Server: %s", str(err))
-        return False
     except Exception as err:
         _LOGGER.error("Network error while connecting to server: %s", str(err))
         return False
@@ -178,7 +175,7 @@ def login(host, port, user, pwd):
     # If login fails give error message
     try:
         rv, data = account.login(user, pwd)
-    except imaplib.IMAP4.error as err:
+    except Exception as err:
         _LOGGER.error("Error logging into IMAP Server: %s", str(err))
 
     return account
@@ -188,11 +185,11 @@ def selectfolder(account, folder):
     """Select folder inside the mailbox"""
     try:
         rv, mailboxes = account.list()
-    except imaplib.IMAP4.error as err:
+    except Exception as err:
         _LOGGER.error("Error listing folders: %s", str(err))
     try:
         rv, data = account.select(folder)
-    except imaplib.IMAP4.error as err:
+    except Exception as err:
         _LOGGER.error("Error selecting folder: %s", str(err))
 
 
@@ -232,7 +229,7 @@ def email_search(account, address, date, subject=None):
 
     try:
         value = account.search(None, imap_search)
-    except imaplib.IMAP4.error as err:
+    except Exception as err:
         _LOGGER.error("Error searching emails: %s", str(err))
         return "BAD", str(err)
 
@@ -244,7 +241,11 @@ def email_fetch(account, num, type="(RFC822)"):
 
     Returns tuple
     """
-    value = account.fetch(num, type)
+    try:
+        value = account.fetch(num, type)
+    except Exception as err:
+        _LOGGER.error("Error fetching emails: %s", str(err))
+        value = "BAD", str(err)
 
     return value
 
