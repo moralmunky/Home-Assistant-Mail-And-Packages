@@ -297,6 +297,7 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
                     fp = open(filepath, "wb")
                 except Exception as err:
                     _LOGGER.critical("Error opening filepath: %s", str(err))
+                    return
                 fp.write(part.get_payload(decode=True))
                 images.append(filepath)
                 image_count = image_count + 1

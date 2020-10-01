@@ -21,7 +21,8 @@ from custom_components.mail_and_packages.helpers import (
     login,
 )
 
-from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
+from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD, FAKE_CONFIG_DATA_NO_RND
+import pytest
 
 
 async def test_unload_entry(hass, mock_update):
@@ -143,6 +144,16 @@ async def test_process_emails_bad(hass, mock_imap_no_email):
     await hass.async_block_till_done()
 
 
+async def test_process_emails_no_random(hass, mock_imap_no_email):
+    entry = MockConfigEntry(
+        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA_NO_RND,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+
 async def test_email_search(hass, mock_imap_no_email):
     result = email_search(mock_imap_no_email, "fake@eamil.address", "01-Jan-20")
     assert result == ("BAD", [])
@@ -182,6 +193,93 @@ async def test_informed_delivery_emails(mock_imap_usps_informed_digest):
             mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
         )
         assert result == 3
+
+
+async def test_informed_delivery_emails_mp4(mock_imap_usps_informed_digest):
+    with patch(
+        "os.listdir",
+        return_value=["testfile.gif", "anotherfakefile.mp4", "lastfile.txt"],
+    ), patch("os.remove") as mock_osremove, patch(
+        "os.makedirs"
+    ) as mock_osmakedir, patch(
+        "custom_components.mail_and_packages.helpers.update_time",
+        return_value="Sep-23-2020 10:28 AM",
+    ), patch(
+        "builtins.open"
+    ), patch(
+        "custom_components.mail_and_packages.helpers.Image"
+    ), patch(
+        "custom_components.mail_and_packages.helpers.resizeimage"
+    ), patch(
+        "os.path.splitext", return_value=("test_filename", "gif")
+    ), patch(
+        "custom_components.mail_and_packages.helpers.io"
+    ), patch(
+        "custom_components.mail_and_packages.helpers._generate_mp4"
+    ) as mock_generate_mp4:
+        result = get_mails(
+            mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", True
+        )
+        assert result == 3
+        assert mock_generate_mp4.called_with("./", "mail_today.gif")
+
+
+async def test_informed_delivery_emails_open_err(
+    mock_imap_usps_informed_digest, caplog
+):
+    with patch(
+        "os.listdir",
+        return_value=["testfile.gif", "anotherfakefile.mp4", "lastfile.txt"],
+    ), patch("os.remove"), patch("os.makedirs"), patch(
+        "custom_components.mail_and_packages.helpers.update_time",
+        return_value="Sep-23-2020 10:28 AM",
+    ), patch(
+        "custom_components.mail_and_packages.helpers.Image"
+    ), patch(
+        "custom_components.mail_and_packages.helpers.resizeimage"
+    ), patch(
+        "os.path.splitext", return_value=("test_filename", "gif")
+    ), patch(
+        "custom_components.mail_and_packages.helpers.io"
+    ):
+        get_mails(
+            mock_imap_usps_informed_digest,
+            "/totally/fake/path/",
+            "5",
+            "mail_today.gif",
+            False,
+        )
+        assert (
+            "Error opening filepath: [Errno 2] No such file or directory: '/totally/fake/path/1040327780-101.jpg'"
+            in caplog.text
+        )
+
+
+async def test_informed_delivery_emails_io_err(mock_imap_usps_informed_digest):
+    with patch(
+        "os.listdir",
+        return_value=["testfile.gif", "anotherfakefile.mp4", "lastfile.txt"],
+    ), patch("os.remove"), patch("os.makedirs"), patch(
+        "custom_components.mail_and_packages.helpers.update_time",
+        return_value="Sep-23-2020 10:28 AM",
+    ), patch(
+        "builtins.open"
+    ), patch(
+        "custom_components.mail_and_packages.helpers.Image"
+    ), patch(
+        "custom_components.mail_and_packages.helpers.resizeimage"
+    ), patch(
+        "os.path.splitext", return_value=("test_filename", "gif")
+    ):
+        with pytest.raises(FileNotFoundError) as exc_info:
+            get_mails(
+                mock_imap_usps_informed_digest,
+                "/totally/fake/path/",
+                "5",
+                "mail_today.gif",
+                False,
+            )
+        assert type(exc_info.value) is FileNotFoundError
 
 
 async def test_informed_delivery_missing_mailpiece(
