@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.2.2-b31"
+VERSION = "0.2.2-b32"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 
@@ -91,7 +91,7 @@ CAPOST_DELIVERING = "capost_delivering"
 CAPOST_PACKAGES = "capost_packages"
 
 # DHL
-DHL_Email = "donotreply_odd@dhl.com"
+DHL_Email = "NoReply.ODD@dhl.com"
 DHL_Delivering_Subject = "DHL On Demand Delivery"
 DHL_Delivered_Subject = "DHL On Demand Delivery"
 DHL_Body_Text = "scheduled for delivery TODAY"
