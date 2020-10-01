@@ -231,7 +231,7 @@ def email_search(account, address, date, subject=None):
         value = account.search(None, imap_search)
     except Exception as err:
         _LOGGER.error("Error searching emails: %s", str(err))
-        return "BAD", str(err)
+        value = "BAD", err.args[0]
 
     return value
 
@@ -245,7 +245,7 @@ def email_fetch(account, num, type="(RFC822)"):
         value = account.fetch(num, type)
     except Exception as err:
         _LOGGER.error("Error fetching emails: %s", str(err))
-        value = "BAD", str(err)
+        value = "BAD", err.args[0]
 
     return value
 

@@ -19,10 +19,13 @@ from custom_components.mail_and_packages.helpers import (
     get_count,
     get_items,
     login,
+    selectfolder,
+    email_fetch,
 )
 
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD, FAKE_CONFIG_DATA_NO_RND
 import pytest
+from unittest import mock
 
 
 async def test_unload_entry(hass, mock_update):
@@ -154,14 +157,22 @@ async def test_process_emails_no_random(hass, mock_imap_no_email):
     await hass.async_block_till_done()
 
 
-async def test_email_search(hass, mock_imap_no_email):
-    result = email_search(mock_imap_no_email, "fake@eamil.address", "01-Jan-20")
-    assert result == ("BAD", [])
+async def test_email_search(mock_imap_search_error, caplog):
+    result = email_search(mock_imap_search_error, "fake@eamil.address", "01-Jan-20")
+    assert result == ("BAD", "Invalid SEARCH format")
+    assert "Error searching emails:" in caplog.text
 
     result = email_search(
-        mock_imap_no_email, "fake@eamil.address", "01-Jan-20", "Fake Subject"
+        mock_imap_search_error, "fake@eamil.address", "01-Jan-20", "Fake Subject"
     )
-    assert result == ("BAD", [])
+    assert result == ("BAD", "Invalid SEARCH format")
+    assert "Error searching emails:" in caplog.text
+
+
+async def test_email_fetch(mock_imap_fetch_error, caplog):
+    result = email_fetch(mock_imap_fetch_error, 1, "(RFC888)")
+    assert result == ("BAD", "Invalid Email")
+    assert "Error fetching emails:" in caplog.text
 
 
 async def test_get_mails(mock_imap_no_email):
@@ -193,6 +204,35 @@ async def test_informed_delivery_emails(mock_imap_usps_informed_digest):
             mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
         )
         assert result == 3
+
+
+async def test_get_mails_imageio_error(mock_imap_usps_informed_digest, caplog):
+    with patch(
+        "os.listdir",
+        return_value=["testfile.gif", "anotherfakefile.mp4", "lastfile.txt"],
+    ), patch("os.remove") as mock_osremove, patch(
+        "os.makedirs"
+    ) as mock_osmakedir, patch(
+        "custom_components.mail_and_packages.helpers.update_time",
+        return_value="Sep-23-2020 10:28 AM",
+    ), patch(
+        "builtins.open"
+    ), patch(
+        "custom_components.mail_and_packages.helpers.Image"
+    ), patch(
+        "custom_components.mail_and_packages.helpers.resizeimage"
+    ), patch(
+        "os.path.splitext", return_value=("test_filename", "gif")
+    ), patch(
+        "custom_components.mail_and_packages.helpers.io"
+    ) as mock_imageio:
+        mock_imageio.return_value = mock.Mock(autospec=True)
+        mock_imageio.mimwrite.side_effect = Exception("Processing Error")
+        result = get_mails(
+            mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
+        )
+        assert result == 3
+        assert "Error attempting to generate image:" in caplog.text
 
 
 async def test_informed_delivery_emails_mp4(mock_imap_usps_informed_digest):
@@ -421,13 +461,28 @@ async def test_generate_mp4():
         )
 
 
-async def test_login_error(caplog):
+async def test_connection_error(caplog):
     result = login("localhost", 993, "fakeuser", "suchfakemuchpassword")
     assert not result
     assert (
         "Network error while connecting to server: [Errno 111] Connection refused"
         in caplog.text
     )
+
+
+async def test_login_error(mock_imap_login_error, caplog):
+    login("localhost", 993, "fakeuser", "suchfakemuchpassword")
+    assert "Error logging into IMAP Server:" in caplog.text
+
+
+async def test_selectfolder_list_error(mock_imap_list_error, caplog):
+    selectfolder(mock_imap_list_error, "somefolder")
+    assert "Error listing folders:" in caplog.text
+
+
+async def test_selectfolder_select_error(mock_imap_select_error, caplog):
+    selectfolder(mock_imap_select_error, "somefolder")
+    assert "Error selecting folder:" in caplog.text
 
 
 # async def test_download_img(aioclient_mock):

@@ -44,18 +44,57 @@ def mock_imap():
 
 
 @pytest.fixture()
-def mock_imap_error():
+def mock_imap_login_error():
     """ Mock imap class values. """
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
-    ) as mock_imap_error:
+    ) as mock_imap_login_error:
         mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
-        mock_imap_error.IMAP4_SSL.return_value = mock_conn
+        mock_imap_login_error.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.side_effect = Exception("Invalid username or password")
+
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_select_error():
+    """ Mock imap class values. """
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_select_error:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_select_error.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
-            "BAD",
-            [b"user@fake.email invalid (Failure)"],
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
         )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+
+        mock_conn.select.side_effect = Exception("Invalid folder")
+
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_list_error():
+    """ Mock imap class values. """
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_list_error:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_list_error.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+
+        mock_conn.list.side_effect = Exception("List error")
 
         yield mock_conn
 
@@ -79,6 +118,51 @@ def mock_imap_no_email():
         )
         mock_conn.search.return_value = ("BAD", [])
         mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_search_error():
+    """ Mock imap class values. """
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_search_error:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_search_error.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.side_effect = Exception("Invalid SEARCH format")
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_fetch_error():
+    """ Mock imap class values. """
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_fetch_error:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_fetch_error.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.select.return_value = ("OK", [])
+        mock_conn.fetch.side_effect = Exception("Invalid Email")
         yield mock_conn
 
 
@@ -125,13 +209,13 @@ def mock_imap_index_error_2():
 
 
 @pytest.fixture()
-def mock_imap_mailbox_error():
+def mock_imap_mailbox_format2():
     """ Mock imap class values. """
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
-    ) as mock_imap_mailbox_error:
+    ) as mock_imap_mailbox_format2:
         mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
-        mock_imap_mailbox_error.IMAP4_SSL.return_value = mock_conn
+        mock_imap_mailbox_format2.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
             "OK",

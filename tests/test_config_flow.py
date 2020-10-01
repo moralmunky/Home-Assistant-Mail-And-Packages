@@ -1,5 +1,4 @@
 """ Test Mail and Packages config flow """
-from tests.conftest import mock_imap, mock_imap_mailbox_error
 from homeassistant import config_entries, setup
 from custom_components.mail_and_packages.const import DOMAIN
 import os
@@ -742,8 +741,8 @@ async def test_form_index_error_2(
         ),
     ],
 )
-async def test_form_mailbox_error(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap_mailbox_error,
+async def test_form_mailbox_format2(
+    input_1, step_id_2, input_2, title, data, hass, mock_imap_mailbox_format2,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -814,12 +813,17 @@ async def test_imap_login(mock_imap):
     assert result
 
 
-async def test_imap_login_error(caplog):
+async def test_imap_connection_error(caplog):
     await _test_login("127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword")
     assert (
         "Error connecting into IMAP Server: [Errno 111] Connection refused"
         in caplog.text
     )
+
+
+async def test_imap_login_error(mock_imap_login_error, caplog):
+    await _test_login("127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword")
+    assert "Error logging into IMAP Server:" in caplog.text
 
 
 @pytest.mark.parametrize(
@@ -1566,8 +1570,8 @@ async def test_options_flow_index_error_2(
         ),
     ],
 )
-async def test_options_flow_mailbox_error(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap_mailbox_error,
+async def test_options_flow_mailbox_format2(
+    input_1, step_id_2, input_2, title, data, hass, mock_imap_mailbox_format2,
 ):
     """Test config flow options."""
     entry = MockConfigEntry(
