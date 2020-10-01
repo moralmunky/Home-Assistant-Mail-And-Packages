@@ -1,10 +1,8 @@
 """ Fixtures for Mail and Packages tests. """
-import functools
 import imaplib
 from tests.const import FAKE_UPDATE_DATA
 import pytest
-from pytest_homeassistant_custom_component.async_mock import AsyncMock, patch
-from shutil import which
+from pytest_homeassistant_custom_component.async_mock import patch
 from tests.helpers.aiohttp import mock_aiohttp_client  # noqa: E402, isort:skip
 from unittest import mock
 
@@ -241,6 +239,31 @@ def mock_imap_ups_out_for_delivery():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/ups_out_for_delivery.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_dhl_out_for_delivery():
+    """ Mock imap class values. """
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_ups_out_for_delivery:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_ups_out_for_delivery.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/dhl_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])

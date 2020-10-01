@@ -504,7 +504,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     elif sensor_type == const.DHL_DELIVERING:
         email = const.DHL_Email
         subject = const.DHL_Delivering_Subject
-        filter_text = const.DHL_Body_Text_2
+        filter_text = const.DHL_Body_Text
         if get_tracking_num:
             shipper = const.SHIPPERS[1]
     elif sensor_type == const.FEDEX_DELIVERED:
@@ -516,7 +516,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     elif sensor_type == const.DHL_DELIVERED:
         email = const.DHL_Email
         subject = const.DHL_Delivered_Subject
-        filter_text = const.DHL_Body_Text
+        filter_text = const.DHL_Body_Text_2
     elif sensor_type == const.AMAZON_DELIVERED:
         result[const.ATTR_COUNT] = amazon_search(account, image_path, hass)
         result[const.ATTR_TRACKING] = ""
@@ -623,6 +623,10 @@ def get_tracking(sdata, account, shipper):
             email_msg = email_msg.decode("utf-8")
             found = pattern.findall(email_msg)
             if len(found) > 0:
+                # DHL is special
+                if shipper == "dhl":
+                    found[0] = found[0].split(" ")[1]
+
                 _LOGGER.debug(
                     "Found (%s) tracking number in email body: %s", shipper, found[0]
                 )

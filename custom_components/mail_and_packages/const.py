@@ -106,7 +106,7 @@ CAPOST_DELIVERING = "capost_delivering"
 CAPOST_PACKAGES = "capost_packages"
 
 # DHL
-DHL_Email = "donotreply_odd@dhl.com"
+DHL_Email = ["donotreply_odd@dhl.com", "NoReply.ODD@dhl.com"]
 DHL_Delivering_Subject = "DHL On Demand Delivery"
 DHL_Delivered_Subject = "DHL On Demand Delivery"
 DHL_Body_Text = "scheduled for delivery TODAY"
@@ -117,7 +117,7 @@ DHL_DELIVERING = "dhl_delivering"
 DHL_PACKAGES = "dhl_packages"
 DHL_TRACKING = "dhl_tracking"
 
-DHL_TRACKING_PATTERN = "\d{10}"
+DHL_TRACKING_PATTERN = "number \d{10} from"
 
 # Sensor definitions
 # Name, unit of measure, icon
