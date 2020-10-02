@@ -500,3 +500,161 @@ def test_invalid_ffmpeg():
     with patch("custom_components.mail_and_packages.helpers.which") as mock_which:
         mock_which.return_value = None
         yield mock_which
+
+
+@pytest.fixture
+def mock_copyfile_exception():
+    """ Fixture to mock which """
+    with patch("custom_components.mail_and_packages.helpers.copyfile") as mock_copyfile:
+        mock_copyfile.side_effect = Exception("File not found")
+        yield mock_copyfile
+
+
+@pytest.fixture
+def mock_copyfile():
+    """ Fixture to mock copyfile """
+    with patch("custom_components.mail_and_packages.helpers.copyfile") as mock_copyfile:
+        mock_copyfile.return_value = True
+        yield mock_copyfile
+
+
+@pytest.fixture
+def mock_listdir():
+    """ Fixture to mock listdir """
+    with patch("os.listdir") as mock_listdir:
+        mock_listdir.return_value = [
+            "testfile.gif",
+            "anotherfakefile.mp4",
+            "lastfile.txt",
+        ]
+        yield mock_listdir
+
+
+@pytest.fixture
+def mock_osremove():
+    """ Fixture to mock remove """
+    with patch("os.remove") as mock_remove:
+        mock_remove.return_value = True
+        yield mock_remove
+
+
+@pytest.fixture
+def mock_osremove_exception():
+    """ Fixture to mock remove """
+    with patch("os.remove") as mock_osremove_exception:
+        mock_osremove_exception.side_effect = Exception("Invalid directory")
+        yield mock_osremove_exception
+
+
+@pytest.fixture
+def mock_osmakedir():
+    """ Fixture to mock makedirs """
+    with patch("os.makedirs") as mock_osmakedir:
+        mock_osmakedir.return_value = True
+        yield mock_osmakedir
+
+
+@pytest.fixture
+def mock_osmakedir_excpetion():
+    """ Fixture to mock makedir """
+    with patch("os.makedir") as mock_osmakedir:
+        mock_osmakedir.side_effect = Exception("File not found")
+        yield mock_osmakedir
+
+
+@pytest.fixture
+def mock_open():
+    """ Fixture to mock open """
+    with patch("builtins.open") as mock_open:
+        mock_open.return_value = mock.Mock(autospec=True)
+        mock_open.write.return_value = None
+        yield mock_open
+
+
+@pytest.fixture
+def mock_open_excpetion():
+    """ Fixture to mock open """
+    with patch("builtins.open") as mock_open_excpetion:
+        mock_open_excpetion.side_effect = Exception("File not found")
+
+        yield mock_open_excpetion
+
+
+@pytest.fixture
+def mock_os_path_splitext():
+    """ Fixture to mock splitext """
+    with patch("os.path.splitext") as mock_os_path_splitext:
+        mock_os_path_splitext.return_value = ("test_filename", "gif")
+        yield mock_os_path_splitext
+
+
+@pytest.fixture
+def mock_update_time():
+    """ Fixture to mock splitext """
+    with patch(
+        "custom_components.mail_and_packages.helpers.update_time"
+    ) as mock_update_time:
+        mock_update_time.return_value = "Sep-23-2020 10:28 AM"
+        yield mock_update_time
+
+
+@pytest.fixture
+def mock_image():
+    """ Fixture to mock splitext """
+    with patch("custom_components.mail_and_packages.helpers.Image") as mock_image:
+
+        yield mock_image
+
+
+@pytest.fixture
+def mock_image_excpetion():
+    """ Fixture to mock splitext """
+    with patch(
+        "custom_components.mail_and_packages.helpers.Image"
+    ) as mock_image_excpetion:
+        mock_image_excpetion.return_value = mock.Mock(autospec=True)
+        mock_image_excpetion.open.side_effect = Exception("SystemError")
+        yield mock_image_excpetion
+
+
+@pytest.fixture
+def mock_resizeimage():
+    """ Fixture to mock splitext """
+    with patch(
+        "custom_components.mail_and_packages.helpers.resizeimage"
+    ) as mock_resizeimage:
+
+        yield mock_resizeimage
+
+
+@pytest.fixture
+def mock_io():
+    """ Fixture to mock splitext """
+    with patch("custom_components.mail_and_packages.helpers.io") as mock_io:
+
+        yield mock_io
+
+
+@pytest.fixture
+def mock_os_path_isfile():
+    """ Fixture to mock splitext """
+    with patch("os.path.isfile") as mock_os_path_isfile:
+        mock_os_path_isfile.return_value = True
+        yield mock_os_path_isfile
+
+
+@pytest.fixture
+def mock_os_path_join():
+    """ Fixture to mock splitext """
+    with patch("os.path.join") as mock_path_join:
+
+        yield mock_path_join
+
+
+@pytest.fixture
+def mock_subprocess_call():
+    """ Fixture to mock splitext """
+    with patch("subprocess.call") as mock_subprocess_call:
+
+        yield mock_subprocess_call
+

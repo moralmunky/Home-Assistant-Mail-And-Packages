@@ -358,10 +358,7 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
             except Exception as err:
                 _LOGGER.error("Error attempting to generate image: %s", str(err))
             for image in imagesDelete:
-                try:
-                    cleanup_images(os.path.split(image))
-                except Exception as err:
-                    _LOGGER.error("Error attempting to remove image: %s", str(err))
+                cleanup_images(os.path.split(image))
 
         elif image_count == 0:
             _LOGGER.info("No mail found.")
@@ -459,7 +456,10 @@ def cleanup_images(path, image=None):
 
     for file in os.listdir(path):
         if file.endswith(".gif") or file.endswith(".mp4"):
-            os.remove(path + file)
+            try:
+                os.remove(path + file)
+            except Exception as err:
+                _LOGGER.error("Error attempting to remove found image: %s", str(err))
 
 
 def get_count(account, sensor_type, get_tracking_num=False, image_path=None, hass=None):
