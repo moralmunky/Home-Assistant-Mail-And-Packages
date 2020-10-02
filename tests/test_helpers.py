@@ -399,7 +399,9 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
     assert result["code"] == ["123456"]
 
 
-async def test_generate_mp4(mock_osremove, mock_os_path_join, mock_subprocess_call):
+async def test_generate_mp4(
+    mock_osremove, mock_os_path_join, mock_subprocess_call, mock_os_path_split
+):
     with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
         _generate_mp4("./", "testfile.gif")
 
