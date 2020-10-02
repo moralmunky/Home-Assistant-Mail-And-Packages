@@ -2,9 +2,9 @@ name: Pytest
 
 on:
   push:
-    branches: [0.3.x-tests, 0.3.x]
+    branches: [0.3.0]
   pull_request:
-    branches: [0.3.x-tests, 0.3.x]
+    branches: [0.3.0]
   schedule:
     - cron: "0 7 1-28/7 * *"
 
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [3.7, 3.8]
 
     steps:
       - uses: actions/checkout@v2
