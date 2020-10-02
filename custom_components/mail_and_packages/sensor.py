@@ -18,6 +18,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = hass.data[const.DOMAIN_DATA][entry.entry_id][const.COORDINATOR]
     unique_id = entry.entry_id
 
+    unique_id = entry.entry_id
+
     sensors = []
 
     if CONF_RESOURCES in entry.options:
@@ -44,6 +46,7 @@ class PackagesSensor(Entity):
         self.data = data
         self._state = self.data._data[self.type]
         self._unique_id = unique_id
+
 
     @property
     def unique_id(self):
