@@ -4,8 +4,6 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
-from enum import unique
-from multiprocessing.util import info
 from . import const
 from homeassistant.helpers.entity import Entity
 from homeassistant.const import CONF_RESOURCES

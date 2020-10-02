@@ -652,6 +652,14 @@ def mock_os_path_join():
 
 
 @pytest.fixture
+def mock_os_path_split():
+    """ Fixture to mock split """
+    with patch("os.path.split") as mock_os_path_split:
+
+        yield mock_os_path_split
+
+
+@pytest.fixture
 def mock_subprocess_call():
     """ Fixture to mock splitext """
     with patch("subprocess.call") as mock_subprocess_call:
