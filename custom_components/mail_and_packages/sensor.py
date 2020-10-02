@@ -4,8 +4,6 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
-from enum import unique
-from multiprocessing.util import info
 from . import const
 from homeassistant.helpers.entity import Entity
 from homeassistant.const import CONF_RESOURCES
@@ -18,6 +16,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     data = hass.data[const.DOMAIN_DATA][entry.entry_id][const.DATA]
     coordinator = hass.data[const.DOMAIN_DATA][entry.entry_id][const.COORDINATOR]
+    unique_id = entry.entry_id
+
     unique_id = entry.entry_id
 
     sensors = []
@@ -46,6 +46,7 @@ class PackagesSensor(Entity):
         self.data = data
         self._state = self.data._data[self.type]
         self._unique_id = unique_id
+
 
     @property
     def unique_id(self):
