@@ -13,6 +13,6 @@ categories:
     labels:
       - "breaking-change"
 template: |
-  ## ✨ Changes ✨
+  ## Changes
 
   $CHANGES
