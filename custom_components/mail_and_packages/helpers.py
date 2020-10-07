@@ -465,7 +465,6 @@ def cleanup_images(path, image=None):
 def get_count(account, sensor_type, get_tracking_num=False, image_path=None, hass=None):
     """
     Get Package Count
-    add IF clauses to filter by sensor_type for email and subjects
     todo: convert subjects to list and use a for loop
     """
     count = 0
