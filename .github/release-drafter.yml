@@ -1,3 +1,4 @@
+change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
 categories:
   - title: "🚨 Features 🚨"
     labels:
@@ -11,7 +12,6 @@ categories:
   - title: "💥 Breaking Change 💥"
     labels:
       - "breaking-change"
-change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
 template: |
   ## ✨ Changes ✨
 
