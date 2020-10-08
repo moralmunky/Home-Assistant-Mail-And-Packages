@@ -388,7 +388,9 @@ async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
     assert result == 4
 
 
-async def test_amazon_search_delivered(hass, mock_imap_amazon_delivered):
+async def test_amazon_search_delivered(
+    hass, mock_imap_amazon_delivered, mock_download_img
+):
     result = amazon_search(mock_imap_amazon_delivered, "test/path", hass)
     assert result == 4
 
