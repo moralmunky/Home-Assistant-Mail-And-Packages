@@ -666,3 +666,12 @@ def mock_subprocess_call():
 
         yield mock_subprocess_call
 
+
+@pytest.fixture()
+def mock_download_img():
+    """ Mock email data update class values. """
+    with patch(
+        "custom_components.mail_and_packages.helpers.download_img", autospec=True
+    ) as mock_download_img:
+        mock_download_img.return_value = True
+        yield mock_download_img
