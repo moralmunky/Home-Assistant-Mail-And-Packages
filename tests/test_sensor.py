@@ -1,13 +1,13 @@
 """ Test Mail and Packages Sensor """
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from tests.const import FAKE_CONFIG_DATA
+from tests.const import FAKE_CONFIG_DATA_NO_RND
 from custom_components.mail_and_packages.const import DOMAIN
 
 
 async def test_sensor(hass, mock_update):
 
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA_NO_RND,
     )
 
     entry.add_to_hass(hass)
