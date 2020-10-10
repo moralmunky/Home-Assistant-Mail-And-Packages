@@ -26,6 +26,7 @@ async def test_sensor(hass, mock_update):
     assert state
     assert state.state == "6"
     assert state.attributes["server"] == "imap.test.email"
+    assert state.attributes["image"] == "mail_today.gif"
 
     state = hass.states.get("sensor.mail_usps_delivered")
     assert state
