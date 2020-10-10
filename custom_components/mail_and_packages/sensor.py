@@ -47,7 +47,6 @@ class PackagesSensor(Entity):
         self._state = self.data._data[self.type]
         self._unique_id = unique_id
 
-
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
@@ -91,7 +90,7 @@ class PackagesSensor(Entity):
         if "Amazon" in self._name:
             attr[const.ATTR_ORDER] = self.data._data[const.AMAZON_ORDER]
         elif "Mail USPS Mail" == self._name:
-            attr[const.ATTR_IMAGE] = self.data._image_name
+            attr[const.ATTR_IMAGE] = self.data._data[const.ATTR_IMAGE_NAME]
         elif self.type == const.USPS_DELIVERING:
             attr[const.ATTR_TRACKING_NUM] = self.data._data[const.USPS_TRACKING]
         elif self.type == const.UPS_DELIVERING:

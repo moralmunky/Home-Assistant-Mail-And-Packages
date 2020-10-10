@@ -99,12 +99,18 @@ def process_emails(hass, config):
 
     selectfolder(account, folder)
 
+    # Create the dict container
+    data = {}
+
+    # Create image file name dict container
+    _image = {}
     if image_security:
         image_name = str(uuid.uuid4()) + ".gif"
     else:
         image_name = const.DEFAULT_GIF_FILE_NAME
 
-    data = {}
+    _image[const.ATTR_IMAGE_NAME] = image_name
+    data.update(_image)
 
     # Only update sensors we're intrested in
     for sensor in resources:
@@ -226,6 +232,8 @@ def email_search(account, address, date, subject=None):
         imap_search = f'(FROM "{address}" SUBJECT "{subject}" SENTON "{date}")'
     else:
         imap_search = f'(FROM "{address}" SENTON "{date}")'
+
+    _LOGGER.debug("DEBUG imap_search: %s", imap_search)
 
     try:
         value = account.search(None, imap_search)
@@ -804,7 +812,7 @@ def get_items(account, param, fwds=None):
     deliveriesToday = []
     orderNum = []
     domains = const.Amazon_Domains.split(",")
-    if fwds and fwds != ['""']:
+    if fwds and fwds != '""':
         for fwd in fwds:
             domains.append(fwd)
 

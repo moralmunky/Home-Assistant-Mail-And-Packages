@@ -14,6 +14,7 @@ ATTR_TRACKING = "tracking"
 ATTR_TRACKING_NUM = "tracking_#"
 ATTR_IMAGE = "image"
 ATTR_SERVER = "server"
+ATTR_IMAGE_NAME = "image_name"
 
 # Configuration Properties
 CONF_FOLDER = "folder"
