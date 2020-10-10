@@ -132,6 +132,7 @@ async def test_process_emails(
         "fedex_delivering": 0,
         "fedex_packages": 0,
         "fedex_tracking": [],
+        "image_name": "mail_today.gif",
         "mail_updated": "Sep-23-2020 10:28 AM",
         "ups_delivered": 0,
         "ups_delivering": 0,

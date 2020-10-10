@@ -5,6 +5,7 @@ FAKE_CONFIG_DATA_BAD = {
     "generate_mp4": "false",
     "gif_duration": 5,
     "host": None,
+    "image_name": "mail_today.gif",
     "image_path": "/config/www/mail_and_packages/",
     "image_security": "true",
     "password": "suchfakemuchpassword",
@@ -39,8 +40,9 @@ FAKE_CONFIG_DATA = {
     "generate_mp4": False,
     "gif_duration": 5,
     "host": "imap.test.email",
+    "image_name": "mail_today.gif",
     "image_path": "/config/www/mail_and_packages/",
-    "image_security": True,
+    "image_security": False,
     "password": "suchfakemuchpassword",
     "port": 993,
     "resources": [
@@ -77,6 +79,7 @@ FAKE_CONFIG_DATA_NO_RND = {
     "generate_mp4": False,
     "gif_duration": 5,
     "host": "imap.test.email",
+    "image_name": "mail_today.gif",
     "image_path": "/config/www/mail_and_packages/",
     "image_security": False,
     "password": "suchfakemuchpassword",
@@ -115,6 +118,7 @@ FAKE_CONFIG_DATA_MP4 = {
     "generate_mp4": True,
     "gif_duration": 5,
     "host": "imap.test.email",
+    "image_name": "mail_today.gif",
     "image_path": "/config/www/mail_and_packages/",
     "image_security": True,
     "password": "suchfakemuchpassword",
@@ -147,6 +151,7 @@ FAKE_CONFIG_DATA_MP4 = {
 }
 
 FAKE_UPDATE_DATA = {
+    "image_name": "mail_today.gif",
     "mail_updated": "Sep-18-2020 06:29 PM",
     "usps_mail": 6,
     "usps_delivered": 3,
