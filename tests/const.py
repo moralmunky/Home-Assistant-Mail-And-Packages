@@ -42,7 +42,7 @@ FAKE_CONFIG_DATA = {
     "host": "imap.test.email",
     "image_name": "mail_today.gif",
     "image_path": "/config/www/mail_and_packages/",
-    "image_security": False,
+    "image_security": True,
     "password": "suchfakemuchpassword",
     "port": 993,
     "resources": [
