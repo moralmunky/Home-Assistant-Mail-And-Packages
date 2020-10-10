@@ -35,7 +35,7 @@ FAKE_CONFIG_DATA_BAD = {
 }
 
 FAKE_CONFIG_DATA = {
-    "amazon_fwds": "fakeuser@fake.email",
+    "amazon_fwds": ["fakeuser@fake.email"],
     "folder": '"INBOX"',
     "generate_mp4": False,
     "gif_duration": 5,
@@ -74,7 +74,7 @@ FAKE_CONFIG_DATA = {
 }
 
 FAKE_CONFIG_DATA_NO_RND = {
-    "amazon_fwds": "fakeuser@fake.email",
+    "amazon_fwds": ["fakeuser@fake.email"],
     "folder": '"INBOX"',
     "generate_mp4": False,
     "gif_duration": 5,

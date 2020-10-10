@@ -105,7 +105,7 @@ async def test_process_emails(
     mock_update_time,
 ):
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA_NO_RND,
     )
 
     entry.add_to_hass(hass)
@@ -158,14 +158,25 @@ async def test_process_emails_bad(hass, mock_imap_no_email):
     await hass.async_block_till_done()
 
 
-async def test_process_emails_no_random(hass, mock_imap_no_email):
+async def test_process_emails_random(
+    hass,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+):
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA_NO_RND,
+        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
     )
 
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+
+    config = entry.data
+    result = process_emails(hass, config)
+    assert ".gif" in result["image_name"]
 
 
 async def test_email_search(mock_imap_search_error, caplog):
