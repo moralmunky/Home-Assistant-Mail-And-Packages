@@ -366,7 +366,9 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
             except Exception as err:
                 _LOGGER.error("Error attempting to generate image: %s", str(err))
             for image in imagesDelete:
-                cleanup_images(os.path.split(image))
+                path = f"{os.path.split(image)[0]}/"
+                file = os.path.split(image)[1]
+                cleanup_images(path, file)
 
         elif image_count == 0:
             _LOGGER.info("No mail found.")
