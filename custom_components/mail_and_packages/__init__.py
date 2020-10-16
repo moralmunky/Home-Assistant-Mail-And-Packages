@@ -97,7 +97,9 @@ class EmailData:
         self._scan_interval = config.get(const.CONF_SCAN_INTERVAL)
         self._data = None
 
-        _LOGGER.debug("Config scan interval: %s", self._scan_interval)
+        _LOGGER.debug(
+            "Config scan interval: %s", timedelta(minutes=self._scan_interval),
+        )
 
     def update(self):
         """Get the latest data"""
