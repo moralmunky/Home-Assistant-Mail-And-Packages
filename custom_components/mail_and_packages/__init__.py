@@ -24,23 +24,20 @@ async def async_setup_entry(hass, config_entry):
         const.VERSION,
         const.ISSUE_URL,
     )
+    hass.data.setdefault(const.DOMAIN, {})
     config_entry.options = config_entry.data
 
     config = config_entry.data
 
-    data = EmailData(hass, config)
-
     async def async_update_data():
         """Fetch data """
         async with async_timeout.timeout(10):
-            await hass.async_add_executor_job(data.update)
-            if not data:
-                raise UpdateFailed("Error fetching emails")
+            return await hass.async_add_executor_job(process_emails, hass, config)
 
     coordinator = DataUpdateCoordinator(
         hass,
         _LOGGER,
-        name="Mail and Packages Updater",
+        name=f"Mail and Packages ({config.get(CONF_HOST)})",
         update_method=async_update_data,
         update_interval=timedelta(
             minutes=config_entry.options.get(const.CONF_SCAN_INTERVAL)
@@ -50,11 +47,7 @@ async def async_setup_entry(hass, config_entry):
     # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
 
-    if const.DOMAIN_DATA not in hass.data:
-        hass.data[const.DOMAIN_DATA] = {}
-
-    hass.data[const.DOMAIN_DATA][config_entry.entry_id] = {
-        const.DATA: data,
+    hass.data[const.DOMAIN][config_entry.entry_id] = {
         const.COORDINATOR: coordinator,
     }
 
@@ -85,28 +78,3 @@ async def update_listener(hass, config_entry):
     config_entry.data = config_entry.options
     await hass.config_entries.async_reload(config_entry.entry_id)
 
-
-class EmailData:
-    """The class for handling the data retrieval."""
-
-    def __init__(self, hass, config):
-        """Initialize the data object."""
-        self._hass = hass
-        self._config = config
-        self._host = config.get(CONF_HOST)
-        self._scan_interval = config.get(const.CONF_SCAN_INTERVAL)
-        self._data = None
-
-        _LOGGER.debug(
-            "Config scan interval: %s", timedelta(minutes=self._scan_interval),
-        )
-
-    def update(self):
-        """Get the latest data"""
-        if self._host is not None:
-            # Login to email server and select the folder
-            self._data = process_emails(self._hass, self._config)
-        else:
-            _LOGGER.error("Host was left blank not attempting connection")
-
-        _LOGGER.debug("Updated scan time: %s", update_time())

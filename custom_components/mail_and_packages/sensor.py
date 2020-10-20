@@ -6,7 +6,8 @@ Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 from . import const
 from homeassistant.helpers.entity import Entity
-from homeassistant.const import CONF_RESOURCES
+from homeassistant.const import CONF_RESOURCES, CONF_HOST
+from homeassistant.core import callback
 import logging
 
 _LOGGER = logging.getLogger(__name__)
@@ -14,10 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
 
-    data = hass.data[const.DOMAIN_DATA][entry.entry_id][const.DATA]
-    coordinator = hass.data[const.DOMAIN_DATA][entry.entry_id][const.COORDINATOR]
-    unique_id = entry.entry_id
-
+    coordinator = hass.data[const.DOMAIN][entry.entry_id][const.COORDINATOR]
     unique_id = entry.entry_id
 
     sensors = []
@@ -28,29 +26,31 @@ async def async_setup_entry(hass, entry, async_add_entities):
         resources = entry.data[CONF_RESOURCES]
 
     for variable in resources:
-        sensors.append(PackagesSensor(data, variable, coordinator, unique_id))
+        sensors.append(PackagesSensor(entry, variable, coordinator, unique_id))
 
-    async_add_entities(sensors, True)
+    async_add_entities(sensors, False)
 
 
 class PackagesSensor(Entity):
     """ Represntation of a sensor """
 
-    def __init__(self, data, sensor_type, coordinator, unique_id):
+    def __init__(self, config, sensor_type, coordinator, unique_id):
         """ Initialize the sensor """
-        self._coordinator = coordinator
+        self.coordinator = coordinator
+        self._config = config
         self._name = const.SENSOR_TYPES[sensor_type][const.SENSOR_NAME]
         self._icon = const.SENSOR_TYPES[sensor_type][const.SENSOR_ICON]
         self._unit_of_measurement = const.SENSOR_TYPES[sensor_type][const.SENSOR_UNIT]
         self.type = sensor_type
-        self.data = data
-        self._state = self.data._data[self.type]
+        self._state = self.coordinator.data[self.type]
+        self._host = config.data[CONF_HOST]
         self._unique_id = unique_id
+        self.data = self.coordinator.data
 
     @property
     def unique_id(self):
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self.data._host}_{self._name}_{self._unique_id}"
+        return f"{self._host}_{self._name}_{self._unique_id}"
 
     @property
     def name(self):
@@ -60,7 +60,9 @@ class PackagesSensor(Entity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        return self._state
+        value = self.coordinator.data[self.type]
+        self.data = self.coordinator.data
+        return value
 
     @property
     def unit_of_measurement(self):
@@ -80,25 +82,25 @@ class PackagesSensor(Entity):
     @property
     def available(self):
         """Return if entity is available."""
-        return self._coordinator.last_update_success
+        return self.coordinator.last_update_success
 
     @property
     def device_state_attributes(self):
         """Return device specific state attributes."""
         attr = {}
-        attr[const.ATTR_SERVER] = self.data._host
+        attr[const.ATTR_SERVER] = self._host
         if "Amazon" in self._name:
-            attr[const.ATTR_ORDER] = self.data._data[const.AMAZON_ORDER]
+            attr[const.ATTR_ORDER] = self.data[const.AMAZON_ORDER]
         elif "Mail USPS Mail" == self._name:
-            attr[const.ATTR_IMAGE] = self.data._data[const.ATTR_IMAGE_NAME]
+            attr[const.ATTR_IMAGE] = self.data[const.ATTR_IMAGE_NAME]
         elif self.type == const.USPS_DELIVERING:
-            attr[const.ATTR_TRACKING_NUM] = self.data._data[const.USPS_TRACKING]
+            attr[const.ATTR_TRACKING_NUM] = self.data[const.USPS_TRACKING]
         elif self.type == const.UPS_DELIVERING:
-            attr[const.ATTR_TRACKING_NUM] = self.data._data[const.UPS_TRACKING]
+            attr[const.ATTR_TRACKING_NUM] = self.data[const.UPS_TRACKING]
         elif self.type == const.FEDEX_DELIVERING:
-            attr[const.ATTR_TRACKING_NUM] = self.data._data[const.FEDEX_TRACKING]
+            attr[const.ATTR_TRACKING_NUM] = self.data[const.FEDEX_TRACKING]
         elif self.type == const.DHL_DELIVERING:
-            attr[const.ATTR_TRACKING_NUM] = self.data._data[const.DHL_TRACKING]
+            attr[const.ATTR_TRACKING_NUM] = self.data[const.DHL_TRACKING]
         return attr
 
     async def async_update(self):
@@ -106,10 +108,10 @@ class PackagesSensor(Entity):
 
         Only used by the generic entity update service.
         """
-        await self._coordinator.async_request_refresh()
+        await self.coordinator.async_request_refresh()
 
     async def async_added_to_hass(self):
         """When entity is added to hass."""
         self.async_on_remove(
-            self._coordinator.async_add_listener(self.async_write_ha_state)
+            self.coordinator.async_add_listener(self.async_write_ha_state)
         )
