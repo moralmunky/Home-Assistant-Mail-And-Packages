@@ -14,12 +14,10 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 def mock_update():
     """ Mock email data update class values. """
     with patch(
-        "custom_components.mail_and_packages.EmailData", autospec=True
+        "custom_components.mail_and_packages.process_emails", autospec=True
     ) as mock_update:
-        value = mock.Mock()
-        value._data = FAKE_UPDATE_DATA
-        value._host = "imap.test.email"
-        mock_update.return_value = value
+        # value = mock.Mock()
+        mock_update.return_value = FAKE_UPDATE_DATA
         yield mock_update
 
 

@@ -470,7 +470,8 @@ async def test_resize_images_read_err(mock_open, mock_image_excpetion, caplog):
 
 
 # async def test_download_img(aioclient_mock):
-#     with patch("aiohttp.ClientSession") as mock_client:
-#         mock_client = aioclient_mock
-#         await download_img("http://fake.website.com", "/not/a/real/website/image.jpg")
+#     with patch("aiohttp.ClientSession", return_value=aioclient_mock):
+#         await download_img(
+#             "http://fake.website.com/not/a/real/website/image.jpg", "/fake/directory/"
+#         )
 
