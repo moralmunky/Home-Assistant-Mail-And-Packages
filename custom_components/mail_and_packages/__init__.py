@@ -76,5 +76,8 @@ async def async_unload_entry(hass, config_entry):
 async def update_listener(hass, config_entry):
     """Update listener."""
     config_entry.data = config_entry.options
-    await hass.config_entries.async_reload(config_entry.entry_id)
+    await hass.config_entries.async_forward_entry_unload(config_entry, const.PLATFORM)
+    hass.async_add_job(
+        hass.config_entries.async_forward_entry_setup(config_entry, const.PLATFORM)
+    )
 
