@@ -48,7 +48,14 @@ async def test_unload_entry(hass, mock_update):
     assert len(hass.states.async_entity_ids(DOMAIN)) == 0
 
 
-async def test_setup_entry(hass, mock_imap_no_email):
+async def test_setup_entry(
+    hass,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+):
     """Test settting up entities. """
     entry = MockConfigEntry(
         domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
@@ -58,7 +65,7 @@ async def test_setup_entry(hass, mock_imap_no_email):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 0
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 22
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
