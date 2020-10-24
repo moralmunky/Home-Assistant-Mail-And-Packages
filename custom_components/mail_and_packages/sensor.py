@@ -42,7 +42,6 @@ class PackagesSensor(Entity):
         self._icon = const.SENSOR_TYPES[sensor_type][const.SENSOR_ICON]
         self._unit_of_measurement = const.SENSOR_TYPES[sensor_type][const.SENSOR_UNIT]
         self.type = sensor_type
-        self._state = self.coordinator.data[self.type]
         self._host = config.data[CONF_HOST]
         self._unique_id = unique_id
         self.data = self.coordinator.data
