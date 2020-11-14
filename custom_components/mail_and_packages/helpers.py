@@ -582,9 +582,8 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
                 tracking = get_tracking(data[0], account, shipper)
 
     if tracking:
-        # Try to guard against duplicate emails via tracking number
-        if len(tracking) < count:
-            count = len(tracking)
+        # Use tracking numbers found for count (more accurate)
+        count = len(tracking)
 
     result[const.ATTR_TRACKING] = tracking
 
