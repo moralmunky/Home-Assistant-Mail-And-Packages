@@ -110,8 +110,9 @@ CAPOST_DELIVERING = "capost_delivering"
 CAPOST_PACKAGES = "capost_packages"
 
 # DHL
-DHL_Email = ["donotreply_odd@dhl.com", "NoReply.ODD@dhl.com"]
+DHL_Email = ["donotreply_odd@dhl.com", "NoReply.ODD@dhl.com", "noreply@dhl.de"]
 DHL_Delivering_Subject = "DHL On Demand Delivery"
+DHL_Delivering_Subject_2 = "paket kommt heute"  # Germany deliveries
 DHL_Delivered_Subject = "DHL On Demand Delivery"
 DHL_Body_Text = "scheduled for delivery TODAY"
 DHL_Body_Text_2 = "has been delivered"
