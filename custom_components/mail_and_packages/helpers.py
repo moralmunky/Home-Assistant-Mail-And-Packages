@@ -515,6 +515,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     elif sensor_type == const.DHL_DELIVERING:
         email = const.DHL_Email
         subject = const.DHL_Delivering_Subject
+        subject_2 = const.DHL_Delivering_Subject_2
         filter_text = const.DHL_Body_Text
         if get_tracking_num:
             shipper = const.SHIPPERS[1]
@@ -581,10 +582,9 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
             if shipper is not None and count > 0:
                 tracking = get_tracking(data[0], account, shipper)
 
-    if tracking:
-        # Try to guard against duplicate emails via tracking number
-        if len(tracking) < count:
-            count = len(tracking)
+    if len(tracking) > 0:
+        # Use tracking numbers found for count (more accurate)
+        count = len(tracking)
 
     result[const.ATTR_TRACKING] = tracking
 
