@@ -582,7 +582,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
             if shipper is not None and count > 0:
                 tracking = get_tracking(data[0], account, shipper)
 
-    if tracking:
+    if len(tracking) > 0:
         # Use tracking numbers found for count (more accurate)
         count = len(tracking)
 
