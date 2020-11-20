@@ -152,7 +152,9 @@ class EmailData:
                     prefix = sensor.split("_")[0]
                     delivering = prefix + "_delivering"
                     delivered = prefix + "_delivered"
-                    total = data[delivering] + data[delivered]
+                    total = 0
+                    if delivered in data and delivering in data:
+                        total = data[delivering] + data[delivered]
                     count[sensor] = total
                 elif "_delivering" in sensor:
                     prefix = sensor.split("_")[0]
@@ -160,7 +162,9 @@ class EmailData:
                     delivered = prefix + "_delivered"
                     tracking = prefix + "_tracking"
                     info = get_count(account, sensor, True)
-                    total = info[ATTR_COUNT] - data[delivered]
+                    total = info[ATTR_COUNT]
+                    if delivered in data:
+                        total = total - data[delivered]
                     total = max(0, total)
                     count[sensor] = total
                     count[tracking] = info[ATTR_TRACKING]
