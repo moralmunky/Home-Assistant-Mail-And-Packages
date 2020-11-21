@@ -271,6 +271,7 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
     msg = ""
 
     _LOGGER.debug("Attempting to find Informed Delivery mail")
+    _LOGGER.debug("Informed delivery search date: %s", today)
 
     (rv, data) = email_search(
         account, const.USPS_Mail_Email, today, const.USPS_Mail_Subject
@@ -702,6 +703,8 @@ def amazon_search(account, image_path, hass):
 
     for domain in domains:
         email = const.AMAZON_Email + domain
+        _LOGGER.debug("Amazon email search address: %s", str(email))
+
         (rv, data) = email_search(account, email, today, subject)
 
         if rv != "OK":
@@ -825,8 +828,10 @@ def get_items(account, param, fwds=None):
     for domain in domains:
         if "@" in domain:
             email_address = domain
+            _LOGGER.debug("Amazon email search address: %s", str(email_address))
         else:
             email_address = "shipment-tracking@" + domain
+            _LOGGER.debug("Amazon email search address: %s", str(email_address))
 
         (rv, sdata) = email_search(account, email_address, tfmt)
 
