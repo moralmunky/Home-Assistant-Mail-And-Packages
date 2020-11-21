@@ -327,6 +327,7 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
     msg = ""
 
     _LOGGER.debug("Attempting to find Informed Delivery mail")
+    _LOGGER.debug("Informed delivery search date: %s", today)
 
     (rv, data) = account.search(
         None,
@@ -794,6 +795,7 @@ def amazon_search(account, image_path, hass):
 
     for domain in domains:
         email = const.AMAZON_Email + domain
+        _LOGGER.debug("Checking for Amazon email address: %s", str(email))
         try:
             (rv, data) = account.search(
                 None,
@@ -932,8 +934,14 @@ def get_items(account, param, fwds=None):
         try:
             if "@" in domain:
                 email_address = domain
+                _LOGGER.debug(
+                    "Checking for Amazon email address: %s", str(email_address)
+                )
             else:
                 email_address = "shipment-tracking@" + domain
+                _LOGGER.debug(
+                    "Checking for Amazon email address: %s", str(email_address)
+                )
 
             (rv, sdata) = account.search(
                 None, '(FROM "' + email_address + '" SINCE ' + tfmt + ")"
