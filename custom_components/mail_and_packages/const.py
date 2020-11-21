@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.2.2-b35"
+VERSION = "0.2.2-b36"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 
@@ -25,7 +25,7 @@ DEFAULT_FFMPEG = False
 
 # USPS
 USPS_Mail_Email = "USPSInformeddelivery@informeddelivery.usps.com"
-USPS_Mail_Subject = "Informed Delivery Daily Digest"
+USPS_Mail_Subject = "Your Daily Digest"
 USPS_Packages_Email = "auto-reply@usps.com"
 USPS_Delivering_Subject = "Expected Delivery on"
 USPS_Delivered_Subject = "Item Delivered"
