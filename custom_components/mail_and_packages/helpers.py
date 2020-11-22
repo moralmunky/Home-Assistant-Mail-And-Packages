@@ -603,16 +603,18 @@ def get_tracking(sdata, account, shipper):
     tracking = []
     pattern = None
     mail_list = sdata.split()
+    format = None
 
     if shipper == "usps":
-        pattern = re.compile(r"{}".format(const.USPS_TRACKING_PATTERN))
+        format = const.USPS_TRACKING_PATTERN
     elif shipper == "ups":
-        pattern = re.compile(r"{}".format(const.UPS_TRACKING_PATTERN))
+        format = const.UPS_TRACKING_PATTERN
     elif shipper == "fedex":
-        pattern = re.compile(r"{}".format(const.FEDEX_TRACKING_PATTERN))
+        format = const.FEDEX_TRACKING_PATTERN
     elif shipper == "dhl":
-        pattern = re.compile(r"{}".format(const.DHL_TRACKING_PATTERN))
+        format = const.DHL_TRACKING_PATTERN
 
+    pattern = re.compile(r"{}".format(format))
     for i in mail_list:
         typ, data = email_fetch(account, i, "(RFC822)")
         for response_part in data:
