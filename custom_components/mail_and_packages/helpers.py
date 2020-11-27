@@ -540,6 +540,8 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     elif sensor_type == const.HERMES_DELIVERING:
         email = const.HERMES_EMAIL
         subject = const.HERMES_DELIVERING_SUBJECT
+        if get_tracking_num:
+            shipper = const.SHIPPERS[5]
     elif sensor_type == const.AMAZON_DELIVERED:
         result[const.ATTR_COUNT] = amazon_search(account, image_path, hass)
         result[const.ATTR_TRACKING] = ""

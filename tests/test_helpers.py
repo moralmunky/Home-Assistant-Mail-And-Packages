@@ -379,6 +379,14 @@ async def test_dhl_out_for_delivery(hass, mock_imap_dhl_out_for_delivery):
     assert result["tracking"] == ["4212345678"]
 
 
+async def test_hermes_out_for_delivery(hass, mock_imap_hermes_out_for_delivery):
+    result = get_count(
+        mock_imap_hermes_out_for_delivery, "hermes_delivering", True, "./", hass
+    )
+    assert result["count"] == 1
+    assert result["tracking"] == ["8888888888888888"]
+
+
 async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):
     with patch("datetime.date") as mock_date:
         mock_date.today.return_value = date(2020, 9, 11)
