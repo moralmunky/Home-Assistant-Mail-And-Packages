@@ -124,6 +124,18 @@ DHL_TRACKING = "dhl_tracking"
 
 DHL_TRACKING_PATTERN = "number \\d{10} from"
 
+# Hermes (UK)
+HERMES_EMAIL = ["donotreply@myhermes.co.uk"]
+HERMES_DELIVERING_SUBJECT = "parcel is now with your local Hermes courier"
+HERMES_DELIVERED_SUBJECT = "Hermes has successfully delivered your"
+
+HERMES_DELIVERING = "hermes_delivering"
+HERMES_DELIVERED = "hermes_delivered"
+HERMES_PACKAGES = "hermes_packages"
+HERMES_TRACKING = "hermes_tracking"
+
+HERMES_TRACKING_PATTERN = "\\d{16}"
+
 # Sensor definitions
 # Name, unit of measure, icon
 SENSOR_TYPES = {
@@ -187,6 +199,17 @@ SENSOR_TYPES = {
     ],
     "dhl_delivering": ["Mail DHL Delivering", "package(s)", "mdi:truck-delivery"],
     "dhl_packages": ["Mail DHL Packages", "package(s)", "mdi:package-variant-closed"],
+    "hermes_delivered": [
+        "Mail Hermes Delivered",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
+    "hermes_delivering": ["Mail Hermes Delivering", "package(s)", "mdi:truck-delivery"],
+    "hermes_packages": [
+        "Mail Hermes Packages",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -208,4 +231,4 @@ SENSOR_UNIT = 1
 SENSOR_ICON = 2
 
 # For sensors with delivering and delivered statuses
-SHIPPERS = ["capost", "dhl", "fedex", "ups", "usps"]
+SHIPPERS = ["capost", "dhl", "fedex", "ups", "usps", "hermes"]
