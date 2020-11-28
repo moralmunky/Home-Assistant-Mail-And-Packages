@@ -542,6 +542,14 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
         subject = const.HERMES_DELIVERING_SUBJECT
         if get_tracking_num:
             shipper = const.SHIPPERS[5]
+    elif sensor_type == const.ROYAL_DELIVERED:
+        email = const.ROYAL_EMAIL
+        subject = const.ROYAL_DELIVERED_SUBJECT
+    elif sensor_type == const.ROYAL_DELIVERING:
+        email = const.ROYAL_EMAIL
+        subject = const.ROYAL_DELIVERING_SUBJECT
+        if get_tracking_num:
+            shipper = const.SHIPPERS[6]
     elif sensor_type == const.AMAZON_DELIVERED:
         result[const.ATTR_COUNT] = amazon_search(account, image_path, hass)
         result[const.ATTR_TRACKING] = ""
@@ -623,6 +631,8 @@ def get_tracking(sdata, account, shipper):
         format = const.DHL_TRACKING_PATTERN
     elif shipper == "hermes":
         format = const.HERMES_TRACKING_PATTERN
+    elif shipper == "royal":
+        format = const.ROYAL_TRACKING_PATTERN
 
     pattern = re.compile(r"{}".format(format))
     for i in mail_list:

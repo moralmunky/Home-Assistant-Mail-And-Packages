@@ -61,6 +61,8 @@ FAKE_CONFIG_DATA = {
         "hermes_delivered",
         "hermes_delivering",
         "mail_updated",
+        "royal_delivered",
+        "royal_delivering",
         "ups_delivered",
         "ups_delivering",
         "ups_packages",
