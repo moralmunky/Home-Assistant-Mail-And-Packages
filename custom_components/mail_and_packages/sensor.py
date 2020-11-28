@@ -926,7 +926,8 @@ def get_items(account, param, fwds=None):
     deliveriesToday = []
     orderNum = []
     domains = const.Amazon_Domains.split(",")
-    if fwds and fwds != ['""']:
+    _LOGGER.debug("Amazon forward addresses: %s", str(fwds))
+    if fwds is not None and fwds != ['""']:
         for fwd in fwds:
             domains.append(fwd)
 
