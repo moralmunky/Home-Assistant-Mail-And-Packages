@@ -65,7 +65,7 @@ async def test_setup_entry(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 24
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 26
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -385,6 +385,14 @@ async def test_hermes_out_for_delivery(hass, mock_imap_hermes_out_for_delivery):
     )
     assert result["count"] == 1
     assert result["tracking"] == ["8888888888888888"]
+
+
+async def test_royal_out_for_delivery(hass, mock_imap_royal_out_for_delivery):
+    result = get_count(
+        mock_imap_royal_out_for_delivery, "royal_delivering", True, "./", hass
+    )
+    assert result["count"] == 1
+    assert result["tracking"] == ["MA038501234GB"]
 
 
 async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):

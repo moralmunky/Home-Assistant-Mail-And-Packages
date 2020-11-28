@@ -136,6 +136,18 @@ HERMES_TRACKING = "hermes_tracking"
 
 HERMES_TRACKING_PATTERN = "\\d{16}"
 
+# Royal Mail (UK)
+ROYAL_EMAIL = ["no-reply@royalmail.com"]
+ROYAL_DELIVERING_SUBJECT = "is on its way"
+ROYAL_DELIVERED_SUBJECT = "has been delivered"
+
+ROYAL_DELIVERING = "royal_delivering"
+ROYAL_DELIVERED = "royal_delivered"
+ROYAL_PACKAGES = "royal_packages"
+ROYAL_TRACKING = "royal_tracking"
+
+ROYAL_TRACKING_PATTERN = "[A-Za-z]{2}[0-9]{9}GB"
+
 # Sensor definitions
 # Name, unit of measure, icon
 SENSOR_TYPES = {
@@ -210,6 +222,21 @@ SENSOR_TYPES = {
         "package(s)",
         "mdi:package-variant-closed",
     ],
+    "royal_delivered": [
+        "Mail Royal Mail Delivered",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
+    "royal_delivering": [
+        "Mail Royal Mail Delivering",
+        "package(s)",
+        "mdi:truck-delivery",
+    ],
+    "royal_packages": [
+        "Mail Royal Mail Packages",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -231,4 +258,4 @@ SENSOR_UNIT = 1
 SENSOR_ICON = 2
 
 # For sensors with delivering and delivered statuses
-SHIPPERS = ["capost", "dhl", "fedex", "ups", "usps", "hermes"]
+SHIPPERS = ["capost", "dhl", "fedex", "ups", "usps", "hermes", "royal"]
