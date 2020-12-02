@@ -13,3 +13,5 @@ custom_components/mail_and_packages/.backup/manifest.json
 custom_components/mail_and_packages/.backup/sensor.py
 notes.txt
 .vscode/settings.json
+*.pyc
+.coverage
