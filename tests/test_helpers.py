@@ -110,6 +110,7 @@ async def test_process_emails(
     mock_osmakedir,
     mock_listdir,
     mock_update_time,
+    mock_copyfile,
 ):
     entry = MockConfigEntry(
         domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA_NO_RND,
@@ -172,6 +173,7 @@ async def test_process_emails_random(
     mock_osmakedir,
     mock_listdir,
     mock_update_time,
+    mock_copyfile,
 ):
     entry = MockConfigEntry(
         domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
@@ -204,7 +206,7 @@ async def test_email_fetch(mock_imap_fetch_error, caplog):
     assert "Error fetching emails:" in caplog.text
 
 
-async def test_get_mails(mock_imap_no_email):
+async def test_get_mails(mock_imap_no_email, mock_copyfile):
     result = get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
     assert result == 0
 
@@ -220,6 +222,7 @@ async def test_informed_delivery_emails(
     mock_image,
     mock_io,
     mock_resizeimage,
+    mock_copyfile,
 ):
     result = get_mails(
         mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
@@ -237,6 +240,7 @@ async def test_get_mails_imageio_error(
     mock_update_time,
     mock_image,
     mock_resizeimage,
+    mock_copyfile,
     caplog,
 ):
     with patch("custom_components.mail_and_packages.helpers.io") as mock_imageio:
@@ -260,6 +264,7 @@ async def test_informed_delivery_emails_mp4(
     mock_image,
     mock_io,
     mock_resizeimage,
+    mock_copyfile,
 ):
     with patch(
         "custom_components.mail_and_packages.helpers._generate_mp4"
@@ -281,6 +286,7 @@ async def test_informed_delivery_emails_open_err(
     mock_image,
     mock_io,
     mock_resizeimage,
+    mock_copyfile,
     caplog,
 ):
     get_mails(
@@ -306,6 +312,7 @@ async def test_informed_delivery_emails_io_err(
     mock_os_path_splitext,
     mock_image,
     mock_resizeimage,
+    mock_copyfile,
 ):
     with pytest.raises(FileNotFoundError) as exc_info:
         get_mails(
@@ -329,6 +336,7 @@ async def test_informed_delivery_missing_mailpiece(
     mock_image,
     mock_io,
     mock_resizeimage,
+    mock_copyfile,
 ):
     result = get_mails(
         mock_imap_usps_informed_digest_missing, "./", "5", "mail_today.gif", False
@@ -348,6 +356,7 @@ async def test_informed_delivery_no_mail(
     mock_io,
     mock_resizeimage,
     mock_os_path_isfile,
+    mock_copyfile,
 ):
     result = get_mails(
         mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
