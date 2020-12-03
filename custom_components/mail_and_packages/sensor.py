@@ -351,6 +351,9 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
     # Clean up image directory
     _LOGGER.debug("Cleaning up image directory: %s", str(image_output_path))
     cleanup_images(image_output_path)
+    # Copy overlays to image directory
+    _LOGGER.debug("Checking for overlay files in: %s", str(image_output_path))
+    copy_overlays(image_output_path)
 
     if rv == "OK":
         _LOGGER.debug("Informed Delivery email found processing...")
@@ -524,6 +527,21 @@ def resize_images(images, width, height):
         all_images.append(image)
 
     return all_images
+
+
+def copy_overlays(path):
+    """ Copy overlay images to image output path."""
+
+    overlays = ["overlay.png", "vignette.png", "white.png"]
+    check = all(item in overlays for item in os.listdir(path))
+
+    # Copy files if they are missing
+    if not check:
+        for file in overlays:
+            _LOGGER.debug("Copying file to: %s", str(path + file))
+            copyfile(
+                os.path.dirname(__file__) + file, path + file,
+            )
 
 
 def cleanup_images(path):
