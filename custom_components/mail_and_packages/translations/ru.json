@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Разрешена только одна конфигурация Почты и Пакетов."
+        },
+        "error": {
+            "communication": "Невозможно подключиться или войти на почтовый сервер. Пожалуйста, проверьте журнал для деталей.",
+            "invalid_path": "Пожалуйста, храните изображения в другом каталоге."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "хозяин",
+                    "password": "пароль",
+                    "port": "порт",
+                    "username": "имя пользователя"
+                },
+                "description": "Пожалуйста, введите информацию о соединении вашего почтового сервера.",
+                "title": "Почта и Пакеты (Шаг 1 из 2)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "Папка почты",
+                    "scan_interval": "Интервал сканирования (минуты)",
+                    "image_path": "Путь к изображению",
+                    "gif_duration": "Длительность изображения (секунды)",
+                    "image_security": "Случайное изображение Имя файла",
+                    "generate_mp4": "Создать mp4 из изображений"
+                },
+                "description": "Завершите настройку, настроив следующие параметры в зависимости от структуры электронной почты и установки Home Assistant. \n\n Подробнее о параметрах [Интеграция с почтой и пакетами](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) см. В разделе [конфигурация, шаблоны и раздел автоматизации](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) на GitHub.",
+                "title": "Почта и пакеты (шаг 2 из 2)"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "Невозможно подключиться или войти на почтовый сервер. Пожалуйста, проверьте журнал для деталей.",
+            "invalid_path": "Пожалуйста, храните изображения в другом каталоге."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "хозяин",
+                    "password": "пароль",
+                    "port": "порт",
+                    "username": "имя пользователя"
+                },
+                "description": "Пожалуйста, введите информацию о соединении вашего почтового сервера.",
+                "title": "Почта и Пакеты (Шаг 1 из 2)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "Папка почты",
+                    "scan_interval": "Интервал сканирования (минуты)",
+                    "image_path": "Путь к изображению",
+                    "gif_duration": "Длительность изображения (секунды)",
+                    "image_security": "Случайное изображение Имя файла",
+                    "generate_mp4": "Создать mp4 из изображений"
+                },
+                "description": "Завершите настройку, настроив следующие параметры в зависимости от структуры электронной почты и установки Home Assistant. \n\n Подробнее о параметрах [Интеграция с почтой и пакетами](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) см. В разделе [конфигурация, шаблоны и раздел автоматизации](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) на GitHub.",
+                "title": "Почта и пакеты (шаг 2 из 2)"
+            }
+        }
+    }
+}

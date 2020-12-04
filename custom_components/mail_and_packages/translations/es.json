@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Solo se permite una única configuración de correo y paquetes."
+        },
+        "error": {
+            "communication": "No se puede conectar o iniciar sesión en el servidor de correo. Por favor, consulte el registro para más detalles.",
+            "invalid_path": "Guarde las imágenes en otro directorio."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Anfitrión",
+                    "password": "Contraseña",
+                    "port": "Puerto",
+                    "username": "Nombre de usuario"
+                },
+                "description": "Ingrese la información de conexión de su servidor de correo.",
+                "title": "Correo y paquetes (Paso 1 de 2)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "Carpeta de correo",
+                    "scan_interval": "Intervalo de escaneo (minutos)",
+                    "image_path": "Ruta de la imagen",
+                    "gif_duration": "Duración de la imagen (segundos)",
+                    "image_security": "Nombre de archivo de imagen aleatoria",
+                    "generate_mp4": "Crea mp4 a partir de imágenes"
+                },
+                "description": "Termine la configuración personalizando lo siguiente según su estructura de correo electrónico y la instalación de Home Assistant. \n\n Para obtener detalles sobre las opciones [Integración de correo y paquetes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) revise las [configuración, plantillas , y la sección de automatizaciones](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) en GitHub.",
+                "title": "Correo y paquetes (Paso 2 de 2)"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "No se puede conectar o iniciar sesión en el servidor de correo. Por favor, consulte el registro para más detalles.",
+            "invalid_path": "Guarde las imágenes en otro directorio."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Anfitrión",
+                    "password": "Contraseña",
+                    "port": "Puerto",
+                    "username": "Nombre de usuario"
+                },
+                "description": "Ingrese la información de conexión de su servidor de correo.",
+                "title": "Correo y paquetes (Paso 1 de 2)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "Carpeta de correo",
+                    "scan_interval": "Intervalo de escaneo (minutos)",
+                    "image_path": "Ruta de la imagen",
+                    "gif_duration": "Duración de la imagen (segundos)",
+                    "image_security": "Nombre de archivo de imagen aleatoria",
+                    "generate_mp4": "Crea mp4 a partir de imágenes"
+                },
+                "description": "Termine la configuración personalizando lo siguiente según su estructura de correo electrónico y la instalación de Home Assistant. \n\n Para obtener detalles sobre las opciones [Integración de correo y paquetes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) revise las [configuración, plantillas , y la sección de automatizaciones](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) en GitHub.",
+                "title": "Correo y paquetes (Paso 2 de 2)"
+            }
+        }
+    }
+}

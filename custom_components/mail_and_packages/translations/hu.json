@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Csak a Levelek és a Csomagok egyetlen konfigurációja megengedett."
+        },
+        "error": {
+            "communication": "Nem lehet csatlakozni vagy bejelentkezni az e-mail szerverhez. Kérjük, ellenőrizze a naplót a részletekért.",
+            "invalid_path": "Tárolja a képeket egy másik könyvtárban."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Házigazda",
+                    "password": "Jelszó",
+                    "port": "Kikötő",
+                    "username": "Felhasználónév"
+                },
+                "description": "Kérjük, adja meg a levelezőszerver csatlakozási adatait.",
+                "title": "Levél és csomagok (1. lépés a 2-ből)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "Mail mappa",
+                    "scan_interval": "Beolvasási időköz (perc)",
+                    "image_path": "Kép elérési útja",
+                    "gif_duration": "Kép időtartama (másodpercben)",
+                    "image_security": "Véletlen képfájlnév",
+                    "generate_mp4": "Készítsen mp4-et a képekből"
+                },
+                "description": "Végezze el a konfigurációt az alábbiak testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján. \n\n A [Levelek és csomagok integrációja](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opciókkal kapcsolatban tekintse meg a [konfiguráció, sablonok , és az automatizálás szakasz](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHubon.",
+                "title": "Levél és csomagok (2. lépés a 2-ből)"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "Nem lehet csatlakozni vagy bejelentkezni az e-mail szerverhez. Kérjük, ellenőrizze a naplót a részletekért.",
+            "invalid_path": "Tárolja a képeket egy másik könyvtárban."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Házigazda",
+                    "password": "Jelszó",
+                    "port": "Kikötő",
+                    "username": "Felhasználónév"
+                },
+                "description": "Kérjük, adja meg a levelezőszerver csatlakozási adatait.",
+                "title": "Levél és csomagok (1. lépés a 2-ből)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "Mail mappa",
+                    "scan_interval": "Beolvasási időköz (perc)",
+                    "image_path": "Kép elérési útja",
+                    "gif_duration": "Kép időtartama (másodpercben)",
+                    "image_security": "Véletlen képfájlnév",
+                    "generate_mp4": "Készítsen mp4-et a képekből"
+                },
+                "description": "Végezze el a konfigurációt az alábbiak testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján. \n\n A [Levelek és csomagok integrációja](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opciókkal kapcsolatban tekintse meg a [konfiguráció, sablonok , és az automatizálás szakasz](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHubon.",
+                "title": "Levél és csomagok (2. lépés a 2-ből)"
+            }
+        }
+    }
+}

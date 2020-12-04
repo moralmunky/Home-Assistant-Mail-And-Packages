@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Bare en enkelt konfigurasjon av e-post og pakker er tillatt."
+        },
+        "error": {
+            "communication": "Kan ikke koble til eller logge inn på postserveren. Vennligst sjekk loggen for detaljer.",
+            "invalid_path": "Lagre bildene i en annen katalog."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Vert",
+                    "password": "Passord",
+                    "port": "Havn",
+                    "username": "Brukernavn"
+                },
+                "description": "Vennligst skriv inn tilkoblingsinformasjonen til din postserver.",
+                "title": "E-post og pakker (trinn 1 av 2)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "E-postmappe",
+                    "scan_interval": "Skanneintervall (minutter)",
+                    "image_path": "Bildevei",
+                    "gif_duration": "Bildets varighet (sekunder)",
+                    "image_security": "Tilfeldig bilde filnavn",
+                    "generate_mp4": "Lag mp4 fra bilder"
+                },
+                "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på e-poststrukturen og Home Assistant-installasjonen. \n\n For detaljer om alternativene [Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), les gjennom [konfigurasjon, maler , og automatiseringsdel](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
+                "title": "E-post og pakker (trinn 2 av 2)"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "Kan ikke koble til eller logge inn på postserveren. Vennligst sjekk loggen for detaljer.",
+            "invalid_path": "Lagre bildene i en annen katalog."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Vert",
+                    "password": "Passord",
+                    "port": "Havn",
+                    "username": "Brukernavn"
+                },
+                "description": "Vennligst skriv inn tilkoblingsinformasjonen til din postserver.",
+                "title": "E-post og pakker (trinn 1 av 2)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "E-postmappe",
+                    "scan_interval": "Skanneintervall (minutter)",
+                    "image_path": "Bildevei",
+                    "gif_duration": "Bildets varighet (sekunder)",
+                    "image_security": "Tilfeldig bilde filnavn",
+                    "generate_mp4": "Lag mp4 fra bilder"
+                },
+                "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på e-poststrukturen og Home Assistant-installasjonen. \n\n For detaljer om alternativene [Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), les gjennom [konfigurasjon, maler , og automatiseringsdel](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
+                "title": "E-post og pakker (trinn 2 av 2)"
+            }
+        }
+    }
+}

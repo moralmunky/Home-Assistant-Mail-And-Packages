@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "È consentita una sola configurazione di posta e pacchetti."
+        },
+        "error": {
+            "communication": "Impossibile connettersi o accedere al server di posta. Si prega di controllare il registro per i dettagli.",
+            "invalid_path": "Conservare le immagini in un'altra directory."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Ospite",
+                    "password": "Parola d'ordine",
+                    "port": "Porta",
+                    "username": "Nome utente"
+                },
+                "description": "Inserisci le informazioni di connessione del tuo server di posta.",
+                "title": "Posta e pacchi (passaggio 1 di 2)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "Cartella posta",
+                    "scan_interval": "Intervallo di scansione (minuti)",
+                    "image_path": "Percorso immagine",
+                    "gif_duration": "Durata immagine (secondi)",
+                    "image_security": "Nome file immagine casuale",
+                    "generate_mp4": "Crea mp4 dalle immagini"
+                },
+                "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua e-mail e all'installazione di Home Assistant. \n\n Per i dettagli sulle opzioni [Integrazione posta e pacchetti](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) rivedere le [configurazione, modelli e sezione automazioni](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) su GitHub.",
+                "title": "Posta e pacchi (passaggio 2 di 2)"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "Impossibile connettersi o accedere al server di posta. Si prega di controllare il registro per i dettagli.",
+            "invalid_path": "Conservare le immagini in un'altra directory."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Ospite",
+                    "password": "Parola d'ordine",
+                    "port": "Porta",
+                    "username": "Nome utente"
+                },
+                "description": "Inserisci le informazioni di connessione del tuo server di posta.",
+                "title": "Posta e pacchi (passaggio 1 di 2)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "Cartella posta",
+                    "scan_interval": "Intervallo di scansione (minuti)",
+                    "image_path": "Percorso immagine",
+                    "gif_duration": "Durata immagine (secondi)",
+                    "image_security": "Nome file immagine casuale",
+                    "generate_mp4": "Crea mp4 dalle immagini"
+                },
+                "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua e-mail e all'installazione di Home Assistant. \n\n Per i dettagli sulle opzioni [Integrazione posta e pacchetti](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) rivedere le [configurazione, modelli e sezione automazioni](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) su GitHub.",
+                "title": "Posta e pacchi (passaggio 2 di 2)"
+            }
+        }
+    }
+}

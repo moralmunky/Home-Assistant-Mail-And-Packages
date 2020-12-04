@@ -2,14 +2,21 @@ name: Validate with hassfest
 
 on:
   push:
-  pull_request:
-    types: [opened, edited, reopened, synchronize]
-  schedule:
-    - cron:  '0 0 * * *'
+  pull_request: ~
 
 jobs:
+  formatting:
+    name: Formatting Check
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: olance/isort-action@v1.1.0
+      - uses: fylein/python-pylint-github-action@v4
+        
   validate:
+    name: Validate component
     runs-on: "ubuntu-latest"
     steps:
         - uses: "actions/checkout@v2"
         - uses: "home-assistant/actions/hassfest@master"
+

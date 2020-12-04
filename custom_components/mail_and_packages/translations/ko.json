@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "메일 및 패키지의 단일 구성 만 허용됩니다."
+        },
+        "error": {
+            "communication": "메일 서버에 연결하거나 로그인 할 수 없습니다. 자세한 내용은 로그를 확인하십시오.",
+            "invalid_path": "이미지를 다른 디렉토리에 저장하십시오."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "주최자",
+                    "password": "암호",
+                    "port": "포트",
+                    "username": "사용자 이름"
+                },
+                "description": "메일 서버의 연결 정보를 입력하십시오.",
+                "title": "메일 및 패키지 (1/2 단계)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "메일 폴더",
+                    "scan_interval": "스캔 간격 (분)",
+                    "image_path": "이미지 경로",
+                    "gif_duration": "이미지 지속 시간 (초)",
+                    "image_security": "임의의 이미지 파일 이름",
+                    "generate_mp4": "이미지에서 mp4 만들기"
+                },
+                "description": "이메일 구조 및 Home Assistant 설치에 따라 다음을 사용자 정의하여 구성을 완료하십시오. \n\n [메일 및 패키지 통합](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) 옵션에 대한 자세한 내용은 [구성, 템플릿 및 자동화 섹션](https://github.com/moralmunky/Home-Assistant-Mail-and-Packages/wiki/Configuration-and-Email-Settings#configuration)",
+                "title": "메일 및 패키지 (2/2 단계)"
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "communication": "메일 서버에 연결하거나 로그인 할 수 없습니다. 자세한 내용은 로그를 확인하십시오.",
+            "invalid_path": "이미지를 다른 디렉토리에 저장하십시오."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "주최자",
+                    "password": "암호",
+                    "port": "포트",
+                    "username": "사용자 이름"
+                },
+                "description": "메일 서버의 연결 정보를 입력하십시오.",
+                "title": "메일 및 패키지 (1/2 단계)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "메일 폴더",
+                    "scan_interval": "스캔 간격 (분)",
+                    "image_path": "이미지 경로",
+                    "gif_duration": "이미지 지속 시간 (초)",
+                    "image_security": "임의의 이미지 파일 이름",
+                    "generate_mp4": "이미지에서 mp4 만들기"
+                },
+                "description": "이메일 구조 및 Home Assistant 설치에 따라 다음을 사용자 정의하여 구성을 완료하십시오. \n\n [메일 및 패키지 통합](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) 옵션에 대한 자세한 내용은 [구성, 템플릿 및 자동화 섹션](https://github.com/moralmunky/Home-Assistant-Mail-and-Packages/wiki/Configuration-and-Email-Settings#configuration)",
+                "title": "메일 및 패키지 (2/2 단계)"
+            }
+        }
+    }
+}
