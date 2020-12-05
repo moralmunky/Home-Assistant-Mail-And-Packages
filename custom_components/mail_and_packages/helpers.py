@@ -471,7 +471,7 @@ def copy_overlays(path):
         for file in overlays:
             _LOGGER.debug("Copying file to: %s", str(path + file))
             copyfile(
-                os.path.dirname(__file__) + file, path + file,
+                os.path.dirname(__file__) + "/" + file, path + file,
             )
 
 
@@ -902,7 +902,7 @@ def get_items(account, param, fwds=None):
                     # Catch bad format emails
                     try:
                         email_msg = quopri.decodestring(str(msg.get_payload(0)))
-                        email_msg = email_msg.decode("utf-8", "ingore")
+                        email_msg = email_msg.decode("utf-8", "ignore")
                     except Exception as err:
                         _LOGGER.debug(
                             "Error while attempting to parse Amazon email: %s",
