@@ -409,7 +409,7 @@ async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):
         mock_date.today.return_value = date(2020, 9, 11)
 
         result = get_items(mock_imap_amazon_shipped, "count")
-        assert result == 4
+        assert result == 5
 
 
 async def test_amazon_shipped_order(hass, mock_imap_amazon_shipped):
@@ -429,14 +429,14 @@ async def test_amazon_search(hass, mock_imap_no_email):
 
 async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
     result = amazon_search(mock_imap_amazon_shipped, "test/path", hass)
-    assert result == 4
+    assert result == 5
 
 
 async def test_amazon_search_delivered(
     hass, mock_imap_amazon_delivered, mock_download_img
 ):
     result = amazon_search(mock_imap_amazon_delivered, "test/path", hass)
-    assert result == 4
+    assert result == 5
 
 
 async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
