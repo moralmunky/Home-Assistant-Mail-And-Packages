@@ -84,7 +84,7 @@ FEDEX_TRACKING = "fedex_tracking"
 FEDEX_TRACKING_PATTERN = "\\d{15,34}"
 
 # Amazon
-Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in"
+Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de"
 AMAZON_Delivered_Subject = "Delivered: Your"
 AMAZON_Email = "order-update@"
 AMAZON_PACKAGES = "amazon_packages"
