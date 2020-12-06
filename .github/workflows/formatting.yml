@@ -10,13 +10,23 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v2"
-      - uses: olance/isort-action@v1.1.0
-      - uses: fylein/python-pylint-github-action@v4
+      - uses: "actions/setup-python@v1"
+        with:
+          python-version: "3.x"
+      - run: python3 -m pip install black
+      - run: black .        
         
   validate:
     name: Validate component
     runs-on: "ubuntu-latest"
     steps:
         - uses: "actions/checkout@v2"
-        - uses: "home-assistant/actions/hassfest@master"
 
+        - name: HACS validation
+          uses: "hacs/integration/action@master"
+          with:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            CATEGORY: "integration"
+
+        - name: Hassfest validation
+          uses: "home-assistant/actions/hassfest@master"
