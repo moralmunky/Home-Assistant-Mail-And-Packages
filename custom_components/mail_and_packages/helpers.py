@@ -922,7 +922,14 @@ def get_items(account, param, fwds=None):
                         arrive_date = arrive_date[0:3]
                         arrive_date[2] = arrive_date[2][:2]
                         arrive_date = " ".join(arrive_date).strip()
-                        dateobj = datetime.datetime.strptime(arrive_date, "%A, %B %d")
+                        if "today" in arrive_date or "tomorrow" in arrive_date:
+                            arrive_date = arrive_date.split(",")[1].strip()
+                            dateobj = datetime.datetime.strptime(arrive_date, "%B %d")
+                        else:
+                            dateobj = datetime.datetime.strptime(
+                                arrive_date, "%A, %B %d"
+                            )
+
                         if (
                             dateobj.day == datetime.date.today().day
                             and dateobj.month == datetime.date.today().month
