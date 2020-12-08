@@ -248,14 +248,9 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
     async def _show_options_form(self, user_input):
         """Show the configuration form to edit location data."""
 
-        # Defaults
-        defaults = {
-            CONF_PORT: DEFAULT_PORT,
-        }
-
         return self.async_show_form(
             step_id="init",
-            data_schema=_get_schema_step_1(self.hass, user_input, defaults),
+            data_schema=_get_schema_step_1(self.hass, user_input, self._data),
             errors=self._errors,
         )
 
