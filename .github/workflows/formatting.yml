@@ -1,32 +1,29 @@
-name: Validate with hassfest
-
+name: "Validation And Formatting"
 on:
   push:
-  pull_request: ~
-
+  pull_request:
+  schedule:
+    - cron: '0 0 * * *'
 jobs:
-  formatting:
-    name: Formatting Check
-    runs-on: "ubuntu-latest"
+  ci:
+    runs-on: ubuntu-latest
     steps:
-      - uses: "actions/checkout@v2"
-      - uses: "actions/setup-python@v1"
+      - uses: actions/checkout@v2
+        name: Download repo
         with:
-          python-version: "3.x"
-      - run: python3 -m pip install black
-      - run: black .
-
-  validate:
-    name: Validate component
-    runs-on: "ubuntu-latest"
-    steps:
-      - uses: "actions/checkout@v2"
-
-      - name: HACS validation
-        uses: "hacs/integration/action@master"
+          fetch-depth: 0
+      - uses: actions/setup-python@v2
+        name: Setup Python
+      - uses: actions/cache@v2
+        name: Cache
+        with:
+          path: |
+            ~/.cache/pip
+          key: custom-component-ci
+      - uses: hacs/action@main
+        with:
+          CATEGORY: integration
+      - uses: KTibow/ha-blueprint@stable
+        name: CI
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CATEGORY: "integration"
-
-      - name: Hassfest validation
-        uses: "home-assistant/actions/hassfest@master"
