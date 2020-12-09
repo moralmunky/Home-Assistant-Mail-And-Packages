@@ -1,28 +1,29 @@
 """ Functions for Mail and Packages """
 
-from . import const
-import aiohttp
 import datetime
 import email
-from homeassistant.const import (
-    CONF_HOST,
-    CONF_PORT,
-    CONF_USERNAME,
-    CONF_PASSWORD,
-    CONF_RESOURCES,
-)
-import imageio as io
 import imaplib
 import logging
 import os
-from PIL import Image
 import quopri
 import re
-from resizeimage import resizeimage
-from shutil import copyfile, which
 import subprocess
 import uuid
+from shutil import copyfile, which
 
+import aiohttp
+import imageio as io
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_PASSWORD,
+    CONF_PORT,
+    CONF_RESOURCES,
+    CONF_USERNAME,
+)
+from PIL import Image
+from resizeimage import resizeimage
+
+from . import const
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -117,7 +118,11 @@ def process_emails(hass, config):
         count = {}
         if sensor == "usps_mail":
             count[sensor] = get_mails(
-                account, img_out_path, gif_duration, image_name, generate_mp4,
+                account,
+                img_out_path,
+                gif_duration,
+                image_name,
+                generate_mp4,
             )
         elif sensor == const.AMAZON_PACKAGES:
             count[sensor] = get_items(account, const.ATTR_COUNT, amazon_fwds)
@@ -221,7 +226,7 @@ def update_time():
 
 
 def email_search(account, address, date, subject=None):
-    """ Search emails with from, subject, senton date.
+    """Search emails with from, subject, senton date.
 
     Returns a tuple
     """
@@ -252,7 +257,7 @@ def email_search(account, address, date, subject=None):
 
 
 def email_fetch(account, num, type="(RFC822)"):
-    """ Download specified email for parsing.
+    """Download specified email for parsing.
 
     Returns tuple
     """
@@ -474,7 +479,8 @@ def copy_overlays(path):
         for file in overlays:
             _LOGGER.debug("Copying file to: %s", str(path + file))
             copyfile(
-                os.path.dirname(__file__) + "/" + file, path + file,
+                os.path.dirname(__file__) + "/" + file,
+                path + file,
             )
 
 

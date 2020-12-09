@@ -1,38 +1,41 @@
 """Tests for init module."""
 import datetime
 from datetime import date
-from custom_components.mail_and_packages.const import DOMAIN, DOMAIN_DATA, DATA
+from unittest import mock
+
+import pytest
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from pytest_homeassistant_custom_component.async_mock import patch, call
+from pytest_homeassistant_custom_component.async_mock import call, patch
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.mail_and_packages.const import DATA, DOMAIN, DOMAIN_DATA
 from custom_components.mail_and_packages.helpers import (
-    get_formatted_date,
-    process_emails,
-    update_time,
-    cleanup_images,
-    email_search,
-    get_mails,
     _generate_mp4,
-    download_img,
     amazon_hub,
     amazon_search,
-    get_count,
-    get_items,
-    login,
-    selectfolder,
+    cleanup_images,
+    download_img,
     email_fetch,
+    email_search,
+    get_count,
+    get_formatted_date,
+    get_items,
+    get_mails,
+    login,
+    process_emails,
     resize_images,
+    selectfolder,
+    update_time,
 )
-
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD, FAKE_CONFIG_DATA_NO_RND
-import pytest
-from unittest import mock
 
 
 async def test_unload_entry(hass, mock_update):
     """Test unloading entities. """
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
     )
 
     entry.add_to_hass(hass)
@@ -58,7 +61,9 @@ async def test_setup_entry(
 ):
     """Test settting up entities. """
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
     )
 
     entry.add_to_hass(hass)
@@ -113,7 +118,9 @@ async def test_process_emails(
     mock_copyfile,
 ):
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA_NO_RND,
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_NO_RND,
     )
 
     entry.add_to_hass(hass)
@@ -158,7 +165,9 @@ async def test_process_emails(
 
 async def test_process_emails_bad(hass, mock_imap_no_email):
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA_BAD,
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_BAD,
     )
 
     entry.add_to_hass(hass)
@@ -176,7 +185,9 @@ async def test_process_emails_random(
     mock_copyfile,
 ):
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
     )
 
     entry.add_to_hass(hass)
@@ -506,4 +517,3 @@ async def test_resize_images_read_err(mock_open, mock_image_excpetion, caplog):
 #         await download_img(
 #             "http://fake.website.com/not/a/real/website/image.jpg", "/fake/directory/"
 #         )
-

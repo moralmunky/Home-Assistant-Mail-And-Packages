@@ -1,14 +1,16 @@
 """ Test Mail and Packages config flow """
-from homeassistant import config_entries, setup
-from custom_components.mail_and_packages.const import DOMAIN
 import os
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-from pytest_homeassistant_custom_component.async_mock import patch
+
 import pytest
+from homeassistant import config_entries, setup
+from pytest_homeassistant_custom_component.async_mock import patch
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.mail_and_packages.const import DOMAIN
 from custom_components.mail_and_packages.helpers import (
-    _validate_path,
-    _test_login,
     _check_ffmpeg,
+    _test_login,
+    _validate_path,
 )
 from tests.const import FAKE_CONFIG_DATA
 
@@ -91,7 +93,13 @@ from tests.const import FAKE_CONFIG_DATA
     ],
 )
 async def test_form(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap,
+    input_1,
+    step_id_2,
+    input_2,
+    title,
+    data,
+    hass,
+    mock_imap,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -113,7 +121,8 @@ async def test_form(
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
     ) as mock_setup_entry:
 
         result2 = await hass.config_entries.flow.async_configure(
@@ -171,7 +180,8 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
     ) as mock_setup_entry:
 
         result2 = await hass.config_entries.flow.async_configure(
@@ -283,7 +293,8 @@ async def test_form_invalid_ffmpeg(
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
     ) as mock_setup_entry:
 
         result2 = await hass.config_entries.flow.async_configure(
@@ -402,7 +413,8 @@ async def test_form_invalid_path(
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
     ) as mock_setup_entry:
 
         result2 = await hass.config_entries.flow.async_configure(
@@ -498,7 +510,13 @@ async def test_form_invalid_path(
     ],
 )
 async def test_form_index_error(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap_index_error,
+    input_1,
+    step_id_2,
+    input_2,
+    title,
+    data,
+    hass,
+    mock_imap_index_error,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -520,7 +538,8 @@ async def test_form_index_error(
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
     ) as mock_setup_entry:
 
         result2 = await hass.config_entries.flow.async_configure(
@@ -620,7 +639,13 @@ async def test_form_index_error(
     ],
 )
 async def test_form_index_error_2(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap_index_error_2,
+    input_1,
+    step_id_2,
+    input_2,
+    title,
+    data,
+    hass,
+    mock_imap_index_error_2,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -642,7 +667,8 @@ async def test_form_index_error_2(
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
     ) as mock_setup_entry:
 
         result2 = await hass.config_entries.flow.async_configure(
@@ -742,7 +768,13 @@ async def test_form_index_error_2(
     ],
 )
 async def test_form_mailbox_format2(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap_mailbox_format2,
+    input_1,
+    step_id_2,
+    input_2,
+    title,
+    data,
+    hass,
+    mock_imap_mailbox_format2,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -764,7 +796,8 @@ async def test_form_mailbox_format2(
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
     ) as mock_setup_entry:
 
         result2 = await hass.config_entries.flow.async_configure(
@@ -904,11 +937,19 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
     ],
 )
 async def test_options_flow(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap,
+    input_1,
+    step_id_2,
+    input_2,
+    title,
+    data,
+    hass,
+    mock_imap,
 ):
     """Test config flow options."""
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
     )
 
     entry.add_to_hass(hass)
@@ -931,7 +972,8 @@ async def test_options_flow(
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
     ) as mock_setup_entry:
 
         result2 = await hass.config_entries.options.async_configure(
@@ -964,11 +1006,16 @@ async def test_options_flow(
     ],
 )
 async def test_options_flow_connection_error(
-    input_1, step_id_2, hass, mock_imap,
+    input_1,
+    step_id_2,
+    hass,
+    mock_imap,
 ):
     """Test config flow options."""
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
     )
 
     entry.add_to_hass(hass)
@@ -992,7 +1039,8 @@ async def test_options_flow_connection_error(
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
     ) as mock_setup_entry:
 
         result2 = await hass.config_entries.options.async_configure(
@@ -1081,11 +1129,19 @@ async def test_options_flow_connection_error(
     ],
 )
 async def test_options_flow_invalid_ffmpeg(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap,
+    input_1,
+    step_id_2,
+    input_2,
+    title,
+    data,
+    hass,
+    mock_imap,
 ):
     """Test config flow options."""
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
     )
 
     entry.add_to_hass(hass)
@@ -1108,7 +1164,8 @@ async def test_options_flow_invalid_ffmpeg(
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
     ) as mock_setup_entry:
 
         result2 = await hass.config_entries.options.async_configure(
@@ -1203,11 +1260,19 @@ async def test_options_flow_invalid_ffmpeg(
     ],
 )
 async def test_options_flow_invalid_path(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap,
+    input_1,
+    step_id_2,
+    input_2,
+    title,
+    data,
+    hass,
+    mock_imap,
 ):
     """Test config flow options."""
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
     )
 
     entry.add_to_hass(hass)
@@ -1230,7 +1295,8 @@ async def test_options_flow_invalid_path(
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
     ) as mock_setup_entry:
 
         result2 = await hass.config_entries.options.async_configure(
@@ -1325,11 +1391,19 @@ async def test_options_flow_invalid_path(
     ],
 )
 async def test_options_flow_index_error(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap_index_error,
+    input_1,
+    step_id_2,
+    input_2,
+    title,
+    data,
+    hass,
+    mock_imap_index_error,
 ):
     """Test config flow options."""
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
     )
 
     entry.add_to_hass(hass)
@@ -1352,7 +1426,8 @@ async def test_options_flow_index_error(
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
     ) as mock_setup_entry:
 
         result2 = await hass.config_entries.options.async_configure(
@@ -1448,11 +1523,19 @@ async def test_options_flow_index_error(
     ],
 )
 async def test_options_flow_index_error_2(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap_index_error_2,
+    input_1,
+    step_id_2,
+    input_2,
+    title,
+    data,
+    hass,
+    mock_imap_index_error_2,
 ):
     """Test config flow options."""
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
     )
 
     entry.add_to_hass(hass)
@@ -1475,7 +1558,8 @@ async def test_options_flow_index_error_2(
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
     ) as mock_setup_entry:
 
         result2 = await hass.config_entries.options.async_configure(
@@ -1571,11 +1655,19 @@ async def test_options_flow_index_error_2(
     ],
 )
 async def test_options_flow_mailbox_format2(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap_mailbox_format2,
+    input_1,
+    step_id_2,
+    input_2,
+    title,
+    data,
+    hass,
+    mock_imap_mailbox_format2,
 ):
     """Test config flow options."""
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA,
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
     )
 
     entry.add_to_hass(hass)
@@ -1598,7 +1690,8 @@ async def test_options_flow_mailbox_format2(
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry", return_value=True,
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
     ) as mock_setup_entry:
 
         result2 = await hass.config_entries.options.async_configure(
@@ -1614,4 +1707,3 @@ async def test_options_flow_mailbox_format2(
     assert result3["type"] == "create_entry"
     assert entry.options == data
     await hass.async_block_till_done()
-
