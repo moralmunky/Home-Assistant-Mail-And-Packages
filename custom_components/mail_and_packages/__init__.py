@@ -1,12 +1,14 @@
 """Mail and Packages Integration."""
-from . import const
-from .helpers import process_emails, update_time
-import async_timeout
+import logging
 from datetime import timedelta
+
+import async_timeout
 from homeassistant.const import CONF_HOST
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-import logging
+
+from . import const
+from .helpers import process_emails, update_time
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -80,4 +82,3 @@ async def update_listener(hass, config_entry):
     hass.async_add_job(
         hass.config_entries.async_forward_entry_setup(config_entry, const.PLATFORM)
     )
-

@@ -4,11 +4,13 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
-from . import const
-from homeassistant.helpers.entity import Entity
-from homeassistant.const import CONF_RESOURCES, CONF_HOST
-from homeassistant.core import callback
 import logging
+
+from homeassistant.const import CONF_HOST, CONF_RESOURCES
+from homeassistant.core import callback
+from homeassistant.helpers.entity import Entity
+
+from . import const
 
 _LOGGER = logging.getLogger(__name__)
 
