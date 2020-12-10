@@ -148,6 +148,95 @@ ROYAL_TRACKING = "royal_tracking"
 
 ROYAL_TRACKING_PATTERN = "[A-Za-z]{2}[0-9]{9}GB"
 
+# Sensor Data
+SENSOR_DATA = {
+    "usps_delivered": {
+        "email": ["auto-reply@usps.com"],
+        "subject": ["Item Delivered"],
+    },
+    "usps_delivering": {
+        "email": ["auto-reply@usps.com"],
+        "subject": ["Expected Delivery on"],
+        "body": ["Your item is out for delivery"],
+    },
+    "usps_packages": {},
+    "usps_tracking": {"pattern": ["9[234]\\d{15,22}"]},
+    "usps_mail": {"email": ["mcinfo@ups.com"], "subject": ["Your Daily Digest"],},
+    "ups_delivered": {
+        "email": ["mcinfo@ups.com"],
+        "subject": [
+            "Your UPS Package was delivered",
+            "Your UPS Packages were delivered",
+        ],
+    },
+    "ups_delivering": {
+        "email": ["mcinfo@ups.com"],
+        "subject": [
+            "UPS Update: Package Scheduled for Delivery Today",
+            "UPS Update: Follow Your Delivery on a Live Map",
+        ],
+        "body": ["Tracking Number"],
+    },
+    "ups_packages": {},
+    "ups_tracking": {
+        "pattern": [
+            "(1Z ?[0-9A-Z]{3} ?[0-9A-Z]{3} ?[0-9A-Z]{2} ?[0-9A-Z]{4} ?[0-9A-Z]{3} ?[0-9A-Z]|[\\dT]\\d\\d\\d ?\\d\\d\\d\\d ?\\d\\d\\d)$"
+        ]
+    },
+    "fedex_delivered": {
+        "email": ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"],
+        "subject": ["Your package has been delivered",],
+    },
+    "fedex_delivering": {
+        "email": ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"],
+        "subject": [
+            "Delivery scheduled for today",
+            "Your package is scheduled for delivery today",
+        ],
+    },
+    "fedex_packages": {},
+    "fedex_tracking": {"pattern": ["\\d{12,14,20,34}"]},
+    "capost_delivered": {
+        "email": ["donotreply@canadapost.postescanada.ca"],
+        "subject": ["Delivery Notification",],
+    },
+    "capost_delivering": {},
+    "capost_packages": {},
+    "capost_tracking": {},
+    "dhl_delivered": {
+        "email": ["donotreply_odd@dhl.com", "NoReply.ODD@dhl.com", "noreply@dhl.de"],
+        "subject": ["DHL On Demand Delivery",],
+        "body": ["has been delivered"],
+    },
+    "dhl_delivering": {
+        "email": ["donotreply_odd@dhl.com", "NoReply.ODD@dhl.com", "noreply@dhl.de"],
+        "subject": ["DHL On Demand Delivery", "paket kommt heute",],
+        "body": ["scheduled for delivery TODAY"],
+    },
+    "dhl_packages": {},
+    "dhl_tracking": {"pattern": ["number \\d{10} from"]},
+    "hermes_delivered": {
+        "email": ["donotreply@myhermes.co.uk"],
+        "subject": ["Hermes has successfully delivered your"],
+    },
+    "hermes_delivering": {
+        "email": ["donotreply@myhermes.co.uk"],
+        "subject": ["parcel is now with your local Hermes courier"],
+    },
+    "hermes_packages": {},
+    "hermes_tracking": {"pattern": ["\\d{16}"]},
+    "royal_delivered": {
+        "email": ["no-reply@royalmail.com"],
+        "subject": ["has been delivered"],
+    },
+    "royal_delivering": {
+        "email": ["donotreply@myhermes.co.uk"],
+        "subject": ["is on its way"],
+    },
+    "royal_packages": {},
+    "royal_tracking": {"pattern": ["[A-Za-z]{2}[0-9]{9}GB"]},
+}
+
 # Sensor definitions
 # Name, unit of measure, icon
 SENSOR_TYPES = {

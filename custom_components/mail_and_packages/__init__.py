@@ -68,7 +68,7 @@ async def async_unload_entry(hass, config_entry):
             config_entry, const.PLATFORM
         )
         _LOGGER.info(
-            "Successfully removed sensor from the " + const.DOMAIN + " integration"
+            "Successfully removed sensor from the %s integration", const.DOMAIN
         )
     except ValueError:
         pass
