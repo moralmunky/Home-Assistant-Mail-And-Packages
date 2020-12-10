@@ -1,6 +1,6 @@
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.3.0-b7"
+VERSION = "0.3.0-b8"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 DATA = "data"
@@ -81,7 +81,7 @@ FEDEX_DELIVERING = "fedex_delivering"
 FEDEX_PACKAGES = "fedex_packages"
 FEDEX_TRACKING = "fedex_tracking"
 
-FEDEX_TRACKING_PATTERN = "\\d{15,34}"
+FEDEX_TRACKING_PATTERN = "\\d{12,14,20,34}"
 
 # Amazon
 Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de"
