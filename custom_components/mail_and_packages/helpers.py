@@ -509,122 +509,55 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     tracking = []
     result = {}
     today = get_formatted_date()
-    email = None
-    subject = None
-    subject_2 = None
-    filter_text = None
-    shipper = None
+    body = None
+    track = None
+    data = None
 
-    if sensor_type == const.USPS_DELIVERED:
-        email = const.USPS_Packages_Email
-        subject = const.USPS_Delivered_Subject
-    elif sensor_type == const.USPS_DELIVERING:
-        email = const.USPS_Packages_Email
-        subject = const.USPS_Delivering_Subject
-        filter_text = const.USPS_Body_Text
-        if get_tracking_num:
-            shipper = const.SHIPPERS[4]
-    elif sensor_type == const.UPS_DELIVERED:
-        email = const.UPS_Email
-        subject = const.UPS_Delivered_Subject
-        filter_text = const.UPS_Body_Text
-    elif sensor_type == const.UPS_DELIVERING:
-        email = const.UPS_Email
-        subject = const.UPS_Delivering_Subject
-        subject_2 = const.UPS_Delivering_Subject_2
-        if get_tracking_num:
-            shipper = const.SHIPPERS[3]
-    elif sensor_type == const.FEDEX_DELIVERING:
-        email = const.FEDEX_Email
-        subject = const.FEDEX_Delivering_Subject
-        subject_2 = const.FEDEX_Delivering_Subject_2
-        if get_tracking_num:
-            shipper = const.SHIPPERS[2]
-    elif sensor_type == const.DHL_DELIVERING:
-        email = const.DHL_Email
-        subject = const.DHL_Delivering_Subject
-        subject_2 = const.DHL_Delivering_Subject_2
-        filter_text = const.DHL_Body_Text
-        if get_tracking_num:
-            shipper = const.SHIPPERS[1]
-    elif sensor_type == const.FEDEX_DELIVERED:
-        email = const.FEDEX_Email
-        subject = const.FEDEX_Delivered_Subject
-    elif sensor_type == const.CAPOST_DELIVERED:
-        email = const.CAPost_Email
-        subject = const.CAPost_Delivered_Subject
-    elif sensor_type == const.DHL_DELIVERED:
-        email = const.DHL_Email
-        subject = const.DHL_Delivered_Subject
-        filter_text = const.DHL_Body_Text_2
-    elif sensor_type == const.HERMES_DELIVERED:
-        email = const.HERMES_EMAIL
-        subject = const.HERMES_DELIVERED_SUBJECT
-    elif sensor_type == const.HERMES_DELIVERING:
-        email = const.HERMES_EMAIL
-        subject = const.HERMES_DELIVERING_SUBJECT
-        if get_tracking_num:
-            shipper = const.SHIPPERS[5]
-    elif sensor_type == const.ROYAL_DELIVERED:
-        email = const.ROYAL_EMAIL
-        subject = const.ROYAL_DELIVERED_SUBJECT
-    elif sensor_type == const.ROYAL_DELIVERING:
-        email = const.ROYAL_EMAIL
-        subject = const.ROYAL_DELIVERING_SUBJECT
-        if get_tracking_num:
-            shipper = const.SHIPPERS[6]
-    elif sensor_type == const.AMAZON_DELIVERED:
+    # Return Amazon delivered info
+    if sensor_type == const.AMAZON_DELIVERED:
         result[const.ATTR_COUNT] = amazon_search(account, image_path, hass)
         result[const.ATTR_TRACKING] = ""
         return result
-    else:
+
+    # Bail out if unknown sensor type
+    if const.ATTR_EMAIL not in const.SENSOR_DATA[sensor_type]:
         _LOGGER.debug("Unknown sensor type: %s", str(sensor_type))
         result[const.ATTR_COUNT] = count
         result[const.ATTR_TRACKING] = ""
         return result
 
-    _LOGGER.debug(
-        "Attempting to find mail from (%s) with subject 1 (%s)", email, subject
-    )
+    email = const.SENSOR_DATA[sensor_type][const.ATTR_EMAIL]
+    subjects = const.SENSOR_DATA[sensor_type][const.ATTR_SUBJECT]
+    if const.ATTR_BODY in const.SENSOR_DATA[sensor_type].keys():
+        body = const.SENSOR_DATA[sensor_type][const.ATTR_BODY] or None
 
-    (rv, data) = email_search(account, email, today, subject)
+    for subject in subjects:
 
-    if rv == "OK":
-        if filter_text is not None:
-            count += find_text(data[0], account, filter_text)
-        else:
-            count += len(data[0].split())
         _LOGGER.debug(
-            "Search for (%s) with subject 1 (%s) results: %s count: %s",
-            email,
-            subject,
-            data[0],
-            count,
-        )
-        if shipper is not None and count > 0:
-            tracking = get_tracking(data[0], account, shipper)
-
-    if subject_2 is not None:
-        _LOGGER.debug(
-            "Attempting to find mail from (%s) with subject 2 (%s)", email, subject_2
+            "Attempting to find mail from (%s) with subject (%s)", email, subject
         )
 
-        (rv, data) = email_search(account, email, today, subject_2)
-
+        (rv, data) = email_search(account, email, today, subject)
         if rv == "OK":
-            if filter_text is not None:
-                count += find_text(data[0], account, filter_text)
+            if body is not None:
+                count += find_text(data[0], account, body)
             else:
                 count += len(data[0].split())
+
             _LOGGER.debug(
-                "Search for (%s) with subject 2 (%s) results: %s count: %s",
+                "Search for (%s) with subject 1 (%s) results: %s count: %s",
                 email,
-                subject_2,
+                subject,
                 data[0],
                 count,
             )
-            if shipper is not None and count > 0:
-                tracking = get_tracking(data[0], account, shipper)
+
+    pattern = f"{sensor_type.split('_')[0]}_tracking"
+    if const.ATTR_PATTERN in const.SENSOR_DATA[pattern].keys():
+        track = const.SENSOR_DATA[pattern][const.ATTR_PATTERN][0]
+
+    if track is not None and count > 0:
+        tracking = get_tracking(data[0], account, track)
 
     if len(tracking) > 0:
         # Use tracking numbers found for count (more accurate)
@@ -636,26 +569,12 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     return result
 
 
-def get_tracking(sdata, account, shipper):
+def get_tracking(sdata, account, format=None):
     """Parse tracking numbers from email """
-    _LOGGER.debug("Searching for tracking numbers for (%s)", shipper)
+    _LOGGER.debug("Searching for tracking numbers...")
     tracking = []
     pattern = None
     mail_list = sdata.split()
-    format = None
-
-    if shipper == "usps":
-        format = const.USPS_TRACKING_PATTERN
-    elif shipper == "ups":
-        format = const.UPS_TRACKING_PATTERN
-    elif shipper == "fedex":
-        format = const.FEDEX_TRACKING_PATTERN
-    elif shipper == "dhl":
-        format = const.DHL_TRACKING_PATTERN
-    elif shipper == "hermes":
-        format = const.HERMES_TRACKING_PATTERN
-    elif shipper == "royal":
-        format = const.ROYAL_TRACKING_PATTERN
 
     pattern = re.compile(r"{}".format(format))
     for i in mail_list:
@@ -670,9 +589,7 @@ def get_tracking(sdata, account, shipper):
             found = pattern.findall(email_subject)
             if len(found) > 0:
                 _LOGGER.debug(
-                    "Found (%s) tracking number in email subject: (%s)",
-                    shipper,
-                    found[0],
+                    "Found tracking number in email subject: (%s)", found[0],
                 )
                 if found[0] in tracking:
                     continue
@@ -685,19 +602,17 @@ def get_tracking(sdata, account, shipper):
             found = pattern.findall(email_msg)
             if len(found) > 0:
                 # DHL is special
-                if shipper == "dhl":
+                if " " in format:
                     found[0] = found[0].split(" ")[1]
 
-                _LOGGER.debug(
-                    "Found (%s) tracking number in email body: %s", shipper, found[0]
-                )
+                _LOGGER.debug("Found tracking number in email body: %s", found[0])
                 if found[0] in tracking:
                     continue
                 tracking.append(found[0])
                 continue
 
     if len(tracking) == 0:
-        _LOGGER.debug("No tracking number found for %s", shipper)
+        _LOGGER.debug("No tracking numbers found")
 
     return tracking
 

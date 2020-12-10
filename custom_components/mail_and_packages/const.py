@@ -15,6 +15,10 @@ ATTR_TRACKING_NUM = "tracking_#"
 ATTR_IMAGE = "image"
 ATTR_SERVER = "server"
 ATTR_IMAGE_NAME = "image_name"
+ATTR_EMAIL = "email"
+ATTR_SUBJECT = "subject"
+ATTR_BODY = "body"
+ATTR_PATTERN = "pattern"
 
 # Configuration Properties
 CONF_FOLDER = "folder"
