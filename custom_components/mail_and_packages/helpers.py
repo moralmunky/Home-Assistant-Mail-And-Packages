@@ -118,11 +118,7 @@ def process_emails(hass, config):
         count = {}
         if sensor == "usps_mail":
             count[sensor] = get_mails(
-                account,
-                img_out_path,
-                gif_duration,
-                image_name,
-                generate_mp4,
+                account, img_out_path, gif_duration, image_name, generate_mp4,
             )
         elif sensor == const.AMAZON_PACKAGES:
             count[sensor] = get_items(account, const.ATTR_COUNT, amazon_fwds)
@@ -479,8 +475,7 @@ def copy_overlays(path):
         for file in overlays:
             _LOGGER.debug("Copying file to: %s", str(path + file))
             copyfile(
-                os.path.dirname(__file__) + "/" + file,
-                path + file,
+                os.path.dirname(__file__) + "/" + file, path + file,
             )
 
 
@@ -686,7 +681,7 @@ def get_tracking(sdata, account, shipper):
 
             # Search in email body for tracking number
             email_msg = quopri.decodestring(str(msg.get_payload(0)))
-            email_msg = email_msg.decode("utf-8")
+            email_msg = email_msg.decode("utf-8", "ignore")
             found = pattern.findall(email_msg)
             if len(found) > 0:
                 # DHL is special
@@ -725,7 +720,7 @@ def find_text(sdata, account, search):
             msg = email.message_from_bytes(response_part[1])
             email_msg = quopri.decodestring(str(msg.get_payload(0)))
             try:
-                email_msg = email_msg.decode("utf-8")
+                email_msg = email_msg.decode("utf-8", "ignore")
             except Exception as err:
                 _LOGGER.warning(
                     "Error while attempting to find (%s) in email: %s",
