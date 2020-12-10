@@ -1,6 +1,6 @@
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.3.0-b9"
+VERSION = "0.3.0-b10"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 DATA = "data"
@@ -60,32 +60,16 @@ USPS_MAIL = "usps_mail"
 USPS_TRACKING_PATTERN = "9[234]\\d{15,22}"
 
 # UPS
-UPS_Email = "mcinfo@ups.com"
-UPS_Delivering_Subject = "UPS Update: Package Scheduled for Delivery Today"
-UPS_Delivering_Subject_2 = "UPS Update: Follow Your Delivery on a Live Map"
-UPS_Delivered_Subject = "Your UPS Package was delivered"
-UPS_Delivered_Subject_2 = "Your UPS Packages were delivered"
-UPS_Body_Text = "Tracking Number"
-
 UPS_DELIVERED = "ups_delivered"
 UPS_DELIVERING = "ups_delivering"
 UPS_PACKAGES = "ups_packages"
 UPS_TRACKING = "ups_tracking"
 
-UPS_TRACKING_PATTERN = "(1Z ?[0-9A-Z]{3} ?[0-9A-Z]{3} ?[0-9A-Z]{2} ?[0-9A-Z]{4} ?[0-9A-Z]{3} ?[0-9A-Z]|[\\dT]\\d\\d\\d ?\\d\\d\\d\\d ?\\d\\d\\d)$"
-
 # FedEx
-FEDEX_Email = ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"]
-FEDEX_Delivering_Subject = "Delivery scheduled for today"
-FEDEX_Delivering_Subject_2 = "Your package is scheduled for delivery today"
-FEDEX_Delivered_Subject = "Your package has been delivered"
-
 FEDEX_DELIVERED = "fedex_delivered"
 FEDEX_DELIVERING = "fedex_delivering"
 FEDEX_PACKAGES = "fedex_packages"
 FEDEX_TRACKING = "fedex_tracking"
-
-FEDEX_TRACKING_PATTERN = "\\d{12,14,20,34}"
 
 # Amazon
 Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de"
@@ -106,51 +90,27 @@ AMAZON_TIME_PATTERN = (
 )
 
 # Canada Post
-CAPost_Email = "donotreply@canadapost.postescanada.ca"
-CAPost_Delivered_Subject = "Delivery Notification"
-
 CAPOST_DELIVERED = "capost_delivered"
 CAPOST_DELIVERING = "capost_delivering"
 CAPOST_PACKAGES = "capost_packages"
 
 # DHL
-DHL_Email = ["donotreply_odd@dhl.com", "NoReply.ODD@dhl.com", "noreply@dhl.de"]
-DHL_Delivering_Subject = "DHL On Demand Delivery"
-DHL_Delivering_Subject_2 = "paket kommt heute"  # Germany deliveries
-DHL_Delivered_Subject = "DHL On Demand Delivery"
-DHL_Body_Text = "scheduled for delivery TODAY"
-DHL_Body_Text_2 = "has been delivered"
-
 DHL_DELIVERED = "dhl_delivered"
 DHL_DELIVERING = "dhl_delivering"
 DHL_PACKAGES = "dhl_packages"
 DHL_TRACKING = "dhl_tracking"
 
-DHL_TRACKING_PATTERN = "number \\d{10} from"
-
 # Hermes (UK)
-HERMES_EMAIL = ["donotreply@myhermes.co.uk"]
-HERMES_DELIVERING_SUBJECT = "parcel is now with your local Hermes courier"
-HERMES_DELIVERED_SUBJECT = "Hermes has successfully delivered your"
-
 HERMES_DELIVERING = "hermes_delivering"
 HERMES_DELIVERED = "hermes_delivered"
 HERMES_PACKAGES = "hermes_packages"
 HERMES_TRACKING = "hermes_tracking"
 
-HERMES_TRACKING_PATTERN = "\\d{16}"
-
 # Royal Mail (UK)
-ROYAL_EMAIL = ["no-reply@royalmail.com"]
-ROYAL_DELIVERING_SUBJECT = "is on its way"
-ROYAL_DELIVERED_SUBJECT = "has been delivered"
-
 ROYAL_DELIVERING = "royal_delivering"
 ROYAL_DELIVERED = "royal_delivered"
 ROYAL_PACKAGES = "royal_packages"
 ROYAL_TRACKING = "royal_tracking"
-
-ROYAL_TRACKING_PATTERN = "[A-Za-z]{2}[0-9]{9}GB"
 
 # Sensor Data
 SENSOR_DATA = {
