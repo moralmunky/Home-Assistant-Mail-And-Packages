@@ -33,7 +33,7 @@ async def async_setup_entry(hass, config_entry):
 
     async def async_update_data():
         """Fetch data """
-        async with async_timeout.timeout(10):
+        async with async_timeout.timeout(30):
             return await hass.async_add_executor_job(process_emails, hass, config)
 
     coordinator = DataUpdateCoordinator(
