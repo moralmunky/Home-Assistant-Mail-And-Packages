@@ -23,6 +23,7 @@ from .const import (
     CONF_IMAGE_SECURITY,
     CONF_PATH,
     CONF_SCAN_INTERVAL,
+    DEFAULT_AMAZON_FWDS,
     DEFAULT_FOLDER,
     DEFAULT_GIF_DURATION,
     DEFAULT_IMAGE_SECURITY,
@@ -204,6 +205,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             CONF_PATH: self.hass.config.path() + DEFAULT_PATH,
             CONF_DURATION: DEFAULT_GIF_DURATION,
             CONF_IMAGE_SECURITY: DEFAULT_IMAGE_SECURITY,
+            CONF_AMAZON_FWDS: DEFAULT_AMAZON_FWDS,
         }
 
         return self.async_show_form(
