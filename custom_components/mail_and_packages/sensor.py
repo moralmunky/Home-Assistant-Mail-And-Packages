@@ -16,16 +16,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-
     coordinator = hass.data[const.DOMAIN][entry.entry_id][const.COORDINATOR]
     unique_id = entry.entry_id
-
     sensors = []
-
-    if CONF_RESOURCES in entry.options:
-        resources = entry.options[CONF_RESOURCES]
-    else:
-        resources = entry.data[CONF_RESOURCES]
+    resources = entry.data[CONF_RESOURCES]
 
     for variable in resources:
         sensors.append(PackagesSensor(entry, variable, coordinator, unique_id))
@@ -90,18 +84,14 @@ class PackagesSensor(Entity):
         """Return device specific state attributes."""
         attr = {}
         attr[const.ATTR_SERVER] = self._host
+        tracking = f"{self.type.split('_')[0]}_tracking"
+
         if "Amazon" in self._name:
             attr[const.ATTR_ORDER] = self.data[const.AMAZON_ORDER]
         elif "Mail USPS Mail" == self._name:
             attr[const.ATTR_IMAGE] = self.data[const.ATTR_IMAGE_NAME]
-        elif self.type == const.USPS_DELIVERING:
-            attr[const.ATTR_TRACKING_NUM] = self.data[const.USPS_TRACKING]
-        elif self.type == const.UPS_DELIVERING:
-            attr[const.ATTR_TRACKING_NUM] = self.data[const.UPS_TRACKING]
-        elif self.type == const.FEDEX_DELIVERING:
-            attr[const.ATTR_TRACKING_NUM] = self.data[const.FEDEX_TRACKING]
-        elif self.type == const.DHL_DELIVERING:
-            attr[const.ATTR_TRACKING_NUM] = self.data[const.DHL_TRACKING]
+        elif "_delivering" in self.type and tracking in self.data.keys():
+            attr[const.ATTR_TRACKING_NUM] = self.data[tracking]
         return attr
 
     async def async_update(self):

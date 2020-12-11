@@ -279,13 +279,13 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
     images = []
     imagesDelete = []
     msg = ""
+    address = const.SENSOR_DATA["usps_mail"][const.ATTR_EMAIL][0]
+    subject = const.SENSOR_DATA["usps_mail"][const.ATTR_SUBJECT][0]
 
     _LOGGER.debug("Attempting to find Informed Delivery mail")
     _LOGGER.debug("Informed delivery search date: %s", today)
 
-    (rv, data) = email_search(
-        account, const.USPS_Mail_Email, today, const.USPS_Mail_Subject
-    )
+    (rv, data) = email_search(account, address, today, subject)
 
     # Check to see if the path exists, if not make it
     pathcheck = os.path.isdir(image_output_path)
@@ -473,7 +473,7 @@ def resize_images(images, width, height):
 def copy_overlays(path):
     """ Copy overlay images to image output path."""
 
-    overlays = ["overlay.png", "vignette.png", "white.png"]
+    overlays = const.OVERLAY
     check = all(item in overlays for item in os.listdir(path))
 
     # Copy files if they are missing

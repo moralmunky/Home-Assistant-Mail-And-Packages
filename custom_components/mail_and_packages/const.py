@@ -1,10 +1,11 @@
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.3.0-b11"
+VERSION = "0.3.0-b12"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 DATA = "data"
 COORDINATOR = "coordinator_mail"
+OVERLAY = ["overlay.png", "vignette.png", "white.png"]
 
 # Attributes
 ATTR_COUNT = "count"
@@ -40,37 +41,6 @@ DEFAULT_SCAN_INTERVAL = 5
 DEFAULT_GIF_FILE_NAME = "mail_today.gif"
 DEFAULT_AMAZON_FWDS = '""'
 
-# USPS
-USPS_Mail_Email = [
-    "USPSInformedDelivery@usps.gov",
-    "USPSInformeddelivery@informeddelivery.usps.com",
-]
-USPS_Mail_Subject = "Your Daily Digest"
-USPS_Packages_Email = "auto-reply@usps.com"
-USPS_Delivering_Subject = "Expected Delivery on"
-USPS_Delivered_Subject = "Item Delivered"
-USPS_Body_Text = "Your item is out for delivery"
-
-USPS_DELIVERED = "usps_delivered"
-USPS_DELIVERING = "usps_delivering"
-USPS_PACKAGES = "usps_packages"
-USPS_TRACKING = "usps_tracking"
-USPS_MAIL = "usps_mail"
-
-USPS_TRACKING_PATTERN = "9[234]\\d{15,22}"
-
-# UPS
-UPS_DELIVERED = "ups_delivered"
-UPS_DELIVERING = "ups_delivering"
-UPS_PACKAGES = "ups_packages"
-UPS_TRACKING = "ups_tracking"
-
-# FedEx
-FEDEX_DELIVERED = "fedex_delivered"
-FEDEX_DELIVERING = "fedex_delivering"
-FEDEX_PACKAGES = "fedex_packages"
-FEDEX_TRACKING = "fedex_tracking"
-
 # Amazon
 Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de"
 AMAZON_Delivered_Subject = "Delivered: Your"
@@ -88,29 +58,6 @@ AMAZON_HUB_SUBJECT = "(You have a package to pick up)(.*)- (\\d{6})"
 AMAZON_TIME_PATTERN = (
     "will arrive:,estimated delivery date is:,guaranteed delivery date is:"
 )
-
-# Canada Post
-CAPOST_DELIVERED = "capost_delivered"
-CAPOST_DELIVERING = "capost_delivering"
-CAPOST_PACKAGES = "capost_packages"
-
-# DHL
-DHL_DELIVERED = "dhl_delivered"
-DHL_DELIVERING = "dhl_delivering"
-DHL_PACKAGES = "dhl_packages"
-DHL_TRACKING = "dhl_tracking"
-
-# Hermes (UK)
-HERMES_DELIVERING = "hermes_delivering"
-HERMES_DELIVERED = "hermes_delivered"
-HERMES_PACKAGES = "hermes_packages"
-HERMES_TRACKING = "hermes_tracking"
-
-# Royal Mail (UK)
-ROYAL_DELIVERING = "royal_delivering"
-ROYAL_DELIVERED = "royal_delivered"
-ROYAL_PACKAGES = "royal_packages"
-ROYAL_TRACKING = "royal_tracking"
 
 # Sensor Data
 SENSOR_DATA = {
