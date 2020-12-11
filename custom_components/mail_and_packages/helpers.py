@@ -230,11 +230,13 @@ def email_search(account, address, date, subject=None):
     imap_search = None  # Holds our IMAP SEARCH command
 
     if isinstance(address, list) and subject is not None:
-        email_list = '" FROM "'.join(address)
-        prefix_list = " ".join(["OR"] * (len(address) - 1))
-        imap_search = (
-            f'({prefix_list} FROM "{email_list}" SUBJECT "{subject}" SENTON "{date}")'
-        )
+        if len(address) == 1:
+            email_list = address[0]
+            imap_search = f'(FROM "{email_list}" SUBJECT "{subject}" SENTON "{date}")'
+        else:
+            email_list = '" FROM "'.join(address)
+            prefix_list = " ".join(["OR"] * (len(address) - 1))
+            imap_search = f'({prefix_list} FROM "{email_list}" SUBJECT "{subject}" SENTON "{date}")'
 
     elif subject is not None:
         imap_search = f'(FROM "{address}" SUBJECT "{subject}" SENTON "{date}")'
