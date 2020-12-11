@@ -469,7 +469,7 @@ def resize_images(images, width, height):
 def copy_overlays(path):
     """ Copy overlay images to image output path."""
 
-    overlays = ["overlay.png", "vignette.png", "white.png"]
+    overlays = const.OVERLAY
     check = all(item in overlays for item in os.listdir(path))
 
     # Copy files if they are missing
