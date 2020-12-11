@@ -1,4 +1,4 @@
-""" Functions for Mail and Packages """
+""" Helper functions for Mail and Packages """
 
 import datetime
 import email
@@ -192,6 +192,7 @@ def login(host, port, user, pwd):
         rv, data = account.login(user, pwd)
     except Exception as err:
         _LOGGER.error("Error logging into IMAP Server: %s", str(err))
+        return False
 
     return account
 
@@ -709,7 +710,7 @@ def get_amazon_image(sdata, account, image_path, hass):
                     continue
                 _LOGGER.debug("Processing HTML email...")
                 body = part.get_payload(decode=True)
-                body = body.decode("utf-8")
+                body = body.decode("utf-8", "ignore")
                 pattern = re.compile(r"{}".format(search))
                 found = pattern.findall(body)
                 for url in found:
