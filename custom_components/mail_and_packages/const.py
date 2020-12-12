@@ -1,6 +1,6 @@
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.3.0-b13"
+VERSION = "0.3.0-b14"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 DATA = "data"
@@ -73,7 +73,10 @@ SENSOR_DATA = {
     "usps_packages": {},
     "usps_tracking": {"pattern": ["9[234]\\d{15,22}"]},
     "usps_mail": {
-        "email": ["mcinfo@ups.com"],
+        "email": [
+            "USPSInformedDelivery@usps.gov",
+            "USPSInformeddelivery@informeddelivery.usps.com",
+        ],
         "subject": ["Your Daily Digest"],
     },
     "ups_delivered": {
