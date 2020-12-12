@@ -125,7 +125,7 @@ async def test_process_emails(
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
-        data=FAKE_CONFIG_DATA_MP4,
+        data=FAKE_CONFIG_DATA_NO_RND,
     )
 
     entry.add_to_hass(hass)
@@ -133,7 +133,7 @@ async def test_process_emails(
     await hass.async_block_till_done()
 
     config = entry.data
-    assert config == FAKE_CONFIG_DATA_MP4
+    assert config == FAKE_CONFIG_DATA_NO_RND
     result = process_emails(hass, config)
     assert result == {
         "amazon_delivered": 0,
@@ -530,7 +530,7 @@ async def test_resize_images_read_err(mock_open, mock_image_excpetion, caplog):
     assert "Error attempting to read image" in caplog.text
 
 
-async def test_process_emails(hass, mock_imap_login_error, caplog):
+async def test_process_emails_random_image(hass, mock_imap_login_error, caplog):
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
