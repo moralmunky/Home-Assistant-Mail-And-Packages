@@ -1,6 +1,6 @@
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.3.0-b12"
+VERSION = "0.3.0-b13"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 DATA = "data"
@@ -56,7 +56,7 @@ AMAZON_HUB_CODE = "amazon_hub_code"
 AMAZON_HUB_EMAIL = "thehub@amazon.com"
 AMAZON_HUB_SUBJECT = "(You have a package to pick up)(.*)- (\\d{6})"
 AMAZON_TIME_PATTERN = (
-    "will arrive:,estimated delivery date is:,guaranteed delivery date is:"
+    "will arrive:,estimated delivery date is:,guaranteed delivery date is:,Arriving:"
 )
 
 # Sensor Data
