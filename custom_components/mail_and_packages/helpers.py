@@ -280,8 +280,8 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
     images = []
     imagesDelete = []
     msg = ""
-    address = const.SENSOR_DATA["usps_mail"][const.ATTR_EMAIL][0]
-    subject = const.SENSOR_DATA["usps_mail"][const.ATTR_SUBJECT][0]
+    address = const.SENSOR_DATA[const.ATTR_USPS_MAIL][const.ATTR_EMAIL]
+    subject = const.SENSOR_DATA[const.ATTR_USPS_MAIL][const.ATTR_SUBJECT][0]
 
     _LOGGER.debug("Attempting to find Informed Delivery mail")
     _LOGGER.debug("Informed delivery search date: %s", today)

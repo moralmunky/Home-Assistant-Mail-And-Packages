@@ -1,6 +1,6 @@
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.3.0-b14"
+VERSION = "0.3.0-b15"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 DATA = "data"
@@ -20,6 +20,7 @@ ATTR_EMAIL = "email"
 ATTR_SUBJECT = "subject"
 ATTR_BODY = "body"
 ATTR_PATTERN = "pattern"
+ATTR_USPS_MAIL = "usps_mail"
 
 # Configuration Properties
 CONF_FOLDER = "folder"
