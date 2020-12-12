@@ -1,0 +1,1103 @@
+From: "Amazon.co.uk" <shipment-tracking@amazon.co.uk>
+Reply-To: no-reply@amazon.co.uk
+To: testuser@test.email
+Subject: Your Amazon.co.uk order #123-4567890-1234567 of 1 item has been dispatched
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_11793901_172459361.1607731785752"
+X-AMAZON-MAIL-RELAY-TYPE: notification
+Date: Sat, 12 Dec 2020 00:09:45 +0000
+
+------=_Part_11793901_172459361.1607731785752
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Amazon.co.uk Dispatch Confirmation
+Order #123-4567890-1234567=20
+https://www.amazon.co.uk/ref=3DTE_tex_g
+
+___________________________________________________________________________
+
+Hello TestUser,
+
+We thought you'd like to know that we've dispatched your item(s). Your orde=
+r is on the way, and can no longer be changed.
+
+
+Arriving:
+Saturday, December 12
+
+
+Track your item(s): https://www.amazon.co.uk/gp/css/shiptrack/view.html
+
+
+Your order was sent to the following address:
+=09
+Mark
+LONDON
+
+Order Total: =C2=A335.99
+Paid by Visa: =C2=A335.99
+
+Your item(s) is (are) being sent by Amazon Logistics. Your tracking number =
+is QA0881872248. Depending on the delivery method you chose, it's possible =
+that the tracking information might not be visible immediately.
+
+To understand more about tracking, please visit our Help page: https://www.=
+amazon.co.uk/tracking?ref=3DTE_tex_tra
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+
+It's easy to return an item. Visit our Online Returns Centre:=20
+https://www.amazon.co.uk/returns-support?ref=3DTE_tex_r
+
+If you need further assistance with your order, please visit our Customer S=
+ervice Help page at: https://www.amazon.co.uk/customerservice?ref=3DTE_tex_=
+cs=20
+
+We hope to see you again soon.
+Amazon.co.uk
+___________________________________________________________________________
+
+You can cancel this order within 14 days, beginning from the day you receiv=
+e the product (subject to certain exceptions: https://www.amazon.co.uk/gp/h=
+elp/customer/display/detail.html). We will reimburse all p=
+ayments received from you for the goods purchased and will also reimburse o=
+utbound delivery charges (for the least expensive type of delivery offered =
+by us). You will be responsible for the cost of returning the product to us=
+ unless we delivered it to you in error, it is faulty, or you purchased sho=
+es, clothing and accessories (check our Returns Policy: https://www.amazon.=
+co.uk/gp/help/customer/display/detail.html).You may be sub=
+ject to increased return costs if the product can=E2=80=99t be returned nor=
+mally by post.=20
+
+You can request a cancellation by visiting our Returns Support Centre: http=
+s://www.amazon.co.uk/returns; by contacting us: www.amazon.co.uk/contactus;=
+ or completing this form: https://www.amazon.co.uk/cancellationform and sen=
+ding it by post.=20
+
+Please also see our Returns Policy: https://www.amazon.co.uk/gp/help/custom=
+er/display/detail.html to learn more about our 30 day retu=
+rns guarantee which outlines that you can return items for a full refund of=
+ the item price within 30 days.
+
+Amazon EU, Soci=C3=A9t=C3=A9 =C3=A0 responsabilit=C3=A9 limit=C3=A9e, 38 av=
+enue John F. Kennedy, L-1855 Luxembourg. Share capital: EUR 125.000; Regist=
+ered in Luxembourg; RCS Luxembourg No: B 101818; Business Licence Number: 1=
+34248; Luxembourg VAT Registration Number: LU 20260743.
+
+Learn more about your statutory rights here: https://www.amazon.co.uk/Statu=
+toryRights?ref=3DTE_tex_sr.
+
+Please note: This email was sent from a notification-only address that can'=
+t accept incoming email. Please do not reply to this message.=20
+------=_Part_11793901_172459361.1607731785752
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns=3D"https://www.w3.org/1999/xhtml">
+ <head>=20
+  <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3DUTF-8" =
+/>=20
+  <style type=3D"text/css">
+
+.buttonComponent {
+    border-collapse: separate;
+    text-decoration: none !important;
+    border-radius: 3px;
+    border-style: solid;
+    border-color: #CBA957;
+    border-width: 1px;
+    background: #F0C354 linear-gradient(#F7DEA2, #F0C354) repeat scroll 0% =
+0% !important;
+    background-color: #ffa723;
+    white-space: nowrap;
+    min-width: 222px;
+    min-height: 47px;
+}
+
+.buttonComponent:not(:last-child) {
+    margin-bottom: 10px;
+}
+
+.secondaryButtonComponent {
+    border-collapse: separate;
+    text-decoration: none !important;
+    border-radius: 3px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #A9A9A9;
+    background: #C3C3C3 linear-gradient(#F7F7F7, #C3C3C3) repeat scroll 0% =
+0% !important;
+    background-color: #C3C3C3;
+    white-space: nowrap;
+    min-width: 222px;
+    min-height: 47px;
+}
+
+.buttonComponent td {
+    padding: 0px !important;
+}
+
+.secondaryButtonComponent td {
+    padding: 0px !important;
+}
+
+.buttonComponentLink {
+    color: rgb(27, 27, 27) !important;
+    font: 16px/ 18px Arial, sans-serif !important;
+    display: table-cell;
+    margin: auto 0;
+    vertical-align: middle;
+
+    min-width: 222px;
+    height: 47px;
+}
+
+
+body {
+=09margin:0;
+=09font:13px/18px Arial, sans-serif;=09
+}
+
+a {
+=09text-decoration:none;
+=09color:#006699;
+=09font:13px/18px Arial, sans-serif;=09
+}
+
+a img {
+=09border:0;=09
+}
+
+h2 {
+=09font-size:20px;
+=09line-height:24px;
+=09margin:0;
+=09padding:0;
+=09font-weight:normal;=09
+=09color:#000 !important;
+}
+
+h3 {
+=09font-size:18px;
+=09color:#cc6600;
+=09margin:15px 0 0 0;
+=09font-weight:normal;
+}
+
+h4 {
+=09font-size:14px;=09
+=09margin:0;
+=09font-weight:normal;
+}
+
+p {
+=09margin:4px 0 0 0;
+=09font:13px/18px Arial, sans-serif;=09
+}
+
+table {
+=09border-collapse:collapse;=09
+}
+
+td {
+=09vertical-align: top;
+=09font-size: 13px;
+=09line-height: 18px;
+=09font-family: Arial, sans-serif;
+}
+
+/* heading */
+
+.heading {
+=09font-size:18px;
+=09color:#cc6600;
+=09margin:15px 0 0 0;
+=09font-weight:normal;
+}
+
+#headingBottom{
+    margin:3px 0 0 0;
+    border-top:1px solid #ccc;
+=09width:100%;
+}
+
+/* container */
+#container {
+=09width:655px;
+=09color:#333;
+=09margin:0 auto;
+}
+
+#container .frame {
+=09padding:0 20px 20px 20px;=09
+}
+
+/* content tables */
+#main, #header, #summary, #orderDetails, #itemDetails, #costBreakdown, #cos=
+tBreakdownNoAsin,
+#selfService, #closing, #marketingContent, #legalCopy {
+=09width:100%;
+}
+
+/* header */
+#header{
+=09margin:0 0 15px 0;
+}
+
+#header .logo {
+=09width:115px;
+=09padding:18px 0 0 0;=09
+}
+
+#header .navigation {
+=09text-align:right;
+=09padding:5px 0;
+=09border-bottom:1px solid #ccc;
+=09white-space:nowrap;
+}
+
+#header .navigation a {
+=09border-right:0px solid #CCC;
+=09margin-right:0px;
+=09padding-right:0px;
+}
+
+#header .navigation span {
+=09text-decoration:none; color:#CCC; font:15px Arial, san-serif;
+}
+
+#header .navigation a.last {
+=09border:0;
+=09margin:0;
+=09padding:0;
+}
+
+/* Added for Dynamic Marketing Content */
+#header .navigation td{
+=09padding:0px;
+=09vertical-align: bottom;=20
+}
+
+#header .title {
+=09text-align:right;
+=09padding:7px 0 5px 0;
+}
+
+#header .title img {
+=09padding:0 4px 0 0;
+}
+
+/* summary */
+
+#summary a{
+=09text-decoration:none;
+=09color:#006699;=09
+}
+
+#summary td{
+=09padding: 0 0 8px 0;
+}
+
+/* critical info */
+#criticalInfo {
+=09border-top:3px solid #2d3741;
+=09width:640px;
+}
+
+#criticalInfo td {
+=09font-size:14px;
+=09padding:11px 18px 18px 18px;
+=09width:280px;
+}
+
+#criticalInfo .detailsContent {
+=09background-color:#efefef;
+}
+
+#criticalInfo .label {
+=09color:#666;=09
+}
+
+#criticalInfo p {
+        color:#000000;
+=09margin:2px 0 9px 0;=09
+}
+
+#criticalInfo  p span{
+=09font-size:11px;=09
+}
+
+#criticalInfo  p .uniqueSpan{
+=09font-size:14px;=09
+}
+
+#criticalInfo span {
+=09color:#666;=09
+}
+
+#criticalInfo a {
+=09font-size:11px;
+=09color:#006699;
+=09text-decoration:none;=09
+}
+
+#criticalInfoCostBreakdown td {
+    padding: 0px 10px 10px 0px;
+    text-align: left;
+}
+
+#criticalInfoCostBreakdown .price {
+    text-align:right;
+}
+
+/* buttons */
+.button {
+=09text-decoration:none !important;
+=09display:block;
+=09height:26px;
+=09display:inline-block;
+=09margin:0 0 2px 0;
+}
+
+.button.small {
+=09height:20px;
+}
+
+.button .expandable {
+=09float:left;
+=09overflow:hidden;
+}
+
+.button .text {
+=09color:#000f68;
+=09font-size:12px;
+=09position:relative;
+=09z-index:10;
+=09top:-22px;
+=09left:-12px;=09
+=09text-align:center;
+}
+
+.button.secondary .text {
+=09left:0;=09
+}
+
+.button.small .text {
+=09top:-20px;
+=09left:0;
+=09font-size:11px;
+}
+
+/* supporting details */
+#supportingDetails {
+=09font-size:11px;
+=09color:#666;
+=09line-height:14px;
+=09margin:10px 20px;
+}
+
+#supportingDetails {
+=09margin:0 18px 0 18px;=09=09
+}
+
+/* order details */
+#orderDetails .heading {
+=09width:640px;
+ =09border-bottom:0px solid #ccc;
+=09margin:0 0 3px 0;
+=09padding:0 0 3px 0;
+}
+
+#orderDetails .frame {
+=09padding:16px 20px 6px 20px;
+}
+
+#orderDetails .frame-no-asin {
+=09padding: 16px 0 6px 0;
+}
+
+#orderDetails .orderDate {
+=09color:#666666;
+=09font-size:12px;
+}
+
+/* tracking text */
+#trackingText td{
+=09font-size:10px;=20
+=09color:#666;=20
+=09padding:0 10px 20px 10px;=20
+=09line-height:16px;
+=09width:640px;
+}
+
+#trackingText p{
+=09margin:10px 0 0 0;=20
+=09font:11px/16px Arial, sans-serif;
+=09color:#333;
+}
+
+#trackingText a{
+=09text-decoration:none;
+=09font:11px/16px Arial, sans-serif;=20
+=09color:#006699;
+}
+
+
+
+/* item details */
+#itemDetails .photo {
+=09width:150px;
+=09height:115px;
+=09text-align:center;
+=09padding:0 0 30px 0;
+}
+
+#itemDetails .photo .play img {
+=09margin:3px 0 0 0;=09
+}
+
+#itemDetails .name {
+vertical-align:top;
+=09color:#666;
+=09padding:10px 10px 30px 10px;
+}
+
+#itemDetails ul {
+=09margin:0;
+=09padding:0;
+}
+
+#itemDetails ul li {
+=09list-style-type:none;
+=09line-height:14px;
+=09padding:0 0 4px 0;
+}
+
+#itemDetails ul li a {
+=09font-size:14px;
+=09line-height:14px;
+}
+
+#itemDetails .name p {
+=09margin:0;
+=09font-size:12px;
+=09line-height:14px;
+}
+
+#itemDetails .name p a {
+=09font-size:11px;
+}
+
+#itemDetails .name span {
+=09color:rgb(51, 51, 51);
+=09
+}
+
+#itemDetails .name .share {
+=09margin:3px 0 15px 0;=09
+}
+
+#itemDetails .name .share a {
+=09margin:4px 5px 0 0;
+=09font-size:0;
+}
+
+#itemDetails .name .supportingDetails,=20
+#itemDetails .name .supportingDetails a {
+=09margin:8px 0 0 0;
+=09font-size:12px;
+}
+
+#itemDetails .price {
+=09/*width:80px;*/
+=09text-align:right;
+=09font-size:14px;
+=09padding:10px 0 30px 0;=09
+}
+
+#itemDetails .divider {
+=09border-top:1px solid #eaeaea;
+=09padding:0 0 16px 0;
+}
+
+#collection {
+=09width:100%;
+=09margin:10px 0 0;
+}
+
+#collection .test {
+=09padding:0 10px 0 10px;
+}
+
+#itemDetails #collection .name {
+=09padding:0 10px 30px 10px;
+}
+
+#itemDetails #collection .price {
+=09padding:0;=09
+}
+
+/*shipmentDetails*/
+#shipmentDetails .name {
+=09width:580px;
+=09color:#666;
+=09padding:10px 10px 0px 10px;
+}
+
+#shipmentDetails ul {
+=09margin:0;
+=09padding:0;
+}
+
+#shipmentDetails ul li {
+=09list-style-type:none;
+=09line-height:14px;
+=09padding:0 0 4px 0;
+}
+
+#shipmentDetails ul li a {
+=09font-size:14px;
+=09line-height:16px;
+}
+
+#shipmentDetails .name p {
+=09margin:0;
+=09font-size:12px;
+=09line-height:16px;
+}
+
+#shipmentDetails .name p a {
+=09font-size:11px;
+}
+
+#shipmentDetails .name span {
+=09color:rgb(51, 51, 51);
+=09
+}
+
+/* cost breakdown */
+#costBreakdown td {
+=09width:100%;
+=09text-align:right;
+=09line-height:18px;
+=09padding:0 0 10px 10px;=09
+}
+
+#costBreakdownNoAsin td {
+=09text-align: left;
+=09line-height: 18px;
+=09padding: 0 0 10px 0;
+}
+
+#costBreakdown .price {
+=09white-space: nowrap;
+=09/*width:100px;*/
+}
+
+#costBreakdownNoAsin .price {
+=09white-space: nowrap;
+=09width: 70%;
+}
+
+.total {
+=09font-size:14px;
+=09font-weight:bold;
+}
+
+/* additional shipments */
+#additionalShipments {
+=09font-size:11px;
+}
+
+#additionalShipments .heading {
+=09margin:10px 0 0 0;=09
+}
+
+#additionalShipments p {
+=09margin:10px 20px 0px 20px;
+}
+
+#additionalShipments .orderDate {
+=09color:#666666;
+=09font-size:12px;
+}
+
+#additionalShipments .details {
+=09padding:10px 20px 10px 20px;
+}
+
+#additionalShipments .details .label {
+=09color:#666666;
+=09font-weight:bold;=09
+}
+
+#additionalShipments .details .edd, #additionalShipments .details .quantity=
+ {
+=09font-weight:bold;=09
+}
+
+/* self service */
+#selfService p {
+=09border-top:1px solid #ccc;
+=09padding:20px 0 0 0;
+=09line-height:22px;
+}
+
+/* division*/
+
+#division{
+    margin:0 0 0 0;
+=09border-top:1px solid #eaeaea;
+=09width:100%;
+}
+
+/* closing */
+#closing p {
+=09padding:0 0 20px 0;
+=09border-bottom:1px solid #eaeaea;
+=09margin:0;=09
+}
+
+#closing a {
+=09text-decoration:none;
+=09color:#006699;=09
+}
+
+#closing .signature {
+=09font-size:16px;=09
+=09line-height:24px;
+=09font-weight:bold;
+}
+
+/* marketing content */
+#marketingContent {
+=09border-bottom:1px solid #eaeaea;
+=09border-collapse:collapse;
+=09padding:0;
+}
+
+#marketingContent td.recs {
+=09padding:10px 0;
+}
+
+#marketingContent td.right {
+=09padding:10px 0 10px 3px;
+}
+
+#marketingContent td.left {
+=09padding:10px 0 10px 0;
+}
+
+/* legal copy */
+#legalCopy {
+=09font:11px/16px Arial, sans-serif;
+}
+
+#legalCopy td {
+=09padding:20px 0 0 0;
+}
+
+#legalCopy p{
+=09color:#666;
+=09margin:0 0 10px 0;=09
+}
+
+#legalCopy span{
+=09color:#666;
+=09margin:0 0 10px 0;=09
+
+}
+#legalCopy a{
+=09text-decoration:none;
+=09color:#006699;
+=09}=09
+</style>=20
+  <style type=3D"text/css">
+/* Styling for Amabot top banner content */
+
+#topAmabotBannerWrapper {
+    padding: 0px 0px 0px 0px;
+}
+
+#topAmabotBannerWrapper td{
+    vertical-align: middle;
+}
+
+#topAmabotBannerWrapper table{
+    border-spacing: 0;
+}
+
+/* To fix the blue href links in gmail clients */
+.noColorAndTextDecoration a {
+    color: #000 !important;
+    text-decoration: none !important;
+}
+
+#topAmabotBannerBackgroundTable {
+    border-top: 3px solid rgb(256, 256, 256);
+    background-color: #efefef;
+    width: 100%;
+}
+
+#topAmabotBannerLeftImage {
+    width: 0%;
+    padding: 9px 8px 9px 15px;
+}
+
+#topAmabotBannerTextArea {
+    padding: 9px 0 9px 0;
+    width: 100%;
+}
+
+#topAmabotBannerHeader {
+    font: bold 14px Arial, sans-serif;
+    color: #333;
+}
+
+#topAmabotBannerHeaderClickable {
+    font: bold 14px Arial, sans-serif;
+    color: #069;
+}
+
+#topAmabotBannerBodyPrefixClickable {
+    font: bold 14px Arial, sans-serif;
+    color: #069;
+}
+
+#topAmabotBannerBodyPrefix {
+    font: 14px Arial, sans-serif;
+    color: #333;
+}
+
+#topAmabotBannerBody {
+    font: 14px Georgia, serif;
+    line-height: 1.2;
+    color: #333;
+}
+
+#topAmabotBannerBodyEmphasized {
+    font: 14px Georgia, serif;
+    line-height: 1.2;
+    font-style: italic;
+    color: #333;
+}
+
+</style>=20
+  <title></title>=20
+ </head>=20
+ <body><img width=3D"1" height=3D"1" src=3D"https://www.amazon.co.uk/gp/r.h=
+tml" />=20
+  <table id=3D"container" cellpadding=3D"0">=20
+   <tbody>
+    <tr>=20
+     <td class=3D"frame">=20
+      <table id=3D"main" cellpadding=3D"0">=20
+       <tbody>
+        <tr>=20
+         <td>=20
+          <table id=3D"header" cellpadding=3D"0">=20
+           <tbody>
+            <tr>=20
+             <td rowspan=3D"2" class=3D"logo"><a href=3D"https://www.amazon=
+.co.uk/gp/r.html" /></a></td>=
+=20
+             <td class=3D"navigation">=20
+              <table align=3D"right">=20
+               <tbody>=20
+                <tr>=20
+                 <td> <a href=3D"https://www.amazon.co.uk/gp/r.html">Your Ord=
+ers</a> </td>=20
+                 <td> <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span> </td>=20
+                 <td> <a href=3D"https://www.amazon.co.uk/gp/f.html">Your =
+Account</a> </td>=20
+                 <td> <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span> </td>=20
+                 <td> <a class=3D"last" href=3D"https://www.amazon.co.uk/gp=
+/r.html">Amazon.co.uk</a> </td>=20
+                </tr>=20
+               </tbody>=20
+              </table> </td>=20
+            </tr>=20
+            <tr>=20
+             <td class=3D"title"> <h2>Dispatch Confirmation</h2> Order #<a =
+href=3D"https://www.amazon.co.uk/gp/r.html">202-5744269-7075523</a> </td>=20
+            </tr>=20
+           </tbody>
+          </table> </td>=20
+        </tr>=20
+        <tr>=20
+         <td>=20
+          <table id=3D"summary" cellpadding=3D"0">=20
+           <tbody>
+            <tr>=20
+             <td><span class=3D"heading">Hello,</span> <p> We thought you'd=
+ like to know that we've dispatched your item(s). Your order is on the way,=
+ and can no longer be changed. If you need to return an item or manage othe=
+r orders, please visit <a href=3D"https://www.amazon.co.uk/gp/r.html">Your =
+Orders</a> on Amazon.co.uk </p> </td>=20
+            </tr>=20
+           </tbody>
+          </table> </td>=20
+        </tr>=20
+        <tr>=20
+         <td colspan=3D"2">=20
+          <table id=3D"criticalInfo" cellpadding=3D"0">=20
+           <tbody>
+            <tr class=3D"detailsContent">=20
+             <td> <p> <span class=3D"uniqueSpan">Arriving:</span><br /> <b =
+style=3D"color:#009900;"> Saturday, December 12 </b> </p>=20
+              <table class=3D"buttonComponent" width=3D"222">=20
+               <tbody>
+                <tr>=20
+                 <td style=3D"width:100%; vertical-align:middle;" align=3D"=
+center" valign=3D"middle" width=3D"100%" height=3D"47"> <a class=3D"buttonC=
+omponentLink" href=3D"https://www.amazon.co.uk/gp/r.html">Track your package</a> </td>=20
+                </tr>=20
+               </tbody>
+              </table> </td>=20
+             <td> <span>Your order was sent to:</span><br /> <p> <strong> M=
+ark<br />=20
+                <nowrap>
+                 LONDON=20
+                </nowrap> </strong> </p>=20
+              <table id=3D"criticalInfoCostBreakdown">=20
+               <tbody>=20
+                <tr>=20
+                 <td class=3D"total"> Order Total: </td>=20
+                 <td class=3D"total price"> &pound;35.99 </td>=20
+                </tr>=20
+                <tr>=20
+                 <td> Paid by Visa: </td>=20
+                 <td class=3D"price"> &pound;35.99 </td>=20
+                </tr>=20
+               </tbody>=20
+              </table> </td>=20
+            </tr>=20
+           </tbody>
+          </table> </td>=20
+        </tr>=20
+        <tr>=20
+         <td colspan=3D"2">=20
+          <table id=3D"trackingText">=20
+           <tbody>
+            <tr>=20
+             <td> <p> Your item(s) is (are) being sent by Amazon Logistics.=
+ Your tracking number is QA0881872248. Depending on the delivery method you=
+ chose, it's possible that the tracking information might not be visible im=
+mediately. <a href=3D"https://www.amazon.co.uk/gp/f.html">Learn more about Tracking</a>. </p> <p> If =
+you have a mobile device, you can use the free <a href=3D"https://www.amazo=
+n.co.uk/gp/r.html">Amazon Mobile App</a> to receive delivery notificati=
+ons and track your parcel on the go. </p> </td>=20
+            </tr>=20
+           </tbody>
+          </table> </td>=20
+        </tr>=20
+        <tr>=20
+         <td>=20
+          <table id=3D"orderDetails" cellpadding=3D"0">=20
+          </table> </td>=20
+        </tr>=20
+        <tr>=20
+         <td>=20
+          <table id=3D"division">
+           <tbody>
+            <tr>
+             <td></td>
+            </tr>
+           </tbody>
+          </table> </td>=20
+        </tr>=20
+        <tr>=20
+         <td>=20
+          <table id=3D"closing" cellpadding=3D"0">=20
+           <tbody>
+            <tr>=20
+             <td> It's easy to return an item. Visit our <a href=3D"https:/=
+/www.amazon.co.uk/gp/f.html">Online Returns Centre</a>. <br /> If you need further assistance wi=
+th your order, please visit <a href=3D"https://www.amazon.co.uk/gp/f.html">Customer Service</a=
+>. <p> <br />We hope to see you again soon.<br /> <span class=3D"signature"=
+> <strong>Amazon.co.uk</strong> </span> </p> </td>=20
+            </tr>=20
+           </tbody>
+          </table> </td>=20
+        </tr>=20
+        <tr>=20
+         <td>=20
+          <table id=3D"marketingContent">=20
+           <tbody>
+            <tr>=20
+             <td class=3D"recs">
+              <table width=3D"640" cellspacing=3D"0" cellpadding=3D"0" bord=
+er=3D"0" align=3D"left" class=3D"deviceWidth" style=3D"vertical-align:centr=
+al;background:white;">
+               <tbody>
+                <tr>
+                 <td>=20
+                  <table width=3D"640" class=3D"devicewidth" cellspacing=3D=
+"0" cellpadding=3D"0" align=3D"inherit" bgcolor=3D"#FFFFFF">=20
+                   <tbody>
+                    <tr>=20
+                     <td style=3D"font:18px Arial,sans-serif; text-decorati=
+on:none; color: #cc6600; text-align:left; padding:6px 0 5px 0;"> Frequently=
+ bought together with items you bought </td>=20
+                    </tr>=20
+                   </tbody>
+                  </table> </td>
+                </tr>
+                <tr>
+                 <td>=20
+                  <table width=3D"640" cellspacing=3D"0" cellpadding=3D"0" =
+border=3D"0" align=3D"left" class=3D"deviceWidth p13n-te-widget-recs" style=
+=3D"vertical-align:central;background:white;">=20
+                   <tbody>
+                    <tr>=20
+                     <td width=3D"30%" bgcolor=3D"#ffffff" align=3D"left" c=
+lass=3D"asin_3col" style=3D"font:13px Arial,sans-serif; text-decoration:non=
+e; vertical-align:top; padding:6px 16px 0 6px; line-height:18px;">=20
+                      <table width=3D"100%" cellspacing=3D"0" cellpadding=
+=3D"0" border=3D"0" bgcolor=3D"#ffffff">=20
+                       <tbody>
+                        <tr>=20
+                         <td valign=3D"bottom" align=3D"left" style=3D"vert=
+ical-align:left; padding:4px 6px 4px 6px;" class=3D"p13n-te-asin-image"> <a=
+ href=3D"https://www.amazon.co.uk/gp/r.html"> <img src=3D"https://images-eu.ssl-images-amazon.com/images/I/413=
+qDudtmYL._AC_SR115,115_.jpg" width=3D"115" height=3D"115" class=3D"pr_image=
+_115 pr_image_desktop" alt=3D"Apple Magic Keyboard - Numeric" border=3D"0" =
+/> </a> </td>=20
+                        </tr>=20
+                        <tr align=3D"left" style=3D"padding:0; display:bloc=
+k; line-height:16px">=20
+                         <td align=3D"left"> <span style=3D"font:13px Arial=
+,sans-serif; text-decoration:none; color: #868686;" class=3D"p13n-te-asin-t=
+itle"> <a href=3D"https://www.amazon.co.uk/gp/r.html" style=3D"font:13px Arial,sans-serif; text-decoration:non=
+e; color: #868686;">Apple Magic Keyboard - Numeric</a> </span> </td>=20
+                        </tr>=20
+                        <tr align=3D"left" style=3D"padding:0; display:bloc=
+k; line-height:16px" class=3D"pr_title">=20
+                         <td valign=3D"middle" align=3D"left"> <span style=
+=3D"font:13px Arial,sans-serif; text-decoration:none; color: #868686; verti=
+cal-align:3px"> </span> <span style=3D"vertical-align:0px"></span> </td>=20
+                        </tr>=20
+                       </tbody>
+                      </table> </td>=20
+                     <td width=3D"30%" bgcolor=3D"#ffffff" align=3D"left" c=
+lass=3D"asin_3col" style=3D"font:13px Arial,sans-serif; text-decoration:non=
+e; vertical-align:top; padding:6px 16px 0 6px; line-height:18px;">=20
+                      <table width=3D"100%" cellspacing=3D"0" cellpadding=
+=3D"0" border=3D"0" bgcolor=3D"#ffffff">=20
+                       <tbody>
+                        <tr>=20
+                         <td valign=3D"bottom" align=3D"left" style=3D"vert=
+ical-align:left; padding:4px 6px 4px 6px;" class=3D"p13n-te-asin-image"> <a=
+ href=3D"https://www.amazon.co.uk/gp/r.html"> <img src=3D"https://images-eu.ssl-images-amazon.com/images/I/51=
+Zgg3140AL._AC_SR115,115_.jpg" width=3D"115" height=3D"115" class=3D"pr_imag=
+e_115 pr_image_desktop" alt=3D"Logitech MK270 Wireless Keyboard and Mouse C=
+ombo for Windows, 2.4 GHz Wireless, Compact Wireless Mouse, 8 Multimedia &a=
+mp; Shortcut Keys, 2-Year Battery Life, PC/Laptop, QWERTY UK Layout - Black=
+" border=3D"0" /> </a> </td>=20
+                        </tr>=20
+                        <tr align=3D"left" style=3D"padding:0; display:bloc=
+k; line-height:16px">=20
+                         <td align=3D"left"> <span style=3D"font:13px Arial=
+,sans-serif; text-decoration:none; color: #868686;" class=3D"p13n-te-asin-t=
+itle"> <a href=3D"https://www.amazon.co.uk/gp/r.html" style=3D"font:13px Arial,sans-serif; text-decoration:no=
+ne; color: #868686;">Logitech MK270 Wireless Keyboard and Mouse...</a> </sp=
+an> </td>=20
+                        </tr>=20
+                        <tr align=3D"left" style=3D"padding:0; display:bloc=
+k; line-height:16px" class=3D"pr_title">=20
+                         <td valign=3D"middle" align=3D"left"> <span style=
+=3D"font:13px Arial,sans-serif; text-decoration:none; color: #868686; verti=
+cal-align:3px"> &pound;19.99 </span> <span style=3D"vertical-align:0px"></s=
+pan> </td>=20
+                        </tr>=20
+                       </tbody>
+                      </table> </td>=20
+                     <td width=3D"30%" bgcolor=3D"#ffffff" align=3D"left" c=
+lass=3D"asin_3col" style=3D"font:13px Arial,sans-serif; text-decoration:non=
+e; vertical-align:top; padding:6px 16px 0 6px; line-height:18px;">=20
+                      <table width=3D"100%" cellspacing=3D"0" cellpadding=
+=3D"0" border=3D"0" bgcolor=3D"#ffffff">=20
+                       <tbody>
+                        <tr>=20
+                         <td valign=3D"bottom" align=3D"left" style=3D"vert=
+ical-align:left; padding:4px 6px 4px 6px;" class=3D"p13n-te-asin-image"> <a=
+ href=3D"https://www.amazon.co.uk/gp/r.html"> <img src=3D"https://images-eu.ssl-images-amazon.com/images/I/71=
+%2BNa%2BxO2OL._AC_SR115,115_.jpg" width=3D"115" height=3D"115" class=3D"pr_=
+image_115 pr_image_desktop" alt=3D"Arteck 2.4G Wireless Keyboard Stainless =
+Steel Ultra Slim Full Size Keyboard with Numeric Keypad for Computer/Deskto=
+p/PC/Laptop/Surface/Smart TV and Windows 10/8/ 7 Built in Rechargeable Batt=
+ery" border=3D"0" /> </a> </td>=20
+                        </tr>=20
+                        <tr align=3D"left" style=3D"padding:0; display:bloc=
+k; line-height:16px">=20
+                         <td align=3D"left"> <span style=3D"font:13px Arial=
+,sans-serif; text-decoration:none; color: #868686;" class=3D"p13n-te-asin-t=
+itle"> <a href=3D"https://www.amazon.co.uk/gp/r.html" style=3D"font:13px Arial,sans-serif; text-decoration:non=
+e; color: #868686;">Arteck 2.4G Wireless Keyboard Stainless Steel...</a> </=
+span> </td>=20
+                        </tr>=20
+                        <tr align=3D"left" style=3D"padding:0; display:bloc=
+k; line-height:16px" class=3D"pr_title">=20
+                         <td valign=3D"middle" align=3D"left"> <span style=
+=3D"font:13px Arial,sans-serif; text-decoration:none; color: #868686; verti=
+cal-align:3px"> &pound;25.99 </span> <span style=3D"vertical-align:0px"></s=
+pan> </td>=20
+                        </tr>=20
+                       </tbody>
+                      </table> </td>=20
+                    </tr>=20
+                   </tbody>
+                  </table> </td>
+                </tr>
+               </tbody>
+              </table></td>=20
+            </tr>=20
+           </tbody>
+          </table> </td>=20
+        </tr>=20
+        <tr>=20
+         <td>=20
+          <table id=3D"legalCopy">=20
+           <tbody>
+            <tr>=20
+             <td> <span> <p></p> <p>You can cancel this order within 14 day=
+s, beginning from the day you receive the product (subject to <a href=3D"ht=
+tps://www.amazon.co.uk/gp/f.html">certain ex=
+ceptions</a>). We will reimburse all payments received from you for the goo=
+ds purchased and will also reimburse outbound delivery charges (for the lea=
+st expensive type of delivery offered by us). You will be responsible for t=
+he cost of returning the product to us unless we delivered it to you in err=
+or, it is faulty, or you purchased shoes, clothing and accessories (check o=
+ur <a href=3D"https://www.amazon.co.uk/gp/f.html">Returns Policy</a>). You may be subject to increased return costs if=
+ the product can=E2=80=99t be returned normally by post. </p><p>You can req=
+uest a cancellation by visiting our <a href=3D"https://www.amazon.co.uk/gp/=
+f.html">Returns Supp=
+ort Centre</a>; by <a href=3D"https://www.amazon.co.uk/gp/f.html">contacting us</a>; or completing this <a href=3D"https:=
+//www.amazon.co.uk/gp/f.html">fo=
+rm</a> and sending it by post.</p> <p>Please also see our <a href=3D"https:=
+//www.amazon.co.uk/gp/f.html">Returns Policy=
+</a> to learn more about our 30 day returns guarantee which outlines that y=
+ou can return items for a full refund of the item price within 30 days.</p>=
+ <p>Amazon EU, Soci&eacute;t&eacute; &agrave; responsabilit&eacute; limit&e=
+acute;e, 38 avenue John F. Kennedy, L-1855 Luxembourg. Share capital: EUR 1=
+25.000; Registered in Luxembourg; RCS Luxembourg No: B 101818; Business Lic=
+ence Number: 134248; Luxembourg VAT Registration Number: LU 20260743.</p> <=
+p>Learn more about your statutory rights <a href=3D"https://www.amazon.co.u=
+k/gp/f.html">here</a>.</p> <p>Please note: This =
+email was sent from a notification-only address that can't accept incoming =
+email. Please do not reply to this message.</p> </span> </td>=20
+            </tr>=20
+           </tbody>
+          </table> </td>=20
+        </tr>=20
+       </tbody>
+      </table> </td>=20
+    </tr>=20
+   </tbody>
+  </table> =20
+ <img width=3D"1" height=3D"1" src=3D"https://www.amazon.co.uk/gp/r.html" /></body>
+</html>
+------=_Part_11793901_172459361.1607731785752--

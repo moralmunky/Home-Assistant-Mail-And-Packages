@@ -451,6 +451,11 @@ async def test_amazon_shipped_order_alt(hass, mock_imap_amazon_shipped_alt):
     assert result == ["#123-1234567-1234567"]
 
 
+async def test_amazon_shipped_order_uk(hass, mock_imap_amazon_shipped_uk):
+    result = get_items(mock_imap_amazon_shipped_uk, "order")
+    assert result == ["#123-4567890-1234567"]
+
+
 async def test_amazon_search(hass, mock_imap_no_email):
     result = amazon_search(mock_imap_no_email, "test/path", hass)
     assert result == 0

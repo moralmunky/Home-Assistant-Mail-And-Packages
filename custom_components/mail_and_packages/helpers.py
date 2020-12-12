@@ -844,7 +844,7 @@ def get_items(account, param, fwds=None):
                             continue
 
                         start = email_msg.find(search) + len(search)
-                        end = email_msg.find("Track your package:")
+                        end = email_msg.find("Track your")
                         arrive_date = email_msg[start:end].strip()
                         arrive_date = arrive_date.split(" ")
                         arrive_date = arrive_date[0:3]
