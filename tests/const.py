@@ -80,7 +80,7 @@ FAKE_CONFIG_DATA = {
 FAKE_CONFIG_DATA_NO_RND = {
     "amazon_fwds": ["fakeuser@fake.email"],
     "folder": '"INBOX"',
-    "generate_mp4": False,
+    "generate_mp4": True,
     "gif_duration": 5,
     "host": "imap.test.email",
     "image_name": "mail_today.gif",
