@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release_zip_file:
+    name: Prepare release asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v1
+
+      - name: "Set version numbmer"
+        run: |
+          sed -i '/VERSION = /c\VERSION = "${{ github.ref }}"' /home/runner/work/Home-Assistant-Mail-And-Packages/Home-Assistant-Mail-And-Packages/custom_components/mail_and_packages/const.py
+      # Pack the mail_and_packages dir as a zip and upload to the release
+      - name: ZIP HACS Dir
+        run: |
+          cd /home/runner/work/Home-Assistant-Mail-And-Packages/Home-Assistant-Mail-And-Packages/custom_components/mail_and_packages
+          zip mail_and_packages.zip -r ./
+      - name: Upload zip to release
+        uses: svenstaro/upload-release-action@v1-release
+
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: /home/runner/work/Home-Assistant-Mail-And-Packages/Home-Assistant-Mail-And-Packages/custom_components/mail_and_packages/mail_and_packages.zip
+          asset_name: mail_and_packages.zip
+          tag: ${{ github.ref }}
+          overwrite: true

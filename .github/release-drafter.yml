@@ -1,18 +1,27 @@
+name-template: "$RESOLVED_VERSION"
+tag-template: "$RESOLVED_VERSION"
 change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
+sort-direction: ascending
 categories:
-  - title: "🚨 Features 🚨"
+  - title: ":zap: Enhancments :zap:"
+    labels:
+      - "enhancement"
+  - title: ":sparkles: New Features :sparkles:"
     labels:
       - "feature"
-      - "enhancement"
-  - title: "🐛 Bug Fixes 🐛"
+  - title: ":bug: Bug Fixes :bug:"
     labels:
       - "fix"
       - "bugfix"
       - "bug"
-  - title: "💥 Breaking Change 💥"
+  - title: ":boom: Breaking Change :boom:"
     labels:
       - "breaking-change"
 template: |
-  ## Changes
+  [![Downloads for this release](https://img.shields.io/github/downloads/moralmunky/Home-Assistant-Mail-And-Packages/$RESOLVED_VERSION/total.svg)](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/releases/$RESOLVED_VERSION)
 
   $CHANGES
+
+  ## Links
+  - [Wiki](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki)
+  - [Submit bugs/feature requests](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/issues)

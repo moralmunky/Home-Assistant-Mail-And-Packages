@@ -8,13 +8,12 @@ from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from pytest_homeassistant_custom_component.async_mock import call, patch
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.mail_and_packages.const import DATA, DOMAIN, DOMAIN_DATA
+from custom_components.mail_and_packages.const import DOMAIN
 from custom_components.mail_and_packages.helpers import (
     _generate_mp4,
     amazon_hub,
     amazon_search,
     cleanup_images,
-    download_img,
     email_fetch,
     email_search,
     get_count,
@@ -30,7 +29,6 @@ from custom_components.mail_and_packages.helpers import (
 from tests.const import (
     FAKE_CONFIG_DATA,
     FAKE_CONFIG_DATA_BAD,
-    FAKE_CONFIG_DATA_MP4,
     FAKE_CONFIG_DATA_NO_RND,
 )
 
@@ -381,6 +379,29 @@ async def test_informed_delivery_no_mail(
     assert result == 0
 
 
+async def test_informed_delivery_no_mail_copy_error(
+    mock_imap_usps_informed_digest_no_mail,
+    mock_listdir,
+    mock_osremove,
+    mock_osmakedir,
+    mock_update_time,
+    mock_open,
+    mock_os_path_splitext,
+    mock_image,
+    mock_io,
+    mock_resizeimage,
+    mock_os_path_isfile,
+    mock_copy_overlays,
+    mock_copyfile_exception,
+    caplog,
+):
+    get_mails(
+        mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
+    )
+    assert mock_copyfile_exception.called_with("./mail_today.gif")
+    assert "File not found" in caplog.text
+
+
 async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):
     result = get_count(
         mock_imap_ups_out_for_delivery, "ups_delivering", True, "./", hass
@@ -535,7 +556,7 @@ async def test_process_emails_random_image(hass, mock_imap_login_error, caplog):
     await hass.async_block_till_done()
 
     config = entry.data
-    result = process_emails(hass, config)
+    process_emails(hass, config)
     assert "Error logging into IMAP Server:" in caplog.text
 
 
