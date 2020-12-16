@@ -692,21 +692,22 @@ def get_amazon_image(sdata, account, image_path, hass):
                 msg = email.message_from_bytes(response_part[1])
                 _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
                 _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
-                if msg.is_multipart() and msg.get_content_type() == "text/html":
-                    for part in msg.walk():
-                        if part.get_content_type() != "text/html":
+                if not msg.is_multipart() and msg.get_content_type() != "text/html":
+                    continue
+                for part in msg.walk():
+                    if part.get_content_type() != "text/html":
+                        continue
+                    _LOGGER.debug("Processing HTML email...")
+                    body = part.get_payload(decode=True)
+                    body = body.decode("utf-8", "ignore")
+                    pattern = re.compile(r"{}".format(search))
+                    found = pattern.findall(body)
+                    for url in found:
+                        if url[1] != "us-prod-temp.s3.amazonaws.com":
                             continue
-                        _LOGGER.debug("Processing HTML email...")
-                        body = part.get_payload(decode=True)
-                        body = body.decode("utf-8", "ignore")
-                        pattern = re.compile(r"{}".format(search))
-                        found = pattern.findall(body)
-                        for url in found:
-                            if url[1] != "us-prod-temp.s3.amazonaws.com":
-                                continue
-                            img_url = url[0] + url[1] + url[2]
-                            _LOGGER.debug("Amazon img URL: %s", img_url)
-                            break
+                        img_url = url[0] + url[1] + url[2]
+                        _LOGGER.debug("Amazon img URL: %s", img_url)
+                        break
 
     if img_url is not None:
         # Download the image we found
