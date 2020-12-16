@@ -588,37 +588,36 @@ def get_tracking(sdata, account, format=None):
     for i in mail_list:
         typ, data = email_fetch(account, i, "(RFC822)")
         for response_part in data:
-            if not isinstance(response_part, tuple):
-                continue
-            msg = email.message_from_bytes(response_part[1])
+            if isinstance(response_part, tuple):
+                msg = email.message_from_bytes(response_part[1])
 
-            # Search subject for a tracking number
-            email_subject = msg["subject"]
-            found = pattern.findall(email_subject)
-            if len(found) > 0:
-                _LOGGER.debug(
-                    "Found tracking number in email subject: (%s)",
-                    found[0],
-                )
-                if found[0] in tracking:
+                # Search subject for a tracking number
+                email_subject = msg["subject"]
+                found = pattern.findall(email_subject)
+                if len(found) > 0:
+                    _LOGGER.debug(
+                        "Found tracking number in email subject: (%s)",
+                        found[0],
+                    )
+                    if found[0] in tracking:
+                        continue
+                    tracking.append(found[0])
                     continue
-                tracking.append(found[0])
-                continue
 
-            # Search in email body for tracking number
-            email_msg = quopri.decodestring(str(msg.get_payload(0)))
-            email_msg = email_msg.decode("utf-8", "ignore")
-            found = pattern.findall(email_msg)
-            if len(found) > 0:
-                # DHL is special
-                if " " in format:
-                    found[0] = found[0].split(" ")[1]
+                # Search in email body for tracking number
+                email_msg = quopri.decodestring(str(msg.get_payload(0)))
+                email_msg = email_msg.decode("utf-8", "ignore")
+                found = pattern.findall(email_msg)
+                if len(found) > 0:
+                    # DHL is special
+                    if " " in format:
+                        found[0] = found[0].split(" ")[1]
 
-                _LOGGER.debug("Found tracking number in email body: %s", found[0])
-                if found[0] in tracking:
+                    _LOGGER.debug("Found tracking number in email body: %s", found[0])
+                    if found[0] in tracking:
+                        continue
+                    tracking.append(found[0])
                     continue
-                tracking.append(found[0])
-                continue
 
     if len(tracking) == 0:
         _LOGGER.debug("No tracking numbers found")
@@ -639,24 +638,15 @@ def find_text(sdata, account, search):
     for i in mail_list:
         typ, data = email_fetch(account, i, "(RFC822)")
         for response_part in data:
-            if not isinstance(response_part, tuple):
-                continue
-            msg = email.message_from_bytes(response_part[1])
-            email_msg = quopri.decodestring(str(msg.get_payload(0)))
-            try:
+            if isinstance(response_part, tuple):
+                msg = email.message_from_bytes(response_part[1])
+                email_msg = quopri.decodestring(str(msg.get_payload(0)))
                 email_msg = email_msg.decode("utf-8", "ignore")
-            except Exception as err:
-                _LOGGER.warning(
-                    "Error while attempting to find (%s) in email: %s",
-                    search,
-                    str(err),
-                )
-                continue
-            pattern = re.compile(r"{}".format(search))
-            found = pattern.search(email_msg)
-            if found is not None:
-                _LOGGER.debug("Found (%s) in email", search)
-                count += 1
+                pattern = re.compile(r"{}".format(search))
+                found = pattern.search(email_msg)
+                if found is not None:
+                    _LOGGER.debug("Found (%s) in email", search)
+                    count += 1
 
     _LOGGER.debug("Search for (%s) count results: %s", search, count)
     return count
@@ -698,27 +688,26 @@ def get_amazon_image(sdata, account, image_path, hass):
     for i in mail_list:
         typ, data = email_fetch(account, i, "(RFC822)")
         for response_part in data:
-            if not isinstance(response_part, tuple):
-                continue
-            msg = email.message_from_bytes(response_part[1])
-            _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
-            _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
-            if not msg.is_multipart() and msg.get_content_type() != "text/html":
-                continue
-            for part in msg.walk():
-                if part.get_content_type() != "text/html":
+            if isinstance(response_part, tuple):
+                msg = email.message_from_bytes(response_part[1])
+                _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
+                _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
+                if not msg.is_multipart() and msg.get_content_type() != "text/html":
                     continue
-                _LOGGER.debug("Processing HTML email...")
-                body = part.get_payload(decode=True)
-                body = body.decode("utf-8", "ignore")
-                pattern = re.compile(r"{}".format(search))
-                found = pattern.findall(body)
-                for url in found:
-                    if url[1] != "us-prod-temp.s3.amazonaws.com":
+                for part in msg.walk():
+                    if part.get_content_type() != "text/html":
                         continue
-                    img_url = url[0] + url[1] + url[2]
-                    _LOGGER.debug("Amazon img URL: %s", img_url)
-                    break
+                    _LOGGER.debug("Processing HTML email...")
+                    body = part.get_payload(decode=True)
+                    body = body.decode("utf-8", "ignore")
+                    pattern = re.compile(r"{}".format(search))
+                    found = pattern.findall(body)
+                    for url in found:
+                        if url[1] != "us-prod-temp.s3.amazonaws.com":
+                            continue
+                        img_url = url[0] + url[1] + url[2]
+                        _LOGGER.debug("Amazon img URL: %s", img_url)
+                        break
 
     if img_url is not None:
         # Download the image we found
@@ -764,14 +753,13 @@ def amazon_hub(account, fwds=None):
     for i in id_list:
         typ, data = email_fetch(account, i, "(RFC822)")
         for response_part in data:
-            if not isinstance(response_part, tuple):
-                continue
-            msg = email.message_from_bytes(response_part[1])
+            if isinstance(response_part, tuple):
+                msg = email.message_from_bytes(response_part[1])
 
-            # Get combo number from subject line
-            email_subject = msg["subject"]
-            pattern = re.compile(r"{}".format(subject_regex))
-            found.append(pattern.search(email_subject).group(3))
+                # Get combo number from subject line
+                email_subject = msg["subject"]
+                pattern = re.compile(r"{}".format(subject_regex))
+                found.append(pattern.search(email_subject).group(3))
 
     info[const.ATTR_COUNT] = len(found)
     info[const.ATTR_CODE] = found
@@ -811,65 +799,54 @@ def get_items(account, param, fwds=None):
             for i in id_list:
                 typ, data = email_fetch(account, i, "(RFC822)")
                 for response_part in data:
-                    if not isinstance(response_part, tuple):
-                        continue
-                    msg = email.message_from_bytes(response_part[1])
+                    if isinstance(response_part, tuple):
+                        msg = email.message_from_bytes(response_part[1])
 
-                    _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
-                    _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
+                        _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
+                        _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
 
-                    # Get order number from subject line
-                    email_subject = msg["subject"]
-                    pattern = re.compile(r"#[0-9]{3}-[0-9]{7}-[0-9]{7}")
-                    found = pattern.findall(email_subject)
+                        # Get order number from subject line
+                        email_subject = msg["subject"]
+                        pattern = re.compile(r"#[0-9]{3}-[0-9]{7}-[0-9]{7}")
+                        found = pattern.findall(email_subject)
 
-                    # Don't add the same order number twice
-                    if len(found) > 0 and found[0] not in orderNum:
-                        orderNum.append(found[0])
+                        # Don't add the same order number twice
+                        if len(found) > 0 and found[0] not in orderNum:
+                            orderNum.append(found[0])
 
-                    # Catch bad format emails
-                    try:
                         email_msg = quopri.decodestring(str(msg.get_payload(0)))
                         email_msg = email_msg.decode("utf-8", "ignore")
-                    except Exception as err:
-                        _LOGGER.debug(
-                            "Error while attempting to parse Amazon email: %s",
-                            str(err),
-                        )
-                        continue
+                        searches = const.AMAZON_TIME_PATTERN.split(",")
+                        for search in searches:
+                            if search not in email_msg:
+                                continue
 
-                    searches = const.AMAZON_TIME_PATTERN.split(",")
-                    for search in searches:
-                        if search not in email_msg:
-                            continue
+                            start = email_msg.find(search) + len(search)
+                            end = email_msg.find("Track your")
+                            arrive_date = email_msg[start:end].strip()
+                            arrive_date = arrive_date.split(" ")
+                            arrive_date = arrive_date[0:3]
+                            arrive_date[2] = arrive_date[2][:2]
+                            arrive_date = " ".join(arrive_date).strip()
+                            if "today" in arrive_date or "tomorrow" in arrive_date:
+                                arrive_date = arrive_date.split(",")[1].strip()
+                                dateobj = datetime.datetime.strptime(
+                                    arrive_date, "%B %d"
+                                )
+                            else:
+                                dateobj = datetime.datetime.strptime(
+                                    arrive_date, "%A, %B %d"
+                                )
 
-                        start = email_msg.find(search) + len(search)
-                        end = email_msg.find("Track your")
-                        arrive_date = email_msg[start:end].strip()
-                        arrive_date = arrive_date.split(" ")
-                        arrive_date = arrive_date[0:3]
-                        arrive_date[2] = arrive_date[2][:2]
-                        arrive_date = " ".join(arrive_date).strip()
-                        if "today" in arrive_date or "tomorrow" in arrive_date:
-                            arrive_date = arrive_date.split(",")[1].strip()
-                            dateobj = datetime.datetime.strptime(arrive_date, "%B %d")
-                        else:
-                            dateobj = datetime.datetime.strptime(
-                                arrive_date, "%A, %B %d"
-                            )
-
-                        if (
-                            dateobj.day == datetime.date.today().day
-                            and dateobj.month == datetime.date.today().month
-                        ):
-                            deliveriesToday.append("Amazon Order")
+                            if (
+                                dateobj.day == datetime.date.today().day
+                                and dateobj.month == datetime.date.today().month
+                            ):
+                                deliveriesToday.append("Amazon Order")
 
     if param == "count":
         _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
         return len(deliveriesToday)
-    elif param == "order":
+    else:
         _LOGGER.debug("Amazon order: %s", str(orderNum))
         return orderNum
-    else:
-        _LOGGER.debug("Amazon json: %s", str(deliveriesToday))
-        return deliveriesToday

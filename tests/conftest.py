@@ -693,6 +693,16 @@ def mock_subprocess_call():
         yield mock_subprocess_call
 
 
+@pytest.fixture
+def mock_copy_overlays():
+    """ Fixture to mock splitext """
+    with patch(
+        "custom_components.mail_and_packages.helpers.copy_overlays"
+    ) as mock_copy_overlays:
+
+        yield mock_copy_overlays
+
+
 @pytest.fixture()
 def mock_download_img():
     """ Mock email data update class values. """
