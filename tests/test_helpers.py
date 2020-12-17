@@ -26,11 +26,7 @@ from custom_components.mail_and_packages.helpers import (
     selectfolder,
     update_time,
 )
-from tests.const import (
-    FAKE_CONFIG_DATA,
-    FAKE_CONFIG_DATA_BAD,
-    FAKE_CONFIG_DATA_NO_RND,
-)
+from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD, FAKE_CONFIG_DATA_NO_RND
 
 
 async def test_unload_entry(hass, mock_update):
