@@ -43,8 +43,9 @@ DEFAULT_GIF_FILE_NAME = "mail_today.gif"
 DEFAULT_AMAZON_FWDS = '""'
 
 # Amazon
-Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de"
-AMAZON_Delivered_Subject = "Delivered: Your"
+Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de,amazon.it"
+AMAZON_Delivered_Subject = ["Delivered: Your", "Consegna effettuata:"]
+AMAZON_SHIPMENT_TRACKING = ["shipment-tracking", "conferma-spedizione"]
 AMAZON_Email = "order-update@"
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
@@ -56,9 +57,7 @@ AMAZON_HUB = "amazon_hub"
 AMAZON_HUB_CODE = "amazon_hub_code"
 AMAZON_HUB_EMAIL = "thehub@amazon.com"
 AMAZON_HUB_SUBJECT = "(You have a package to pick up)(.*)- (\\d{6})"
-AMAZON_TIME_PATTERN = (
-    "will arrive:,estimated delivery date is:,guaranteed delivery date is:,Arriving:"
-)
+AMAZON_TIME_PATTERN = "will arrive:,estimated delivery date is:,guaranteed delivery date is:,Arriving:,Arriver:"
 
 # Sensor Data
 SENSOR_DATA = {
