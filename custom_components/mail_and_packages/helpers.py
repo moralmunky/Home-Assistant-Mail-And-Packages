@@ -2,6 +2,7 @@
 
 import datetime
 import email
+from email.header import decode_header
 import imaplib
 import logging
 import os
@@ -233,20 +234,27 @@ def email_search(account, address, date, subject=None):
     """
 
     imap_search = None  # Holds our IMAP SEARCH command
+    prefix_list = None
+    email_list = address
+    search = None
 
-    if isinstance(address, list) and subject is not None:
+    if isinstance(address, list):
         if len(address) == 1:
             email_list = address[0]
-            imap_search = f'(FROM "{email_list}" SUBJECT "{subject}" SENTON "{date}")'
+
         else:
             email_list = '" FROM "'.join(address)
             prefix_list = " ".join(["OR"] * (len(address) - 1))
-            imap_search = f'({prefix_list} FROM "{email_list}" SUBJECT "{subject}" SENTON "{date}")'
 
-    elif subject is not None:
-        imap_search = f'(FROM "{address}" SUBJECT "{subject}" SENTON "{date}")'
+    if subject is not None:
+        search = f'FROM "{email_list}" SUBJECT "{subject}" SENTON "{date}")'
     else:
-        imap_search = f'(FROM "{address}" SENTON "{date}")'
+        search = f'FROM "{email_list}" SENTON "{date}")'
+
+    if prefix_list is not None:
+        imap_search = f"({prefix_list} {search})"
+    else:
+        imap_search = f"({search})"
 
     _LOGGER.debug("DEBUG imap_search: %s", imap_search)
 
@@ -656,22 +664,23 @@ def amazon_search(account, image_path, hass):
     """ Find Amazon Delivered email """
     _LOGGER.debug("Searching for Amazon delivered email(s)...")
     domains = const.Amazon_Domains.split(",")
-    subject = const.AMAZON_Delivered_Subject
+    subjects = const.AMAZON_Delivered_Subject
     today = get_formatted_date()
     count = 0
 
     for domain in domains:
-        email = const.AMAZON_Email + domain
-        _LOGGER.debug("Amazon email search address: %s", str(email))
+        for subject in subjects:
+            email = const.AMAZON_Email + domain
+            _LOGGER.debug("Amazon email search address: %s", str(email))
 
-        (rv, data) = email_search(account, email, today, subject)
+            (rv, data) = email_search(account, email, today, subject)
 
-        if rv != "OK":
-            continue
+            if rv != "OK":
+                continue
 
-        count += len(data[0].split())
-        _LOGGER.debug("Amazon delivered email(s) found: %s", count)
-        get_amazon_image(data[0], account, image_path, hass)
+            count += len(data[0].split())
+            _LOGGER.debug("Amazon delivered email(s) found: %s", count)
+            get_amazon_image(data[0], account, image_path, hass)
 
     return count
 
@@ -787,7 +796,10 @@ def get_items(account, param, fwds=None):
             email_address = domain
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
         else:
-            email_address = "shipment-tracking@" + domain
+            email_address = []
+            addresses = const.AMAZON_SHIPMENT_TRACKING
+            for address in addresses:
+                email_address.append(f"{address}@{domain}")
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
 
         (rv, sdata) = email_search(account, email_address, tfmt)
@@ -806,8 +818,15 @@ def get_items(account, param, fwds=None):
                         _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
 
                         # Get order number from subject line
-                        email_subject = msg["subject"]
-                        pattern = re.compile(r"#[0-9]{3}-[0-9]{7}-[0-9]{7}")
+                        encoding = decode_header(msg["subject"])[0][1]
+                        if encoding is not None:
+                            email_subject = decode_header(msg["subject"])[0][0].decode(
+                                encoding, "ignore"
+                            )
+                        else:
+                            email_subject = decode_header(msg["subject"])[0][0]
+                        _LOGGER.debug("Amazon Subject: %s", str(email_subject))
+                        pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
                         found = pattern.findall(email_subject)
 
                         # Don't add the same order number twice
