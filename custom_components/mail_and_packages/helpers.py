@@ -607,9 +607,8 @@ def get_tracking(sdata, account, format=None):
                         "Found tracking number in email subject: (%s)",
                         found[0],
                     )
-                    if found[0] in tracking:
-                        continue
-                    tracking.append(found[0])
+                    if found[0] not in tracking:
+                        tracking.append(found[0])
                     continue
 
                 # Search in email body for tracking number
@@ -622,9 +621,8 @@ def get_tracking(sdata, account, format=None):
                         found[0] = found[0].split(" ")[1]
 
                     _LOGGER.debug("Found tracking number in email body: %s", found[0])
-                    if found[0] in tracking:
-                        continue
-                    tracking.append(found[0])
+                    if found[0] not in tracking:
+                        tracking.append(found[0])
                     continue
 
     if len(tracking) == 0:
