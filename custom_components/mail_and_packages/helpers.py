@@ -247,9 +247,9 @@ def email_search(account, address, date, subject=None):
             prefix_list = " ".join(["OR"] * (len(address) - 1))
 
     if subject is not None:
-        search = f'FROM "{email_list}" SUBJECT "{subject}" SENTON "{date}")'
+        search = f'FROM "{email_list}" SUBJECT "{subject}" SENTON "{date}"'
     else:
-        search = f'FROM "{email_list}" SENTON "{date}")'
+        search = f'FROM "{email_list}" SENTON "{date}"'
 
     if prefix_list is not None:
         imap_search = f"({prefix_list} {search})"
