@@ -811,3 +811,13 @@ def mock_imap_royal_out_for_delivery():
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
+
+
+@pytest.fixture
+def mock_copyoverlays():
+    """ Fixture to mock makedirs """
+    with patch(
+        "custom_components.mail_and_packages.helpers.copy_overlays"
+    ) as mock_copyoverlays:
+        mock_copyoverlays.return_value = True
+        yield mock_copyoverlays

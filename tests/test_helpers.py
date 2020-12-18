@@ -26,11 +26,7 @@ from custom_components.mail_and_packages.helpers import (
     selectfolder,
     update_time,
 )
-from tests.const import (
-    FAKE_CONFIG_DATA,
-    FAKE_CONFIG_DATA_BAD,
-    FAKE_CONFIG_DATA_NO_RND,
-)
+from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD, FAKE_CONFIG_DATA_NO_RND
 
 
 async def test_unload_entry(hass, mock_update):
@@ -224,6 +220,18 @@ async def test_email_fetch(mock_imap_fetch_error, caplog):
 async def test_get_mails(mock_imap_no_email, mock_copyfile):
     result = get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
     assert result == 0
+
+
+async def test_get_mails_copyfile_error(
+    mock_imap_usps_informed_digest_no_mail,
+    mock_copyoverlays,
+    mock_copyfile_exception,
+    caplog,
+):
+    result = get_mails(
+        mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
+    )
+    assert "File not found" in caplog.text
 
 
 async def test_informed_delivery_emails(

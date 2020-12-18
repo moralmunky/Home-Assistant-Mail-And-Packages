@@ -2,7 +2,6 @@
 
 import datetime
 import email
-from email.header import decode_header
 import imaplib
 import logging
 import os
@@ -10,6 +9,7 @@ import quopri
 import re
 import subprocess
 import uuid
+from email.header import decode_header
 from shutil import copyfile, which
 
 import aiohttp
