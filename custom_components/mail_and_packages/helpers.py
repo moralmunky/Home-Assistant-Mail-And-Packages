@@ -227,7 +227,7 @@ def update_time():
     return updated
 
 
-def email_search(account, address, date, subject=None):
+def email_search(account, address, date, subject=None, since=None):
     """Search emails with from, subject, senton date.
 
     Returns a tuple
@@ -237,6 +237,7 @@ def email_search(account, address, date, subject=None):
     prefix_list = None
     email_list = address
     search = None
+    the_date = None
 
     if isinstance(address, list):
         if len(address) == 1:
@@ -246,10 +247,15 @@ def email_search(account, address, date, subject=None):
             email_list = '" FROM "'.join(address)
             prefix_list = " ".join(["OR"] * (len(address) - 1))
 
-    if subject is not None:
-        search = f'FROM "{email_list}" SUBJECT "{subject}" SENTON "{date}"'
+    if since is not None:
+        the_date = f'SINCE "{date}"'
     else:
-        search = f'FROM "{email_list}" SENTON "{date}"'
+        the_date = f'SENTON "{date}"'
+
+    if subject is not None:
+        search = f'FROM "{email_list}" SUBJECT "{subject}" {the_date}'
+    else:
+        search = f'FROM "{email_list}" {the_date}'
 
     if prefix_list is not None:
         imap_search = f"({prefix_list} {search})"
@@ -607,9 +613,8 @@ def get_tracking(sdata, account, format=None):
                         "Found tracking number in email subject: (%s)",
                         found[0],
                     )
-                    if found[0] in tracking:
-                        continue
-                    tracking.append(found[0])
+                    if found[0] not in tracking:
+                        tracking.append(found[0])
                     continue
 
                 # Search in email body for tracking number
@@ -622,9 +627,8 @@ def get_tracking(sdata, account, format=None):
                         found[0] = found[0].split(" ")[1]
 
                     _LOGGER.debug("Found tracking number in email body: %s", found[0])
-                    if found[0] in tracking:
-                        continue
-                    tracking.append(found[0])
+                    if found[0] not in tracking:
+                        tracking.append(found[0])
                     continue
 
     if len(tracking) == 0:
@@ -802,7 +806,7 @@ def get_items(account, param, fwds=None):
                 email_address.append(f"{address}@{domain}")
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
 
-        (rv, sdata) = email_search(account, email_address, tfmt)
+        (rv, sdata) = email_search(account, email_address, tfmt, None, True)
 
         if rv == "OK":
             mail_ids = sdata[0]
