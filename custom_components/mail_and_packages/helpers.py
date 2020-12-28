@@ -119,11 +119,7 @@ def process_emails(hass, config):
         count = {}
         if sensor == "usps_mail":
             count[sensor] = get_mails(
-                account,
-                img_out_path,
-                gif_duration,
-                image_name,
-                generate_mp4,
+                account, img_out_path, gif_duration, image_name, generate_mp4,
             )
         elif sensor == const.AMAZON_PACKAGES:
             count[sensor] = get_items(account, const.ATTR_COUNT, amazon_fwds)
@@ -227,7 +223,7 @@ def update_time():
     return updated
 
 
-def email_search(account, address, date, subject=None):
+def email_search(account, address, date, subject=None, since=None):
     """Search emails with from, subject, senton date.
 
     Returns a tuple
@@ -246,6 +242,11 @@ def email_search(account, address, date, subject=None):
         else:
             email_list = '" FROM "'.join(address)
             prefix_list = " ".join(["OR"] * (len(address) - 1))
+
+    if since is not None:
+        the_date = f'SINCE "{date}"'
+    else:
+        the_date = f'SENTON "{date}"'
 
     if subject is not None:
         search = f'FROM "{email_list}" SUBJECT "{subject}" {the_date}'
@@ -491,8 +492,7 @@ def copy_overlays(path):
         for file in overlays:
             _LOGGER.debug("Copying file to: %s", str(path + file))
             copyfile(
-                os.path.dirname(__file__) + "/" + file,
-                path + file,
+                os.path.dirname(__file__) + "/" + file, path + file,
             )
 
 
@@ -605,8 +605,7 @@ def get_tracking(sdata, account, format=None):
                 found = pattern.findall(email_subject)
                 if len(found) > 0:
                     _LOGGER.debug(
-                        "Found tracking number in email subject: (%s)",
-                        found[0],
+                        "Found tracking number in email subject: (%s)", found[0],
                     )
                     if found[0] not in tracking:
                         tracking.append(found[0])
@@ -801,7 +800,7 @@ def get_items(account, param, fwds=None):
                 email_address.append(f"{address}@{domain}")
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
 
-        (rv, sdata) = email_search(account, email_address, tfmt)
+        (rv, sdata) = email_search(account, email_address, tfmt, None, True)
 
         if rv == "OK":
             mail_ids = sdata[0]

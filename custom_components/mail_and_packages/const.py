@@ -102,9 +102,7 @@ SENSOR_DATA = {
     },
     "fedex_delivered": {
         "email": ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"],
-        "subject": [
-            "Your package has been delivered",
-        ],
+        "subject": ["Your package has been delivered",],
     },
     "fedex_delivering": {
         "email": ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"],
@@ -117,26 +115,19 @@ SENSOR_DATA = {
     "fedex_tracking": {"pattern": ["\\d{12,14,20,34}"]},
     "capost_delivered": {
         "email": ["donotreply@canadapost.postescanada.ca"],
-        "subject": [
-            "Delivery Notification",
-        ],
+        "subject": ["Delivery Notification",],
     },
     "capost_delivering": {},
     "capost_packages": {},
     "capost_tracking": {},
     "dhl_delivered": {
         "email": ["donotreply_odd@dhl.com", "NoReply.ODD@dhl.com", "noreply@dhl.de"],
-        "subject": [
-            "DHL On Demand Delivery",
-        ],
+        "subject": ["DHL On Demand Delivery",],
         "body": ["has been delivered"],
     },
     "dhl_delivering": {
         "email": ["donotreply_odd@dhl.com", "NoReply.ODD@dhl.com", "noreply@dhl.de"],
-        "subject": [
-            "DHL On Demand Delivery",
-            "paket kommt heute",
-        ],
+        "subject": ["DHL On Demand Delivery", "paket kommt heute",],
         "body": ["scheduled for delivery TODAY"],
     },
     "dhl_packages": {},
