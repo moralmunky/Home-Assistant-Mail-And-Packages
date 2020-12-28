@@ -227,7 +227,7 @@ def update_time():
     return updated
 
 
-def email_search(account, address, date, subject=None, since=None):
+def email_search(account, address, date, subject=None):
     """Search emails with from, subject, senton date.
 
     Returns a tuple
@@ -237,7 +237,7 @@ def email_search(account, address, date, subject=None, since=None):
     prefix_list = None
     email_list = address
     search = None
-    the_date = None
+    the_date = f'SINCE "{date}"'
 
     if isinstance(address, list):
         if len(address) == 1:
@@ -246,11 +246,6 @@ def email_search(account, address, date, subject=None, since=None):
         else:
             email_list = '" FROM "'.join(address)
             prefix_list = " ".join(["OR"] * (len(address) - 1))
-
-    if since is not None:
-        the_date = f'SINCE "{date}"'
-    else:
-        the_date = f'SENTON "{date}"'
 
     if subject is not None:
         search = f'FROM "{email_list}" SUBJECT "{subject}" {the_date}'
@@ -567,7 +562,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
                 count += len(data[0].split())
 
             _LOGGER.debug(
-                "Search for (%s) with subject 1 (%s) results: %s count: %s",
+                "Search for (%s) with subject (%s) results: %s count: %s",
                 email,
                 subject,
                 data[0],
@@ -806,7 +801,7 @@ def get_items(account, param, fwds=None):
                 email_address.append(f"{address}@{domain}")
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
 
-        (rv, sdata) = email_search(account, email_address, tfmt, None, True)
+        (rv, sdata) = email_search(account, email_address, tfmt)
 
         if rv == "OK":
             mail_ids = sdata[0]
