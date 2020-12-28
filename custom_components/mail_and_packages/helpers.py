@@ -237,7 +237,7 @@ def email_search(account, address, date, subject=None, since=None):
     prefix_list = None
     email_list = address
     search = None
-    the_date = None
+    the_date = f'SINCE "{date}"'
 
     if isinstance(address, list):
         if len(address) == 1:
@@ -567,7 +567,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
                 count += len(data[0].split())
 
             _LOGGER.debug(
-                "Search for (%s) with subject 1 (%s) results: %s count: %s",
+                "Search for (%s) with subject (%s) results: %s count: %s",
                 email,
                 subject,
                 data[0],
