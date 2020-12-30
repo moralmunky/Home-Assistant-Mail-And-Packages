@@ -789,6 +789,7 @@ def get_items(account, param, fwds=None):
     if fwds and fwds != '""':
         for fwd in fwds:
             domains.append(fwd)
+            _LOGGER.debug("Amazon email adding %s to list", str(fwd))
 
     for domain in domains:
         if "@" in domain:

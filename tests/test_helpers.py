@@ -170,6 +170,7 @@ async def test_process_emails_bad(hass, mock_imap_no_email):
         data=FAKE_CONFIG_DATA_BAD,
     )
 
+    entry.version = 2
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -451,6 +452,30 @@ async def test_royal_out_for_delivery(hass, mock_imap_royal_out_for_delivery):
     )
     assert result["count"] == 1
     assert result["tracking"] == ["MA038501234GB"]
+
+
+async def test_amazon_fwds(
+    hass,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    caplog,
+):
+    """Test settting up entities. """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert "Amazon email adding fakeuser@fake.email to list" in caplog.text
+    assert "Amazon email adding fakeuser2@fake.email to list" in caplog.text
 
 
 async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):

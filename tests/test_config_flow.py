@@ -27,7 +27,7 @@ from tests.const import FAKE_CONFIG_DATA
             },
             "config_2",
             {
-                "amazon_fwds": "",
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
@@ -57,7 +57,7 @@ from tests.const import FAKE_CONFIG_DATA
             },
             "imap.test.email",
             {
-                "amazon_fwds": "",
+                "amazon_fwds": ["fakeuser@test.email", "fakeuser2@test.email"],
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -474,7 +474,7 @@ async def test_form_invalid_path(
             },
             "imap.test.email",
             {
-                "amazon_fwds": "",
+                "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -603,7 +603,7 @@ async def test_form_index_error(
             },
             "imap.test.email",
             {
-                "amazon_fwds": "",
+                "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -732,7 +732,7 @@ async def test_form_index_error_2(
             },
             "imap.test.email",
             {
-                "amazon_fwds": "",
+                "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -901,7 +901,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
             },
             "imap.test.email",
             {
-                "amazon_fwds": "",
+                "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -1093,7 +1093,7 @@ async def test_options_flow_connection_error(
             },
             "imap.test.email",
             {
-                "amazon_fwds": "",
+                "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -1224,7 +1224,7 @@ async def test_options_flow_invalid_ffmpeg(
             },
             "imap.test.email",
             {
-                "amazon_fwds": "",
+                "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -1355,7 +1355,7 @@ async def test_options_flow_invalid_path(
             },
             "imap.test.email",
             {
-                "amazon_fwds": "",
+                "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -1487,7 +1487,7 @@ async def test_options_flow_index_error(
             },
             "imap.test.email",
             {
-                "amazon_fwds": "",
+                "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -1619,7 +1619,7 @@ async def test_options_flow_index_error_2(
             },
             "imap.test.email",
             {
-                "amazon_fwds": "",
+                "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
