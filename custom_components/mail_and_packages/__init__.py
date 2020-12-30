@@ -82,3 +82,24 @@ async def update_listener(hass, config_entry):
     hass.async_add_job(
         hass.config_entries.async_forward_entry_setup(config_entry, const.PLATFORM)
     )
+
+
+async def async_migrate_entry(hass, config_entry):
+    """Migrate an old config entry."""
+    version = config_entry.version
+
+    # 1 -> 2: Migrate format
+    if version == 1:
+        _LOGGER.debug("Migrating from version %s", version)
+        data = config_entry.data.copy()
+
+        if const.CONF_AMAZON_FWDS in data.keys():
+            if not isinstance(data[const.CONF_AMAZON_FWDS], list):
+                data[const.CONF_AMAZON_FWDS] = data[const.CONF_AMAZON_FWDS].split(",")
+        else:
+            _LOGGER.warn("Missing configuration data: %s", const.CONF_AMAZON_FWDS)
+        hass.config_entries.async_update_entry(config_entry, data=data)
+        config_entry.version = 2
+        _LOGGER.debug("Migration to version %s complete", config_entry.version)
+
+    return True

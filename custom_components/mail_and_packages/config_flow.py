@@ -124,7 +124,7 @@ def _get_schema_step_2(hass, data, user_input, default_dict):
 class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Mail and Packages."""
 
-    VERSION = 1
+    VERSION = 2
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
@@ -170,6 +170,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_config_2(self, user_input=None):
         self._errors = {}
         if user_input is not None:
+            user_input[CONF_AMAZON_FWDS] = user_input[CONF_AMAZON_FWDS].split(",")
             self._data.update(user_input)
             valid = await _validate_path(user_input[CONF_PATH])
             if valid:
@@ -261,6 +262,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
     async def async_step_options_2(self, user_input=None):
         self._errors = {}
         if user_input is not None:
+            user_input[CONF_AMAZON_FWDS] = user_input[CONF_AMAZON_FWDS].split(",")
             self._data.update(user_input)
             valid = await _validate_path(user_input[CONF_PATH])
 
