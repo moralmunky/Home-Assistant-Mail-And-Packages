@@ -246,11 +246,14 @@ async def test_informed_delivery_emails(
     mock_io,
     mock_resizeimage,
     mock_copyfile,
+    caplog,
 ):
     result = get_mails(
         mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
     )
     assert result == 3
+    assert "USPSInformedDelivery@usps.gov" in caplog.text
+    assert "USPSInformeddelivery@informeddelivery.usps.com" in caplog.text
 
 
 async def test_get_mails_imageio_error(

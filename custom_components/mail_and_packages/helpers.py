@@ -832,7 +832,11 @@ def get_items(account, param, fwds=None):
                         if len(found) > 0 and found[0] not in orderNum:
                             orderNum.append(found[0])
 
-                        email_msg = quopri.decodestring(str(msg.get_payload(0)))
+                        try:
+                            email_msg = quopri.decodestring(str(msg.get_payload(0)))
+                        except Exception as err:
+                            _LOGGER.warn("Problem decoding email message: %s", str(err))
+                            continue
                         email_msg = email_msg.decode("utf-8", "ignore")
                         searches = const.AMAZON_TIME_PATTERN.split(",")
                         for search in searches:
