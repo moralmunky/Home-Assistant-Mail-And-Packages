@@ -1,6 +1,6 @@
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.3.0-b22"
+VERSION = "0.3.0-b23"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 DATA = "data"
@@ -85,6 +85,7 @@ SENSOR_DATA = {
             "Your UPS Package was delivered",
             "Your UPS Packages were delivered",
         ],
+        "body": ["Tracking Number"],
     },
     "ups_delivering": {
         "email": ["mcinfo@ups.com"],
