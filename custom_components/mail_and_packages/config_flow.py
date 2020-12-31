@@ -207,6 +207,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             CONF_DURATION: DEFAULT_GIF_DURATION,
             CONF_IMAGE_SECURITY: DEFAULT_IMAGE_SECURITY,
             CONF_AMAZON_FWDS: DEFAULT_AMAZON_FWDS,
+            CONF_GENERATE_MP4: False,
         }
 
         return self.async_show_form(
