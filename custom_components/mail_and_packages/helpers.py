@@ -786,10 +786,11 @@ def get_items(account, param, fwds=None):
     deliveriesToday = []
     orderNum = []
     domains = const.Amazon_Domains.split(",")
-    for fwd in fwds:
-        if fwds != '""':
-            domains.append(fwd)
-            _LOGGER.debug("Amazon email adding %s to list", str(fwd))
+    if isinstance(fwds, list):
+        for fwd in fwds:
+            if fwd != '""':
+                domains.append(fwd)
+                _LOGGER.debug("Amazon email adding %s to list", str(fwd))
 
     for domain in domains:
         if "@" in domain:
