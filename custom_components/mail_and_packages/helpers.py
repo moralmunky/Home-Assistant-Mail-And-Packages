@@ -786,8 +786,8 @@ def get_items(account, param, fwds=None):
     deliveriesToday = []
     orderNum = []
     domains = const.Amazon_Domains.split(",")
-    if fwds and fwds != '""':
-        for fwd in fwds:
+    for fwd in fwds:
+        if fwds != '""':
             domains.append(fwd)
             _LOGGER.debug("Amazon email adding %s to list", str(fwd))
 
