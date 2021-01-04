@@ -557,7 +557,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
         (rv, data) = email_search(account, email, today, subject)
         if rv == "OK":
             if body is not None:
-                count += find_text(data[0], account, body)
+                count += find_text(data[0], account, body[0])
             else:
                 count += len(data[0].split())
 
@@ -651,9 +651,11 @@ def find_text(sdata, account, search):
                 email_msg = email_msg.decode("utf-8", "ignore")
                 pattern = re.compile(r"{}".format(search))
                 found = pattern.findall(email_msg)
-                if found is not None:
-                    _LOGGER.debug("Found (%s) in email", search)
-                    count += 1
+                if len(found) > 0:
+                    _LOGGER.debug(
+                        "Found (%s) in email %s times.", search, str(len(found))
+                    )
+                    count = len(found)
 
     _LOGGER.debug("Search for (%s) count results: %s", search, count)
     return count
