@@ -335,9 +335,9 @@ def mock_imap_dhl_out_for_delivery():
     """ Mock imap class values. """
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
-    ) as mock_imap_ups_out_for_delivery:
+    ) as mock_imap_dhl_out_for_delivery:
         mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
-        mock_imap_ups_out_for_delivery.IMAP4_SSL.return_value = mock_conn
+        mock_imap_dhl_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
             "OK",
@@ -768,9 +768,9 @@ def mock_imap_hermes_out_for_delivery():
     """ Mock imap class values. """
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
-    ) as mock_imap_ups_out_for_delivery:
+    ) as mock_imap_hermes_out_for_delivery:
         mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
-        mock_imap_ups_out_for_delivery.IMAP4_SSL.return_value = mock_conn
+        mock_imap_hermes_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
             "OK",
@@ -793,9 +793,9 @@ def mock_imap_royal_out_for_delivery():
     """ Mock imap class values. """
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
-    ) as mock_imap_ups_out_for_delivery:
+    ) as mock_imap_royal_out_for_delivery:
         mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
-        mock_imap_ups_out_for_delivery.IMAP4_SSL.return_value = mock_conn
+        mock_imap_royal_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
             "OK",
