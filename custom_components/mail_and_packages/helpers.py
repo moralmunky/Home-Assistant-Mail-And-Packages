@@ -650,7 +650,7 @@ def find_text(sdata, account, search):
                 email_msg = quopri.decodestring(str(msg.get_payload(0)))
                 email_msg = email_msg.decode("utf-8", "ignore")
                 pattern = re.compile(r"{}".format(search))
-                found = pattern.search(email_msg)
+                found = pattern.findall(email_msg)
                 if found is not None:
                     _LOGGER.debug("Found (%s) in email", search)
                     count += 1
