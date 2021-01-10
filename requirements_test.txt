@@ -1,7 +1,6 @@
-pytest<6.0
-pytest-cov<3.0.0
-pytest-homeassistant-custom-component==0.0.8
+pytest
+pytest-cov
+pytest-homeassistant-custom-component
 # From mainfest.json
 imageio
 python-resize-image
-yarl

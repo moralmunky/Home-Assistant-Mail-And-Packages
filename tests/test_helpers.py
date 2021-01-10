@@ -2,10 +2,10 @@
 import datetime
 from datetime import date
 from unittest import mock
+from unittest.mock import call, patch
 
 import pytest
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from pytest_homeassistant_custom_component.async_mock import call, patch
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import DOMAIN

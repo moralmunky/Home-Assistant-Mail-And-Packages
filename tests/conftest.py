@@ -1,14 +1,11 @@
 """ Fixtures for Mail and Packages tests. """
 import imaplib
 from unittest import mock
+from unittest.mock import patch
 
 import pytest
-from pytest_homeassistant_custom_component.async_mock import patch
 
 from tests.const import FAKE_UPDATE_DATA
-
-from tests.helpers.aiohttp import mock_aiohttp_client  # noqa: E402, isort:skip
-
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
@@ -555,11 +552,11 @@ def mock_imap_amazon_the_hub():
         yield mock_conn
 
 
-@pytest.fixture
-def aioclient_mock():
-    """Fixture to mock aioclient calls."""
-    with mock_aiohttp_client() as mock_session:
-        yield mock_session
+# @pytest.fixture
+# def aioclient_mock():
+#     """Fixture to mock aioclient calls."""
+#     with mock_aiohttp_client() as mock_session:
+#         yield mock_session
 
 
 @pytest.fixture
