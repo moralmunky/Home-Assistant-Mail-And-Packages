@@ -551,11 +551,11 @@ def mock_imap_amazon_the_hub():
         yield mock_conn
 
 
-@pytest.fixture
-def aioclient_mock():
-    """Fixture to mock aioclient calls."""
-    with mock_aiohttp_client() as mock_session:
-        yield mock_session
+# @pytest.fixture
+# def aioclient_mock():
+#     """Fixture to mock aioclient calls."""
+#     with mock_aiohttp_client() as mock_session:
+#         yield mock_session
 
 
 @pytest.fixture
