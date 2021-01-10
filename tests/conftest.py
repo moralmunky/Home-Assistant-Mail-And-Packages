@@ -1,14 +1,10 @@
 """ Fixtures for Mail and Packages tests. """
 import imaplib
 from unittest import mock
-
-import pytest
-from pytest_homeassistant_custom_component.async_mock import patch
-
+from unittest.mock import patch
 from tests.const import FAKE_UPDATE_DATA
 
-from tests.helpers.aiohttp import mock_aiohttp_client  # noqa: E402, isort:skip
-
+import pytest
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
