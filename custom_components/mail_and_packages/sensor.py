@@ -130,71 +130,75 @@ class EmailData:
 
             # Only update sensors we're intrested in
             for sensor in self._resources:
-                count = {}
-                if sensor == "usps_mail":
-                    count[sensor] = get_mails(
-                        account,
-                        self._img_out_path,
-                        self._gif_duration,
-                        self._image_name,
-                        self._generate_mp4,
-                    )
-                elif sensor == const.AMAZON_PACKAGES:
-                    count[sensor] = get_items(account, ATTR_COUNT, self._amazon_fwds)
-                    count[const.AMAZON_ORDER] = get_items(
-                        account, ATTR_ORDER, self._amazon_fwds
-                    )
-                elif sensor == const.AMAZON_HUB:
-                    value = amazon_hub(account, self._amazon_fwds)
-                    count[sensor] = value[ATTR_COUNT]
-                    count[const.AMAZON_HUB_CODE] = value[ATTR_CODE]
-                elif "_packages" in sensor:
-                    prefix = sensor.split("_")[0]
-                    delivering = prefix + "_delivering"
-                    delivered = prefix + "_delivered"
-                    total = 0
-                    if delivered in data and delivering in data:
-                        total = data[delivering] + data[delivered]
-                    count[sensor] = total
-                elif "_delivering" in sensor:
-                    prefix = sensor.split("_")[0]
-                    delivering = prefix + "_delivering"
-                    delivered = prefix + "_delivered"
-                    tracking = prefix + "_tracking"
-                    info = get_count(account, sensor, True)
-                    total = info[ATTR_COUNT]
-                    if delivered in data:
-                        total = total - data[delivered]
-                    total = max(0, total)
-                    count[sensor] = total
-                    count[tracking] = info[ATTR_TRACKING]
-                elif sensor == "zpackages_delivered":
-                    count[sensor] = 0  # initialize the variable
-                    for shipper in const.SHIPPERS:
-                        delivered = shipper + "_delivered"
-                        if delivered in data and delivered != sensor:
-                            count[sensor] += data[delivered]
-                elif sensor == "zpackages_transit":
-                    total = 0
-                    for shipper in const.SHIPPERS:
-                        delivering = shipper + "_delivering"
-                        if delivering in data and delivering != sensor:
-                            total += data[delivering]
-                    count[sensor] = max(0, total)
-                elif sensor == "mail_updated":
-                    count[sensor] = update_time()
-                else:
-                    count[sensor] = get_count(
-                        account, sensor, False, self._img_out_path, self._hass
-                    )[ATTR_COUNT]
+                self.fetch(account, data, sensor)
 
-                data.update(count)
             self._data = data
         else:
             _LOGGER.error("Host was left blank not attempting connection")
 
         self._scan_time = update_time()
         _LOGGER.debug("Updated scan time: %s", self._scan_time)
+
+    def fetch(self, account, data, sensor):
+        """Fetch data for a single sensor, including any sensors it depends on."""
+        if sensor in data:
+            # Use a value we've already computed this pass, if we have one.
+            return data[sensor]
+
+        count = {}
+        if sensor == "usps_mail":
+            count[sensor] = get_mails(
+                account,
+                self._img_out_path,
+                self._gif_duration,
+                self._image_name,
+                self._generate_mp4,
+            )
+        elif sensor == const.AMAZON_PACKAGES:
+            count[sensor] = get_items(account, ATTR_COUNT, self._amazon_fwds)
+            count[const.AMAZON_ORDER] = get_items(
+                account, ATTR_ORDER, self._amazon_fwds
+            )
+        elif sensor == const.AMAZON_HUB:
+            value = amazon_hub(account, self._amazon_fwds)
+            count[sensor] = value[ATTR_COUNT]
+            count[const.AMAZON_HUB_CODE] = value[ATTR_CODE]
+        elif "_packages" in sensor:
+            prefix = sensor.split("_")[0]
+            delivering = self.fetch(account, data, prefix + "_delivering")
+            delivered = self.fetch(account, data, prefix + "_delivered")
+            count[sensor] = delivering + delivered
+        elif "_delivering" in sensor:
+            prefix = sensor.split("_")[0]
+            info = get_count(account, sensor, True)
+            total = info[ATTR_COUNT]
+            delivered = self.fetch(account, data, prefix + "_delivered")
+            total = max(0, total - delivered)
+            count[sensor] = total
+            count[prefix + "_tracking"] = info[ATTR_TRACKING]
+        elif sensor == "zpackages_delivered":
+            total = 0
+            for shipper in const.SHIPPERS:
+                delivered = shipper + "_delivered"
+                if delivered in self._resources and delivered != sensor:
+                    total += self.fetch(account, data, delivered)
+            count[sensor] = max(0, total)
+        elif sensor == "zpackages_transit":
+            total = 0
+            for shipper in const.SHIPPERS:
+                delivering = shipper + "_delivering"
+                if delivering in self._resources and delivering != sensor:
+                    total += self.fetch(account, data, delivering)
+            count[sensor] = max(0, total)
+        elif sensor == "mail_updated":
+            count[sensor] = update_time()
+        else:
+            count[sensor] = get_count(
+                account, sensor, False, self._img_out_path, self._hass
+            )[ATTR_COUNT]
+
+        data.update(count)
+        return count[sensor]
 
 
 class PackagesSensor(Entity):
