@@ -82,15 +82,11 @@ def process_emails(hass, config):
     """ Process emails and return value """
     host = config.get(CONF_HOST)
     port = config.get(CONF_PORT)
-    folder = config.get(const.CONF_FOLDER)
     user = config.get(CONF_USERNAME)
     pwd = config.get(CONF_PASSWORD)
-    img_out_path = config.get(const.CONF_PATH)
-    gif_duration = config.get(const.CONF_DURATION)
-    image_security = config.get(const.CONF_IMAGE_SECURITY)
-    generate_mp4 = config.get(const.CONF_GENERATE_MP4)
+    folder = config.get(const.CONF_FOLDER)
     resources = config.get(CONF_RESOURCES)
-    amazon_fwds = config.get(const.CONF_AMAZON_FWDS)
+    image_security = config.get(const.CONF_IMAGE_SECURITY)
 
     # Login to email server and select the folder
     account = login(host, port, user, pwd)
@@ -116,65 +112,81 @@ def process_emails(hass, config):
 
     # Only update sensors we're intrested in
     for sensor in resources:
-        count = {}
-        if sensor == "usps_mail":
-            count[sensor] = get_mails(
-                account,
-                img_out_path,
-                gif_duration,
-                image_name,
-                generate_mp4,
-            )
-        elif sensor == const.AMAZON_PACKAGES:
-            count[sensor] = get_items(account, const.ATTR_COUNT, amazon_fwds)
-            count[const.AMAZON_ORDER] = get_items(account, const.ATTR_ORDER)
-        elif sensor == const.AMAZON_HUB:
-            value = amazon_hub(account, amazon_fwds)
-            count[sensor] = value[const.ATTR_COUNT]
-            count[const.AMAZON_HUB_CODE] = value[const.ATTR_CODE]
-        elif "_packages" in sensor:
-            prefix = sensor.split("_")[0]
-            delivering = prefix + "_delivering"
-            delivered = prefix + "_delivered"
-            total = 0
-            if delivered in data and delivering in data:
-                total = data[delivering] + data[delivered]
-            count[sensor] = total
-        elif "_delivering" in sensor:
-            prefix = sensor.split("_")[0]
-            delivering = prefix + "_delivering"
-            delivered = prefix + "_delivered"
-            tracking = prefix + "_tracking"
-            info = get_count(account, sensor, True)
-            total = info[const.ATTR_COUNT]
-            if delivered in data:
-                total = total - data[delivered]
-            total = max(0, total)
-            count[sensor] = total
-            count[tracking] = info[const.ATTR_TRACKING]
-        elif sensor == "zpackages_delivered":
-            count[sensor] = 0  # initialize the variable
-            for shipper in const.SHIPPERS:
-                delivered = shipper + "_delivered"
-                if delivered in data and delivered != sensor:
-                    count[sensor] += data[delivered]
-        elif sensor == "zpackages_transit":
-            total = 0
-            for shipper in const.SHIPPERS:
-                delivering = shipper + "_delivering"
-                if delivering in data and delivering != sensor:
-                    total += data[delivering]
-            count[sensor] = max(0, total)
-        elif sensor == "mail_updated":
-            count[sensor] = update_time()
-        else:
-            count[sensor] = get_count(account, sensor, False, img_out_path, hass)[
-                const.ATTR_COUNT
-            ]
-
-        data.update(count)
+        fetch(hass, config, account, data, sensor)
 
     return data
+
+
+def fetch(hass, config, account, data, sensor):
+    """Fetch data for a single sensor, including any sensors it depends on."""
+
+    img_out_path = config.get(const.CONF_PATH)
+    gif_duration = config.get(const.CONF_DURATION)
+    generate_mp4 = config.get(const.CONF_GENERATE_MP4)
+    amazon_fwds = config.get(const.CONF_AMAZON_FWDS)
+    image_name = data[const.ATTR_IMAGE_NAME]
+
+    if sensor in data:
+        return data[sensor]
+
+    count = {}
+
+    if sensor == "usps_mail":
+        count[sensor] = get_mails(
+            account,
+            img_out_path,
+            gif_duration,
+            image_name,
+            generate_mp4,
+        )
+    elif sensor == const.AMAZON_PACKAGES:
+        count[sensor] = get_items(account, const.ATTR_COUNT, amazon_fwds)
+        count[const.AMAZON_ORDER] = get_items(account, const.ATTR_ORDER)
+    elif sensor == const.AMAZON_HUB:
+        value = amazon_hub(account, amazon_fwds)
+        count[sensor] = value[const.ATTR_COUNT]
+        count[const.AMAZON_HUB_CODE] = value[const.ATTR_CODE]
+    elif "_packages" in sensor:
+        prefix = sensor.split("_")[0]
+        delivering = fetch(hass, config, account, data, f"{prefix}_delivering")
+        delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
+        total = 0
+        if delivered in data and delivering in data:
+            total = delivering + delivered
+        count[sensor] = total
+    elif "_delivering" in sensor:
+        prefix = sensor.split("_")[0]
+        delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
+        tracking = prefix + "_tracking"
+        info = get_count(account, sensor, True)
+        total = info[const.ATTR_COUNT]
+        if delivered in data:
+            total = total - delivered
+        total = max(0, total)
+        count[sensor] = total
+        count[tracking] = info[const.ATTR_TRACKING]
+    elif sensor == "zpackages_delivered":
+        count[sensor] = 0  # initialize the variable
+        for shipper in const.SHIPPERS:
+            delivered = f"{shipper}_delivered"
+            if delivered in data and delivered != sensor:
+                count[sensor] += fetch(hass, config, account, data, delivered)
+    elif sensor == "zpackages_transit":
+        total = 0
+        for shipper in const.SHIPPERS:
+            delivering = f"{shipper}_delivering"
+            if delivering in data and delivering != sensor:
+                total += fetch(hass, config, account, data, delivering)
+        count[sensor] = max(0, total)
+    elif sensor == "mail_updated":
+        count[sensor] = update_time()
+    else:
+        count[sensor] = get_count(account, sensor, False, img_out_path, hass)[
+            const.ATTR_COUNT
+        ]
+
+    data.update(count)
+    return count[sensor]
 
 
 def login(host, port, user, pwd):
