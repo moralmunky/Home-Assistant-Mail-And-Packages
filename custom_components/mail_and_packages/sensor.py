@@ -133,7 +133,6 @@ class EmailData:
                 self.fetch(account, data, sensor)
 
             self._data = data
-            self._data = data
         else:
             _LOGGER.error("Host was left blank not attempting connection")
 
