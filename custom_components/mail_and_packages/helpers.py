@@ -585,7 +585,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     if const.ATTR_PATTERN in const.SENSOR_DATA[pattern].keys():
         track = const.SENSOR_DATA[pattern][const.ATTR_PATTERN][0]
 
-    if track is not None and count > 0:
+    if track is not None and get_tracking_num and count > 0:
         tracking = get_tracking(data[0], account, track)
 
     if len(tracking) > 0:
