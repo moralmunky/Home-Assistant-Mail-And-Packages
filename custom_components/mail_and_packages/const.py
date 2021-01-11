@@ -1,6 +1,6 @@
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.3.0-b28"
+VERSION = "0.3.0-b29"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 DATA = "data"
@@ -115,7 +115,7 @@ SENSOR_DATA = {
         ],
     },
     "fedex_packages": {},
-    "fedex_tracking": {"pattern": ["\\d{12,14,20,34}"]},
+    "fedex_tracking": {"pattern": ["\\d{12,14}"]},
     "capost_delivered": {
         "email": ["donotreply@canadapost.postescanada.ca"],
         "subject": [
