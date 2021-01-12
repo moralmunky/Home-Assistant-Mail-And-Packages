@@ -28,6 +28,7 @@ CONF_PATH = "image_path"
 CONF_DURATION = "gif_duration"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_IMAGE_SECURITY = "image_security"
+CONF_IMAP_TIMEOUT = "imap_timeout"
 CONF_GENERATE_MP4 = "generate_mp4"
 CONF_AMAZON_FWDS = "amazon_fwds"
 
@@ -37,6 +38,7 @@ DEFAULT_PORT = "993"
 DEFAULT_FOLDER = '"INBOX"'
 DEFAULT_PATH = "/images/mail_and_packages/"
 DEFAULT_IMAGE_SECURITY = True
+DEFAULT_IMAP_TIMEOUT = 30
 DEFAULT_GIF_DURATION = 5
 DEFAULT_SCAN_INTERVAL = 5
 DEFAULT_GIF_FILE_NAME = "mail_today.gif"

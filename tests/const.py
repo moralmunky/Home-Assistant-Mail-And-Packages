@@ -8,6 +8,7 @@ FAKE_CONFIG_DATA_BAD = {
     "image_name": "mail_today.gif",
     "image_path": "/config/www/mail_and_packages/",
     "image_security": "true",
+    "imap_timeout": 30,
     "password": "suchfakemuchpassword",
     "port": 993,
     "resources": [
@@ -43,6 +44,7 @@ FAKE_CONFIG_DATA = {
     "image_name": "mail_today.gif",
     "image_path": "/config/www/mail_and_packages/",
     "image_security": True,
+    "imap_timeout": 30,
     "password": "suchfakemuchpassword",
     "port": 993,
     "resources": [
@@ -86,6 +88,7 @@ FAKE_CONFIG_DATA_NO_RND = {
     "image_name": "mail_today.gif",
     "image_path": "/config/www/mail_and_packages/",
     "image_security": False,
+    "imap_timeout": 30,
     "password": "suchfakemuchpassword",
     "port": 993,
     "resources": [
@@ -125,6 +128,7 @@ FAKE_CONFIG_DATA_MP4 = {
     "image_name": "mail_today.gif",
     "image_path": "/config/www/mail_and_packages/",
     "image_security": True,
+    "imap_timeout": 30,
     "password": "suchfakemuchpassword",
     "port": 993,
     "resources": [

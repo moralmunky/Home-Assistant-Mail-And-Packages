@@ -21,12 +21,14 @@ from .const import (
     CONF_FOLDER,
     CONF_GENERATE_MP4,
     CONF_IMAGE_SECURITY,
+    CONF_IMAP_TIMEOUT,
     CONF_PATH,
     CONF_SCAN_INTERVAL,
     DEFAULT_AMAZON_FWDS,
     DEFAULT_FOLDER,
     DEFAULT_GIF_DURATION,
     DEFAULT_IMAGE_SECURITY,
+    DEFAULT_IMAP_TIMEOUT,
     DEFAULT_PATH,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
@@ -106,6 +108,9 @@ def _get_schema_step_2(hass, data, user_input, default_dict):
             vol.Optional(
                 CONF_SCAN_INTERVAL, default=_get_default(CONF_SCAN_INTERVAL)
             ): vol.Coerce(int),
+            vol.Optional(
+                CONF_IMAP_TIMEOUT, default=_get_default(CONF_IMAP_TIMEOUT)
+            ): vol.Coerce(int),
             vol.Optional(CONF_PATH, default=_get_default(CONF_PATH)): str,
             vol.Optional(
                 CONF_DURATION, default=_get_default(CONF_DURATION)
@@ -124,7 +129,7 @@ def _get_schema_step_2(hass, data, user_input, default_dict):
 class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Mail and Packages."""
 
-    VERSION = 2
+    VERSION = 3
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
@@ -206,6 +211,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             CONF_PATH: self.hass.config.path() + DEFAULT_PATH,
             CONF_DURATION: DEFAULT_GIF_DURATION,
             CONF_IMAGE_SECURITY: DEFAULT_IMAGE_SECURITY,
+            CONF_IMAP_TIMEOUT: DEFAULT_IMAP_TIMEOUT,
             CONF_AMAZON_FWDS: DEFAULT_AMAZON_FWDS,
             CONF_GENERATE_MP4: False,
         }

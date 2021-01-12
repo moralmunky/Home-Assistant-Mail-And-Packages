@@ -27,6 +27,7 @@
           "image_path": "Image Path",
           "gif_duration": "Image Duration (seconds)",
           "image_security": "Random Image Filename",
+          "imap_timeout": "Time in seconds before connection timeout",
           "generate_mp4": "Create mp4 from images",
           "amazon_fwds": "Amazon fowarded email addresses"
         },
@@ -60,6 +61,7 @@
           "image_path": "Image Path",
           "gif_duration": "Image Duration (seconds)",
           "image_security": "Random Image Filename",
+          "imap_timeout": "Time in seconds before connection timeout",
           "generate_mp4": "Create mp4 from images",
           "amazon_fwds": "Amazon fowarded email addresses"
         },

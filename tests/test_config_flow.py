@@ -33,6 +33,7 @@ from tests.const import FAKE_CONFIG_DATA
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -67,6 +68,7 @@ from tests.const import FAKE_CONFIG_DATA
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -210,6 +212,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -244,6 +247,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -330,6 +334,7 @@ async def test_form_invalid_ffmpeg(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -364,6 +369,7 @@ async def test_form_invalid_ffmpeg(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -450,6 +456,7 @@ async def test_form_invalid_path(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -484,6 +491,7 @@ async def test_form_invalid_path(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -579,6 +587,7 @@ async def test_form_index_error(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -613,6 +622,7 @@ async def test_form_index_error(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -708,6 +718,7 @@ async def test_form_index_error_2(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -742,6 +753,7 @@ async def test_form_index_error_2(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -877,6 +889,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -911,6 +924,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -1069,6 +1083,7 @@ async def test_options_flow_connection_error(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -1103,6 +1118,7 @@ async def test_options_flow_connection_error(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -1200,6 +1216,7 @@ async def test_options_flow_invalid_ffmpeg(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -1234,6 +1251,7 @@ async def test_options_flow_invalid_ffmpeg(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -1331,6 +1349,7 @@ async def test_options_flow_invalid_path(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -1365,6 +1384,7 @@ async def test_options_flow_invalid_path(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -1463,6 +1483,7 @@ async def test_options_flow_index_error(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -1497,6 +1518,7 @@ async def test_options_flow_index_error(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -1595,6 +1617,7 @@ async def test_options_flow_index_error_2(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
@@ -1629,6 +1652,7 @@ async def test_options_flow_index_error_2(
                 "gif_duration": 5,
                 "image_path": "/config/www/mail_and_packages/",
                 "image_security": True,
+                "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
                     "amazon_packages",
