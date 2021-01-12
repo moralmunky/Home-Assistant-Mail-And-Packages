@@ -1,5 +1,6 @@
 """ Helper functions for Mail and Packages """
 
+import collections
 import datetime
 import email
 import imaplib
@@ -150,32 +151,24 @@ def fetch(hass, config, account, data, sensor):
         prefix = sensor.split("_")[0]
         delivering = fetch(hass, config, account, data, f"{prefix}_delivering")
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
-        total = 0
-        if delivered in data and delivering in data:
-            total = delivering + delivered
-        count[sensor] = total
+        count[sensor] = delivering + delivered
     elif "_delivering" in sensor:
         prefix = sensor.split("_")[0]
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
-        tracking = prefix + "_tracking"
         info = get_count(account, sensor, True)
-        total = info[const.ATTR_COUNT]
-        if delivered in data:
-            total = total - delivered
-        total = max(0, total)
-        count[sensor] = total
-        count[tracking] = info[const.ATTR_TRACKING]
+        count[sensor] = max(0, info[const.ATTR_COUNT] - delivered)
+        count[f"{prefix}_tracking"] = info[const.ATTR_TRACKING]
     elif sensor == "zpackages_delivered":
         count[sensor] = 0  # initialize the variable
         for shipper in const.SHIPPERS:
             delivered = f"{shipper}_delivered"
-            if delivered in data and delivered != sensor:
+            if delivered != sensor:
                 count[sensor] += fetch(hass, config, account, data, delivered)
     elif sensor == "zpackages_transit":
         total = 0
         for shipper in const.SHIPPERS:
             delivering = f"{shipper}_delivering"
-            if delivering in data and delivering != sensor:
+            if delivering != sensor:
                 total += fetch(hass, config, account, data, delivering)
         count[sensor] = max(0, total)
     elif sensor == "mail_updated":
@@ -186,6 +179,7 @@ def fetch(hass, config, account, data, sensor):
         ]
 
     data.update(count)
+    _LOGGER.debug("Sensor: %s Count: %s", sensor, str(count[sensor]))
     return count[sensor]
 
 
@@ -227,7 +221,7 @@ def get_formatted_date():
     today = datetime.datetime.today().strftime("%d-%b-%Y")
     #
     # for testing
-    # today = '06-May-2020'
+    # today = "11-Jan-2021"
     #
     return today
 
