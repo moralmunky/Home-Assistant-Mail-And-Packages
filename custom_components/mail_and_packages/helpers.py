@@ -150,21 +150,13 @@ def fetch(hass, config, account, data, sensor):
         prefix = sensor.split("_")[0]
         delivering = fetch(hass, config, account, data, f"{prefix}_delivering")
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
-        total = 0
-        if delivered in data and delivering in data:
-            total = delivering + delivered
-        count[sensor] = total
+        count[sensor] = delivering + delivered
     elif "_delivering" in sensor:
         prefix = sensor.split("_")[0]
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
-        tracking = prefix + "_tracking"
         info = get_count(account, sensor, True)
-        total = info[const.ATTR_COUNT]
-        if delivered in data:
-            total = total - delivered
-        total = max(0, total)
-        count[sensor] = total
-        count[tracking] = info[const.ATTR_TRACKING]
+        count[sensor] = max(0, info[const.ATTR_COUNT] - delivered)
+        count[f"{prefix}_tracking"] = info[const.ATTR_TRACKING]
     elif sensor == "zpackages_delivered":
         count[sensor] = 0  # initialize the variable
         for shipper in const.SHIPPERS:
@@ -186,6 +178,7 @@ def fetch(hass, config, account, data, sensor):
         ]
 
     data.update(count)
+    _LOGGER.debug("Sensor: %s Count: %s", sensor, str(count[sensor]))
     return count[sensor]
 
 
@@ -227,7 +220,7 @@ def get_formatted_date():
     today = datetime.datetime.today().strftime("%d-%b-%Y")
     #
     # for testing
-    # today = '06-May-2020'
+    # today = "11-Jan-2021"
     #
     return today
 
@@ -585,7 +578,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     if const.ATTR_PATTERN in const.SENSOR_DATA[pattern].keys():
         track = const.SENSOR_DATA[pattern][const.ATTR_PATTERN][0]
 
-    if track is not None and count > 0:
+    if track is not None and get_tracking_num and count > 0:
         tracking = get_tracking(data[0], account, track)
 
     if len(tracking) > 0:
