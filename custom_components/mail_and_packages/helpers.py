@@ -161,13 +161,13 @@ def fetch(hass, config, account, data, sensor):
         count[sensor] = 0  # initialize the variable
         for shipper in const.SHIPPERS:
             delivered = f"{shipper}_delivered"
-            if delivered != sensor:
+            if delivered in data and delivered != sensor:
                 count[sensor] += fetch(hass, config, account, data, delivered)
     elif sensor == "zpackages_transit":
         total = 0
         for shipper in const.SHIPPERS:
             delivering = f"{shipper}_delivering"
-            if delivering != sensor:
+            if delivering in data and delivering != sensor:
                 total += fetch(hass, config, account, data, delivering)
         count[sensor] = max(0, total)
     elif sensor == "mail_updated":
