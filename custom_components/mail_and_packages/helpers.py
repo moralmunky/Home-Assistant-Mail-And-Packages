@@ -1,6 +1,5 @@
 """ Helper functions for Mail and Packages """
 
-import collections
 import datetime
 import email
 import imaplib
