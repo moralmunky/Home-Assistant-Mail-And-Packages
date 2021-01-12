@@ -33,7 +33,7 @@ async def async_setup_entry(hass, config_entry):
 
     async def async_update_data():
         """Fetch data """
-        async with async_timeout.timeout(30):
+        async with async_timeout.timeout(config.get(const.CONF_IMAP_TIMEOUT)):
             return await hass.async_add_executor_job(process_emails, hass, config)
 
     coordinator = DataUpdateCoordinator(
@@ -88,7 +88,7 @@ async def async_migrate_entry(hass, config_entry):
     """Migrate an old config entry."""
     version = config_entry.version
 
-    # 1 -> 2: Migrate format
+    # 1 -> 3: Migrate format
     if version == 1:
         _LOGGER.debug("Migrating from version %s", version)
         data = config_entry.data.copy()
@@ -98,8 +98,22 @@ async def async_migrate_entry(hass, config_entry):
                 data[const.CONF_AMAZON_FWDS] = data[const.CONF_AMAZON_FWDS].split(",")
         else:
             _LOGGER.warn("Missing configuration data: %s", const.CONF_AMAZON_FWDS)
+
+        if const.CONF_IMAP_TIMEOUT not in data.keys():
+            data[const.CONF_IMAP_TIMEOUT] = const.DEFAULT_IMAP_TIMEOUT
         hass.config_entries.async_update_entry(config_entry, data=data)
-        config_entry.version = 2
-        _LOGGER.debug("Migration to version %s complete", config_entry.version)
+        config_entry.version = 3
+
+    # 2 -> 3: Add missing default
+    elif version == 2:
+        _LOGGER.debug("Migrating from version %s", version)
+        data = config_entry.data.copy()
+
+        if const.CONF_IMAP_TIMEOUT not in data.keys():
+            data[const.CONF_IMAP_TIMEOUT] = const.DEFAULT_IMAP_TIMEOUT
+        hass.config_entries.async_update_entry(config_entry, data=data)
+        config_entry.version = 3
+
+    _LOGGER.debug("Migration to version %s complete", config_entry.version)
 
     return True
