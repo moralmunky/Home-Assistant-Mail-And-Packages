@@ -660,7 +660,7 @@ def find_text(sdata, account, search):
                     _LOGGER.debug(
                         "Found (%s) in email %s times.", search, str(len(found))
                     )
-                    count = len(found)
+                    count += len(found)
 
     _LOGGER.debug("Search for (%s) count results: %s", search, count)
     return count
