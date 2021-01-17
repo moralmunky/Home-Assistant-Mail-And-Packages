@@ -1,7 +1,6 @@
 """Adds config flow for Mail and Packages."""
 
 import logging
-from collections import OrderedDict
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -34,7 +33,7 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
-from .helpers import _check_ffmpeg, _test_login, _validate_path, get_resources, login
+from .helpers import _check_ffmpeg, _test_login, get_resources, login
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -111,13 +110,9 @@ def _get_schema_step_2(hass, data, user_input, default_dict):
             vol.Optional(
                 CONF_IMAP_TIMEOUT, default=_get_default(CONF_IMAP_TIMEOUT)
             ): vol.Coerce(int),
-            vol.Optional(CONF_PATH, default=_get_default(CONF_PATH)): str,
             vol.Optional(
                 CONF_DURATION, default=_get_default(CONF_DURATION)
             ): vol.Coerce(int),
-            vol.Optional(
-                CONF_IMAGE_SECURITY, default=_get_default(CONF_IMAGE_SECURITY)
-            ): bool,
             vol.Optional(
                 CONF_GENERATE_MP4, default=_get_default(CONF_GENERATE_MP4)
             ): bool,
@@ -177,25 +172,17 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             user_input[CONF_AMAZON_FWDS] = user_input[CONF_AMAZON_FWDS].split(",")
             self._data.update(user_input)
-            valid = await _validate_path(user_input[CONF_PATH])
-            if valid:
-                if user_input[CONF_GENERATE_MP4]:
-                    valid = await _check_ffmpeg()
-                else:
-                    valid = True
-
-                if valid:
-                    if user_input[CONF_FOLDER] is not None:
-                        if not user_input[CONF_PATH].endswith("/"):
-                            user_input[CONF_PATH] += "/"
-                            self._data.update(user_input)
-                    return self.async_create_entry(
-                        title=self._data[CONF_HOST], data=self._data
-                    )
-                else:
-                    self._errors["base"] = "ffmpeg_not_found"
+            if user_input[CONF_GENERATE_MP4]:
+                valid = await _check_ffmpeg()
             else:
-                self._errors["base"] = "invalid_path"
+                valid = True
+
+            if valid:
+                return self.async_create_entry(
+                    title=self._data[CONF_HOST], data=self._data
+                )
+            else:
+                self._errors["base"] = "ffmpeg_not_found"
 
             return await self._show_config_2(user_input)
 
@@ -271,25 +258,16 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             user_input[CONF_AMAZON_FWDS] = user_input[CONF_AMAZON_FWDS].split(",")
             self._data.update(user_input)
-            valid = await _validate_path(user_input[CONF_PATH])
+
+            if user_input[CONF_GENERATE_MP4]:
+                valid = await _check_ffmpeg()
+            else:
+                valid = True
 
             if valid:
-                if user_input[CONF_GENERATE_MP4]:
-                    valid = await _check_ffmpeg()
-                else:
-                    valid = True
-
-                if valid:
-                    if user_input[CONF_FOLDER] is not None:
-                        if not user_input[CONF_PATH].endswith("/"):
-                            user_input[CONF_PATH] += "/"
-                            self._data.update(user_input)
-
-                    return self.async_create_entry(title="", data=self._data)
-                else:
-                    self._errors["base"] = "ffmpeg_not_found"
+                return self.async_create_entry(title="", data=self._data)
             else:
-                self._errors["base"] = "invalid_path"
+                self._errors["base"] = "ffmpeg_not_found"
 
             return await self._show_step_options_2(user_input)
 

@@ -7,7 +7,6 @@ Configuration code contribution from @firstof9 https://github.com/firstof9/
 import logging
 
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
-from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity
 
 from . import const
@@ -23,6 +22,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     for variable in resources:
         sensors.append(PackagesSensor(entry, variable, coordinator, unique_id))
+
+    for variable in const.IMAGE_SENSORS:
+        sensors.append(ImagePathSensors(hass, entry, variable, coordinator, unique_id))
 
     async_add_entities(sensors, False)
 
@@ -55,9 +57,7 @@ class PackagesSensor(Entity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        value = self.coordinator.data[self.type]
-        self.data = self.coordinator.data
-        return value
+        return self.coordinator.data[self.type]
 
     @property
     def unit_of_measurement(self):
@@ -92,6 +92,88 @@ class PackagesSensor(Entity):
             attr[const.ATTR_IMAGE] = self.data[const.ATTR_IMAGE_NAME]
         elif "_delivering" in self.type and tracking in self.data.keys():
             attr[const.ATTR_TRACKING_NUM] = self.data[tracking]
+        return attr
+
+    async def async_update(self):
+        """Update the entity.
+
+        Only used by the generic entity update service.
+        """
+        await self.coordinator.async_request_refresh()
+
+    async def async_added_to_hass(self):
+        """When entity is added to hass."""
+        self.async_on_remove(
+            self.coordinator.async_add_listener(self.async_write_ha_state)
+        )
+
+
+class ImagePathSensors(Entity):
+    """ Represntation of a sensor """
+
+    def __init__(self, hass, config, sensor_type, coordinator, unique_id):
+        """ Initialize the sensor """
+        self.hass = hass
+        self.coordinator = coordinator
+        self._config = config
+        self._name = const.IMAGE_SENSORS[sensor_type][const.SENSOR_NAME]
+        self._icon = const.IMAGE_SENSORS[sensor_type][const.SENSOR_ICON]
+        self._unit_of_measurement = const.IMAGE_SENSORS[sensor_type][const.SENSOR_UNIT]
+        self.type = sensor_type
+        self._host = config.data[CONF_HOST]
+        self._unique_id = unique_id
+        self._image = self.coordinator.data[const.ATTR_IMAGE_NAME]
+
+    @property
+    def unique_id(self):
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self._host}_{self._name}_{self._unique_id}"
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        if self.type == "usps_mail_image_system_path":
+            return f"{self.hass.config.path()}/{self._config.data[const.CONF_PATH]}"
+        elif self.type == "usps_mail_image_url":
+            if self.hass.config.external_url is None:
+                _LOGGER.warn("External URL not set in configuration.")
+                return f"{self.hass.config.internal_url}/local/mail_and_packages/{self._image}"
+            return (
+                f"{self.hass.config.external_url}/local/mail_and_packages/{self._image}"
+            )
+        else:
+            return None
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity, if any."""
+        return self._unit_of_measurement
+
+    @property
+    def icon(self):
+        """Return the unit of measurement."""
+        return self._icon
+
+    @property
+    def should_poll(self):
+        """No need to poll. Coordinator notifies entity of updates."""
+        return False
+
+    @property
+    def available(self):
+        """Return if entity is available."""
+        return self.coordinator.last_update_success
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+
         return attr
 
     async def async_update(self):

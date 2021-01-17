@@ -1,6 +1,6 @@
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.3.0-b32"
+VERSION = "0.3.0-b33"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 DATA = "data"
@@ -267,6 +267,20 @@ SENSOR_TYPES = {
         "Mail Packages In Transit",
         "package(s)",
         "mdi:truck-delivery",
+    ],
+}
+
+# Name, unit of measure, icon
+IMAGE_SENSORS = {
+    "usps_mail_image_system_path": [
+        "Mail Image System Path",
+        None,
+        "mdi:folder-multiple-image",
+    ],
+    "usps_mail_image_url": [
+        "Mail Image URL",
+        None,
+        "mdi:link-variant",
     ],
 }
 

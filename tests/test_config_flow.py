@@ -7,11 +7,7 @@ from homeassistant import config_entries, setup
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import DOMAIN
-from custom_components.mail_and_packages.helpers import (
-    _check_ffmpeg,
-    _test_login,
-    _validate_path,
-)
+from custom_components.mail_and_packages.helpers import _check_ffmpeg, _test_login
 from tests.const import FAKE_CONFIG_DATA
 
 
@@ -31,8 +27,6 @@ from tests.const import FAKE_CONFIG_DATA
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -66,8 +60,6 @@ from tests.const import FAKE_CONFIG_DATA
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -114,9 +106,6 @@ async def test_form(
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
-    ), patch(
-        "custom_components.mail_and_packages.config_flow._validate_path",
-        return_value=True,
     ), patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
@@ -174,9 +163,6 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
         "custom_components.mail_and_packages.config_flow._test_login",
         return_value=False,
     ), patch(
-        "custom_components.mail_and_packages.config_flow._validate_path",
-        return_value=True,
-    ), patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
     ), patch(
@@ -210,8 +196,6 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
                 "folder": '"INBOX"',
                 "generate_mp4": True,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -245,8 +229,6 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -289,9 +271,6 @@ async def test_form_invalid_ffmpeg(
         "custom_components.mail_and_packages.config_flow._test_login",
         return_value=True,
     ), patch(
-        "custom_components.mail_and_packages.config_flow._validate_path",
-        return_value=True,
-    ), patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=False,
     ), patch(
@@ -330,132 +309,8 @@ async def test_form_invalid_ffmpeg(
             {
                 "amazon_fwds": "",
                 "folder": '"INBOX"',
-                "generate_mp4": True,
-                "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                ],
-            },
-            "imap.test.email",
-            {
-                "amazon_fwds": "",
-                "host": "imap.test.email",
-                "port": 993,
-                "username": "test@test.email",
-                "password": "notarealpassword",
-                "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                ],
-            },
-        ),
-    ],
-)
-async def test_form_invalid_path(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap
-):
-    """Test we get the form."""
-    await setup.async_setup_component(hass, "persistent_notification", {})
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    assert result["type"] == "form"
-    assert result["errors"] == {}
-    # assert result["title"] == title_1
-
-    with patch(
-        "custom_components.mail_and_packages.config_flow._test_login",
-        return_value=True,
-    ), patch(
-        "custom_components.mail_and_packages.config_flow._validate_path",
-        return_value=False,
-    ), patch(
-        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
-        return_value=True,
-    ), patch(
-        "custom_components.mail_and_packages.async_setup", return_value=True
-    ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry",
-        return_value=True,
-    ) as mock_setup_entry:
-
-        result2 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
-        )
-        assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
-
-        result3 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
-        )
-
-    assert result3["type"] == "form"
-    assert result3["step_id"] == step_id_2
-    assert result3["errors"] == {"base": "invalid_path"}
-
-
-@pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
-    [
-        (
-            {
-                "host": "imap.test.email",
-                "port": "993",
-                "username": "test@test.email",
-                "password": "notarealpassword",
-            },
-            "config_2",
-            {
-                "amazon_fwds": "",
-                "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -489,8 +344,6 @@ async def test_form_invalid_path(
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -538,9 +391,6 @@ async def test_form_index_error(
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
     ), patch(
-        "custom_components.mail_and_packages.config_flow._validate_path",
-        return_value=True,
-    ), patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
     ), patch(
@@ -585,8 +435,6 @@ async def test_form_index_error(
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -620,8 +468,6 @@ async def test_form_index_error(
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -669,9 +515,6 @@ async def test_form_index_error_2(
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
     ), patch(
-        "custom_components.mail_and_packages.config_flow._validate_path",
-        return_value=True,
-    ), patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
     ), patch(
@@ -716,8 +559,6 @@ async def test_form_index_error_2(
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -751,8 +592,6 @@ async def test_form_index_error_2(
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -800,9 +639,6 @@ async def test_form_mailbox_format2(
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
     ), patch(
-        "custom_components.mail_and_packages.config_flow._validate_path",
-        return_value=True,
-    ), patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
     ), patch(
@@ -829,16 +665,6 @@ async def test_form_mailbox_format2(
     await hass.async_block_till_done()
     assert len(mock_setup.mock_calls) == 1
     assert len(mock_setup_entry.mock_calls) == 1
-
-
-async def test_valid_path():
-    result = await _validate_path(os.path.dirname(__file__))
-    assert result
-
-
-async def test_invalid_path():
-    result = await _validate_path("/should/fail")
-    assert not result
 
 
 async def test_valid_ffmpeg(test_valid_ffmpeg):
@@ -887,8 +713,6 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -922,8 +746,6 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -977,9 +799,6 @@ async def test_options_flow(
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
-    ), patch(
-        "custom_components.mail_and_packages.config_flow._validate_path",
-        return_value=True,
     ), patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
@@ -1045,9 +864,6 @@ async def test_options_flow_connection_error(
         "custom_components.mail_and_packages.config_flow._test_login",
         return_value=False,
     ), patch(
-        "custom_components.mail_and_packages.config_flow._validate_path",
-        return_value=True,
-    ), patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
     ), patch(
@@ -1081,8 +897,6 @@ async def test_options_flow_connection_error(
                 "folder": '"INBOX"',
                 "generate_mp4": True,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -1116,8 +930,6 @@ async def test_options_flow_connection_error(
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -1172,9 +984,6 @@ async def test_options_flow_invalid_ffmpeg(
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
     ), patch(
-        "custom_components.mail_and_packages.config_flow._validate_path",
-        return_value=True,
-    ), patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=False,
     ), patch(
@@ -1212,10 +1021,8 @@ async def test_options_flow_invalid_ffmpeg(
             {
                 "amazon_fwds": "",
                 "folder": '"INBOX"',
-                "generate_mp4": True,
+                "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -1249,141 +1056,6 @@ async def test_options_flow_invalid_ffmpeg(
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                ],
-            },
-        ),
-    ],
-)
-async def test_options_flow_invalid_path(
-    input_1,
-    step_id_2,
-    input_2,
-    title,
-    data,
-    hass,
-    mock_imap,
-):
-    """Test config flow options."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-    )
-
-    entry.add_to_hass(hass)
-
-    await setup.async_setup_component(hass, "persistent_notification", {})
-    result = await hass.config_entries.options.async_init(entry.entry_id)
-
-    assert result["type"] == "form"
-    assert result["errors"] == {}
-    # assert result["title"] == title_1
-
-    with patch(
-        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
-    ), patch(
-        "custom_components.mail_and_packages.config_flow._validate_path",
-        return_value=False,
-    ), patch(
-        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
-        return_value=True,
-    ), patch(
-        "custom_components.mail_and_packages.async_setup", return_value=True
-    ) as mock_setup, patch(
-        "custom_components.mail_and_packages.async_setup_entry",
-        return_value=True,
-    ) as mock_setup_entry:
-
-        result2 = await hass.config_entries.options.async_configure(
-            result["flow_id"], input_1
-        )
-        assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
-
-        result3 = await hass.config_entries.options.async_configure(
-            result["flow_id"], input_2
-        )
-
-    assert result3["type"] == "form"
-    assert result3["errors"] == {"base": "invalid_path"}
-
-
-@pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
-    [
-        (
-            {
-                "host": "imap.test.email",
-                "port": "993",
-                "username": "test@test.email",
-                "password": "notarealpassword",
-            },
-            "options_2",
-            {
-                "amazon_fwds": "",
-                "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                ],
-            },
-            "imap.test.email",
-            {
-                "amazon_fwds": [""],
-                "host": "imap.test.email",
-                "port": 993,
-                "username": "test@test.email",
-                "password": "notarealpassword",
-                "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -1438,9 +1110,6 @@ async def test_options_flow_index_error(
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
     ), patch(
-        "custom_components.mail_and_packages.config_flow._validate_path",
-        return_value=True,
-    ), patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
     ), patch(
@@ -1481,8 +1150,6 @@ async def test_options_flow_index_error(
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -1516,8 +1183,6 @@ async def test_options_flow_index_error(
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -1572,9 +1237,6 @@ async def test_options_flow_index_error_2(
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
     ), patch(
-        "custom_components.mail_and_packages.config_flow._validate_path",
-        return_value=True,
-    ), patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
     ), patch(
@@ -1615,8 +1277,6 @@ async def test_options_flow_index_error_2(
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -1650,8 +1310,6 @@ async def test_options_flow_index_error_2(
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                "image_path": "/config/www/mail_and_packages/",
-                "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
@@ -1705,9 +1363,6 @@ async def test_options_flow_mailbox_format2(
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
-    ), patch(
-        "custom_components.mail_and_packages.config_flow._validate_path",
-        return_value=True,
     ), patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
