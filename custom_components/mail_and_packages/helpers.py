@@ -42,14 +42,6 @@ def get_resources():
     return known_available_resources
 
 
-async def _validate_path(path):
-    """ make sure path is valid """
-    if os.path.exists(path):
-        return True
-    else:
-        return False
-
-
 async def _check_ffmpeg():
     """ check if ffmpeg is installed """
     if which("ffmpeg") is not None:
@@ -115,7 +107,7 @@ def process_emails(hass, config):
 def fetch(hass, config, account, data, sensor):
     """Fetch data for a single sensor, including any sensors it depends on."""
 
-    img_out_path = os.path.join(hass.config.path(), "/www/", const.DOMAIN)
+    img_out_path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
     gif_duration = config.get(const.CONF_DURATION)
     generate_mp4 = config.get(const.CONF_GENERATE_MP4)
     amazon_fwds = config.get(const.CONF_AMAZON_FWDS)

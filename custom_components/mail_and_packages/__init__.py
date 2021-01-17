@@ -37,18 +37,21 @@ async def async_setup_entry(hass, config_entry):
         ISSUE_URL,
     )
     hass.data.setdefault(DOMAIN, {})
+    updated_config = config_entry.data.copy()
 
     # Set default image path
     if CONF_PATH not in config_entry.data.keys():
-        config_entry.data[CONF_PATH] = "www/mail_and_packages/"
+        updated_config[CONF_PATH] = "www/mail_and_packages/"
     # Set image security always on
     if CONF_IMAGE_SECURITY not in config_entry.data.keys():
-        config_entry.data[CONF_IMAGE_SECURITY] = True
+        updated_config[CONF_IMAGE_SECURITY] = True
 
     # Force path update
     if config_entry.data[CONF_PATH] != "www/mail_and_packages/":
         updated_config = config_entry.data.copy()
         updated_config[CONF_PATH] = "www/mail_and_packages/"
+
+    if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(config_entry, data=updated_config)
 
     config_entry.options = config_entry.data
@@ -128,7 +131,7 @@ async def async_migrate_entry(hass, config_entry):
         updated_config[CONF_PATH] = "www/mail_and_packages/"
 
         # Always on image security
-        if not config_entry[CONF_IMAGE_SECURITY]:
+        if not config_entry.data[CONF_IMAGE_SECURITY]:
             updated_config[CONF_IMAGE_SECURITY] = True
 
         if updated_config != config_entry.data:

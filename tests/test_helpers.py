@@ -29,7 +29,7 @@ from custom_components.mail_and_packages.helpers import (
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD, FAKE_CONFIG_DATA_NO_RND
 
 
-async def test_unload_entry(hass, mock_update):
+async def test_unload_entry(hass, mock_update, mock_copy_overlays):
     """Test unloading entities. """
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -41,7 +41,7 @@ async def test_unload_entry(hass, mock_update):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 22
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 24
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -57,6 +57,7 @@ async def test_setup_entry(
     mock_osmakedir,
     mock_listdir,
     mock_update_time,
+    mock_copy_overlays,
 ):
     """Test settting up entities. """
     entry = MockConfigEntry(
@@ -69,7 +70,7 @@ async def test_setup_entry(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 26
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 28
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -119,48 +120,24 @@ async def test_process_emails(
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
-        data=FAKE_CONFIG_DATA_NO_RND,
+        data=FAKE_CONFIG_DATA,
     )
 
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    config = entry.data
-    assert config == FAKE_CONFIG_DATA_NO_RND
+    config = entry.data.copy()
+    assert config == FAKE_CONFIG_DATA
     result = process_emails(hass, config)
-    assert result == {
-        "amazon_delivered": 0,
-        "amazon_hub": 0,
-        "amazon_hub_code": [],
-        "amazon_order": [],
-        "amazon_packages": 0,
-        "capost_delivered": 0,
-        "capost_delivering": 0,
-        "capost_packages": 0,
-        "capost_tracking": "",
-        "dhl_delivered": 0,
-        "dhl_delivering": 0,
-        "dhl_packages": 0,
-        "dhl_tracking": [],
-        "fedex_delivered": 0,
-        "fedex_delivering": 0,
-        "fedex_packages": 0,
-        "fedex_tracking": [],
-        "image_name": "mail_today.gif",
-        "mail_updated": "Sep-23-2020 10:28 AM",
-        "ups_delivered": 0,
-        "ups_delivering": 0,
-        "ups_packages": 0,
-        "ups_tracking": [],
-        "usps_delivered": 0,
-        "usps_delivering": 0,
-        "usps_mail": 0,
-        "usps_packages": 0,
-        "usps_tracking": [],
-        "zpackages_delivered": 0,
-        "zpackages_transit": 0,
-    }
+    assert result["mail_updated"] == "Sep-23-2020 10:28 AM"
+    assert result["zpackages_delivered"] == 0
+    assert result["zpackages_transit"] == 0
+    assert result["amazon_delivered"] == 0
+    assert result["amazon_hub"] == 0
+    assert result["amazon_packages"] == 0
+    assert result["amazon_order"] == []
+    assert result["amazon_hub_code"] == []
 
 
 async def test_process_emails_bad(hass, mock_imap_no_email):

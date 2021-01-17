@@ -33,7 +33,7 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
-from .helpers import _check_ffmpeg, _test_login, _validate_path, get_resources, login
+from .helpers import _check_ffmpeg, _test_login, get_resources, login
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -106,6 +106,9 @@ def _get_schema_step_2(hass, data, user_input, default_dict):
             vol.Optional(CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS)): str,
             vol.Optional(
                 CONF_SCAN_INTERVAL, default=_get_default(CONF_SCAN_INTERVAL)
+            ): vol.Coerce(int),
+            vol.Optional(
+                CONF_IMAP_TIMEOUT, default=_get_default(CONF_IMAP_TIMEOUT)
             ): vol.Coerce(int),
             vol.Optional(
                 CONF_DURATION, default=_get_default(CONF_DURATION)
