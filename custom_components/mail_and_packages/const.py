@@ -270,6 +270,20 @@ SENSOR_TYPES = {
     ],
 }
 
+# Name, unit of measure, icon
+IMAGE_SENSORS = {
+    "usps_mail_image_system_path": [
+        "Mail Image System Path",
+        None,
+        "mdi:folder-multiple-image",
+    ],
+    "usps_mail_image_url": [
+        "Mail Image URL",
+        None,
+        "mdi:link-variant",
+    ],
+}
+
 # Sensor Index
 SENSOR_NAME = 0
 SENSOR_UNIT = 1

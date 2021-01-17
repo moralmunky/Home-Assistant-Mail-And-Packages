@@ -86,7 +86,6 @@ def process_emails(hass, config):
     pwd = config.get(CONF_PASSWORD)
     folder = config.get(const.CONF_FOLDER)
     resources = config.get(CONF_RESOURCES)
-    image_security = config.get(const.CONF_IMAGE_SECURITY)
 
     # Login to email server and select the folder
     account = login(host, port, user, pwd)
@@ -102,11 +101,7 @@ def process_emails(hass, config):
 
     # Create image file name dict container
     _image = {}
-    if image_security:
-        image_name = str(uuid.uuid4()) + ".gif"
-    else:
-        image_name = const.DEFAULT_GIF_FILE_NAME
-
+    image_name = f"{str(uuid.uuid4())}.gif"
     _image[const.ATTR_IMAGE_NAME] = image_name
     data.update(_image)
 
@@ -120,7 +115,7 @@ def process_emails(hass, config):
 def fetch(hass, config, account, data, sensor):
     """Fetch data for a single sensor, including any sensors it depends on."""
 
-    img_out_path = config.get(const.CONF_PATH)
+    img_out_path = os.path.join(hass.config.path(), "/www/", const.DOMAIN)
     gif_duration = config.get(const.CONF_DURATION)
     generate_mp4 = config.get(const.CONF_GENERATE_MP4)
     amazon_fwds = config.get(const.CONF_AMAZON_FWDS)
@@ -440,6 +435,7 @@ def _generate_mp4(path, image_file):
         cleanup_images(os.path.split(mp4_file))
         _LOGGER.debug("Removing old mp4: %s", mp4_file)
 
+    # TODO: find a way to call ffmpeg the right way from HA
     subprocess.call(
         [
             "ffmpeg",
