@@ -7,7 +7,7 @@ Configuration code contribution from @firstof9 https://github.com/firstof9/
 import logging
 
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import const
 
@@ -29,7 +29,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities(sensors, False)
 
 
-class PackagesSensor(Entity):
+class PackagesSensor(CoordinatorEntity):
     """ Represntation of a sensor """
 
     def __init__(self, config, sensor_type, coordinator, unique_id):
@@ -85,13 +85,14 @@ class PackagesSensor(Entity):
         attr = {}
         attr[const.ATTR_SERVER] = self._host
         tracking = f"{self.type.split('_')[0]}_tracking"
+        data = self.coordinator.data
 
         if "Amazon" in self._name:
-            attr[const.ATTR_ORDER] = self.data[const.AMAZON_ORDER]
+            attr[const.ATTR_ORDER] = data[const.AMAZON_ORDER]
         elif "Mail USPS Mail" == self._name:
-            attr[const.ATTR_IMAGE] = self.data[const.ATTR_IMAGE_NAME]
+            attr[const.ATTR_IMAGE] = data[const.ATTR_IMAGE_NAME]
         elif "_delivering" in self.type and tracking in self.data.keys():
-            attr[const.ATTR_TRACKING_NUM] = self.data[tracking]
+            attr[const.ATTR_TRACKING_NUM] = data[tracking]
         return attr
 
     async def async_update(self):
@@ -108,7 +109,7 @@ class PackagesSensor(Entity):
         )
 
 
-class ImagePathSensors(Entity):
+class ImagePathSensors(CoordinatorEntity):
     """ Represntation of a sensor """
 
     def __init__(self, hass, config, sensor_type, coordinator, unique_id):
@@ -137,15 +138,17 @@ class ImagePathSensors(Entity):
     @property
     def state(self):
         """Return the state of the sensor."""
+        image = self.coordinator.data[const.ATTR_IMAGE_NAME]
+
         if self.type == "usps_mail_image_system_path":
-            return f"{self.hass.config.path()}/{self._config.data[const.CONF_PATH]}{self._image}"
+            return (
+                f"{self.hass.config.path()}/{self._config.data[const.CONF_PATH]}{image}"
+            )
         elif self.type == "usps_mail_image_url":
             if self.hass.config.external_url is None:
                 _LOGGER.warn("External URL not set in configuration.")
-                return f"{self.hass.config.internal_url}/local/mail_and_packages/{self._image}"
-            return (
-                f"{self.hass.config.external_url}/local/mail_and_packages/{self._image}"
-            )
+                return f"{self.hass.config.internal_url}local/mail_and_packages/{image}"
+            return f"{self.hass.config.external_url}local/mail_and_packages/{image}"
         else:
             return None
 
@@ -173,7 +176,6 @@ class ImagePathSensors(Entity):
     def device_state_attributes(self):
         """Return device specific state attributes."""
         attr = {}
-
         return attr
 
     async def async_update(self):

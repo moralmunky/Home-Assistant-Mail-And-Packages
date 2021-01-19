@@ -112,14 +112,26 @@ async def async_migrate_entry(hass, config_entry):
     # 1 -> 3: Migrate format
     if version == 1:
         _LOGGER.debug("Migrating from version %s", version)
-        data = config_entry.data.copy()
+        updated_config = config_entry.data.copy()
 
-        if CONF_AMAZON_FWDS in data.keys():
-            if not isinstance(data[CONF_AMAZON_FWDS], list):
-                data[CONF_AMAZON_FWDS] = data[CONF_AMAZON_FWDS].split(",")
+        if CONF_AMAZON_FWDS in updated_config.keys():
+            if not isinstance(updated_config[CONF_AMAZON_FWDS], list):
+                updated_config[CONF_AMAZON_FWDS] = updated_config[
+                    CONF_AMAZON_FWDS
+                ].split(",")
         else:
             _LOGGER.warn("Missing configuration data: %s", CONF_AMAZON_FWDS)
-        hass.config_entries.async_update_entry(config_entry, data=data)
+
+        # Force path change
+        updated_config[CONF_PATH] = "www/mail_and_packages/"
+
+        # Always on image security
+        if not config_entry.data[CONF_IMAGE_SECURITY]:
+            updated_config[CONF_IMAGE_SECURITY] = True
+
+        if updated_config != config_entry.data:
+            hass.config_entries.async_update_entry(config_entry, data=updated_config)
+
         config_entry.version = 3
         _LOGGER.debug("Migration to version %s complete", config_entry.version)
 
