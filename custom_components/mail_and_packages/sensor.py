@@ -138,7 +138,7 @@ class ImagePathSensors(Entity):
     def state(self):
         """Return the state of the sensor."""
         if self.type == "usps_mail_image_system_path":
-            return f"{self.hass.config.path()}/{self._config.data[const.CONF_PATH]}"
+            return f"{self.hass.config.path()}/{self._config.data[const.CONF_PATH]}{self._image}"
         elif self.type == "usps_mail_image_url":
             if self.hass.config.external_url is None:
                 _LOGGER.warn("External URL not set in configuration.")
