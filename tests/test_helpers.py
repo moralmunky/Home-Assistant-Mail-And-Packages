@@ -26,7 +26,12 @@ from custom_components.mail_and_packages.helpers import (
     selectfolder,
     update_time,
 )
-from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD, FAKE_CONFIG_DATA_NO_RND
+from tests.const import (
+    FAKE_CONFIG_DATA,
+    FAKE_CONFIG_DATA_BAD,
+    FAKE_CONFIG_DATA_CORRECTED,
+    FAKE_CONFIG_DATA_NO_RND,
+)
 
 
 async def test_unload_entry(hass, mock_update, mock_copy_overlays):
@@ -41,7 +46,7 @@ async def test_unload_entry(hass, mock_update, mock_copy_overlays):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 24
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 28
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -128,7 +133,7 @@ async def test_process_emails(
     await hass.async_block_till_done()
 
     config = entry.data.copy()
-    assert config == FAKE_CONFIG_DATA
+    assert config == FAKE_CONFIG_DATA_CORRECTED
     result = process_emails(hass, config)
     assert result["mail_updated"] == "Sep-23-2020 10:28 AM"
     assert result["zpackages_delivered"] == 0

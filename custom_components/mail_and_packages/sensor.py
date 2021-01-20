@@ -57,7 +57,10 @@ class PackagesSensor(CoordinatorEntity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        return self.coordinator.data[self.type]
+        if self.type in self.coordinator.data.keys():
+            return self.coordinator.data[self.type]
+        else:
+            return None
 
     @property
     def unit_of_measurement(self):
@@ -145,10 +148,17 @@ class ImagePathSensors(CoordinatorEntity):
                 f"{self.hass.config.path()}/{self._config.data[const.CONF_PATH]}{image}"
             )
         elif self.type == "usps_mail_image_url":
-            if self.hass.config.external_url is None:
+            if (
+                self.hass.config.external_url is None
+                and self.hass.config.internal_url is None
+            ):
+                return None
+            elif self.hass.config.external_url is None:
                 _LOGGER.warn("External URL not set in configuration.")
-                return f"{self.hass.config.internal_url.lstrip('/')}/local/mail_and_packages/{image}"
-            return f"{self.hass.config.external_url.lstrip('/')}/local/mail_and_packages/{image}"
+                url = self.hass.config.internal_url
+                return f"{url.lstrip('/')}/local/mail_and_packages/{image}"
+            url = self.hass.config.external_url
+            return f"{url.lstrip('/')}/local/mail_and_packages/{image}"
         else:
             return None
 
