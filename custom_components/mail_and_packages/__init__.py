@@ -3,7 +3,7 @@ import logging
 from datetime import timedelta
 
 import async_timeout
-from homeassistant.const import CONF_HOST
+from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
@@ -50,6 +50,9 @@ async def async_setup_entry(hass, config_entry):
     if config_entry.data[CONF_PATH] != "www/mail_and_packages/":
         updated_config = config_entry.data.copy()
         updated_config[CONF_PATH] = "www/mail_and_packages/"
+
+    # Sort the resources
+    updated_config[CONF_RESOURCES] = sorted(updated_config[CONF_RESOURCES])
 
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(config_entry, data=updated_config)

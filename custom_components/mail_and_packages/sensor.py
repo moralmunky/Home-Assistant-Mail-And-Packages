@@ -147,8 +147,8 @@ class ImagePathSensors(CoordinatorEntity):
         elif self.type == "usps_mail_image_url":
             if self.hass.config.external_url is None:
                 _LOGGER.warn("External URL not set in configuration.")
-                return f"{self.hass.config.internal_url}local/mail_and_packages/{image}"
-            return f"{self.hass.config.external_url}local/mail_and_packages/{image}"
+                return f"{self.hass.config.internal_url.lstrip('/')}/local/mail_and_packages/{image}"
+            return f"{self.hass.config.external_url.lstrip('/')}/local/mail_and_packages/{image}"
         else:
             return None
 
