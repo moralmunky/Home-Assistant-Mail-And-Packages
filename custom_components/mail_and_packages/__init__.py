@@ -42,14 +42,11 @@ async def async_setup_entry(hass, config_entry):
     # Set default image path
     if CONF_PATH not in config_entry.data.keys():
         updated_config[CONF_PATH] = "www/mail_and_packages/"
+    elif config_entry.data[CONF_PATH] != "www/mail_and_packages/":
+        updated_config[CONF_PATH] = "www/mail_and_packages/"
     # Set image security always on
     if CONF_IMAGE_SECURITY not in config_entry.data.keys():
         updated_config[CONF_IMAGE_SECURITY] = True
-
-    # Force path update
-    if config_entry.data[CONF_PATH] != "www/mail_and_packages/":
-        updated_config = config_entry.data.copy()
-        updated_config[CONF_PATH] = "www/mail_and_packages/"
 
     # Sort the resources
     updated_config[CONF_RESOURCES] = sorted(updated_config[CONF_RESOURCES])
@@ -119,9 +116,9 @@ async def async_migrate_entry(hass, config_entry):
 
         if CONF_AMAZON_FWDS in updated_config.keys():
             if not isinstance(updated_config[CONF_AMAZON_FWDS], list):
-                updated_config[CONF_AMAZON_FWDS] = updated_config[
-                    CONF_AMAZON_FWDS
-                ].split(",")
+                updated_config[CONF_AMAZON_FWDS] = [
+                    x.strip() for x in updated_config[CONF_AMAZON_FWDS].split(",")
+                ]
         else:
             _LOGGER.warn("Missing configuration data: %s", CONF_AMAZON_FWDS)
 
