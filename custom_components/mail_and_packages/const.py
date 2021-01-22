@@ -1,6 +1,6 @@
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.3.0-b36"
+VERSION = "0.3.0-b37"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 DATA = "data"
@@ -159,8 +159,8 @@ SENSOR_DATA = {
         "subject": ["has been delivered"],
     },
     "royal_delivering": {
-        "email": ["donotreply@myhermes.co.uk"],
-        "subject": ["is on its way"],
+        "email": ["no-reply@royalmail.com"],
+        "subject": ["is on its way", "to be delivered today"],
     },
     "royal_packages": {},
     "royal_tracking": {"pattern": ["[A-Za-z]{2}[0-9]{9}GB"]},
