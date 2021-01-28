@@ -64,6 +64,8 @@ async def test_setup_entry(
     mock_listdir,
     mock_update_time,
     mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
 ):
     """Test settting up entities. """
     entry = MockConfigEntry(
@@ -89,6 +91,8 @@ async def test_no_path_no_sec(
     mock_listdir,
     mock_update_time,
     mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
 ):
     """Test settting up entities. """
     entry = MockConfigEntry(
@@ -145,6 +149,8 @@ async def test_process_emails(
     mock_listdir,
     mock_update_time,
     mock_copyfile,
+    mock_hash_file,
+    mock_getctime_today,
 ):
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -495,6 +501,8 @@ async def test_amazon_fwds(
     mock_osmakedir,
     mock_listdir,
     mock_update_time,
+    mock_hash_file,
+    mock_getctime_today,
     caplog,
 ):
     """Test settting up entities. """

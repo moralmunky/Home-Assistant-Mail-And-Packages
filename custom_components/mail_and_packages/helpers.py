@@ -96,7 +96,8 @@ def process_emails(hass, config):
     # Create image file name dict container
     _image = {}
     image_name = image_file_name(hass, config)
-    _image[const.ATTR_IMAGE_NAME] = image_name
+    if image_name is not None:
+        _image[const.ATTR_IMAGE_NAME] = image_name
     data.update(_image)
 
     # Only update sensors we're intrested in
@@ -113,21 +114,18 @@ def image_file_name(hass: Any, config: Any) -> str:
     """
     image_name = None
     path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
-
+    mail_none = f"{hass.config.path()}/custom_components/{const.DOMAIN}/mail_none.gif"
     try:
-        mail_none = (
-            f"{hass.config.path()}/custom_components/{const.DOMAIN}/mail_none.gif"
-        )
         sha1 = hash_file(mail_none)
     except OSError as err:
         _LOGGER.error("Problem accessing file: %s, error returned: %s", mail_none, err)
-        return image_name
+        return mail_none
 
     for file in os.listdir(path):
         if file.endswith(".gif"):
             try:
                 created = datetime.datetime.fromtimestamp(
-                    os.path.getctime(file)
+                    os.path.getctime(os.path.join(path, file))
                 ).strftime("%d-%b-%Y")
             except OSError as err:
                 _LOGGER.error(
@@ -138,7 +136,7 @@ def image_file_name(hass: Any, config: Any) -> str:
             _LOGGER.debug("Created: %s, Today: %s", created, today)
             # If image isn't mail_none and not created today,
             # return a new filename
-            if sha1 != hash_file(file) and today != created:
+            if sha1 != hash_file(os.path.join(path, file)) and today != created:
                 image_name = f"{str(uuid.uuid4())}.gif"
             else:
                 image_name = file
