@@ -1,5 +1,6 @@
 """ Fixtures for Mail and Packages tests. """
 import imaplib
+import time
 from unittest import mock
 from unittest.mock import patch
 from tests.const import FAKE_UPDATE_DATA
@@ -817,3 +818,40 @@ def mock_copyoverlays():
     ) as mock_copyoverlays:
         mock_copyoverlays.return_value = True
         yield mock_copyoverlays
+
+
+@pytest.fixture
+def mock_hash_file():
+    """ Fixture to mock makedirs """
+    with patch(
+        "custom_components.mail_and_packages.helpers.hash_file"
+    ) as mock_hash_file:
+        mock_hash_file.side_effect = hash_side_effect
+        yield mock_hash_file
+
+
+def hash_side_effect(value):
+    if "mail_none.gif" in value:
+        return "633d7356947eec543c50b76a1852f92427f4dca9"
+    else:
+        return "133d7356947fec542c50b76b1856f92427f5dca9"
+
+
+@pytest.fixture
+def mock_getctime_today():
+    """ Fixture to mock os.path.getctime """
+    with patch(
+        "custom_components.mail_and_packages.helpers.os.path.getctime"
+    ) as mock_getctime_today:
+        mock_getctime_today.return_value = time.time()
+        yield mock_getctime_today
+
+
+@pytest.fixture
+def mock_getctime_yesterday():
+    """ Fixture to mock os.path.getctime """
+    with patch(
+        "custom_components.mail_and_packages.helpers.os.path.getctime"
+    ) as mock_getctime_yesterday:
+        mock_getctime_yesterday.return_value = time.time() - 86400
+        yield mock_getctime_yesterday
