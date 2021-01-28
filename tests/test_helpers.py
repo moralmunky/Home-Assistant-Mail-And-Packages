@@ -182,6 +182,32 @@ async def test_process_emails_bad(hass, mock_imap_no_email):
     await hass.async_block_till_done()
 
 
+async def test_process_emails_non_random(
+    hass,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copyfile,
+    mock_hash_file,
+    mock_getctime_today,
+):
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    config = entry.data
+    result = process_emails(hass, config)
+    assert result["image_name"] == "testfile.gif"
+
+
 async def test_process_emails_random(
     hass,
     mock_imap_no_email,
@@ -190,6 +216,8 @@ async def test_process_emails_random(
     mock_listdir,
     mock_update_time,
     mock_copyfile,
+    mock_hash_file,
+    mock_getctime_yesterday,
 ):
     entry = MockConfigEntry(
         domain=DOMAIN,

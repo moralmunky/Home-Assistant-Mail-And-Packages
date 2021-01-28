@@ -2,12 +2,14 @@
 
 import datetime
 import email
+import hashlib
 import imaplib
 import logging
 import os
 import quopri
 import re
 import subprocess
+from typing import Any
 import uuid
 from email.header import decode_header
 from shutil import copyfile, which
@@ -93,7 +95,7 @@ def process_emails(hass, config):
 
     # Create image file name dict container
     _image = {}
-    image_name = f"{str(uuid.uuid4())}.gif"
+    image_name = image_file_name(hass, config)
     _image[const.ATTR_IMAGE_NAME] = image_name
     data.update(_image)
 
@@ -102,6 +104,67 @@ def process_emails(hass, config):
         fetch(hass, config, account, data, sensor)
 
     return data
+
+
+def image_file_name(hass: Any, config: Any) -> str:
+    """Determine if filename is to be changed or not.
+
+    Returns filename
+    """
+    image_name = None
+    path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
+
+    try:
+        mail_none = (
+            f"{hass.config.path()}/custom_components/{const.DOMAIN}/mail_none.gif"
+        )
+        sha1 = hash_file(mail_none)
+    except OSError as err:
+        _LOGGER.error("Problem accessing file: %s, error returned: %s", mail_none, err)
+        return image_name
+
+    for file in os.listdir(path):
+        if file.endswith(".gif"):
+            try:
+                created = datetime.datetime.fromtimestamp(
+                    os.path.getctime(file)
+                ).strftime("%d-%b-%Y")
+            except OSError as err:
+                _LOGGER.error(
+                    "Problem accessing file: %s, error returned: %s", file, err
+                )
+                return image_name
+            today = get_formatted_date()
+            _LOGGER.debug("Created: %s, Today: %s", created, today)
+            # If image isn't mail_none and not created today,
+            # return a new filename
+            if sha1 != hash_file(file) and today != created:
+                image_name = f"{str(uuid.uuid4())}.gif"
+            else:
+                image_name = file
+
+    return image_name
+
+
+def hash_file(filename: str) -> str:
+    """ "This function returns the SHA-1 hash
+    of the file passed into it"""
+
+    # make a hash object
+    h = hashlib.sha1()
+
+    # open file for reading in binary mode
+    with open(filename, "rb") as file:
+
+        # loop till the end of the file
+        chunk = 0
+        while chunk != b"":
+            # read only 1024 bytes at a time
+            chunk = file.read(1024)
+            h.update(chunk)
+
+    # return the hex representation of digest
+    return h.hexdigest()
 
 
 def fetch(hass, config, account, data, sensor):
