@@ -96,8 +96,8 @@ def process_emails(hass, config):
     # Create image file name dict container
     _image = {}
     image_name = image_file_name(hass, config)
-    if image_name is not None:
-        _image[const.ATTR_IMAGE_NAME] = image_name
+    _LOGGER.debug("Image name: %s", image_name)
+    _image[const.ATTR_IMAGE_NAME] = image_name
     data.update(_image)
 
     # Only update sensors we're intrested in
@@ -119,7 +119,7 @@ def image_file_name(hass: Any, config: Any) -> str:
         sha1 = hash_file(mail_none)
     except OSError as err:
         _LOGGER.error("Problem accessing file: %s, error returned: %s", mail_none, err)
-        return mail_none
+        return "mail_none.gif"
 
     for file in os.listdir(path):
         if file.endswith(".gif"):
@@ -140,6 +140,10 @@ def image_file_name(hass: Any, config: Any) -> str:
                 image_name = f"{str(uuid.uuid4())}.gif"
             else:
                 image_name = file
+
+    # Handle no gif file found
+    if image_name is None:
+        image_name = f"{str(uuid.uuid4())}.gif"
 
     return image_name
 
