@@ -5,6 +5,7 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 import logging
+from typing import Any, Optional
 
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -45,17 +46,17 @@ class PackagesSensor(CoordinatorEntity):
         self.data = self.coordinator.data
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         """Return a unique, Home Assistant friendly identifier for this entity."""
         return f"{self._host}_{self._name}_{self._unique_id}"
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return the name of the sensor."""
         return self._name
 
     @property
-    def state(self):
+    def state(self) -> Optional[int]:
         """Return the state of the sensor."""
         if self.type in self.coordinator.data.keys():
             return self.coordinator.data[self.type]
@@ -63,27 +64,27 @@ class PackagesSensor(CoordinatorEntity):
             return None
 
     @property
-    def unit_of_measurement(self):
+    def unit_of_measurement(self) -> Optional[str]:
         """Return the unit of measurement of this entity, if any."""
         return self._unit_of_measurement
 
     @property
-    def icon(self):
+    def icon(self) -> str:
         """Return the unit of measurement."""
         return self._icon
 
     @property
-    def should_poll(self):
+    def should_poll(self) -> bool:
         """No need to poll. Coordinator notifies entity of updates."""
         return False
 
     @property
-    def available(self):
+    def available(self) -> bool:
         """Return if entity is available."""
         return self.coordinator.last_update_success
 
     @property
-    def device_state_attributes(self):
+    def device_state_attributes(self) -> Optional[str]:
         """Return device specific state attributes."""
         attr = {}
         attr[const.ATTR_SERVER] = self._host
@@ -129,17 +130,17 @@ class ImagePathSensors(CoordinatorEntity):
         self._image = self.coordinator.data[const.ATTR_IMAGE_NAME]
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         """Return a unique, Home Assistant friendly identifier for this entity."""
         return f"{self._host}_{self._name}_{self._unique_id}"
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return the name of the sensor."""
         return self._name
 
     @property
-    def state(self):
+    def state(self) -> Optional[str]:
         """Return the state of the sensor."""
         image = self.coordinator.data[const.ATTR_IMAGE_NAME]
 
@@ -163,27 +164,27 @@ class ImagePathSensors(CoordinatorEntity):
             return None
 
     @property
-    def unit_of_measurement(self):
+    def unit_of_measurement(self) -> Optional[str]:
         """Return the unit of measurement of this entity, if any."""
         return self._unit_of_measurement
 
     @property
-    def icon(self):
+    def icon(self) -> str:
         """Return the unit of measurement."""
         return self._icon
 
     @property
-    def should_poll(self):
+    def should_poll(self) -> bool:
         """No need to poll. Coordinator notifies entity of updates."""
         return False
 
     @property
-    def available(self):
+    def available(self) -> bool:
         """Return if entity is available."""
         return self.coordinator.last_update_success
 
     @property
-    def device_state_attributes(self):
+    def device_state_attributes(self) -> Optional[str]:
         """Return device specific state attributes."""
         attr = {}
         return attr

@@ -1,6 +1,7 @@
 """Adds config flow for Mail and Packages."""
 
 import logging
+from typing import Any
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -38,7 +39,7 @@ from .helpers import _check_ffmpeg, _test_login, get_resources, login
 _LOGGER = logging.getLogger(__name__)
 
 
-def _get_mailboxes(host, port, user, pwd):
+def _get_mailboxes(host: str, port: int, user: str, pwd: str) -> list:
     account = login(host, port, user, pwd)
 
     status, folderlist = account.list()
@@ -62,7 +63,7 @@ def _get_mailboxes(host, port, user, pwd):
     return mailboxes
 
 
-def _get_schema_step_1(hass, user_input, default_dict):
+def _get_schema_step_1(hass: Any, user_input: list, default_dict: list) -> Any:
     """Gets a schema using the default_dict as a backup."""
     if user_input is None:
         user_input = {}
@@ -81,7 +82,9 @@ def _get_schema_step_1(hass, user_input, default_dict):
     )
 
 
-def _get_schema_step_2(hass, data, user_input, default_dict):
+def _get_schema_step_2(
+    hass: Any, data: list, user_input: list, default_dict: list
+) -> Any:
     """Gets a schema using the default_dict as a backup."""
     if user_input is None:
         user_input = {}
