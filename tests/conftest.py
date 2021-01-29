@@ -605,6 +605,18 @@ def mock_listdir():
 
 
 @pytest.fixture
+def mock_listdir_nogif():
+    """ Fixture to mock listdir """
+    with patch("os.listdir") as mock_listdir_nogif:
+        mock_listdir_nogif.return_value = [
+            "testfile.jpg",
+            "anotherfakefile.mp4",
+            "lastfile.txt",
+        ]
+        yield mock_listdir_nogif
+
+
+@pytest.fixture
 def mock_osremove():
     """ Fixture to mock remove """
     with patch("os.remove") as mock_remove:
@@ -856,3 +868,23 @@ def mock_getctime_yesterday():
     ) as mock_getctime_yesterday:
         mock_getctime_yesterday.return_value = time.time() - 86400
         yield mock_getctime_yesterday
+
+
+@pytest.fixture
+def mock_hash_file_oserr():
+    """ Fixture to mock makedirs """
+    with patch(
+        "custom_components.mail_and_packages.helpers.hash_file"
+    ) as mock_hash_file_oserr:
+        mock_hash_file_oserr.side_effect = FileNotFoundError
+        yield mock_hash_file_oserr
+
+
+@pytest.fixture
+def mock_getctime_err():
+    """ Fixture to mock os.path.getctime """
+    with patch(
+        "custom_components.mail_and_packages.helpers.os.path.getctime"
+    ) as mock_getctime_err:
+        mock_getctime_err.side_effect = FileNotFoundError
+        yield mock_getctime_err
