@@ -240,6 +240,112 @@ async def test_process_emails_random(
     assert ".gif" in result["image_name"]
 
 
+async def test_process_nogif(
+    hass,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir_nogif,
+    mock_update_time,
+    mock_copyfile,
+    mock_hash_file,
+    mock_getctime_today,
+):
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    config = entry.data
+    result = process_emails(hass, config)
+    assert ".gif" in result["image_name"]
+
+
+async def test_process_old_image(
+    hass,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copyfile,
+    mock_hash_file,
+    mock_getctime_yesterday,
+):
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    config = entry.data
+    result = process_emails(hass, config)
+    assert ".gif" in result["image_name"]
+
+
+async def test_image_filename_oserr(
+    hass,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copyfile,
+    mock_hash_file_oserr,
+    mock_getctime_today,
+    caplog,
+):
+    """Test settting up entities. """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 28
+    assert "Problem accessing file:" in caplog.text
+
+
+async def test_image_getctime_oserr(
+    hass,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copyfile,
+    mock_hash_file,
+    mock_getctime_err,
+    caplog,
+):
+    """Test settting up entities. """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 28
+    assert "Problem accessing file:" in caplog.text
+
+
 async def test_email_search(mock_imap_search_error, caplog):
     result = email_search(mock_imap_search_error, "fake@eamil.address", "01-Jan-20")
     assert result == ("BAD", "Invalid SEARCH format")
