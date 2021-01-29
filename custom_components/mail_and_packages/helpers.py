@@ -9,7 +9,7 @@ import os
 import quopri
 import re
 import subprocess
-from typing import Any
+from typing import Any, List, Optional, Union
 import uuid
 from email.header import decode_header
 from shutil import copyfile, which
@@ -33,7 +33,7 @@ _LOGGER = logging.getLogger(__name__)
 # Config Flow Helpers
 
 
-def get_resources():
+def get_resources() -> dict:
     """Resource selection schema."""
 
     known_available_resources = {
@@ -44,7 +44,7 @@ def get_resources():
     return known_available_resources
 
 
-async def _check_ffmpeg():
+async def _check_ffmpeg() -> bool:
     """ check if ffmpeg is installed """
     if which("ffmpeg") is not None:
         return True
@@ -52,7 +52,7 @@ async def _check_ffmpeg():
         return False
 
 
-async def _test_login(host, port, user, pwd):
+async def _test_login(host, port, user, pwd) -> bool:
     """function used to login"""
     # Attempt to catch invalid mail server hosts
     try:
@@ -72,7 +72,7 @@ async def _test_login(host, port, user, pwd):
 # Email Data helpers
 
 
-def process_emails(hass, config):
+def process_emails(hass: Any, config: Any) -> dict:
     """ Process emails and return value """
     host = config.get(CONF_HOST)
     port = config.get(CONF_PORT)
@@ -114,7 +114,7 @@ def image_file_name(hass: Any, config: Any) -> str:
     """
     image_name = None
     path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
-    mail_none = f"{hass.config.path()}/custom_components/{const.DOMAIN}/mail_none.gif"
+    mail_none = f"{os.path.dirname(__file__)}/mail_none.gif"
     try:
         sha1 = hash_file(mail_none)
     except OSError as err:
@@ -169,7 +169,7 @@ def hash_file(filename: str) -> str:
     return h.hexdigest()
 
 
-def fetch(hass, config, account, data, sensor):
+def fetch(hass: Any, config: Any, account: Any, data: dict, sensor: str):
     """Fetch data for a single sensor, including any sensors it depends on."""
 
     img_out_path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
@@ -267,7 +267,7 @@ def selectfolder(account, folder):
         _LOGGER.error("Error selecting folder: %s", str(err))
 
 
-def get_formatted_date():
+def get_formatted_date() -> str:
     """Returns today in specific format"""
     today = datetime.datetime.today().strftime("%d-%b-%Y")
     #
@@ -277,14 +277,14 @@ def get_formatted_date():
     return today
 
 
-def update_time():
+def update_time() -> str:
     """gets update time"""
     updated = datetime.datetime.now().strftime("%b-%d-%Y %I:%M %p")
 
     return updated
 
 
-def email_search(account, address, date, subject=None):
+def email_search(account: Any, address: list, date: str, subject: str = None) -> tuple:
     """Search emails with from, subject, senton date.
 
     Returns a tuple
@@ -325,7 +325,7 @@ def email_search(account, address, date, subject=None):
     return value
 
 
-def email_fetch(account, num, type="(RFC822)"):
+def email_fetch(account: Any, num: int, type: str = "(RFC822)") -> tuple:
     """Download specified email for parsing.
 
     Returns tuple
@@ -339,7 +339,13 @@ def email_fetch(account, num, type="(RFC822)"):
     return value
 
 
-def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=False):
+def get_mails(
+    account: Any,
+    image_output_path: str,
+    gif_duration: int,
+    image_name: str,
+    gen_mp4: bool = False,
+) -> int:
     """Creates GIF image based on the attachments in the inbox"""
     today = get_formatted_date()
     image_count = 0
@@ -478,7 +484,7 @@ def get_mails(account, image_output_path, gif_duration, image_name, gen_mp4=Fals
     return image_count
 
 
-def _generate_mp4(path, image_file):
+def _generate_mp4(path: str, image_file: str):
     """
     Generate mp4 from gif
     use a subprocess so we don't lock up the thread
@@ -511,7 +517,7 @@ def _generate_mp4(path, image_file):
     )
 
 
-def resize_images(images, width, height):
+def resize_images(images: list, width: int, height: int) -> list:
     """
     Resize images
     This should keep the aspect ratio of the images
@@ -538,7 +544,7 @@ def resize_images(images, width, height):
     return all_images
 
 
-def copy_overlays(path):
+def copy_overlays(path: str):
     """ Copy overlay images to image output path."""
 
     overlays = const.OVERLAY
@@ -554,7 +560,7 @@ def copy_overlays(path):
             )
 
 
-def cleanup_images(path, image=None):
+def cleanup_images(path: str, image: Optional[str] = None):
     """
     Clean up image storage directory
     Only supose to delete .gif and .mp4 files
@@ -575,7 +581,13 @@ def cleanup_images(path, image=None):
                 _LOGGER.error("Error attempting to remove found image: %s", str(err))
 
 
-def get_count(account, sensor_type, get_tracking_num=False, image_path=None, hass=None):
+def get_count(
+    account: Any,
+    sensor_type: str,
+    get_tracking_num: bool = False,
+    image_path: Optional[str] = None,
+    hass: Optional[Any] = None,
+) -> dict:
     """
     Get Package Count
     todo: convert subjects to list and use a for loop
@@ -644,7 +656,7 @@ def get_count(account, sensor_type, get_tracking_num=False, image_path=None, has
     return result
 
 
-def get_tracking(sdata, account, format=None):
+def get_tracking(sdata: Any, account: Any, format: Optional[str] = None) -> list:
     """Parse tracking numbers from email """
     _LOGGER.debug("Searching for tracking numbers...")
     tracking = []
@@ -690,7 +702,7 @@ def get_tracking(sdata, account, format=None):
     return tracking
 
 
-def find_text(sdata, account, search):
+def find_text(sdata: Any, account: Any, search: str) -> int:
     """
     Filter for specific words in email
     Return count of items found
@@ -719,7 +731,7 @@ def find_text(sdata, account, search):
     return count
 
 
-def amazon_search(account, image_path, hass):
+def amazon_search(account: Any, image_path: str, hass: Any) -> int:
     """ Find Amazon Delivered email """
     _LOGGER.debug("Searching for Amazon delivered email(s)...")
     domains = const.Amazon_Domains.split(",")
@@ -744,7 +756,7 @@ def amazon_search(account, image_path, hass):
     return count
 
 
-def get_amazon_image(sdata, account, image_path, hass):
+def get_amazon_image(sdata: Any, account: Any, image_path: str, hass: Any):
     """ Find Amazon delivery image """
     _LOGGER.debug("Searching for Amazon image in emails...")
     search = const.AMAZON_IMG_PATTERN
@@ -782,7 +794,7 @@ def get_amazon_image(sdata, account, image_path, hass):
         hass.add_job(download_img(img_url, image_path))
 
 
-async def download_img(img_url, img_path):
+async def download_img(img_url: str, img_path: str):
     """ Download image from url """
     filepath = img_path + "amazon_delivered.jpg"
     async with aiohttp.ClientSession() as session:
@@ -800,7 +812,7 @@ async def download_img(img_url, img_path):
                     _LOGGER.debug("Amazon image downloaded")
 
 
-def amazon_hub(account, fwds=None):
+def amazon_hub(account: Any, fwds: Optional[str] = None) -> dict:
     """ Find Amazon Hub info and return it """
     email_address = const.AMAZON_HUB_EMAIL
     subject_regex = const.AMAZON_HUB_SUBJECT
@@ -835,7 +847,9 @@ def amazon_hub(account, fwds=None):
     return info
 
 
-def get_items(account, param, fwds=None):
+def get_items(
+    account: Any, param: str, fwds: Optional[str] = None
+) -> Union[List[str], int]:
     """Parse Amazon emails for delivery date and order number"""
 
     _LOGGER.debug("Attempting to find Amazon email with item list ...")
