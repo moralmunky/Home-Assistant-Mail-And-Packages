@@ -12,5 +12,6 @@
   "requirements": [
     "imageio",
     "python-resize-image"
-  ]
+  ],
+  "version": "0.3.0-b39"
 }
