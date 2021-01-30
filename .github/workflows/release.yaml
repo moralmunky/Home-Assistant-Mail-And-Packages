@@ -12,20 +12,24 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v1
 
+      - name: Get Version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}        
+
       - name: "Set version numbmer"
         run: |
-          sed -i '/VERSION = /c\VERSION = "${{ github.ref }}"' /home/runner/work/Home-Assistant-Mail-And-Packages/Home-Assistant-Mail-And-Packages/custom_components/mail_and_packages/const.py
+          sed -i '/VERSION = /c\VERSION = "${{ steps.get_version.outputs.VERSION }}"' ${{ github.workspace }}/custom_components/mail_and_packages/const.py
+          sed -i '/version/c\  \"version\": \"${{ steps.get_version.outputs.VERSION }}\"' ${{ github.workspace }}/custom_components/mail_and_packages/manifest.json
       # Pack the mail_and_packages dir as a zip and upload to the release
-      - name: ZIP HACS Dir
+      - name: ZIP MnP Dir
         run: |
-          cd /home/runner/work/Home-Assistant-Mail-And-Packages/Home-Assistant-Mail-And-Packages/custom_components/mail_and_packages
+          cd ${{ github.workspace }}/custom_components/mail_and_packages
           zip mail_and_packages.zip -r ./
       - name: Upload zip to release
         uses: svenstaro/upload-release-action@v1-release
-
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: /home/runner/work/Home-Assistant-Mail-And-Packages/Home-Assistant-Mail-And-Packages/custom_components/mail_and_packages/mail_and_packages.zip
+          file: ${{ github.workspace }}/custom_components/mail_and_packages/mail_and_packages.zip
           asset_name: mail_and_packages.zip
           tag: ${{ github.ref }}
           overwrite: true

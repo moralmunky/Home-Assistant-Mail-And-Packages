@@ -12,5 +12,6 @@
   "requirements": [
     "imageio",
     "python-resize-image"
-  ]
+  ],
+  "version": "<SET BY CI DURING RELEASE>"
 }
