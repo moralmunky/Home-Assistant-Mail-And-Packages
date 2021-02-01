@@ -911,7 +911,9 @@ def get_items(
                         try:
                             email_msg = quopri.decodestring(str(msg.get_payload(0)))
                         except Exception as err:
-                            _LOGGER.warn("Problem decoding email message: %s", str(err))
+                            _LOGGER.debug(
+                                "Problem decoding email message: %s", str(err)
+                            )
                             continue
                         email_msg = email_msg.decode("utf-8", "ignore")
                         searches = const.AMAZON_TIME_PATTERN.split(",")
