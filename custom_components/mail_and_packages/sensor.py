@@ -127,7 +127,6 @@ class ImagePathSensors(CoordinatorEntity):
         self.type = sensor_type
         self._host = config.data[CONF_HOST]
         self._unique_id = unique_id
-        self._image = self.coordinator.data[const.ATTR_IMAGE_NAME]
 
     @property
     def unique_id(self) -> str:
