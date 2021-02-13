@@ -115,6 +115,17 @@ def image_file_name(hass: Any, config: Any) -> str:
     image_name = None
     path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
     mail_none = f"{os.path.dirname(__file__)}/mail_none.gif"
+
+    # Path check
+    path_check = os.path.exists(path)
+    if not path_check:
+        try:
+            os.makedirs(path)
+        except OSError as err:
+            _LOGGER.error("Problem creating: %s, error returned: %s", path, err)
+            return "mail_none.gif"
+
+    # SHA1 file hash check
     try:
         sha1 = hash_file(mail_none)
     except OSError as err:
