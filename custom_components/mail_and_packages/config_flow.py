@@ -16,6 +16,7 @@ from homeassistant.const import (
 from homeassistant.core import callback
 
 from .const import (
+    CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_FWDS,
     CONF_DURATION,
     CONF_FOLDER,
@@ -32,6 +33,7 @@ from .const import (
     DEFAULT_PATH,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_ALLOW_EXTERNAL,
     DOMAIN,
 )
 from .helpers import _check_ffmpeg, _test_login, get_resources, login
@@ -119,6 +121,9 @@ def _get_schema_step_2(
             vol.Optional(
                 CONF_GENERATE_MP4, default=_get_default(CONF_GENERATE_MP4)
             ): bool,
+            vol.Optional(
+                CONF_ALLOW_EXTERNAL, default=_get_default(CONF_ALLOW_EXTERNAL)
+            ): bool,
         }
     )
 
@@ -204,6 +209,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             CONF_IMAP_TIMEOUT: DEFAULT_IMAP_TIMEOUT,
             CONF_AMAZON_FWDS: DEFAULT_AMAZON_FWDS,
             CONF_GENERATE_MP4: False,
+            CONF_ALLOW_EXTERNAL: DEFAULT_ALLOW_EXTERNAL,
         }
 
         return self.async_show_form(

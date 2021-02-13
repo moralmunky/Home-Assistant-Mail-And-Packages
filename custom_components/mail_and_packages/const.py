@@ -14,6 +14,7 @@ ATTR_ORDER = "order"
 ATTR_TRACKING = "tracking"
 ATTR_TRACKING_NUM = "tracking_#"
 ATTR_IMAGE = "image"
+ATTR_IMAGE_PATH = "image_path"
 ATTR_SERVER = "server"
 ATTR_IMAGE_NAME = "image_name"
 ATTR_EMAIL = "email"
@@ -23,6 +24,7 @@ ATTR_PATTERN = "pattern"
 ATTR_USPS_MAIL = "usps_mail"
 
 # Configuration Properties
+CONF_ALLOW_EXTERNAL = "allow_external"
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
 CONF_DURATION = "gif_duration"
@@ -43,6 +45,7 @@ DEFAULT_GIF_DURATION = 5
 DEFAULT_SCAN_INTERVAL = 5
 DEFAULT_GIF_FILE_NAME = "mail_today.gif"
 DEFAULT_AMAZON_FWDS = '""'
+DEFAULT_ALLOW_EXTERNAL = False
 
 # Amazon
 Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de,amazon.it"

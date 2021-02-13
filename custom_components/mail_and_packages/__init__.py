@@ -3,10 +3,13 @@ import logging
 from datetime import timedelta
 
 import async_timeout
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
+    CONF_ALLOW_EXTERNAL,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_TIMEOUT,
     COORDINATOR,
@@ -18,7 +21,7 @@ from .const import (
     PLATFORM,
     VERSION,
 )
-from .helpers import process_emails
+from .helpers import default_image_path, process_emails
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +32,7 @@ async def async_setup(hass, config_entry):
     return True
 
 
-async def async_setup_entry(hass, config_entry):
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Load the saved entities."""
     _LOGGER.info(
         "Version %s is starting, if you have any issues please report" " them here: %s",
@@ -39,11 +42,12 @@ async def async_setup_entry(hass, config_entry):
     hass.data.setdefault(DOMAIN, {})
     updated_config = config_entry.data.copy()
 
-    # Set default image path
-    if CONF_PATH not in config_entry.data.keys():
-        updated_config[CONF_PATH] = "www/mail_and_packages/"
-    elif config_entry.data[CONF_PATH] != "www/mail_and_packages/":
-        updated_config[CONF_PATH] = "www/mail_and_packages/"
+    # Set external path off by default
+    if CONF_ALLOW_EXTERNAL not in config_entry.data.keys():
+        updated_config[CONF_ALLOW_EXTERNAL] = False
+
+    updated_config[CONF_PATH] = default_image_path(hass, config_entry)
+
     # Set image security always on
     if CONF_IMAGE_SECURITY not in config_entry.data.keys():
         updated_config[CONF_IMAGE_SECURITY] = True
@@ -79,30 +83,39 @@ async def async_setup_entry(hass, config_entry):
     }
 
     config_entry.add_update_listener(update_listener)
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(config_entry, PLATFORM)
-    )
+
+    try:
+        hass.async_create_task(
+            hass.config_entries.async_forward_entry_setup(config_entry, PLATFORM)
+        )
+    except ValueError:
+        pass
 
     return True
 
 
-async def async_unload_entry(hass, config_entry):
+async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
     try:
         await hass.config_entries.async_forward_entry_unload(config_entry, PLATFORM)
-        _LOGGER.info("Successfully removed sensor from the %s integration", DOMAIN)
+        _LOGGER.info("Successfully removed sensors from the %s integration", DOMAIN)
     except ValueError:
         pass
     return True
 
 
-async def update_listener(hass, config_entry):
+async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
     """Update listener."""
     config_entry.data = config_entry.options
-    await hass.config_entries.async_forward_entry_unload(config_entry, PLATFORM)
-    hass.async_add_job(
-        hass.config_entries.async_forward_entry_setup(config_entry, PLATFORM)
-    )
+
+    try:
+        await hass.config_entries.async_reload(config_entry.entry_id)
+    except ValueError:
+        pass
+    # await hass.config_entries.async_forward_entry_unload(config_entry, PLATFORM)
+    # hass.async_add_job(
+    #     hass.config_entries.async_forward_entry_setup(config_entry, PLATFORM)
+    # )
 
 
 async def async_migrate_entry(hass, config_entry):

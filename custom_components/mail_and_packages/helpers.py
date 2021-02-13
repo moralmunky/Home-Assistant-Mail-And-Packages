@@ -72,6 +72,24 @@ async def _test_login(host, port, user, pwd) -> bool:
 # Email Data helpers
 
 
+def default_image_path(hass: Any, config_entry: Any) -> str:
+    """ Return value of the default image path """
+
+    updated_config = config_entry.data.copy()
+
+    # Set default image path (internal use)
+    if const.CONF_PATH not in config_entry.data.keys():
+        return "images/mail_and_packages/"
+
+    # Set default image path (external use if enabled)
+    elif const.CONF_ALLOW_EXTERNAL in config_entry.data.keys():
+        if updated_config[const.CONF_ALLOW_EXTERNAL]:
+            return "www/mail_and_packages/"
+
+    # Return the default
+    return "images/mail_and_packages/"
+
+
 def process_emails(hass: Any, config: Any) -> dict:
     """ Process emails and return value """
     host = config.get(CONF_HOST)
@@ -98,6 +116,10 @@ def process_emails(hass: Any, config: Any) -> dict:
     image_name = image_file_name(hass, config)
     _LOGGER.debug("Image name: %s", image_name)
     _image[const.ATTR_IMAGE_NAME] = image_name
+
+    image_path = config.get(const.CONF_PATH)
+    _LOGGER.debug("Image path: %s", image_path)
+    _image[const.ATTR_IMAGE_PATH] = image_path
     data.update(_image)
 
     # Only update sensors we're intrested in
