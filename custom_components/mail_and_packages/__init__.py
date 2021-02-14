@@ -72,7 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         _LOGGER,
         name=f"Mail and Packages ({config.get(CONF_HOST)})",
         update_method=async_update_data,
-        update_interval=timedelta(minutes=config_entry.options.get(CONF_SCAN_INTERVAL)),
+        update_interval=timedelta(minutes=config_entry.data.get(CONF_SCAN_INTERVAL)),
     )
 
     # Fetch initial data so we have data when entities subscribe
@@ -96,17 +96,26 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
-    try:
-        await hass.config_entries.async_forward_entry_unload(config_entry, PLATFORM)
-        _LOGGER.info("Successfully removed sensors from the %s integration", DOMAIN)
-    except ValueError:
-        pass
-    return True
+
+    unload_ok = await hass.config_entries.async_forward_entry_unload(
+        config_entry, PLATFORM
+    )
+    _LOGGER.info("Successfully removed sensors from the %s integration", DOMAIN)
+
+    if unload_ok:
+        hass.data[DOMAIN].pop(config_entry.entry_id)
+
+    return unload_ok
 
 
 async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
     """Update listener."""
-    config_entry.data = config_entry.options
+
+    new_data = config_entry.options.copy()
+    hass.config_entries.async_update_entry(
+        entry=config_entry,
+        data=new_data,
+    )
 
     try:
         await hass.config_entries.async_reload(config_entry.entry_id)
