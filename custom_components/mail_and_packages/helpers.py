@@ -118,6 +118,7 @@ def process_emails(hass: Any, config: Any) -> dict:
     _image[const.ATTR_IMAGE_NAME] = image_name
 
     image_path = config.get(const.CONF_PATH)
+    # image_path = default_image_path(hass, config)
     _LOGGER.debug("Image path: %s", image_path)
     _image[const.ATTR_IMAGE_PATH] = image_path
     data.update(_image)

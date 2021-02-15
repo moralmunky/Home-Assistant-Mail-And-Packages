@@ -1,5 +1,4 @@
 """Mail and Packages Integration."""
-import asyncio
 import logging
 from datetime import timedelta
 
@@ -20,7 +19,6 @@ from .const import (
     DOMAIN,
     ISSUE_URL,
     PLATFORM,
-    PLATFORMS,
     VERSION,
 )
 from .helpers import default_image_path, process_emails
@@ -100,13 +98,8 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 
     _LOGGER.info("Attempting to unload sensors from the %s integration", DOMAIN)
 
-    unload_ok = all(
-        await asyncio.gather(
-            *[
-                hass.config_entries.async_forward_entry_unload(config_entry, component)
-                for component in PLATFORMS
-            ]
-        )
+    unload_ok = await hass.config_entries.async_forward_entry_unload(
+        config_entry, PLATFORM
     )
 
     if unload_ok:
@@ -119,20 +112,21 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
     """Update listener."""
 
-    new_data = config_entry.options.copy()
-    hass.config_entries.async_update_entry(
-        entry=config_entry,
-        data=new_data,
+    _LOGGER.info("Attempting to reload sensors from the %s integration", DOMAIN)
+
+    if len(config_entry.options) > 0:
+        config_entry.data = config_entry.options
+
+    unload_ok = await hass.config_entries.async_forward_entry_unload(
+        config_entry, PLATFORM
     )
 
-    try:
-        await hass.config_entries.async_reload(config_entry.entry_id)
-    except ValueError:
-        pass
-    # await hass.config_entries.async_forward_entry_unload(config_entry, PLATFORM)
-    # hass.async_add_job(
-    #     hass.config_entries.async_forward_entry_setup(config_entry, PLATFORM)
-    # )
+    if unload_ok:
+        _LOGGER.info("Successfully unloaded sensors from the %s integration", DOMAIN)
+
+    hass.async_add_job(
+        hass.config_entries.async_forward_entry_setup(config_entry, PLATFORM)
+    )
 
 
 async def async_migrate_entry(hass, config_entry):
