@@ -143,10 +143,14 @@ class ImagePathSensors(CoordinatorEntity):
         """Return the state of the sensor."""
         image = self.coordinator.data[const.ATTR_IMAGE_NAME]
 
+        if const.ATTR_IMAGE_PATH in self.coordinator.data.keys():
+            path = self.coordinator.data[const.ATTR_IMAGE_PATH]
+        else:
+            path = self._config.data[const.CONF_PATH]
+
         if self.type == "usps_mail_image_system_path":
-            return (
-                f"{self.hass.config.path()}/{self._config.data[const.CONF_PATH]}{image}"
-            )
+            _LOGGER.debug("Updating system image path to: %s", path)
+            return f"{self.hass.config.path()}/{path}{image}"
         elif self.type == "usps_mail_image_url":
             if (
                 self.hass.config.external_url is None

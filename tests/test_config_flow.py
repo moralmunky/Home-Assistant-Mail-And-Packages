@@ -23,6 +23,7 @@ from tests.const import FAKE_CONFIG_DATA
             },
             "config_2",
             {
+                "allow_external": False,
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
@@ -52,6 +53,7 @@ from tests.const import FAKE_CONFIG_DATA
             },
             "imap.test.email",
             {
+                "allow_external": False,
                 "amazon_fwds": ["fakeuser@test.email", "fakeuser2@test.email"],
                 "host": "imap.test.email",
                 "port": 993,
@@ -192,6 +194,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
             },
             "config_2",
             {
+                "allow_external": False,
                 "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": True,
@@ -307,6 +310,7 @@ async def test_form_invalid_ffmpeg(
             },
             "config_2",
             {
+                "allow_external": False,
                 "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
@@ -336,6 +340,7 @@ async def test_form_invalid_ffmpeg(
             },
             "imap.test.email",
             {
+                "allow_external": False,
                 "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
@@ -431,6 +436,7 @@ async def test_form_index_error(
             },
             "config_2",
             {
+                "allow_external": False,
                 "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
@@ -460,6 +466,7 @@ async def test_form_index_error(
             },
             "imap.test.email",
             {
+                "allow_external": False,
                 "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
@@ -555,6 +562,7 @@ async def test_form_index_error_2(
             },
             "config_2",
             {
+                "allow_external": False,
                 "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
@@ -584,6 +592,7 @@ async def test_form_index_error_2(
             },
             "imap.test.email",
             {
+                "allow_external": False,
                 "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
@@ -709,6 +718,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
             },
             "options_2",
             {
+                "allow_external": False,
                 "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
@@ -738,6 +748,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
             },
             "imap.test.email",
             {
+                "allow_external": False,
                 "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
@@ -893,6 +904,7 @@ async def test_options_flow_connection_error(
             },
             "options_2",
             {
+                "allow_external": False,
                 "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": True,
@@ -922,6 +934,7 @@ async def test_options_flow_connection_error(
             },
             "imap.test.email",
             {
+                "allow_external": False,
                 "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
@@ -1019,6 +1032,7 @@ async def test_options_flow_invalid_ffmpeg(
             },
             "options_2",
             {
+                "allow_external": False,
                 "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
@@ -1048,6 +1062,7 @@ async def test_options_flow_invalid_ffmpeg(
             },
             "imap.test.email",
             {
+                "allow_external": False,
                 "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
@@ -1146,6 +1161,7 @@ async def test_options_flow_index_error(
             },
             "options_2",
             {
+                "allow_external": False,
                 "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
@@ -1175,6 +1191,7 @@ async def test_options_flow_index_error(
             },
             "imap.test.email",
             {
+                "allow_external": False,
                 "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,
@@ -1273,6 +1290,7 @@ async def test_options_flow_index_error_2(
             },
             "options_2",
             {
+                "allow_external": False,
                 "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
@@ -1302,6 +1320,7 @@ async def test_options_flow_index_error_2(
             },
             "imap.test.email",
             {
+                "allow_external": False,
                 "amazon_fwds": [""],
                 "host": "imap.test.email",
                 "port": 993,

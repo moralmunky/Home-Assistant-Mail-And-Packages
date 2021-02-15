@@ -30,6 +30,8 @@ from tests.const import (
     FAKE_CONFIG_DATA,
     FAKE_CONFIG_DATA_BAD,
     FAKE_CONFIG_DATA_CORRECTED,
+    FAKE_CONFIG_DATA_CORRECTED_EXTERNAL,
+    FAKE_CONFIG_DATA_EXTERNAL,
     FAKE_CONFIG_DATA_NO_PATH,
     FAKE_CONFIG_DATA_NO_RND,
 )
@@ -164,6 +166,40 @@ async def test_process_emails(
 
     config = entry.data.copy()
     assert config == FAKE_CONFIG_DATA_CORRECTED
+    result = process_emails(hass, config)
+    assert result["mail_updated"] == "Sep-23-2020 10:28 AM"
+    assert result["zpackages_delivered"] == 0
+    assert result["zpackages_transit"] == 0
+    assert result["amazon_delivered"] == 0
+    assert result["amazon_hub"] == 0
+    assert result["amazon_packages"] == 0
+    assert result["amazon_order"] == []
+    assert result["amazon_hub_code"] == []
+
+
+async def test_process_emails_external(
+    hass,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copyfile,
+    mock_hash_file,
+    mock_getctime_today,
+):
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_EXTERNAL,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    config = entry.data.copy()
+    assert config == FAKE_CONFIG_DATA_CORRECTED_EXTERNAL
     result = process_emails(hass, config)
     assert result["mail_updated"] == "Sep-23-2020 10:28 AM"
     assert result["zpackages_delivered"] == 0
