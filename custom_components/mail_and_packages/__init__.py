@@ -96,14 +96,14 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
 
-    _LOGGER.info("Attempting to unload sensors from the %s integration", DOMAIN)
+    _LOGGER.debug("Attempting to unload sensors from the %s integration", DOMAIN)
 
     unload_ok = await hass.config_entries.async_forward_entry_unload(
         config_entry, PLATFORM
     )
 
     if unload_ok:
-        _LOGGER.info("Successfully removed sensors from the %s integration", DOMAIN)
+        _LOGGER.debug("Successfully removed sensors from the %s integration", DOMAIN)
         hass.data[DOMAIN].pop(config_entry.entry_id)
 
     return unload_ok
@@ -112,21 +112,16 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
     """Update listener."""
 
-    _LOGGER.info("Attempting to reload sensors from the %s integration", DOMAIN)
+    _LOGGER.debug("Attempting to reload sensors from the %s integration", DOMAIN)
 
-    if len(config_entry.options) > 0:
-        config_entry.data = config_entry.options
+    new_data = config_entry.options.copy()
 
-    unload_ok = await hass.config_entries.async_forward_entry_unload(
-        config_entry, PLATFORM
+    hass.config_entries.async_update_entry(
+        entry=config_entry,
+        data=new_data,
     )
 
-    if unload_ok:
-        _LOGGER.info("Successfully unloaded sensors from the %s integration", DOMAIN)
-
-    hass.async_add_job(
-        hass.config_entries.async_forward_entry_setup(config_entry, PLATFORM)
-    )
+    await hass.config_entries.async_reload(config_entry.entry_id)
 
 
 async def async_migrate_entry(hass, config_entry):
