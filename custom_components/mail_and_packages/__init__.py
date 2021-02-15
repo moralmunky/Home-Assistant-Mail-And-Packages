@@ -1,4 +1,5 @@
 """Mail and Packages Integration."""
+import asyncio
 import logging
 from datetime import timedelta
 
@@ -19,6 +20,7 @@ from .const import (
     DOMAIN,
     ISSUE_URL,
     PLATFORM,
+    PLATFORMS,
     VERSION,
 )
 from .helpers import default_image_path, process_emails
@@ -97,12 +99,19 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
 
-    unload_ok = await hass.config_entries.async_forward_entry_unload(
-        config_entry, PLATFORM
+    _LOGGER.info("Attempting to unload sensors from the %s integration", DOMAIN)
+
+    unload_ok = all(
+        await asyncio.gather(
+            *[
+                hass.config_entries.async_forward_entry_unload(config_entry, component)
+                for component in PLATFORMS
+            ]
+        )
     )
-    _LOGGER.info("Successfully removed sensors from the %s integration", DOMAIN)
 
     if unload_ok:
+        _LOGGER.info("Successfully removed sensors from the %s integration", DOMAIN)
         hass.data[DOMAIN].pop(config_entry.entry_id)
 
     return unload_ok
@@ -145,7 +154,7 @@ async def async_migrate_entry(hass, config_entry):
             _LOGGER.warn("Missing configuration data: %s", CONF_AMAZON_FWDS)
 
         # Force path change
-        updated_config[CONF_PATH] = "www/mail_and_packages/"
+        updated_config[CONF_PATH] = "images/mail_and_packages/"
 
         # Always on image security
         if not config_entry.data[CONF_IMAGE_SECURITY]:
@@ -162,7 +171,7 @@ async def async_migrate_entry(hass, config_entry):
         updated_config = config_entry.data.copy()
 
         # Force path change
-        updated_config[CONF_PATH] = "www/mail_and_packages/"
+        updated_config[CONF_PATH] = "images/mail_and_packages/"
 
         # Always on image security
         if not config_entry.data[CONF_IMAGE_SECURITY]:

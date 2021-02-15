@@ -3,6 +3,7 @@ DOMAIN_DATA = "{}_data".format(DOMAIN)
 VERSION = "0.0.0"  # Now updated by release workflow
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
+PLATFORMS = ["sensor"]
 DATA = "data"
 COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
