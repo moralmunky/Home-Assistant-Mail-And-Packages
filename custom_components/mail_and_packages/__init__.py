@@ -60,8 +60,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(config_entry, data=updated_config)
 
-    config_entry.options = config_entry.data
+    config_entry.add_update_listener(update_listener)
 
+    config_entry.options = config_entry.data
     config = config_entry.data
 
     async def async_update_data():
@@ -83,8 +84,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     hass.data[DOMAIN][config_entry.entry_id] = {
         COORDINATOR: coordinator,
     }
-
-    config_entry.add_update_listener(update_listener)
 
     try:
         hass.async_create_task(
