@@ -1,16 +1,13 @@
 """ Test Mail and Packages config flow """
 import os
+from unittest.mock import patch
 
 import pytest
 from homeassistant import config_entries, setup
-from unittest.mock import patch
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import DOMAIN
-from custom_components.mail_and_packages.helpers import (
-    _check_ffmpeg,
-    _test_login,
-)
+from custom_components.mail_and_packages.helpers import _check_ffmpeg, _test_login
 from tests.const import FAKE_CONFIG_DATA
 
 

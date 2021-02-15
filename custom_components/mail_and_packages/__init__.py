@@ -10,12 +10,12 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
     CONF_ALLOW_EXTERNAL,
+    CONF_AMAZON_FWDS,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_TIMEOUT,
-    COORDINATOR,
-    CONF_AMAZON_FWDS,
     CONF_PATH,
     CONF_SCAN_INTERVAL,
+    COORDINATOR,
     DOMAIN,
     ISSUE_URL,
     PLATFORM,

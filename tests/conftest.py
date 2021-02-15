@@ -3,9 +3,10 @@ import imaplib
 import time
 from unittest import mock
 from unittest.mock import patch
-from tests.const import FAKE_UPDATE_DATA
 
 import pytest
+
+from tests.const import FAKE_UPDATE_DATA
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
