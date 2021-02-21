@@ -112,7 +112,6 @@ class PackagesSensor(CoordinatorEntity):
             self.coordinator.async_add_listener(self.async_write_ha_state)
         )
 
-
 class ImagePathSensors(CoordinatorEntity):
     """ Represntation of a sensor """
 
