@@ -1,0 +1,6 @@
+pytest
+pytest-cov
+pytest-homeassistant-custom-component
+# From mainfest.json
+imageio
+python-resize-image

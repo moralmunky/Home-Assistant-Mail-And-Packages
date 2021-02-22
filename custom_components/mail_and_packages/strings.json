@@ -27,8 +27,10 @@
           "image_path": "Image Path",
           "gif_duration": "Image Duration (seconds)",
           "image_security": "Random Image Filename",
+          "imap_timeout": "Time in seconds before connection timeout",
           "generate_mp4": "Create mp4 from images",
-          "amazon_fwds": "Amazon fowarded email addresses"
+          "amazon_fwds": "Amazon fowarded email addresses",
+          "allow_external": "Allow external image use"          
         },
         "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.",
         "title": "Mail and Packages (Step 2 of 2)"
@@ -61,8 +63,10 @@
           "image_path": "Image Path",
           "gif_duration": "Image Duration (seconds)",
           "image_security": "Random Image Filename",
+          "imap_timeout": "Time in seconds before connection timeout",
           "generate_mp4": "Create mp4 from images",
-          "amazon_fwds": "Amazon fowarded email addresses"
+          "amazon_fwds": "Amazon fowarded email addresses",
+          "allow_external": "Allow external image use"          
         },
         "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.",
         "title": "Mail and Packages (Step 2 of 2)"
