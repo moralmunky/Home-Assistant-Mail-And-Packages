@@ -3,6 +3,9 @@ tag-template: "$RESOLVED_VERSION"
 change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
 sort-direction: ascending
 categories:
+  - title: ":boom: Breaking Change :boom:"
+    labels:
+      - "breaking-change"
   - title: ":zap: Enhancments :zap:"
     labels:
       - "enhancement"
@@ -14,9 +17,6 @@ categories:
       - "fix"
       - "bugfix"
       - "bug"
-  - title: ":boom: Breaking Change :boom:"
-    labels:
-      - "breaking-change"
 template: |
   [![Downloads for this release](https://img.shields.io/github/downloads/moralmunky/Home-Assistant-Mail-And-Packages/$RESOLVED_VERSION/total.svg)](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/releases/$RESOLVED_VERSION)
 
