@@ -36,6 +36,9 @@ from tests.const import (
     FAKE_CONFIG_DATA_NO_RND,
 )
 
+MAIL_IMAGE_URL_ENTITY = "sensor.mail_image_url"
+MAIL_IMAGE_SYSTEM_PATH = "sensor.mail_image_system_path"
+
 
 async def test_unload_entry(hass, mock_update, mock_copy_overlays):
     """Test unloading entities. """
@@ -160,12 +163,17 @@ async def test_process_emails(
         data=FAKE_CONFIG_DATA,
     )
 
+    hass.config.internal_url = "http://127.0.0.1:8123/"
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
     config = entry.data.copy()
     assert config == FAKE_CONFIG_DATA_CORRECTED
+    state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
+    assert "/testing_config/images/mail_and_packages/testfile.gif" in state.state
+    state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
+    assert state.state == "http://127.0.0.1:8123/local/mail_and_packages/testfile.gif"
     result = process_emails(hass, config)
     assert result["mail_updated"] == "Sep-23-2020 10:28 AM"
     assert result["zpackages_delivered"] == 0
@@ -194,12 +202,21 @@ async def test_process_emails_external(
         data=FAKE_CONFIG_DATA_EXTERNAL,
     )
 
+    hass.config.internal_url = "http://127.0.0.1:8123/"
+    hass.config.external_url = "http://really.fake.host.net:8123/"
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
     config = entry.data.copy()
     assert config == FAKE_CONFIG_DATA_CORRECTED_EXTERNAL
+    state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
+    assert "/testing_config/www/mail_and_packages/testfile.gif" in state.state
+    state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
+    assert (
+        state.state
+        == "http://really.fake.host.net:8123/local/mail_and_packages/testfile.gif"
+    )
     result = process_emails(hass, config)
     assert result["mail_updated"] == "Sep-23-2020 10:28 AM"
     assert result["zpackages_delivered"] == 0
