@@ -203,7 +203,7 @@ def hash_file(filename: str) -> str:
     return h.hexdigest()
 
 
-def fetch(hass: Any, config: Any, account: Any, data: dict, sensor: str):
+def fetch(hass: Any, config: Any, account: Any, data: dict, sensor: str) -> int:
     """Fetch data for a single sensor, including any sensors it depends on."""
 
     img_out_path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
@@ -289,7 +289,7 @@ def login(host, port, user, pwd):
     return account
 
 
-def selectfolder(account, folder):
+def selectfolder(account, folder) -> None:
     """Select folder inside the mailbox"""
     try:
         rv, mailboxes = account.list()
@@ -518,7 +518,7 @@ def get_mails(
     return image_count
 
 
-def _generate_mp4(path: str, image_file: str):
+def _generate_mp4(path: str, image_file: str) -> None:
     """
     Generate mp4 from gif
     use a subprocess so we don't lock up the thread
@@ -578,7 +578,7 @@ def resize_images(images: list, width: int, height: int) -> list:
     return all_images
 
 
-def copy_overlays(path: str):
+def copy_overlays(path: str) -> None:
     """ Copy overlay images to image output path."""
 
     overlays = const.OVERLAY
@@ -594,7 +594,7 @@ def copy_overlays(path: str):
             )
 
 
-def cleanup_images(path: str, image: Optional[str] = None):
+def cleanup_images(path: str, image: Optional[str] = None) -> None:
     """
     Clean up image storage directory
     Only supose to delete .gif and .mp4 files
@@ -790,7 +790,7 @@ def amazon_search(account: Any, image_path: str, hass: Any) -> int:
     return count
 
 
-def get_amazon_image(sdata: Any, account: Any, image_path: str, hass: Any):
+def get_amazon_image(sdata: Any, account: Any, image_path: str, hass: Any) -> None:
     """ Find Amazon delivery image """
     _LOGGER.debug("Searching for Amazon image in emails...")
     search = const.AMAZON_IMG_PATTERN
@@ -828,7 +828,7 @@ def get_amazon_image(sdata: Any, account: Any, image_path: str, hass: Any):
         hass.add_job(download_img(img_url, image_path))
 
 
-async def download_img(img_url: str, img_path: str):
+async def download_img(img_url: str, img_path: str) -> None:
     """ Download image from url """
     filepath = img_path + "amazon_delivered.jpg"
     async with aiohttp.ClientSession() as session:
