@@ -16,6 +16,7 @@ from .const import (
     CONF_PATH,
     CONF_SCAN_INTERVAL,
     COORDINATOR,
+    DEFAULT_IMAP_TIMEOUT,
     DOMAIN,
     ISSUE_URL,
     PLATFORM,
@@ -41,6 +42,14 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     )
     hass.data.setdefault(DOMAIN, {})
     updated_config = config_entry.data.copy()
+
+    # Set amazon fwd blank if missing
+    if CONF_AMAZON_FWDS not in updated_config.keys():
+        updated_config[CONF_AMAZON_FWDS] = []
+
+    # Set default timeout if missing
+    if CONF_IMAP_TIMEOUT not in updated_config.keys():
+        updated_config[CONF_IMAP_TIMEOUT] = DEFAULT_IMAP_TIMEOUT
 
     # Set external path off by default
     if CONF_ALLOW_EXTERNAL not in config_entry.data.keys():
@@ -142,6 +151,8 @@ async def async_migrate_entry(hass, config_entry):
                 updated_config[CONF_AMAZON_FWDS] = [
                     x.strip() for x in updated_config[CONF_AMAZON_FWDS].split(",")
                 ]
+            else:
+                updated_config[CONF_AMAZON_FWDS] = []
         else:
             _LOGGER.warn("Missing configuration data: %s", CONF_AMAZON_FWDS)
 
