@@ -12,7 +12,7 @@ jobs:
           python-root-list: "custom_components"
           use-pylint: false
           use-pycodestyle: false
-          use-flake8: true
+          use-flake8: false
           use-black: true
           use-mypy: true
           use-isort: true
