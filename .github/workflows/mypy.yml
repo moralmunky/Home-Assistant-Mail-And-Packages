@@ -1,4 +1,4 @@
-name: "Chekc mypy"
+name: "Check mypy"
 on:
   pull_request:
 
