@@ -112,6 +112,7 @@ class PackagesSensor(CoordinatorEntity):
             self.coordinator.async_add_listener(self.async_write_ha_state)
         )
 
+
 class ImagePathSensors(CoordinatorEntity):
     """ Represntation of a sensor """
 
@@ -159,9 +160,9 @@ class ImagePathSensors(CoordinatorEntity):
             elif self.hass.config.external_url is None:
                 _LOGGER.warn("External URL not set in configuration.")
                 url = self.hass.config.internal_url
-                return f"{url.lstrip('/')}/local/mail_and_packages/{image}"
+                return f"{url.rstrip('/')}/local/mail_and_packages/{image}"
             url = self.hass.config.external_url
-            return f"{url.lstrip('/')}/local/mail_and_packages/{image}"
+            return f"{url.rstrip('/')}/local/mail_and_packages/{image}"
         else:
             return None
 
