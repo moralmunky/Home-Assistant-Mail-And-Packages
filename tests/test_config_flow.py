@@ -724,7 +724,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
                 "generate_mp4": False,
                 "gif_duration": 5,
                 "imap_timeout": 30,
-                "scan_interval": 20,
+                "scan_interval": 15,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -757,8 +757,11 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
+                "image_name": "mail_today.gif",
+                "image_path": "images/mail_and_packages/",
+                "image_security": True,
                 "imap_timeout": 30,
-                "scan_interval": 20,
+                "scan_interval": 15,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -801,6 +804,9 @@ async def test_options_flow(
 
     entry.add_to_hass(hass)
 
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.options.async_init(entry.entry_id)
 
@@ -823,16 +829,18 @@ async def test_options_flow(
         result2 = await hass.config_entries.options.async_configure(
             result["flow_id"], input_1
         )
+        await hass.async_block_till_done()
+
         assert result2["type"] == "form"
         assert result2["step_id"] == step_id_2
 
         result3 = await hass.config_entries.options.async_configure(
             result["flow_id"], input_2
         )
+        await hass.async_block_till_done()
 
     assert result3["type"] == "create_entry"
-    assert entry.options == data
-    await hass.async_block_till_done()
+    assert data == entry.options.copy()
 
 
 @pytest.mark.parametrize(
