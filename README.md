@@ -15,7 +15,7 @@
 
 ## About Mail and Packages integration
 
-The [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) creates sensors for [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki#how-it-works) to show a snapshot of mail and packages that are in transit or delviered that are scheduled to be delivered the current day. It also generates the number of USPS mail pieces and provides a rotating GIF of the USPS provided images of the mail, if available, for the current day.
+The [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) creates sensors for [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements) to show a snapshot of mail and **packages that are scheduled to be delivered the current day**. For the packages that are scheduled for delivery the current day a count of in transit and delivered packages will be provided. It also generates the number of USPS mail pieces and provides a rotating GIF of the USPS provided images of the mail, if available, for the current day.
 
 ## Credits:
 
@@ -25,26 +25,33 @@ The [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant
 
 ## How it works
 
-From your instance of HASS, the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) connects to the email account you supply where your shipment notifications are sent. It reviews at the subject lines of the current day's emails from the [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki#how-it-works) and counts the subject lines that match known language from the [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki#how-it-works) about their transit status for packages that are scheduled to be delivered the current day. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF.
-
-- **All procedures are done locally on your machine.**
-- **No external services are used to process your email.**
-- **No data is sent outside of your local instance of Home Assistant**
-
-##### \*Privacy / Security Note
-
-Please note that files stored in the `www` Home Assistant folder is [publicly accessible](https://www.home-assistant.io/integrations/http/#hosting-files) unless you have taken security measures outside of Home Assistant to secure it. You can place the images in an `images` directory inside Home Assistants root folder and still send notifications via most notification integrations.
-
+From your instance of HASS, the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) connects to the email account you supply where your shipment notifications are sent. It reviews at the subject lines of the current day's emails from the [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements) and counts the subject lines that match known language from the [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements) about their transit status. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF. 
 See the WIKI [information on how this works](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki).
 
-## Configuration
+_**The email can not be deleted until the next day**_. You can have your email filtered into a folder and have the integration watch that folder.
 
-See the WIKI [for configuring the integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings).
+The image will revert back to the no mail graphic after the first email check after midnight, local time.
 
-### Supported Shippers and Requirements:
+* **All procedures are done locally on your machine.**
+* **No external services are used to process your email.**
+* **No data is sent outside of your local instance of Home Assistant**
 
-See the WIKI [for account settings needed for certain shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#supported-shippers-and-requirements).
+##### *Privacy / Security Note
+Please note that files stored in the `www` Home Assistant folder are [publicly accessible](https://www.home-assistant.io/integrations/http/#hosting-files) unless you have taken security measures outside of Home Assistant to secure it. For increased security and simplicity the USPS Informed Delivery image name is random by default and no longer has the option to turn it on/off. Two new sensors have been created that provide the local file path or a web accessible url for use in displaying or sending in various Home Assistant notification methods.
 
-### Automation and Template Examples
+* `sensor.mail_image_system_path`
+* `sensor.mail_image_url` - Requires that either `External_URL` or `Internal_URL` is defined in the general configuration options in Home Assistant.
 
-See the WIKI for [example automations and templates](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Example-Automations-and-Templates#delivery-summary-text-sensor-template-example).
+## Support
+[Configuration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings)
+
+[Troubleshooting](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
+
+[Supported Shipper Requirements](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements)
+
+## Template and Examples
+[USPS Informed Delivery Image](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
+
+[Text Summary](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
+
+[Notificaions](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
