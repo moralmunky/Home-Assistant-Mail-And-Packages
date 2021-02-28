@@ -8,7 +8,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import DOMAIN
 from custom_components.mail_and_packages.helpers import _check_ffmpeg, _test_login
-from tests.const import FAKE_CONFIG_DATA
+from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
 
 
 @pytest.mark.parametrize(
@@ -1413,3 +1413,139 @@ async def test_options_flow_mailbox_format2(
     assert result3["type"] == "create_entry"
     assert entry.options == data
     await hass.async_block_till_done()
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,title,data",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+            },
+            "options_2",
+            {
+                "allow_external": False,
+                "folder": '"INBOX"',
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 15,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                ],
+            },
+            "imap.test.email",
+            {
+                "allow_external": False,
+                "amazon_fwds": ['""'],
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "folder": '"INBOX"',
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "image_name": "mail_today.gif",
+                "image_path": "images/mail_and_packages/",
+                "image_security": True,
+                "imap_timeout": 30,
+                "scan_interval": 15,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                ],
+            },
+        ),
+    ],
+)
+async def test_options_flow_bad(
+    input_1,
+    step_id_2,
+    input_2,
+    title,
+    data,
+    hass,
+    mock_imap,
+):
+    """Test config flow options."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_BAD,
+    )
+
+    entry.add_to_hass(hass)
+
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+    # assert result["title"] == title_1
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+
+        result2 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_1
+        )
+        await hass.async_block_till_done()
+
+        assert result2["type"] == "form"
+        assert result2["step_id"] == step_id_2
+
+        result3 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_2
+        )
+        await hass.async_block_till_done()
+
+    assert result3["type"] == "create_entry"
+    assert data == entry.options.copy()
