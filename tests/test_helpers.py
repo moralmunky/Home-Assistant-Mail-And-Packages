@@ -814,3 +814,8 @@ async def test_process_emails_random_image(hass, mock_imap_login_error, caplog):
 #         await download_img(
 #             "http://fake.website.com/not/a/real/website/image.jpg", "/fake/directory/"
 #         )
+
+
+async def test_usps_exception(hass, mock_imap_usps_exception):
+    result = get_count(mock_imap_usps_exception, "usps_exception", False, "./", hass)
+    assert result["count"] == 1
