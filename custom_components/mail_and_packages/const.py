@@ -76,6 +76,10 @@ SENSOR_DATA = {
         "subject": ["Expected Delivery on"],
         "body": ["Your item is out for delivery"],
     },
+    "usps_exception": {
+        "email": ["auto-reply@usps.com"],
+        "subject": ["Delivery Exception"],
+    },
     "usps_packages": {},
     "usps_tracking": {"pattern": ["9[234]\\d{15,22}"]},
     "usps_mail": {
@@ -181,6 +185,7 @@ SENSOR_TYPES = {
         "mdi:package-variant-closed",
     ],
     "usps_delivering": ["Mail USPS Delivering", "package(s)", "mdi:truck-delivery"],
+    "usps_exception": ["Mail USPS Exception", "package(s)", "mdi:archive-alert"],
     "usps_packages": [
         "Mail USPS Packages",
         "package(s)",
