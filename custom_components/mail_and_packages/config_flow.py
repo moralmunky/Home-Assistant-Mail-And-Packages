@@ -297,6 +297,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             CONF_AMAZON_FWDS: self._data.get(CONF_AMAZON_FWDS) or DEFAULT_AMAZON_FWDS,
             CONF_GENERATE_MP4: self._data.get(CONF_GENERATE_MP4),
             CONF_ALLOW_EXTERNAL: self._data.get(CONF_ALLOW_EXTERNAL),
+            CONF_RESOURCES: self._data.get(CONF_RESOURCES),
         }
 
         return self.async_show_form(
