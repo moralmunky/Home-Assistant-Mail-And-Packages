@@ -111,10 +111,10 @@ def _get_schema_step_2(
             vol.Optional(CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS)): str,
             vol.Optional(
                 CONF_SCAN_INTERVAL, default=_get_default(CONF_SCAN_INTERVAL)
-            ): vol.Coerce(int),
+            ): vol.All(vol.Coerce(int), vol.Range(min=5)),
             vol.Optional(
                 CONF_IMAP_TIMEOUT, default=_get_default(CONF_IMAP_TIMEOUT)
-            ): vol.Coerce(int),
+            ): vol.All(vol.Coerce(int), vol.Range(min=10)),
             vol.Optional(
                 CONF_DURATION, default=_get_default(CONF_DURATION)
             ): vol.Coerce(int),
@@ -285,10 +285,23 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
     async def _show_step_options_2(self, user_input):
         """Step 2 of options."""
 
+        # Defaults
+        defaults = {
+            CONF_FOLDER: self._data.get(CONF_FOLDER),
+            CONF_SCAN_INTERVAL: self._data.get(CONF_SCAN_INTERVAL),
+            CONF_PATH: self._data.get(CONF_PATH),
+            CONF_DURATION: self._data.get(CONF_DURATION),
+            CONF_IMAGE_SECURITY: self._data.get(CONF_IMAGE_SECURITY),
+            CONF_IMAP_TIMEOUT: self._data.get(CONF_IMAP_TIMEOUT)
+            or DEFAULT_IMAP_TIMEOUT,
+            CONF_AMAZON_FWDS: self._data.get(CONF_AMAZON_FWDS) or DEFAULT_AMAZON_FWDS,
+            CONF_GENERATE_MP4: self._data.get(CONF_GENERATE_MP4),
+            CONF_ALLOW_EXTERNAL: self._data.get(CONF_ALLOW_EXTERNAL),
+            CONF_RESOURCES: self._data.get(CONF_RESOURCES),
+        }
+
         return self.async_show_form(
             step_id="options_2",
-            data_schema=_get_schema_step_2(
-                self.hass, self._data, user_input, self._data
-            ),
+            data_schema=_get_schema_step_2(self.hass, self._data, user_input, defaults),
             errors=self._errors,
         )
