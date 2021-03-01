@@ -5,6 +5,7 @@ from unittest import mock
 from unittest.mock import patch
 
 import pytest
+from aioresponses import aioresponses
 
 from tests.const import FAKE_UPDATE_DATA
 
@@ -553,13 +554,6 @@ def mock_imap_amazon_the_hub():
         yield mock_conn
 
 
-# @pytest.fixture
-# def aioclient_mock():
-#     """Fixture to mock aioclient calls."""
-#     with mock_aiohttp_client() as mock_session:
-#         yield mock_session
-
-
 @pytest.fixture
 def test_valid_ffmpeg():
     """ Fixture to mock which """
@@ -646,15 +640,6 @@ def mock_osmakedir_excpetion():
     with patch("os.makedir") as mock_osmakedir:
         mock_osmakedir.side_effect = Exception("File not found")
         yield mock_osmakedir
-
-
-@pytest.fixture
-def mock_open():
-    """ Fixture to mock open """
-    with patch("builtins.open") as mock_open:
-        mock_open.return_value = mock.Mock(autospec=True)
-        mock_open.write.return_value = None
-        yield mock_open
 
 
 @pytest.fixture
@@ -913,3 +898,20 @@ def mock_imap_usps_exception():
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
+
+
+@pytest.fixture
+def aioclient_mock():
+    """Fixture to mock aioclient calls."""
+    with aioresponses() as mock_aiohttp:
+        mock_headers = {"content-type": "image/gif"}
+        f = open("tests/test_emails/mail_none.gif", "rb")
+        image_file = f.read()
+        mock_aiohttp.get(
+            "http://fake.website.com/not/a/real/website/image.jpg",
+            status=200,
+            headers=mock_headers,
+            body=image_file,
+        )
+
+        yield mock_aiohttp

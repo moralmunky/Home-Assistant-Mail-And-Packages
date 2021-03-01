@@ -2,7 +2,7 @@
 import datetime
 from datetime import date
 from unittest import mock
-from unittest.mock import call, patch
+from unittest.mock import call, mock_open, patch
 
 import pytest
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
@@ -14,6 +14,7 @@ from custom_components.mail_and_packages.helpers import (
     amazon_hub,
     amazon_search,
     cleanup_images,
+    download_img,
     email_fetch,
     email_search,
     get_count,
@@ -439,7 +440,6 @@ async def test_informed_delivery_emails(
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
-    mock_open,
     mock_os_path_splitext,
     mock_update_time,
     mock_image,
@@ -448,12 +448,14 @@ async def test_informed_delivery_emails(
     mock_copyfile,
     caplog,
 ):
-    result = get_mails(
-        mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
-    )
-    assert result == 3
-    assert "USPSInformedDelivery@usps.gov" in caplog.text
-    assert "USPSInformeddelivery@informeddelivery.usps.com" in caplog.text
+    m_open = mock_open()
+    with patch("builtins.open", m_open, create=True):
+        result = get_mails(
+            mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
+        )
+        assert result == 3
+        assert "USPSInformedDelivery@usps.gov" in caplog.text
+        assert "USPSInformeddelivery@informeddelivery.usps.com" in caplog.text
 
 
 async def test_get_mails_imageio_error(
@@ -461,7 +463,6 @@ async def test_get_mails_imageio_error(
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
-    mock_open,
     mock_os_path_splitext,
     mock_update_time,
     mock_image,
@@ -470,13 +471,15 @@ async def test_get_mails_imageio_error(
     caplog,
 ):
     with patch("custom_components.mail_and_packages.helpers.io") as mock_imageio:
-        mock_imageio.return_value = mock.Mock(autospec=True)
-        mock_imageio.mimwrite.side_effect = Exception("Processing Error")
-        result = get_mails(
-            mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
-        )
-        assert result == 3
-        assert "Error attempting to generate image:" in caplog.text
+        m_open = mock_open()
+        with patch("builtins.open", m_open, create=True):
+            mock_imageio.return_value = mock.Mock(autospec=True)
+            mock_imageio.mimwrite.side_effect = Exception("Processing Error")
+            result = get_mails(
+                mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
+            )
+            assert result == 3
+            assert "Error attempting to generate image:" in caplog.text
 
 
 async def test_informed_delivery_emails_mp4(
@@ -484,7 +487,6 @@ async def test_informed_delivery_emails_mp4(
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
-    mock_open,
     mock_os_path_splitext,
     mock_update_time,
     mock_image,
@@ -495,11 +497,13 @@ async def test_informed_delivery_emails_mp4(
     with patch(
         "custom_components.mail_and_packages.helpers._generate_mp4"
     ) as mock_generate_mp4:
-        result = get_mails(
-            mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", True
-        )
-        assert result == 3
-        assert mock_generate_mp4.called_with("./", "mail_today.gif")
+        m_open = mock_open()
+        with patch("builtins.open", m_open, create=True):
+            result = get_mails(
+                mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", True
+            )
+            assert result == 3
+            assert mock_generate_mp4.called_with("./", "mail_today.gif")
 
 
 async def test_informed_delivery_emails_open_err(
@@ -534,20 +538,21 @@ async def test_informed_delivery_emails_io_err(
     mock_osremove,
     mock_osmakedir,
     mock_update_time,
-    mock_open,
     mock_os_path_splitext,
     mock_image,
     mock_resizeimage,
     mock_copyfile,
 ):
     with pytest.raises(FileNotFoundError) as exc_info:
-        get_mails(
-            mock_imap_usps_informed_digest,
-            "/totally/fake/path/",
-            "5",
-            "mail_today.gif",
-            False,
-        )
+        m_open = mock_open()
+        with patch("builtins.open", m_open, create=True):
+            get_mails(
+                mock_imap_usps_informed_digest,
+                "/totally/fake/path/",
+                "5",
+                "mail_today.gif",
+                False,
+            )
     assert type(exc_info.value) is FileNotFoundError
 
 
@@ -557,17 +562,18 @@ async def test_informed_delivery_missing_mailpiece(
     mock_osremove,
     mock_osmakedir,
     mock_update_time,
-    mock_open,
     mock_os_path_splitext,
     mock_image,
     mock_io,
     mock_resizeimage,
     mock_copyfile,
 ):
-    result = get_mails(
-        mock_imap_usps_informed_digest_missing, "./", "5", "mail_today.gif", False
-    )
-    assert result == 5
+    m_open = mock_open()
+    with patch("builtins.open", m_open, create=True):
+        result = get_mails(
+            mock_imap_usps_informed_digest_missing, "./", "5", "mail_today.gif", False
+        )
+        assert result == 5
 
 
 async def test_informed_delivery_no_mail(
@@ -576,7 +582,6 @@ async def test_informed_delivery_no_mail(
     mock_osremove,
     mock_osmakedir,
     mock_update_time,
-    mock_open,
     mock_os_path_splitext,
     mock_image,
     mock_io,
@@ -584,10 +589,12 @@ async def test_informed_delivery_no_mail(
     mock_os_path_isfile,
     mock_copyfile,
 ):
-    result = get_mails(
-        mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
-    )
-    assert result == 0
+    m_open = mock_open()
+    with patch("builtins.open", m_open, create=True):
+        result = get_mails(
+            mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
+        )
+        assert result == 0
 
 
 async def test_informed_delivery_no_mail_copy_error(
@@ -596,7 +603,6 @@ async def test_informed_delivery_no_mail_copy_error(
     mock_osremove,
     mock_osmakedir,
     mock_update_time,
-    mock_open,
     mock_os_path_splitext,
     mock_image,
     mock_io,
@@ -606,11 +612,13 @@ async def test_informed_delivery_no_mail_copy_error(
     mock_copyfile_exception,
     caplog,
 ):
-    get_mails(
-        mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
-    )
-    assert mock_copyfile_exception.called_with("./mail_today.gif")
-    assert "File not found" in caplog.text
+    m_open = mock_open()
+    with patch("builtins.open", m_open, create=True):
+        get_mails(
+            mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
+        )
+        assert mock_copyfile_exception.called_with("./mail_today.gif")
+        assert "File not found" in caplog.text
 
 
 async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):
@@ -788,9 +796,11 @@ async def test_resize_images_open_err(mock_open_excpetion, caplog):
     assert "Error attempting to open image" in caplog.text
 
 
-async def test_resize_images_read_err(mock_open, mock_image_excpetion, caplog):
-    resize_images(["testimage.jpg", "anothertest.jpg"], 724, 320)
-    assert "Error attempting to read image" in caplog.text
+async def test_resize_images_read_err(mock_image_excpetion, caplog):
+    m_open = mock_open()
+    with patch("builtins.open", m_open, create=True):
+        resize_images(["testimage.jpg", "anothertest.jpg"], 724, 320)
+        assert "Error attempting to read image" in caplog.text
 
 
 async def test_process_emails_random_image(hass, mock_imap_login_error, caplog):
@@ -809,13 +819,18 @@ async def test_process_emails_random_image(hass, mock_imap_login_error, caplog):
     assert "Error logging into IMAP Server:" in caplog.text
 
 
-# async def test_download_img(aioclient_mock):
-#     with patch("aiohttp.ClientSession", return_value=aioclient_mock):
-#         await download_img(
-#             "http://fake.website.com/not/a/real/website/image.jpg", "/fake/directory/"
-#         )
-
-
 async def test_usps_exception(hass, mock_imap_usps_exception):
     result = get_count(mock_imap_usps_exception, "usps_exception", False, "./", hass)
     assert result["count"] == 1
+
+
+async def test_download_img(aioclient_mock, caplog):
+    m_open = mock_open()
+    with patch("builtins.open", m_open, create=True):
+        await download_img(
+            "http://fake.website.com/not/a/real/website/image.jpg", "/fake/directory/"
+        )
+        assert m_open.call_count == 1
+        assert m_open.call_args == call("/fake/directory/amazon_delivered.jpg", "wb")
+        assert "URL content-type: image/gif" in caplog.text
+        assert "Amazon image downloaded" in caplog.text
