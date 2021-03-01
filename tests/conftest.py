@@ -642,17 +642,6 @@ def mock_osmakedir_excpetion():
         yield mock_osmakedir
 
 
-# @pytest.fixture
-# def mock_open():
-#     """ Fixture to mock open """
-#     with patch("builtins.open") as mock_open:
-#         mock_open.return_value = mock.Mock(autospec=True)
-#         mock_open.write.return_value = None
-#         # mock_open.return_value.__enter__.return_value = None
-
-#         yield mock_open
-
-
 @pytest.fixture
 def mock_open_excpetion():
     """ Fixture to mock open """
