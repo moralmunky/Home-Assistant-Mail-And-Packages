@@ -962,15 +962,22 @@ def get_items(
                             arrive_date = arrive_date[0:3]
                             arrive_date[2] = arrive_date[2][:2]
                             arrive_date = " ".join(arrive_date).strip()
+                            time_format = None
+
+                            _LOGGER.debug("Arrive Date: %s", arrive_date)
+
                             if "today" in arrive_date or "tomorrow" in arrive_date:
                                 arrive_date = arrive_date.split(",")[1].strip()
-                                dateobj = datetime.datetime.strptime(
-                                    arrive_date, "%B %d"
-                                )
+                                time_format = "%B %d"
+                            elif arrive_date.endswith(","):
+                                arrive_date = arrive_date.rstrip(",")
+                                time_format = "%A, %B %d"
                             else:
-                                dateobj = datetime.datetime.strptime(
-                                    arrive_date, "%A, %B %d"
-                                )
+                                time_format = "%A, %B %d"
+
+                            dateobj = datetime.datetime.strptime(
+                                arrive_date, time_format
+                            )
 
                             if (
                                 dateobj.day == datetime.date.today().day
