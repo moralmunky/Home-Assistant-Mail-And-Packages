@@ -13,5 +13,5 @@
     "imageio>=2.9.0",
     "python-resize-image>=1.1.19"
   ],
-  "version": "0.0.0"
+  "version": "0.3.1"
 }
