@@ -940,3 +940,20 @@ def aioclient_mock():
         )
 
         yield mock_aiohttp
+
+
+@pytest.fixture
+def aioclient_mock_error():
+    """Fixture to mock aioclient calls."""
+    with aioresponses() as mock_aiohttp:
+        mock_headers = {"content-type": "image/gif"}
+        f = open("tests/test_emails/mail_none.gif", "rb")
+        image_file = f.read()
+        mock_aiohttp.get(
+            "http://fake.website.com/not/a/real/website/image.jpg",
+            status=404,
+            headers=mock_headers,
+            body=image_file,
+        )
+
+        yield mock_aiohttp

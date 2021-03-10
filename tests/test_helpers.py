@@ -21,6 +21,7 @@ from custom_components.mail_and_packages.helpers import (
     get_formatted_date,
     get_items,
     get_mails,
+    image_file_name,
     login,
     process_emails,
     resize_images,
@@ -347,6 +348,14 @@ async def test_email_fetch(mock_imap_fetch_error, caplog):
 async def test_get_mails(mock_imap_no_email, mock_copyfile):
     result = get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
     assert result == 0
+
+
+async def test_get_mails_makedirs_error(mock_imap_no_email, mock_copyfile, caplog):
+    with patch("os.path.isdir", return_value=False), patch(
+        "os.makedirs", side_effect=OSError
+    ):
+        get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
+        assert "Error creating directory:" in caplog.text
 
 
 async def test_get_mails_copyfile_error(
@@ -678,6 +687,12 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
     assert result["code"] == ["123456"]
 
 
+async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
+    with patch("quopri.decodestring", side_effect=ValueError):
+        get_items(mock_imap_amazon_shipped, "order")
+        assert "Problem decoding email message:" in caplog.text
+
+
 async def test_generate_mp4(
     mock_osremove, mock_os_path_join, mock_subprocess_call, mock_os_path_split
 ):
@@ -767,3 +782,23 @@ async def test_download_img(aioclient_mock, caplog):
         assert m_open.call_args == call("/fake/directory/amazon_delivered.jpg", "wb")
         assert "URL content-type: image/gif" in caplog.text
         assert "Amazon image downloaded" in caplog.text
+
+
+async def test_download_img_error(aioclient_mock_error, caplog):
+    m_open = mock_open()
+    with patch("builtins.open", m_open, create=True):
+        await download_img(
+            "http://fake.website.com/not/a/real/website/image.jpg", "/fake/directory/"
+        )
+        assert "Problem downloading file http error: 404" in caplog.text
+
+
+async def test_image_file_name_path_error(hass, caplog):
+    config = FAKE_CONFIG_DATA_CORRECTED
+
+    with patch("os.path.exists", return_value=False), patch(
+        "os.makedirs", side_effect=OSError
+    ):
+        result = image_file_name(hass, config)
+        assert result == "mail_none.gif"
+        assert "Problem creating:" in caplog.text
