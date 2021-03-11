@@ -99,18 +99,18 @@ class PackagesSensor(CoordinatorEntity):
             attr[const.ATTR_TRACKING_NUM] = data[tracking]
         return attr
 
-    async def async_update(self):
-        """Update the entity.
+    # async def async_update(self):
+    #     """Update the entity.
 
-        Only used by the generic entity update service.
-        """
-        await self.coordinator.async_request_refresh()
+    #     Only used by the generic entity update service.
+    #     """
+    #     await self.coordinator.async_request_refresh()
 
-    async def async_added_to_hass(self):
-        """When entity is added to hass."""
-        self.async_on_remove(
-            self.coordinator.async_add_listener(self.async_write_ha_state)
-        )
+    # async def async_added_to_hass(self):
+    #     """When entity is added to hass."""
+    #     self.async_on_remove(
+    #         self.coordinator.async_add_listener(self.async_write_ha_state)
+    #     )
 
 
 class ImagePathSensors(CoordinatorEntity):
@@ -192,15 +192,15 @@ class ImagePathSensors(CoordinatorEntity):
         attr = {}
         return attr
 
-    async def async_update(self):
-        """Update the entity.
+    # async def async_update(self):
+    #     """Update the entity.
 
-        Only used by the generic entity update service.
-        """
-        await self.coordinator.async_request_refresh()
+    #     Only used by the generic entity update service.
+    #     """
+    #     await self.coordinator.async_request_refresh()
 
-    async def async_added_to_hass(self):
-        """When entity is added to hass."""
-        self.async_on_remove(
-            self.coordinator.async_add_listener(self.async_write_ha_state)
-        )
+    # async def async_added_to_hass(self):
+    #     """When entity is added to hass."""
+    #     self.async_on_remove(
+    #         self.coordinator.async_add_listener(self.async_write_ha_state)
+    #     )

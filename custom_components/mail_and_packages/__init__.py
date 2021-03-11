@@ -2,11 +2,11 @@
 import logging
 from datetime import timedelta
 
-import async_timeout
+from async_timeout import timeout
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
     CONF_ALLOW_EXTERNAL,
@@ -72,18 +72,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     config_entry.options = config_entry.data
     config = config_entry.data
 
-    async def async_update_data():
-        """Fetch data """
-        async with async_timeout.timeout(config.get(CONF_IMAP_TIMEOUT)):
-            return await hass.async_add_executor_job(process_emails, hass, config)
-
-    coordinator = DataUpdateCoordinator(
-        hass,
-        _LOGGER,
-        name=f"Mail and Packages ({config.get(CONF_HOST)})",
-        update_method=async_update_data,
-        update_interval=timedelta(minutes=config_entry.data.get(CONF_SCAN_INTERVAL)),
-    )
+    host = config.get(CONF_HOST)
+    timeout = config.get(CONF_IMAP_TIMEOUT)
+    interval = config.get(CONF_SCAN_INTERVAL)
+    coordinator = MailDataUpdateCoordinator(hass, host, timeout, interval, config)
 
     # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
@@ -187,3 +179,31 @@ async def async_migrate_entry(hass, config_entry):
         _LOGGER.debug("Migration to version %s complete", config_entry.version)
 
     return True
+
+
+class MailDataUpdateCoordinator(DataUpdateCoordinator):
+    """Class to manage fetching mail data."""
+
+    def __init__(self, hass, host, timeout, interval, config):
+        """Initialize."""
+        self.interval = timedelta(minutes=interval)
+        self.host = host
+        self.name = f"Mail and Packages ({host})"
+        self.timeout = timeout
+        self.config = config
+        self.hass = hass
+
+        _LOGGER.debug("Data will be update every %s", self.interval)
+
+        super().__init__(hass, _LOGGER, name=self.name, update_interval=self.interval)
+
+    async def _async_update_data(self):
+        """Fetch data """
+        async with timeout(self.timeout):
+            try:
+                data = await self.hass.async_add_executor_job(
+                    process_emails, self.hass, self.config
+                )
+            except Exception as error:
+                raise UpdateFailed(error) from error
+            return data
