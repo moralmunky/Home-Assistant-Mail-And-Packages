@@ -72,9 +72,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     config_entry.options = config_entry.data
     config = config_entry.data
 
+    # Variables for data coordinator
     host = config.get(CONF_HOST)
     timeout = config.get(CONF_IMAP_TIMEOUT)
     interval = config.get(CONF_SCAN_INTERVAL)
+
+    # Setup the data coordinator
     coordinator = MailDataUpdateCoordinator(hass, host, timeout, interval, config)
 
     # Fetch initial data so we have data when entities subscribe
