@@ -12,7 +12,7 @@ import subprocess
 import uuid
 from email.header import decode_header
 from shutil import copyfile, which
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Type, Union
 
 import aiohttp
 import imageio as io
@@ -268,7 +268,9 @@ def fetch(hass: Any, config: Any, account: Any, data: dict, sensor: str) -> int:
     return count[sensor]
 
 
-def login(host, port, user, pwd):
+def login(
+    host: str, port: int, user: str, pwd: str
+) -> Union[bool, Type[imaplib.IMAP4_SSL]]:
     """function used to login"""
 
     # Catch invalid mail server / host names
@@ -289,7 +291,7 @@ def login(host, port, user, pwd):
     return account
 
 
-def selectfolder(account, folder) -> None:
+def selectfolder(account: Any, folder: str) -> None:
     """Select folder inside the mailbox"""
     try:
         rv, mailboxes = account.list()
