@@ -718,10 +718,7 @@ async def test_generate_mp4(
 async def test_connection_error(caplog):
     result = login("localhost", 993, "fakeuser", "suchfakemuchpassword")
     assert not result
-    assert (
-        "Network error while connecting to server: [Errno 111] Connection refused"
-        in caplog.text
-    )
+    assert "Network error while connecting to server:" in caplog.text
 
 
 async def test_login_error(mock_imap_login_error, caplog):
