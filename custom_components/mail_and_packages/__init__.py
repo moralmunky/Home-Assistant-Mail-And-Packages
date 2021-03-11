@@ -187,7 +187,6 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
     def __init__(self, hass, host, timeout, interval, config):
         """Initialize."""
         self.interval = timedelta(minutes=interval)
-        self.host = host
         self.name = f"Mail and Packages ({host})"
         self.timeout = timeout
         self.config = config
