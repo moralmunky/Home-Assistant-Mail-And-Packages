@@ -904,7 +904,7 @@ def get_items(
 
     for domain in domains:
         if "@" in domain:
-            email_address = domain
+            email_address = domain.strip('"')
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
         else:
             email_address = []
