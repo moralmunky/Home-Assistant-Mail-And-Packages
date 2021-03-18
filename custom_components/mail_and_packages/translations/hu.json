@@ -5,7 +5,8 @@
         },
         "error": {
             "communication": "Nem lehet csatlakozni vagy bejelentkezni az e-mail szerverhez. Kérjük, ellenőrizze a naplót a részletekért.",
-            "invalid_path": "Tárolja a képeket egy másik könyvtárban."
+            "invalid_path": "Tárolja a képeket egy másik könyvtárban.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "user": {
@@ -25,17 +26,23 @@
                     "image_path": "Kép elérési útja",
                     "gif_duration": "Kép időtartama (másodpercben)",
                     "image_security": "Véletlen képfájlnév",
-                    "generate_mp4": "Készítsen mp4-et a képekből"
+                    "generate_mp4": "Készítsen mp4-et a képekből",
+                    "resources": "Sensors List",
+                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+                    "amazon_fwds": "Amazon fowarded email addresses",
+                    "allow_external": "Create image for notification apps"
                 },
-                "description": "Végezze el a konfigurációt az alábbiak testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján. \n\n A [Levelek és csomagok integrációja](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opciókkal kapcsolatban tekintse meg a [konfiguráció, sablonok , és az automatizálás szakasz](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHubon.",
+                "description": "Végezze el a konfigurációt az alábbiak testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján. \n\n A [Levelek és csomagok integrációja] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opciókkal kapcsolatban tekintse meg a [konfiguráció, sablonok , és az automatizálás szakasz] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHubon.",
                 "title": "Levél és csomagok (2. lépés a 2-ből)"
             }
-        }
+        },
+        "title": "Mail and Packages"
     },
     "options": {
         "error": {
             "communication": "Nem lehet csatlakozni vagy bejelentkezni az e-mail szerverhez. Kérjük, ellenőrizze a naplót a részletekért.",
-            "invalid_path": "Tárolja a képeket egy másik könyvtárban."
+            "invalid_path": "Tárolja a képeket egy másik könyvtárban.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "init": {
@@ -55,7 +62,11 @@
                     "image_path": "Kép elérési útja",
                     "gif_duration": "Kép időtartama (másodpercben)",
                     "image_security": "Véletlen képfájlnév",
-                    "generate_mp4": "Készítsen mp4-et a képekből"
+                    "generate_mp4": "Készítsen mp4-et a képekből",
+                    "resources": "Érzékelők listája",
+                    "imap_timeout": "Idő másodpercben a csatlakozás időtúllépése előtt (másodperc, minimum 10)",
+                    "amazon_fwds": "Amazon forwarded email addresses",
+                    "allow_external": "Kép létrehozása az értesítési alkalmazásokhoz"
                 },
                 "description": "Végezze el a konfigurációt az alábbiak testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján. \n\n A [Levelek és csomagok integrációja](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opciókkal kapcsolatban tekintse meg a [konfiguráció, sablonok , és az automatizálás szakasz](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHubon.",
                 "title": "Levél és csomagok (2. lépés a 2-ből)"

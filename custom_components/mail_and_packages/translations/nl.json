@@ -5,7 +5,8 @@
         },
         "error": {
             "communication": "Kan geen verbinding maken met of inloggen op de mailserver. Controleer het logboek voor details.",
-            "invalid_path": "Bewaar de afbeeldingen in een andere map."
+            "invalid_path": "Bewaar de afbeeldingen in een andere map.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "user": {
@@ -25,17 +26,23 @@
                     "image_path": "Afbeeldingspad",
                     "gif_duration": "Beeldduur (seconden)",
                     "image_security": "Bestandsnaam willekeurige afbeelding",
-                    "generate_mp4": "Maak mp4 van afbeeldingen"
+                    "generate_mp4": "Maak mp4 van afbeeldingen",
+                    "resources": "Sensors List",
+                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+                    "amazon_fwds": "Amazon fowarded email addresses",
+                    "allow_external": "Create image for notification apps"
                 },
-                "description": "Voltooi de configuratie door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie. \n\n Voor meer informatie over de [E-mail en pakketten integratie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties bekijk de [configuratie, sjablonen , en automatisering sectie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.",
+                "description": "Voltooi de configuratie door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie. \n\n Voor meer informatie over de [E-mail en pakketten integratie] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties bekijk de [configuratie, sjablonen , en automatisering sectie] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.",
                 "title": "Mail en pakketten (stap 2 van 2)"
             }
-        }
+        },
+        "title": "Mail and Packages"
     },
     "options": {
         "error": {
             "communication": "Kan geen verbinding maken met of inloggen op de mailserver. Controleer het logboek voor details.",
-            "invalid_path": "Bewaar de afbeeldingen in een andere map."
+            "invalid_path": "Bewaar de afbeeldingen in een andere map.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "init": {
@@ -55,7 +62,11 @@
                     "image_path": "Afbeeldingspad",
                     "gif_duration": "Beeldduur (seconden)",
                     "image_security": "Bestandsnaam willekeurige afbeelding",
-                    "generate_mp4": "Maak mp4 van afbeeldingen"
+                    "generate_mp4": "Maak mp4 van afbeeldingen",
+                    "resources": "Sensoren lijst",
+                    "imap_timeout": "Tijd in seconden voordat verbinding wordt verbroken (seconden, minimaal 10)",
+                    "amazon_fwds": "Amazon forwarded email addresses",
+                    "allow_external": "Maak een afbeelding voor meldings-apps"
                 },
                 "description": "Voltooi de configuratie door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie. \n\n Voor meer informatie over de [E-mail en pakketten integratie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties bekijk de [configuratie, sjablonen , en automatisering sectie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.",
                 "title": "Mail en pakketten (stap 2 van 2)"

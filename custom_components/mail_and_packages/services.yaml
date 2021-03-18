@@ -1,0 +1,13 @@
+update_image:
+  name: Refresh the Mail Camera(s)
+  description: Refershes the Mail Camera sepcified or all of them at once. Leave blank to refresh them all.
+  fields:
+    entity_id:
+      name: Camera Entity
+      description: The camera entity to refresh.
+      example: camera.mail_usps_camera
+      required: false
+      selector:
+        entity:
+          domain: camera
+          integration: mail_and_packages

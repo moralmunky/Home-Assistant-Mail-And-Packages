@@ -1,14 +1,17 @@
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.0.0"  # Now updated by release workflow
+VERSION = "0.0.0-dev"  # Now updated by release workflow
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
-PLATFORMS = ["sensor"]
+PLATFORMS = ["camera", "sensor"]
 DATA = "data"
 COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
+SERVICE_UPDATE_FILE_PATH = "update_file_path"
+CAMERA = "cameras"
 
 # Attributes
+ATTR_AMAZON_IMAGE = "amazon_image"
 ATTR_COUNT = "count"
 ATTR_CODE = "code"
 ATTR_ORDER = "order"
@@ -26,6 +29,7 @@ ATTR_USPS_MAIL = "usps_mail"
 
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"
+CONF_CAMERA_NAME = "camera_name"
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
 CONF_DURATION = "gif_duration"
@@ -36,10 +40,11 @@ CONF_GENERATE_MP4 = "generate_mp4"
 CONF_AMAZON_FWDS = "amazon_fwds"
 
 # Defaults
+DEFAULT_CAMERA_NAME = "Mail USPS Camera"
 DEFAULT_NAME = "Mail And Packages"
 DEFAULT_PORT = "993"
 DEFAULT_FOLDER = '"INBOX"'
-DEFAULT_PATH = "images/mail_and_packages/"
+DEFAULT_PATH = "custom_components/mail_and_packages/images/"
 DEFAULT_IMAGE_SECURITY = True
 DEFAULT_IMAP_TIMEOUT = 30
 DEFAULT_GIF_DURATION = 5
@@ -81,7 +86,7 @@ SENSOR_DATA = {
         "subject": ["Delivery Exception"],
     },
     "usps_packages": {},
-    "usps_tracking": {"pattern": ["9[234]\\d{15,22}"]},
+    "usps_tracking": {"pattern": ["9[2345]\\d{15,22}"]},
     "usps_mail": {
         "email": [
             "USPSInformedDelivery@usps.gov",
@@ -291,6 +296,12 @@ IMAGE_SENSORS = {
         None,
         "mdi:link-variant",
     ],
+}
+
+# Name
+CAMERA_DATA = {
+    "usps_camera": ["Mail USPS Camera"],
+    "amazon_camera": ["Mail Amazon Delivery Camera"],
 }
 
 # Sensor Index

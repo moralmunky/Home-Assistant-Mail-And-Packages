@@ -1,4 +1,5 @@
 -r requirements.txt
+aiohttp_cors
 aioresponses
 black
 isort

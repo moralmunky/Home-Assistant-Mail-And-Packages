@@ -1,4 +1,5 @@
 """ Fixtures for Mail and Packages tests. """
+import errno
 import imaplib
 import time
 from unittest import mock
@@ -636,6 +637,18 @@ def mock_listdir_nogif():
 
 
 @pytest.fixture
+def mock_listdir_noimgs():
+    """ Fixture to mock listdir """
+    with patch("os.listdir") as mock_listdir_noimgs:
+        mock_listdir_noimgs.return_value = [
+            "testfile.xls",
+            "anotherfakefile.mp4",
+            "lastfile.txt",
+        ]
+        yield mock_listdir_noimgs
+
+
+@pytest.fixture
 def mock_osremove():
     """ Fixture to mock remove """
     with patch("os.remove") as mock_remove:
@@ -886,7 +899,7 @@ def mock_hash_file_oserr():
     with patch(
         "custom_components.mail_and_packages.helpers.hash_file"
     ) as mock_hash_file_oserr:
-        mock_hash_file_oserr.side_effect = FileNotFoundError
+        mock_hash_file_oserr.side_effect = OSError(errno.EEXIST, "error")
         yield mock_hash_file_oserr
 
 
@@ -896,7 +909,7 @@ def mock_getctime_err():
     with patch(
         "custom_components.mail_and_packages.helpers.os.path.getctime"
     ) as mock_getctime_err:
-        mock_getctime_err.side_effect = FileNotFoundError
+        mock_getctime_err.side_effect = OSError(errno.EEXIST, "error")
         yield mock_getctime_err
 
 
@@ -957,3 +970,11 @@ def aioclient_mock_error():
         )
 
         yield mock_aiohttp
+
+
+@pytest.fixture
+def mock_copytree():
+    """ Fixture to mock copyfile """
+    with patch("custom_components.mail_and_packages.helpers.copytree") as mock_copytree:
+        mock_copytree.return_value = True
+        yield mock_copytree
