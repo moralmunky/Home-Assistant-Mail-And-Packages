@@ -5,7 +5,8 @@
         },
         "error": {
             "communication": "無法連接或登錄到郵件服務器。請檢查日誌以獲取詳細信息。",
-            "invalid_path": "請將圖像存儲在另一個目錄中。"
+            "invalid_path": "請將圖像存儲在另一個目錄中。",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "user": {
@@ -25,17 +26,23 @@
                     "image_path": "圖像路徑",
                     "gif_duration": "圖像持續時間（秒）",
                     "image_security": "隨機圖像文件名",
-                    "generate_mp4": "從圖像創建mp4"
+                    "generate_mp4": "從圖像創建mp4",
+                    "resources": "Sensors List",
+                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+                    "amazon_fwds": "Amazon fowarded email addresses",
+                    "allow_external": "Create image for notification apps"
                 },
-                "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)選項的詳細信息，請查看[配置，模板和自動化部分](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHub上的。",
+                "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成]（https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration）選項的詳細信息，請查看[配置，模板和自動化部分]（GitHub上的https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration）。",
                 "title": "郵件和包裹（第2步，共2步）"
             }
-        }
+        },
+        "title": "Mail and Packages"
     },
     "options": {
         "error": {
             "communication": "無法連接或登錄到郵件服務器。請檢查日誌以獲取詳細信息。",
-            "invalid_path": "請將圖像存儲在另一個目錄中。"
+            "invalid_path": "請將圖像存儲在另一個目錄中。",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "init": {
@@ -55,7 +62,11 @@
                     "image_path": "圖像路徑",
                     "gif_duration": "圖像持續時間（秒）",
                     "image_security": "隨機圖像文件名",
-                    "generate_mp4": "從圖像創建mp4"
+                    "generate_mp4": "從圖像創建mp4",
+                    "resources": "傳感器清單",
+                    "imap_timeout": "連接超時之前的時間（以秒為單位）（秒，至少10）",
+                    "amazon_fwds": "Amazon forwarded email addresses",
+                    "allow_external": "為通知應用創建圖像"
                 },
                 "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)選項的詳細信息，請查看[配置，模板和自動化部分](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHub上的。",
                 "title": "郵件和包裹（第2步，共2步）"

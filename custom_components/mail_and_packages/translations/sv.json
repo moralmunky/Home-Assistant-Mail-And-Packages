@@ -5,7 +5,8 @@
         },
         "error": {
             "communication": "Det går inte att ansluta eller logga in på e-postservern. Kontrollera loggen för mer information.",
-            "invalid_path": "Förvara bilderna i en annan katalog."
+            "invalid_path": "Förvara bilderna i en annan katalog.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "user": {
@@ -25,17 +26,23 @@
                     "image_path": "Bildväg",
                     "gif_duration": "Bildens längd (sekunder)",
                     "image_security": "Slumpmässig bildfilnamn",
-                    "generate_mp4": "Skapa mp4 från bilder"
+                    "generate_mp4": "Skapa mp4 från bilder",
+                    "resources": "Sensors List",
+                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+                    "amazon_fwds": "Amazon fowarded email addresses",
+                    "allow_external": "Create image for notification apps"
                 },
-                "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
+                "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
                 "title": "Mail och paket (steg 2 av 2)"
             }
-        }
+        },
+        "title": "Mail and Packages"
     },
     "options": {
         "error": {
             "communication": "Det går inte att ansluta eller logga in på e-postservern. Kontrollera loggen för mer information.",
-            "invalid_path": "Förvara bilderna i en annan katalog."
+            "invalid_path": "Förvara bilderna i en annan katalog.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "init": {
@@ -55,7 +62,11 @@
                     "image_path": "Bildväg",
                     "gif_duration": "Bildens längd (sekunder)",
                     "image_security": "Slumpmässig bildfilnamn",
-                    "generate_mp4": "Skapa mp4 från bilder"
+                    "generate_mp4": "Skapa mp4 från bilder",
+                    "resources": "Sensorlista",
+                    "imap_timeout": "Tid i sekunder före timeout för anslutning (sekunder, minimum 10)",
+                    "amazon_fwds": "Amazon forwarded email addresses",
+                    "allow_external": "Skapa bild för anmälningsappar"
                 },
                 "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
                 "title": "Mail och paket (steg 2 av 2)"

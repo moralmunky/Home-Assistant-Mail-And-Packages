@@ -1,6 +1,7 @@
 """Tests for helpers module."""
 import datetime
 from datetime import date
+import errno
 from unittest import mock
 from unittest.mock import call, mock_open, patch
 
@@ -82,6 +83,7 @@ async def test_process_emails(
     mock_listdir,
     mock_update_time,
     mock_copyfile,
+    mock_copytree,
     mock_hash_file,
     mock_getctime_today,
 ):
@@ -99,7 +101,10 @@ async def test_process_emails(
     config = entry.data.copy()
     assert config == FAKE_CONFIG_DATA_CORRECTED
     state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
-    assert "/testing_config/images/mail_and_packages/testfile.gif" in state.state
+    assert (
+        "/testing_config/custom_components/mail_and_packages/images/testfile.gif"
+        in state.state
+    )
     state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
     assert state.state == "http://127.0.0.1:8123/local/mail_and_packages/testfile.gif"
     result = process_emails(hass, config)
@@ -121,6 +126,7 @@ async def test_process_emails_external(
     mock_listdir,
     mock_update_time,
     mock_copyfile,
+    mock_copytree,
     mock_hash_file,
     mock_getctime_today,
 ):
@@ -139,7 +145,10 @@ async def test_process_emails_external(
     config = entry.data.copy()
     assert config == FAKE_CONFIG_DATA_CORRECTED_EXTERNAL
     state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
-    assert "/testing_config/www/mail_and_packages/testfile.gif" in state.state
+    assert (
+        "/testing_config/custom_components/mail_and_packages/images/testfile.gif"
+        in state.state
+    )
     state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
     assert (
         state.state
@@ -154,6 +163,73 @@ async def test_process_emails_external(
     assert result["amazon_packages"] == 0
     assert result["amazon_order"] == []
     assert result["amazon_hub_code"] == []
+    assert (
+        "custom_components/mail_and_packages/images/" in mock_copytree.call_args.args[0]
+    )
+    assert "www/mail_and_packages" in mock_copytree.call_args.args[1]
+    assert mock_copytree.call_args.kwargs == {"dirs_exist_ok": True}
+    assert (
+        "www/mail_and_packages/amazon/anotherfakefile.mp4"
+        in mock_osremove.call_args.args[0]
+    )
+
+
+async def test_process_emails_external_error(
+    hass,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copyfile,
+    mock_copytree,
+    mock_hash_file,
+    mock_getctime_today,
+    caplog,
+):
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_EXTERNAL,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    config = entry.data.copy()
+    with patch("os.makedirs") as mock_osmakedirs:
+        mock_osmakedirs.side_effect = OSError
+        process_emails(hass, config)
+
+    assert "Problem creating:" in caplog.text
+
+
+async def test_process_emails_copytree_error(
+    hass,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copyfile,
+    mock_hash_file,
+    mock_getctime_today,
+    caplog,
+):
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_EXTERNAL,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    config = entry.data.copy()
+    with patch("custom_components.mail_and_packages.helpers.copytree") as mock_copytree:
+        mock_copytree.side_effect = Exception
+        process_emails(hass, config)
+    assert "Problem copying files from" in caplog.text
 
 
 async def test_process_emails_bad(hass, mock_imap_no_email):
@@ -177,6 +253,7 @@ async def test_process_emails_non_random(
     mock_listdir,
     mock_update_time,
     mock_copyfile,
+    mock_copytree,
     mock_hash_file,
     mock_getctime_today,
 ):
@@ -203,6 +280,7 @@ async def test_process_emails_random(
     mock_listdir,
     mock_update_time,
     mock_copyfile,
+    mock_copytree,
     mock_hash_file,
     mock_getctime_yesterday,
 ):
@@ -226,9 +304,10 @@ async def test_process_nogif(
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
-    mock_listdir_nogif,
+    mock_listdir_noimgs,
     mock_update_time,
     mock_copyfile,
+    mock_copytree,
     mock_hash_file,
     mock_getctime_today,
 ):
@@ -255,6 +334,7 @@ async def test_process_old_image(
     mock_listdir,
     mock_update_time,
     mock_copyfile,
+    mock_copytree,
     mock_hash_file,
     mock_getctime_yesterday,
 ):
@@ -281,6 +361,7 @@ async def test_image_filename_oserr(
     mock_listdir,
     mock_update_time,
     mock_copyfile,
+    mock_copytree,
     mock_hash_file_oserr,
     mock_getctime_today,
     caplog,
@@ -308,6 +389,7 @@ async def test_image_getctime_oserr(
     mock_listdir,
     mock_update_time,
     mock_copyfile,
+    mock_copytree,
     mock_hash_file,
     mock_getctime_err,
     caplog,
@@ -658,26 +740,32 @@ async def test_amazon_shipped_order_it(hass, mock_imap_amazon_shipped_it):
 
 
 async def test_amazon_search(hass, mock_imap_no_email):
-    result = amazon_search(mock_imap_no_email, "test/path", hass)
+    result = amazon_search(mock_imap_no_email, "test/path", hass, "testfilename.jpg")
     assert result == 0
 
 
 async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
-    result = amazon_search(mock_imap_amazon_shipped, "test/path", hass)
+    result = amazon_search(
+        mock_imap_amazon_shipped, "test/path", hass, "testfilename.jpg"
+    )
     assert result == 12
 
 
 async def test_amazon_search_delivered(
     hass, mock_imap_amazon_delivered, mock_download_img
 ):
-    result = amazon_search(mock_imap_amazon_delivered, "test/path", hass)
+    result = amazon_search(
+        mock_imap_amazon_delivered, "test/path", hass, "testfilename.jpg"
+    )
     assert result == 12
 
 
 async def test_amazon_search_delivered_it(
     hass, mock_imap_amazon_delivered_it, mock_download_img
 ):
-    result = amazon_search(mock_imap_amazon_delivered_it, "test/path", hass)
+    result = amazon_search(
+        mock_imap_amazon_delivered_it, "test/path", hass, "testfilename.jpg"
+    )
     assert result == 12
 
 
@@ -769,14 +857,25 @@ async def test_usps_exception(hass, mock_imap_usps_exception):
     assert result["count"] == 1
 
 
-async def test_download_img(aioclient_mock, caplog):
+async def test_download_img(
+    aioclient_mock,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir_nogif,
+    mock_copyfile,
+    mock_hash_file,
+    mock_getctime_today,
+    caplog,
+):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
         await download_img(
-            "http://fake.website.com/not/a/real/website/image.jpg", "/fake/directory/"
+            "http://fake.website.com/not/a/real/website/image.jpg",
+            "/fake/directory/",
+            "testfilename.jpg",
         )
         assert m_open.call_count == 1
-        assert m_open.call_args == call("/fake/directory/amazon_delivered.jpg", "wb")
+        assert m_open.call_args == call("/fake/directory/amazon/testfilename.jpg", "wb")
         assert "URL content-type: image/gif" in caplog.text
         assert "Amazon image downloaded" in caplog.text
 
@@ -785,7 +884,9 @@ async def test_download_img_error(aioclient_mock_error, caplog):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
         await download_img(
-            "http://fake.website.com/not/a/real/website/image.jpg", "/fake/directory/"
+            "http://fake.website.com/not/a/real/website/image.jpg",
+            "/fake/directory/",
+            "testfilename.jpg",
         )
         assert "Problem downloading file http error: 404" in caplog.text
 
@@ -799,3 +900,15 @@ async def test_image_file_name_path_error(hass, caplog):
         result = image_file_name(hass, config)
         assert result == "mail_none.gif"
         assert "Problem creating:" in caplog.text
+
+
+async def test_image_file_name_amazon(
+    hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, caplog
+):
+    config = FAKE_CONFIG_DATA_CORRECTED
+
+    with patch("os.path.exists", return_value=True), patch(
+        "os.makedirs", return_value=True
+    ):
+        result = image_file_name(hass, config, True)
+        assert result == "testfile.jpg"

@@ -5,7 +5,8 @@
         },
         "error": {
             "communication": "메일 서버에 연결하거나 로그인 할 수 없습니다. 자세한 내용은 로그를 확인하십시오.",
-            "invalid_path": "이미지를 다른 디렉토리에 저장하십시오."
+            "invalid_path": "이미지를 다른 디렉토리에 저장하십시오.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "user": {
@@ -25,17 +26,23 @@
                     "image_path": "이미지 경로",
                     "gif_duration": "이미지 지속 시간 (초)",
                     "image_security": "임의의 이미지 파일 이름",
-                    "generate_mp4": "이미지에서 mp4 만들기"
+                    "generate_mp4": "이미지에서 mp4 만들기",
+                    "resources": "Sensors List",
+                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+                    "amazon_fwds": "Amazon fowarded email addresses",
+                    "allow_external": "Create image for notification apps"
                 },
-                "description": "이메일 구조 및 Home Assistant 설치에 따라 다음을 사용자 정의하여 구성을 완료하십시오. \n\n [메일 및 패키지 통합](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) 옵션에 대한 자세한 내용은 [구성, 템플릿 및 자동화 섹션](https://github.com/moralmunky/Home-Assistant-Mail-and-Packages/wiki/Configuration-and-Email-Settings#configuration)",
+                "description": "이메일 구조 및 Home Assistant 설치에 따라 다음을 사용자 정의하여 구성을 완료하십시오. \n\n [메일 및 패키지 통합] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) 옵션에 대한 자세한 내용은 [구성, 템플릿 및 자동화 섹션] (https://github.com/moralmunky/Home-Assistant-Mail-and-Packages/wiki/Configuration-and-Email-Settings#configuration)",
                 "title": "메일 및 패키지 (2/2 단계)"
             }
-        }
+        },
+        "title": "Mail and Packages"
     },
     "options": {
         "error": {
             "communication": "메일 서버에 연결하거나 로그인 할 수 없습니다. 자세한 내용은 로그를 확인하십시오.",
-            "invalid_path": "이미지를 다른 디렉토리에 저장하십시오."
+            "invalid_path": "이미지를 다른 디렉토리에 저장하십시오.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "init": {
@@ -55,7 +62,11 @@
                     "image_path": "이미지 경로",
                     "gif_duration": "이미지 지속 시간 (초)",
                     "image_security": "임의의 이미지 파일 이름",
-                    "generate_mp4": "이미지에서 mp4 만들기"
+                    "generate_mp4": "이미지에서 mp4 만들기",
+                    "resources": "센서 목록",
+                    "imap_timeout": "연결 시간 초과 전 시간 (초, 최소 10 초)",
+                    "amazon_fwds": "Amazon forwarded email addresses",
+                    "allow_external": "알림 앱용 이미지 만들기"
                 },
                 "description": "이메일 구조 및 Home Assistant 설치에 따라 다음을 사용자 정의하여 구성을 완료하십시오. \n\n [메일 및 패키지 통합](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) 옵션에 대한 자세한 내용은 [구성, 템플릿 및 자동화 섹션](https://github.com/moralmunky/Home-Assistant-Mail-and-Packages/wiki/Configuration-and-Email-Settings#configuration)",
                 "title": "메일 및 패키지 (2/2 단계)"

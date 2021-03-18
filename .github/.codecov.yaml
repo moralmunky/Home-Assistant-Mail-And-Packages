@@ -5,6 +5,14 @@ coverage:
   precision: 2
   round: down
   range: "70...100"
+  status:
+    project:
+      default:
+        target: 95%
+        threshold: 1%
+    patch:
+      default:
+        target: 90%
 
 parsers:
   gcov:
@@ -20,5 +28,5 @@ comment:
   require_changes: no
 
 ignore:
-  - "tests/"  # no need to test the tests
+  - "tests/" # no need to test the tests
   - "test.py" # doesn't need testing

@@ -5,7 +5,8 @@
         },
         "error": {
             "communication": "Kan ikke koble til eller logge inn på postserveren. Vennligst sjekk loggen for detaljer.",
-            "invalid_path": "Lagre bildene i en annen katalog."
+            "invalid_path": "Lagre bildene i en annen katalog.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "user": {
@@ -25,17 +26,23 @@
                     "image_path": "Bildevei",
                     "gif_duration": "Bildets varighet (sekunder)",
                     "image_security": "Tilfeldig bilde filnavn",
-                    "generate_mp4": "Lag mp4 fra bilder"
+                    "generate_mp4": "Lag mp4 fra bilder",
+                    "resources": "Sensors List",
+                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+                    "amazon_fwds": "Amazon fowarded email addresses",
+                    "allow_external": "Create image for notification apps"
                 },
-                "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på e-poststrukturen og Home Assistant-installasjonen. \n\n For detaljer om alternativene [Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), les gjennom [konfigurasjon, maler , og automatiseringsdel](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
+                "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på e-poststrukturen og Home Assistant-installasjonen. \n\n For detaljer om alternativene [Mail and Packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), les gjennom [konfigurasjon, maler , og automatiseringsdel] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
                 "title": "E-post og pakker (trinn 2 av 2)"
             }
-        }
+        },
+        "title": "Mail and Packages"
     },
     "options": {
         "error": {
             "communication": "Kan ikke koble til eller logge inn på postserveren. Vennligst sjekk loggen for detaljer.",
-            "invalid_path": "Lagre bildene i en annen katalog."
+            "invalid_path": "Lagre bildene i en annen katalog.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "init": {
@@ -55,7 +62,11 @@
                     "image_path": "Bildevei",
                     "gif_duration": "Bildets varighet (sekunder)",
                     "image_security": "Tilfeldig bilde filnavn",
-                    "generate_mp4": "Lag mp4 fra bilder"
+                    "generate_mp4": "Lag mp4 fra bilder",
+                    "resources": "Sensorliste",
+                    "imap_timeout": "Tid i sekunder før tidsavbrudd for tilkobling (sekunder, minimum 10)",
+                    "amazon_fwds": "Amazon forwarded email addresses",
+                    "allow_external": "Lag bilde for varslingsapper"
                 },
                 "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på e-poststrukturen og Home Assistant-installasjonen. \n\n For detaljer om alternativene [Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), les gjennom [konfigurasjon, maler , og automatiseringsdel](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
                 "title": "E-post og pakker (trinn 2 av 2)"

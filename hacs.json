@@ -1,6 +1,6 @@
 {
     "name": "Mail and Packages",
-    "domains": [ "sensor" ],
+    "domains": [ "camera", "sensor" ],
     "homeassistant": "0.109.0",
     "iot_class": "Cloud Polling",
     "zip_release": true,

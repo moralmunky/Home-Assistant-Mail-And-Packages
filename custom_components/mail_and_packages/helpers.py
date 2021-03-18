@@ -11,11 +11,12 @@ import re
 import subprocess
 import uuid
 from email.header import decode_header
-from shutil import copyfile, which
+from shutil import copyfile, copytree, which
 from typing import Any, List, Optional, Type, Union
 
 import aiohttp
 import imageio as io
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
     CONF_PASSWORD,
@@ -23,6 +24,7 @@ from homeassistant.const import (
     CONF_RESOURCES,
     CONF_USERNAME,
 )
+from homeassistant.core import HomeAssistant
 from PIL import Image
 from resizeimage import resizeimage
 
@@ -52,7 +54,7 @@ async def _check_ffmpeg() -> bool:
         return False
 
 
-async def _test_login(host, port, user, pwd) -> bool:
+async def _test_login(host: str, port: int, user: str, pwd: str) -> bool:
     """function used to login"""
     # Attempt to catch invalid mail server hosts
     try:
@@ -72,25 +74,17 @@ async def _test_login(host, port, user, pwd) -> bool:
 # Email Data helpers
 
 
-def default_image_path(hass: Any, config_entry: Any) -> str:
-    """ Return value of the default image path """
+def default_image_path(hass: HomeAssistant, config_entry: ConfigEntry) -> str:
+    """Return value of the default image path
 
-    updated_config = config_entry.data.copy()
-
-    # Set default image path (internal use)
-    if const.CONF_PATH not in config_entry.data.keys():
-        return "images/mail_and_packages/"
-
-    # Set default image path (external use if enabled)
-    elif const.CONF_ALLOW_EXTERNAL in config_entry.data.keys():
-        if updated_config[const.CONF_ALLOW_EXTERNAL]:
-            return "www/mail_and_packages/"
+    Returns the default path based on logic (placeholder for future code)
+    """
 
     # Return the default
-    return "images/mail_and_packages/"
+    return "custom_components/mail_and_packages/images/"
 
 
-def process_emails(hass: Any, config: Any) -> dict:
+def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     """ Process emails and return value """
     host = config.get(CONF_HOST)
     port = config.get(CONF_PORT)
@@ -113,12 +107,18 @@ def process_emails(hass: Any, config: Any) -> dict:
 
     # Create image file name dict container
     _image = {}
+
+    # USPS Mail Image name
     image_name = image_file_name(hass, config)
     _LOGGER.debug("Image name: %s", image_name)
     _image[const.ATTR_IMAGE_NAME] = image_name
 
+    # Amazon delivery image name
+    image_name = image_file_name(hass, config, True)
+    _LOGGER.debug("Amazon Image Name: %s", image_name)
+    _image[const.ATTR_AMAZON_IMAGE] = image_name
+
     image_path = config.get(const.CONF_PATH)
-    # image_path = default_image_path(hass, config)
     _LOGGER.debug("Image path: %s", image_path)
     _image[const.ATTR_IMAGE_PATH] = image_path
     data.update(_image)
@@ -127,17 +127,59 @@ def process_emails(hass: Any, config: Any) -> dict:
     for sensor in resources:
         fetch(hass, config, account, data, sensor)
 
+    # Copy image file to www directory if enabled
+    if config.get(const.CONF_ALLOW_EXTERNAL):
+        copy_images(hass, config)
+
     return data
 
 
-def image_file_name(hass: Any, config: Any) -> str:
+def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
+    """Copy images to www directory if enabled."""
+    paths = []
+    src = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
+    dst = f"{hass.config.path()}/www/mail_and_packages/"
+
+    # Setup paths list
+    paths.append(dst)
+    paths.append(dst + "amazon/")
+
+    # Clean up the destination directory
+    for path in paths:
+        # Path check
+        path_check = os.path.exists(path)
+        if not path_check:
+            try:
+                os.makedirs(path)
+            except OSError as err:
+                _LOGGER.error("Problem creating: %s, error returned: %s", path, err)
+                return
+        cleanup_images(path)
+
+    try:
+        copytree(src, dst, dirs_exist_ok=True)
+    except Exception as err:
+        _LOGGER.error(
+            "Problem copying files from %s to %s error returned: %s", src, dst, err
+        )
+        return
+
+
+def image_file_name(
+    hass: HomeAssistant, config: ConfigEntry, amazon: bool = False
+) -> str:
     """Determine if filename is to be changed or not.
 
     Returns filename
     """
     image_name = None
-    path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
     mail_none = f"{os.path.dirname(__file__)}/mail_none.gif"
+    path = None
+
+    if amazon:
+        path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}amazon"
+    else:
+        path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
 
     # Path check
     path_check = os.path.exists(path)
@@ -155,8 +197,11 @@ def image_file_name(hass: Any, config: Any) -> str:
         _LOGGER.error("Problem accessing file: %s, error returned: %s", mail_none, err)
         return "mail_none.gif"
 
+    ext = None
+    ext = ".jpg" if amazon else ".gif"
+
     for file in os.listdir(path):
-        if file.endswith(".gif"):
+        if file.endswith(".gif") or (file.endswith(".jpg") and amazon):
             try:
                 created = datetime.datetime.fromtimestamp(
                     os.path.getctime(os.path.join(path, file))
@@ -171,13 +216,16 @@ def image_file_name(hass: Any, config: Any) -> str:
             # If image isn't mail_none and not created today,
             # return a new filename
             if sha1 != hash_file(os.path.join(path, file)) and today != created:
-                image_name = f"{str(uuid.uuid4())}.gif"
+                image_name = f"{str(uuid.uuid4())}{ext}"
             else:
                 image_name = file
 
     # Handle no gif file found
     if image_name is None:
-        image_name = f"{str(uuid.uuid4())}.gif"
+        image_name = f"{str(uuid.uuid4())}{ext}"
+
+    # Insert place holder image
+    copyfile(mail_none, os.path.join(path, image_name))
 
     return image_name
 
@@ -203,7 +251,9 @@ def hash_file(filename: str) -> str:
     return h.hexdigest()
 
 
-def fetch(hass: Any, config: Any, account: Any, data: dict, sensor: str) -> int:
+def fetch(
+    hass: HomeAssistant, config: ConfigEntry, account: Any, data: dict, sensor: str
+) -> int:
     """Fetch data for a single sensor, including any sensors it depends on."""
 
     img_out_path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
@@ -211,6 +261,7 @@ def fetch(hass: Any, config: Any, account: Any, data: dict, sensor: str) -> int:
     generate_mp4 = config.get(const.CONF_GENERATE_MP4)
     amazon_fwds = config.get(const.CONF_AMAZON_FWDS)
     image_name = data[const.ATTR_IMAGE_NAME]
+    amazon_image_name = data[const.ATTR_AMAZON_IMAGE]
 
     if sensor in data:
         return data[sensor]
@@ -259,9 +310,9 @@ def fetch(hass: Any, config: Any, account: Any, data: dict, sensor: str) -> int:
     elif sensor == "mail_updated":
         count[sensor] = update_time()
     else:
-        count[sensor] = get_count(account, sensor, False, img_out_path, hass)[
-            const.ATTR_COUNT
-        ]
+        count[sensor] = get_count(
+            account, sensor, False, img_out_path, hass, amazon_image_name
+        )[const.ATTR_COUNT]
 
     data.update(count)
     _LOGGER.debug("Sensor: %s Count: %s", sensor, str(count[sensor]))
@@ -291,7 +342,7 @@ def login(
     return account
 
 
-def selectfolder(account: Any, folder: str) -> None:
+def selectfolder(account: Type[imaplib.IMAP4_SSL], folder: str) -> None:
     """Select folder inside the mailbox"""
     try:
         rv, mailboxes = account.list()
@@ -320,7 +371,9 @@ def update_time() -> str:
     return updated
 
 
-def email_search(account: Any, address: list, date: str, subject: str = None) -> tuple:
+def email_search(
+    account: Type[imaplib.IMAP4_SSL], address: list, date: str, subject: str = None
+) -> tuple:
     """Search emails with from, subject, senton date.
 
     Returns a tuple
@@ -361,7 +414,9 @@ def email_search(account: Any, address: list, date: str, subject: str = None) ->
     return value
 
 
-def email_fetch(account: Any, num: int, type: str = "(RFC822)") -> tuple:
+def email_fetch(
+    account: Type[imaplib.IMAP4_SSL], num: int, type: str = "(RFC822)"
+) -> tuple:
     """Download specified email for parsing.
 
     Returns tuple
@@ -376,7 +431,7 @@ def email_fetch(account: Any, num: int, type: str = "(RFC822)") -> tuple:
 
 
 def get_mails(
-    account: Any,
+    account: Type[imaplib.IMAP4_SSL],
     image_output_path: str,
     gif_duration: int,
     image_name: str,
@@ -599,7 +654,7 @@ def copy_overlays(path: str) -> None:
 def cleanup_images(path: str, image: Optional[str] = None) -> None:
     """
     Clean up image storage directory
-    Only supose to delete .gif and .mp4 files
+    Only supose to delete .gif, .mp4, and .jpg files
     """
 
     if image is not None:
@@ -610,7 +665,7 @@ def cleanup_images(path: str, image: Optional[str] = None) -> None:
         return
 
     for file in os.listdir(path):
-        if file.endswith(".gif") or file.endswith(".mp4"):
+        if file.endswith(".gif") or file.endswith(".mp4") or file.endswith(".jpg"):
             try:
                 os.remove(path + file)
             except Exception as err:
@@ -618,11 +673,12 @@ def cleanup_images(path: str, image: Optional[str] = None) -> None:
 
 
 def get_count(
-    account: Any,
+    account: Type[imaplib.IMAP4_SSL],
     sensor_type: str,
     get_tracking_num: bool = False,
     image_path: Optional[str] = None,
-    hass: Optional[Any] = None,
+    hass: Optional[HomeAssistant] = None,
+    amazon_image_name: Optional[str] = None,
 ) -> dict:
     """
     Get Package Count
@@ -638,7 +694,9 @@ def get_count(
 
     # Return Amazon delivered info
     if sensor_type == const.AMAZON_DELIVERED:
-        result[const.ATTR_COUNT] = amazon_search(account, image_path, hass)
+        result[const.ATTR_COUNT] = amazon_search(
+            account, image_path, hass, amazon_image_name
+        )
         result[const.ATTR_TRACKING] = ""
         return result
 
@@ -692,12 +750,14 @@ def get_count(
     return result
 
 
-def get_tracking(sdata: Any, account: Any, format: Optional[str] = None) -> list:
+def get_tracking(
+    sdata: Any, account: Type[imaplib.IMAP4_SSL], format: Optional[str] = None
+) -> list:
     """Parse tracking numbers from email """
-    _LOGGER.debug("Searching for tracking numbers...")
     tracking = []
     pattern = None
     mail_list = sdata.split()
+    _LOGGER.debug("Searching for tracking numbers in %s messages...", len(mail_list))
 
     pattern = re.compile(r"{}".format(format))
     for i in mail_list:
@@ -705,6 +765,7 @@ def get_tracking(sdata: Any, account: Any, format: Optional[str] = None) -> list
         for response_part in data:
             if isinstance(response_part, tuple):
                 msg = email.message_from_bytes(response_part[1])
+                _LOGGER.debug("Checking message subject...")
 
                 # Search subject for a tracking number
                 email_subject = msg["subject"]
@@ -719,6 +780,7 @@ def get_tracking(sdata: Any, account: Any, format: Optional[str] = None) -> list
                     continue
 
                 # Search in email body for tracking number
+                _LOGGER.debug("Checking message body...")
                 email_msg = quopri.decodestring(str(msg.get_payload(0)))
                 email_msg = email_msg.decode("utf-8", "ignore")
                 found = pattern.findall(email_msg)
@@ -738,7 +800,7 @@ def get_tracking(sdata: Any, account: Any, format: Optional[str] = None) -> list
     return tracking
 
 
-def find_text(sdata: Any, account: Any, search: str) -> int:
+def find_text(sdata: Any, account: Type[imaplib.IMAP4_SSL], search: str) -> int:
     """
     Filter for specific words in email
     Return count of items found
@@ -767,7 +829,12 @@ def find_text(sdata: Any, account: Any, search: str) -> int:
     return count
 
 
-def amazon_search(account: Any, image_path: str, hass: Any) -> int:
+def amazon_search(
+    account: Type[imaplib.IMAP4_SSL],
+    image_path: str,
+    hass: HomeAssistant,
+    amazon_image_name: str,
+) -> int:
     """ Find Amazon Delivered email """
     _LOGGER.debug("Searching for Amazon delivered email(s)...")
     domains = const.Amazon_Domains.split(",")
@@ -787,12 +854,18 @@ def amazon_search(account: Any, image_path: str, hass: Any) -> int:
 
             count += len(data[0].split())
             _LOGGER.debug("Amazon delivered email(s) found: %s", count)
-            get_amazon_image(data[0], account, image_path, hass)
+            get_amazon_image(data[0], account, image_path, hass, amazon_image_name)
 
     return count
 
 
-def get_amazon_image(sdata: Any, account: Any, image_path: str, hass: Any) -> None:
+def get_amazon_image(
+    sdata: Any,
+    account: Type[imaplib.IMAP4_SSL],
+    image_path: str,
+    hass: HomeAssistant,
+    image_name: str,
+) -> None:
     """ Find Amazon delivery image """
     _LOGGER.debug("Searching for Amazon image in emails...")
     search = const.AMAZON_IMG_PATTERN
@@ -827,12 +900,15 @@ def get_amazon_image(sdata: Any, account: Any, image_path: str, hass: Any) -> No
 
     if img_url is not None:
         # Download the image we found
-        hass.add_job(download_img(img_url, image_path))
+        hass.add_job(download_img(img_url, image_path, image_name))
 
 
-async def download_img(img_url: str, img_path: str) -> None:
+async def download_img(img_url: str, img_path: str, img_name: str) -> None:
     """ Download image from url """
-    filepath = img_path + "amazon_delivered.jpg"
+
+    img_path = f"{img_path}amazon/"
+    filepath = f"{img_path}{img_name}"
+
     async with aiohttp.ClientSession() as session:
         async with session.get(img_url.replace("&amp;", "&")) as resp:
             if resp.status != 200:
@@ -848,7 +924,7 @@ async def download_img(img_url: str, img_path: str) -> None:
                     _LOGGER.debug("Amazon image downloaded")
 
 
-def amazon_hub(account: Any, fwds: Optional[str] = None) -> dict:
+def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> dict:
     """ Find Amazon Hub info and return it """
     email_address = const.AMAZON_HUB_EMAIL
     subject_regex = const.AMAZON_HUB_SUBJECT
@@ -884,7 +960,9 @@ def amazon_hub(account: Any, fwds: Optional[str] = None) -> dict:
 
 
 def get_items(
-    account: Any, param: str, fwds: Optional[str] = None
+    account: Type[imaplib.IMAP4_SSL],
+    param: str,
+    fwds: Optional[str] = None,
 ) -> Union[List[str], int]:
     """Parse Amazon emails for delivery date and order number"""
 

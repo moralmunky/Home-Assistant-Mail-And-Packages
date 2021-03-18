@@ -5,7 +5,8 @@
         },
         "error": {
             "communication": "Es kann keine Verbindung zum Mailserver hergestellt oder angemeldet werden. Bitte überprüfen Sie das Protokoll für Details.",
-            "invalid_path": "Bitte speichern Sie die Bilder in einem anderen Verzeichnis."
+            "invalid_path": "Bitte speichern Sie die Bilder in einem anderen Verzeichnis.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "user": {
@@ -25,17 +26,23 @@
                     "image_path": "Bildpfad",
                     "gif_duration": "Bilddauer (Sekunden)",
                     "image_security": "Zufälliger Bilddateiname",
-                    "generate_mp4": "Erstellen Sie mp4 aus Bildern"
+                    "generate_mp4": "Erstellen Sie mp4 aus Bildern",
+                    "resources": "Sensors List",
+                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+                    "amazon_fwds": "Amazon fowarded email addresses",
+                    "allow_external": "Create image for notification apps"
                 },
-                "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
+                "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
                 "title": "Post und Pakete (Schritt 2 von 2)"
             }
-        }
+        },
+        "title": "Mail and Packages"
     },
     "options": {
         "error": {
             "communication": "Es kann keine Verbindung zum Mailserver hergestellt oder angemeldet werden. Bitte überprüfen Sie das Protokoll für Details.",
-            "invalid_path": "Bitte speichern Sie die Bilder in einem anderen Verzeichnis."
+            "invalid_path": "Bitte speichern Sie die Bilder in einem anderen Verzeichnis.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "init": {
@@ -55,7 +62,11 @@
                     "image_path": "Bildpfad",
                     "gif_duration": "Bilddauer (Sekunden)",
                     "image_security": "Zufälliger Bilddateiname",
-                    "generate_mp4": "Erstellen Sie mp4 aus Bildern"
+                    "generate_mp4": "Erstellen Sie mp4 aus Bildern",
+                    "resources": "Liste der Sensoren",
+                    "imap_timeout": "Zeit in Sekunden vor dem Verbindungszeitlimit (Sekunden, mindestens 10)",
+                    "amazon_fwds": "Amazon forwarded email addresses",
+                    "allow_external": "Erstellen Sie ein Bild für Benachrichtigungs-Apps"
                 },
                 "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
                 "title": "Post und Pakete (Schritt 2 von 2)"

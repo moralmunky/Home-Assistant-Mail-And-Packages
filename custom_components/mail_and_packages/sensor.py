@@ -150,8 +150,6 @@ class ImagePathSensors(CoordinatorEntity):
                 return f"{url.rstrip('/')}/local/mail_and_packages/{image}"
             url = self.hass.config.external_url
             return f"{url.rstrip('/')}/local/mail_and_packages/{image}"
-        else:
-            return None
 
     @property
     def unit_of_measurement(self) -> Optional[str]:
