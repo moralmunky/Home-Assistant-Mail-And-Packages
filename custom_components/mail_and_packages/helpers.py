@@ -36,7 +36,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def get_resources() -> dict:
-    """Resource selection schema."""
+    """Resource selection schema.
+
+    Returns dict of user selected sensors
+    """
 
     known_available_resources = {
         sensor_id: sensor[const.SENSOR_NAME]
@@ -47,7 +50,10 @@ def get_resources() -> dict:
 
 
 async def _check_ffmpeg() -> bool:
-    """ check if ffmpeg is installed """
+    """Check if ffmpeg is installed.
+
+    Returns boolean
+    """
     if which("ffmpeg") is not None:
         return True
     else:
@@ -55,7 +61,10 @@ async def _check_ffmpeg() -> bool:
 
 
 async def _test_login(host: str, port: int, user: str, pwd: str) -> bool:
-    """function used to login"""
+    """Tests IMAP login to specified server.
+
+    Returns success boolean
+    """
     # Attempt to catch invalid mail server hosts
     try:
         account = imaplib.IMAP4_SSL(host, port)
@@ -85,7 +94,10 @@ def default_image_path(hass: HomeAssistant, config_entry: ConfigEntry) -> str:
 
 
 def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
-    """ Process emails and return value """
+    """Process emails and return value.
+
+    Returns dict containing sensor data
+    """
     host = config.get(CONF_HOST)
     port = config.get(CONF_PORT)
     user = config.get(CONF_USERNAME)
@@ -224,10 +236,6 @@ def image_file_name(
             else:
                 image_name = file
 
-    # Handle no gif file found
-    if image_name is None:
-        image_name = f"{str(uuid.uuid4())}{ext}"
-
     # Insert place holder image
     copyfile(mail_none, os.path.join(path, image_name))
 
@@ -235,8 +243,10 @@ def image_file_name(
 
 
 def hash_file(filename: str) -> str:
-    """ "This function returns the SHA-1 hash
-    of the file passed into it"""
+    """This function returns the SHA-1 hash of the file passed into it.
+
+    Returns hash of file as string
+    """
 
     # make a hash object
     h = hashlib.sha1()
@@ -258,7 +268,10 @@ def hash_file(filename: str) -> str:
 def fetch(
     hass: HomeAssistant, config: ConfigEntry, account: Any, data: dict, sensor: str
 ) -> int:
-    """Fetch data for a single sensor, including any sensors it depends on."""
+    """Fetch data for a single sensor, including any sensors it depends on.
+
+    Returns integer of sensor passed to it
+    """
 
     img_out_path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
     gif_duration = config.get(const.CONF_DURATION)
@@ -326,7 +339,10 @@ def fetch(
 def login(
     host: str, port: int, user: str, pwd: str
 ) -> Union[bool, Type[imaplib.IMAP4_SSL]]:
-    """function used to login"""
+    """Function used to login to IMAP server.
+
+    Returns account object
+    """
 
     # Catch invalid mail server / host names
     try:
@@ -359,7 +375,10 @@ def selectfolder(account: Type[imaplib.IMAP4_SSL], folder: str) -> None:
 
 
 def get_formatted_date() -> str:
-    """Returns today in specific format"""
+    """Returns today in specific format.
+
+    Returns current timestamp as string
+    """
     today = datetime.datetime.today().strftime("%d-%b-%Y")
     #
     # for testing
@@ -369,7 +388,10 @@ def get_formatted_date() -> str:
 
 
 def update_time() -> str:
-    """gets update time"""
+    """Gets update time.
+
+    Returns current timestamp as string
+    """
     updated = datetime.datetime.now().strftime("%b-%d-%Y %I:%M %p")
 
     return updated
@@ -616,6 +638,8 @@ def resize_images(images: list, width: int, height: int) -> list:
     """
     Resize images
     This should keep the aspect ratio of the images
+
+    Returns list of images
     """
     all_images = []
     for image in images:
@@ -657,7 +681,8 @@ def copy_overlays(path: str) -> None:
 
 def cleanup_images(path: str, image: Optional[str] = None) -> None:
     """
-    Clean up image storage directory
+    Clean up image storage directory.
+
     Only supose to delete .gif, .mp4, and .jpg files
     """
 
@@ -685,8 +710,9 @@ def get_count(
     amazon_image_name: Optional[str] = None,
 ) -> dict:
     """
-    Get Package Count
-    todo: convert subjects to list and use a for loop
+    Get Package Count.
+
+    Returns dict of sensor data
     """
     count = 0
     tracking = []
@@ -757,7 +783,10 @@ def get_count(
 def get_tracking(
     sdata: Any, account: Type[imaplib.IMAP4_SSL], format: Optional[str] = None
 ) -> list:
-    """Parse tracking numbers from email """
+    """Parse tracking numbers from email.
+
+    Returns list of tracking numbers
+    """
     tracking = []
     pattern = None
     mail_list = sdata.split()
@@ -806,8 +835,9 @@ def get_tracking(
 
 def find_text(sdata: Any, account: Type[imaplib.IMAP4_SSL], search: str) -> int:
     """
-    Filter for specific words in email
-    Return count of items found
+    Filter for specific words in email.
+
+    Return count of items found as integer
     """
     _LOGGER.debug("Searching for (%s) in (%s) emails", search, len(sdata))
     mail_list = sdata.split()
@@ -839,7 +869,10 @@ def amazon_search(
     hass: HomeAssistant,
     amazon_image_name: str,
 ) -> int:
-    """ Find Amazon Delivered email """
+    """Find Amazon Delivered email.
+
+    Returns email found count as integer
+    """
     _LOGGER.debug("Searching for Amazon delivered email(s)...")
     domains = const.Amazon_Domains.split(",")
     subjects = const.AMAZON_Delivered_Subject
@@ -870,7 +903,7 @@ def get_amazon_image(
     hass: HomeAssistant,
     image_name: str,
 ) -> None:
-    """ Find Amazon delivery image """
+    """Find Amazon delivery image."""
     _LOGGER.debug("Searching for Amazon image in emails...")
     search = const.AMAZON_IMG_PATTERN
 
@@ -908,7 +941,7 @@ def get_amazon_image(
 
 
 async def download_img(img_url: str, img_path: str, img_name: str) -> None:
-    """ Download image from url """
+    """Download image from url."""
 
     img_path = f"{img_path}amazon/"
     filepath = f"{img_path}{img_name}"
@@ -929,7 +962,10 @@ async def download_img(img_url: str, img_path: str, img_name: str) -> None:
 
 
 def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> dict:
-    """ Find Amazon Hub info and return it """
+    """Find Amazon Hub info emails.
+
+    Returns dict of sensor data
+    """
     email_address = const.AMAZON_HUB_EMAIL
     subject_regex = const.AMAZON_HUB_SUBJECT
     info = {}
@@ -965,10 +1001,13 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
 
 def get_items(
     account: Type[imaplib.IMAP4_SSL],
-    param: str,
+    param: str = None,
     fwds: Optional[str] = None,
 ) -> Union[List[str], int]:
-    """Parse Amazon emails for delivery date and order number"""
+    """Parse Amazon emails for delivery date and order number.
+
+    Returns list of order numbers or email count as integer
+    """
 
     _LOGGER.debug("Attempting to find Amazon email with item list ...")
 
