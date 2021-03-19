@@ -1,8 +1,8 @@
 """Camera that loads a picture from a local file."""
 import logging
 import os
-import voluptuous as vol
 
+import voluptuous as vol
 from homeassistant.components.camera import Camera
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, CONF_HOST
