@@ -94,6 +94,7 @@ class MailCam(Camera):
         self._coordinator = coordinator
         self._host = config.data.get(CONF_HOST)
         self._unique_id = config.entry_id
+        self.update_file_path()
 
     async def async_camera_image(self):
         """Return image response."""
