@@ -172,13 +172,17 @@ def image_file_name(
 
     Returns filename
     """
-    image_name = None
-    mail_none = f"{os.path.dirname(__file__)}/mail_none.gif"
+    mail_none = None
     path = None
+    image_name = None
 
     if amazon:
+        mail_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+        image_name = "no_deliveries.jpg"
         path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}amazon"
     else:
+        mail_none = f"{os.path.dirname(__file__)}/mail_none.gif"
+        image_name = "mail_none.gif"
         path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
 
     # Path check
@@ -188,14 +192,14 @@ def image_file_name(
             os.makedirs(path)
         except OSError as err:
             _LOGGER.error("Problem creating: %s, error returned: %s", path, err)
-            return "mail_none.gif"
+            return image_name
 
     # SHA1 file hash check
     try:
         sha1 = hash_file(mail_none)
     except OSError as err:
         _LOGGER.error("Problem accessing file: %s, error returned: %s", mail_none, err)
-        return "mail_none.gif"
+        return image_name
 
     ext = None
     ext = ".jpg" if amazon else ".gif"
