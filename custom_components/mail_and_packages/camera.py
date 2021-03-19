@@ -137,7 +137,7 @@ class MailCam(Camera):
                 path = f"{self._coordinator.data[ATTR_IMAGE_PATH]}amazon/"
                 file_path = f"{self.hass.config.path()}/{path}{image}"
             else:
-                file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
+                file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
 
         self.check_file_path_access(file_path)
         self._file_path = file_path
