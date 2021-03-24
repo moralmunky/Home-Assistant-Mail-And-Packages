@@ -236,6 +236,10 @@ def image_file_name(
             else:
                 image_name = file
 
+    # If we find no images in the image directory generate a new filename
+    if image_name in mail_none:
+        image_name = f"{str(uuid.uuid4())}{ext}"
+
     # Insert place holder image
     copyfile(mail_none, os.path.join(path, image_name))
 
