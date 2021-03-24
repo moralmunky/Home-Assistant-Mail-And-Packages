@@ -912,3 +912,16 @@ async def test_image_file_name_amazon(
     ):
         result = image_file_name(hass, config, True)
         assert result == "testfile.jpg"
+
+
+async def test_image_file_name(
+    hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, caplog
+):
+    config = FAKE_CONFIG_DATA_CORRECTED
+
+    with patch("os.path.exists", return_value=True), patch(
+        "os.makedirs", return_value=True
+    ):
+        result = image_file_name(hass, config)
+        assert ".gif" in result
+        assert not result == "mail_none.gif"
