@@ -304,6 +304,10 @@ def fetch(
         value = amazon_hub(account, amazon_fwds)
         count[sensor] = value[const.ATTR_COUNT]
         count[const.AMAZON_HUB_CODE] = value[const.ATTR_CODE]
+    elif sensor == const.AMAZON_EXCEPTION:
+        info = amazon_exception(account, amazon_fwds)
+        count[sensor] = info[const.ATTR_COUNT]
+        count[const.AMAZON_EXCEPTION_ORDER] = info[const.ATTR_ORDER]
     elif "_packages" in sensor:
         prefix = sensor.split("_")[0]
         delivering = fetch(hass, config, account, data, f"{prefix}_delivering")
@@ -999,6 +1003,54 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
 
     info[const.ATTR_COUNT] = len(found)
     info[const.ATTR_CODE] = found
+
+    return info
+
+
+def amazon_exception(
+    account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None
+) -> dict:
+    """Find Amazon exception emails.
+
+    Returns dict of sensor data
+    """
+    orderNum = []
+    tfmt = get_formatted_date()
+    subject = const.AMAZON_EXCEPTION_SUBJECT
+    pattern = const.AMAZON_PATTERN
+    count = 0
+    info = {}
+    domains = const.Amazon_Domains.split(",")
+    if isinstance(fwds, list):
+        for fwd in fwds:
+            if fwd != '""':
+                domains.append(fwd)
+                _LOGGER.debug("Amazon email adding %s to list", str(fwd))
+
+    for domain in domains:
+        if "@" in domain:
+            email_address = domain.strip('"')
+            _LOGGER.debug("Amazon email search address: %s", str(email_address))
+        else:
+            email_address = []
+            addresses = const.AMAZON_SHIPMENT_TRACKING
+            for address in addresses:
+                email_address.append(f"{address}@{domain}")
+            _LOGGER.debug("Amazon email search address: %s", str(email_address))
+
+        (rv, sdata) = email_search(account, email_address, tfmt, subject)
+
+        if rv != "OK":
+            continue
+
+        count += len(sdata[0].split())
+        _LOGGER.debug("Found %s Amazon exceptions", count)
+        ordernums = get_tracking(sdata[0], account, pattern)
+        for order in ordernums:
+            orderNum.append(order)
+
+    info[const.ATTR_COUNT] = count
+    info[const.ATTR_ORDER] = orderNum
 
     return info
 

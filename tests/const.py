@@ -51,6 +51,7 @@ FAKE_CONFIG_DATA = {
         "zpackages_delivered",
         "zpackages_transit",
         "amazon_delivered",
+        "amazon_exception",
         "amazon_hub",
         "amazon_packages",
         "capost_delivered",
@@ -184,6 +185,7 @@ FAKE_CONFIG_DATA_CORRECTED = {
     "port": 993,
     "resources": [
         "amazon_delivered",
+        "amazon_exception",
         "amazon_hub",
         "amazon_packages",
         "capost_delivered",

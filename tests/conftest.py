@@ -978,3 +978,28 @@ def mock_copytree():
     with patch("custom_components.mail_and_packages.helpers.copytree") as mock_copytree:
         mock_copytree.return_value = True
         yield mock_copytree
+
+
+@pytest.fixture()
+def mock_imap_amazon_exception():
+    """ Mock imap class values. """
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_amazon_exception:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_amazon_exception.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/amazon_exception.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
