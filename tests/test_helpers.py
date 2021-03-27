@@ -12,6 +12,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.mail_and_packages.const import DOMAIN
 from custom_components.mail_and_packages.helpers import (
     _generate_mp4,
+    amazon_exception,
     amazon_hub,
     amazon_search,
     cleanup_images,
@@ -925,3 +926,17 @@ async def test_image_file_name(
         result = image_file_name(hass, config)
         assert ".gif" in result
         assert not result == "mail_none.gif"
+
+
+async def test_amazon_exception(hass, mock_imap_amazon_exception):
+    result = amazon_exception(mock_imap_amazon_exception, [""])
+    assert result["order"] == [
+        "123-1234567-1234567",
+        "123-1234567-1234567",
+        "123-1234567-1234567",
+        "123-1234567-1234567",
+        "123-1234567-1234567",
+        "123-1234567-1234567",
+        "123-1234567-1234567",
+    ]
+    assert result["count"] == 7

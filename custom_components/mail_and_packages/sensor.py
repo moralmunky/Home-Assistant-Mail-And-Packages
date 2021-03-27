@@ -92,7 +92,10 @@ class PackagesSensor(CoordinatorEntity):
         data = self.coordinator.data
 
         if "Amazon" in self._name:
-            attr[const.ATTR_ORDER] = data[const.AMAZON_ORDER]
+            if self._name == "amazon_exception":
+                attr[const.ATTR_ORDER] = data[const.AMAZON_EXCEPTION_ORDER]
+            else:
+                attr[const.ATTR_ORDER] = data[const.AMAZON_ORDER]
         elif "Mail USPS Mail" == self._name:
             attr[const.ATTR_IMAGE] = data[const.ATTR_IMAGE_NAME]
         elif "_delivering" in self.type and tracking in self.data.keys():

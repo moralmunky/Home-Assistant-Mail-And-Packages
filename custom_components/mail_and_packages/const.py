@@ -69,6 +69,11 @@ AMAZON_HUB_CODE = "amazon_hub_code"
 AMAZON_HUB_EMAIL = "thehub@amazon.com"
 AMAZON_HUB_SUBJECT = "(You have a package to pick up)(.*)- (\\d{6})"
 AMAZON_TIME_PATTERN = "will arrive:,estimated delivery date is:,guaranteed delivery date is:,Arriving:,Arriver:"
+AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
+AMAZON_EXCEPTION_BODY = "running late"
+AMAZON_EXCEPTION = "amazon_exception"
+AMAZON_EXCEPTION_ORDER = "amazon_exception_order"
+AMAZON_PATTERN = "[0-9]{3}-[0-9]{7}-[0-9]{7}"
 
 # Sensor Data
 SENSOR_DATA = {
@@ -220,6 +225,7 @@ SENSOR_TYPES = {
         "package(s)",
         "mdi:package-variant-closed",
     ],
+    "amazon_exception": ["Mail Amazon Exception", "package(s)", "mdi:archive-alert"],
     "amazon_hub": ["Mail Amazon Hub Packages", "package(s)", "mdi:amazon"],
     "capost_delivered": [
         "Mail Canada Post Delivered",
