@@ -1039,6 +1039,10 @@ def amazon_exception(
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
 
         (rv, sdata) = email_search(account, email_address, tfmt, subject)
+
+        if rv != "OK":
+            continue
+
         count += len(sdata[0].split())
         _LOGGER.debug("Found %s Amazon exceptions", count)
         ordernums = get_tracking(sdata[0], account, pattern)

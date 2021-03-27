@@ -26,13 +26,13 @@ async def test_unload_entry(hass, mock_update, mock_copy_overlays):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 28
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 29
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
     assert await hass.config_entries.async_unload(entries[0].entry_id)
     await hass.async_block_till_done()
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 28
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 29
     assert len(hass.states.async_entity_ids(DOMAIN)) == 0
 
     assert await hass.config_entries.async_remove(entries[0].entry_id)
@@ -62,7 +62,7 @@ async def test_setup_entry(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 28
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 29
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
