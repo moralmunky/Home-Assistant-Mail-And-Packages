@@ -1033,7 +1033,7 @@ def amazon_exception(
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
         else:
             email_address = []
-            addresses = const.AMAZON_SHIPMENT_TRACKING
+            addresses = const.AMAZON_Email + domain
             for address in addresses:
                 email_address.append(f"{address}@{domain}")
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
