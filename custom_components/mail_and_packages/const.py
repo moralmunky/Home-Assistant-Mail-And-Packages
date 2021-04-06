@@ -114,6 +114,10 @@ SENSOR_DATA = {
             "UPS Update: Follow Your Delivery on a Live Map",
         ],
     },
+    "ups_exception": {
+        "email": ["mcinfo@ups.com"],
+        "subject": ["UPS Update: New Scheduled Delivery Date"],
+    },
     "ups_packages": {},
     "ups_tracking": {
         "pattern": [
@@ -207,6 +211,7 @@ SENSOR_TYPES = {
         "mdi:package-variant-closed",
     ],
     "ups_delivering": ["Mail UPS Delivering", "package(s)", "mdi:truck-delivery"],
+    "ups_exception": ["Mail UPS Exception", "package(s)", "mdi:archive-alert"],
     "ups_packages": ["Mail UPS Packages", "package(s)", "mdi:package-variant-closed"],
     "fedex_delivered": [
         "Mail FedEx Delivered",
