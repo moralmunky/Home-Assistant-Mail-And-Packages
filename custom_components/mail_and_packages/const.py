@@ -113,7 +113,6 @@ SENSOR_DATA = {
             "UPS Update: Package Scheduled for Delivery Today",
             "UPS Update: Follow Your Delivery on a Live Map",
         ],
-        "body": ["Tracking Number"],
     },
     "ups_packages": {},
     "ups_tracking": {
