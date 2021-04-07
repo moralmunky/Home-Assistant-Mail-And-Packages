@@ -52,3 +52,7 @@ labels:
     include:
       - '\bdocs\b'
     exclude: []
+  "chore":
+    include:
+      - '\bchore\b'
+    exclude: []
