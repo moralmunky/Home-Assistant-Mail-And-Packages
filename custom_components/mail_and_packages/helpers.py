@@ -1023,9 +1023,11 @@ def amazon_exception(
     domains = const.Amazon_Domains.split(",")
     if isinstance(fwds, list):
         for fwd in fwds:
-            if fwd != '""':
+            if fwd:
                 domains.append(fwd)
                 _LOGGER.debug("Amazon email adding %s to list", str(fwd))
+
+    _LOGGER.debug("Amazon domains to be checked: %s", str(domains))
 
     for domain in domains:
         if "@" in domain:
@@ -1033,9 +1035,7 @@ def amazon_exception(
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
         else:
             email_address = []
-            addresses = const.AMAZON_Email + domain
-            for address in addresses:
-                email_address.append(f"{address}@{domain}")
+            email_address.append(f"{const.AMAZON_Email}{domain}")
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
 
         (rv, sdata) = email_search(account, email_address, tfmt, subject)
@@ -1075,7 +1075,7 @@ def get_items(
     domains = const.Amazon_Domains.split(",")
     if isinstance(fwds, list):
         for fwd in fwds:
-            if fwd != '""':
+            if fwd:
                 domains.append(fwd)
                 _LOGGER.debug("Amazon email adding %s to list", str(fwd))
 
