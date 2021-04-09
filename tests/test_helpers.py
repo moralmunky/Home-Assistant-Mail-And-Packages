@@ -928,7 +928,7 @@ async def test_image_file_name(
         assert not result == "mail_none.gif"
 
 
-async def test_amazon_exception(hass, mock_imap_amazon_exception):
+async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
     result = amazon_exception(mock_imap_amazon_exception, [""])
     assert result["order"] == [
         "123-1234567-1234567",
@@ -937,6 +937,12 @@ async def test_amazon_exception(hass, mock_imap_amazon_exception):
         "123-1234567-1234567",
         "123-1234567-1234567",
         "123-1234567-1234567",
-        "123-1234567-1234567",
     ]
+    assert result["count"] == 6
+
+    result = amazon_exception(mock_imap_amazon_exception, ["testemail@fakedomain.com"])
     assert result["count"] == 7
+    assert (
+        "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'testemail@fakedomain.com']"
+        in caplog.text
+    )
