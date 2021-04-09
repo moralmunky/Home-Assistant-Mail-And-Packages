@@ -1023,7 +1023,7 @@ def amazon_exception(
     domains = const.Amazon_Domains.split(",")
     if isinstance(fwds, list):
         for fwd in fwds:
-            if fwd:
+            if fwd and fwd != '""':
                 domains.append(fwd)
                 _LOGGER.debug("Amazon email adding %s to list", str(fwd))
 
@@ -1075,7 +1075,7 @@ def get_items(
     domains = const.Amazon_Domains.split(",")
     if isinstance(fwds, list):
         for fwd in fwds:
-            if fwd:
+            if fwd and fwd != '""':
                 domains.append(fwd)
                 _LOGGER.debug("Amazon email adding %s to list", str(fwd))
 
