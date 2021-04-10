@@ -39,6 +39,7 @@ labels:
   "code-quality":
     include:
       - '\btests\b'
+      - '\brefactor\b'
     exclude: []
   "breaking-change":
     include:
