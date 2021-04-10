@@ -105,7 +105,6 @@ SENSOR_DATA = {
             "Your UPS Package was delivered",
             "Your UPS Packages were delivered",
         ],
-        "body": ["Tracking Number"],
     },
     "ups_delivering": {
         "email": ["mcinfo@ups.com"],
