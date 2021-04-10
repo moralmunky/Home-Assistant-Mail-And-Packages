@@ -9,6 +9,7 @@ categories:
   - title: ":zap: Enhancments :zap:"
     labels:
       - "enhancement"
+      - "refactor"
   - title: ":sparkles: New Features :sparkles:"
     labels:
       - "feature"
@@ -20,7 +21,6 @@ categories:
   - title: ":wrench: Maintenance :wrench:"
     labels:
       - "chore"
-      - "refactor"
 template: |
   [![Downloads for this release](https://img.shields.io/github/downloads/moralmunky/Home-Assistant-Mail-And-Packages/$RESOLVED_VERSION/total.svg)](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/releases/$RESOLVED_VERSION)
 
