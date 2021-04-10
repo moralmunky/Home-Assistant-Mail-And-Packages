@@ -66,6 +66,16 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # Sort the resources
     updated_config[CONF_RESOURCES] = sorted(updated_config[CONF_RESOURCES])
 
+    # Make sure amazon forwarding emails are not a string
+    if isinstance(updated_config[CONF_AMAZON_FWDS], str):
+        tmp = updated_config[CONF_AMAZON_FWDS]
+        tmp_list = []
+        if "," in tmp:
+            tmp_list = tmp.split(",")
+        else:
+            tmp_list.append(tmp)
+        updated_config[CONF_AMAZON_FWDS] = tmp_list
+
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(config_entry, data=updated_config)
 

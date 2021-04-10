@@ -4,7 +4,7 @@ from unittest.mock import call, mock_open, patch
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.mail_and_packages.const import DOMAIN, CAMERA
+from custom_components.mail_and_packages.const import CAMERA, DOMAIN
 from tests.const import FAKE_CONFIG_DATA
 
 _LOGGER = logging.getLogger(__name__)
