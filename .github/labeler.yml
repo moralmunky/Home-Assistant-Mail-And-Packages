@@ -31,6 +31,7 @@ labels:
   "enhancement":
     include:
       - '\bfeat\b'
+      - '\brefactor\b'
     exclude: []
   "feature":
     include:
@@ -39,6 +40,7 @@ labels:
   "code-quality":
     include:
       - '\btests\b'
+      - '\brefactor\b'
     exclude: []
   "breaking-change":
     include:
