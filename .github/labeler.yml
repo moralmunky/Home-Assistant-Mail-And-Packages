@@ -31,6 +31,7 @@ labels:
   "enhancement":
     include:
       - '\bfeat\b'
+      - '\brefactor\b'
     exclude: []
   "feature":
     include:

@@ -9,7 +9,6 @@ categories:
   - title: ":zap: Enhancments :zap:"
     labels:
       - "enhancement"
-      - "refactor"
   - title: ":sparkles: New Features :sparkles:"
     labels:
       - "feature"
