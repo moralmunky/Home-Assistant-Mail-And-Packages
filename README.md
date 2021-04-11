@@ -50,8 +50,8 @@ Please note that files stored in the `www` Home Assistant folder are [publicly a
 [Supported Shipper Requirements](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements)
 
 ## Template and Examples
-[USPS Informed Delivery Image](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
+[USPS Informed Delivery Image](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/USPS-Informed-Delivery-Image)
 
-[Text Summary](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
+[Text Summary](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Mail-Summary-Message)
 
-[Notificaions](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
+[Notificaions](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Notifications)
