@@ -1,3 +1,4 @@
+""" Constants for Mail and Packages."""
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
 VERSION = "0.0.0-dev"  # Now updated by release workflow
@@ -54,10 +55,10 @@ DEFAULT_AMAZON_FWDS = '""'
 DEFAULT_ALLOW_EXTERNAL = False
 
 # Amazon
-Amazon_Domains = "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de,amazon.it"
-AMAZON_Delivered_Subject = ["Delivered: Your", "Consegna effettuata:"]
+AMAZON_DOMAINS = "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de,amazon.it"
+AMAZON_DELIVERED_SUBJECT = ["Delivered: Your", "Consegna effettuata:"]
 AMAZON_SHIPMENT_TRACKING = ["shipment-tracking", "conferma-spedizione"]
-AMAZON_Email = "order-update@"
+AMAZON_EMAIL = "order-update@"
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
 AMAZON_DELIVERED = "amazon_delivered"

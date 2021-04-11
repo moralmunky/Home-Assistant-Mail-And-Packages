@@ -20,7 +20,6 @@ from .const import (
     DEFAULT_IMAP_TIMEOUT,
     DOMAIN,
     ISSUE_URL,
-    PLATFORM,
     PLATFORMS,
     VERSION,
 )
@@ -86,11 +85,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Variables for data coordinator
     host = config.get(CONF_HOST)
-    timeout = config.get(CONF_IMAP_TIMEOUT)
+    the_timeout = config.get(CONF_IMAP_TIMEOUT)
     interval = config.get(CONF_SCAN_INTERVAL)
 
     # Setup the data coordinator
-    coordinator = MailDataUpdateCoordinator(hass, host, timeout, interval, config)
+    coordinator = MailDataUpdateCoordinator(hass, host, the_timeout, interval, config)
 
     # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
@@ -164,7 +163,7 @@ async def async_migrate_entry(hass, config_entry):
             else:
                 updated_config[CONF_AMAZON_FWDS] = []
         else:
-            _LOGGER.warn("Missing configuration data: %s", CONF_AMAZON_FWDS)
+            _LOGGER.warning("Missing configuration data: %s", CONF_AMAZON_FWDS)
 
         # Force path change
         updated_config[CONF_PATH] = "images/mail_and_packages/"
@@ -202,11 +201,11 @@ async def async_migrate_entry(hass, config_entry):
 class MailDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching mail data."""
 
-    def __init__(self, hass, host, timeout, interval, config):
+    def __init__(self, hass, host, the_timeout, interval, config):
         """Initialize."""
         self.interval = timedelta(minutes=interval)
         self.name = f"Mail and Packages ({host})"
-        self.timeout = timeout
+        self.timeout = the_timeout
         self.config = config
         self.hass = hass
 
