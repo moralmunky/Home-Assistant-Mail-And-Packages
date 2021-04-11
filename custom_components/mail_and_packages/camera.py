@@ -28,7 +28,6 @@ async def async_setup_entry(hass, config, async_add_entities):
     if CAMERA not in hass.data[DOMAIN][config.entry_id]:
         hass.data[DOMAIN][config.entry_id][CAMERA] = []
 
-    cameras = hass.data[DOMAIN][config.entry_id][CAMERA]
     coordinator = hass.data[DOMAIN][config.entry_id][COORDINATOR]
     camera = []
     file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
@@ -36,7 +35,7 @@ async def async_setup_entry(hass, config, async_add_entities):
     for variable in CAMERA_DATA:
         temp_cam = MailCam(hass, variable, config, coordinator, file_path)
         camera.append(temp_cam)
-        cameras.append(temp_cam)
+        hass.data[DOMAIN][config.entry_id][CAMERA].append(temp_cam)
 
     async def _update_image(service: ServiceCall) -> None:
         """Refresh camera image."""

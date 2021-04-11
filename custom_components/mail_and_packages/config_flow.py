@@ -206,17 +206,17 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input[CONF_USERNAME],
                 user_input[CONF_PASSWORD],
             )
-            if valid:
-                return await self.async_step_config_2()
-            else:
+            if not valid:
                 self._errors["base"] = "communication"
+            else:
+                return await self.async_step_config_2()
 
             return await self._show_config_form(user_input)
 
         return await self._show_config_form(user_input)
 
     async def _show_config_form(self, user_input):
-        """Show the configuration form to edit location data."""
+        """Show the configuration form to edit configuration data."""
 
         # Defaults
         defaults = {
@@ -230,6 +230,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_config_2(self, user_input=None):
+        """ Configuration form step 2."""
         self._errors = {}
         if user_input is not None:
             self._errors, user_input = await _validate_user_input(user_input)
@@ -290,10 +291,10 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
                 user_input[CONF_USERNAME],
                 user_input[CONF_PASSWORD],
             )
-            if valid:
-                return await self.async_step_options_2()
-            else:
+            if not valid:
                 self._errors["base"] = "communication"
+            else:
+                return await self.async_step_options_2()
 
             return await self._show_options_form(user_input)
 
@@ -309,6 +310,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         )
 
     async def async_step_options_2(self, user_input=None):
+        """ Configuration form step 2."""
         self._errors = {}
         if user_input is not None:
             self._errors, user_input = await _validate_user_input(user_input)

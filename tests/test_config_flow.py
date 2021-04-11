@@ -12,7 +12,6 @@ from custom_components.mail_and_packages.const import (
     DOMAIN,
 )
 from custom_components.mail_and_packages.helpers import _check_ffmpeg, _test_login
-from custom_components.mail_and_packages.config_flow import _validate_user_input
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
 
 

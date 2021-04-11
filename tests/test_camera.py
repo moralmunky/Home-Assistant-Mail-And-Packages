@@ -1,6 +1,6 @@
 """Tests for camera component."""
 import logging
-from unittest.mock import call, mock_open, patch
+from unittest.mock import mock_open, patch
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
