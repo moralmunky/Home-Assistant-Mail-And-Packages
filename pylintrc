@@ -1,0 +1,39 @@
+[MASTER]
+ignore=tests
+# Use a conservative default here; 2 should speed up most setups and not hurt
+# any too bad. Override on command line as appropriate.
+jobs=2
+persistent=no
+
+[BASIC]
+good-names=id,i,j,k,ex,Run,_,fp
+max-attributes=15
+
+[MESSAGES CONTROL]
+# Reasons disabled:
+# locally-disabled - it spams too much
+# too-many-* - are not enforced for the sake of readability
+# too-few-* - same as too-many-*
+# import-outside-toplevel - TODO
+disable=
+  bad-continuation,
+  duplicate-code,
+  fixme,
+  import-outside-toplevel,
+  locally-disabled,
+  too-few-public-methods,
+  too-many-arguments,
+  too-many-public-methods,
+  too-many-instance-attributes,
+  too-many-branches,
+  no-self-use
+
+[REPORTS]
+score=no
+
+[TYPECHECK]
+# For attrs
+ignored-classes=_CountingAttr
+
+[FORMAT]
+expected-line-ending-format=CRLF

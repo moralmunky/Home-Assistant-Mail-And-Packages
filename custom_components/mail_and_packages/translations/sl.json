@@ -5,7 +5,8 @@
         },
         "error": {
             "communication": "Poštnega strežnika ni mogoče povezati ali prijaviti. Za podrobnosti preverite dnevnik.",
-            "invalid_path": "Shranite slike v drugem imeniku."
+            "invalid_path": "Shranite slike v drugem imeniku.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "user": {
@@ -25,17 +26,23 @@
                     "image_path": "Pot slike",
                     "gif_duration": "Trajanje slike (sekunde)",
                     "image_security": "Naključno ime datoteke",
-                    "generate_mp4": "Ustvari mp4 iz slik"
+                    "generate_mp4": "Ustvari mp4 iz slik",
+                    "resources": "Sensors List",
+                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+                    "amazon_fwds": "Amazon fowarded email addresses",
+                    "allow_external": "Create image for notification apps"
                 },
-                "description": "Končajte konfiguracijo s prilagoditvijo naslednjih na podlagi strukture e-pošte in namestitve Home Assistant. \n\n Za podrobnosti o možnostih [Integracija pošte in paketov](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) preglejte [konfiguracijo, predloge in oddelku za avtomatizacije](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
+                "description": "Končajte konfiguracijo s prilagoditvijo naslednjih na podlagi strukture e-pošte in namestitve Home Assistant. \n\n Za podrobnosti o možnostih [Integracija pošte in paketov] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) preglejte [konfiguracijo, predloge in oddelku za avtomatizacije] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
                 "title": "Pošta in paketi (2. korak od 2)"
             }
-        }
+        },
+        "title": "Mail and Packages"
     },
     "options": {
         "error": {
             "communication": "Poštnega strežnika ni mogoče povezati ali prijaviti. Za podrobnosti preverite dnevnik.",
-            "invalid_path": "Shranite slike v drugem imeniku."
+            "invalid_path": "Shranite slike v drugem imeniku.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "init": {
@@ -55,7 +62,11 @@
                     "image_path": "Pot slike",
                     "gif_duration": "Trajanje slike (sekunde)",
                     "image_security": "Naključno ime datoteke",
-                    "generate_mp4": "Ustvari mp4 iz slik"
+                    "generate_mp4": "Ustvari mp4 iz slik",
+                    "resources": "Seznam senzorjev",
+                    "imap_timeout": "Čas v sekundah pred iztekom povezave (sekunde, najmanj 10)",
+                    "amazon_fwds": "Amazon forwarded email addresses",
+                    "allow_external": "Ustvari sliko za aplikacije za obveščanje"
                 },
                 "description": "Končajte konfiguracijo s prilagoditvijo naslednjih na podlagi strukture e-pošte in namestitve Home Assistant. \n\n Za podrobnosti o možnostih [Integracija pošte in paketov](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) preglejte [konfiguracijo, predloge in oddelku za avtomatizacije](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
                 "title": "Pošta in paketi (2. korak od 2)"

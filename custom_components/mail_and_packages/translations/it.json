@@ -5,7 +5,8 @@
         },
         "error": {
             "communication": "Impossibile connettersi o accedere al server di posta. Si prega di controllare il registro per i dettagli.",
-            "invalid_path": "Conservare le immagini in un'altra directory."
+            "invalid_path": "Conservare le immagini in un'altra directory.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "user": {
@@ -25,17 +26,23 @@
                     "image_path": "Percorso immagine",
                     "gif_duration": "Durata immagine (secondi)",
                     "image_security": "Nome file immagine casuale",
-                    "generate_mp4": "Crea mp4 dalle immagini"
+                    "generate_mp4": "Crea mp4 dalle immagini",
+                    "resources": "Sensors List",
+                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+                    "amazon_fwds": "Amazon fowarded email addresses",
+                    "allow_external": "Create image for notification apps"
                 },
-                "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua e-mail e all'installazione di Home Assistant. \n\n Per i dettagli sulle opzioni [Integrazione posta e pacchetti](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) rivedere le [configurazione, modelli e sezione automazioni](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) su GitHub.",
+                "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua e-mail e all'installazione di Home Assistant. \n\n Per i dettagli sulle opzioni [Integrazione posta e pacchetti] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) rivedere le [configurazione, modelli e sezione automazioni] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) su GitHub.",
                 "title": "Posta e pacchi (passaggio 2 di 2)"
             }
-        }
+        },
+        "title": "Mail and Packages"
     },
     "options": {
         "error": {
             "communication": "Impossibile connettersi o accedere al server di posta. Si prega di controllare il registro per i dettagli.",
-            "invalid_path": "Conservare le immagini in un'altra directory."
+            "invalid_path": "Conservare le immagini in un'altra directory.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "init": {
@@ -55,7 +62,11 @@
                     "image_path": "Percorso immagine",
                     "gif_duration": "Durata immagine (secondi)",
                     "image_security": "Nome file immagine casuale",
-                    "generate_mp4": "Crea mp4 dalle immagini"
+                    "generate_mp4": "Crea mp4 dalle immagini",
+                    "resources": "Elenco dei sensori",
+                    "imap_timeout": "Tempo in secondi prima del timeout della connessione (secondi, minimo 10)",
+                    "amazon_fwds": "Amazon forwarded email addresses",
+                    "allow_external": "Crea un'immagine per le app di notifica"
                 },
                 "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua e-mail e all'installazione di Home Assistant. \n\n Per i dettagli sulle opzioni [Integrazione posta e pacchetti](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) rivedere le [configurazione, modelli e sezione automazioni](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) su GitHub.",
                 "title": "Posta e pacchi (passaggio 2 di 2)"

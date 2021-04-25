@@ -41,7 +41,61 @@ from .helpers import _check_ffmpeg, _test_login, get_resources, login
 _LOGGER = logging.getLogger(__name__)
 
 
+async def _validate_user_input(user_input: dict) -> tuple:
+    """Valididate user input from config flow.
+
+    Returns tuple with error messages and modified user_input
+    """
+    errors = {}
+
+    # Validate amazon forwarding email addresses
+    status, amazon_list = await _check_amazon_forwards(user_input[CONF_AMAZON_FWDS])
+    if status[0] == "ok":
+        user_input[CONF_AMAZON_FWDS] = amazon_list
+    else:
+        user_input[CONF_AMAZON_FWDS] = amazon_list
+        errors[CONF_AMAZON_FWDS] = status[0]
+
+    # Check for ffmpeg if option enabled
+    if user_input[CONF_GENERATE_MP4]:
+        valid = await _check_ffmpeg()
+    else:
+        valid = True
+
+    if not valid:
+        errors[CONF_GENERATE_MP4] = "ffmpeg_not_found"
+
+    return errors, user_input
+
+
+async def _check_amazon_forwards(forwards: str) -> tuple:
+    """Validate and format amazon forward emails for user input.
+
+    Returns tuple: dict of errors, list of email addresses
+    """
+    amazon_forwards_list = []
+    errors = []
+
+    # Check for amazon domains
+    if "@amazon" in forwards:
+        errors.append("amazon_domain")
+
+    # Check for commas
+    if "," in forwards:
+        amazon_forwards_list = forwards.split(",")
+
+    # If only one address append it to the list
+    elif forwards != "" or forwards:
+        amazon_forwards_list.append(forwards)
+
+    if len(errors) == 0:
+        errors.append("ok")
+
+    return errors, amazon_forwards_list
+
+
 def _get_mailboxes(host: str, port: int, user: str, pwd: str) -> list:
+    """Gets list of mailbox folders from mail server."""
     account = login(host, port, user, pwd)
 
     status, folderlist = account.list()
@@ -111,10 +165,10 @@ def _get_schema_step_2(
             vol.Optional(CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS)): str,
             vol.Optional(
                 CONF_SCAN_INTERVAL, default=_get_default(CONF_SCAN_INTERVAL)
-            ): vol.Coerce(int),
+            ): vol.All(vol.Coerce(int), vol.Range(min=5)),
             vol.Optional(
                 CONF_IMAP_TIMEOUT, default=_get_default(CONF_IMAP_TIMEOUT)
-            ): vol.Coerce(int),
+            ): vol.All(vol.Coerce(int), vol.Range(min=10)),
             vol.Optional(
                 CONF_DURATION, default=_get_default(CONF_DURATION)
             ): vol.Coerce(int),
@@ -152,17 +206,17 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input[CONF_USERNAME],
                 user_input[CONF_PASSWORD],
             )
-            if valid:
-                return await self.async_step_config_2()
-            else:
+            if not valid:
                 self._errors["base"] = "communication"
+            else:
+                return await self.async_step_config_2()
 
             return await self._show_config_form(user_input)
 
         return await self._show_config_form(user_input)
 
     async def _show_config_form(self, user_input):
-        """Show the configuration form to edit location data."""
+        """Show the configuration form to edit configuration data."""
 
         # Defaults
         defaults = {
@@ -176,22 +230,15 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_config_2(self, user_input=None):
+        """ Configuration form step 2."""
         self._errors = {}
         if user_input is not None:
-            user_input[CONF_AMAZON_FWDS] = user_input[CONF_AMAZON_FWDS].split(",")
+            self._errors, user_input = await _validate_user_input(user_input)
             self._data.update(user_input)
-            if user_input[CONF_GENERATE_MP4]:
-                valid = await _check_ffmpeg()
-            else:
-                valid = True
-
-            if valid:
+            if len(self._errors) == 0:
                 return self.async_create_entry(
                     title=self._data[CONF_HOST], data=self._data
                 )
-            else:
-                self._errors["base"] = "ffmpeg_not_found"
-
             return await self._show_config_2(user_input)
 
         return await self._show_config_2(user_input)
@@ -244,10 +291,10 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
                 user_input[CONF_USERNAME],
                 user_input[CONF_PASSWORD],
             )
-            if valid:
-                return await self.async_step_options_2()
-            else:
+            if not valid:
                 self._errors["base"] = "communication"
+            else:
+                return await self.async_step_options_2()
 
             return await self._show_options_form(user_input)
 
@@ -263,20 +310,13 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         )
 
     async def async_step_options_2(self, user_input=None):
+        """ Configuration form step 2."""
         self._errors = {}
         if user_input is not None:
-            user_input[CONF_AMAZON_FWDS] = user_input[CONF_AMAZON_FWDS].split(",")
+            self._errors, user_input = await _validate_user_input(user_input)
             self._data.update(user_input)
-
-            if user_input[CONF_GENERATE_MP4]:
-                valid = await _check_ffmpeg()
-            else:
-                valid = True
-
-            if valid:
+            if len(self._errors) == 0:
                 return self.async_create_entry(title="", data=self._data)
-            else:
-                self._errors["base"] = "ffmpeg_not_found"
 
             return await self._show_step_options_2(user_input)
 
@@ -285,10 +325,23 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
     async def _show_step_options_2(self, user_input):
         """Step 2 of options."""
 
+        # Defaults
+        defaults = {
+            CONF_FOLDER: self._data.get(CONF_FOLDER),
+            CONF_SCAN_INTERVAL: self._data.get(CONF_SCAN_INTERVAL),
+            CONF_PATH: self._data.get(CONF_PATH),
+            CONF_DURATION: self._data.get(CONF_DURATION),
+            CONF_IMAGE_SECURITY: self._data.get(CONF_IMAGE_SECURITY),
+            CONF_IMAP_TIMEOUT: self._data.get(CONF_IMAP_TIMEOUT)
+            or DEFAULT_IMAP_TIMEOUT,
+            CONF_AMAZON_FWDS: self._data.get(CONF_AMAZON_FWDS) or DEFAULT_AMAZON_FWDS,
+            CONF_GENERATE_MP4: self._data.get(CONF_GENERATE_MP4),
+            CONF_ALLOW_EXTERNAL: self._data.get(CONF_ALLOW_EXTERNAL),
+            CONF_RESOURCES: self._data.get(CONF_RESOURCES),
+        }
+
         return self.async_show_form(
             step_id="options_2",
-            data_schema=_get_schema_step_2(
-                self.hass, self._data, user_input, self._data
-            ),
+            data_schema=_get_schema_step_2(self.hass, self._data, user_input, defaults),
             errors=self._errors,
         )

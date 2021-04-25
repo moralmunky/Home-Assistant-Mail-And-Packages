@@ -5,7 +5,8 @@
         },
         "error": {
             "communication": "Невозможно подключиться или войти на почтовый сервер. Пожалуйста, проверьте журнал для деталей.",
-            "invalid_path": "Пожалуйста, храните изображения в другом каталоге."
+            "invalid_path": "Пожалуйста, храните изображения в другом каталоге.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "user": {
@@ -25,17 +26,23 @@
                     "image_path": "Путь к изображению",
                     "gif_duration": "Длительность изображения (секунды)",
                     "image_security": "Случайное изображение Имя файла",
-                    "generate_mp4": "Создать mp4 из изображений"
+                    "generate_mp4": "Создать mp4 из изображений",
+                    "resources": "Sensors List",
+                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+                    "amazon_fwds": "Amazon fowarded email addresses",
+                    "allow_external": "Create image for notification apps"
                 },
-                "description": "Завершите настройку, настроив следующие параметры в зависимости от структуры электронной почты и установки Home Assistant. \n\n Подробнее о параметрах [Интеграция с почтой и пакетами](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) см. В разделе [конфигурация, шаблоны и раздел автоматизации](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) на GitHub.",
+                "description": "Завершите настройку, настроив следующие параметры в зависимости от структуры электронной почты и установки Home Assistant. \n\n Подробнее о параметрах [Интеграция с почтой и пакетами] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) см. В разделе [конфигурация, шаблоны и раздел автоматизации] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) на GitHub.",
                 "title": "Почта и пакеты (шаг 2 из 2)"
             }
-        }
+        },
+        "title": "Mail and Packages"
     },
     "options": {
         "error": {
             "communication": "Невозможно подключиться или войти на почтовый сервер. Пожалуйста, проверьте журнал для деталей.",
-            "invalid_path": "Пожалуйста, храните изображения в другом каталоге."
+            "invalid_path": "Пожалуйста, храните изображения в другом каталоге.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "init": {
@@ -55,7 +62,11 @@
                     "image_path": "Путь к изображению",
                     "gif_duration": "Длительность изображения (секунды)",
                     "image_security": "Случайное изображение Имя файла",
-                    "generate_mp4": "Создать mp4 из изображений"
+                    "generate_mp4": "Создать mp4 из изображений",
+                    "resources": "Список датчиков",
+                    "imap_timeout": "Время в секундах до тайм-аута соединения (секунд, минимум 10)",
+                    "amazon_fwds": "Amazon forwarded email addresses",
+                    "allow_external": "Создать изображение для приложений уведомлений"
                 },
                 "description": "Завершите настройку, настроив следующие параметры в зависимости от структуры электронной почты и установки Home Assistant. \n\n Подробнее о параметрах [Интеграция с почтой и пакетами](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) см. В разделе [конфигурация, шаблоны и раздел автоматизации](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) на GitHub.",
                 "title": "Почта и пакеты (шаг 2 из 2)"

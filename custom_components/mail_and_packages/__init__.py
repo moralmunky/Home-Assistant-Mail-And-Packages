@@ -1,12 +1,13 @@
 """Mail and Packages Integration."""
+import asyncio
 import logging
 from datetime import timedelta
 
-import async_timeout
+from async_timeout import timeout
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
     CONF_ALLOW_EXTERNAL,
@@ -19,7 +20,7 @@ from .const import (
     DEFAULT_IMAP_TIMEOUT,
     DOMAIN,
     ISSUE_URL,
-    PLATFORM,
+    PLATFORMS,
     VERSION,
 )
 from .helpers import default_image_path, process_emails
@@ -64,6 +65,16 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # Sort the resources
     updated_config[CONF_RESOURCES] = sorted(updated_config[CONF_RESOURCES])
 
+    # Make sure amazon forwarding emails are not a string
+    if isinstance(updated_config[CONF_AMAZON_FWDS], str):
+        tmp = updated_config[CONF_AMAZON_FWDS]
+        tmp_list = []
+        if "," in tmp:
+            tmp_list = tmp.split(",")
+        else:
+            tmp_list.append(tmp)
+        updated_config[CONF_AMAZON_FWDS] = tmp_list
+
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(config_entry, data=updated_config)
 
@@ -72,18 +83,13 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     config_entry.options = config_entry.data
     config = config_entry.data
 
-    async def async_update_data():
-        """Fetch data """
-        async with async_timeout.timeout(config.get(CONF_IMAP_TIMEOUT)):
-            return await hass.async_add_executor_job(process_emails, hass, config)
+    # Variables for data coordinator
+    host = config.get(CONF_HOST)
+    the_timeout = config.get(CONF_IMAP_TIMEOUT)
+    interval = config.get(CONF_SCAN_INTERVAL)
 
-    coordinator = DataUpdateCoordinator(
-        hass,
-        _LOGGER,
-        name=f"Mail and Packages ({config.get(CONF_HOST)})",
-        update_method=async_update_data,
-        update_interval=timedelta(minutes=config_entry.data.get(CONF_SCAN_INTERVAL)),
-    )
+    # Setup the data coordinator
+    coordinator = MailDataUpdateCoordinator(hass, host, the_timeout, interval, config)
 
     # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
@@ -92,12 +98,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         COORDINATOR: coordinator,
     }
 
-    try:
+    for platform in PLATFORMS:
         hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(config_entry, PLATFORM)
+            hass.config_entries.async_forward_entry_setup(config_entry, platform)
         )
-    except ValueError:
-        pass
 
     return True
 
@@ -107,8 +111,13 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 
     _LOGGER.debug("Attempting to unload sensors from the %s integration", DOMAIN)
 
-    unload_ok = await hass.config_entries.async_forward_entry_unload(
-        config_entry, PLATFORM
+    unload_ok = all(
+        await asyncio.gather(
+            *[
+                hass.config_entries.async_forward_entry_unload(config_entry, platform)
+                for platform in PLATFORMS
+            ]
+        )
     )
 
     if unload_ok:
@@ -154,7 +163,7 @@ async def async_migrate_entry(hass, config_entry):
             else:
                 updated_config[CONF_AMAZON_FWDS] = []
         else:
-            _LOGGER.warn("Missing configuration data: %s", CONF_AMAZON_FWDS)
+            _LOGGER.warning("Missing configuration data: %s", CONF_AMAZON_FWDS)
 
         # Force path change
         updated_config[CONF_PATH] = "images/mail_and_packages/"
@@ -187,3 +196,30 @@ async def async_migrate_entry(hass, config_entry):
         _LOGGER.debug("Migration to version %s complete", config_entry.version)
 
     return True
+
+
+class MailDataUpdateCoordinator(DataUpdateCoordinator):
+    """Class to manage fetching mail data."""
+
+    def __init__(self, hass, host, the_timeout, interval, config):
+        """Initialize."""
+        self.interval = timedelta(minutes=interval)
+        self.name = f"Mail and Packages ({host})"
+        self.timeout = the_timeout
+        self.config = config
+        self.hass = hass
+
+        _LOGGER.debug("Data will be update every %s", self.interval)
+
+        super().__init__(hass, _LOGGER, name=self.name, update_interval=self.interval)
+
+    async def _async_update_data(self):
+        """Fetch data """
+        async with timeout(self.timeout):
+            try:
+                data = await self.hass.async_add_executor_job(
+                    process_emails, self.hass, self.config
+                )
+            except Exception as error:
+                raise UpdateFailed(error) from error
+            return data

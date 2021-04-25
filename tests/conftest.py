@@ -1,10 +1,12 @@
 """ Fixtures for Mail and Packages tests. """
+import errno
 import imaplib
 import time
 from unittest import mock
 from unittest.mock import patch
 
 import pytest
+from aioresponses import aioresponses
 
 from tests.const import FAKE_UPDATE_DATA
 
@@ -479,6 +481,31 @@ def mock_imap_amazon_shipped_it():
 
 
 @pytest.fixture()
+def mock_imap_amazon_shipped_alt_timeformat():
+    """ Mock imap class values. """
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_amazon_shipped:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_amazon_shipped.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/amazon_shipped_alt_timeformat.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
 def mock_imap_amazon_delivered():
     """ Mock imap class values. """
     with patch(
@@ -553,13 +580,6 @@ def mock_imap_amazon_the_hub():
         yield mock_conn
 
 
-# @pytest.fixture
-# def aioclient_mock():
-#     """Fixture to mock aioclient calls."""
-#     with mock_aiohttp_client() as mock_session:
-#         yield mock_session
-
-
 @pytest.fixture
 def test_valid_ffmpeg():
     """ Fixture to mock which """
@@ -617,6 +637,18 @@ def mock_listdir_nogif():
 
 
 @pytest.fixture
+def mock_listdir_noimgs():
+    """ Fixture to mock listdir """
+    with patch("os.listdir") as mock_listdir_noimgs:
+        mock_listdir_noimgs.return_value = [
+            "testfile.xls",
+            "anotherfakefile.mp4",
+            "lastfile.txt",
+        ]
+        yield mock_listdir_noimgs
+
+
+@pytest.fixture
 def mock_osremove():
     """ Fixture to mock remove """
     with patch("os.remove") as mock_remove:
@@ -646,15 +678,6 @@ def mock_osmakedir_excpetion():
     with patch("os.makedir") as mock_osmakedir:
         mock_osmakedir.side_effect = Exception("File not found")
         yield mock_osmakedir
-
-
-@pytest.fixture
-def mock_open():
-    """ Fixture to mock open """
-    with patch("builtins.open") as mock_open:
-        mock_open.return_value = mock.Mock(autospec=True)
-        mock_open.write.return_value = None
-        yield mock_open
 
 
 @pytest.fixture
@@ -876,7 +899,7 @@ def mock_hash_file_oserr():
     with patch(
         "custom_components.mail_and_packages.helpers.hash_file"
     ) as mock_hash_file_oserr:
-        mock_hash_file_oserr.side_effect = FileNotFoundError
+        mock_hash_file_oserr.side_effect = OSError(errno.EEXIST, "error")
         yield mock_hash_file_oserr
 
 
@@ -886,5 +909,97 @@ def mock_getctime_err():
     with patch(
         "custom_components.mail_and_packages.helpers.os.path.getctime"
     ) as mock_getctime_err:
-        mock_getctime_err.side_effect = FileNotFoundError
+        mock_getctime_err.side_effect = OSError(errno.EEXIST, "error")
         yield mock_getctime_err
+
+
+@pytest.fixture()
+def mock_imap_usps_exception():
+    """ Mock imap class values. """
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_usps_informed_digest:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_usps_informed_digest.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/usps_exception.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture
+def aioclient_mock():
+    """Fixture to mock aioclient calls."""
+    with aioresponses() as mock_aiohttp:
+        mock_headers = {"content-type": "image/gif"}
+        f = open("tests/test_emails/mail_none.gif", "rb")
+        image_file = f.read()
+        mock_aiohttp.get(
+            "http://fake.website.com/not/a/real/website/image.jpg",
+            status=200,
+            headers=mock_headers,
+            body=image_file,
+        )
+
+        yield mock_aiohttp
+
+
+@pytest.fixture
+def aioclient_mock_error():
+    """Fixture to mock aioclient calls."""
+    with aioresponses() as mock_aiohttp:
+        mock_headers = {"content-type": "image/gif"}
+        f = open("tests/test_emails/mail_none.gif", "rb")
+        image_file = f.read()
+        mock_aiohttp.get(
+            "http://fake.website.com/not/a/real/website/image.jpg",
+            status=404,
+            headers=mock_headers,
+            body=image_file,
+        )
+
+        yield mock_aiohttp
+
+
+@pytest.fixture
+def mock_copytree():
+    """ Fixture to mock copyfile """
+    with patch("custom_components.mail_and_packages.helpers.copytree") as mock_copytree:
+        mock_copytree.return_value = True
+        yield mock_copytree
+
+
+@pytest.fixture()
+def mock_imap_amazon_exception():
+    """ Mock imap class values. """
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_amazon_exception:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_amazon_exception.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/amazon_exception.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn

@@ -5,7 +5,8 @@
         },
         "error": {
             "communication": "Ei voida muodostaa yhteyttä tai kirjautua sisään postipalvelimeen. Tarkista lokista yksityiskohdat.",
-            "invalid_path": "Tallenna kuvat toiseen hakemistoon."
+            "invalid_path": "Tallenna kuvat toiseen hakemistoon.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "user": {
@@ -25,17 +26,23 @@
                     "image_path": "Kuvan polku",
                     "gif_duration": "Kuvan kesto (sekunteina)",
                     "image_security": "Satunnainen kuvatiedostonimi",
-                    "generate_mp4": "Luo mp4 kuvista"
+                    "generate_mp4": "Luo mp4 kuvista",
+                    "resources": "Sensors List",
+                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+                    "amazon_fwds": "Amazon fowarded email addresses",
+                    "allow_external": "Create image for notification apps"
                 },
-                "description": "Viimeistele kokoonpano mukauttamalla seuraava sähköpostirakenteen ja Home Assistant -asennuksen perusteella. \n\n Lisätietoja [Posti ja paketit-integroinnista](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) -asetuksista on [kokoonpano, mallit , ja automaatiot-osio](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHubissa.",
+                "description": "Viimeistele kokoonpano mukauttamalla seuraava sähköpostirakenteen ja Home Assistant -asennuksen perusteella. \n\n Lisätietoja [Posti ja paketit-integroinnista] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) -asetuksista on [kokoonpano, mallit , ja automaatiot-osio] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHubissa.",
                 "title": "Posti ja paketit (vaihe 2/2)"
             }
-        }
+        },
+        "title": "Mail and Packages"
     },
     "options": {
         "error": {
             "communication": "Ei voida muodostaa yhteyttä tai kirjautua sisään postipalvelimeen. Tarkista lokista yksityiskohdat.",
-            "invalid_path": "Tallenna kuvat toiseen hakemistoon."
+            "invalid_path": "Tallenna kuvat toiseen hakemistoon.",
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
         },
         "step": {
             "init": {
@@ -55,7 +62,11 @@
                     "image_path": "Kuvan polku",
                     "gif_duration": "Kuvan kesto (sekunteina)",
                     "image_security": "Satunnainen kuvatiedostonimi",
-                    "generate_mp4": "Luo mp4 kuvista"
+                    "generate_mp4": "Luo mp4 kuvista",
+                    "resources": "Anturiluettelo",
+                    "imap_timeout": "Aika sekunteina ennen yhteyden aikakatkaisua (sekuntia, vähintään 10)",
+                    "amazon_fwds": "Amazon forwarded email addresses",
+                    "allow_external": "Luo kuva ilmoitussovelluksia varten"
                 },
                 "description": "Viimeistele kokoonpano mukauttamalla seuraava sähköpostirakenteen ja Home Assistant -asennuksen perusteella. \n\n Lisätietoja [Posti ja paketit-integroinnista](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) -asetuksista on [kokoonpano, mallit , ja automaatiot-osio](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHubissa.",
                 "title": "Posti ja paketit (vaihe 2/2)"
