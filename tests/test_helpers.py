@@ -367,7 +367,7 @@ async def test_image_filename_oserr(
     mock_getctime_today,
     caplog,
 ):
-    """Test settting up entities. """
+    """Test settting up entities."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
@@ -395,7 +395,7 @@ async def test_image_getctime_oserr(
     mock_getctime_err,
     caplog,
 ):
-    """Test settting up entities. """
+    """Test settting up entities."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
@@ -690,7 +690,7 @@ async def test_amazon_fwds(
     mock_getctime_today,
     caplog,
 ):
-    """Test settting up entities. """
+    """Test settting up entities."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",

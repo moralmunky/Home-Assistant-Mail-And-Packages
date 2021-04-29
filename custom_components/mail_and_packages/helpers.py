@@ -666,7 +666,7 @@ def resize_images(images: list, width: int, height: int) -> list:
 
 
 def copy_overlays(path: str) -> None:
-    """ Copy overlay images to image output path."""
+    """Copy overlay images to image output path."""
 
     overlays = const.OVERLAY
     check = all(item in overlays for item in os.listdir(path))
