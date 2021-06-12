@@ -96,6 +96,10 @@ class PackagesSensor(CoordinatorEntity):
         tracking = f"{self.type.split('_')[0]}_tracking"
         data = self.coordinator.data
 
+        # Catch no data entries
+        if self.data is None:
+            return attr
+
         if "Amazon" in self._name:
             if self._name == "amazon_exception":
                 attr[const.ATTR_ORDER] = data[const.AMAZON_EXCEPTION_ORDER]
