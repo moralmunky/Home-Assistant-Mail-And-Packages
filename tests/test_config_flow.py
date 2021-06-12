@@ -1,5 +1,5 @@
 """ Test Mail and Packages config flow """
-import os
+
 from unittest.mock import patch
 
 import pytest
@@ -29,6 +29,7 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
             {
                 "allow_external": False,
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
+                "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
@@ -59,6 +60,7 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
             {
                 "allow_external": False,
                 "amazon_fwds": ["fakeuser@test.email", "fakeuser2@test.email"],
+                "custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -315,6 +317,7 @@ async def test_form_invalid_ffmpeg(
             "config_2",
             {
                 "allow_external": False,
+                "custom_img": False,
                 "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
@@ -345,6 +348,7 @@ async def test_form_invalid_ffmpeg(
             "imap.test.email",
             {
                 "allow_external": False,
+                "custom_img": False,
                 "amazon_fwds": [],
                 "host": "imap.test.email",
                 "port": 993,
@@ -442,6 +446,7 @@ async def test_form_index_error(
             {
                 "allow_external": False,
                 "amazon_fwds": "",
+                "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
@@ -472,6 +477,7 @@ async def test_form_index_error(
             {
                 "allow_external": False,
                 "amazon_fwds": [],
+                "custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -597,6 +603,7 @@ async def test_form_index_error_2(
             "imap.test.email",
             {
                 "allow_external": False,
+                "custom_img": False,
                 "amazon_fwds": [],
                 "host": "imap.test.email",
                 "port": 993,
@@ -724,6 +731,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
             {
                 "allow_external": False,
                 "amazon_fwds": "",
+                "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
@@ -754,6 +762,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
             {
                 "allow_external": False,
                 "amazon_fwds": [],
+                "custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -918,6 +927,7 @@ async def test_options_flow_connection_error(
             {
                 "allow_external": False,
                 "amazon_fwds": "",
+                "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_mp4": True,
                 "gif_duration": 5,
@@ -948,6 +958,7 @@ async def test_options_flow_connection_error(
             {
                 "allow_external": False,
                 "amazon_fwds": [],
+                "custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -1046,6 +1057,7 @@ async def test_options_flow_invalid_ffmpeg(
             {
                 "allow_external": False,
                 "amazon_fwds": "",
+                "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
@@ -1076,6 +1088,7 @@ async def test_options_flow_invalid_ffmpeg(
             {
                 "allow_external": False,
                 "amazon_fwds": [],
+                "custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -1175,6 +1188,7 @@ async def test_options_flow_index_error(
             {
                 "allow_external": False,
                 "amazon_fwds": "",
+                "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
@@ -1205,6 +1219,7 @@ async def test_options_flow_index_error(
             {
                 "allow_external": False,
                 "amazon_fwds": [],
+                "custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -1304,6 +1319,7 @@ async def test_options_flow_index_error_2(
             {
                 "allow_external": False,
                 "amazon_fwds": "",
+                "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
@@ -1334,6 +1350,7 @@ async def test_options_flow_index_error_2(
             {
                 "allow_external": False,
                 "amazon_fwds": [],
+                "custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -1432,6 +1449,7 @@ async def test_options_flow_mailbox_format2(
             "options_2",
             {
                 "allow_external": False,
+                "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
@@ -1462,6 +1480,7 @@ async def test_options_flow_mailbox_format2(
             {
                 "allow_external": False,
                 "amazon_fwds": ['""'],
+                "custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -1569,6 +1588,7 @@ async def test_options_flow_bad(
             {
                 "allow_external": False,
                 "amazon_fwds": "testemail@amazon.com",
+                "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,

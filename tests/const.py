@@ -37,6 +37,7 @@ FAKE_CONFIG_DATA_BAD = {
 
 FAKE_CONFIG_DATA = {
     "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
+    "custom_img": False,
     "folder": '"INBOX"',
     "generate_mp4": False,
     "gif_duration": 5,
@@ -83,6 +84,7 @@ FAKE_CONFIG_DATA = {
 FAKE_CONFIG_DATA_EXTERNAL = {
     "allow_external": True,
     "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
+    "custom_img": False,
     "folder": '"INBOX"',
     "generate_mp4": False,
     "gif_duration": 5,
@@ -128,6 +130,7 @@ FAKE_CONFIG_DATA_EXTERNAL = {
 FAKE_CONFIG_DATA_CORRECTED_EXTERNAL = {
     "allow_external": True,
     "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
+    "custom_img": False,
     "folder": '"INBOX"',
     "generate_mp4": False,
     "gif_duration": 5,
@@ -173,6 +176,7 @@ FAKE_CONFIG_DATA_CORRECTED_EXTERNAL = {
 FAKE_CONFIG_DATA_CORRECTED = {
     "allow_external": False,
     "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
+    "custom_img": False,
     "folder": '"INBOX"',
     "generate_mp4": False,
     "gif_duration": 5,
@@ -218,6 +222,7 @@ FAKE_CONFIG_DATA_CORRECTED = {
 
 FAKE_CONFIG_DATA_NO_PATH = {
     "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
+    "custom_img": False,
     "folder": '"INBOX"',
     "generate_mp4": False,
     "gif_duration": 5,
@@ -260,6 +265,7 @@ FAKE_CONFIG_DATA_NO_PATH = {
 
 FAKE_CONFIG_DATA_NO_RND = {
     "amazon_fwds": ["fakeuser@fake.email"],
+    "custom_img": False,
     "folder": '"INBOX"',
     "generate_mp4": True,
     "gif_duration": 5,
@@ -300,6 +306,7 @@ FAKE_CONFIG_DATA_NO_RND = {
 
 FAKE_CONFIG_DATA_MP4 = {
     "amazon_fwds": ["fakeuser@fake.email"],
+    "custom_img": False,
     "folder": '"INBOX"',
     "generate_mp4": True,
     "gif_duration": 5,
@@ -371,6 +378,7 @@ FAKE_UPDATE_DATA = {
 
 FAKE_CONFIG_DATA_MISSING_TIMEOUT = {
     "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
+    "custom_img": False,
     "folder": '"INBOX"',
     "generate_mp4": False,
     "gif_duration": 5,
@@ -415,6 +423,7 @@ FAKE_CONFIG_DATA_MISSING_TIMEOUT = {
 FAKE_CONFIG_DATA_AMAZON_FWD_STRING = {
     "allow_external": True,
     "amazon_fwds": "fakeuser@fake.email",
+    "custom_img": False,
     "folder": '"INBOX"',
     "generate_mp4": False,
     "gif_duration": 5,
