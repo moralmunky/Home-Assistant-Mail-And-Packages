@@ -14,6 +14,8 @@ from .const import (
     ATTR_IMAGE_PATH,
     CAMERA,
     CAMERA_DATA,
+    CONF_CUSTOM_IMG,
+    CONF_CUSTOM_IMG_FILE,
     COORDINATOR,
     DOMAIN,
     SENSOR_NAME,
@@ -93,6 +95,11 @@ class MailCam(Camera):
         self._coordinator = coordinator
         self._host = config.data.get(CONF_HOST)
         self._unique_id = config.entry_id
+        self._no_mail = (
+            None
+            if not config.data.get(CONF_CUSTOM_IMG)
+            else config.data.get(CONF_CUSTOM_IMG_FILE)
+        )
 
     async def async_camera_image(self):
         """Return image response."""
@@ -126,7 +133,10 @@ class MailCam(Camera):
                 path = self._coordinator.data[ATTR_IMAGE_PATH]
                 file_path = f"{self.hass.config.path()}/{path}{image}"
             else:
-                file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
+                if self._no_mail is None:
+                    file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
+                else:
+                    file_path = self._no_mail
 
         elif self._type == "amazon_camera":
             # Update camera image for Amazon deliveries
