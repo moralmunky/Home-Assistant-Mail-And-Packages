@@ -385,7 +385,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             self._data.update(user_input)
             if len(self._errors) == 0:
                 if self._data[CONF_CUSTOM_IMG]:
-                    return await self.async_step_config_3()
+                    return await self.async_step_options_3()
                 else:
                     return self.async_create_entry(title="", data=self._data)
 
@@ -421,13 +421,13 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         """ Configuration form step 3."""
         self._errors = {}
         if user_input is not None:
-            self._errors, user_input = await _validate_user_input(user_input)
             self._data.update(user_input)
+            self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
                 return self.async_create_entry(title="", data=self._data)
-            return await self._show_config_3(user_input)
+            return await self._show_step_options_3(user_input)
 
-        return await self._show_config_3(user_input)
+        return await self._show_step_options_3(user_input)
 
     async def _show_step_options_3(self, user_input):
         """ Step 3 setup """
