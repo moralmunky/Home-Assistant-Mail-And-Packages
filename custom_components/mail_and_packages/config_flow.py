@@ -54,12 +54,13 @@ async def _validate_user_input(user_input: dict) -> tuple:
     errors = {}
 
     # Validate amazon forwarding email addresses
-    status, amazon_list = await _check_amazon_forwards(user_input[CONF_AMAZON_FWDS])
-    if status[0] == "ok":
-        user_input[CONF_AMAZON_FWDS] = amazon_list
-    else:
-        user_input[CONF_AMAZON_FWDS] = amazon_list
-        errors[CONF_AMAZON_FWDS] = status[0]
+    if isinstance(user_input[CONF_AMAZON_FWDS], str):
+        status, amazon_list = await _check_amazon_forwards(user_input[CONF_AMAZON_FWDS])
+        if status[0] == "ok":
+            user_input[CONF_AMAZON_FWDS] = amazon_list
+        else:
+            user_input[CONF_AMAZON_FWDS] = amazon_list
+            errors[CONF_AMAZON_FWDS] = status[0]
 
     # Check for ffmpeg if option enabled
     if user_input[CONF_GENERATE_MP4]:
@@ -71,7 +72,7 @@ async def _validate_user_input(user_input: dict) -> tuple:
         errors[CONF_GENERATE_MP4] = "ffmpeg_not_found"
 
     # validate custom file exists
-    if user_input[CONF_CUSTOM_IMG]:
+    if user_input[CONF_CUSTOM_IMG] and CONF_CUSTOM_IMG_FILE in user_input:
         valid = path.isfile(user_input[CONF_CUSTOM_IMG_FILE])
     else:
         valid = True
@@ -308,8 +309,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """ Configuration form step 2."""
         self._errors = {}
         if user_input is not None:
-            self._errors, user_input = await _validate_user_input(user_input)
             self._data.update(user_input)
+            self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
                 return self.async_create_entry(
                     title=self._data[CONF_HOST], data=self._data
