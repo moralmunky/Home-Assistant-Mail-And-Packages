@@ -56,7 +56,7 @@ DEFAULT_GIF_FILE_NAME = "mail_today.gif"
 DEFAULT_AMAZON_FWDS = '""'
 DEFAULT_ALLOW_EXTERNAL = False
 DEFAULT_CUSTOM_IMG = False
-DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/nomail.gif"
+DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
 
 # Amazon
 AMAZON_DOMAINS = "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de,amazon.it"
