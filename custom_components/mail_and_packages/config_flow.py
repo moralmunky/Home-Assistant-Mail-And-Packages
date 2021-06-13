@@ -266,7 +266,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_config_2(self, user_input=None):
-        """ Configuration form step 2."""
+        """Configuration form step 2."""
         self._errors = {}
         if user_input is not None:
             self._errors, user_input = await _validate_user_input(user_input)
@@ -283,7 +283,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return await self._show_config_2(user_input)
 
     async def _show_config_2(self, user_input):
-        """ Step 2 setup """
+        """Step 2 setup"""
 
         # Defaults
         defaults = {
@@ -378,7 +378,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         )
 
     async def async_step_options_2(self, user_input=None):
-        """ Configuration form step 2."""
+        """Configuration form step 2."""
         self._errors = {}
         if user_input is not None:
             self._errors, user_input = await _validate_user_input(user_input)

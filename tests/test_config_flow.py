@@ -6,6 +6,7 @@ import pytest
 from homeassistant import config_entries, setup
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.mail_and_packages.config_flow import _validate_user_input
 from custom_components.mail_and_packages.const import (
     CONF_AMAZON_FWDS,
     CONF_GENERATE_MP4,

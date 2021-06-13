@@ -10,14 +10,14 @@ from custom_components.mail_and_packages.const import DOMAIN
 from tests.const import (
     FAKE_CONFIG_DATA,
     FAKE_CONFIG_DATA_CUSTOM_IMG,
+    FAKE_CONFIG_DATA_AMAZON_FWD_STRING,
     FAKE_CONFIG_DATA_MISSING_TIMEOUT,
     FAKE_CONFIG_DATA_NO_PATH,
-    FAKE_CONFIG_DATA_AMAZON_FWD_STRING,
 )
 
 
 async def test_unload_entry(hass, mock_update, mock_copy_overlays):
-    """Test unloading entities. """
+    """Test unloading entities."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
@@ -53,7 +53,7 @@ async def test_setup_entry(
     mock_hash_file,
     mock_getctime_today,
 ):
-    """Test settting up entities. """
+    """Test settting up entities."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
@@ -80,7 +80,7 @@ async def test_no_path_no_sec(
     mock_hash_file,
     mock_getctime_today,
 ):
-    """Test settting up entities. """
+    """Test settting up entities."""
     entry = MockConfigEntry(
         domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA_NO_PATH, version=3
     )
@@ -105,7 +105,7 @@ async def test_missing_imap_timeout(
     mock_hash_file,
     mock_getctime_today,
 ):
-    """Test settting up entities. """
+    """Test settting up entities."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
@@ -133,7 +133,7 @@ async def test_amazon_fwds_string(
     mock_hash_file,
     mock_getctime_today,
 ):
-    """Test settting up entities. """
+    """Test settting up entities."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",

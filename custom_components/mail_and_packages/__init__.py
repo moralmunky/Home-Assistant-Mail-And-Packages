@@ -29,7 +29,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass, config_entry):
-    """ Disallow configuration via YAML """
+    """Disallow configuration via YAML"""
 
     return True
 
@@ -214,7 +214,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         super().__init__(hass, _LOGGER, name=self.name, update_interval=self.interval)
 
     async def _async_update_data(self):
-        """Fetch data """
+        """Fetch data"""
         async with timeout(self.timeout):
             try:
                 data = await self.hass.async_add_executor_job(
