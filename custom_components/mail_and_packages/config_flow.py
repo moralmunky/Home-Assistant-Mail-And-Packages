@@ -1,6 +1,7 @@
 """Adds config flow for Mail and Packages."""
 
 import logging
+import os.path as path
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
@@ -18,6 +19,8 @@ from homeassistant.core import callback
 from .const import (
     CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_FWDS,
+    CONF_CUSTOM_IMG,
+    CONF_CUSTOM_IMG_FILE,
     CONF_DURATION,
     CONF_FOLDER,
     CONF_GENERATE_MP4,
@@ -27,6 +30,8 @@ from .const import (
     CONF_SCAN_INTERVAL,
     DEFAULT_ALLOW_EXTERNAL,
     DEFAULT_AMAZON_FWDS,
+    DEFAULT_CUSTOM_IMG,
+    DEFAULT_CUSTOM_IMG_FILE,
     DEFAULT_FOLDER,
     DEFAULT_GIF_DURATION,
     DEFAULT_IMAGE_SECURITY,
@@ -49,12 +54,13 @@ async def _validate_user_input(user_input: dict) -> tuple:
     errors = {}
 
     # Validate amazon forwarding email addresses
-    status, amazon_list = await _check_amazon_forwards(user_input[CONF_AMAZON_FWDS])
-    if status[0] == "ok":
-        user_input[CONF_AMAZON_FWDS] = amazon_list
-    else:
-        user_input[CONF_AMAZON_FWDS] = amazon_list
-        errors[CONF_AMAZON_FWDS] = status[0]
+    if isinstance(user_input[CONF_AMAZON_FWDS], str):
+        status, amazon_list = await _check_amazon_forwards(user_input[CONF_AMAZON_FWDS])
+        if status[0] == "ok":
+            user_input[CONF_AMAZON_FWDS] = amazon_list
+        else:
+            user_input[CONF_AMAZON_FWDS] = amazon_list
+            errors[CONF_AMAZON_FWDS] = status[0]
 
     # Check for ffmpeg if option enabled
     if user_input[CONF_GENERATE_MP4]:
@@ -64,6 +70,15 @@ async def _validate_user_input(user_input: dict) -> tuple:
 
     if not valid:
         errors[CONF_GENERATE_MP4] = "ffmpeg_not_found"
+
+    # validate custom file exists
+    if user_input[CONF_CUSTOM_IMG] and CONF_CUSTOM_IMG_FILE in user_input:
+        valid = path.isfile(user_input[CONF_CUSTOM_IMG_FILE])
+    else:
+        valid = True
+
+    if not valid:
+        errors[CONF_CUSTOM_IMG_FILE] = "file_not_found"
 
     return errors, user_input
 
@@ -178,6 +193,27 @@ def _get_schema_step_2(
             vol.Optional(
                 CONF_ALLOW_EXTERNAL, default=_get_default(CONF_ALLOW_EXTERNAL)
             ): bool,
+            vol.Optional(CONF_CUSTOM_IMG, default=_get_default(CONF_CUSTOM_IMG)): bool,
+        }
+    )
+
+
+def _get_schema_step_3(
+    hass: Any, data: list, user_input: list, default_dict: list
+) -> Any:
+    """Gets a schema using the default_dict as a backup."""
+    if user_input is None:
+        user_input = {}
+
+    def _get_default(key):
+        """Gets default value for key."""
+        return user_input.get(key, default_dict.get(key))
+
+    return vol.Schema(
+        {
+            vol.Optional(
+                CONF_CUSTOM_IMG_FILE, default=_get_default(CONF_CUSTOM_IMG_FILE)
+            ): str,
         }
     )
 
@@ -236,9 +272,12 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._errors, user_input = await _validate_user_input(user_input)
             self._data.update(user_input)
             if len(self._errors) == 0:
-                return self.async_create_entry(
-                    title=self._data[CONF_HOST], data=self._data
-                )
+                if self._data[CONF_CUSTOM_IMG]:
+                    return await self.async_step_config_3()
+                else:
+                    return self.async_create_entry(
+                        title=self._data[CONF_HOST], data=self._data
+                    )
             return await self._show_config_2(user_input)
 
         return await self._show_config_2(user_input)
@@ -257,11 +296,40 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             CONF_AMAZON_FWDS: DEFAULT_AMAZON_FWDS,
             CONF_GENERATE_MP4: False,
             CONF_ALLOW_EXTERNAL: DEFAULT_ALLOW_EXTERNAL,
+            CONF_CUSTOM_IMG: DEFAULT_CUSTOM_IMG,
         }
 
         return self.async_show_form(
             step_id="config_2",
             data_schema=_get_schema_step_2(self.hass, self._data, user_input, defaults),
+            errors=self._errors,
+        )
+
+    async def async_step_config_3(self, user_input=None):
+        """Configuration form step 2."""
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            self._errors, user_input = await _validate_user_input(self._data)
+            if len(self._errors) == 0:
+                return self.async_create_entry(
+                    title=self._data[CONF_HOST], data=self._data
+                )
+            return await self._show_config_3(user_input)
+
+        return await self._show_config_3(user_input)
+
+    async def _show_config_3(self, user_input):
+        """Step 3 setup"""
+
+        # Defaults
+        defaults = {
+            CONF_CUSTOM_IMG_FILE: DEFAULT_CUSTOM_IMG_FILE,
+        }
+
+        return self.async_show_form(
+            step_id="config_3",
+            data_schema=_get_schema_step_3(self.hass, self._data, user_input, defaults),
             errors=self._errors,
         )
 
@@ -316,7 +384,10 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             self._errors, user_input = await _validate_user_input(user_input)
             self._data.update(user_input)
             if len(self._errors) == 0:
-                return self.async_create_entry(title="", data=self._data)
+                if self._data[CONF_CUSTOM_IMG]:
+                    return await self.async_step_options_3()
+                else:
+                    return self.async_create_entry(title="", data=self._data)
 
             return await self._show_step_options_2(user_input)
 
@@ -343,5 +414,31 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="options_2",
             data_schema=_get_schema_step_2(self.hass, self._data, user_input, defaults),
+            errors=self._errors,
+        )
+
+    async def async_step_options_3(self, user_input=None):
+        """Configuration form step 3."""
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            self._errors, user_input = await _validate_user_input(self._data)
+            if len(self._errors) == 0:
+                return self.async_create_entry(title="", data=self._data)
+            return await self._show_step_options_3(user_input)
+
+        return await self._show_step_options_3(user_input)
+
+    async def _show_step_options_3(self, user_input):
+        """Step 3 setup"""
+
+        # Defaults
+        defaults = {
+            CONF_CUSTOM_IMG_FILE: DEFAULT_CUSTOM_IMG_FILE,
+        }
+
+        return self.async_show_form(
+            step_id="options_3",
+            data_schema=_get_schema_step_3(self.hass, self._data, user_input, defaults),
             errors=self._errors,
         )

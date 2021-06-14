@@ -31,6 +31,8 @@ ATTR_USPS_MAIL = "usps_mail"
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"
 CONF_CAMERA_NAME = "camera_name"
+CONF_CUSTOM_IMG = "custom_img"
+CONF_CUSTOM_IMG_FILE = "custom_img_file"
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
 CONF_DURATION = "gif_duration"
@@ -53,6 +55,8 @@ DEFAULT_SCAN_INTERVAL = 5
 DEFAULT_GIF_FILE_NAME = "mail_today.gif"
 DEFAULT_AMAZON_FWDS = '""'
 DEFAULT_ALLOW_EXTERNAL = False
+DEFAULT_CUSTOM_IMG = False
+DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
 
 # Amazon
 AMAZON_DOMAINS = "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de,amazon.it"
