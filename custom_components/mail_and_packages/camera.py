@@ -182,3 +182,8 @@ class MailCam(Camera):
     async def async_update(self):
         """Update camera entity and refresh attributes."""
         self.update_file_path()
+
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return self.coordinator.last_update_success
