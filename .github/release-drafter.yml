@@ -28,3 +28,17 @@ template: |
   ## Links
   - [Wiki](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki)
   - [Submit bugs/feature requests](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/issues)
+
+autolabeler:
+  - label: "chore"
+    title:
+      - "/chore/i"
+  - label: "bugfix"
+    title:
+      - "/fix/i"
+  - label: "feature"
+    title:
+      - "/feat/i"
+  - label: "enhancement"
+    title:
+      - "/refactor/i"
