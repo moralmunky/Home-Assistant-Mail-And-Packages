@@ -20,6 +20,7 @@ async def test_update_file_path(
     mock_copy_overlays,
     mock_hash_file,
     mock_getctime_today,
+    mock_copyfile,
     caplog,
 ):
     """Test update_file_path service."""

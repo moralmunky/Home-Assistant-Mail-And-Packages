@@ -235,6 +235,7 @@ def image_file_name(
                 image_name = f"{str(uuid.uuid4())}{ext}"
             else:
                 image_name = file
+            _LOGGER.debug("Image Name: %s", image_name)
 
     # If we find no images in the image directory generate a new filename
     if image_name in mail_none:
