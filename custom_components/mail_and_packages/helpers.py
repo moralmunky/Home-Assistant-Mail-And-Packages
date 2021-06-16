@@ -190,13 +190,12 @@ def image_file_name(
         image_name = "no_deliveries.jpg"
         path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}amazon"
     else:
+        path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
         if config.get(const.CONF_CUSTOM_IMG):
             mail_none = config.get(const.CONF_CUSTOM_IMG_FILE)
-            path, image_name = os.path.split(mail_none)
         else:
             mail_none = f"{os.path.dirname(__file__)}/mail_none.gif"
-            image_name = "mail_none.gif"
-            path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
+        not_used, image_name = os.path.split(mail_none)
 
     # Path check
     path_check = os.path.exists(path)
@@ -236,13 +235,14 @@ def image_file_name(
                 image_name = f"{str(uuid.uuid4())}{ext}"
             else:
                 image_name = file
-            _LOGGER.debug("Image Name: %s", image_name)
 
     # If we find no images in the image directory generate a new filename
     if image_name in mail_none:
         image_name = f"{str(uuid.uuid4())}{ext}"
+    _LOGGER.debug("Image Name: %s", image_name)
 
     # Insert place holder image
+    _LOGGER.debug("Copying %s to %s", mail_none, os.path.join(path, image_name))
     copyfile(mail_none, os.path.join(path, image_name))
 
     return image_name

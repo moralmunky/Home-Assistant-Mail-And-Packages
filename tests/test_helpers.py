@@ -35,6 +35,7 @@ from tests.const import (
     FAKE_CONFIG_DATA_BAD,
     FAKE_CONFIG_DATA_CORRECTED,
     FAKE_CONFIG_DATA_CORRECTED_EXTERNAL,
+    FAKE_CONFIG_DATA_CUSTOM_IMG,
     FAKE_CONFIG_DATA_EXTERNAL,
     FAKE_CONFIG_DATA_NO_RND,
 )
@@ -916,7 +917,7 @@ async def test_image_file_name_amazon(
 
 
 async def test_image_file_name(
-    hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, caplog
+    hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, mock_copyfile, caplog
 ):
     config = FAKE_CONFIG_DATA_CORRECTED
 
@@ -926,6 +927,14 @@ async def test_image_file_name(
         result = image_file_name(hass, config)
         assert ".gif" in result
         assert not result == "mail_none.gif"
+
+        # Test custom image settings
+        config = FAKE_CONFIG_DATA_CUSTOM_IMG
+        result = image_file_name(hass, config)
+        assert ".gif" in result
+        assert not result == "mail_none.gif"
+        assert len(mock_copyfile.mock_calls) == 2
+        assert "Copying images/test.gif to" in caplog.text
 
 
 async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
