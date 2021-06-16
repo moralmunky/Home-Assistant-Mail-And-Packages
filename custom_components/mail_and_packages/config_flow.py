@@ -409,6 +409,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             CONF_GENERATE_MP4: self._data.get(CONF_GENERATE_MP4),
             CONF_ALLOW_EXTERNAL: self._data.get(CONF_ALLOW_EXTERNAL),
             CONF_RESOURCES: self._data.get(CONF_RESOURCES),
+            CONF_CUSTOM_IMG: self._data.get(CONF_CUSTOM_IMG) or DEFAULT_CUSTOM_IMG,
         }
 
         return self.async_show_form(
@@ -434,7 +435,8 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
         # Defaults
         defaults = {
-            CONF_CUSTOM_IMG_FILE: DEFAULT_CUSTOM_IMG_FILE,
+            CONF_CUSTOM_IMG_FILE: self._data.get(CONF_CUSTOM_IMG_FILE)
+            or DEFAULT_CUSTOM_IMG_FILE,
         }
 
         return self.async_show_form(

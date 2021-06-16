@@ -192,10 +192,11 @@ def image_file_name(
     else:
         if config.get(const.CONF_CUSTOM_IMG):
             mail_none = config.get(const.CONF_CUSTOM_IMG_FILE)
+            path, image_name = os.path.split(mail_none)
         else:
             mail_none = f"{os.path.dirname(__file__)}/mail_none.gif"
-        image_name = "mail_none.gif"
-        path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
+            image_name = "mail_none.gif"
+            path = f"{hass.config.path()}/{config.get(const.CONF_PATH)}"
 
     # Path check
     path_check = os.path.exists(path)

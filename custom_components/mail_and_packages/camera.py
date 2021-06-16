@@ -32,7 +32,10 @@ async def async_setup_entry(hass, config, async_add_entities):
 
     coordinator = hass.data[DOMAIN][config.entry_id][COORDINATOR]
     camera = []
-    file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
+    if not config.data.get(CONF_CUSTOM_IMG):
+        file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
+    else:
+        file_path = config.data.get(CONF_CUSTOM_IMG_FILE)
 
     for variable in CAMERA_DATA:
         temp_cam = MailCam(hass, variable, config, coordinator, file_path)
@@ -124,6 +127,7 @@ class MailCam(Camera):
         """Update the file_path."""
 
         _LOGGER.debug("Camera Update: %s", self._type)
+        _LOGGER.debug("Custom No Mail: %s", self._no_mail)
 
         if self._type == "usps_camera":
             # Update camera image for USPS informed delivery imgages
