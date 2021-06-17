@@ -286,6 +286,11 @@ def fetch(
     image_name = data[const.ATTR_IMAGE_NAME]
     amazon_image_name = data[const.ATTR_AMAZON_IMAGE]
 
+    if config.get(const.CONF_CUSTOM_IMG):
+        nomail = config.get(const.CONF_CUSTOM_IMG_FILE)
+    else:
+        nomail = None
+
     if sensor in data:
         return data[sensor]
 
@@ -298,6 +303,7 @@ def fetch(
             gif_duration,
             image_name,
             generate_mp4,
+            nomail,
         )
     elif sensor == const.AMAZON_PACKAGES:
         count[sensor] = get_items(account, const.ATTR_COUNT, amazon_fwds)
@@ -472,6 +478,7 @@ def get_mails(
     gif_duration: int,
     image_name: str,
     gen_mp4: bool = False,
+    custom_img: str = None,
 ) -> int:
     """Creates GIF image based on the attachments in the inbox"""
     image_count = 0
@@ -595,10 +602,11 @@ def get_mails(
 
             try:
                 _LOGGER.debug("Copying nomail gif")
-                copyfile(
-                    os.path.dirname(__file__) + "/mail_none.gif",
-                    image_output_path + image_name,
-                )
+                if custom_img is not None:
+                    nomail = custom_img
+                else:
+                    nomail = os.path.dirname(__file__) + "/mail_none.gif"
+                copyfile(nomail, image_output_path + image_name)
             except Exception as err:
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
 
