@@ -13,5 +13,6 @@
     "imageio>=2.9.0",
     "python-resize-image>=1.1.19"
   ],
-  "version": "0.0.0-dev"
+  "version": "0.0.0-dev",
+  "iot_class": "cloud_polling"
 }
