@@ -112,7 +112,9 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     if not account:
         return data
 
-    selectfolder(account, folder)
+    if not selectfolder(account, folder):
+        # Bail out on error
+        return data
 
     # Create image file name dict container
     _image = {}
@@ -378,16 +380,19 @@ def login(
     return account
 
 
-def selectfolder(account: Type[imaplib.IMAP4_SSL], folder: str) -> None:
+def selectfolder(account: Type[imaplib.IMAP4_SSL], folder: str) -> bool:
     """Select folder inside the mailbox"""
     try:
         account.list()
     except Exception as err:
         _LOGGER.error("Error listing folders: %s", str(err))
+        return False
     try:
         account.select(folder)
     except Exception as err:
         _LOGGER.error("Error selecting folder: %s", str(err))
+        return False
+    return True
 
 
 def get_formatted_date() -> str:
@@ -453,6 +458,7 @@ def email_search(
         _LOGGER.error("Error searching emails: %s", str(err))
         value = "BAD", err.args[0]
 
+    _LOGGER.debug("DEBUG email_search value: %s", value)
     return value
 
 
@@ -495,6 +501,10 @@ def get_mails(
         get_formatted_date(),
         const.SENSOR_DATA[const.ATTR_USPS_MAIL][const.ATTR_SUBJECT][0],
     )
+
+    # Bail out on error
+    if server_response != "OK":
+        return image_count
 
     # Check to see if the path exists, if not make it
     if not os.path.isdir(image_output_path):
@@ -1010,7 +1020,11 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
     email_address.append(const.AMAZON_HUB_EMAIL)
     _LOGGER.debug("[Hub] Amazon email list: %s", str(email_address))
 
-    sdata = email_search(account, email_address, today)[1]
+    (server_response, sdata) = email_search(account, email_address, today)
+
+    # Bail out on error
+    if server_response != "OK":
+        return info
 
     if len(sdata) == 0:
         info[const.ATTR_COUNT] = 0
