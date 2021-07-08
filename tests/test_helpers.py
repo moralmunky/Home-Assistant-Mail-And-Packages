@@ -484,6 +484,22 @@ async def test_get_mails_copyfile_error(
     assert "File not found" in caplog.text
 
 
+async def test_get_mails_email_search_error(
+    mock_imap_usps_informed_digest_no_mail,
+    mock_copyoverlays,
+    mock_copyfile_exception,
+    caplog,
+):
+    with patch(
+        "custom_components.mail_and_packages.helpers.email_search",
+        return_value=("BAD", []),
+    ):
+        result = get_mails(
+            mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
+        )
+        assert result == 0
+
+
 async def test_informed_delivery_emails(
     mock_imap_usps_informed_digest,
     mock_osremove,
@@ -805,6 +821,13 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
     result = amazon_hub(mock_imap_amazon_the_hub)
     assert result["count"] == 1
     assert result["code"] == ["123456"]
+
+    with patch(
+        "custom_components.mail_and_packages.helpers.email_search",
+        return_value=("BAD", []),
+    ):
+        result = amazon_hub(mock_imap_amazon_the_hub)
+        assert result == {}
 
 
 async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
