@@ -117,7 +117,7 @@ def mock_imap_no_email():
             "OK",
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
-        mock_conn.search.return_value = ("BAD", [])
+        mock_conn.search.return_value = ("OK", [b""])
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
 

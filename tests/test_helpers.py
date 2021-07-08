@@ -355,6 +355,36 @@ async def test_process_old_image(
     assert ".gif" in result["image_name"]
 
 
+async def test_process_folder_error(
+    hass,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copyfile,
+    mock_copytree,
+    mock_hash_file,
+    mock_getctime_yesterday,
+):
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    config = entry.data
+    with patch(
+        "custom_components.mail_and_packages.helpers.selectfolder", return_value=False
+    ):
+        result = process_emails(hass, config)
+        assert result == {}
+
+
 async def test_image_filename_oserr(
     hass,
     mock_imap_no_email,
@@ -452,6 +482,22 @@ async def test_get_mails_copyfile_error(
         mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
     )
     assert "File not found" in caplog.text
+
+
+async def test_get_mails_email_search_error(
+    mock_imap_usps_informed_digest_no_mail,
+    mock_copyoverlays,
+    mock_copyfile_exception,
+    caplog,
+):
+    with patch(
+        "custom_components.mail_and_packages.helpers.email_search",
+        return_value=("BAD", []),
+    ):
+        result = get_mails(
+            mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
+        )
+        assert result == 0
 
 
 async def test_informed_delivery_emails(
@@ -776,6 +822,13 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
     assert result["count"] == 1
     assert result["code"] == ["123456"]
 
+    with patch(
+        "custom_components.mail_and_packages.helpers.email_search",
+        return_value=("BAD", []),
+    ):
+        result = amazon_hub(mock_imap_amazon_the_hub)
+        assert result == {}
+
 
 async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
     with patch("quopri.decodestring", side_effect=ValueError):
@@ -817,12 +870,12 @@ async def test_login_error(mock_imap_login_error, caplog):
 
 
 async def test_selectfolder_list_error(mock_imap_list_error, caplog):
-    selectfolder(mock_imap_list_error, "somefolder")
+    assert not selectfolder(mock_imap_list_error, "somefolder")
     assert "Error listing folders:" in caplog.text
 
 
 async def test_selectfolder_select_error(mock_imap_select_error, caplog):
-    selectfolder(mock_imap_select_error, "somefolder")
+    assert not selectfolder(mock_imap_select_error, "somefolder")
     assert "Error selecting folder:" in caplog.text
 
 
