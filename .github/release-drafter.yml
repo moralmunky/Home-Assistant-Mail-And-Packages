@@ -33,6 +33,9 @@ categories:
   - title: ":wrench: Maintenance :wrench:"
     labels:
       - "chore"
+  - title: ":mortar_board: Code Quality :mortar_board:"
+    labels:
+      - "code-quality"
 template: |
   [![Downloads for this release](https://img.shields.io/github/downloads/moralmunky/Home-Assistant-Mail-And-Packages/$RESOLVED_VERSION/total.svg)](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/releases/$RESOLVED_VERSION)
 
