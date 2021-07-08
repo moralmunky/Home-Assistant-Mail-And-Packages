@@ -88,7 +88,7 @@ SENSOR_DATA = {
     },
     "usps_delivering": {
         "email": ["auto-reply@usps.com"],
-        "subject": ["Expected Delivery on"],
+        "subject": ["Expected Delivery on", "Out for Delivery"],
         "body": ["Your item is out for delivery"],
     },
     "usps_exception": {
