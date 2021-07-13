@@ -787,6 +787,13 @@ async def test_amazon_shipped_order_it(hass, mock_imap_amazon_shipped_it):
     assert result == ["405-5236882-9395563"]
 
 
+async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
+    with patch("datetime.date") as mock_date:
+        mock_date.today.return_value = date(2021, 12, 1)
+        result = get_items(mock_imap_amazon_shipped_it, "count")
+        assert result == 6
+
+
 async def test_amazon_search(hass, mock_imap_no_email):
     result = amazon_search(mock_imap_no_email, "test/path", hass, "testfilename.jpg")
     assert result == 0
