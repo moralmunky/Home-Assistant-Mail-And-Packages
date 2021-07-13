@@ -1209,15 +1209,15 @@ def get_items(
                                     new_arrive_date = arrive_date
                                     time_format = "%A, %B %d"
 
-                            dateobj = datetime.datetime.strptime(
-                                new_arrive_date, time_format
-                            )
+                                dateobj = datetime.datetime.strptime(
+                                    new_arrive_date, time_format
+                                )
 
-                            if (
-                                dateobj.day == datetime.date.today().day
-                                and dateobj.month == datetime.date.today().month
-                            ):
-                                deliveries_today.append("Amazon Order")
+                                if (
+                                    dateobj.day == datetime.date.today().day
+                                    and dateobj.month == datetime.date.today().month
+                                ):
+                                    deliveries_today.append("Amazon Order")
 
     value = None
     if param == "count":
