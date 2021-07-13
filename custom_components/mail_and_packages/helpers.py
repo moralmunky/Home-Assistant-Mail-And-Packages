@@ -4,6 +4,7 @@ import datetime
 import email
 import hashlib
 import imaplib
+import locale
 import logging
 import os
 import quopri
@@ -1187,20 +1188,29 @@ def get_items(
                             arrive_date[2] = arrive_date[2][:2]
                             arrive_date = " ".join(arrive_date).strip()
                             time_format = None
+                            new_arrive_date = None
 
-                            _LOGGER.debug("Arrive Date: %s", arrive_date)
+                            for lang in const.AMAZON_LANGS:
+                                try:
+                                    locale.setlocale(locale.LC_TIME, lang)
+                                except Exception as err:
+                                    _LOGGER.warn("Locale error: %s (%s)", err, lang)
+                                    continue
 
-                            if "today" in arrive_date or "tomorrow" in arrive_date:
-                                arrive_date = arrive_date.split(",")[1].strip()
-                                time_format = "%B %d"
-                            elif arrive_date.endswith(","):
-                                arrive_date = arrive_date.rstrip(",")
-                                time_format = "%A, %B %d"
-                            else:
-                                time_format = "%A, %B %d"
+                                _LOGGER.debug("Arrive Date: %s", arrive_date)
+
+                                if "today" in arrive_date or "tomorrow" in arrive_date:
+                                    new_arrive_date = arrive_date.split(",")[1].strip()
+                                    time_format = "%B %d"
+                                elif arrive_date.endswith(","):
+                                    new_arrive_date = arrive_date.rstrip(",")
+                                    time_format = "%A, %B %d"
+                                else:
+                                    new_arrive_date = arrive_date
+                                    time_format = "%A, %B %d"
 
                             dateobj = datetime.datetime.strptime(
-                                arrive_date, time_format
+                                new_arrive_date, time_format
                             )
 
                             if (
