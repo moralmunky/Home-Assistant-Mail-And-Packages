@@ -24,7 +24,7 @@ jobs:
 
           python -m pip install --upgrade pip
           pip install -r requirements_test.txt
-          apt install language-pack-it
+          sudo apt-get -y install language-pack-it
       - name: Generate coverage report
         run: |
           python -m pytest
