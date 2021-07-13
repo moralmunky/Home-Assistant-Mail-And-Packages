@@ -79,7 +79,7 @@ AMAZON_EXCEPTION_BODY = "running late"
 AMAZON_EXCEPTION = "amazon_exception"
 AMAZON_EXCEPTION_ORDER = "amazon_exception_order"
 AMAZON_PATTERN = "[0-9]{3}-[0-9]{7}-[0-9]{7}"
-AMAZON_LANGS = ["it_IT.UTF-8", ""]
+AMAZON_LANGS = ["it_IT.UTF-8", "it_IT", ""]
 
 # Sensor Data
 SENSOR_DATA = {
