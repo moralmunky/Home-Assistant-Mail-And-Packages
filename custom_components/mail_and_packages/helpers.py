@@ -1177,15 +1177,21 @@ def get_items(
                         email_msg = email_msg.decode("utf-8", "ignore")
                         searches = const.AMAZON_TIME_PATTERN.split(",")
                         for search in searches:
+                            _LOGGER.debug("Looking for: %s", search)
                             if search not in email_msg:
                                 continue
 
                             start = email_msg.find(search) + len(search)
-                            end = email_msg.find("Track your")
+                            end = -1
+                            if email_msg.find("Track your") != -1:
+                                end = email_msg.find("Track your")
+                            elif email_msg.find("Per tracciare il tuo pacco") != -1:
+                                end = email_msg.find("Per tracciare il tuo pacco")
+
                             arrive_date = email_msg[start:end].strip()
                             arrive_date = arrive_date.split(" ")
                             arrive_date = arrive_date[0:3]
-                            arrive_date[2] = arrive_date[2][:2]
+                            # arrive_date[2] = arrive_date[2][:3]
                             arrive_date = " ".join(arrive_date).strip()
                             time_format = None
                             new_arrive_date = None
@@ -1205,13 +1211,22 @@ def get_items(
                                 elif arrive_date.endswith(","):
                                     new_arrive_date = arrive_date.rstrip(",")
                                     time_format = "%A, %B %d"
+                                elif "," not in arrive_date:
+                                    new_arrive_date = arrive_date
+                                    time_format = "%A %d %B"
                                 else:
                                     new_arrive_date = arrive_date
                                     time_format = "%A, %B %d"
 
-                                dateobj = datetime.datetime.strptime(
-                                    new_arrive_date, time_format
-                                )
+                                try:
+                                    dateobj = datetime.datetime.strptime(
+                                        new_arrive_date, time_format
+                                    )
+                                except ValueError as err:
+                                    _LOGGER.warn(
+                                        "International dates not supported. (%s)", err
+                                    )
+                                    continue
 
                                 if (
                                     dateobj.day == datetime.date.today().day
