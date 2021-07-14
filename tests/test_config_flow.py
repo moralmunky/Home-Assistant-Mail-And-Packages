@@ -10,6 +10,8 @@ from custom_components.mail_and_packages.config_flow import _validate_user_input
 from custom_components.mail_and_packages.const import (
     CONF_AMAZON_FWDS,
     CONF_GENERATE_MP4,
+    CONF_IMAP_TIMEOUT,
+    CONF_SCAN_INTERVAL,
     DOMAIN,
 )
 from custom_components.mail_and_packages.helpers import _check_ffmpeg, _test_login
@@ -1982,3 +1984,91 @@ async def test_form_amazon_error(
         assert result3["type"] == "form"
         assert result3["step_id"] == step_id_2
         assert result3["errors"] == {CONF_AMAZON_FWDS: "amazon_domain"}
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+            },
+            "config_2",
+            {
+                "allow_external": False,
+                "amazon_fwds": "",
+                "custom_img": False,
+                "folder": '"INBOX"',
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 9,
+                "scan_interval": 1,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                ],
+            },
+        ),
+    ],
+)
+async def test_form_interval_low(
+    input_1,
+    step_id_2,
+    input_2,
+    mock_imap,
+    hass,
+):
+    """Test we get the form."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_1
+        )
+        assert result2["type"] == "form"
+        assert result2["step_id"] == step_id_2
+
+        result3 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+        assert result3["type"] == "form"
+        assert result3["step_id"] == step_id_2
+        assert result3["errors"] == {
+            CONF_SCAN_INTERVAL: "scan_too_low",
+            CONF_IMAP_TIMEOUT: "timeout_too_low",
+        }

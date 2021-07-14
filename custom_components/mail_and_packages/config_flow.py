@@ -46,6 +46,32 @@ from .helpers import _check_ffmpeg, _test_login, get_resources, login
 _LOGGER = logging.getLogger(__name__)
 
 
+async def _check_amazon_forwards(forwards: str) -> tuple:
+    """Validate and format amazon forward emails for user input.
+
+    Returns tuple: dict of errors, list of email addresses
+    """
+    amazon_forwards_list = []
+    errors = []
+
+    # Check for amazon domains
+    if "@amazon" in forwards:
+        errors.append("amazon_domain")
+
+    # Check for commas
+    if "," in forwards:
+        amazon_forwards_list = forwards.split(",")
+
+    # If only one address append it to the list
+    elif forwards != "" or forwards:
+        amazon_forwards_list.append(forwards)
+
+    if len(errors) == 0:
+        errors.append("ok")
+
+    return errors, amazon_forwards_list
+
+
 async def _validate_user_input(user_input: dict) -> tuple:
     """Valididate user input from config flow.
 
@@ -80,33 +106,15 @@ async def _validate_user_input(user_input: dict) -> tuple:
     if not valid:
         errors[CONF_CUSTOM_IMG_FILE] = "file_not_found"
 
+    # validate scan interval
+    if user_input[CONF_SCAN_INTERVAL] < 5:
+        errors[CONF_SCAN_INTERVAL] = "scan_too_low"
+
+    # validate imap timeout
+    if user_input[CONF_IMAP_TIMEOUT] < 10:
+        errors[CONF_IMAP_TIMEOUT] = "timeout_too_low"
+
     return errors, user_input
-
-
-async def _check_amazon_forwards(forwards: str) -> tuple:
-    """Validate and format amazon forward emails for user input.
-
-    Returns tuple: dict of errors, list of email addresses
-    """
-    amazon_forwards_list = []
-    errors = []
-
-    # Check for amazon domains
-    if "@amazon" in forwards:
-        errors.append("amazon_domain")
-
-    # Check for commas
-    if "," in forwards:
-        amazon_forwards_list = forwards.split(",")
-
-    # If only one address append it to the list
-    elif forwards != "" or forwards:
-        amazon_forwards_list.append(forwards)
-
-    if len(errors) == 0:
-        errors.append("ok")
-
-    return errors, amazon_forwards_list
 
 
 def _get_mailboxes(host: str, port: int, user: str, pwd: str) -> list:
@@ -180,10 +188,10 @@ def _get_schema_step_2(
             vol.Optional(CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS)): str,
             vol.Optional(
                 CONF_SCAN_INTERVAL, default=_get_default(CONF_SCAN_INTERVAL)
-            ): vol.All(vol.Coerce(int), vol.Range(min=5)),
+            ): vol.All(vol.Coerce(int)),
             vol.Optional(
                 CONF_IMAP_TIMEOUT, default=_get_default(CONF_IMAP_TIMEOUT)
-            ): vol.All(vol.Coerce(int), vol.Range(min=10)),
+            ): vol.All(vol.Coerce(int)),
             vol.Optional(
                 CONF_DURATION, default=_get_default(CONF_DURATION)
             ): vol.Coerce(int),

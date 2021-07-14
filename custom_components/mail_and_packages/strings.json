@@ -9,7 +9,9 @@
       "invalid_path": "Please store the images in another directory.",
       "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
       "amazon_domain": "Invalid forwarding email address.",
-      "file_not_found": "Image file not found"
+      "file_not_found": "Image file not found",
+      "scan_too_low": "Scan interval too low (minimum 5)",
+      "timeout_too_low": "IMAP timeout too low (minumim 10)"
     },
     "step": {
       "user": {
@@ -54,7 +56,9 @@
       "invalid_path": "Please store the images in another directory.",
       "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
       "amazon_domain": "Invalid forwarding email address.",
-      "file_not_found": "Image file not found"      
+      "file_not_found": "Image file not found",
+      "scan_too_low": "Scan interval too low (minimum 5)",
+      "timeout_too_low": "IMAP timeout too low (minumim 10)"      
     },
     "step": {
       "init": {
