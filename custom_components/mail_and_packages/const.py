@@ -97,7 +97,7 @@ SENSOR_DATA = {
         "subject": ["Delivery Exception"],
     },
     "usps_packages": {},
-    "usps_tracking": {"pattern": ["9[2345]\\d{15,22}"]},
+    "usps_tracking": {"pattern": ["9[2345]\\d{15,26}"]},
     "usps_mail": {
         "email": [
             "USPSInformedDelivery@usps.gov",
