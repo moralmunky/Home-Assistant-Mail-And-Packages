@@ -745,7 +745,6 @@ def get_count(
     result = {}
     today = get_formatted_date()
     track = None
-    data = None
 
     # Return Amazon delivered info
     if sensor_type == const.AMAZON_DELIVERED:
@@ -790,16 +789,16 @@ def get_count(
                 count,
             )
 
-    if (
-        const.ATTR_PATTERN
-        in const.SENSOR_DATA[f"{sensor_type.split('_')[0]}_tracking"].keys()
-    ):
-        track = const.SENSOR_DATA[f"{sensor_type.split('_')[0]}_tracking"][
-            const.ATTR_PATTERN
-        ][0]
+            if (
+                const.ATTR_PATTERN
+                in const.SENSOR_DATA[f"{sensor_type.split('_')[0]}_tracking"].keys()
+            ):
+                track = const.SENSOR_DATA[f"{sensor_type.split('_')[0]}_tracking"][
+                    const.ATTR_PATTERN
+                ][0]
 
-    if track is not None and get_tracking_num and count > 0:
-        tracking = get_tracking(data[0], account, track)
+            if track is not None and get_tracking_num and count > 0:
+                tracking = get_tracking(data[0], account, track)
 
     if len(tracking) > 0:
         # Use tracking numbers found for count (more accurate)
