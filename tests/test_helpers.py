@@ -699,7 +699,7 @@ async def test_usps_out_for_delivery(hass, mock_imap_usps_out_for_delivery):
         mock_imap_usps_out_for_delivery, "usps_delivering", True, "./", hass
     )
     assert result["count"] == 1
-    assert result["tracking"] == ["921234565085773077766900"]
+    assert result["tracking"] == ["92123456508577307776690000"]
 
 
 async def test_dhl_out_for_delivery(hass, mock_imap_dhl_out_for_delivery):
