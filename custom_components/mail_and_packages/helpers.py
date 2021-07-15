@@ -801,7 +801,9 @@ def get_count(
 
     if track is not None and get_tracking_num and count > 0:
         for sdata in found:
-            tracking.extend(get_tracking(sdata, account, track))
+            num = get_tracking(sdata, account, track)
+            if not any(e in tracking for e in num):
+                tracking.extend(num)
 
     if len(tracking) > 0:
         # Use tracking numbers found for count (more accurate)
