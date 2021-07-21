@@ -168,9 +168,9 @@ def _get_schema_step_2(
     if user_input is None:
         user_input = {}
 
-    def _get_default(key):
+    def _get_default(key: str, fallback_default: Any = None) -> None:
         """Gets default value for key."""
-        return user_input.get(key, default_dict.get(key))
+        return user_input.get(key, default_dict.get(key, fallback_default))
 
     return vol.Schema(
         {
@@ -185,7 +185,9 @@ def _get_schema_step_2(
             vol.Required(
                 CONF_RESOURCES, default=_get_default(CONF_RESOURCES)
             ): cv.multi_select(get_resources()),
-            vol.Optional(CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS)): str,
+            vol.Optional(
+                CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS, "")
+            ): str,
             vol.Optional(
                 CONF_SCAN_INTERVAL, default=_get_default(CONF_SCAN_INTERVAL)
             ): vol.All(vol.Coerce(int)),
@@ -220,7 +222,8 @@ def _get_schema_step_3(
     return vol.Schema(
         {
             vol.Optional(
-                CONF_CUSTOM_IMG_FILE, default=_get_default(CONF_CUSTOM_IMG_FILE)
+                CONF_CUSTOM_IMG_FILE,
+                default=_get_default(CONF_CUSTOM_IMG_FILE, DEFAULT_CUSTOM_IMG_FILE),
             ): str,
         }
     )
