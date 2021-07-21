@@ -147,9 +147,9 @@ def _get_schema_step_1(hass: Any, user_input: list, default_dict: list) -> Any:
     if user_input is None:
         user_input = {}
 
-    def _get_default(key):
+    def _get_default(key: str, fallback_default: Any = None) -> None:
         """Gets default value for key."""
-        return user_input.get(key, default_dict.get(key))
+        return user_input.get(key, default_dict.get(key, fallback_default))
 
     return vol.Schema(
         {
@@ -215,9 +215,9 @@ def _get_schema_step_3(
     if user_input is None:
         user_input = {}
 
-    def _get_default(key):
+    def _get_default(key: str, fallback_default: Any = None) -> None:
         """Gets default value for key."""
-        return user_input.get(key, default_dict.get(key))
+        return user_input.get(key, default_dict.get(key, fallback_default))
 
     return vol.Schema(
         {
