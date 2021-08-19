@@ -124,11 +124,7 @@ SENSOR_DATA = {
         "subject": ["UPS Update: New Scheduled Delivery Date"],
     },
     "ups_packages": {},
-    "ups_tracking": {
-        "pattern": [
-            "1Z?[0-9A-Z]{3}?[0-9A-Z]{3}?[0-9A-Z]{2}?[0-9A-Z]{4}?[0-9A-Z]{3}?[0-9A-Z]|[\\dT]\\d\\d\\d?\\d\\d\\d\\d?\\d\\d\\d"
-        ]
-    },
+    "ups_tracking": {"pattern": ["1Z?[0-9A-Z]{16}"]},
     "fedex_delivered": {
         "email": ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"],
         "subject": [

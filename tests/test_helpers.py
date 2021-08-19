@@ -691,7 +691,17 @@ async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):
         mock_imap_ups_out_for_delivery, "ups_delivering", True, "./", hass
     )
     assert result["count"] == 1
-    # assert result["tracking"] == ["1Z2345YY0678901234"]
+    assert result["tracking"] == ["1Z2345YY0678901234"]
+
+
+async def test_ups_out_for_delivery_html_only(
+    hass, mock_imap_ups_out_for_delivery_html
+):
+    result = get_count(
+        mock_imap_ups_out_for_delivery_html, "ups_delivering", True, "./", hass
+    )
+    assert result["count"] == 1
+    assert result["tracking"] == ["1Z0Y12345678031234"]
 
 
 async def test_usps_out_for_delivery(hass, mock_imap_usps_out_for_delivery):
