@@ -41,7 +41,9 @@ class PackagesSensor(CoordinatorEntity):
         self._config = config
         self._name = const.SENSOR_TYPES[sensor_type][const.SENSOR_NAME]
         self._icon = const.SENSOR_TYPES[sensor_type][const.SENSOR_ICON]
-        self._unit_of_measurement = const.SENSOR_TYPES[sensor_type][const.SENSOR_UNIT]
+        self._attr_unit_of_measurement = const.SENSOR_TYPES[sensor_type][
+            const.SENSOR_UNIT
+        ]
         self.type = sensor_type
         self._host = config.data[CONF_HOST]
         self._unique_id = unique_id
@@ -67,11 +69,6 @@ class PackagesSensor(CoordinatorEntity):
         else:
             value = None
         return value
-
-    @property
-    def unit_of_measurement(self) -> Optional[str]:
-        """Return the unit of measurement of this entity, if any."""
-        return self._unit_of_measurement
 
     @property
     def icon(self) -> str:
@@ -123,7 +120,9 @@ class ImagePathSensors(CoordinatorEntity):
         self._config = config
         self._name = const.IMAGE_SENSORS[sensor_type][const.SENSOR_NAME]
         self._icon = const.IMAGE_SENSORS[sensor_type][const.SENSOR_ICON]
-        self._unit_of_measurement = const.IMAGE_SENSORS[sensor_type][const.SENSOR_UNIT]
+        self._attr_unit_of_measurement = const.IMAGE_SENSORS[sensor_type][
+            const.SENSOR_UNIT
+        ]
         self.type = sensor_type
         self._host = config.data[CONF_HOST]
         self._unique_id = unique_id
@@ -166,11 +165,6 @@ class ImagePathSensors(CoordinatorEntity):
                 url = self.hass.config.external_url
                 the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
         return the_path
-
-    @property
-    def unit_of_measurement(self) -> Optional[str]:
-        """Return the unit of measurement of this entity, if any."""
-        return self._unit_of_measurement
 
     @property
     def icon(self) -> str:
