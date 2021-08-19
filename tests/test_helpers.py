@@ -735,6 +735,7 @@ async def test_amazon_fwds(
     mock_update_time,
     mock_hash_file,
     mock_getctime_today,
+    mock_update,
     caplog,
 ):
     """Test settting up entities."""
@@ -965,7 +966,7 @@ async def test_image_file_name_path_error(hass, caplog):
 
 
 async def test_image_file_name_amazon(
-    hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, caplog
+    hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, mock_copyfile, caplog
 ):
     config = FAKE_CONFIG_DATA_CORRECTED
 
