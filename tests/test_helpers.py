@@ -234,7 +234,7 @@ async def test_process_emails_copytree_error(
     assert "Problem copying files from" in caplog.text
 
 
-async def test_process_emails_bad(hass, mock_imap_no_email):
+async def test_process_emails_bad(hass, mock_imap_no_email, mock_update):
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
