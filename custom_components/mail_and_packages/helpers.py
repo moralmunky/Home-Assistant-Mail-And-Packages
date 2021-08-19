@@ -928,12 +928,10 @@ def amazon_search(
                 account, email_address, today, subject
             )
 
-            if server_response != "OK":
-                continue
-
-            count += len(data[0].split())
-            _LOGGER.debug("Amazon delivered email(s) found: %s", count)
-            get_amazon_image(data[0], account, image_path, hass, amazon_image_name)
+            if server_response == "OK":
+                count += len(data[0].split())
+                _LOGGER.debug("Amazon delivered email(s) found: %s", count)
+                get_amazon_image(data[0], account, image_path, hass, amazon_image_name)
 
     return count
 

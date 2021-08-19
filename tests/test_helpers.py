@@ -23,6 +23,7 @@ from custom_components.mail_and_packages.helpers import (
     get_formatted_date,
     get_items,
     get_mails,
+    hash_file,
     image_file_name,
     login,
     process_emails,
@@ -1000,3 +1001,9 @@ async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
         "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'testemail@fakedomain.com']"
         in caplog.text
     )
+
+
+async def test_hash_file():
+    """Test file hashing function."""
+    result = hash_file("tests/test_emails/amazon_delivered.eml")
+    assert result == "7f9d94e97bb4fc870d2d2b3aeae0c428ebed31dc"
