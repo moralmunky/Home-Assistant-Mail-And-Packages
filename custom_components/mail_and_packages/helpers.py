@@ -847,19 +847,25 @@ def get_tracking(
                     continue
 
                 # Search in email body for tracking number
-                _LOGGER.debug("Checking message body...")
-                email_msg = quopri.decodestring(str(msg.get_payload(0)))
-                email_msg = email_msg.decode("utf-8", "ignore")
-                found = pattern.findall(email_msg)
-                if len(found) > 0:
-                    # DHL is special
-                    if " " in the_format:
-                        found[0] = found[0].split(" ")[1]
+                _LOGGER.debug("Checking message body using %s ...", the_format)
+                for part in msg.walk():
+                    _LOGGER.debug("Content type: %s", part.get_content_type())
+                    if part.get_content_type() not in ["text/html", "text/plain"]:
+                        continue
+                    email_msg = part.get_payload(decode=True)
+                    email_msg = email_msg.decode("utf-8", "ignore")
+                    found = pattern.findall(email_msg)
+                    if len(found) > 0:
+                        # DHL is special
+                        if " " in the_format:
+                            found[0] = found[0].split(" ")[1]
 
-                    _LOGGER.debug("Found tracking number in email body: %s", found[0])
-                    if found[0] not in tracking:
-                        tracking.append(found[0])
-                    continue
+                        _LOGGER.debug(
+                            "Found tracking number in email body: %s", found[0]
+                        )
+                        if found[0] not in tracking:
+                            tracking.append(found[0])
+                        continue
 
     if len(tracking) == 0:
         _LOGGER.debug("No tracking numbers found")
