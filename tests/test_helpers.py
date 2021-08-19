@@ -797,6 +797,7 @@ async def test_amazon_search_delivered(
         mock_imap_amazon_delivered, "test/path", hass, "testfilename.jpg"
     )
     assert result == 12
+    assert mock_download_img.called
 
 
 async def test_amazon_search_delivered_it(

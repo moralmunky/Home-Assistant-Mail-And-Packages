@@ -959,8 +959,7 @@ def get_amazon_image(
                 msg = email.message_from_bytes(response_part[1])
                 _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
                 _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
-                if not msg.is_multipart() and msg.get_content_type() != "text/html":
-                    continue
+
                 for part in msg.walk():
                     if part.get_content_type() != "text/html":
                         continue
@@ -1094,14 +1093,12 @@ def amazon_exception(
             account, email_address, tfmt, const.AMAZON_EXCEPTION_SUBJECT
         )
 
-        if server_response != "OK":
-            continue
-
-        count += len(sdata[0].split())
-        _LOGGER.debug("Found %s Amazon exceptions", count)
-        order_numbers = get_tracking(sdata[0], account, const.AMAZON_PATTERN)
-        for order in order_numbers:
-            order_number.append(order)
+        if server_response == "OK":
+            count += len(sdata[0].split())
+            _LOGGER.debug("Found %s Amazon exceptions", count)
+            order_numbers = get_tracking(sdata[0], account, const.AMAZON_PATTERN)
+            for order in order_numbers:
+                order_number.append(order)
 
     info[const.ATTR_COUNT] = count
     info[const.ATTR_ORDER] = order_number
