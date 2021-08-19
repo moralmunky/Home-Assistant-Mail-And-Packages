@@ -105,6 +105,7 @@ async def test_check_file_path_access(
     mock_copy_overlays,
     mock_hash_file,
     mock_getctime_today,
+    mock_update,
     caplog,
 ):
     """Test check_file_path_access function."""
@@ -133,6 +134,7 @@ async def test_async_camera_image(
     mock_copy_overlays,
     mock_hash_file,
     mock_getctime_today,
+    mock_update,
 ):
     """Test async_camera_image function."""
 
@@ -172,6 +174,7 @@ async def test_async_camera_image_file_error(
     mock_copy_overlays,
     mock_hash_file,
     mock_getctime_today,
+    mock_update,
     caplog,
 ):
     """Test async_camera_image function."""
@@ -208,6 +211,7 @@ async def test_async_on_demand_update(
     mock_copy_overlays,
     mock_hash_file,
     mock_getctime_today,
+    mock_update,
 ):
     """Test async_camera_image function."""
 

@@ -52,6 +52,7 @@ async def test_setup_entry(
     mock_copy_overlays,
     mock_hash_file,
     mock_getctime_today,
+    mock_update,
 ):
     """Test settting up entities."""
     entry = MockConfigEntry(
@@ -79,6 +80,7 @@ async def test_no_path_no_sec(
     mock_copy_overlays,
     mock_hash_file,
     mock_getctime_today,
+    mock_update,
 ):
     """Test settting up entities."""
     entry = MockConfigEntry(
@@ -104,6 +106,7 @@ async def test_missing_imap_timeout(
     mock_copy_overlays,
     mock_hash_file,
     mock_getctime_today,
+    mock_update,
 ):
     """Test settting up entities."""
     entry = MockConfigEntry(
@@ -132,6 +135,7 @@ async def test_amazon_fwds_string(
     mock_copy_overlays,
     mock_hash_file,
     mock_getctime_today,
+    mock_update,
 ):
     """Test settting up entities."""
     entry = MockConfigEntry(
@@ -160,6 +164,7 @@ async def test_custom_img(
     mock_copy_overlays,
     mock_hash_file,
     mock_getctime_today,
+    mock_update,
 ):
     """Test settting up entities."""
     entry = MockConfigEntry(

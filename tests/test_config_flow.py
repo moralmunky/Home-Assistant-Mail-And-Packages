@@ -970,6 +970,7 @@ async def test_options_flow(
     data,
     hass,
     mock_imap,
+    mock_update,
 ):
     """Test config flow options."""
     entry = MockConfigEntry(
@@ -1127,6 +1128,7 @@ async def test_options_flow_invalid_custom_img_path(
     data,
     hass,
     mock_imap,
+    mock_update,
 ):
     """Test config flow options."""
     entry = MockConfigEntry(
@@ -1852,6 +1854,7 @@ async def test_options_flow_bad(
     data,
     hass,
     mock_imap,
+    mock_update,
 ):
     """Test config flow options."""
     entry = MockConfigEntry(

@@ -234,7 +234,7 @@ async def test_process_emails_copytree_error(
     assert "Problem copying files from" in caplog.text
 
 
-async def test_process_emails_bad(hass, mock_imap_no_email):
+async def test_process_emails_bad(hass, mock_imap_no_email, mock_update):
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
@@ -690,7 +690,7 @@ async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):
     result = get_count(
         mock_imap_ups_out_for_delivery, "ups_delivering", True, "./", hass
     )
-    assert result["count"] == 2
+    assert result["count"] == 1
     # assert result["tracking"] == ["1Z2345YY0678901234"]
 
 
@@ -724,32 +724,6 @@ async def test_royal_out_for_delivery(hass, mock_imap_royal_out_for_delivery):
     )
     assert result["count"] == 1
     assert result["tracking"] == ["MA038501234GB"]
-
-
-async def test_amazon_fwds(
-    hass,
-    mock_imap_no_email,
-    mock_osremove,
-    mock_osmakedir,
-    mock_listdir,
-    mock_update_time,
-    mock_hash_file,
-    mock_getctime_today,
-    caplog,
-):
-    """Test settting up entities."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    assert "Amazon email adding fakeuser@fake.email to list" in caplog.text
-    assert "Amazon email adding fakeuser2@fake.email to list" in caplog.text
 
 
 async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):
@@ -965,7 +939,7 @@ async def test_image_file_name_path_error(hass, caplog):
 
 
 async def test_image_file_name_amazon(
-    hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, caplog
+    hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, mock_copyfile, caplog
 ):
     config = FAKE_CONFIG_DATA_CORRECTED
 

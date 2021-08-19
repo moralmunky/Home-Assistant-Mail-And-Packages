@@ -7,6 +7,7 @@ from async_timeout import timeout
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -93,6 +94,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
+
+    # Raise ConfEntryNotReady if coordinator didn't update
+    if not coordinator.last_update_success:
+        raise ConfigEntryNotReady
 
     hass.data[DOMAIN][config_entry.entry_id] = {
         COORDINATOR: coordinator,
