@@ -160,6 +160,7 @@ async def test_custom_img(
     mock_copy_overlays,
     mock_hash_file,
     mock_getctime_today,
+    mock_update,
 ):
     """Test settting up entities. """
     entry = MockConfigEntry(
