@@ -1204,7 +1204,7 @@ def get_items(
                                 try:
                                     locale.setlocale(locale.LC_TIME, lang)
                                 except Exception as err:
-                                    _LOGGER.warn("Locale error: %s (%s)", err, lang)
+                                    _LOGGER.info("Locale error: %s (%s)", err, lang)
                                     continue
 
                                 _LOGGER.debug("Arrive Date: %s", arrive_date)
@@ -1227,7 +1227,7 @@ def get_items(
                                         new_arrive_date, time_format
                                     )
                                 except ValueError as err:
-                                    _LOGGER.warn(
+                                    _LOGGER.info(
                                         "International dates not supported. (%s)", err
                                     )
                                     continue
@@ -1241,7 +1241,10 @@ def get_items(
     value = None
     if param == "count":
         _LOGGER.debug("Amazon Count: %s", str(len(deliveries_today)))
-        value = len(deliveries_today)
+        if len(deliveries_today) > len(order_number):
+            value = len(order_number)
+        else:
+            value = len(deliveries_today)
     else:
         _LOGGER.debug("Amazon order: %s", str(order_number))
         value = order_number

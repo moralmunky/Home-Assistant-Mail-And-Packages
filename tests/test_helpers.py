@@ -742,7 +742,7 @@ async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):
         mock_date.today.return_value = date(2020, 9, 11)
 
         result = get_items(mock_imap_amazon_shipped, "count")
-        assert result == 6
+        assert result == 1
 
 
 async def test_amazon_shipped_order(hass, mock_imap_amazon_shipped):
@@ -776,7 +776,7 @@ async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
     with patch("datetime.date") as mock_date:
         mock_date.today.return_value = date(2021, 12, 1)
         result = get_items(mock_imap_amazon_shipped_it, "count")
-        assert result == 6
+        assert result == 1
 
 
 async def test_amazon_search(hass, mock_imap_no_email):
