@@ -928,12 +928,10 @@ def amazon_search(
                 account, email_address, today, subject
             )
 
-            if server_response != "OK":
-                continue
-
-            count += len(data[0].split())
-            _LOGGER.debug("Amazon delivered email(s) found: %s", count)
-            get_amazon_image(data[0], account, image_path, hass, amazon_image_name)
+            if server_response == "OK":
+                count += len(data[0].split())
+                _LOGGER.debug("Amazon delivered email(s) found: %s", count)
+                get_amazon_image(data[0], account, image_path, hass, amazon_image_name)
 
     return count
 
@@ -959,8 +957,7 @@ def get_amazon_image(
                 msg = email.message_from_bytes(response_part[1])
                 _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
                 _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
-                if not msg.is_multipart() and msg.get_content_type() != "text/html":
-                    continue
+
                 for part in msg.walk():
                     if part.get_content_type() != "text/html":
                         continue
@@ -1094,14 +1091,12 @@ def amazon_exception(
             account, email_address, tfmt, const.AMAZON_EXCEPTION_SUBJECT
         )
 
-        if server_response != "OK":
-            continue
-
-        count += len(sdata[0].split())
-        _LOGGER.debug("Found %s Amazon exceptions", count)
-        order_numbers = get_tracking(sdata[0], account, const.AMAZON_PATTERN)
-        for order in order_numbers:
-            order_number.append(order)
+        if server_response == "OK":
+            count += len(sdata[0].split())
+            _LOGGER.debug("Found %s Amazon exceptions", count)
+            order_numbers = get_tracking(sdata[0], account, const.AMAZON_PATTERN)
+            for order in order_numbers:
+                order_number.append(order)
 
     info[const.ATTR_COUNT] = count
     info[const.ATTR_ORDER] = order_number
@@ -1209,7 +1204,7 @@ def get_items(
                                 try:
                                     locale.setlocale(locale.LC_TIME, lang)
                                 except Exception as err:
-                                    _LOGGER.warn("Locale error: %s (%s)", err, lang)
+                                    _LOGGER.info("Locale error: %s (%s)", err, lang)
                                     continue
 
                                 _LOGGER.debug("Arrive Date: %s", arrive_date)
@@ -1232,7 +1227,7 @@ def get_items(
                                         new_arrive_date, time_format
                                     )
                                 except ValueError as err:
-                                    _LOGGER.warn(
+                                    _LOGGER.info(
                                         "International dates not supported. (%s)", err
                                     )
                                     continue
@@ -1246,7 +1241,10 @@ def get_items(
     value = None
     if param == "count":
         _LOGGER.debug("Amazon Count: %s", str(len(deliveries_today)))
-        value = len(deliveries_today)
+        if len(deliveries_today) > len(order_number):
+            value = len(order_number)
+        else:
+            value = len(deliveries_today)
     else:
         _LOGGER.debug("Amazon order: %s", str(order_number))
         value = order_number

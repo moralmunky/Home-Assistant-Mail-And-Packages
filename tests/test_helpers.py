@@ -23,6 +23,7 @@ from custom_components.mail_and_packages.helpers import (
     get_formatted_date,
     get_items,
     get_mails,
+    hash_file,
     image_file_name,
     login,
     process_emails,
@@ -741,7 +742,7 @@ async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):
         mock_date.today.return_value = date(2020, 9, 11)
 
         result = get_items(mock_imap_amazon_shipped, "count")
-        assert result == 6
+        assert result == 1
 
 
 async def test_amazon_shipped_order(hass, mock_imap_amazon_shipped):
@@ -775,7 +776,7 @@ async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
     with patch("datetime.date") as mock_date:
         mock_date.today.return_value = date(2021, 12, 1)
         result = get_items(mock_imap_amazon_shipped_it, "count")
-        assert result == 6
+        assert result == 1
 
 
 async def test_amazon_search(hass, mock_imap_no_email):
@@ -797,6 +798,7 @@ async def test_amazon_search_delivered(
         mock_imap_amazon_delivered, "test/path", hass, "testfilename.jpg"
     )
     assert result == 12
+    assert mock_download_img.called
 
 
 async def test_amazon_search_delivered_it(
@@ -999,3 +1001,9 @@ async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
         "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'testemail@fakedomain.com']"
         in caplog.text
     )
+
+
+async def test_hash_file():
+    """Test file hashing function."""
+    result = hash_file("tests/test_emails/amazon_delivered.eml")
+    assert result == "7f9d94e97bb4fc870d2d2b3aeae0c428ebed31dc"
