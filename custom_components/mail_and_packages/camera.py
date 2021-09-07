@@ -129,8 +129,12 @@ class MailCam(Camera):
         _LOGGER.debug("Camera Update: %s", self._type)
         _LOGGER.debug("Custom No Mail: %s", self._no_mail)
 
+        if self._coordinator.data is None:
+            _LOGGER.warning("Unable to update camera image, no data.")
+            return
+
         if self._type == "usps_camera":
-            # Update camera image for USPS informed delivery imgages
+            # Update camera image for USPS informed delivery images
             image = self._coordinator.data[ATTR_IMAGE_NAME]
 
             if ATTR_IMAGE_PATH in self._coordinator.data.keys():
