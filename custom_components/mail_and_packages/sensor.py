@@ -33,7 +33,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
 
 class PackagesSensor(CoordinatorEntity, SensorEntity):
-    """Represntation of a sensor"""
+    """Representation of a sensor."""
 
     def __init__(self, config, sensor_type, coordinator, unique_id):
         """Initialize the sensor"""
@@ -111,7 +111,7 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
 
 
 class ImagePathSensors(CoordinatorEntity, SensorEntity):
-    """Represntation of a sensor"""
+    """Representation of a sensor."""
 
     def __init__(self, hass, config, sensor_type, coordinator, unique_id):
         """Initialize the sensor"""
