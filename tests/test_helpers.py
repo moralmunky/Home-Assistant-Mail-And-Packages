@@ -104,6 +104,7 @@ async def test_process_emails(
     config = entry.data.copy()
     assert config == FAKE_CONFIG_DATA_CORRECTED
     state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
+    assert state is not None
     assert (
         "/testing_config/custom_components/mail_and_packages/images/testfile.gif"
         in state.state
@@ -148,6 +149,7 @@ async def test_process_emails_external(
     config = entry.data.copy()
     assert config == FAKE_CONFIG_DATA_CORRECTED_EXTERNAL
     state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
+    assert state is not None
     assert (
         "/testing_config/custom_components/mail_and_packages/images/testfile.gif"
         in state.state

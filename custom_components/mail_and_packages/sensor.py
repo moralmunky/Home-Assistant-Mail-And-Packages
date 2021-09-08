@@ -7,6 +7,7 @@ Configuration code contribution from @firstof9 https://github.com/firstof9/
 import logging
 from typing import Optional
 
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -31,7 +32,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities(sensors, False)
 
 
-class PackagesSensor(CoordinatorEntity):
+class PackagesSensor(CoordinatorEntity, SensorEntity):
     """Represntation of a sensor"""
 
     def __init__(self, config, sensor_type, coordinator, unique_id):
@@ -109,7 +110,7 @@ class PackagesSensor(CoordinatorEntity):
         return attr
 
 
-class ImagePathSensors(CoordinatorEntity):
+class ImagePathSensors(CoordinatorEntity, SensorEntity):
     """Represntation of a sensor"""
 
     def __init__(self, hass, config, sensor_type, coordinator, unique_id):
