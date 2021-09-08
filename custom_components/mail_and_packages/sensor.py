@@ -41,7 +41,7 @@ class PackagesSensor(CoordinatorEntity):
         self._config = config
         self._name = const.SENSOR_TYPES[sensor_type][const.SENSOR_NAME]
         self._icon = const.SENSOR_TYPES[sensor_type][const.SENSOR_ICON]
-        self._attr_unit_of_measurement = const.SENSOR_TYPES[sensor_type][
+        self._attr_native_unit_of_measurement = const.SENSOR_TYPES[sensor_type][
             const.SENSOR_UNIT
         ]
         self.type = sensor_type
@@ -60,7 +60,7 @@ class PackagesSensor(CoordinatorEntity):
         return self._name
 
     @property
-    def state(self) -> Optional[int]:
+    def native_value(self) -> Optional[int]:
         """Return the state of the sensor."""
         value = None
 
@@ -120,7 +120,7 @@ class ImagePathSensors(CoordinatorEntity):
         self._config = config
         self._name = const.IMAGE_SENSORS[sensor_type][const.SENSOR_NAME]
         self._icon = const.IMAGE_SENSORS[sensor_type][const.SENSOR_ICON]
-        self._attr_unit_of_measurement = const.IMAGE_SENSORS[sensor_type][
+        self._attr_native_unit_of_measurement = const.IMAGE_SENSORS[sensor_type][
             const.SENSOR_UNIT
         ]
         self.type = sensor_type
@@ -138,7 +138,7 @@ class ImagePathSensors(CoordinatorEntity):
         return self._name
 
     @property
-    def state(self) -> Optional[str]:
+    def native_value(self) -> Optional[str]:
         """Return the state of the sensor."""
         image = self.coordinator.data[const.ATTR_IMAGE_NAME]
         the_path = None
