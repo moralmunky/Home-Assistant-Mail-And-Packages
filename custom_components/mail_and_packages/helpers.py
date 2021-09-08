@@ -258,7 +258,7 @@ def hash_file(filename: str) -> str:
     """
 
     # make a hash object
-    the_hash = hashlib.sha1()
+    the_hash = hashlib.sha1()  # nosec
 
     # open file for reading in binary mode
     with open(filename, "rb") as file:
