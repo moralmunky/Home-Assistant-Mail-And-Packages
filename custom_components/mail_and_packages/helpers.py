@@ -9,7 +9,7 @@ import logging
 import os
 import quopri
 import re
-import subprocess
+import subprocess  # nosec
 import uuid
 from email.header import decode_header
 from shutil import copyfile, copytree, which

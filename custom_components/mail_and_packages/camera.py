@@ -1,4 +1,6 @@
 """Camera that loads a picture from a local file."""
+from __future__ import annotations
+
 import logging
 import os
 
@@ -104,7 +106,9 @@ class MailCam(Camera):
             else config.data.get(CONF_CUSTOM_IMG_FILE)
         )
 
-    async def async_camera_image(self):
+    async def async_camera_image(
+        self, width: int | None = None, height: int | None = None
+    ) -> bytes | None:
         """Return image response."""
         try:
             with open(self._file_path, "rb") as file:
