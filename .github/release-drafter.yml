@@ -5,21 +5,24 @@ sort-direction: ascending
 autolabeler:
   - label: "chore"
     title:
-      - "/chore/i"
+      - "/chore:/i"
   - label: "bugfix"
     title:
-      - "/fix/i"
+      - "/fix:/i"
   - label: "feature"
     title:
-      - "/feat/i"
+      - "/feat:/i"
   - label: "enhancement"
     title:
-      - "/refactor/i"
+      - "/refactor:/i"
+  - label: "code-quality"
+    title:
+      - "/tests:/i"
 categories:
   - title: ":boom: Breaking Change :boom:"
     labels:
       - "breaking-change"
-  - title: ":zap: Enhancments :zap:"
+  - title: ":zap: Enhancements :zap:"
     labels:
       - "enhancement"
   - title: ":sparkles: New Features :sparkles:"
