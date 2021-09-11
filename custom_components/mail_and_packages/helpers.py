@@ -889,15 +889,20 @@ def find_text(sdata: Any, account: Type[imaplib.IMAP4_SSL], search: str) -> int:
         for response_part in data:
             if isinstance(response_part, tuple):
                 msg = email.message_from_bytes(response_part[1])
-                email_msg = quopri.decodestring(str(msg.get_payload(0)))
-                email_msg = email_msg.decode("utf-8", "ignore")
-                pattern = re.compile(r"{}".format(search))
-                found = pattern.findall(email_msg)
-                if len(found) > 0:
-                    _LOGGER.debug(
-                        "Found (%s) in email %s times.", search, str(len(found))
-                    )
-                    count += len(found)
+
+                for part in msg.walk():
+                    _LOGGER.debug("Content type: %s", part.get_content_type())
+                    if part.get_content_type() not in ["text/html", "text/plain"]:
+                        continue
+                    email_msg = part.get_payload(decode=True)
+                    email_msg = email_msg.decode("utf-8", "ignore")
+                    pattern = re.compile(r"{}".format(search))
+                    found = pattern.findall(email_msg)
+                    if len(found) > 0:
+                        _LOGGER.debug(
+                            "Found (%s) in email %s times.", search, str(len(found))
+                        )
+                        count += len(found)
 
     _LOGGER.debug("Search for (%s) count results: %s", search, count)
     return count
