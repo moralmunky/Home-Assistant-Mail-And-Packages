@@ -777,7 +777,7 @@ def get_count(
         if server_response == "OK":
             if const.ATTR_BODY in const.SENSOR_DATA[sensor_type].keys():
                 count += find_text(
-                    data[0], account, const.SENSOR_DATA[sensor_type][const.ATTR_BODY][0]
+                    data, account, const.SENSOR_DATA[sensor_type][const.ATTR_BODY][0]
                 )
             else:
                 count += len(data[0].split())
@@ -880,7 +880,7 @@ def find_text(sdata: Any, account: Type[imaplib.IMAP4_SSL], search: str) -> int:
     Return count of items found as integer
     """
     _LOGGER.debug("Searching for (%s) in (%s) emails", search, len(sdata))
-    mail_list = sdata.split()
+    mail_list = sdata[0].split()
     count = 0
     found = None
 
