@@ -1,0 +1,792 @@
+Date: Fri, 25 Jun 2021 05:54:39 -0600
+From: FedEx Delivery Manager <TrackingUpdates@fedex.com>
+Reply-To: trackingmail@fedex.com
+To: testuer@email.com
+Subject: FedEx Shipment 61290912345678912345: Your package is now out for delivery today
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="----=_Part_2874884_827415395.1624622008293"
+
+
+------=_Part_2874884_827415395.1624622008293
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl" xmlns:ins="http://xmlns.fedex.com/insight/notification" xmlns:ens="http://xmlns.fedex.com/ens/notification" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml" lang="en">
+<head>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FedEx</title>
+				
+				  <!--[if gte mso 9]>
+							<xml>
+				 <o:OfficeDocumentSettings>
+				  <o:AllowPNG/>
+				  <o:PixelsPerInch>96</o:PixelsPerInch>
+				 </o:OfficeDocumentSettings>
+				</xml>
+				<![endif]--> 
+				
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700"/>
+					
+					<!--[if mso]>
+					<style>
+					 body, table, td, span, a {font-family: Arial, Helvetica, sans-serif !important;}
+					  sup { font-size: 100% !important; }
+					</style> 
+				 <![endif]--> 
+				  
+<style type="text/css">
+                    body .showonmobile {
+                    display: none;
+                    }
+                    body {
+                    margin: 0 auto !important;
+                    }
+
+                    @media only screen and (max-device-width: 480px), screen and (max-width: 600px) {
+                    body .mobile-horiz-margin {
+                    height: 16px!important;
+                    }
+                    body .mobile-header-text {
+                    font-size: 14px!important;
+                    }
+                    body .narrowheader {
+                    padding-left: 20px;
+                    padding-right: 20px;
+                    }
+                    body .mobile-intro {
+                    font-size: 24px!important;
+                    }
+                    body .mobile-intro-margin {
+                    width: 20%!important;
+                    min-width: 20%!important;
+                    }
+                    body .logo {
+                    height: 30px!important;
+                    width: auto!important;
+                    }
+                    body .fxo-logo {
+                    height: 40px !important;
+                    width: auto !important;
+                    }
+                    body .logo-standard {
+                    height: 26px!important;
+                    line-height: 38px !important;
+                    width: auto!important;
+                    }
+                    body .office-logo {
+                    height: 58px!important;
+                    width: auto!important;
+                    }
+                    body .mobile-cta {
+                    font-size: 22px!important;
+                    }
+                    body .mobile-paragraph {
+                    font-size: 16px!important;
+                    }
+                    body .stack-on-mobile td {
+                    width: 100%;
+                    }
+                    body .mobilepadded {
+                    width: 90% !important;
+                    margin: 0 auto;
+                    }
+                    body .mobilecentered {
+                    text-align: center !important;
+                    display: inline-block !important;
+                    }
+                    body .mobilefullcentered {
+                    display: block !important;
+                    width: 100% !important;
+                    text-align: center !important;
+                    }
+                    body .mobilefullcentered img {
+                    margin: 0 auto;
+                    }
+                    body .full-width-on-mobile {
+                    width: 100%!important;
+                    height: auto!important
+                    }
+                    body .hideonmobile {
+                    display: none !important;
+                    }
+                    body .showonmobile {
+                    display: block !important;
+                    overflow: visible !important;
+                    width: auto !important;
+                    max-height: inherit !important;
+                    height: auto !important;
+                    visibility: visible!important;
+                    }
+                    body .mobile-margin {
+                    display: block !important;
+                    height: auto !important;
+                    visibility: visible !important;
+                    width: 20px !important;
+                    }
+                    body .showonmobilelogo {
+                    display: block !important;
+                    overflow: visible !important;
+                    width: 165px !important;
+                    height: 68px !important;
+                    max-height: 68px !important;
+                    }
+                    body .showonmobilespacer {
+                    display: block !important;
+                    overflow: visible !important;
+                    width: 1px !important;
+                    height: 10px !important;
+                    max-height: 10px !important;
+                    }
+                    body .mobile {
+                    display: table !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    min-width: 100% !important;
+                    }
+                    body th.mobile {
+                    display: table !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    min-width: 100% !important;
+                    }
+                    body table.mobile {
+                    display: table !important;
+                    width: 100% !important;
+                    visibility: visible !important;
+                    height:auto !important;
+                    overflow: visible !important;
+                    }
+                    body .navcol,  body .desktopcol {
+                    display: block !important;
+                    width: 100% !important;
+                    }
+                    body .navcol {
+                    line-height: 40px !important;
+                    min-height: 40px !important;
+                    text-align: left !important;
+                    }
+                    body .navcenter {
+                    border-top: 1px solid #DDD;
+                    border-bottom: 1px solid #DDD;
+                    }
+                    body .mobilenoborder {
+                    border: none !important;
+                    }
+                    body td.intro {
+                    font-size: 26px !important;
+                    }
+                    body td.subintro {
+                    font-size: 18px !important;
+                    }
+                    body .mobileimg {
+                    width: 60% !important;
+                    height: auto !important;
+                    }
+                    body .sagdualimage,  body .mobilebanner,  body .mobilefullbanner {
+                    width: 100% !important;
+                    height: auto !important;
+                    }
+                    body .logo-left {
+                    width: 165px !important;
+                    max-width: 165px !important;
+                    height: 80px !important;
+                    display: block !important;
+                    max-height: inherit !important;
+                    }
+                    body .mobile-rewards {
+                    width: 98px !important;
+                    max-width: 98px !important;
+                    }
+                    body .lockup-spacer {
+                    width: auto !important;
+                    }
+                    body .image-wide-mobile {
+                    min-width: 100% !important;
+                    height: 140px !important;
+                    }
+                    body .video-container {
+                    height: 158px !important;
+                    }
+                    body .play-button {
+                    margin-top: 3px !important;
+                    }
+                    body .centered-on-mobile {
+                    text-align: center!important;
+                    }
+                    body .fx-custom-link {
+                    color: #333 !important;
+                    }
+                    body .fx-custom-link a {
+                    color: #333 !important;
+                    }
+                    }
+                </style>
+</head>
+<body style="width:100% !important;min-width:100% !important;background:#FAFAFA;-webkit-text-size-adjust:none;  -webkit-print-color-adjust: exact; margin:0px; padding: 0px; font-family:Arial,Helvetica,sans-serif; line-height: 1.3;" marginwidth="0" marginheight="0" topmargin="0" bgcolor="#FAFAFA" layout="responsive"><img src="http://click.message.fedex.com/open.aspx?ffcb10-ff3110707663-fe581678776c047a7c17-fe8c13727660027b72-ff971074-fe601677736c057c7710-fe86117473630d7e72&d=70161&bmt=0" width="1" height="1" alt="">
+<table style="border-collapse: collapse;min-width:100% !important;" bgcolor="#FFFFFF" border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr>
+<td style="min-width:100% !important;" align="center" width="100%" bgcolor="#FFFFFF">
+<table style="background-color: #4D148C; border-collapse: collapse; width: 100% !important;width:100% !important;" bgcolor="#4D148C" border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr>
+<td style="background-color: #4D148C;" bgcolor="#4D148C" width="100%" class="mobile" align="center" valign="top">
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="640">
+<tr>
+<td style="line-height:0px; font-size:0px;background-color: #4D148C;" class="mobile-horiz-margin" height="26" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="background-color: #4D148C;" width="100%" align="center" class="logo" valign="middle">
+<a style="display:block; border:0; text-decoration:none;" target="_blank"  href="http://click.message.fedex.com/?qs=8f7789f45a5344a712ae2517e855a187cba61793a9858e681b0340a9254d981f7ac07b853bbcf0bbb779a4c945608c3833138a8df7e74b5e">
+<img alt="FedEx" style="display:block;" height="52" width="185" border="0" class="logo-standard" src="https://www.fedex.com/content/dam/fedex-com/ens/fedex-logo.png"/>
+</a>
+</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;background-color: #4D148C;" class="mobile-horiz-margin" height="26" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<table style="background-color: #FAFAFA;" bgcolor="#FAFAFA" border="0" cellspacing="0" cellpadding="0" class="mobile" width="100%">
+<tr>
+<td style="line-height:0px; font-size:0px;" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="75" width="1" border="0" class="mobile-horiz-margin" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="background-color: #FAFAFA;" bgcolor="#FAFAFA" width="100%" class="mobile" align="center" valign="top">
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="640">
+<tr>
+<td style="line-height:0px;font-size:0px;" class="mobile-intro-margin" width="60">
+<img alt="spacer.gif" style="display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td style="font-size: 39px; font-weight: 300; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; text-decoration: none;" align="center" class="mobile-intro" valign="middle">Hi, Chris. Your package from Wilson Distribution Center is now out for delivery today.</td>
+<td style="line-height:0px;font-size:0px;" class="mobile-intro-margin" width="60">
+<img alt="spacer.gif" style="display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="75" width="1" border="0" class="mobile-horiz-margin" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="100%">
+<tr>
+<td style="line-height:0px; font-size:0px;" class="mobile" height="15" width="600" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" align="center" class="mobile" width="100%">
+<tr>
+<td style="line-height:0px; font-size:0px;" width="20" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="20" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td width="600" class="mobile" valign="top">
+<table border="0" cellspacing="0" cellpadding="0" align="center" class="mobile" width="100%">
+<tr>
+<td align="center" valign="top">
+<table border="0" cellspacing="5" cellpadding="5" align="center" class="mobile">
+<tr>
+<td style="font-size: 14px; font-weight: 700; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333333; text-decoration: none;line-height: 29px;letter-spacing: 1.17px;" align="center" valign="top">SCHEDULED DELIVERY</td>
+</tr>
+<tr>
+<td style="font-size: 18px; font-weight: 300; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333333; text-decoration: none;line-height: 25px;" align="center" valign="top">Fri, 06/25/2021</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+<td style="line-height:0px; font-size:0px;" width="20" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="20" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" min-width="100%">
+<tr>
+<td style="line-height:0px; font-size:0px;" class="mobile" height="15" width="600px" align="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" align="center" class="mobile" min-width="640">
+<tr>
+<td style="line-height:0px; font-size:0px;" width="20" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="20" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td width="600" class="mobile" align="center" valign="top">
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" align="center" min-width="100%">
+<tr>
+<td align="center" valign="top">
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" align="center" min-width="100%">
+<tr>
+<td align="center" valign="top">
+<img class="mobilebanner" src="https://www.fedex.com/content/dam/fedex-com/ens/notif-fedex-progress-bar-details-in-transit.png"/>
+</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="15" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" align="center" min-width="100%">
+<tr>
+<td align="center" valign="top">
+<table border="0" cellspacing="0" cellpadding="0" align="center" class="mobile">
+<tr>
+<td style="font-size: 14px; font-weight: 700; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333333; text-decoration: none;letter-spacing: 1.4px;" align="center" valign="top">OUT FOR DELIVERY</td>
+</tr>
+<tr>
+<td style="font-size: 18px; font-weight: 300; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333333; text-decoration: none;line-height: 25px;" align="center" valign="top">PHOENIX, AZ</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+<td style="line-height:0px; font-size:0px;" width="20" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="20" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" min-width="100%">
+<tr>
+<td style="line-height:0px; font-size:0px;" class="mobile" height="15" width="600px" align="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="100%">
+<tr>
+<td style="line-height:0px; font-size:0px;" class="mobile" height="15" width="600px" align="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="100%">
+<tr>
+<td style="line-height:0px; font-size:0px;" class="mobile" height="15" width="640px" align="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="640" align="center">
+<tr>
+<td style="font-size: 14px; font-weight: 700; font-family: Roboto, Arial, Helvetica, sans-serif; color: #0078AE; text-decoration: none; letter-spacing: 1px;" align="center" valign="top">
+<a xmlns="" target="_blank" style="color: #0289CD; text-decoration: none;" href="http://click.message.fedex.com/?qs=6bcab2eb590d990b191fb847b47350fa7356db40b7ae19dfe9002f5f0160c4bbdab068663051aa48a6fe37c76227993b92a0f74d66baa870">MANAGE DELIVERY</a>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="100%">
+<tr>
+<td style="line-height:0px; font-size:0px;" class="mobile" height="15" width="640px" align="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="100%">
+<tr>
+<td style="line-height:0px; font-size:0px;" class="mobile" height="15" width="600px" align="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" align="center" class="mobile" width="640">
+<tr>
+<td style="line-height:0px; font-size:0px;" width="20" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="20" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td width="100%" align="center" valign="top">
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="600">
+<tr>
+<td style="font-size: 12px; font-weight: 700; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none; line-height: 22px; letter-spacing: 1px;" align="right" width="290" valign="top">TRACKING NUMBER</td>
+<td style="line-height:0px; font-size:0px;" width="40" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td style="font-size: 12px; font-weight: 300; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none;line-height: 22px;letter-spacing: 1px;" align="left" width="290" valign="top"><a xmlns="" target="_blank" style="color: #007AB7; " href="http://click.message.fedex.com/?qs=18f0cbc29d876ff423be373376c2671fed14f92cbd21be3c2e54bc20921d802f1241c2187f168ae53163c717e4ceb4146f332ce38b1b75d1">61290912345678912345</a>
+</td>
+<td style="line-height:0px; font-size:0px;" width="40" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="font-size: 12px; font-weight: 700; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none; line-height: 22px; letter-spacing: 1px;" align="right" width="290" valign="top">FROM</td>
+<td style="line-height:0px; font-size:0px;" width="40" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td style="font-size: 12px; font-weight: 300; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none;line-height: 22px;letter-spacing: 1px;" align="left" width="290" valign="top">Wilson Distribution Center
+<br/>1920 FARRIOR AVE SE
+<br/>WILSON, NC, US, 278939571 </td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="font-size: 12px; font-weight: 700; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none; line-height: 22px; letter-spacing: 1px;" align="right" width="290" valign="top">TO</td>
+<td style="line-height:0px; font-size:0px;" width="40" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td style="font-size: 12px; font-weight: 300; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none;line-height: 22px;letter-spacing: 1px;" align="left" width="290" valign="top">Chris
+<br/>12345 P FAKE AVE
+<br/>SOMEWHERE, AK, US, 12345 </td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="font-size: 12px; font-weight: 700; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none; line-height: 22px; letter-spacing: 1px;" align="right" width="290" valign="top">REFERENCE</td>
+<td style="line-height:0px; font-size:0px;" width="40" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td style="font-size: 12px; font-weight: 300; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none;line-height: 22px;letter-spacing: 1px;" align="left" width="290" valign="top">LEAVE IF NO RESPONSE</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="font-size: 12px; font-weight: 700; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none; line-height: 22px; letter-spacing: 1px;" align="right" width="290" valign="top">SHIP DATE</td>
+<td style="line-height:0px; font-size:0px;" width="40" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td style="font-size: 12px; font-weight: 300; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none;line-height: 22px;letter-spacing: 1px;" align="left" width="290" valign="top">Tue 6/15/2021 12:00 AM</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="font-size: 12px; font-weight: 700; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none; line-height: 22px; letter-spacing: 1px;" align="right" width="290" valign="top">PACKAGING TYPE</td>
+<td style="line-height:0px; font-size:0px;" width="40" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td style="font-size: 12px; font-weight: 300; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none;line-height: 22px;letter-spacing: 1px;" align="left" width="290" valign="top">Package</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="font-size: 12px; font-weight: 700; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none; line-height: 22px; letter-spacing: 1px;" align="right" width="290" valign="top">ORIGIN</td>
+<td style="line-height:0px; font-size:0px;" width="40" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td style="font-size: 12px; font-weight: 300; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none;line-height: 22px;letter-spacing: 1px;" align="left" width="290" valign="top">WILSON, NC, US, 278939571</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="font-size: 12px; font-weight: 700; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none; line-height: 22px; letter-spacing: 1px;" align="right" width="290" valign="top">DESTINATION</td>
+<td style="line-height:0px; font-size:0px;" width="40" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td style="font-size: 12px; font-weight: 300; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none;line-height: 22px;letter-spacing: 1px;" align="left" width="290" valign="top">SOMEWHERE, AK, US, 12345</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="font-size: 12px; font-weight: 700; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none; line-height: 22px; letter-spacing: 1px;" align="right" width="290" valign="top">NUMBER OF PIECES</td>
+<td style="line-height:0px; font-size:0px;" width="40" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td style="font-size: 12px; font-weight: 300; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none;line-height: 22px;letter-spacing: 1px;" align="left" width="290" valign="top">1</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="font-size: 12px; font-weight: 700; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none; line-height: 22px; letter-spacing: 1px;" align="right" width="290" valign="top">TOTAL SHIPMENT WEIGHT</td>
+<td style="line-height:0px; font-size:0px;" width="40" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td style="font-size: 12px; font-weight: 300; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none;line-height: 22px;letter-spacing: 1px;" align="left" width="290" valign="top">2.60	LB</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="font-size: 12px; font-weight: 700; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none; line-height: 22px; letter-spacing: 1px;" align="right" width="290" valign="top">SERVICE TYPE</td>
+<td style="line-height:0px; font-size:0px;" width="40" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td style="font-size: 12px; font-weight: 300; font-family: Roboto, Arial, Helvetica, sans-serif; color: #333; opacity:100%; text-decoration: none;line-height: 22px;letter-spacing: 1px;" align="left" width="290" valign="top">FedEx SmartPost</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+</td>
+<td style="line-height:0px; font-size:0px;" width="20" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="20" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="100%">
+<tr>
+<td style="line-height:0px; font-size:0px;" class="mobile" height="15" width="600px" align="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="640">
+<tr>
+<td style="line-height:0px; font-size:0px;" align="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="15" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table style="background-color: #fafafa;" bgcolor="#fafafa" border="0" cellspacing="0" cellpadding="0" align="center" class="mobile" width="600">
+<tr>
+<td class="mobile" width="100%" align="left" valign="top">
+<table class="mobile" border="0" cellspacing="0" cellpadding="0" width="600">
+<tr>
+<th class="mobile" align="left" valign="top" width="300">
+<table class="mobile" border="0" cellspacing="0" cellpadding="0" width="300" valign="top">
+<tr>
+<td align="right" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" class="mobilebanner" alt="FedEx" height="333" width="300" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/fdm_promotional_banner2.jpg"/>
+</td>
+</tr>
+</table>
+</th>
+<th width="300" class="mobile" align="left" valign="top">
+<table border="0" cellspacing="0" cellpadding="0" width="300" class="mobile">
+<tr>
+<td style="line-height:0px; font-size:0px;" width="20" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td align="left" valign="top" class="mobile" width="260">
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="260">
+<tr>
+<td style="line-height:0px; font-size:0px;" height="20" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="20" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td class="mobilefullcentered" style="font-family: Roboto, Arial, Helvetica, sans-serif; font-size: 27px; line-height: 115%; font-weight: 300; color: #333;" align="left" valign="top">Priority Earth: our most important delivery yet</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="20" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="20" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td class="mobilefullcentered" style="font-family: Roboto, Arial, Helvetica, sans-serif; font-size: 16px; color: #333333;line-height: 24px; font-weight: 300; color: #333;" align="left" valign="top">We’re working toward delivering a more sustainable future with a goal of carbon neutral operations by 2040. Priority Earth is our initiative to get there. And it’s our most important delivery yet because it’s to the address we all share.</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="15" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td class="mobile mobilecentered" align="center" valign="top">
+<table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;" width="165">
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="15" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="-webkit-border-radius: 25px; border-radius: 25px; border: 2px solid #007AB7; text-align:center;" height="50" width="165" valign="middle">
+<a style="font-size: 14px; font-family: Roboto, Arial, Helvetica, sans-serif; color: #007AB7; text-decoration: none; width: 165px; height: 50px; display: inline-block; line-height: 50px; text-align:center;" target="_blank"  href="http://click.message.fedex.com/?qs=0c235fe1fcc81a101cc904f58a0a248e12931f6de4588a509e799185b86e8c757ff524de009800d9397c6c8fb3c5398d0ab3c44c54b04cba">
+<strong style="color:#007AB7; font-weight:bold;">LEARN MORE</strong>
+</a>
+</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="15" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="15" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+<td style="line-height:0px; font-size:0px;" width="20" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="20" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+</th>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="640">
+<tr>
+<td style="line-height:0px; font-size:0px;" align="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="15" width="1" border="0" class="mobile-horiz-margin" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="100%">
+<tr>
+<td style="line-height:0px; font-size:0px;" class="mobile" height="15" width="600" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" width="640" align="center">
+<tr>
+<td style="line-height:0px; font-size:0px;" width="20" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+<td align="center" valign="top">
+<table border="0" cellspacing="0" cellpadding="0" width="100%">
+<tr>
+<td style="line-height:0px; font-size:0px;" height="30" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="30" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table style="border-top:1px solid #DDD;" border="0" cellspacing="0" cellpadding="0" class="mobile" width="600" align="left">
+<tr>
+<td style="line-height:0px; font-size:0px;" height="10" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="10" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td align="left" valign="top">
+<table valign="middle" align="left" border="0" cellspacing="0" cellpadding="0" class="mobile" width="85">
+<tr>
+<td style="line-height:0px; font-size:0px;" height="9" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="9" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="font-weight: bold; font-size: 10px; font-family: Roboto, Arial, Helvetica, sans-serif; color: #4D148C; text-transform: uppercase;" align="left" valign="top">FOLLOW FEDEX</td>
+</tr>
+<tr>
+<td style="line-height:0px; font-size:0px;" height="16" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table valign="top" align="left" border="0" cellspacing="0" cellpadding="0" class="hideonmobile" width="15">
+<tr>
+<td style="line-height:0px; font-size:0px;" width="15" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+<table valign="middle" align="left" border="0" cellspacing="0" cellpadding="0" class="mobile" width="300">
+<tr>
+<td align="center" width="33" valign="top">
+<a target="_blank" href="http://click.message.fedex.com/?qs=c432c8a4edc831396f965587525681ebd265ce541aa15b6c6d4f8e7571410c83e87633f245407e5a575c57ed3d39842925b55c2c349e92d1" >
+<img style="display:inline-block;" alt="Facebook" border="0" height="30" width="30" src="https://www.fedex.com/content/dam/fedex-com/ens/facebook-circle.png"/>
+</a>
+</td>
+<td align="center" width="33" valign="top">
+<a target="_blank" href="http://click.message.fedex.com/?qs=18d142b97dcab960e991ee6bb2058ffd32a567e94af0053a0c088e37dd34a3a3ce1b36725ce1914c25cffd17604ae024903de414acd5f7e5" >
+<img style="display:inline-block;" alt="Twitter" border="0" height="30" width="30" src="https://www.fedex.com/content/dam/fedex-com/ens/twitter-circle.png"/>
+</a>
+</td>
+<td align="center" width="33" valign="top">
+<a target="_blank" href="http://click.message.fedex.com/?qs=cca94df5daddc6faa9bbdcb177f3d0e9ee7c76defcc6d41c744bdadfbaadbe8cf2654d0cfd5e0c43dee0af5dda7b28a5886c4a56b12e7df1" >
+<img style="display:inline-block;" alt="Instagram" border="0" height="30" width="30" src="https://www.fedex.com/content/dam/fedex-com/ens/instagram-circle.png"/>
+</a>
+</td>
+<td align="center" width="33" valign="top">
+<a target="_blank" href="http://click.message.fedex.com/?qs=33ff1ccc5354251dce7864d6e0ce3c5ea15455f25b510475a918acb35265d8e1bae812be8b9308b8d532fdd88f5f25c9a7a1199c1b460d32" >
+<img style="display:inline-block;" alt="LinkedIn" border="0" height="30" width="30" src="https://www.fedex.com/content/dam/fedex-com/ens/linkedin-circle.png"/>
+</a>
+</td>
+<td align="center" width="33" valign="top">
+<a target="_blank" href="http://click.message.fedex.com/?qs=03c10f7fd31db88a29d4a44bdaa33fe754d4d26dc9f991189429d45e074d9ae5a0c8e11eaa060afd131dcc56a59a0f027d605febbaff2256" >
+<img style="display:inline-block;" alt="Pinterest" border="0" height="30" width="30" src="https://www.fedex.com/content/dam/fedex-com/ens/pinterest-circle.png"/>
+</a>
+</td>
+<td align="center" width="33" valign="top">
+<a target="_blank" href="http://click.message.fedex.com/?qs=d6d556acf8d6e578070f6f78a66fedb5d8ee63f67f29cf4da9dfe7c6d847b12b052fb133af0faf310185cebb7006f6ba4525f80a61a6f6a5" >
+<img style="display:inline-block;" alt="YouTube" border="0" height="30" width="30" src="https://www.fedex.com/content/dam/fedex-com/ens/youtube-circle.png"/>
+</a>
+</td>
+<td align="center" width="33" valign="top">
+<a target="_blank" href="http://click.message.fedex.com/?qs=598e6e11f3c8a39c49f0135de8c118edacf79e163bb74bff86ab711ce580297897552931bffcf37f2825a200416b1e6655d3149718973b8e" >
+<img style="display:inline-block;" alt="Google Plus" border="0" height="30" width="30" src="https://www.fedex.com/content/dam/fedex-com/ens/googleplus-circle.png"/>
+</a>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<table border="0" cellspacing="0" cellpadding="0" class="mobile" align="left" width="600">
+<tr>
+<td style="line-height:0px; font-size:0px;" height="25" align="left" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="25" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+<tr>
+<td style="font-family: Roboto, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 22px; font-weight: 300; color: #333;" align="left" valign="top">
+<img border="0" style="display:inline-block" alt="email" height="11" width="15" src="https://www.fedex.com/content/dam/fedex-com/ens/envelope_icon.jpg"/>
+						&nbsp;
+						
+						Please do not respond to this message. This email was sent from an unattended mailbox. This report was generated at approximately 6:53 AM CDT 06/25/2021.<br/>
+<br/>All weights are estimated.
+<br/>
+<br/>To track the latest status of your shipment, click on the tracking number above.
+<br/>
+<br/>Standard transit is the date and time the package is scheduled to be delivered by, based on the selected service, destination and ship date. Limitations and exceptions may apply. Please see the FedEx Service Guide for terms and conditions of service, including the FedEx Money-Back Guarantee, or contact your FedEx Customer Support representative.
+<br/>
+<br/>&copy; 2021 Federal Express Corporation. The content of this message is protected by copyright and trademark laws under U.S. and international law. Review our <a xmlns="" target="_blank" style="color: #007AB7; " href="http://click.message.fedex.com/?qs=0d5da337164b680f5ad4ba3759ae33cd7d47211324c00e5c5d0471dc42af7c4ac83e3d7af765afd2d7afbc8ad4ecacf7d84d4018dcbd747f">privacy policy</a>. Find information on <a href="http://click.message.fedex.com/?qs=ad6e272d3e386b3de667c6d0de40585b51773a59bcf207e99e783326dbe0bda4ea500d5d64af82f43e4c070fba13d415025c2eb7b370a8c3">fraud and security</a>. All rights reserved.
+<br xmlns="http://www.w3.org/1999/xhtml"/>
+<br/>Thank you for your business.
+<br/>
+<br/>You can <a href="http://click.message.fedex.com/?qs=4ad339a9b2381175300042c6f6e472c8c4e6422ef724af1b809e40d83cc4ad3fc5bd21ef4aff0ed5abc66ad5238c963104e449166609df7b" target="_blank">unsubscribe</a> or <a href="http://click.message.fedex.com/?qs=4ad339a9b2381175300042c6f6e472c8c4e6422ef724af1b809e40d83cc4ad3fc5bd21ef4aff0ed5abc66ad5238c963104e449166609df7b" target="_blank">update</a> your email profile at any time.</td>
+</tr>
+</table>
+</td>
+<td style="line-height:0px; font-size:0px;" width="20" valign="top">
+<img style="line-height:0px; font-size:0px; display:block;" height="1" width="1" border="0" src="https://www.fedex.com/content/dam/fedex-com/ens/spacer.gif"/>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>
+
+------=_Part_2874884_827415395.1624622008293--

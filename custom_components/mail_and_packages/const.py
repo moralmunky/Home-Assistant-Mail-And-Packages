@@ -140,7 +140,7 @@ SENSOR_DATA = {
         ],
     },
     "fedex_packages": {},
-    "fedex_tracking": {"pattern": ["\\d{12,14}"]},
+    "fedex_tracking": {"pattern": ["\\d{12,20}"]},
     "capost_delivered": {
         "email": ["donotreply@canadapost.postescanada.ca"],
         "subject": [

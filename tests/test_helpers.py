@@ -1009,3 +1009,11 @@ async def test_hash_file():
     """Test file hashing function."""
     result = hash_file("tests/test_emails/amazon_delivered.eml")
     assert result == "7f9d94e97bb4fc870d2d2b3aeae0c428ebed31dc"
+
+
+async def test_fedex_out_for_delivery(hass, mock_imap_fedex_out_for_delivery):
+    result = get_count(
+        mock_imap_fedex_out_for_delivery, "fedex_delivering", True, "./", hass
+    )
+    assert result["count"] == 1
+    assert result["tracking"] == ["61290912345678912345"]
