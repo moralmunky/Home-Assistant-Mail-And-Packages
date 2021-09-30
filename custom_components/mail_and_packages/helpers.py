@@ -836,8 +836,7 @@ def get_tracking(
 
                 # Search subject for a tracking number
                 email_subject = msg["subject"]
-                found = pattern.findall(email_subject)
-                if len(found) > 0:
+                if found := pattern.findall(email_subject):
                     _LOGGER.debug(
                         "Found tracking number in email subject: (%s)",
                         found[0],
@@ -854,8 +853,7 @@ def get_tracking(
                         continue
                     email_msg = part.get_payload(decode=True)
                     email_msg = email_msg.decode("utf-8", "ignore")
-                    found = pattern.findall(email_msg)
-                    if len(found) > 0:
+                    if found := pattern.findall(email_msg):
                         # DHL is special
                         if " " in the_format:
                             found[0] = found[0].split(" ")[1]
@@ -897,8 +895,7 @@ def find_text(sdata: Any, account: Type[imaplib.IMAP4_SSL], search: str) -> int:
                     email_msg = part.get_payload(decode=True)
                     email_msg = email_msg.decode("utf-8", "ignore")
                     pattern = re.compile(r"{}".format(search))
-                    found = pattern.findall(email_msg)
-                    if len(found) > 0:
+                    if found := pattern.findall(email_msg):
                         _LOGGER.debug(
                             "Found (%s) in email %s times.", search, str(len(found))
                         )
@@ -1170,10 +1167,11 @@ def get_items(
                             email_subject = decode_header(msg["subject"])[0][0]
                         _LOGGER.debug("Amazon Subject: %s", str(email_subject))
                         pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
-                        found = pattern.findall(email_subject)
 
                         # Don't add the same order number twice
-                        if len(found) > 0 and found[0] not in order_number:
+                        if (found := pattern.findall(email_subject))[
+                            0
+                        ] not in order_number:
                             order_number.append(found[0])
 
                         try:
