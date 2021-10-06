@@ -225,14 +225,14 @@ SENSOR_TYPES = {
         "package(s)",
         "mdi:package-variant-closed",
     ],
-    "amazon_packages": ["Mail Amazon Packages", "package(s)", "mdi:amazon"],
+    "amazon_packages": ["Mail Amazon Packages", "package(s)", "mdi:package"],
     "amazon_delivered": [
         "Mail Amazon Packages Delivered",
         "package(s)",
         "mdi:package-variant-closed",
     ],
     "amazon_exception": ["Mail Amazon Exception", "package(s)", "mdi:archive-alert"],
-    "amazon_hub": ["Mail Amazon Hub Packages", "package(s)", "mdi:amazon"],
+    "amazon_hub": ["Mail Amazon Hub Packages", "package(s)", "mdi:package"],
     "capost_delivered": [
         "Mail Canada Post Delivered",
         "package(s)",
