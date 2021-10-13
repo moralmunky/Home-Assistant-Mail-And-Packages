@@ -97,6 +97,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Raise ConfEntryNotReady if coordinator didn't update
     if not coordinator.last_update_success:
+        _LOGGER.error("Error updating sensor data: %s", coordinator.last_exception)
         raise ConfigEntryNotReady
 
     hass.data[DOMAIN][config_entry.entry_id] = {
