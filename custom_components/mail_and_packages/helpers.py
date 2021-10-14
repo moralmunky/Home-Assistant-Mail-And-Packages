@@ -836,7 +836,7 @@ def get_tracking(
 
                 # Search subject for a tracking number
                 email_subject = msg["subject"]
-                if found := pattern.findall(email_subject):
+                if (found := pattern.findall(email_subject)) and len(found) > 0:
                     _LOGGER.debug(
                         "Found tracking number in email subject: (%s)",
                         found[0],
@@ -853,7 +853,7 @@ def get_tracking(
                         continue
                     email_msg = part.get_payload(decode=True)
                     email_msg = email_msg.decode("utf-8", "ignore")
-                    if found := pattern.findall(email_msg):
+                    if (found := pattern.findall(email_msg)) and len(found) > 0:
                         # DHL is special
                         if " " in the_format:
                             found[0] = found[0].split(" ")[1]
@@ -895,7 +895,7 @@ def find_text(sdata: Any, account: Type[imaplib.IMAP4_SSL], search: str) -> int:
                     email_msg = part.get_payload(decode=True)
                     email_msg = email_msg.decode("utf-8", "ignore")
                     pattern = re.compile(r"{}".format(search))
-                    if found := pattern.findall(email_msg):
+                    if (found := pattern.findall(email_msg)) and len(found) > 0:
                         _LOGGER.debug(
                             "Found (%s) in email %s times.", search, str(len(found))
                         )
@@ -1169,9 +1169,11 @@ def get_items(
                         pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
 
                         # Don't add the same order number twice
-                        if (found := pattern.findall(email_subject))[
-                            0
-                        ] not in order_number:
+                        if (
+                            (found := pattern.findall(email_subject))
+                            and len(found) > 0
+                            and found[0] not in order_number
+                        ):
                             order_number.append(found[0])
 
                         try:
