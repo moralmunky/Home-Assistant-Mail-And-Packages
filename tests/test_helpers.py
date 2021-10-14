@@ -831,6 +831,12 @@ async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, ca
         assert "Problem decoding email message:" in caplog.text
 
 
+async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
+    with patch("quopri.decodestring", side_effect=ValueError):
+        get_items(mock_imap_amazon_shipped, "order")
+        assert "Problem decoding email message:" in caplog.text
+
+
 async def test_generate_mp4(
     mock_osremove, mock_os_path_join, mock_subprocess_call, mock_os_path_split
 ):

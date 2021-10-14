@@ -246,6 +246,7 @@ def image_file_name(
 
     # Insert place holder image
     _LOGGER.debug("Copying %s to %s", mail_none, os.path.join(path, image_name))
+
     copyfile(mail_none, os.path.join(path, image_name))
 
     return image_name
@@ -382,6 +383,7 @@ def login(
 
 
 def selectfolder(account: Type[imaplib.IMAP4_SSL], folder: str) -> bool:
+
     """Select folder inside the mailbox"""
     try:
         account.list()
