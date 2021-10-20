@@ -7,6 +7,7 @@ from async_timeout import timeout
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -29,7 +30,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass, config_entry):
-    """ Disallow configuration via YAML """
+    """Disallow configuration via YAML"""
 
     return True
 
@@ -93,6 +94,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
+
+    # Raise ConfEntryNotReady if coordinator didn't update
+    if not coordinator.last_update_success:
+        _LOGGER.error("Error updating sensor data: %s", coordinator.last_exception)
+        raise ConfigEntryNotReady
 
     hass.data[DOMAIN][config_entry.entry_id] = {
         COORDINATOR: coordinator,
@@ -214,7 +220,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         super().__init__(hass, _LOGGER, name=self.name, update_interval=self.interval)
 
     async def _async_update_data(self):
-        """Fetch data """
+        """Fetch data"""
         async with timeout(self.timeout):
             try:
                 data = await self.hass.async_add_executor_job(

@@ -31,6 +31,8 @@ ATTR_USPS_MAIL = "usps_mail"
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"
 CONF_CAMERA_NAME = "camera_name"
+CONF_CUSTOM_IMG = "custom_img"
+CONF_CUSTOM_IMG_FILE = "custom_img_file"
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
 CONF_DURATION = "gif_duration"
@@ -53,6 +55,8 @@ DEFAULT_SCAN_INTERVAL = 5
 DEFAULT_GIF_FILE_NAME = "mail_today.gif"
 DEFAULT_AMAZON_FWDS = '""'
 DEFAULT_ALLOW_EXTERNAL = False
+DEFAULT_CUSTOM_IMG = False
+DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
 
 # Amazon
 AMAZON_DOMAINS = "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de,amazon.it"
@@ -69,12 +73,13 @@ AMAZON_HUB = "amazon_hub"
 AMAZON_HUB_CODE = "amazon_hub_code"
 AMAZON_HUB_EMAIL = "thehub@amazon.com"
 AMAZON_HUB_SUBJECT = "(You have a package to pick up)(.*)- (\\d{6})"
-AMAZON_TIME_PATTERN = "will arrive:,estimated delivery date is:,guaranteed delivery date is:,Arriving:,Arriver:"
+AMAZON_TIME_PATTERN = "will arrive:,estimated delivery date is:,guaranteed delivery date is:,Arriving:,Arriverà:"
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
 AMAZON_EXCEPTION = "amazon_exception"
 AMAZON_EXCEPTION_ORDER = "amazon_exception_order"
 AMAZON_PATTERN = "[0-9]{3}-[0-9]{7}-[0-9]{7}"
+AMAZON_LANGS = ["it_IT", "it_IT.UTF-8", ""]
 
 # Sensor Data
 SENSOR_DATA = {
@@ -84,7 +89,7 @@ SENSOR_DATA = {
     },
     "usps_delivering": {
         "email": ["auto-reply@usps.com"],
-        "subject": ["Expected Delivery on"],
+        "subject": ["Expected Delivery on", "Out for Delivery"],
         "body": ["Your item is out for delivery"],
     },
     "usps_exception": {
@@ -92,7 +97,7 @@ SENSOR_DATA = {
         "subject": ["Delivery Exception"],
     },
     "usps_packages": {},
-    "usps_tracking": {"pattern": ["9[2345]\\d{15,22}"]},
+    "usps_tracking": {"pattern": ["9[2345]\\d{15,26}"]},
     "usps_mail": {
         "email": [
             "USPSInformedDelivery@usps.gov",
@@ -119,11 +124,7 @@ SENSOR_DATA = {
         "subject": ["UPS Update: New Scheduled Delivery Date"],
     },
     "ups_packages": {},
-    "ups_tracking": {
-        "pattern": [
-            "(1Z ?[0-9A-Z]{3} ?[0-9A-Z]{3} ?[0-9A-Z]{2} ?[0-9A-Z]{4} ?[0-9A-Z]{3} ?[0-9A-Z]|[\\dT]\\d\\d\\d ?\\d\\d\\d\\d ?\\d\\d\\d)$"
-        ]
-    },
+    "ups_tracking": {"pattern": ["1Z?[0-9A-Z]{16}"]},
     "fedex_delivered": {
         "email": ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"],
         "subject": [
@@ -139,7 +140,7 @@ SENSOR_DATA = {
         ],
     },
     "fedex_packages": {},
-    "fedex_tracking": {"pattern": ["\\d{12,14}"]},
+    "fedex_tracking": {"pattern": ["\\d{12,20}"]},
     "capost_delivered": {
         "email": ["donotreply@canadapost.postescanada.ca"],
         "subject": [
@@ -224,14 +225,14 @@ SENSOR_TYPES = {
         "package(s)",
         "mdi:package-variant-closed",
     ],
-    "amazon_packages": ["Mail Amazon Packages", "package(s)", "mdi:amazon"],
+    "amazon_packages": ["Mail Amazon Packages", "package(s)", "mdi:package"],
     "amazon_delivered": [
         "Mail Amazon Packages Delivered",
         "package(s)",
         "mdi:package-variant-closed",
     ],
     "amazon_exception": ["Mail Amazon Exception", "package(s)", "mdi:archive-alert"],
-    "amazon_hub": ["Mail Amazon Hub Packages", "package(s)", "mdi:amazon"],
+    "amazon_hub": ["Mail Amazon Hub Packages", "package(s)", "mdi:package"],
     "capost_delivered": [
         "Mail Canada Post Delivered",
         "package(s)",

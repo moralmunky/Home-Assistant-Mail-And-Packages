@@ -2,11 +2,27 @@ name-template: "$RESOLVED_VERSION"
 tag-template: "$RESOLVED_VERSION"
 change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
 sort-direction: ascending
+autolabeler:
+  - label: "chore"
+    title:
+      - "/chore:/i"
+  - label: "bugfix"
+    title:
+      - "/fix:/i"
+  - label: "feature"
+    title:
+      - "/feat:/i"
+  - label: "enhancement"
+    title:
+      - "/refactor:/i"
+  - label: "code-quality"
+    title:
+      - "/tests:/i"
 categories:
   - title: ":boom: Breaking Change :boom:"
     labels:
       - "breaking-change"
-  - title: ":zap: Enhancments :zap:"
+  - title: ":zap: Enhancements :zap:"
     labels:
       - "enhancement"
   - title: ":sparkles: New Features :sparkles:"
@@ -20,6 +36,9 @@ categories:
   - title: ":wrench: Maintenance :wrench:"
     labels:
       - "chore"
+  - title: ":mortar_board: Code Quality :mortar_board:"
+    labels:
+      - "code-quality"
 template: |
   [![Downloads for this release](https://img.shields.io/github/downloads/moralmunky/Home-Assistant-Mail-And-Packages/$RESOLVED_VERSION/total.svg)](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/releases/$RESOLVED_VERSION)
 

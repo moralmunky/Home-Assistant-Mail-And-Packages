@@ -7,6 +7,7 @@ Configuration code contribution from @firstof9 https://github.com/firstof9/
 import logging
 from typing import Optional
 
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -31,17 +32,19 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities(sensors, False)
 
 
-class PackagesSensor(CoordinatorEntity):
-    """ Represntation of a sensor """
+class PackagesSensor(CoordinatorEntity, SensorEntity):
+    """Representation of a sensor."""
 
     def __init__(self, config, sensor_type, coordinator, unique_id):
-        """ Initialize the sensor """
+        """Initialize the sensor"""
         super().__init__(coordinator)
         self.coordinator = coordinator
         self._config = config
         self._name = const.SENSOR_TYPES[sensor_type][const.SENSOR_NAME]
         self._icon = const.SENSOR_TYPES[sensor_type][const.SENSOR_ICON]
-        self._unit_of_measurement = const.SENSOR_TYPES[sensor_type][const.SENSOR_UNIT]
+        self._attr_native_unit_of_measurement = const.SENSOR_TYPES[sensor_type][
+            const.SENSOR_UNIT
+        ]
         self.type = sensor_type
         self._host = config.data[CONF_HOST]
         self._unique_id = unique_id
@@ -58,7 +61,7 @@ class PackagesSensor(CoordinatorEntity):
         return self._name
 
     @property
-    def state(self) -> Optional[int]:
+    def native_value(self) -> Optional[int]:
         """Return the state of the sensor."""
         value = None
 
@@ -67,11 +70,6 @@ class PackagesSensor(CoordinatorEntity):
         else:
             value = None
         return value
-
-    @property
-    def unit_of_measurement(self) -> Optional[str]:
-        """Return the unit of measurement of this entity, if any."""
-        return self._unit_of_measurement
 
     @property
     def icon(self) -> str:
@@ -96,6 +94,10 @@ class PackagesSensor(CoordinatorEntity):
         tracking = f"{self.type.split('_')[0]}_tracking"
         data = self.coordinator.data
 
+        # Catch no data entries
+        if self.data is None:
+            return attr
+
         if "Amazon" in self._name:
             if self._name == "amazon_exception":
                 attr[const.ATTR_ORDER] = data[const.AMAZON_EXCEPTION_ORDER]
@@ -108,18 +110,20 @@ class PackagesSensor(CoordinatorEntity):
         return attr
 
 
-class ImagePathSensors(CoordinatorEntity):
-    """ Represntation of a sensor """
+class ImagePathSensors(CoordinatorEntity, SensorEntity):
+    """Representation of a sensor."""
 
     def __init__(self, hass, config, sensor_type, coordinator, unique_id):
-        """ Initialize the sensor """
+        """Initialize the sensor"""
         super().__init__(coordinator)
         self.hass = hass
         self.coordinator = coordinator
         self._config = config
         self._name = const.IMAGE_SENSORS[sensor_type][const.SENSOR_NAME]
         self._icon = const.IMAGE_SENSORS[sensor_type][const.SENSOR_ICON]
-        self._unit_of_measurement = const.IMAGE_SENSORS[sensor_type][const.SENSOR_UNIT]
+        self._attr_native_unit_of_measurement = const.IMAGE_SENSORS[sensor_type][
+            const.SENSOR_UNIT
+        ]
         self.type = sensor_type
         self._host = config.data[CONF_HOST]
         self._unique_id = unique_id
@@ -135,7 +139,7 @@ class ImagePathSensors(CoordinatorEntity):
         return self._name
 
     @property
-    def state(self) -> Optional[str]:
+    def native_value(self) -> Optional[str]:
         """Return the state of the sensor."""
         image = self.coordinator.data[const.ATTR_IMAGE_NAME]
         the_path = None
@@ -162,11 +166,6 @@ class ImagePathSensors(CoordinatorEntity):
                 url = self.hass.config.external_url
                 the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
         return the_path
-
-    @property
-    def unit_of_measurement(self) -> Optional[str]:
-        """Return the unit of measurement of this entity, if any."""
-        return self._unit_of_measurement
 
     @property
     def icon(self) -> str:

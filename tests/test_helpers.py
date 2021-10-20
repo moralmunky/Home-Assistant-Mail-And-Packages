@@ -23,6 +23,7 @@ from custom_components.mail_and_packages.helpers import (
     get_formatted_date,
     get_items,
     get_mails,
+    hash_file,
     image_file_name,
     login,
     process_emails,
@@ -35,6 +36,7 @@ from tests.const import (
     FAKE_CONFIG_DATA_BAD,
     FAKE_CONFIG_DATA_CORRECTED,
     FAKE_CONFIG_DATA_CORRECTED_EXTERNAL,
+    FAKE_CONFIG_DATA_CUSTOM_IMG,
     FAKE_CONFIG_DATA_EXTERNAL,
     FAKE_CONFIG_DATA_NO_RND,
 )
@@ -102,6 +104,7 @@ async def test_process_emails(
     config = entry.data.copy()
     assert config == FAKE_CONFIG_DATA_CORRECTED
     state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
+    assert state is not None
     assert (
         "/testing_config/custom_components/mail_and_packages/images/testfile.gif"
         in state.state
@@ -146,6 +149,7 @@ async def test_process_emails_external(
     config = entry.data.copy()
     assert config == FAKE_CONFIG_DATA_CORRECTED_EXTERNAL
     state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
+    assert state is not None
     assert (
         "/testing_config/custom_components/mail_and_packages/images/testfile.gif"
         in state.state
@@ -233,7 +237,7 @@ async def test_process_emails_copytree_error(
     assert "Problem copying files from" in caplog.text
 
 
-async def test_process_emails_bad(hass, mock_imap_no_email):
+async def test_process_emails_bad(hass, mock_imap_no_email, mock_update):
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
@@ -354,6 +358,36 @@ async def test_process_old_image(
     assert ".gif" in result["image_name"]
 
 
+async def test_process_folder_error(
+    hass,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copyfile,
+    mock_copytree,
+    mock_hash_file,
+    mock_getctime_yesterday,
+):
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    config = entry.data
+    with patch(
+        "custom_components.mail_and_packages.helpers.selectfolder", return_value=False
+    ):
+        result = process_emails(hass, config)
+        assert result == {}
+
+
 async def test_image_filename_oserr(
     hass,
     mock_imap_no_email,
@@ -367,7 +401,7 @@ async def test_image_filename_oserr(
     mock_getctime_today,
     caplog,
 ):
-    """Test settting up entities. """
+    """Test settting up entities."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
@@ -395,7 +429,7 @@ async def test_image_getctime_oserr(
     mock_getctime_err,
     caplog,
 ):
-    """Test settting up entities. """
+    """Test settting up entities."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
@@ -451,6 +485,22 @@ async def test_get_mails_copyfile_error(
         mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
     )
     assert "File not found" in caplog.text
+
+
+async def test_get_mails_email_search_error(
+    mock_imap_usps_informed_digest_no_mail,
+    mock_copyoverlays,
+    mock_copyfile_exception,
+    caplog,
+):
+    with patch(
+        "custom_components.mail_and_packages.helpers.email_search",
+        return_value=("BAD", []),
+    ):
+        result = get_mails(
+            mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
+        )
+        assert result == 0
 
 
 async def test_informed_delivery_emails(
@@ -643,8 +693,18 @@ async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):
     result = get_count(
         mock_imap_ups_out_for_delivery, "ups_delivering", True, "./", hass
     )
-    assert result["count"] == 2
-    # assert result["tracking"] == ["1Z2345YY0678901234"]
+    assert result["count"] == 1
+    assert result["tracking"] == ["1Z2345YY0678901234"]
+
+
+async def test_ups_out_for_delivery_html_only(
+    hass, mock_imap_ups_out_for_delivery_html
+):
+    result = get_count(
+        mock_imap_ups_out_for_delivery_html, "ups_delivering", True, "./", hass
+    )
+    assert result["count"] == 1
+    assert result["tracking"] == ["1Z0Y12345678031234"]
 
 
 async def test_usps_out_for_delivery(hass, mock_imap_usps_out_for_delivery):
@@ -652,7 +712,7 @@ async def test_usps_out_for_delivery(hass, mock_imap_usps_out_for_delivery):
         mock_imap_usps_out_for_delivery, "usps_delivering", True, "./", hass
     )
     assert result["count"] == 1
-    assert result["tracking"] == ["921234565085773077766900"]
+    assert result["tracking"] == ["92123456508577307776690000"]
 
 
 async def test_dhl_out_for_delivery(hass, mock_imap_dhl_out_for_delivery):
@@ -679,38 +739,12 @@ async def test_royal_out_for_delivery(hass, mock_imap_royal_out_for_delivery):
     assert result["tracking"] == ["MA038501234GB"]
 
 
-async def test_amazon_fwds(
-    hass,
-    mock_imap_no_email,
-    mock_osremove,
-    mock_osmakedir,
-    mock_listdir,
-    mock_update_time,
-    mock_hash_file,
-    mock_getctime_today,
-    caplog,
-):
-    """Test settting up entities. """
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    assert "Amazon email adding fakeuser@fake.email to list" in caplog.text
-    assert "Amazon email adding fakeuser2@fake.email to list" in caplog.text
-
-
 async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):
     with patch("datetime.date") as mock_date:
         mock_date.today.return_value = date(2020, 9, 11)
 
         result = get_items(mock_imap_amazon_shipped, "count")
-        assert result == 6
+        assert result == 1
 
 
 async def test_amazon_shipped_order(hass, mock_imap_amazon_shipped):
@@ -740,6 +774,13 @@ async def test_amazon_shipped_order_it(hass, mock_imap_amazon_shipped_it):
     assert result == ["405-5236882-9395563"]
 
 
+async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
+    with patch("datetime.date") as mock_date:
+        mock_date.today.return_value = date(2021, 12, 1)
+        result = get_items(mock_imap_amazon_shipped_it, "count")
+        assert result == 1
+
+
 async def test_amazon_search(hass, mock_imap_no_email):
     result = amazon_search(mock_imap_no_email, "test/path", hass, "testfilename.jpg")
     assert result == 0
@@ -759,6 +800,7 @@ async def test_amazon_search_delivered(
         mock_imap_amazon_delivered, "test/path", hass, "testfilename.jpg"
     )
     assert result == 12
+    assert mock_download_img.called
 
 
 async def test_amazon_search_delivered_it(
@@ -774,6 +816,19 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
     result = amazon_hub(mock_imap_amazon_the_hub)
     assert result["count"] == 1
     assert result["code"] == ["123456"]
+
+    with patch(
+        "custom_components.mail_and_packages.helpers.email_search",
+        return_value=("BAD", []),
+    ):
+        result = amazon_hub(mock_imap_amazon_the_hub)
+        assert result == {}
+
+
+async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
+    with patch("quopri.decodestring", side_effect=ValueError):
+        get_items(mock_imap_amazon_shipped, "order")
+        assert "Problem decoding email message:" in caplog.text
 
 
 async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
@@ -816,12 +871,12 @@ async def test_login_error(mock_imap_login_error, caplog):
 
 
 async def test_selectfolder_list_error(mock_imap_list_error, caplog):
-    selectfolder(mock_imap_list_error, "somefolder")
+    assert not selectfolder(mock_imap_list_error, "somefolder")
     assert "Error listing folders:" in caplog.text
 
 
 async def test_selectfolder_select_error(mock_imap_select_error, caplog):
-    selectfolder(mock_imap_select_error, "somefolder")
+    assert not selectfolder(mock_imap_select_error, "somefolder")
     assert "Error selecting folder:" in caplog.text
 
 
@@ -904,7 +959,7 @@ async def test_image_file_name_path_error(hass, caplog):
 
 
 async def test_image_file_name_amazon(
-    hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, caplog
+    hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, mock_copyfile, caplog
 ):
     config = FAKE_CONFIG_DATA_CORRECTED
 
@@ -916,7 +971,7 @@ async def test_image_file_name_amazon(
 
 
 async def test_image_file_name(
-    hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, caplog
+    hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, mock_copyfile, caplog
 ):
     config = FAKE_CONFIG_DATA_CORRECTED
 
@@ -926,6 +981,14 @@ async def test_image_file_name(
         result = image_file_name(hass, config)
         assert ".gif" in result
         assert not result == "mail_none.gif"
+
+        # Test custom image settings
+        config = FAKE_CONFIG_DATA_CUSTOM_IMG
+        result = image_file_name(hass, config)
+        assert ".gif" in result
+        assert not result == "mail_none.gif"
+        assert len(mock_copyfile.mock_calls) == 2
+        assert "Copying images/test.gif to" in caplog.text
 
 
 async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
@@ -946,3 +1009,17 @@ async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
         "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'testemail@fakedomain.com']"
         in caplog.text
     )
+
+
+async def test_hash_file():
+    """Test file hashing function."""
+    result = hash_file("tests/test_emails/amazon_delivered.eml")
+    assert result == "7f9d94e97bb4fc870d2d2b3aeae0c428ebed31dc"
+
+
+async def test_fedex_out_for_delivery(hass, mock_imap_fedex_out_for_delivery):
+    result = get_count(
+        mock_imap_fedex_out_for_delivery, "fedex_delivering", True, "./", hass
+    )
+    assert result["count"] == 1
+    assert result["tracking"] == ["61290912345678912345"]

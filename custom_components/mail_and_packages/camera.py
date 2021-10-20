@@ -1,4 +1,6 @@
 """Camera that loads a picture from a local file."""
+from __future__ import annotations
+
 import logging
 import os
 
@@ -14,6 +16,8 @@ from .const import (
     ATTR_IMAGE_PATH,
     CAMERA,
     CAMERA_DATA,
+    CONF_CUSTOM_IMG,
+    CONF_CUSTOM_IMG_FILE,
     COORDINATOR,
     DOMAIN,
     SENSOR_NAME,
@@ -30,7 +34,10 @@ async def async_setup_entry(hass, config, async_add_entities):
 
     coordinator = hass.data[DOMAIN][config.entry_id][COORDINATOR]
     camera = []
-    file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
+    if not config.data.get(CONF_CUSTOM_IMG):
+        file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
+    else:
+        file_path = config.data.get(CONF_CUSTOM_IMG_FILE)
 
     for variable in CAMERA_DATA:
         temp_cam = MailCam(hass, variable, config, coordinator, file_path)
@@ -93,8 +100,15 @@ class MailCam(Camera):
         self._coordinator = coordinator
         self._host = config.data.get(CONF_HOST)
         self._unique_id = config.entry_id
+        self._no_mail = (
+            None
+            if not config.data.get(CONF_CUSTOM_IMG)
+            else config.data.get(CONF_CUSTOM_IMG_FILE)
+        )
 
-    async def async_camera_image(self):
+    async def async_camera_image(
+        self, width: int | None = None, height: int | None = None
+    ) -> bytes | None:
         """Return image response."""
         try:
             with open(self._file_path, "rb") as file:
@@ -117,16 +131,24 @@ class MailCam(Camera):
         """Update the file_path."""
 
         _LOGGER.debug("Camera Update: %s", self._type)
+        _LOGGER.debug("Custom No Mail: %s", self._no_mail)
+
+        if self._coordinator.data is None:
+            _LOGGER.warning("Unable to update camera image, no data.")
+            return
 
         if self._type == "usps_camera":
-            # Update camera image for USPS informed delivery imgages
+            # Update camera image for USPS informed delivery images
             image = self._coordinator.data[ATTR_IMAGE_NAME]
 
             if ATTR_IMAGE_PATH in self._coordinator.data.keys():
                 path = self._coordinator.data[ATTR_IMAGE_PATH]
                 file_path = f"{self.hass.config.path()}/{path}{image}"
             else:
-                file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
+                if self._no_mail is None:
+                    file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
+                else:
+                    file_path = self._no_mail
 
         elif self._type == "amazon_camera":
             # Update camera image for Amazon deliveries
@@ -172,3 +194,8 @@ class MailCam(Camera):
     async def async_update(self):
         """Update camera entity and refresh attributes."""
         self.update_file_path()
+
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return self._coordinator.last_update_success

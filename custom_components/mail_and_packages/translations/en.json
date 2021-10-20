@@ -1,78 +1,100 @@
 {
-    "title": "Mail and Packages",
-    "config": {
-      "abort": {
-        "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed."
-      },
-      "error": {
-        "communication": "Unable to connect or login to the mail server. Please check the log for details.",
-        "invalid_path": "Please store the images in another directory.",
-        "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
-        "amazon_domain": "Invalid forwarding email address."
-      },
-      "step": {
-        "user": {
-          "data": {
-            "host": "Host",
-            "password": "Password",
-            "port": "Port",
-            "username": "Username"
-          },
-          "description": "Please enter the connection information of your mail server.",
-          "title": "Mail and Packages (Step 1 of 2)"
-        },
-        "config_2": {
-          "data": {
-            "folder": "Mail Folder",
-            "resources": "Sensors List",
-            "scan_interval": "Scanning Interval (minutes, minimum 5)",
-            "image_path": "Image Path",
-            "gif_duration": "Image Duration (seconds)",
-            "image_security": "Random Image Filename",
-            "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-            "generate_mp4": "Create mp4 from images",
-            "amazon_fwds": "Amazon fowarded email addresses",
-            "allow_external": "Create image for notification apps"     
-          },
-          "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.",
-          "title": "Mail and Packages (Step 2 of 2)"
-        }
-      }
+  "title": "Mail and Packages",
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed."
     },
-    "options": {
-        "error": {
-            "communication": "Unable to connect or login to the mail server. Please check the log for details.",
-            "invalid_path": "Please store the images in another directory.",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
-            "amazon_domain": "Invalid forwarding email address."      
+    "error": {
+      "communication": "Unable to connect or login to the mail server. Please check the log for details.",
+      "invalid_path": "Please store the images in another directory.",
+      "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
+      "amazon_domain": "Invalid forwarding email address.",
+      "file_not_found": "Image file not found",
+      "scan_too_low": "Scan interval too low (minimum 5)",
+      "timeout_too_low": "IMAP timeout too low (minumim 10)"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "host": "Host",
+          "password": "Password",
+          "port": "Port",
+          "username": "Username"
         },
-        "step": {
-            "init": {
-            "data": {
-                "host": "Host",
-                "password": "Password",
-                "port": "Port",
-                "username": "Username"
-            },
-            "description": "Please enter the connection information of your mail server.",
-            "title": "Mail and Packages (Step 1 of 2)"
+        "description": "Please enter the connection information of your mail server.",
+        "title": "Mail and Packages (Step 1 of 2)"
+      },
+      "config_2": {
+        "data": {
+          "folder": "Mail Folder",
+          "resources": "Sensors List",
+          "scan_interval": "Scanning Interval (minutes, minimum 5)",
+          "image_path": "Image Path",
+          "gif_duration": "Image Duration (seconds)",
+          "image_security": "Random Image Filename",
+          "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+          "generate_mp4": "Create mp4 from images",
+          "amazon_fwds": "Amazon fowarded email addresses",
+          "allow_external": "Create image for notification apps",
+          "custom_img": "Use custom 'no image' image?"    
         },
-        "options_2": {
-            "data": {
-                "folder": "Mail Folder",
-                "resources": "Sensors List",
-                "scan_interval": "Scanning Interval (minutes, minimum 5)",
-                "image_path": "Image Path",
-                "gif_duration": "Image Duration (seconds)",
-                "image_security": "Random Image Filename",
-                "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-                "generate_mp4": "Create mp4 from images",
-                "amazon_fwds": "Amazon fowarded email addresses",
-                "allow_external": "Create image for notification apps"         
-            },
-            "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.",
-            "title": "Mail and Packages (Step 2 of 2)"
-        }
-      }
+        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.",
+        "title": "Mail and Packages (Step 2 of 2)"
+      },
+      "options_3": {
+        "data": {
+          "custom_img_file": "Path to custom image: (ie: images/my_custom_no_mail.jpg)"
+        },
+        "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
+        "title": "Mail and Packages (Step 3 of 3)"        
+      }       
+    }
+  },
+  "options": {
+    "error": {
+      "communication": "Unable to connect or login to the mail server. Please check the log for details.",
+      "invalid_path": "Please store the images in another directory.",
+      "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
+      "amazon_domain": "Invalid forwarding email address.",
+      "file_not_found": "Image file not found",
+      "scan_too_low": "Scan interval too low (minimum 5)",
+      "timeout_too_low": "IMAP timeout too low (minumim 10)"      
+    },
+    "step": {
+      "init": {
+        "data": {
+          "host": "Host",
+          "password": "Password",
+          "port": "Port",
+          "username": "Username"
+        },
+        "description": "Please enter the connection information of your mail server.",
+        "title": "Mail and Packages (Step 1 of 2)"
+      },
+      "options_2": {
+        "data": {
+          "folder": "Mail Folder",
+          "resources": "Sensors List",
+          "scan_interval": "Scanning Interval (minutes, minimum 5)",
+          "image_path": "Image Path",
+          "gif_duration": "Image Duration (seconds)",
+          "image_security": "Random Image Filename",
+          "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+          "generate_mp4": "Create mp4 from images",
+          "amazon_fwds": "Amazon fowarded email addresses",
+          "allow_external": "Create image for notification apps",
+          "custom_img": "Use custom 'no image' image?"      
+        },
+        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.",
+        "title": "Mail and Packages (Step 2 of 2)"
+      },
+      "options_3": {
+        "data": {
+          "custom_img_file": "Path to custom image: (ie: images/my_custom_no_mail.jpg)"
+        },
+        "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
+        "title": "Mail and Packages (Step 3 of 3)"          
+      }      
     }
   }
+}
