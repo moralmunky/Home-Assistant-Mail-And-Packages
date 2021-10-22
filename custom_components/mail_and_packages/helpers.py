@@ -462,6 +462,11 @@ def email_search(
         value = "BAD", err.args[0]
 
     _LOGGER.debug("DEBUG email_search value: %s", value)
+
+    (status, data) = value
+    if data is None:
+        value = status, [b""]
+
     return value
 
 
