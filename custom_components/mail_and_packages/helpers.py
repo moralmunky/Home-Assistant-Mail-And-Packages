@@ -463,6 +463,10 @@ def email_search(
 
     _LOGGER.debug("DEBUG email_search value: %s", value)
 
+    (check, new_value) = value
+    if new_value[0] is None:
+        value = (check, [b""])
+
     return value
 
 
