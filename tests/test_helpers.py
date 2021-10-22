@@ -825,6 +825,13 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
         result = amazon_hub(mock_imap_amazon_the_hub)
         assert result == {}
 
+    with patch(
+        "custom_components.mail_and_packages.helpers.email_search",
+        return_value=("OK", [None]),
+    ):
+        result = amazon_hub(mock_imap_amazon_the_hub)
+        assert result == {}
+
 
 async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
     with patch("quopri.decodestring", side_effect=ValueError):
@@ -1024,3 +1031,19 @@ async def test_fedex_out_for_delivery(hass, mock_imap_fedex_out_for_delivery):
     )
     assert result["count"] == 1
     assert result["tracking"] == ["61290912345678912345"]
+
+
+async def test_get_mails_email_search_none(
+    mock_imap_usps_informed_digest_no_mail,
+    mock_copyoverlays,
+    mock_copyfile_exception,
+    caplog,
+):
+    with patch(
+        "custom_components.mail_and_packages.helpers.email_search",
+        return_value=("OK", [None]),
+    ):
+        result = get_mails(
+            mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
+        )
+        assert result == 0

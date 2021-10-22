@@ -463,10 +463,6 @@ def email_search(
 
     _LOGGER.debug("DEBUG email_search value: %s", value)
 
-    (status, data) = value
-    if data is None:
-        value = status, [b""]
-
     return value
 
 
@@ -511,7 +507,7 @@ def get_mails(
     )
 
     # Bail out on error
-    if server_response != "OK":
+    if server_response != "OK" or data[0] is None:
         return image_count
 
     # Check to see if the path exists, if not make it
@@ -781,7 +777,7 @@ def get_count(
         (server_response, data) = email_search(
             account, const.SENSOR_DATA[sensor_type][const.ATTR_EMAIL], today, subject
         )
-        if server_response == "OK":
+        if server_response == "OK" and data[0] is not None:
             if const.ATTR_BODY in const.SENSOR_DATA[sensor_type].keys():
                 count += find_text(
                     data, account, const.SENSOR_DATA[sensor_type][const.ATTR_BODY][0]
@@ -937,7 +933,7 @@ def amazon_search(
                 account, email_address, today, subject
             )
 
-            if server_response == "OK":
+            if server_response == "OK" and data[0] is not None:
                 count += len(data[0].split())
                 _LOGGER.debug("Amazon delivered email(s) found: %s", count)
                 get_amazon_image(data[0], account, image_path, hass, amazon_image_name)
@@ -1039,7 +1035,7 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
     (server_response, sdata) = email_search(account, email_address, today)
 
     # Bail out on error
-    if server_response != "OK":
+    if server_response != "OK" or sdata[0] is None:
         return info
 
     if len(sdata) == 0:
