@@ -1047,3 +1047,10 @@ async def test_get_mails_email_search_none(
             mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
         )
         assert result == 0
+
+
+async def test_email_search_none(mock_imap_search_error_none, caplog):
+    result = email_search(
+        mock_imap_search_error_none, "fake@eamil.address", "01-Jan-20"
+    )
+    assert result == ("OK", [b""])

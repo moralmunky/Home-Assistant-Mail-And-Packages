@@ -1055,6 +1055,28 @@ def mock_imap_amazon_exception():
         yield mock_conn
 
 
+@pytest.fixture()
+def mock_imap_search_error_none():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_search_error_none:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_search_error_none.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [None])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations):
     yield
