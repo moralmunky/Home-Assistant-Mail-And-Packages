@@ -197,7 +197,6 @@ SENSOR_DATA = {
         "subject": ["Your delivery is coming today"],
     },
     "auspost_packages": {},
-    },
 }
 
 # Sensor definitions
