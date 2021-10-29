@@ -197,6 +197,7 @@ SENSOR_DATA = {
         "subject": ["Your delivery is coming today"],
     },
     "auspost_packages": {},
+    "auspost_tracking": {"pattern": ["\\d{7,10,12}|[A-Za-z]{2}[0-9]{9}AU "]},
 }
 
 # Sensor definitions
@@ -296,7 +297,7 @@ SENSOR_TYPES = {
         "package(s)",
         "mdi:package-variant",
     ],
-    "auspost_transit": [
+    "auspost_delivering": [
         "Mail Packages In Transit",
         "package(s)",
         "mdi:truck-delivery",
