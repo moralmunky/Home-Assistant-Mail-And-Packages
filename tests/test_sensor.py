@@ -128,12 +128,27 @@ async def test_sensor(hass, mock_update):
     assert state.state == "2"
     assert state.attributes["server"] == "imap.test.email"
 
+    state = hass.states.get("sensor.mail_auspost_delivered")
+    assert state
+    assert state.state == "0"
+    assert state.attributes["server"] == "imap.test.email"
+
+    state = hass.states.get("sensor.mail_auspost_delivering")
+    assert state
+    assert state.state == "1"
+    assert state.attributes["server"] == "imap.test.email"
+
+    state = hass.states.get("sensor.mail_auspost_packages")
+    assert state
+    assert state.state == "3"
+    assert state.attributes["server"] == "imap.test.email"
+
     state = hass.states.get("sensor.mail_packages_delivered")
     assert state
-    assert state.state == "7"
+    assert state.state == "2"
     assert state.attributes["server"] == "imap.test.email"
 
     state = hass.states.get("sensor.mail_packages_in_transit")
     assert state
-    assert state.state == "8"
+    assert state.state == "1"
     assert state.attributes["server"] == "imap.test.email"
