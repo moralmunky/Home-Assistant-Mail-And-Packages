@@ -145,5 +145,5 @@ async def test_sensor(hass, mock_update):
 
     state = hass.states.get("sensor.mail_packages_delivered")
     assert state
-    assert state.state == "2"
+    assert state.state == "7"
     assert state.attributes["server"] == "imap.test.email"
