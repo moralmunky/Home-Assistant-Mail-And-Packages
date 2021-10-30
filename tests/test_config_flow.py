@@ -56,9 +56,9 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
                     "dhl_delivered",
                     "dhl_delivering",
                     "dhl_packages",
-"amazon_delivered",                   
+                    "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -99,9 +99,9 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
                     "dhl_delivered",
                     "dhl_delivering",
                     "dhl_packages",
-"amazon_delivered",                   
+                    "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -206,9 +206,9 @@ async def test_form(
                     "dhl_delivered",
                     "dhl_delivering",
                     "dhl_packages",
-"amazon_delivered",                   
+                    "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -249,9 +249,9 @@ async def test_form(
                     "dhl_delivered",
                     "dhl_delivering",
                     "dhl_packages",
-"amazon_delivered",                   
+                    "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -395,8 +395,8 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
-                    "auspost_packages"
+                    "auspost_delivering",
+                    "auspost_packages",
                 ],
             },
             "imap.test.email",
@@ -431,8 +431,8 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
-                    "auspost_packages"
+                    "auspost_delivering",
+                    "auspost_packages",
                 ],
             },
         ),
@@ -518,7 +518,7 @@ async def test_form_invalid_ffmpeg(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -556,7 +556,7 @@ async def test_form_invalid_ffmpeg(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -652,7 +652,7 @@ async def test_form_index_error(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -690,7 +690,7 @@ async def test_form_index_error(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -785,7 +785,7 @@ async def test_form_index_error_2(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -823,7 +823,7 @@ async def test_form_index_error_2(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -946,7 +946,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -992,7 +992,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -1110,7 +1110,7 @@ async def test_options_flow(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -1156,7 +1156,7 @@ async def test_options_flow(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -1327,7 +1327,7 @@ async def test_options_flow_connection_error(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -1365,7 +1365,7 @@ async def test_options_flow_connection_error(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -1463,7 +1463,7 @@ async def test_options_flow_invalid_ffmpeg(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -1501,7 +1501,7 @@ async def test_options_flow_invalid_ffmpeg(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -1600,7 +1600,7 @@ async def test_options_flow_index_error(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -1638,7 +1638,7 @@ async def test_options_flow_index_error(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -1737,7 +1737,7 @@ async def test_options_flow_index_error_2(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -1775,7 +1775,7 @@ async def test_options_flow_index_error_2(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -1873,7 +1873,7 @@ async def test_options_flow_mailbox_format2(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -1914,7 +1914,7 @@ async def test_options_flow_mailbox_format2(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -2019,7 +2019,7 @@ async def test_options_flow_bad(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },
@@ -2107,7 +2107,7 @@ async def test_form_amazon_error(
                     "dhl_packages",
                     "amazon_delivered",                   
                     "auspost_delivered",
-                    "auspost_delivering"
+                    "auspost_delivering",
                     "auspost_packages",
                 ],
             },

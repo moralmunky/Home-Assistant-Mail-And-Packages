@@ -32,7 +32,7 @@ FAKE_CONFIG_DATA_BAD = {
         "amazon_delivered",
         "auspost_delivered",
         "auspost_packages",
-        "auspost_delivering"
+        "auspost_delivering",
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
@@ -80,8 +80,8 @@ FAKE_CONFIG_DATA = {
         "usps_mail",
         "usps_packages",
         "auspost_delivered",
-        "auspost_delivering"
-        "auspost_packages"
+        "auspost_delivering",
+        "auspost_packages",
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
@@ -129,8 +129,8 @@ FAKE_CONFIG_DATA_EXTERNAL = {
         "usps_mail",
         "usps_packages",
         "auspost_delivered",
-        "auspost_delivering"
-        "auspost_packages"
+        "auspost_delivering",
+        "auspost_packages",
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
@@ -178,7 +178,7 @@ FAKE_CONFIG_DATA_CORRECTED_EXTERNAL = {
         "zpackages_delivered",
         "zpackages_transit",
         "auspost_delivered",
-        "auspost_delivering"
+        "auspost_delivering",
         "auspost_packages",
     ],
     "scan_interval": 20,
@@ -228,7 +228,7 @@ FAKE_CONFIG_DATA_CORRECTED = {
         "zpackages_delivered",
         "zpackages_transit",
         "auspost_delivered",
-        "auspost_delivering"
+        "auspost_delivering",
         "auspost_packages",
     ],
     "scan_interval": 20,
@@ -274,7 +274,7 @@ FAKE_CONFIG_DATA_NO_PATH = {
         "zpackages_delivered",
         "zpackages_transit",
         "auspost_delivered",
-        "auspost_delivering"
+        "auspost_delivering",
         "auspost_packages",
     ],
     "scan_interval": 20,
@@ -318,7 +318,7 @@ FAKE_CONFIG_DATA_NO_RND = {
         "zpackages_delivered",
         "zpackages_transit",
         "auspost_delivered",
-        "auspost_delivering"
+        "auspost_delivering",
         "auspost_packages",
     ],
     "scan_interval": 20,
@@ -361,7 +361,7 @@ FAKE_CONFIG_DATA_MP4 = {
         "zpackages_delivered",
         "zpackages_transit",
         "auspost_delivered",
-        "auspost_delivering"
+        "auspost_delivering",
         "auspost_packages",
     ],
     "scan_interval": 20,
@@ -443,7 +443,7 @@ FAKE_CONFIG_DATA_MISSING_TIMEOUT = {
         "usps_mail",
         "usps_packages",
         "auspost_delivered",
-        "auspost_delivering"
+        "auspost_delivering",
         "auspost_packages",
     ],
     "scan_interval": 20,
@@ -492,7 +492,7 @@ FAKE_CONFIG_DATA_AMAZON_FWD_STRING = {
         "usps_mail",
         "usps_packages",
         "auspost_delivered",
-        "auspost_delivering"
+        "auspost_delivering",
         "auspost_packages",
     ],
     "scan_interval": 20,
@@ -542,7 +542,7 @@ FAKE_CONFIG_DATA_CUSTOM_IMG = {
         "zpackages_delivered",
         "zpackages_transit",
         "auspost_delivered",
-        "auspost_delivering"
+        "auspost_delivering",
         "auspost_packages",
     ],
     "scan_interval": 20,
