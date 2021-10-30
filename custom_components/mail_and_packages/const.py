@@ -293,15 +293,20 @@ SENSOR_TYPES = {
         "mdi:package-variant-closed",
     ],
     "auspost_delivered": [
-        "Mail Packages Delivered",
+        "Mail AusPost Delivered",
         "package(s)",
         "mdi:package-variant",
     ],
     "auspost_delivering": [
-        "Mail Packages In Transit",
+        "Mail AusPost Packages In Transit",
         "package(s)",
         "mdi:truck-delivery",
     ],
+    "auspost_packages": [
+        "Mail AusPost Packages",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],  
     ###
     # !!! Insert new sensors above these two !!!
     ###
