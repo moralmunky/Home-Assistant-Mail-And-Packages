@@ -1,0 +1,528 @@
+Delivered-To: sebastian.pietschner@gmail.com
+Received: by 2002:a05:7010:6b25:b0:198:4a1d:f191 with SMTP id cn37csp635853mdb;
+        Sat, 9 Oct 2021 15:37:05 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJyTezCQIN4FpGRPKv+7h2QM/dbhYIGr5qQpX4dRxT02yxXwKI3ztAQ2VyGtfZBte8q50HA5
+X-Received: by 2002:ad4:5621:: with SMTP id cb1mr16871531qvb.6.1633819024906;
+        Sat, 09 Oct 2021 15:37:04 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1633819024; cv=none;
+        d=google.com; s=arc-20160816;
+        b=AX+QZTW0Ya0riUeowiEkFbTFfGOMgVxV9l3e3JVpmsuayj2eYwbMcJheg8iupIBORh
+         89n4Gq+I6c/4jKh0Z/p0t3KeYEyijhWrUgiGLy4Op/DaOdzf2yEkVPIABNQNJFtpg63h
+         HeMB6zz+4zheSuTLxz1H7Fj1kVAXF1S0vmmgmE0oZeCGlQgmV8oJG5qmI4uvbSQ0XkSH
+         VNg76AHB9TH1DA38r/r3utihserI1CFa5U/ajL9eQ1Gkyx6ukUnJQ+XQgjST6gmW/A2b
+         LrQqYMD1vyDKI0PTb4V3elM6wXNN70qGg6/dM46paJDIgYTrNi/CtLTAhclkssmtFxci
+         HF+A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=content-transfer-encoding:feedback-id:message-id:list-id:reply-to
+         :mime-version:date:subject:to:from:dkim-signature;
+        bh=6gj6ftRjcZrAqs2otdimrLsLdWZ4NdHP1DMvO1f3BjQ=;
+        b=dqVtv2A4/dnUtImtOv6PIjs5OZJe9rEs7tCOHgSrHN3X0pJZGk6HC56TaPj6nXteTQ
+         JtOokcoVNJeqRgGEuZLONBZ1nfnzGUeHjo6m/W5NDW0mxNLxApt8Q6aPpDcnztGFvC/8
+         A60TW+mKM91NgaWj1Oh8h8AKIQFNqyfhDWb9x4nBCLZlehhZE0C5RsD/yxiBMEGNVTWm
+         ED/jIbhC6x0jk86qAVYcldk8guBHDsR62zRfsyNKT56Q4nt1u4IsfWaoq63sc6MsHvGd
+         NCLLO5Z6M8LPIGMAMexpjdynuzAt5G7F7fA0uD+mCqSp+XjcvLlYp1hQT6Dff3DaU5ZL
+         Abug==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@notifications.auspost.com.au header.s=200608 header.b=mwCg2Ii2;
+       spf=pass (google.com: domain of bounce-1441751_html-1404743980-31137253-10784680-5583717@bounce.notifications.auspost.com.au designates 136.147.141.214 as permitted sender) smtp.mailfrom=bounce-1441751_HTML-1404743980-31137253-10784680-5583717@bounce.notifications.auspost.com.au;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=notifications.auspost.com.au
+Return-Path: <bounce-1441751_HTML-1404743980-31137253-10784680-5583717@bounce.notifications.auspost.com.au>
+Received: from mta12.notifications.auspost.com.au (mta12.notifications.auspost.com.au. [136.147.141.214])
+        by mx.google.com with ESMTPS id o18si2379350qtk.113.2021.10.09.15.37.04
+        for <sebastian.pietschner@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Sat, 09 Oct 2021 15:37:04 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bounce-1441751_html-1404743980-31137253-10784680-5583717@bounce.notifications.auspost.com.au designates 136.147.141.214 as permitted sender) client-ip=136.147.141.214;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@notifications.auspost.com.au header.s=200608 header.b=mwCg2Ii2;
+       spf=pass (google.com: domain of bounce-1441751_html-1404743980-31137253-10784680-5583717@bounce.notifications.auspost.com.au designates 136.147.141.214 as permitted sender) smtp.mailfrom=bounce-1441751_HTML-1404743980-31137253-10784680-5583717@bounce.notifications.auspost.com.au;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=notifications.auspost.com.au
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; s=200608; d=notifications.auspost.com.au;
+ h=From:To:Subject:Date:MIME-Version:Reply-To:List-ID:X-CSA-Complaints:
+ Message-ID:Content-Type:Content-Transfer-Encoding;
+ i=noreply@notifications.auspost.com.au;
+ bh=6gj6ftRjcZrAqs2otdimrLsLdWZ4NdHP1DMvO1f3BjQ=;
+ b=mwCg2Ii2YFSIrRwXxPPCAdSrpfSQVDBZXeXJ9oPYZDbDsI04AfQFegZAhUnpmI+rK0fGeEGJ0RK/
+   xwf2IgJetoJheBvmDlOaC5gQpmbXMH6qKj1qneNRk4M9qGZdzNZYLlYd85ACy8dhLXrTmF0A/39y
+   VY2YEhorutyHGmNA1oE=
+Received: by mta12.notifications.auspost.com.au id hc8cp02fmd4i for <sebastian.pietschner@gmail.com>; Sat, 9 Oct 2021 22:37:04 +0000 (envelope-from <bounce-1441751_HTML-1404743980-31137253-10784680-5583717@bounce.notifications.auspost.com.au>)
+From: "Australia Post" <noreply@notifications.auspost.com.au>
+To: <sebastian.pietschner@gmail.com>
+Subject: Your shipment has been delivered
+Date: Sat, 09 Oct 2021 16:37:03 -0600
+MIME-Version: 1.0
+Reply-To: "Australia Post" <noreply@notifications.auspost.com.au>
+List-ID: <10689512.xt.local>
+X-CSA-Complaints: whitelist-complaints@eco.de
+X-SFMC-Stack: 1
+x-job: 10784680_31137253
+Message-ID: <bounce-1441751_HTML-1404743980-31137253-10784680-5583717@bounce.notifications.auspost.com.au>
+X-Return-Path: bounce-1441751_HTML-1404743980-31137253-10784680-5583717@bounce.notifications.auspost.com.au
+Feedback-ID: 10784680:31137253:136.147.141.214:sfmktgcld
+Content-Type: text/html;
+	charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+<!DOCTYPE html>
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns:o="urn:schemas-microsoft-com:office:office">
+ <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Australia Post</title>
+  <!--[if mso]>
+  <xml>
+   <o:OfficeDocumentSettings>
+    <o:AllowPNG/>
+    <o:PixelsPerInch>96</o:PixelsPerInch>
+   </o:OfficeDocumentSettings>
+  </xml>
+  <style>.vml-p {margin:0;font-size:0;line-height:0} v\\:* {behavior:url(#default#VML)}li{text-indent:-1em}</style>
+  <![endif]-->  
+  <style>
+   table, td, th {border-collapse:collapse; padding:0; text-align:left; border-spacing:0}
+   .table { display:table !important }
+   img {display:block; border:none; -ms-interpolation-mode:bicubic}
+   table.full {margin:0 auto}
+   .wrap {vertical-align: top}
+   .bg-grey { background-color:#f3f4f5 !important }
+   .mobile { display:none }
+   @media (max-width:620px), (max-device-width:620px) {
+   .full {width:100% !important; min-width:320px !important}
+   .wrap {display:inline-block; width:100% !important}
+    
+   .hidden {display:none !important}
+   .mobile {display:block !important}
+   .left { text-align:left !important }
+   .center { text-align:center !important }
+   .border-none { border:none !important }
+   .pad-t-20 { padding-top:20px !important }
+   .pad-t-0 { padding-top:0 !important }
+   .pad-b-20 { padding-bottom:15px !important }
+   .pad-h-20 { padding:0 20px !important } 
+   .pad-v-20 { padding:20px 0 !important }
+   .pad-20 { padding:20px !important }
+   .pad-0 { padding:0 !important }
+   .pad-b-0 { padding-bottom:0 !important }
+            .tracker { display:block !important; padding:15px 0 10px !important }
+   .footer-link { border-right:0 !important; border-bottom:solid 1px #ccc; padding:10px 0 }                            /* 20170918 updated css */
+            .border-top { background-color:#fff; border-top-left-radius:4px; border-top-right-radius:4px; height:4px }          /* 20170918 new border css */
+            .border-btm { background-color:#fff; border-bottom-left-radius:4px; border-bottom-right-radius:4px; height:4px }    /* 20170918 new border css */
+   }
+  </style>
+  <style data-embed>
+   html, body {background-color:#f3f4f5; width:100%; min-height:100%; text-align:center; margin:0px auto !important; padding:0 !important; border:0px}
+   body > div, body > div > div {margin:0px}
+   * {margin:0px; border:0px; -webkit-text-size-adjust:none !important; mso-line-height-rule:exactly}
+   table, td, th {text-align:left; mso-table-lspace:0pt; mso-table-rspace:0pt} 
+   .mobile {mso-hide:all}
+   .al a, .al span {color:inherit !important; text-decoration:none !important; border:none !important} 
+  </style>
+  <style data-embed>
+   html, body {background-color:#f3f4f5; width:100%; min-height:100%; text-align:center; margin:0px auto !important; padding:0 !important; border:0px}
+   body > div, body > div > div {margin:0px}
+   * {margin:0px; border:0px; -webkit-text-size-adjust:none !important; mso-line-height-rule:exactly}
+   table, td, th {text-align:left; mso-table-lspace:0pt; mso-table-rspace:0pt} 
+   .mobile {mso-hide:all}
+   .al a, .al span {color:inherit !important; text-decoration:none !important; border:none !important} 
+  </style>
+  
+
+    
+    
+ </head>
+ 
+<body style="background:#f3f4f5; font:16px Arial, sans-serif; color:#4a4a4a">
+ 
+ 
+ 
+<table style="width:100%">
+ <tr>
+  <td align="center" style="text-align:center" class="bg-grey">
+  
+<!-- 20170918 BEGIN 51. pre-header -->
+
+<table style="margin:0 auto; width:620px" class="hidden">
+ <tr>
+  <td style="text-align:center">
+   <table style="margin:0 auto; width:500px" class="full">
+    <tr>
+     <td>
+      <table style="width:100%">
+       <tr>
+        <td>
+         <table style="width:380px" class="full">
+          <tr>
+           <td style="text-align:left; font-size:0px; line-height:0; color:#f3f4f5">
+            Delivered to 2101        
+           </td>
+          </tr>
+         </table>
+        </td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>
+  </td>
+ </tr>
+</table>
+<!-- 20170918 END 51. pre-header --> 
+   
+
+<!-- BEGIN 2. header logo module -->
+<table style="margin:0 auto; width:620px" class="full">
+ <tr>
+  <td style="text-align:center">
+   <table style="margin:0 auto; width:500px" class="full">
+    <tr>
+     <td>
+      <table style="width:100%">
+       <tr>
+         <td style="padding:30px 60px 30px 0" class="pad-v-20">
+         <table style="width:100%">
+          <tr>
+           <td style="text-align:left;"> <!-- 20170918 removed pad-b-0 class -->
+            <a href="https://click.notifications.auspost.com.au/?qs=7fb884af5385639b0880563202350d207a16b8173d2055ba409a25ac4ba768039291d38818fbe95c08f1c517b7ebbeedf1606451dd5cc8e3"><img src="https://image.email.auspost.com.au/lib/fe6415707c66047a7215/m/5/064e4ec4-4353-48ac-9e66-9c082b9db2b7.png" width="160" alt="Australia Post" title="Australia Post" /></a>
+           </td>
+          </tr>
+         </table>
+        </td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>
+  </td>
+ </tr>
+</table>
+<!-- END 2. header logo module -->
+
+
+
+<!-- 20170918 BEGIN 49. top rounded corner -->
+<table style="margin:0 auto; width:620px" class="full">
+ <tr>
+  <td style="text-align:center; height:4px; font-size:4px; line-height:4px;">
+   <table style="margin:0 auto; width:500px" class="full">
+    <tr>
+     <td class="border-top" style="height:4px; font-size:4px; line-height:4px;">
+      <img src="http://image.email.auspost.com.au/lib/fe5d1570726c007b7d14/m/1/rc-top.png" width="500" alt="" style="display:block" class="hidden" />
+     </td>
+    </tr>
+   </table>
+  </td>
+ </tr>
+</table>
+<!-- 20170918 END 49. top rounded corner -->     
+   
+
+<!-- BEGIN 15. status 1 delivery method is IP -->
+<table style="margin:0 auto; width:620px" class="full">
+ <tr>
+  <td style="text-align:center">
+   <table style="margin:0 auto; width:500px; background:#fff" class="full">
+    <tr>
+     <td>
+      <table style="width:100%">
+       <tr>
+        <td style="padding:50px 60px 50px" class="pad-20">
+         <table style="width:100%">
+          <tr>
+           <td style="text-align:left; color:#4a4a4a; font:20px/22px Arial, sans-serif">
+            Your shipment has been delivered
+           </td>
+          </tr>
+         </table>
+        </td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>
+  </td>
+ </tr>
+</table>
+<!-- END 15. status 1 -->
+     
+<!-- BEGIN 30. milestone 1 -->
+<table style="margin:0 auto; width:620px" class="full">
+ <tr>
+  <td style="text-align:center">
+   <table style="margin:0 auto; width:500px; background:#fff" class="full">
+    <tr>
+     <td>
+      <table style="width:100%">
+       <tr>
+        <td style="padding:0px 60px 40px" class="pad-20">
+         <table style="width:100%">
+          <tr>
+           <td style="text-align:left; padding:0 0 5px; font:16px Arial, sans-serif; color:#4a4a4a">
+            <img src="http://image.email.auspost.com.au/lib/fe5d1570726c007b7d14/m/1/ico-deliveredclosed.png" width="162" alt="Delivered" title="Delivered" style="display:inline-block"><span class="hidden">&nbsp;&nbsp;&nbsp;</span><span class="tracker al" style="line-height:0; vertical-align:6px;">
+            Delivered to <strong>NSW 2101</strong></span>
+           </td>
+          </tr>
+          <tr>
+           <td style="text-align:left; color:#000000; font:42px/42px Arial, sans-serif; font-weight:bold">
+            Delivered
+           </td>
+          </tr>
+         </table>
+        </td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>
+  </td>
+ </tr>
+</table>
+<!-- END 30. milestone 1 -->
+     
+
+
+
+<!-- BEGIN 23. delivery details 2 -->
+
+<!-- END 23. delivery details 2 -->  
+ 
+
+<!-- END 23. delivery details 2 --> 
+
+<!-- BEGIN 23. delivery details 2 -->
+<table style="margin:0 auto; width:620px" class="full">
+ <tr>
+  <td style="text-align:center">
+   <table style="margin:0 auto; width:500px; background:#fff" class="full">
+    <tr>
+     <td>
+      <table style="width:100%">
+       <tr>
+        <td style="padding:0px 60px 40px" class="pad-20">
+         <table style="width:100%">
+          <tr>
+           <td style="text-align:left; color:#4a4a4a; font:16px/22px Arial, sans-serif; ">
+            Tracking number <a target="_blank" href="https://click.notifications.auspost.com.au/?qs=5a361eb46cbe186a0e6309455e819c7878af9db3dab74304fa4fc42be620bd97af39f0a8a2ff6764cf2ae855d125d12e9eef5e2f074845c7ea9e6f3d0e4283ab" style="color:#4a4a4a; font-weight:bold">997053641168</a>
+           </td>
+          </tr>            
+
+         </table>
+        </td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>
+  </td>
+ </tr>
+</table>
+
+<!-- END 23. delivery details 2 -->
+ 
+      
+<!-- BEGIN 15. status 1 -->
+
+<!-- END 23. delivery details 2 --> 
+
+            
+<!-- BEGIN 15. status 1 -->
+
+<!-- END 23. delivery details 2 -->                  
+
+
+
+
+
+<!-- START Del Pref Promo -->
+<!-- END Del Pref Promo -->
+
+<!-- BEGIN 52. app icons -->
+<table style="margin:0 auto; width:620px" class="full">
+ <tr>
+  <td style="text-align:center">
+   <table style="margin:0 auto; width:500px; background:#fff" class="full">
+    <tr>
+     <td style="padding:20px 60px 60px; border-bottom:solid 2px #efefef" class="pad-20">
+      <table style="width:100%">
+       <tr>
+        <td style="text-align:left; padding:0 0 30px; color:#4a4a4a; font:14px/18px Arial, sans-serif">
+         Quickly manage your parcels, wherever you are. Get the AusPost App.
+        </td>
+       </tr>
+       <tr>
+        <td style="padding:0 30px" class="pad-0">
+         <table style="width:100%">
+          <tr>
+           <td class="wrap" align="center" style="width:150px">
+            <a href="https://click.notifications.auspost.com.au/?qs=4f72cab9002ff74db63ea5cff1f7be7a2664ea06c3e0e667342d8c053aa667157a55ac469fc15773b616b777ea2bb969dac4ce013a029e67"><img src="http://image.notifications.auspost.com.au/lib/fe5d1570726c007b7d14/m/1/ico-app-a.png" width="150" alt="Download on the App Store" title="Download on the App Store" border="0" style="margin:auto" /></a>
+           </td>
+           <td style="width:50px; height:10px" class="wrap"><!-- --></td>
+           <td class="wrap" align="center" style="width:150px">
+            <a href="https://click.notifications.auspost.com.au/?qs=55818a1c354e9d8a25b8c3b743e233b8206b23a0ebb3c28ea98f96754e6c86d1ff27c99817bf5292a6b9226edcd92980ca5407f1a6439392"><img src="http://image.notifications.auspost.com.au/lib/fe5d1570726c007b7d14/m/1/ico-app-g.png" width="150" alt="Get it on Google Play" title="Get it on Google Play" border="0" style="margin:auto" /></a>
+           </td>
+          </tr>
+         </table>
+        </td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>
+  </td>
+ </tr>
+</table>
+<!-- END 52. app icons -->       
+
+                    
+<!-- BEGIN 39. security message -->
+<table style="margin:0 auto; width:620px" class="full">
+ <tr>
+  <td style="text-align:center">
+   <table style="margin:0 auto; width:500px; background:#fff" class="full">
+    <tr>
+     <td style="padding:40px 60px 50px" class="pad-20">
+      <table style="width:100%">
+       <tr>
+        <td style="text-align:center">
+         <table style="width:100%">
+          <tr>
+           <td style="width:22px; padding:3px 0 0" valign="top">
+            <img src="http://image.email.auspost.com.au/lib/fe5d1570726c007b7d14/m/1/ico-lock.png" width="22" alt="Security message" title="Security message" style="display:block" />
+           </td>
+           <td style="width:22px">
+            <!-- -->
+           </td>
+           <td valign="top">
+            <table style="width:100%">
+             <tr>
+              <td style="text-align:left; color:#4a4a4a; font:14px/20px Arial, sans-serif">
+               Australia Post will never send you an unsolicited email asking for your password, credit card details or account information.
+              </td>
+             </tr>
+            </table>
+           </td>
+          </tr>
+         </table>
+        </td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>
+  </td>
+ </tr>
+</table>
+<!-- END 39. security message -->
+
+<!-- 20170918 BEGIN 50. bottom rounded corner -->
+<table style="margin:0 auto; width:620px" class="full">
+ <tr>
+  <td style="text-align:center; height:4px; font-size:4px; line-height:4px;">
+   <table style="margin:0 auto; width:500px" class="full">
+    <tr>
+     <td class="border-btm" style="height:4px; font-size:4px; line-height:4px;">
+      <img src="http://image.email.auspost.com.au/lib/fe5d1570726c007b7d14/m/1/rc-btm.png" width="500" alt="" style="display:block" class="hidden" />
+     </td>
+    </tr>
+   </table>
+  </td>
+ </tr>
+</table>
+<!-- 20170918 END 50. bottom rounded corner -->
+
+<!-- BEGIN 45. terms & conditions 5 -->
+<table style="margin:0 auto; width:620px;" class="full">
+ <tr>
+  <td style="text-align:center">
+   <table style="margin:0 auto; width:480px" class="full">
+    <tr>
+     <td>
+      <table style="width:100%">
+       <tr>
+        <td class="pad-h-20">
+         <table style="width:100%">
+          <tr>
+           <td style="padding:30px 0">
+            <table style="width:100%">
+             <tr>
+              <td style="text-align:left; color:#9b9b9b; font:11px/13px Arial, sans-serif">
+                        
+               This email was sent by <a href="https://click.notifications.auspost.com.au/?qs=9debf6fe3bb389114c9af452081439c2ee10f50c6a18d9cdfe5eb737ce77a6c126cef983cb7116531840937d80d09fc3557c5f424f3de2d9" style="color:#9b9b9b">Australia Post</a>, <span class="al">111 Bourke Street, MELBOURNE VIC 3000</span>. If you have any concerns, or don&rsquo;t think you should have received this email, please call us on <span class="al">13 13 18</span>. Visit <a href="https://click.notifications.auspost.com.au/?qs=9debf6fe3bb389114c9af452081439c2ee10f50c6a18d9cdfe5eb737ce77a6c126cef983cb7116531840937d80d09fc3557c5f424f3de2d9" style="color:#9b9b9b">auspost.com.au</a> for further information on our online <a href="https://click.notifications.auspost.com.au/?qs=6653553dac7f6b9e57949ede96178fcb82476869db9907a3790886263346f49e8ead932ee1b24c16ed7826d28487affe9eb1311f202f3e75" style="color:#9b9b9b">security</a>.
+               
+               <br /><br />
+               Please note that this is an automatically generated email, replies will not be answered. Australia Post does not represent, warrant or guarantee that the integrity of this email communication has been maintained nor that the communication is free of errors, viruses or interference.       
+              </td>
+             </tr>
+            </table>
+           </td>
+          </tr>
+         </table>
+        </td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>
+  </td>
+ </tr>
+</table>
+<!-- END 45. terms & conditions 5 -->
+   
+<!-- BEGIN 48. footer -->
+<table style="margin:0 auto; width:620px;" class="full">
+ <tr>
+  <td style="text-align:center">
+   <table style="margin:0 auto; width:500px" class="full">
+    <tr>
+     <td>
+      <table style="width:100%">
+       <tr>
+        <td>
+         <table style="width:100%">
+          <tr>
+           <td style="padding:20px 0 30px; border-top:solid 2px #8a939d" class="pad-t-0">
+            <table style="width:100%">
+             <tr>
+              <td style="width:125px; text-align:center; color:#9b9b9b; font:11px Arial, sans-serif; border-right:solid 1px #9b9b9b" class="full wrap footer-link">
+               <a href="https://click.notifications.auspost.com.au/?qs=f3877fec0e29209db4230e75220e2452ad950d8acffbec408b4273389faefd7d0410a1fff39ef80252d8407f759dd8d0cfd60bcd4160aeee" style="color:#8a939d; text-decoration:none">Help &amp; support</a>
+              </td>
+              <td style="width:125px; text-align:center; color:#9b9b9b; font:11px Arial, sans-serif; border-right:solid 1px #9b9b9b" class="full wrap footer-link">
+               <a href="https://click.notifications.auspost.com.au/?qs=66cb17fd17d3c38b169df860ff54bf9ec96e44130d8f1b926a349457f9de83c16594fa04ba396fb066927cc6d36da5f2e04be4b8373d4af6" style="color:#8a939d; text-decoration:none">Terms &amp; conditions</a>
+              </td>
+              <td style="width:125px; text-align:center; color:#9b9b9b; font:11px Arial, sans-serif; border-right:solid 1px #9b9b9b" class="full wrap footer-link">
+               <a href="https://click.notifications.auspost.com.au/?qs=0abcf338ba2c357c4d89d12d558da8d6b08911e6dcce746c64d2d307b3a34d4c1a735c8a9a6b7c9f67838d60e46de2e70d081521ffee2317" style="color:#8a939d; text-decoration:none">Privacy policy</a>
+              </td>
+              <td style="width:125px; text-align:center; color:#9b9b9b; font:11px Arial, sans-serif" class="full wrap footer-link">
+               <a href="https://click.notifications.auspost.com.au/?qs=5a3c8a18952d2b76383edf97d7f0f3e8355e6d65f113abc6de499ffbd482756768d38ca4ea431f66905bff354382b61c929e67f986d9cc74" style="color:#8a939d; text-decoration:none">Our tracking service</a>
+              </td>
+             </tr>
+            </table>
+           </td>
+          </tr>
+         </table>
+        </td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>
+  </td>
+ </tr>
+</table>
+<!-- END 48. footer -->
+   </td>
+   </tr>
+  </table>
+  <!-- END 1. shell -->
+<custom name="opencounter" type="tracking">
+
+<img src="https://pixel.app.returnpath.net/pixel.gif?r=b4fe2bd08841098ae377172beeaddd6b828bfe2e&camp-id=6154400_31137253&s=1404743980&email=MyPost_Delivered_Notification_PROD&eid=6154400&camp-type=MyPost&c=MyPost" width="1" height="1" />
+ <img src="https://pixel.inbox.exacttarget.com/pixel.gif?r=b4fe2bd08841098ae377172beeaddd6b828bfe2e&camp-id=6154400_31137253&s=1404743980&email=MyPost_Delivered_Notification_PROD&eid=6154400&camp-type=MyPost&c=MyPost" width="1" height="1" />
+
+
+<!--
+X-Return-Path: bounce-1441751_HTML-1404743980-31137253-10784680-5583717@bounce.notifications.auspost.com.au
+-->
+</body>
+</html>
+<img src="https://click.notifications.auspost.com.au/open.aspx?ffcb10-fe6617717467037f7017-fded1c787461027e72167473-fe5d1570726c007b7d14-fe9815747165037874-fdf7157475600379761d7875-fe8b11757d67037c72&d=10150&bmt=0" width="1" height="1" alt="">

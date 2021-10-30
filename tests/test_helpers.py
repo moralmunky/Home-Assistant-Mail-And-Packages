@@ -412,7 +412,7 @@ async def test_image_filename_oserr(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 29
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 32
     assert "Problem accessing file:" in caplog.text
 
 
@@ -440,7 +440,7 @@ async def test_image_getctime_oserr(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 29
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 32
     assert "Problem accessing file:" in caplog.text
 
 
