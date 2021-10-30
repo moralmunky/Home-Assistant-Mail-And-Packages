@@ -298,7 +298,7 @@ SENSOR_TYPES = {
         "mdi:package-variant",
     ],
     "auspost_delivering": [
-        "Mail AusPost Packages In Transit",
+        "Mail AusPost Packages Delivering",
         "package(s)",
         "mdi:truck-delivery",
     ],
