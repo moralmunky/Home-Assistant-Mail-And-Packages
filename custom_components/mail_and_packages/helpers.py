@@ -43,8 +43,7 @@ def get_resources() -> dict:
     """
 
     known_available_resources = {
-        sensor_id: sensor[const.SENSOR_NAME]
-        for sensor_id, sensor in const.SENSOR_TYPES.items()
+        sensor_id: sensor.name for sensor_id, sensor in const.SENSOR_TYPES.items()
     }
 
     return known_available_resources
