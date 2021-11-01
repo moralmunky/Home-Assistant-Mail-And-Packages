@@ -21,6 +21,7 @@ from .const import (
     COORDINATOR,
     DOMAIN,
     SENSOR_NAME,
+    VERSION,
 )
 
 SERVICE_UPDATE_IMAGE = "update_image"
@@ -167,6 +168,17 @@ class MailCam(Camera):
     async def async_on_demand_update(self):
         """Update state."""
         self.async_schedule_update_ha_state(True)
+
+    @property
+    def device_info(self) -> dict:
+        """Return device information about the mailbox."""
+
+        return {
+            "connections": {(DOMAIN, self._unique_id)},
+            "name": self._host,
+            "manufacturer": "IMAP E-Mail",
+            "sw_version": VERSION,
+        }
 
     @property
     def unique_id(self) -> str:
