@@ -51,6 +51,17 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         self.data = self.coordinator.data
 
     @property
+    def device_info(self) -> dict:
+        """Return device information about the mailbox."""
+
+        return {
+            "connections": {(const.DOMAIN, self._unique_id)},
+            "name": self._host,
+            "manufacturer": "IMAP E-Mail",
+            "sw_version": const.VERSION,
+        }
+
+    @property
     def unique_id(self) -> str:
         """Return a unique, Home Assistant friendly identifier for this entity."""
         return f"{self._host}_{self._name}_{self._unique_id}"
@@ -127,6 +138,17 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
         self.type = sensor_type
         self._host = config.data[CONF_HOST]
         self._unique_id = unique_id
+
+    @property
+    def device_info(self) -> dict:
+        """Return device information about the mailbox."""
+
+        return {
+            "connections": {(const.DOMAIN, self._unique_id)},
+            "name": self._host,
+            "manufacturer": "IMAP E-Mail",
+            "sw_version": const.VERSION,
+        }
 
     @property
     def unique_id(self) -> str:
