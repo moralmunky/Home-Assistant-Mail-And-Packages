@@ -155,7 +155,7 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
         self._name = sensor_description.name
         self.type = sensor_description.key
         self._host = config.data[CONF_HOST]
-        self._unique_id = self._config.unique_id
+        self._unique_id = self._config.entry_id
 
     @property
     def device_info(self) -> dict:
