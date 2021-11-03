@@ -1,4 +1,11 @@
 """ Constants for Mail and Packages."""
+from __future__ import annotations
+
+from typing import Final
+from homeassistant.components.sensor import SensorEntityDescription
+
+from homeassistant.const import ENTITY_CATEGORY_DIAGNOSTIC
+
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
 VERSION = "0.0.0-dev"  # Now updated by release workflow
@@ -201,139 +208,229 @@ SENSOR_DATA = {
 }
 
 # Sensor definitions
-# Name, unit of measure, icon
-SENSOR_TYPES = {
-    "mail_updated": ["Mail Updated", None, "mdi:update"],
-    "usps_mail": ["Mail USPS Mail", "piece(s)", "mdi:mailbox-up"],
-    "usps_delivered": [
-        "Mail USPS Delivered",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "usps_delivering": ["Mail USPS Delivering", "package(s)", "mdi:truck-delivery"],
-    "usps_exception": ["Mail USPS Exception", "package(s)", "mdi:archive-alert"],
-    "usps_packages": [
-        "Mail USPS Packages",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "ups_delivered": [
-        "Mail UPS Delivered",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "ups_delivering": ["Mail UPS Delivering", "package(s)", "mdi:truck-delivery"],
-    "ups_exception": ["Mail UPS Exception", "package(s)", "mdi:archive-alert"],
-    "ups_packages": ["Mail UPS Packages", "package(s)", "mdi:package-variant-closed"],
-    "fedex_delivered": [
-        "Mail FedEx Delivered",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "fedex_delivering": ["Mail FedEx Delivering", "package(s)", "mdi:truck-delivery"],
-    "fedex_packages": [
-        "Mail FedEx Packages",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "amazon_packages": ["Mail Amazon Packages", "package(s)", "mdi:package"],
-    "amazon_delivered": [
-        "Mail Amazon Packages Delivered",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "amazon_exception": ["Mail Amazon Exception", "package(s)", "mdi:archive-alert"],
-    "amazon_hub": ["Mail Amazon Hub Packages", "package(s)", "mdi:package"],
-    "capost_delivered": [
-        "Mail Canada Post Delivered",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "capost_delivering": [
-        "Mail Canada Post Delivering",
-        "package(s)",
-        "mdi:truck-delivery",
-    ],
-    "capost_packages": [
-        "Mail Canada Post Packages",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "dhl_delivered": [
-        "Mail DHL Delivered",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "dhl_delivering": ["Mail DHL Delivering", "package(s)", "mdi:truck-delivery"],
-    "dhl_packages": ["Mail DHL Packages", "package(s)", "mdi:package-variant-closed"],
-    "hermes_delivered": [
-        "Mail Hermes Delivered",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "hermes_delivering": ["Mail Hermes Delivering", "package(s)", "mdi:truck-delivery"],
-    "hermes_packages": [
-        "Mail Hermes Packages",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "royal_delivered": [
-        "Mail Royal Mail Delivered",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "royal_delivering": [
-        "Mail Royal Mail Delivering",
-        "package(s)",
-        "mdi:truck-delivery",
-    ],
-    "royal_packages": [
-        "Mail Royal Mail Packages",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
-    "auspost_delivered": [
-        "Mail AusPost Delivered",
-        "package(s)",
-        "mdi:package-variant",
-    ],
-    "auspost_delivering": [
-        "Mail AusPost Delivering",
-        "package(s)",
-        "mdi:truck-delivery",
-    ],
-    "auspost_packages": [
-        "Mail AusPost Packages",
-        "package(s)",
-        "mdi:package-variant-closed",
-    ],
+SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
+    "mail_updated": SensorEntityDescription(
+        name="Mail Updated",
+        icon="mdi:update",
+        key="mail_updated",
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+    ),
+    "usps_mail": SensorEntityDescription(
+        name="Mail USPS Mail",
+        native_unit_of_measurement="piece(s)",
+        icon="mdi:mailbox-up",
+        key="usps_mail",
+    ),
+    "usps_delivered": SensorEntityDescription(
+        name="Mail USPS Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="usps_delivered",
+    ),
+    "usps_delivering": SensorEntityDescription(
+        name="Mail USPS Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="usps_delivering",
+    ),
+    "usps_exception": SensorEntityDescription(
+        name="Mail USPS Exception",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:archive-alert",
+        key="usps_exception",
+    ),
+    "usps_packages": SensorEntityDescription(
+        name="Mail USPS Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="usps_packages",
+    ),
+    "ups_delivered": SensorEntityDescription(
+        name="Mail UPS Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="ups_delivered",
+    ),
+    "ups_delivering": SensorEntityDescription(
+        name="Mail UPS Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="ups_delivering",
+    ),
+    "ups_exception": SensorEntityDescription(
+        name="Mail UPS Exception",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:archive-alert",
+        key="ups_exception",
+    ),
+    "ups_packages": SensorEntityDescription(
+        name="Mail UPS Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="ups_packages",
+    ),
+    "fedex_delivered": SensorEntityDescription(
+        name="Mail FedEx Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="fedex_delivered",
+    ),
+    "fedex_delivering": SensorEntityDescription(
+        name="Mail FedEx Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="fedex_delivering",
+    ),
+    "fedex_packages": SensorEntityDescription(
+        name="Mail FedEx Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="fedex_packages",
+    ),
+    "amazon_packages": SensorEntityDescription(
+        name="Mail Amazon Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package",
+        key="amazon_packages",
+    ),
+    "amazon_delivered": SensorEntityDescription(
+        name="Mail Amazon Packages Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="amazon_delivered",
+    ),
+    "amazon_exception": SensorEntityDescription(
+        name="Mail Amazon Exception",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:archive-alert",
+        key="amazon_exception",
+    ),
+    "amazon_hub": SensorEntityDescription(
+        name="Mail Amazon Hub Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package",
+        key="amazon_hub",
+    ),
+    "capost_delivered": SensorEntityDescription(
+        name="Mail Canada Post Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="capost_delivered",
+    ),
+    "capost_delivering": SensorEntityDescription(
+        name="Mail Canada Post Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="capost_delivering",
+    ),
+    "capost_packages": SensorEntityDescription(
+        name="Mail Canada Post Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="capost_packages",
+    ),
+    "dhl_delivered": SensorEntityDescription(
+        name="Mail DHL Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="dhl_delivered",
+    ),
+    "dhl_delivering": SensorEntityDescription(
+        name="Mail DHL Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="dhl_delivering",
+    ),
+    "dhl_packages": SensorEntityDescription(
+        name="Mail DHL Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="dhl_packages",
+    ),
+    "hermes_delivered": SensorEntityDescription(
+        name="Mail Hermes Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="hermes_delivered",
+    ),
+    "hermes_delivering": SensorEntityDescription(
+        name="Mail Hermes Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="hermes_delivering",
+    ),
+    "hermes_packages": SensorEntityDescription(
+        name="Mail Hermes Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="hermes_packages",
+    ),
+    "royal_delivered": SensorEntityDescription(
+        name="Mail Royal Mail Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="royal_delivered",
+    ),
+    "royal_delivering": SensorEntityDescription(
+        name="Mail Royal Mail Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="royal_delivering",
+    ),
+    "royal_packages": SensorEntityDescription(
+        name="Mail Royal Mail Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="royal_packages",
+    ),
+    "auspost_delivered": SensorEntityDescription(
+        name="Mail AusPost Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="auspost_delivered",
+    ),
+    "auspost_delivering": SensorEntityDescription(
+        name="Mail AusPost Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="auspost_delivering",
+    ),
+    "auspost_packages": SensorEntityDescription(
+        name="Mail AusPost Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="auspost_packages",
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
-    "zpackages_delivered": [
-        "Mail Packages Delivered",
-        "package(s)",
-        "mdi:package-variant",
-    ],
-    "zpackages_transit": [
-        "Mail Packages In Transit",
-        "package(s)",
-        "mdi:truck-delivery",
-    ],
+    "zpackages_delivered": SensorEntityDescription(
+        name="Mail Packages Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="zpackages_delivered",
+    ),
+    "zpackages_transit": SensorEntityDescription(
+        name="Mail Packages In Transit",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="zpackages_transit",
+    ),
 }
 
-# Name, unit of measure, icon
-IMAGE_SENSORS = {
-    "usps_mail_image_system_path": [
-        "Mail Image System Path",
-        None,
-        "mdi:folder-multiple-image",
-    ],
-    "usps_mail_image_url": [
-        "Mail Image URL",
-        None,
-        "mdi:link-variant",
-    ],
+IMAGE_SENSORS: Final[dict[str, SensorEntityDescription]] = {
+    "usps_mail_image_system_path": SensorEntityDescription(
+        name="Mail Image System Path",
+        icon="mdi:folder-multiple-image",
+        key="usps_mail_image_system_path",
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+    ),
+    "usps_mail_image_url": SensorEntityDescription(
+        name="Mail Image URL",
+        icon="mdi:link-variant",
+        key="usps_mail_image_url",
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+    ),
 }
 
 # Name
