@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from typing import Final
-from homeassistant.components.sensor import SensorEntityDescription
 
+from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.const import ENTITY_CATEGORY_DIAGNOSTIC
 
 DOMAIN = "mail_and_packages"

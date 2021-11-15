@@ -1058,7 +1058,9 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
                 # Get combo number from subject line
                 email_subject = msg["subject"]
                 pattern = re.compile(r"{}".format(subject_regex))
-                found.append(pattern.search(email_subject).group(3))
+                search = pattern.search(email_subject)
+                if search is not None:
+                    found.append(search.group(3))
 
     info[const.ATTR_COUNT] = len(found)
     info[const.ATTR_CODE] = found
