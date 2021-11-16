@@ -134,6 +134,10 @@ class MailCam(Camera):
         _LOGGER.debug("Camera Update: %s", self._type)
         _LOGGER.debug("Custom No Mail: %s", self._no_mail)
 
+        if not self._coordinator.last_update_success:
+            _LOGGER.warning("Update to update camera image. Unavailable.")
+            return
+
         if self._coordinator.data is None:
             _LOGGER.warning("Unable to update camera image, no data.")
             return

@@ -464,6 +464,7 @@ def email_search(
 
     (check, new_value) = value
     if new_value[0] is None:
+        _LOGGER.warning("DEBUG email_search value was invalid: None")
         value = (check, [b""])
 
     return value
