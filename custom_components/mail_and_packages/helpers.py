@@ -1193,6 +1193,15 @@ def get_items(
                             )
                             continue
                         email_msg = email_msg.decode("utf-8", "ignore")
+
+                        # Check message body for order number
+                        if (
+                            (found := pattern.findall(email_msg))
+                            and len(found) > 0
+                            and found[0] not in order_number
+                        ):
+                            order_number.append(found[0])
+
                         searches = const.AMAZON_TIME_PATTERN.split(",")
                         for search in searches:
                             _LOGGER.debug("Looking for: %s", search)

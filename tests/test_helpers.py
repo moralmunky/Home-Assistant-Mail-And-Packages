@@ -770,6 +770,11 @@ async def test_amazon_shipped_order_uk(hass, mock_imap_amazon_shipped_uk):
     assert result == ["123-4567890-1234567"]
 
 
+async def test_amazon_shipped_order_uk(hass, mock_imap_amazon_shipped_uk_2):
+    result = get_items(mock_imap_amazon_shipped_uk_2, "order")
+    assert result == ["123-4567890-1234567"]
+
+
 async def test_amazon_shipped_order_it(hass, mock_imap_amazon_shipped_it):
     result = get_items(mock_imap_amazon_shipped_it, "order")
     assert result == ["405-5236882-9395563"]
