@@ -838,6 +838,26 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
         assert result == {}
 
 
+async def test_amazon_hub_2(hass, mock_imap_amazon_the_hub_2):
+    result = amazon_hub(mock_imap_amazon_the_hub_2)
+    assert result["count"] == 1
+    assert result["code"] == ["123456"]
+
+    with patch(
+        "custom_components.mail_and_packages.helpers.email_search",
+        return_value=("BAD", []),
+    ):
+        result = amazon_hub(mock_imap_amazon_the_hub_2)
+        assert result == {}
+
+    with patch(
+        "custom_components.mail_and_packages.helpers.email_search",
+        return_value=("OK", [None]),
+    ):
+        result = amazon_hub(mock_imap_amazon_the_hub_2)
+        assert result == {}
+
+
 async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
     with patch("quopri.decodestring", side_effect=ValueError):
         get_items(mock_imap_amazon_shipped, "order")

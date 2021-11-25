@@ -78,8 +78,10 @@ AMAZON_IMG_PATTERN = (
 )
 AMAZON_HUB = "amazon_hub"
 AMAZON_HUB_CODE = "amazon_hub_code"
-AMAZON_HUB_EMAIL = "thehub@amazon.com"
-AMAZON_HUB_SUBJECT = "(You have a package to pick up)(.*)- (\\d{6})"
+AMAZON_HUB_EMAIL = ["thehub@amazon.com", "order-update@amazon.com"]
+AMAZON_HUB_SUBJECT = "ready for pickup from Amazon Hub Locker"
+AMAZON_HUB_SUBJECT_SEARCH = "(You have a package to pick up)(.*)(\\d{6})"
+AMAZON_HUB_BODY = "(Your pickup code is <b>)(\\d{6})"
 AMAZON_TIME_PATTERN = "will arrive:,estimated delivery date is:,guaranteed delivery date is:,Arriving:,Arriverà:"
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
