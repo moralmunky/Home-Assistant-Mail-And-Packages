@@ -1028,40 +1028,59 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
 
     Returns dict of sensor data
     """
-    email_address = _process_amazon_forwards(fwds)
-    subject_regex = const.AMAZON_HUB_SUBJECT
+    email_addresses = _process_amazon_forwards(fwds)
+    body_regex = const.AMAZON_HUB_BODY
+    subject_regex = const.AMAZON_HUB_SUBJECT_SEARCH
     info = {}
     today = get_formatted_date()
 
-    email_address.append(const.AMAZON_HUB_EMAIL)
-    _LOGGER.debug("[Hub] Amazon email list: %s", str(email_address))
+    email_addresses.extend(const.AMAZON_HUB_EMAIL)
+    _LOGGER.debug("[Hub] Amazon email list: %s", str(email_addresses))
 
-    (server_response, sdata) = email_search(account, email_address, today)
+    for address in email_addresses:
+        (server_response, sdata) = email_search(
+            account, address, today, subject=const.AMAZON_HUB_SUBJECT
+        )
 
-    # Bail out on error
-    if server_response != "OK" or sdata[0] is None:
-        return info
+        # Bail out on error
+        if server_response != "OK" or sdata[0] is None:
+            return info
 
-    if len(sdata) == 0:
-        info[const.ATTR_COUNT] = 0
-        info[const.ATTR_CODE] = []
-        return info
+        if len(sdata) == 0:
+            info[const.ATTR_COUNT] = 0
+            info[const.ATTR_CODE] = []
+            return info
 
-    found = []
-    id_list = sdata[0].split()
-    _LOGGER.debug("Amazon hub emails found: %s", str(len(id_list)))
-    for i in id_list:
-        data = email_fetch(account, i, "(RFC822)")[1]
-        for response_part in data:
-            if isinstance(response_part, tuple):
-                msg = email.message_from_bytes(response_part[1])
+        found = []
+        id_list = sdata[0].split()
+        _LOGGER.debug("Amazon hub emails found: %s", str(len(id_list)))
+        for i in id_list:
+            data = email_fetch(account, i, "(RFC822)")[1]
+            for response_part in data:
+                if isinstance(response_part, tuple):
+                    msg = email.message_from_bytes(response_part[1])
 
-                # Get combo number from subject line
-                email_subject = msg["subject"]
-                pattern = re.compile(r"{}".format(subject_regex))
-                search = pattern.search(email_subject)
-                if search is not None:
-                    found.append(search.group(3))
+                    # Get combo number from subject line
+                    email_subject = msg["subject"]
+                    pattern = re.compile(r"{}".format(subject_regex))
+                    search = pattern.search(email_subject)
+                    if search is not None:
+                        if len(search.groups()) > 1:
+                            found.append(search.group(3))
+                            continue
+
+                    # Get combo number from message body
+                    try:
+                        email_msg = quopri.decodestring(str(msg.get_payload(0)))
+                    except Exception as err:
+                        _LOGGER.debug("Problem decoding email message: %s", str(err))
+                        continue
+                    email_msg = email_msg.decode("utf-8", "ignore")
+                    pattern = re.compile(r"{}".format(body_regex))
+                    search = pattern.search(email_msg)
+                    if search is not None:
+                        if len(search.groups()) > 1:
+                            found.append(search.group(2))
 
     info[const.ATTR_COUNT] = len(found)
     info[const.ATTR_CODE] = found
