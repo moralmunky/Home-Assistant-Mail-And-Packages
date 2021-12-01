@@ -139,6 +139,7 @@ SENSOR_DATA = {
         "email": ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"],
         "subject": [
             "Your package has been delivered",
+            "Your packages have been delivered",
         ],
     },
     "fedex_delivering": {
