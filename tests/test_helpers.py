@@ -1058,6 +1058,14 @@ async def test_fedex_out_for_delivery(hass, mock_imap_fedex_out_for_delivery):
     assert result["tracking"] == ["61290912345678912345"]
 
 
+async def test_fedex_out_for_delivery_2(hass, mock_imap_fedex_out_for_delivery_2):
+    result = get_count(
+        mock_imap_fedex_out_for_delivery_2, "fedex_delivering", True, "./", hass
+    )
+    assert result["count"] == 1
+    assert result["tracking"] == ["286548999999"]
+
+
 async def test_get_mails_email_search_none(
     mock_imap_usps_informed_digest_no_mail,
     mock_copyoverlays,

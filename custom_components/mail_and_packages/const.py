@@ -147,6 +147,7 @@ SENSOR_DATA = {
             "Delivery scheduled for today",
             "Your package is scheduled for delivery today",
             "Your package is now out for delivery",
+            "out for delivery today",
         ],
     },
     "fedex_packages": {},
