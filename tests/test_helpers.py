@@ -758,6 +758,16 @@ async def test_amazon_shipped_order_alt(hass, mock_imap_amazon_shipped_alt):
     assert result == ["123-1234567-1234567"]
 
 
+async def test_amazon_shipped_order_alt_2(hass, mock_imap_amazon_shipped_alt_2):
+    result = get_items(mock_imap_amazon_shipped_alt_2, "order")
+    assert result == ["113-9999999-8459426"]
+    with patch("datetime.date") as mock_date:
+        mock_date.today.return_value = date(2021, 12, 3)
+
+        result = get_items(mock_imap_amazon_shipped_alt_2, "count")
+        assert result == 1
+
+
 async def test_amazon_shipped_order_alt_timeformat(
     hass, mock_imap_amazon_shipped_alt_timeformat
 ):
