@@ -404,6 +404,7 @@ def mock_imap_fedex_out_for_delivery():
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
 
+
 @pytest.fixture()
 def mock_imap_fedex_out_for_delivery_2():
     """Mock imap class values."""
@@ -426,7 +427,7 @@ def mock_imap_fedex_out_for_delivery_2():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        yield mock_conn        
+        yield mock_conn
 
 
 @pytest.fixture()
