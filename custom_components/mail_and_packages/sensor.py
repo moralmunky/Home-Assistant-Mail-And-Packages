@@ -113,10 +113,9 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         return self.coordinator.last_update_success
 
     @property
-    def device_state_attributes(self) -> Optional[str]:
+    def extra_state_attributes(self) -> Optional[str]:
         """Return device specific state attributes."""
         attr = {}
-        attr[ATTR_SERVER] = self._host
         tracking = f"{self.type.split('_')[0]}_tracking"
         data = self.coordinator.data
 
