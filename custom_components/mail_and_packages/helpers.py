@@ -51,6 +51,7 @@ from .const import (
     ATTR_TRACKING,
     ATTR_USPS_MAIL,
     CONF_ALLOW_EXTERNAL,
+    CONF_AMAZON_DAYS,
     CONF_AMAZON_FWDS,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
@@ -58,6 +59,7 @@ from .const import (
     CONF_FOLDER,
     CONF_GENERATE_MP4,
     CONF_PATH,
+    DEFAULT_AMAZON_DAYS,
     OVERLAY,
     SENSOR_DATA,
     SENSOR_TYPES,
@@ -332,6 +334,7 @@ def fetch(
     amazon_fwds = config.get(CONF_AMAZON_FWDS)
     image_name = data[ATTR_IMAGE_NAME]
     amazon_image_name = data[ATTR_AMAZON_IMAGE]
+    amazon_days = config.get(CONF_AMAZON_DAYS)
 
     if config.get(CONF_CUSTOM_IMG):
         nomail = config.get(CONF_CUSTOM_IMG_FILE)
@@ -353,8 +356,18 @@ def fetch(
             nomail,
         )
     elif sensor == AMAZON_PACKAGES:
-        count[sensor] = get_items(account, ATTR_COUNT, amazon_fwds)
-        count[AMAZON_ORDER] = get_items(account, ATTR_ORDER)
+        count[sensor] = get_items(
+            account=account, 
+            param=ATTR_COUNT, 
+            fwds=amazon_fwds, 
+            days=amazon_days,
+        )
+        count[AMAZON_ORDER] = get_items(
+            account=account, 
+            param=ATTR_ORDER, 
+            fwds=amazon_fwds, 
+            days=amazon_days,
+        )
     elif sensor == AMAZON_HUB:
         value = amazon_hub(account, amazon_fwds)
         count[sensor] = value[ATTR_COUNT]
@@ -1175,6 +1188,7 @@ def get_items(
     account: Type[imaplib.IMAP4_SSL],
     param: str = None,
     fwds: Optional[str] = None,
+    days: int = DEFAULT_AMAZON_DAYS,
 ) -> Union[List[str], int]:
     """Parse Amazon emails for delivery date and order number.
 
@@ -1184,7 +1198,7 @@ def get_items(
     _LOGGER.debug("Attempting to find Amazon email with item list ...")
 
     # Limit to past 3 days (plan to make this configurable)
-    past_date = datetime.date.today() - datetime.timedelta(days=3)
+    past_date = datetime.date.today() - datetime.timedelta(days=days)
     tfmt = past_date.strftime("%d-%b-%Y")
     deliveries_today = []
     order_number = []

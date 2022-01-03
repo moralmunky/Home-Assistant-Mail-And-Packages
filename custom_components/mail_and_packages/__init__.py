@@ -12,12 +12,14 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import (
     CONF_ALLOW_EXTERNAL,
+    CONF_AMAZON_DAYS,
     CONF_AMAZON_FWDS,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_TIMEOUT,
     CONF_PATH,
     CONF_SCAN_INTERVAL,
     COORDINATOR,
+    DEFAULT_AMAZON_DAYS,
     DEFAULT_IMAP_TIMEOUT,
     DOMAIN,
     ISSUE_URL,
@@ -156,7 +158,7 @@ async def async_migrate_entry(hass, config_entry):
     """Migrate an old config entry."""
     version = config_entry.version
 
-    # 1 -> 3: Migrate format
+    # 1 -> 4: Migrate format
     if version == 1:
         _LOGGER.debug("Migrating from version %s", version)
         updated_config = config_entry.data.copy()
@@ -178,12 +180,16 @@ async def async_migrate_entry(hass, config_entry):
         if not config_entry.data[CONF_IMAGE_SECURITY]:
             updated_config[CONF_IMAGE_SECURITY] = True
 
+        # Add default Amazon Days configuration
+        updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS            
+
         if updated_config != config_entry.data:
             hass.config_entries.async_update_entry(config_entry, data=updated_config)
 
-        config_entry.version = 3
+        config_entry.version = 4
         _LOGGER.debug("Migration to version %s complete", config_entry.version)
 
+    # 2 -> 4
     if version == 2:
         _LOGGER.debug("Migrating from version %s", version)
         updated_config = config_entry.data.copy()
@@ -195,10 +201,26 @@ async def async_migrate_entry(hass, config_entry):
         if not config_entry.data[CONF_IMAGE_SECURITY]:
             updated_config[CONF_IMAGE_SECURITY] = True
 
+        # Add default Amazon Days configuration
+        updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS            
+
         if updated_config != config_entry.data:
             hass.config_entries.async_update_entry(config_entry, data=updated_config)
 
-        config_entry.version = 3
+        config_entry.version = 4
+        _LOGGER.debug("Migration to version %s complete", config_entry.version)
+
+    if version == 3:
+        _LOGGER.debug("Migrating from version %s", version)
+        updated_config = config_entry.data.copy()
+
+        # Add default Amazon Days configuration
+        updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
+
+        if updated_config != config_entry.data:
+            hass.config_entries.async_update_entry(config_entry, data=updated_config)
+
+        config_entry.version = 4
         _LOGGER.debug("Migration to version %s complete", config_entry.version)
 
     return True
