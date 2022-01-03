@@ -20,7 +20,6 @@ from .const import (
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
     ATTR_ORDER,
-    ATTR_SERVER,
     ATTR_TRACKING_NUM,
     CONF_PATH,
     COORDINATOR,

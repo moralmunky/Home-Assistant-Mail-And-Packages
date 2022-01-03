@@ -357,15 +357,15 @@ def fetch(
         )
     elif sensor == AMAZON_PACKAGES:
         count[sensor] = get_items(
-            account=account, 
-            param=ATTR_COUNT, 
-            fwds=amazon_fwds, 
+            account=account,
+            param=ATTR_COUNT,
+            fwds=amazon_fwds,
             days=amazon_days,
         )
         count[AMAZON_ORDER] = get_items(
-            account=account, 
-            param=ATTR_ORDER, 
-            fwds=amazon_fwds, 
+            account=account,
+            param=ATTR_ORDER,
+            fwds=amazon_fwds,
             days=amazon_days,
         )
     elif sensor == AMAZON_HUB:

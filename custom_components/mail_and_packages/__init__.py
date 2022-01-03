@@ -181,7 +181,7 @@ async def async_migrate_entry(hass, config_entry):
             updated_config[CONF_IMAGE_SECURITY] = True
 
         # Add default Amazon Days configuration
-        updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS            
+        updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
 
         if updated_config != config_entry.data:
             hass.config_entries.async_update_entry(config_entry, data=updated_config)
@@ -202,7 +202,7 @@ async def async_migrate_entry(hass, config_entry):
             updated_config[CONF_IMAGE_SECURITY] = True
 
         # Add default Amazon Days configuration
-        updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS            
+        updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
 
         if updated_config != config_entry.data:
             hass.config_entries.async_update_entry(config_entry, data=updated_config)
