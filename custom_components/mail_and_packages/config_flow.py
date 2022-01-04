@@ -19,6 +19,7 @@ from homeassistant.core import callback
 from .const import (
     CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_FWDS,
+    CONF_AMAZON_DAYS,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
     CONF_DURATION,
@@ -30,6 +31,7 @@ from .const import (
     CONF_SCAN_INTERVAL,
     DEFAULT_ALLOW_EXTERNAL,
     DEFAULT_AMAZON_FWDS,
+    DEFAULT_AMAZON_DAYS,
     DEFAULT_CUSTOM_IMG,
     DEFAULT_CUSTOM_IMG_FILE,
     DEFAULT_FOLDER,
@@ -188,6 +190,7 @@ def _get_schema_step_2(
             vol.Optional(
                 CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS, "")
             ): str,
+            vol.Optional(CONF_AMAZON_DAYS, default=_get_default(CONF_AMAZON_DAYS)): int,
             vol.Optional(
                 CONF_SCAN_INTERVAL, default=_get_default(CONF_SCAN_INTERVAL)
             ): vol.All(vol.Coerce(int)),
@@ -233,7 +236,7 @@ def _get_schema_step_3(
 class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Mail and Packages."""
 
-    VERSION = 3
+    VERSION = 4
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
@@ -305,6 +308,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             CONF_IMAGE_SECURITY: DEFAULT_IMAGE_SECURITY,
             CONF_IMAP_TIMEOUT: DEFAULT_IMAP_TIMEOUT,
             CONF_AMAZON_FWDS: DEFAULT_AMAZON_FWDS,
+            CONF_AMAZON_DAYS: DEFAULT_AMAZON_DAYS,
             CONF_GENERATE_MP4: False,
             CONF_ALLOW_EXTERNAL: DEFAULT_ALLOW_EXTERNAL,
             CONF_CUSTOM_IMG: DEFAULT_CUSTOM_IMG,
@@ -417,6 +421,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             CONF_IMAP_TIMEOUT: self._data.get(CONF_IMAP_TIMEOUT)
             or DEFAULT_IMAP_TIMEOUT,
             CONF_AMAZON_FWDS: self._data.get(CONF_AMAZON_FWDS) or DEFAULT_AMAZON_FWDS,
+            CONF_AMAZON_DAYS: self._data.get(CONF_AMAZON_DAYS) or DEFAULT_AMAZON_DAYS,
             CONF_GENERATE_MP4: self._data.get(CONF_GENERATE_MP4),
             CONF_ALLOW_EXTERNAL: self._data.get(CONF_ALLOW_EXTERNAL),
             CONF_RESOURCES: self._data.get(CONF_RESOURCES),
