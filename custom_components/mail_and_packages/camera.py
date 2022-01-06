@@ -179,7 +179,7 @@ class MailCam(Camera):
         return self._name
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the camera state attributes."""
         return {"file_path": self._file_path, CONF_HOST: self._host}
 

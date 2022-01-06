@@ -87,7 +87,7 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         return self.coordinator.last_update_success
 
     @property
-    def device_state_attributes(self) -> Optional[str]:
+    def extra_state_attributes(self) -> Optional[str]:
         """Return device specific state attributes."""
         attr = {}
         attr[const.ATTR_SERVER] = self._host
@@ -183,7 +183,7 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
         return self.coordinator.last_update_success
 
     @property
-    def device_state_attributes(self) -> Optional[str]:
+    def extra_state_attributes(self) -> Optional[str]:
         """Return device specific state attributes."""
         attr = {}
         return attr
