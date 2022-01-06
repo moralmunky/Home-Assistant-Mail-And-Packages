@@ -375,7 +375,7 @@ FAKE_CONFIG_DATA_MP4 = {
 
 FAKE_UPDATE_DATA = {
     "image_name": "mail_today.gif",
-    "mail_updated": "Sep-18-2020 06:29 PM",
+    "mail_updated": "2022-01-06T12:14:38+00:00",
     "usps_mail": 6,
     "usps_delivered": 3,
     "usps_delivering": 3,

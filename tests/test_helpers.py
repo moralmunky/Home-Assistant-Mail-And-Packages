@@ -1,7 +1,7 @@
 """Tests for helpers module."""
 import datetime
 import errno
-from datetime import date
+from datetime import date, timezone
 from unittest import mock
 from unittest.mock import call, mock_open, patch
 
@@ -50,7 +50,9 @@ async def test_get_formatted_date():
 
 
 async def test_update_time():
-    assert update_time() == datetime.datetime.now().strftime("%b-%d-%Y %I:%M %p")
+    assert update_time() == datetime.datetime.now(timezone.utc).isoformat(
+        timespec="minutes"
+    )
 
 
 async def test_cleanup_images(mock_listdir, mock_osremove):
@@ -112,7 +114,9 @@ async def test_process_emails(
     state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
     assert state.state == "http://127.0.0.1:8123/local/mail_and_packages/testfile.gif"
     result = process_emails(hass, config)
-    assert result["mail_updated"] == "Sep-23-2020 10:28 AM"
+    assert result["mail_updated"] == datetime.datetime(
+        2022, 1, 6, 12, 14, tzinfo=datetime.timezone.utc
+    )
     assert result["zpackages_delivered"] == 0
     assert result["zpackages_transit"] == 0
     assert result["amazon_delivered"] == 0
@@ -160,7 +164,9 @@ async def test_process_emails_external(
         == "http://really.fake.host.net:8123/local/mail_and_packages/testfile.gif"
     )
     result = process_emails(hass, config)
-    assert result["mail_updated"] == "Sep-23-2020 10:28 AM"
+    assert result["mail_updated"] == datetime.datetime(
+        2022, 1, 6, 12, 14, tzinfo=datetime.timezone.utc
+    )
     assert result["zpackages_delivered"] == 0
     assert result["zpackages_transit"] == 0
     assert result["amazon_delivered"] == 0
