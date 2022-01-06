@@ -1,6 +1,7 @@
 """ Helper functions for Mail and Packages """
 
 import datetime
+from datetime import timezone
 import email
 import hashlib
 import imaplib
@@ -473,8 +474,9 @@ def update_time() -> str:
 
     Returns current timestamp as string
     """
-    updated = datetime.datetime.now().strftime("%b-%d-%Y %I:%M %p")
-
+    #updated = datetime.datetime.now().strftime("%b-%d-%Y %I:%M %p")
+    updated = datetime.datetime.now(timezone.utc).isoformat(timespec='minutes')
+    
     return updated
 
 

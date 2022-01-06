@@ -1,4 +1,6 @@
 """ Fixtures for Mail and Packages tests. """
+import datetime
+from datetime import timezone
 import errno
 import imaplib
 import time
@@ -853,7 +855,8 @@ def mock_update_time():
     with patch(
         "custom_components.mail_and_packages.helpers.update_time"
     ) as mock_update_time:
-        mock_update_time.return_value = "Sep-23-2020 10:28 AM"
+        mock_update_time.return_value = datetime.datetime(2022, 1, 6, 12, 14, 38, tzinfo=timezone.utc).isoformat(timespec='minutes')
+        # mock_update_time.return_value = "2022-01-06T12:14:38+00:00"
         yield mock_update_time
 
 
