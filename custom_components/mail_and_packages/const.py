@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from homeassistant.components.sensor import SensorEntityDescription
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription
 from homeassistant.const import ENTITY_CATEGORY_DIAGNOSTIC
 
 DOMAIN = "mail_and_packages"
@@ -221,6 +221,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:update",
         key="mail_updated",
         entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        device_class=SensorDeviceClass.TIMESTAMP,
     ),
     "usps_mail": SensorEntityDescription(
         name="Mail USPS Mail",
