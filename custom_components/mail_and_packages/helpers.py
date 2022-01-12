@@ -1290,7 +1290,7 @@ def get_items(
                             elif email_msg.find("Per tracciare il tuo pacco") != -1:
                                 end = email_msg.find("Per tracciare il tuo pacco")
 
-                            arrive_date = email_msg[start:end].strip()
+                            arrive_date = email_msg[start:end].strip().replace(">", "")
                             arrive_date = arrive_date.split(" ")
                             arrive_date = arrive_date[0:3]
                             # arrive_date[2] = arrive_date[2][:3]
