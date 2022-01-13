@@ -68,8 +68,10 @@ DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.
 DEFAULT_AMAZON_DAYS = 3
 
 # Amazon
-AMAZON_DOMAINS = "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de,amazon.it"
-AMAZON_DELIVERED_SUBJECT = ["Delivered: Your", "Consegna effettuata:"]
+AMAZON_DOMAINS = (
+    "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de,amazon.it,amazon.pl"
+)
+AMAZON_DELIVERED_SUBJECT = ["Delivered: Your", "Consegna effettuata:", "Dostarczono: "]
 AMAZON_SHIPMENT_TRACKING = ["shipment-tracking", "conferma-spedizione"]
 AMAZON_EMAIL = "order-update@"
 AMAZON_PACKAGES = "amazon_packages"
@@ -84,7 +86,7 @@ AMAZON_HUB_EMAIL = ["thehub@amazon.com", "order-update@amazon.com"]
 AMAZON_HUB_SUBJECT = "ready for pickup from Amazon Hub Locker"
 AMAZON_HUB_SUBJECT_SEARCH = "(You have a package to pick up)(.*)(\\d{6})"
 AMAZON_HUB_BODY = "(Your pickup code is <b>)(\\d{6})"
-AMAZON_TIME_PATTERN = "will arrive:,estimated delivery date is:,guaranteed delivery date is:,Arriving:,Arriverà:,arriving:"
+AMAZON_TIME_PATTERN = "will arrive:,estimated delivery date is:,guaranteed delivery date is:,Arriving:,Arriverà:,arriving:,Dostawa:"
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
 AMAZON_EXCEPTION = "amazon_exception"
@@ -94,6 +96,7 @@ AMAZON_LANGS = ["it_IT", "it_IT.UTF-8", ""]
 
 # Sensor Data
 SENSOR_DATA = {
+    # USPS
     "usps_delivered": {
         "email": ["auto-reply@usps.com"],
         "subject": ["Item Delivered"],
@@ -117,6 +120,7 @@ SENSOR_DATA = {
         ],
         "subject": ["Your Daily Digest"],
     },
+    # UPS
     "ups_delivered": {
         "email": ["mcinfo@ups.com"],
         "subject": [
@@ -138,6 +142,7 @@ SENSOR_DATA = {
     },
     "ups_packages": {},
     "ups_tracking": {"pattern": ["1Z?[0-9A-Z]{16}"]},
+    # FedEx
     "fedex_delivered": {
         "email": ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"],
         "subject": [
@@ -156,6 +161,7 @@ SENSOR_DATA = {
     },
     "fedex_packages": {},
     "fedex_tracking": {"pattern": ["\\d{12,20}"]},
+    # Canada Post
     "capost_delivered": {
         "email": ["donotreply@canadapost.postescanada.ca"],
         "subject": [
@@ -165,23 +171,37 @@ SENSOR_DATA = {
     "capost_delivering": {},
     "capost_packages": {},
     "capost_tracking": {},
+    # DHL
     "dhl_delivered": {
-        "email": ["donotreply_odd@dhl.com", "NoReply.ODD@dhl.com", "noreply@dhl.de"],
+        "email": [
+            "donotreply_odd@dhl.com",
+            "NoReply.ODD@dhl.com",
+            "noreply@dhl.de",
+            "pl.no.reply@dhl.com",
+        ],
         "subject": [
             "DHL On Demand Delivery",
+            "Powiadomienie o przesyłce",
         ],
-        "body": ["has been delivered"],
+        "body": ["has been delivered", "została doręczona"],
     },
     "dhl_delivering": {
-        "email": ["donotreply_odd@dhl.com", "NoReply.ODD@dhl.com", "noreply@dhl.de"],
+        "email": [
+            "donotreply_odd@dhl.com",
+            "NoReply.ODD@dhl.com",
+            "noreply@dhl.de",
+            "pl.no.reply@dhl.com",
+        ],
         "subject": [
             "DHL On Demand Delivery",
             "paket kommt heute",
+            "Powiadomienie o przesyłce",
         ],
-        "body": ["scheduled for delivery TODAY"],
+        "body": ["scheduled for delivery TODAY", "zostanie dziś do Państwa doręczona"],
     },
     "dhl_packages": {},
-    "dhl_tracking": {"pattern": ["number \\d{10} from"]},
+    "dhl_tracking": {"pattern": ["\\d{10}"]},
+    # Hermes.co.uk
     "hermes_delivered": {
         "email": ["donotreply@myhermes.co.uk"],
         "subject": ["Hermes has successfully delivered your"],
@@ -192,6 +212,7 @@ SENSOR_DATA = {
     },
     "hermes_packages": {},
     "hermes_tracking": {"pattern": ["\\d{16}"]},
+    # Royal Mail
     "royal_delivered": {
         "email": ["no-reply@royalmail.com"],
         "subject": ["has been delivered"],
@@ -202,6 +223,93 @@ SENSOR_DATA = {
     },
     "royal_packages": {},
     "royal_tracking": {"pattern": ["[A-Za-z]{2}[0-9]{9}GB"]},
+    # Poczta Polska SA
+    "pocztapolska_delivered": {},
+    "pocztapolska_delivering": {
+        "email": ["informacja@poczta-polska.pl", "powiadomienia@allegromail.pl"],
+        "subject": ["Poczta Polska S.A. eINFO"],
+    },
+    "pocztapolska_packages": {},
+    "pocztapolska_tracking": {
+        # http://emonitoring.poczta-polska.pl/?numer=00359007738913296666
+        "pattern": ["\\d{20}"]
+    },
+    # InPost.pl
+    "inpostpl_delivered": {
+        "email": ["powiadomienia@inpost.pl", "powiadomienia@allegromail.pl"],
+        "subject": [
+            "InPost - Potwierdzenie odbioru przesyłki",
+            "InPost - Paczka umieszczona w Paczkomacie",
+        ],
+    },
+    "inpostpl_delivering": {
+        "email": ["powiadomienia@inpost.pl"],
+        "subject": ["paczka jest w drodze", "jest już prawie u Ciebie"],
+    },
+    "inpostpl_packages": {},
+    "inpostpl_tracking": {
+        # https://inpost.pl/sledzenie-przesylek?number=520113017830399002575123
+        "pattern": ["\\d{24}"]
+    },
+    # DPD Poland
+    "dpdcompl_delivered": {
+        "email": [
+            "KurierDPD0@dpd.com.pl",
+            "KurierDPD1@dpd.com.pl",
+            "KurierDPD2@dpd.com.pl",
+            "KurierDPD3@dpd.com.pl",
+            "KurierDPD4@dpd.com.pl",
+            "KurierDPD5@dpd.com.pl",
+            "KurierDPD6@dpd.com.pl",
+            "KurierDPD7@dpd.com.pl",
+            "KurierDPD8@dpd.com.pl",
+            "KurierDPD9@dpd.com.pl",
+            "KurierDPD10@dpd.com.pl",
+        ],
+        "subject": [
+            "została doręczona",
+        ],
+    },
+    "dpdcompl_delivering": {
+        "email": [
+            "KurierDPD0@dpd.com.pl",
+            "KurierDPD1@dpd.com.pl",
+            "KurierDPD2@dpd.com.pl",
+            "KurierDPD3@dpd.com.pl",
+            "KurierDPD4@dpd.com.pl",
+            "KurierDPD5@dpd.com.pl",
+            "KurierDPD6@dpd.com.pl",
+            "KurierDPD7@dpd.com.pl",
+            "KurierDPD8@dpd.com.pl",
+            "KurierDPD9@dpd.com.pl",
+            "KurierDPD10@dpd.com.pl",
+        ],
+        "subject": ["Bezpieczne doręczenie"],
+        "body": ["Dziś doręczamy"],
+    },
+    "dpdcompl_packages": {},
+    "dpdcompl_tracking": {
+        # https://tracktrace.dpd.com.pl/parcelDetails?p1=13490015284111
+        "pattern": ["\\d{13}[A-Z0-9]{1,2}"],
+    },
+    # GLS
+    "gls_delivered": {
+        "email": ["noreply@gls-group.eu"],
+        "subject": [
+            "informacja o dostawie",
+        ],
+        "body": ["została dzisiaj dostarczona"],
+    },
+    "gls_delivering": {
+        "email": ["noreply@gls-group.eu"],
+        "subject": ["paczka w drodze"],
+    },
+    "gls_packages": {},
+    "gls_tracking": {
+        # https://gls-group.eu/GROUP/en/parcel-tracking?match=51687952111
+        "pattern": ["\\d{11}"]
+    },
+    # Australia Post
     "auspost_delivered": {
         "email": ["noreply@notifications.auspost.com.au"],
         "subject": ["Your shipment has been delivered"],
@@ -223,6 +331,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         device_class=SensorDeviceClass.TIMESTAMP,
     ),
+    # USPS
     "usps_mail": SensorEntityDescription(
         name="Mail USPS Mail",
         native_unit_of_measurement="piece(s)",
@@ -253,6 +362,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="usps_packages",
     ),
+    # UPS
     "ups_delivered": SensorEntityDescription(
         name="Mail UPS Delivered",
         native_unit_of_measurement="package(s)",
@@ -277,6 +387,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="ups_packages",
     ),
+    # FedEx
     "fedex_delivered": SensorEntityDescription(
         name="Mail FedEx Delivered",
         native_unit_of_measurement="package(s)",
@@ -295,6 +406,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="fedex_packages",
     ),
+    # Amazon
     "amazon_packages": SensorEntityDescription(
         name="Mail Amazon Packages",
         native_unit_of_measurement="package(s)",
@@ -319,6 +431,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package",
         key="amazon_hub",
     ),
+    # Canada Post
     "capost_delivered": SensorEntityDescription(
         name="Mail Canada Post Delivered",
         native_unit_of_measurement="package(s)",
@@ -337,6 +450,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="capost_packages",
     ),
+    # DHL
     "dhl_delivered": SensorEntityDescription(
         name="Mail DHL Delivered",
         native_unit_of_measurement="package(s)",
@@ -355,6 +469,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="dhl_packages",
     ),
+    # Hermes
     "hermes_delivered": SensorEntityDescription(
         name="Mail Hermes Delivered",
         native_unit_of_measurement="package(s)",
@@ -373,6 +488,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="hermes_packages",
     ),
+    # Royal Mail
     "royal_delivered": SensorEntityDescription(
         name="Mail Royal Mail Delivered",
         native_unit_of_measurement="package(s)",
@@ -391,6 +507,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="royal_packages",
     ),
+    # Australia Post
     "auspost_delivered": SensorEntityDescription(
         name="Mail AusPost Delivered",
         native_unit_of_measurement="package(s)",
@@ -408,6 +525,76 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="auspost_packages",
+    ),
+    # Poczta Polska SA
+    "pocztapolska_delivering": SensorEntityDescription(
+        name="Poczta Polska SA Packages Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="pocztapolska_delivering",
+    ),
+    "pocztapolska_packages": SensorEntityDescription(
+        name="Poczta Polska SA Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="pocztapolska_packages",
+    ),
+    "inpostpl_delivering": SensorEntityDescription(
+        name="InPost.pl Packages Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="inpostpl_delivering",
+    ),
+    # InPost.pl
+    "inpostpl_delivered": SensorEntityDescription(
+        name="InPost.pl Packages Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="inpostpl_delivered",
+    ),
+    "inpostpl_packages": SensorEntityDescription(
+        name="InPost.pl Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="inpostpl_packages",
+    ),
+    # DPD Poland
+    "dpdcompl_delivering": SensorEntityDescription(
+        name="DPD.com.pl Packages Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="dpdcompl_delivering",
+    ),
+    "dpdcompl_delivered": SensorEntityDescription(
+        name="DPD.com.pl Packages Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="dpdcompl_delivered",
+    ),
+    "dpdcompl_packages": SensorEntityDescription(
+        name="DPD.com.pl Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="dpdcompl_packages",
+    ),
+    # GLS
+    "gls_delivering": SensorEntityDescription(
+        name="GLS Packages Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="gls_delivering",
+    ),
+    "gls_delivered": SensorEntityDescription(
+        name="GLS Packages Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="dpdcompl_delivered",
+    ),
+    "gls_packages": SensorEntityDescription(
+        name="GLS Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="gls_packages",
     ),
     ###
     # !!! Insert new sensors above these two !!!
@@ -453,4 +640,16 @@ SENSOR_UNIT = 1
 SENSOR_ICON = 2
 
 # For sensors with delivering and delivered statuses
-SHIPPERS = ["capost", "dhl", "fedex", "ups", "usps", "hermes", "royal", "auspost"]
+SHIPPERS = [
+    "capost",
+    "dhl",
+    "fedex",
+    "ups",
+    "usps",
+    "hermes",
+    "royal",
+    "auspost",
+    "inpostpl",
+    "dpdcompl",
+    "gls",
+]
