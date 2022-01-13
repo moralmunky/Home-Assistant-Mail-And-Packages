@@ -1098,3 +1098,8 @@ async def test_email_search_none(mock_imap_search_error_none, caplog):
         mock_imap_search_error_none, "fake@eamil.address", "01-Jan-20"
     )
     assert result == ("OK", [b""])
+
+async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd,caplog):
+    result = get_items(mock_imap_amazon_fwd, "order")
+    assert result == ["123-1234567-1234567"]
+    assert "Arrive Date: Tuesday, January 11" in caplog.text

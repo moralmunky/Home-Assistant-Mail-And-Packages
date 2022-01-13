@@ -1267,6 +1267,8 @@ def get_items(
                             continue
                         email_msg = email_msg.decode("utf-8", "ignore")
 
+                        _LOGGER.debug("RAW EMAIL: %s", email_msg)
+
                         # Check message body for order number
                         if (
                             (found := pattern.findall(email_msg))
@@ -1289,8 +1291,11 @@ def get_items(
                                 end = email_msg.find("Track your")
                             elif email_msg.find("Per tracciare il tuo pacco") != -1:
                                 end = email_msg.find("Per tracciare il tuo pacco")
+                            elif email_msg.find("View or manage order") != -1:
+                                end = email_msg.find("View or manage order")
 
-                            arrive_date = email_msg[start:end].strip().replace(">", "")
+                            arrive_date = email_msg[start:end].replace(">", "").strip()
+                            _LOGGER.debug("First pass: %s", arrive_date)
                             arrive_date = arrive_date.split(" ")
                             arrive_date = arrive_date[0:3]
                             # arrive_date[2] = arrive_date[2][:3]
