@@ -69,7 +69,7 @@ def login():
 
 def selectfolder(account, folder):
     (rv, mailboxes) = account.list()
-    (rv, data) = account.select(folder, readonly=True)
+    (rv, data) = account.select(folder)
 
 
 # Returns today in specific format

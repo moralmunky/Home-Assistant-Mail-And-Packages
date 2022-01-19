@@ -449,7 +449,7 @@ def selectfolder(account: Type[imaplib.IMAP4_SSL], folder: str) -> bool:
         _LOGGER.error("Error listing folders: %s", str(err))
         return False
     try:
-        account.select(folder, readonly=True)
+        account.select(folder)
     except Exception as err:
         _LOGGER.error("Error selecting folder: %s", str(err))
         return False
@@ -501,6 +501,8 @@ def email_search(
         else:
             email_list = '" FROM "'.join(address)
             prefix_list = " ".join(["OR"] * (len(address) - 1))
+
+    _LOGGER.debug("DEBUG subject: %s", subject)
 
     if subject is not None:
         search = f'FROM "{email_list}" SUBJECT "{subject}" {the_date}'

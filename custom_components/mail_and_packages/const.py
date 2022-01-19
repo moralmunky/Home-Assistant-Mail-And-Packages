@@ -106,7 +106,7 @@ AMAZON_EXCEPTION_BODY = "running late"
 AMAZON_EXCEPTION = "amazon_exception"
 AMAZON_EXCEPTION_ORDER = "amazon_exception_order"
 AMAZON_PATTERN = "[0-9]{3}-[0-9]{7}-[0-9]{7}"
-AMAZON_LANGS = ["it_IT", "it_IT.UTF-8", ""]
+AMAZON_LANGS = ["it_IT", "it_IT.UTF-8", "pl_PL", "pl_PL.UTF-8", ""]
 
 # Sensor Data
 SENSOR_DATA = {
@@ -214,7 +214,7 @@ SENSOR_DATA = {
         "body": ["scheduled for delivery TODAY", "zostanie dziś do Państwa doręczona"],
     },
     "dhl_packages": {},
-    "dhl_tracking": {"pattern": ["\\d{10}"]},
+    "dhl_tracking": {"pattern": ["\\d{10,11}"]},
     # Hermes.co.uk
     "hermes_delivered": {
         "email": ["donotreply@myhermes.co.uk"],
@@ -252,7 +252,7 @@ SENSOR_DATA = {
     "inpost_pl_delivered": {
         "email": ["powiadomienia@inpost.pl", "powiadomienia@allegromail.pl"],
         "subject": [
-            "InPost - Potwierdzenie odbioru przesyłki",
+            "InPost - Potwierdzenie odbioru",
             "InPost - Paczka umieszczona w Paczkomacie",
         ],
     },
@@ -281,9 +281,7 @@ SENSOR_DATA = {
             "KurierDPD10@dpd.com.pl",
             "powiadomienia@allegromail.pl",
         ],
-        "subject": [
-            "została doręczona",
-        ],
+        "subject": ["została doręczona"],
     },
     "dpd_com_pl_delivering": {
         "email": [
@@ -301,11 +299,10 @@ SENSOR_DATA = {
             "powiadomienia@allegromail.pl",
         ],
         "subject": [
-            "Bezpieczne_dor=C4=99czenie_Twojej_paczki",
             "Bezpieczne doręczenie",
             "przesyłka została nadana",
         ],
-        "body": ["Dzi=C5=9B dor=C4=99czamy", "DPD Polska"],
+        "body": ["Dziś doręczamy", "DPD Polska"],
     },
     "dpd_com_pl_packages": {},
     "dpd_com_pl_tracking": {
