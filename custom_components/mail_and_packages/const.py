@@ -250,15 +250,26 @@ SENSOR_DATA = {
     },
     # InPost.pl
     "inpost_pl_delivered": {
-        "email": ["powiadomienia@inpost.pl", "powiadomienia@allegromail.pl"],
+        "email": [
+            "powiadomienia@inpost.pl",
+            "info@paczkomaty.pl",
+            "powiadomienia@allegromail.pl",
+        ],
         "subject": [
             "InPost - Potwierdzenie odbioru",
             "InPost - Paczka umieszczona w Paczkomacie",
         ],
     },
     "inpost_pl_delivering": {
-        "email": ["powiadomienia@inpost.pl", "powiadomienia@allegromail.pl"],
-        "subject": ["paczka jest w drodze", "prawie u Ciebie"],
+        "email": [
+            "powiadomienia@inpost.pl",
+            "info@paczkomaty.pl",
+            "powiadomienia@allegromail.pl",
+        ],
+        "subject": [
+            "Kurier InPost: Twoja paczka jest w drodze",
+            "prawie u Ciebie",
+        ],
     },
     "inpost_pl_packages": {},
     "inpost_pl_tracking": {
