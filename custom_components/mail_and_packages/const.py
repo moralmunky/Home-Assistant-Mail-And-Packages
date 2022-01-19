@@ -68,9 +68,15 @@ DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.
 DEFAULT_AMAZON_DAYS = 3
 
 # Amazon
-AMAZON_DOMAINS = (
-    "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de,amazon.it,amazon.pl"
-)
+AMAZON_DOMAINS = [
+    "amazon.com",
+    "amazon.ca",
+    "amazon.co.uk",
+    "amazon.in",
+    "amazon.de",
+    "amazon.it",
+    "amazon.pl",
+]
 AMAZON_DELIVERED_SUBJECT = ["Delivered: Your", "Consegna effettuata:", "Dostarczono: "]
 AMAZON_SHIPMENT_TRACKING = ["shipment-tracking", "conferma-spedizione"]
 AMAZON_EMAIL = "order-update@"
@@ -86,7 +92,15 @@ AMAZON_HUB_EMAIL = ["thehub@amazon.com", "order-update@amazon.com"]
 AMAZON_HUB_SUBJECT = "ready for pickup from Amazon Hub Locker"
 AMAZON_HUB_SUBJECT_SEARCH = "(You have a package to pick up)(.*)(\\d{6})"
 AMAZON_HUB_BODY = "(Your pickup code is <b>)(\\d{6})"
-AMAZON_TIME_PATTERN = "will arrive:,estimated delivery date is:,guaranteed delivery date is:,Arriving:,Arriverà:,arriving:,Dostawa:"
+AMAZON_TIME_PATTERN = [
+    "will arrive:",
+    "estimated delivery date is:",
+    "guaranteed delivery date is:",
+    "Arriving:",
+    "Arriverà:",
+    "arriving:",
+    "Dostawa:",
+]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
 AMAZON_EXCEPTION = "amazon_exception"
@@ -244,7 +258,7 @@ SENSOR_DATA = {
     },
     "inpost_pl_delivering": {
         "email": ["powiadomienia@inpost.pl", "powiadomienia@allegromail.pl"],
-        "subject": ["paczka jest w drodze", "jest już prawie u Ciebie"],
+        "subject": ["paczka jest w drodze", "prawie u Ciebie"],
     },
     "inpost_pl_packages": {},
     "inpost_pl_tracking": {

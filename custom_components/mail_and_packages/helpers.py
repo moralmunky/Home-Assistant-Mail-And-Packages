@@ -981,7 +981,7 @@ def amazon_search(
     Returns email found count as integer
     """
     _LOGGER.debug("Searching for Amazon delivered email(s)...")
-    domains = AMAZON_DOMAINS.split(",")
+    domains = AMAZON_DOMAINS
     subjects = AMAZON_DELIVERED_SUBJECT
     today = get_formatted_date()
     count = 0
@@ -1159,7 +1159,7 @@ def amazon_exception(
     tfmt = get_formatted_date()
     count = 0
     info = {}
-    domains = AMAZON_DOMAINS.split(",")
+    domains = AMAZON_DOMAINS
     if isinstance(fwds, list):
         for fwd in fwds:
             if fwd and fwd != '""':
@@ -1214,7 +1214,7 @@ def get_items(
     order_number = []
     domains = _process_amazon_forwards(fwds)
 
-    main_domains = AMAZON_DOMAINS.split(",")
+    main_domains = AMAZON_DOMAINS
     for main_domain in main_domains:
         domains.append(main_domain)
 
@@ -1284,7 +1284,7 @@ def get_items(
                         ):
                             order_number.append(found[0])
 
-                        searches = AMAZON_TIME_PATTERN.split(",")
+                        searches = AMAZON_TIME_PATTERN
                         for search in searches:
                             _LOGGER.debug("Looking for: %s", search)
                             if search not in email_msg:
