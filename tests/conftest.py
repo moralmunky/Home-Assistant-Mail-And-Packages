@@ -1211,13 +1211,13 @@ def mock_imap_auspost_delivered():
 
 
 @pytest.fixture()
-def mock_imap_inpostpl_out_for_delivery():
+def mock_imap_poczta_polska_delivering():
     """Mock imap class values."""
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
-    ) as mock_imap_inpostpl_out_for_delivery:
+    ) as mock_imap_poczta_polska_delivering:
         mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
-        mock_imap_inpostpl_out_for_delivery.IMAP4_SSL.return_value = mock_conn
+        mock_imap_poczta_polska_delivering.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
             "OK",
@@ -1228,7 +1228,7 @@ def mock_imap_inpostpl_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/inpostpl_out_for_delivery.eml", "r")
+        f = open("tests/test_emails/poczta_polska_delivering.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
@@ -1236,13 +1236,13 @@ def mock_imap_inpostpl_out_for_delivery():
 
 
 @pytest.fixture()
-def mock_imap_inpostpl_delivered():
+def mock_imap_inpost_pl_out_for_delivery():
     """Mock imap class values."""
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
-    ) as mock_imap_inpostpl_delivered:
+    ) as mock_imap_inpost_pl_out_for_delivery:
         mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
-        mock_imap_inpostpl_delivered.IMAP4_SSL.return_value = mock_conn
+        mock_imap_inpost_pl_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
             "OK",
@@ -1253,7 +1253,57 @@ def mock_imap_inpostpl_delivered():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/inpostpl_delivered.eml", "r")
+        f = open("tests/test_emails/inpost_pl_out_for_delivery.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_inpost_pl_delivered():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_inpost_pl_delivered:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_inpost_pl_delivered.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/inpost_pl_delivered.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_dpd_com_pl_delivering():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_dpd_com_pl_delivering:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_dpd_com_pl_delivering.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/dpd_com_pl_delivering.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])

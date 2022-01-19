@@ -1,0 +1,83 @@
+Delivered-To: redacted@email.com
+Received: by 2002:a59:dd4c:0:b0:271:7674:4f97 with SMTP id s12csp6228910vqs;
+        Wed, 22 Dec 2021 15:33:25 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJwl1sMjV9+o4x8RfnBQCcpCFjO3Sh2cRSw74UIz2CMgcwcQu8tIhYEsJUwMzNqCh72aHoPj
+X-Received: by 2002:a1c:f609:: with SMTP id w9mr34829wmc.99.1640216005734;
+        Wed, 22 Dec 2021 15:33:25 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1640216005; cv=none;
+        d=google.com; s=arc-20160816;
+        b=zdEriAwtdMCGH8QHusQ010U4oe6rH1U6hp9EhG5G/+7mHom7iJs1q0MDC+quIilGKi
+         k8QsMx0ZeiZhH+8HwQ1QaDNlD8tLmrslWz59QeJuTXf15Ke7DN9IE171K47fiRglyYmL
+         t87moR7q8MWGQjQHAvzggDZ55PONWGyuI3LS/EKIm/F4QT4wpGqCMgjn03JkQAPZ/LKu
+         lzj/tC+OGZ7WYMsQA+kq+wYcjHr4JetNFWpsEGx2vMXTiSAxXKKVyGn4ipH9q1mywp+V
+         Iv7g2McAgGrxcdrEKudoDxlaAYgwBSwA4TkuExcIIlSjrNZmJ8bfr2UVMqQJ9ydSPCEr
+         3mbQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=date:message-id:subject:cc:to:from;
+        bh=HXz5SQODCpjGMSO4I6NtjsLeuwbAaeONx+w+ZkYs+yg=;
+        b=sXCuyp0MNrrf5FVY8sxufnObt6oy6qYpMpo/3k8huurSQy9j74/OTcVWWt1oESTXRG
+         IA7G/d1jgU8MQysO9VRG5PXJP373NajuW1i8CzKDB0lY0ExBuhgSOzumk+kM4rnPVrlW
+         9dJ0dUcf0yjGApsa8/V2Km1F8/yPUC4860vSGmJR0xJyvMMLwMMt46627A7kan3rulXw
+         KlX57X+ilT0od4iy6f4v6fbt3gn/ePCELvqVhgOjvdvNSec1FvWPJF6p9psoNI/R2i15
+         jhyC6W6d0L+z4gG/zJAnOAt0/ARv7rtp+uav5OdeYhbR8YFR+9fT1NPswFk/LdPPINdT
+         HCoQ==
+ARC-Authentication-Results: i=1; mx.google.com;
+       spf=pass (google.com: domain of noreply@gls-group.eu designates 193.106.225.236 as permitted sender) smtp.mailfrom=noreply@gls-group.eu;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=gls-group.eu
+Return-Path: <noreply@gls-group.eu>
+Received: from glsmail02.gls-group.eu (glsmail02.gls-group.eu. [193.106.225.236])
+        by mx.google.com with ESMTPS id g2si1638247wrq.775.2021.12.22.15.33.25
+        for <redacted@email.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 22 Dec 2021 15:33:25 -0800 (PST)
+Received-SPF: pass (google.com: domain of noreply@gls-group.eu designates 193.106.225.236 as permitted sender) client-ip=193.106.225.236;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of noreply@gls-group.eu designates 193.106.225.236 as permitted sender) smtp.mailfrom=noreply@gls-group.eu;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=gls-group.eu
+Received: from apl7.portal1.gls-unique.com (glsmail-vip [193.106.225.20])
+	by glsmail02.gls-group.eu (Postfix) with ESMTP id 3607C803F264
+	for <redacted@email.com>; Thu, 23 Dec 2021 00:33:25 +0100 (CET)
+Received: by apl7.portal1.gls-unique.com (Postfix, from userid 1000)
+	id 36D151800088; Thu, 23 Dec 2021 00:33:25 +0100 (CET)
+From: GLS<noreply@gls-group.eu>
+To: redacted@email.com
+CC: 
+Subject: =?ISO-8859-1?Q?Kurier=20GLS=20-=20wybierz=20opcje=20dostawy=20-=20paczka=20w=20drodze?=
+Content-Type: text/html; charset=UTF-8
+Message-Id: <20211222233325.36D151800088@apl7.portal1.gls-unique.com>
+Date: Thu, 23 Dec 2021 00:33:25 +0100 (CET)
+
+<HTML>
+<BODY>
+<font face='Arial'><p><img src='https://gls-group.eu/resources/img/mail/header03.jpg' alt='GLS FlexDeliveryService'></p>Szanowny Odbiorco,<br>
+<br>
+informujemy, &#380;e paczka o numerze: <a href=https://gls-group.eu/track/90346692444>90346692444</a> (Nr referencyjny: 23221984) nadana przez Mailboxde.com GmbH CLIPA zosta&#322;a przekazana kurierowi GLS.<br>
+<br>
+Przewidywana data dor&#281;czenia:<b>2021-12-24.</b>w godzinach: <b>11:00 - 16:00.</b><br>
+<br>
+<b>Nie b&#281;dzie Ciebie w miejscu dostawy w podanym terminie? Skorzystaj z jednej z wielu opcji przekierowa&#324; paczek np. odbierz wygodnie i bezpiecznie swoje paczki z punkt&#243;w Szybka Paczka / ParcelShop na terenie ca&#322;ego kraju!</b><br>
+<br>
+Kliknij w poni&#380;szy link i przekieruj swoj&#261; paczk&#281; np. do wybranego przez Ciebie punktu Szybka Paczka / ParcelShop.<br>
+<br>
+<a href='https://gls-group.eu/fdf?unitno=90346692444&key=3500f2dc17c3ee2892f83243d277ee8a'>Zmieniam za pomoca przegladarki www</a><br>
+<br>
+Je&#347;li wcze&#347;niej z&#322;o&#380;ona zosta&#322;a dyspozycja zmiany dostawy, nie ma potrzeby ponownego jej dokonywania.<br>
+<br>
+ Aktualnie wybrany adres dor&#281;czenia: John Doe A redacted@email.com, ul. Street Name 7, 12-345 City.<br>
+<br>
+Odbieraj&#261;c paczk&#281; pobraniow&#261; od kuriera skorzystaj z bezdotykowej us&#322;ugi p&#322;atno&#347;ci BLIKIEM lub zap&#322;a&#263; got&#243;wk&#261;.<br>
+<br>
+Pozdrawiamy,<br>
+Zesp&#243;&#322; GLS<br>
+<br>
+Infolinia GLS:<br>
+<br>
+46 814 82 20 (koszt wg stawek operatora osoby dzwoni&#261;cej).<br>
+Godziny pracy: pon.-pt. w godzinach 7.00 - 19.00, w sob. w godzinach 7.00 - 15.00.<br>
+<br>
+Odwied&#378; nas na <a href=https://gls-group.eu>www.gls-group.eu</a><br>
+<br>
+Wiadomo&#347;&#263; wygenerowana  automatycznie, prosimy na ni&#261; nie odpowiada&#263;.<br>
+<br>
+</font></BODY>
+</HTML>

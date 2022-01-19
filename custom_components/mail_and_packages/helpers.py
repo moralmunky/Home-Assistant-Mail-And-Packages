@@ -380,12 +380,12 @@ def fetch(
         count[sensor] = info[ATTR_COUNT]
         count[AMAZON_EXCEPTION_ORDER] = info[ATTR_ORDER]
     elif "_packages" in sensor:
-        prefix = sensor.split("_")[0]
+        prefix = sensor.replace("_packages", "")
         delivering = fetch(hass, config, account, data, f"{prefix}_delivering")
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
         count[sensor] = delivering + delivered
     elif "_delivering" in sensor:
-        prefix = sensor.split("_")[0]
+        prefix = sensor.replace("_delivering", "")
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
         info = get_count(account, sensor, True)
         count[sensor] = max(0, info[ATTR_COUNT] - delivered)
@@ -442,7 +442,6 @@ def login(
 
 
 def selectfolder(account: Type[imaplib.IMAP4_SSL], folder: str) -> bool:
-
     """Select folder inside the mailbox"""
     try:
         account.list()
@@ -857,8 +856,13 @@ def get_count(
             )
             found.append(data[0])
 
-    if ATTR_PATTERN in SENSOR_DATA[f"{sensor_type.split('_')[0]}_tracking"].keys():
-        track = SENSOR_DATA[f"{sensor_type.split('_')[0]}_tracking"][ATTR_PATTERN][0]
+    if (
+        ATTR_PATTERN
+        in SENSOR_DATA[f"{'_'.join(sensor_type.split('_')[:-1])}_tracking"].keys()
+    ):
+        track = SENSOR_DATA[f"{'_'.join(sensor_type.split('_')[:-1])}_tracking"][
+            ATTR_PATTERN
+        ][0]
 
     if track is not None and get_tracking_num and count > 0:
         for sdata in found:
@@ -1125,7 +1129,9 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
 
                     # Get combo number from message body
                     try:
-                        email_msg = quopri.decodestring(str(msg.get_payload(0)))
+                        email_msg = quopri.decodestring(
+                            str(msg.get_payload(0))
+                        )  # msg.get_payload(0).encode('utf-8')
                     except Exception as err:
                         _LOGGER.debug("Problem decoding email message: %s", str(err))
                         continue

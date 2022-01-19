@@ -224,35 +224,35 @@ SENSOR_DATA = {
     "royal_packages": {},
     "royal_tracking": {"pattern": ["[A-Za-z]{2}[0-9]{9}GB"]},
     # Poczta Polska SA
-    "pocztapolska_delivered": {},
-    "pocztapolska_delivering": {
+    "poczta_polska_delivered": {},
+    "poczta_polska_delivering": {
         "email": ["informacja@poczta-polska.pl", "powiadomienia@allegromail.pl"],
         "subject": ["Poczta Polska S.A. eINFO"],
     },
-    "pocztapolska_packages": {},
-    "pocztapolska_tracking": {
+    "poczta_polska_packages": {},
+    "poczta_polska_tracking": {
         # http://emonitoring.poczta-polska.pl/?numer=00359007738913296666
         "pattern": ["\\d{20}"]
     },
     # InPost.pl
-    "inpostpl_delivered": {
+    "inpost_pl_delivered": {
         "email": ["powiadomienia@inpost.pl", "powiadomienia@allegromail.pl"],
         "subject": [
             "InPost - Potwierdzenie odbioru przesyłki",
             "InPost - Paczka umieszczona w Paczkomacie",
         ],
     },
-    "inpostpl_delivering": {
-        "email": ["powiadomienia@inpost.pl"],
+    "inpost_pl_delivering": {
+        "email": ["powiadomienia@inpost.pl", "powiadomienia@allegromail.pl"],
         "subject": ["paczka jest w drodze", "jest już prawie u Ciebie"],
     },
-    "inpostpl_packages": {},
-    "inpostpl_tracking": {
+    "inpost_pl_packages": {},
+    "inpost_pl_tracking": {
         # https://inpost.pl/sledzenie-przesylek?number=520113017830399002575123
         "pattern": ["\\d{24}"]
     },
     # DPD Poland
-    "dpdcompl_delivered": {
+    "dpd_com_pl_delivered": {
         "email": [
             "KurierDPD0@dpd.com.pl",
             "KurierDPD1@dpd.com.pl",
@@ -265,12 +265,13 @@ SENSOR_DATA = {
             "KurierDPD8@dpd.com.pl",
             "KurierDPD9@dpd.com.pl",
             "KurierDPD10@dpd.com.pl",
+            "powiadomienia@allegromail.pl",
         ],
         "subject": [
             "została doręczona",
         ],
     },
-    "dpdcompl_delivering": {
+    "dpd_com_pl_delivering": {
         "email": [
             "KurierDPD0@dpd.com.pl",
             "KurierDPD1@dpd.com.pl",
@@ -283,26 +284,38 @@ SENSOR_DATA = {
             "KurierDPD8@dpd.com.pl",
             "KurierDPD9@dpd.com.pl",
             "KurierDPD10@dpd.com.pl",
+            "powiadomienia@allegromail.pl",
         ],
-        "subject": ["Bezpieczne doręczenie"],
-        "body": ["Dziś doręczamy"],
+        "subject": [
+            "Bezpieczne_dor=C4=99czenie_Twojej_paczki",
+            "Bezpieczne doręczenie",
+            "przesyłka została nadana",
+        ],
+        "body": ["Dzi=C5=9B dor=C4=99czamy", "DPD Polska"],
     },
-    "dpdcompl_packages": {},
-    "dpdcompl_tracking": {
+    "dpd_com_pl_packages": {},
+    "dpd_com_pl_tracking": {
         # https://tracktrace.dpd.com.pl/parcelDetails?p1=13490015284111
         "pattern": ["\\d{13}[A-Z0-9]{1,2}"],
     },
     # GLS
     "gls_delivered": {
-        "email": ["noreply@gls-group.eu"],
+        "email": [
+            "noreply@gls-group.eu",
+            "powiadomienia@allegromail.pl",
+        ],
         "subject": [
             "informacja o dostawie",
         ],
         "body": ["została dzisiaj dostarczona"],
     },
     "gls_delivering": {
-        "email": ["noreply@gls-group.eu"],
+        "email": [
+            "noreply@gls-group.eu",
+            "powiadomienia@allegromail.pl",
+        ],
         "subject": ["paczka w drodze"],
+        "body": ["Zespół GLS"],
     },
     "gls_packages": {},
     "gls_tracking": {
@@ -527,71 +540,77 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         key="auspost_packages",
     ),
     # Poczta Polska SA
-    "pocztapolska_delivering": SensorEntityDescription(
-        name="Poczta Polska SA Packages Delivering",
+    # "poczta_polska_delivered": SensorEntityDescription(
+    #     name="Poczta Polska Delivered",
+    #     native_unit_of_measurement="package(s)",
+    #     icon="mdi:package-variant",
+    #     key="poczta_polska_delivered",
+    # ),
+    "poczta_polska_delivering": SensorEntityDescription(
+        name="Mail Poczta Polska Delivering",
         native_unit_of_measurement="package(s)",
         icon="mdi:truck-delivery",
-        key="pocztapolska_delivering",
+        key="poczta_polska_delivering",
     ),
-    "pocztapolska_packages": SensorEntityDescription(
-        name="Poczta Polska SA Packages",
+    "poczta_polska_packages": SensorEntityDescription(
+        name="Mail Poczta Polska Packages",
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
-        key="pocztapolska_packages",
-    ),
-    "inpostpl_delivering": SensorEntityDescription(
-        name="InPost.pl Packages Delivering",
-        native_unit_of_measurement="package(s)",
-        icon="mdi:truck-delivery",
-        key="inpostpl_delivering",
+        key="poczta_polska_packages",
     ),
     # InPost.pl
-    "inpostpl_delivered": SensorEntityDescription(
-        name="InPost.pl Packages Delivered",
-        native_unit_of_measurement="package(s)",
-        icon="mdi:package-variant",
-        key="inpostpl_delivered",
-    ),
-    "inpostpl_packages": SensorEntityDescription(
-        name="InPost.pl Packages",
-        native_unit_of_measurement="package(s)",
-        icon="mdi:package-variant-closed",
-        key="inpostpl_packages",
-    ),
-    # DPD Poland
-    "dpdcompl_delivering": SensorEntityDescription(
-        name="DPD.com.pl Packages Delivering",
+    "inpost_pl_delivering": SensorEntityDescription(
+        name="Mail InPost.pl Delivering",
         native_unit_of_measurement="package(s)",
         icon="mdi:truck-delivery",
-        key="dpdcompl_delivering",
+        key="inpost_pl_delivering",
     ),
-    "dpdcompl_delivered": SensorEntityDescription(
-        name="DPD.com.pl Packages Delivered",
+    "inpost_pl_delivered": SensorEntityDescription(
+        name="Mail InPost.pl Delivered",
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant",
-        key="dpdcompl_delivered",
+        key="inpost_pl_delivered",
     ),
-    "dpdcompl_packages": SensorEntityDescription(
-        name="DPD.com.pl Packages",
+    "inpost_pl_packages": SensorEntityDescription(
+        name="Mail InPost.pl Packages",
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
-        key="dpdcompl_packages",
+        key="inpost_pl_packages",
+    ),
+    # DPD Poland
+    "dpd_com_pl_delivering": SensorEntityDescription(
+        name="Mail DPD.com.pl Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="dpd_com_pl_delivering",
+    ),
+    "dpd_com_pl_delivered": SensorEntityDescription(
+        name="Mail DPD.com.pl Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="dpd_com_pl_delivered",
+    ),
+    "dpd_com_pl_packages": SensorEntityDescription(
+        name="Mail DPD.com.pl Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="dpd_com_pl_packages",
     ),
     # GLS
     "gls_delivering": SensorEntityDescription(
-        name="GLS Packages Delivering",
+        name="Mail GLS Delivering",
         native_unit_of_measurement="package(s)",
         icon="mdi:truck-delivery",
         key="gls_delivering",
     ),
     "gls_delivered": SensorEntityDescription(
-        name="GLS Packages Delivered",
+        name="Mail GLS Delivered",
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant",
-        key="dpdcompl_delivered",
+        key="dpd_com_pl_delivered",
     ),
     "gls_packages": SensorEntityDescription(
-        name="GLS Packages",
+        name="Mail GLS Packages",
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="gls_packages",
@@ -649,7 +668,8 @@ SHIPPERS = [
     "hermes",
     "royal",
     "auspost",
-    "inpostpl",
-    "dpdcompl",
+    "poczta_polska",
+    "inpost_pl",
+    "dpd_com_pl",
     "gls",
 ]

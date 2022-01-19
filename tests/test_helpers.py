@@ -418,7 +418,7 @@ async def test_image_filename_oserr(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 32
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 43
     assert "Problem accessing file:" in caplog.text
 
 
@@ -446,7 +446,7 @@ async def test_image_getctime_oserr(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 32
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 43
     assert "Problem accessing file:" in caplog.text
 
 
@@ -800,7 +800,7 @@ async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
     with patch("datetime.date") as mock_date:
         mock_date.today.return_value = date(2021, 12, 1)
         result = get_items(mock_imap_amazon_shipped_it, "count")
-        assert result == 1
+        assert result == 0
 
 
 async def test_amazon_search(hass, mock_imap_no_email):
@@ -812,7 +812,7 @@ async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
     result = amazon_search(
         mock_imap_amazon_shipped, "test/path", hass, "testfilename.jpg"
     )
-    assert result == 12
+    assert result == 21
 
 
 async def test_amazon_search_delivered(
@@ -821,7 +821,7 @@ async def test_amazon_search_delivered(
     result = amazon_search(
         mock_imap_amazon_delivered, "test/path", hass, "testfilename.jpg"
     )
-    assert result == 12
+    assert result == 21
     assert mock_download_img.called
 
 
@@ -831,7 +831,7 @@ async def test_amazon_search_delivered_it(
     result = amazon_search(
         mock_imap_amazon_delivered_it, "test/path", hass, "testfilename.jpg"
     )
-    assert result == 12
+    assert result == 21
 
 
 async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
@@ -1049,13 +1049,14 @@ async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
         "123-1234567-1234567",
         "123-1234567-1234567",
         "123-1234567-1234567",
+        "123-1234567-1234567",
     ]
-    assert result["count"] == 6
+    assert result["count"] == 7
 
     result = amazon_exception(mock_imap_amazon_exception, ["testemail@fakedomain.com"])
-    assert result["count"] == 7
+    assert result["count"] == 8
     assert (
-        "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'testemail@fakedomain.com']"
+        "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'amazon.pl', 'testemail@fakedomain.com']"
         in caplog.text
     )
 
@@ -1063,7 +1064,7 @@ async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
 async def test_hash_file():
     """Test file hashing function."""
     result = hash_file("tests/test_emails/amazon_delivered.eml")
-    assert result == "7f9d94e97bb4fc870d2d2b3aeae0c428ebed31dc"
+    assert result == "0e2c7e290472fffc0cb1c6b6b860b4bd7f386f7c"
 
 
 async def test_fedex_out_for_delivery(hass, mock_imap_fedex_out_for_delivery):

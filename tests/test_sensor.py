@@ -108,23 +108,47 @@ async def test_sensor(hass, mock_update):
     assert state
     assert state.state == "3"
 
-    state = hass.states.get("sensor.mail_pocztapolska_delivering")
+    state = hass.states.get("sensor.mail_poczta_polska_delivering")
     assert state
     assert state.state == "1"
 
-    state = hass.states.get("sensor.mail_pocztapolska_packages")
+    state = hass.states.get("sensor.mail_poczta_polska_packages")
     assert state
     assert state.state == "1"
 
-    state = hass.states.get("sensor.mail_inpostpl_delivered")
+    state = hass.states.get("sensor.mail_inpost_pl_delivered")
     assert state
     assert state.state == "2"
 
-    state = hass.states.get("sensor.mail_inpostpl_delivering")
+    state = hass.states.get("sensor.mail_inpost_pl_delivering")
     assert state
     assert state.state == "1"
 
-    state = hass.states.get("sensor.mail_inpostpl_packages")
+    state = hass.states.get("sensor.mail_inpost_pl_packages")
+    assert state
+    assert state.state == "3"
+
+    state = hass.states.get("sensor.mail_dpd_com_pl_delivered")
+    assert state
+    assert state.state == "2"
+
+    state = hass.states.get("sensor.mail_dpd_com_pl_delivering")
+    assert state
+    assert state.state == "1"
+
+    state = hass.states.get("sensor.mail_dpd_com_pl_packages")
+    assert state
+    assert state.state == "3"
+
+    state = hass.states.get("sensor.mail_gls_delivered")
+    assert state
+    assert state.state == "2"
+
+    state = hass.states.get("sensor.mail_gls_delivering")
+    assert state
+    assert state.state == "1"
+
+    state = hass.states.get("sensor.mail_gls_packages")
     assert state
     assert state.state == "3"
 
