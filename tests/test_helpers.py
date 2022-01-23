@@ -800,7 +800,7 @@ async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
     with patch("datetime.date") as mock_date:
         mock_date.today.return_value = date(2021, 12, 1)
         result = get_items(mock_imap_amazon_shipped_it, "count")
-        assert result == 0
+        assert result == 1
 
 
 async def test_amazon_search(hass, mock_imap_no_email):
@@ -1048,7 +1048,7 @@ async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
     result = amazon_exception(mock_imap_amazon_exception, ["testemail@fakedomain.com"])
     assert result["count"] == 36
     assert (
-        "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'amazon.pl', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'testemail@fakedomain.com']"
+        "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'amazon.pl', 'testemail@fakedomain.com']"
         in caplog.text
     )
 
@@ -1056,7 +1056,7 @@ async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
 async def test_hash_file():
     """Test file hashing function."""
     result = hash_file("tests/test_emails/amazon_delivered.eml")
-    assert result == "0e2c7e290472fffc0cb1c6b6b860b4bd7f386f7c"
+    assert result == "7f9d94e97bb4fc870d2d2b3aeae0c428ebed31dc"
 
 
 async def test_fedex_out_for_delivery(hass, mock_imap_fedex_out_for_delivery):
@@ -1097,7 +1097,8 @@ async def test_email_search_none(mock_imap_search_error_none, caplog):
     )
     assert result == ("OK", [b""])
 
-async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd,caplog):
+
+async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
     result = get_items(mock_imap_amazon_fwd, "order")
     assert result == ["123-1234567-1234567"]
     assert "Arrive Date: Tuesday, January 11" in caplog.text

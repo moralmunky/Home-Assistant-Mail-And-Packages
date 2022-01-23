@@ -517,7 +517,7 @@ def email_search(
     _LOGGER.debug("DEBUG imap_search: %s", imap_search)
 
     try:
-        value = account.search(None, imap_search)
+        value = account.search(None, imap_search.encode('utf-8'))
     except Exception as err:
         _LOGGER.error("Error searching emails: %s", str(err))
         value = "BAD", err.args[0]
