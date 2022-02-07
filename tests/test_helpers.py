@@ -812,7 +812,7 @@ async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
     result = amazon_search(
         mock_imap_amazon_shipped, "test/path", hass, "testfilename.jpg"
     )
-    assert result == 12
+    assert result == 14
 
 
 async def test_amazon_search_delivered(
@@ -821,7 +821,7 @@ async def test_amazon_search_delivered(
     result = amazon_search(
         mock_imap_amazon_delivered, "test/path", hass, "testfilename.jpg"
     )
-    assert result == 12
+    assert result == 14
     assert mock_download_img.called
 
 
@@ -831,7 +831,7 @@ async def test_amazon_search_delivered_it(
     result = amazon_search(
         mock_imap_amazon_delivered_it, "test/path", hass, "testfilename.jpg"
     )
-    assert result == 12
+    assert result == 14
 
 
 async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
@@ -1042,20 +1042,13 @@ async def test_image_file_name(
 
 async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
     result = amazon_exception(mock_imap_amazon_exception, ['""'])
-    assert result["order"] == [
-        "123-1234567-1234567",
-        "123-1234567-1234567",
-        "123-1234567-1234567",
-        "123-1234567-1234567",
-        "123-1234567-1234567",
-        "123-1234567-1234567",
-    ]
-    assert result["count"] == 6
+    assert result["order"] == ["123-1234567-1234567"] * 7
+    assert result["count"] == 7
 
     result = amazon_exception(mock_imap_amazon_exception, ["testemail@fakedomain.com"])
-    assert result["count"] == 7
+    assert result["count"] == 8
     assert (
-        "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'testemail@fakedomain.com']"
+        "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'amazon.com.au', 'testemail@fakedomain.com']"
         in caplog.text
     )
 
@@ -1104,7 +1097,8 @@ async def test_email_search_none(mock_imap_search_error_none, caplog):
     )
     assert result == ("OK", [b""])
 
-async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd,caplog):
+
+async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
     result = get_items(mock_imap_amazon_fwd, "order")
     assert result == ["123-1234567-1234567"]
     assert "Arrive Date: Tuesday, January 11" in caplog.text

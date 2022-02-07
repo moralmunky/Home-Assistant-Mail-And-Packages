@@ -68,7 +68,9 @@ DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.
 DEFAULT_AMAZON_DAYS = 3
 
 # Amazon
-AMAZON_DOMAINS = "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de,amazon.it"
+AMAZON_DOMAINS = (
+    "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de,amazon.it,amazon.com.au"
+)
 AMAZON_DELIVERED_SUBJECT = ["Delivered: Your", "Consegna effettuata:"]
 AMAZON_SHIPMENT_TRACKING = ["shipment-tracking", "conferma-spedizione"]
 AMAZON_EMAIL = "order-update@"
@@ -208,7 +210,7 @@ SENSOR_DATA = {
     },
     "auspost_delivering": {
         "email": ["noreply@notifications.auspost.com.au"],
-        "subject": ["Your delivery is coming today"],
+        "subject": ["is on its way", "is coming today"],
     },
     "auspost_packages": {},
     "auspost_tracking": {"pattern": ["\\d{7,10,12}|[A-Za-z]{2}[0-9]{9}AU "]},

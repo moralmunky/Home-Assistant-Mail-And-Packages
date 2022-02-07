@@ -1231,6 +1231,7 @@ def mock_imap_search_error_none():
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
 
+
 @pytest.fixture()
 def mock_imap_amazon_fwd():
     """Mock imap class values."""
