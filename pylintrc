@@ -26,7 +26,11 @@ disable=
   too-many-public-methods,
   too-many-instance-attributes,
   too-many-branches,
-  no-self-use
+  no-self-use,
+  too-many-statements,
+  broad-except,
+  too-many-lines,
+  too-many-locals
 
 [REPORTS]
 score=no
@@ -36,4 +40,4 @@ score=no
 ignored-classes=_CountingAttr
 
 [FORMAT]
-expected-line-ending-format=CRLF
+expected-line-ending-format=LF
