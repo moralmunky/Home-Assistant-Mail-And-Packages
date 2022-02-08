@@ -1,7 +1,7 @@
 """Adds config flow for Mail and Packages."""
 
 import logging
-import os.path as path
+from os import path
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
@@ -120,7 +120,7 @@ async def _validate_user_input(user_input: dict) -> tuple:
 
 
 def _get_mailboxes(host: str, port: int, user: str, pwd: str) -> list:
-    """Gets list of mailbox folders from mail server."""
+    """Get list of mailbox folders from mail server."""
     account = login(host, port, user, pwd)
 
     status, folderlist = account.list()
@@ -144,13 +144,13 @@ def _get_mailboxes(host: str, port: int, user: str, pwd: str) -> list:
     return mailboxes
 
 
-def _get_schema_step_1(hass: Any, user_input: list, default_dict: list) -> Any:
-    """Gets a schema using the default_dict as a backup."""
+def _get_schema_step_1(user_input: list, default_dict: list) -> Any:
+    """Get a schema using the default_dict as a backup."""
     if user_input is None:
         user_input = {}
 
     def _get_default(key: str, fallback_default: Any = None) -> None:
-        """Gets default value for key."""
+        """Get default value for key."""
         return user_input.get(key, default_dict.get(key, fallback_default))
 
     return vol.Schema(
@@ -163,15 +163,13 @@ def _get_schema_step_1(hass: Any, user_input: list, default_dict: list) -> Any:
     )
 
 
-def _get_schema_step_2(
-    hass: Any, data: list, user_input: list, default_dict: list
-) -> Any:
-    """Gets a schema using the default_dict as a backup."""
+def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
+    """Get a schema using the default_dict as a backup."""
     if user_input is None:
         user_input = {}
 
     def _get_default(key: str, fallback_default: Any = None) -> None:
-        """Gets default value for key."""
+        """Get default value for key."""
         return user_input.get(key, default_dict.get(key, fallback_default))
 
     return vol.Schema(
@@ -211,15 +209,13 @@ def _get_schema_step_2(
     )
 
 
-def _get_schema_step_3(
-    hass: Any, data: list, user_input: list, default_dict: list
-) -> Any:
-    """Gets a schema using the default_dict as a backup."""
+def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
+    """Get a schema using the default_dict as a backup."""
     if user_input is None:
         user_input = {}
 
     def _get_default(key: str, fallback_default: Any = None) -> None:
-        """Gets default value for key."""
+        """Get default value for key."""
         return user_input.get(key, default_dict.get(key, fallback_default))
 
     return vol.Schema(
@@ -244,7 +240,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self._data = {}
         self._errors = {}
 
-    async def async_step_user(self, user_input={}):
+    async def async_step_user(self, user_input=None):
         """Handle a flow initialized by the user."""
         self._errors = {}
 
@@ -267,7 +263,6 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _show_config_form(self, user_input):
         """Show the configuration form to edit configuration data."""
-
         # Defaults
         defaults = {
             CONF_PORT: DEFAULT_PORT,
@@ -275,12 +270,12 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=_get_schema_step_1(self.hass, user_input, defaults),
+            data_schema=_get_schema_step_1(user_input, defaults),
             errors=self._errors,
         )
 
     async def async_step_config_2(self, user_input=None):
-        """Configuration form step 2."""
+        """Configure form step 2."""
         self._errors = {}
         if user_input is not None:
             self._errors, user_input = await _validate_user_input(user_input)
@@ -288,17 +283,15 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             if len(self._errors) == 0:
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_config_3()
-                else:
-                    return self.async_create_entry(
-                        title=self._data[CONF_HOST], data=self._data
-                    )
+                return self.async_create_entry(
+                    title=self._data[CONF_HOST], data=self._data
+                )
             return await self._show_config_2(user_input)
 
         return await self._show_config_2(user_input)
 
     async def _show_config_2(self, user_input):
-        """Step 2 setup"""
-
+        """Step 2 setup."""
         # Defaults
         defaults = {
             CONF_FOLDER: DEFAULT_FOLDER,
@@ -316,12 +309,12 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="config_2",
-            data_schema=_get_schema_step_2(self.hass, self._data, user_input, defaults),
+            data_schema=_get_schema_step_2(self._data, user_input, defaults),
             errors=self._errors,
         )
 
     async def async_step_config_3(self, user_input=None):
-        """Configuration form step 2."""
+        """Configure form step 2."""
         self._errors = {}
         if user_input is not None:
             self._data.update(user_input)
@@ -335,8 +328,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return await self._show_config_3(user_input)
 
     async def _show_config_3(self, user_input):
-        """Step 3 setup"""
-
+        """Step 3 setup."""
         # Defaults
         defaults = {
             CONF_CUSTOM_IMG_FILE: DEFAULT_CUSTOM_IMG_FILE,
@@ -344,13 +336,14 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="config_3",
-            data_schema=_get_schema_step_3(self.hass, self._data, user_input, defaults),
+            data_schema=_get_schema_step_3(user_input, defaults),
             errors=self._errors,
         )
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
+        """Redirect to options flow."""
         return MailAndPackagesOptionsFlow(config_entry)
 
 
@@ -385,15 +378,14 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
     async def _show_options_form(self, user_input):
         """Show the configuration form to edit location data."""
-
         return self.async_show_form(
             step_id="init",
-            data_schema=_get_schema_step_1(self.hass, user_input, self._data),
+            data_schema=_get_schema_step_1(user_input, self._data),
             errors=self._errors,
         )
 
     async def async_step_options_2(self, user_input=None):
-        """Configuration form step 2."""
+        """Configure form step 2."""
         self._errors = {}
         if user_input is not None:
             self._errors, user_input = await _validate_user_input(user_input)
@@ -401,16 +393,12 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             if len(self._errors) == 0:
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_options_3()
-                else:
-                    return self.async_create_entry(title="", data=self._data)
-
+                return self.async_create_entry(title="", data=self._data)
             return await self._show_step_options_2(user_input)
-
         return await self._show_step_options_2(user_input)
 
     async def _show_step_options_2(self, user_input):
         """Step 2 of options."""
-
         # Defaults
         defaults = {
             CONF_FOLDER: self._data.get(CONF_FOLDER),
@@ -430,12 +418,12 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="options_2",
-            data_schema=_get_schema_step_2(self.hass, self._data, user_input, defaults),
+            data_schema=_get_schema_step_2(self._data, user_input, defaults),
             errors=self._errors,
         )
 
     async def async_step_options_3(self, user_input=None):
-        """Configuration form step 3."""
+        """Configure form step 3."""
         self._errors = {}
         if user_input is not None:
             self._data.update(user_input)
@@ -447,8 +435,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         return await self._show_step_options_3(user_input)
 
     async def _show_step_options_3(self, user_input):
-        """Step 3 setup"""
-
+        """Step 3 setup."""
         # Defaults
         defaults = {
             CONF_CUSTOM_IMG_FILE: self._data.get(CONF_CUSTOM_IMG_FILE)
@@ -457,6 +444,6 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="options_3",
-            data_schema=_get_schema_step_3(self.hass, self._data, user_input, defaults),
+            data_schema=_get_schema_step_3(user_input, defaults),
             errors=self._errors,
         )

@@ -130,7 +130,6 @@ class MailCam(Camera):
 
     def update_file_path(self) -> None:
         """Update the file_path."""
-
         _LOGGER.debug("Camera Update: %s", self._type)
         _LOGGER.debug("Custom No Mail: %s", self._no_mail)
 
@@ -176,7 +175,6 @@ class MailCam(Camera):
     @property
     def device_info(self) -> dict:
         """Return device information about the mailbox."""
-
         return {
             "connections": {(DOMAIN, self._unique_id)},
             "name": self._host,

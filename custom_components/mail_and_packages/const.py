@@ -1,4 +1,4 @@
-""" Constants for Mail and Packages."""
+"""Constants for Mail and Packages."""
 from __future__ import annotations
 
 from typing import Final
@@ -7,7 +7,7 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescr
 from homeassistant.const import ENTITY_CATEGORY_DIAGNOSTIC
 
 DOMAIN = "mail_and_packages"
-DOMAIN_DATA = "{}_data".format(DOMAIN)
+DOMAIN_DATA = f"{DOMAIN}_data"
 VERSION = "0.0.0-dev"  # Now updated by release workflow
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
@@ -86,7 +86,14 @@ AMAZON_HUB_EMAIL = ["thehub@amazon.com", "order-update@amazon.com"]
 AMAZON_HUB_SUBJECT = "ready for pickup from Amazon Hub Locker"
 AMAZON_HUB_SUBJECT_SEARCH = "(You have a package to pick up)(.*)(\\d{6})"
 AMAZON_HUB_BODY = "(Your pickup code is <b>)(\\d{6})"
-AMAZON_TIME_PATTERN = "will arrive:,estimated delivery date is:,guaranteed delivery date is:,Arriving:,Arriverà:,arriving:"
+AMAZON_TIME_PATTERN = [
+    "will arrive:",
+    "estimated delivery date is:",
+    "guaranteed delivery date is:",
+    "Arriving:",
+    "Arriverà:",
+    "arriving:",
+]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
 AMAZON_EXCEPTION = "amazon_exception"
