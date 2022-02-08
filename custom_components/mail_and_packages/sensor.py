@@ -4,7 +4,6 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 import logging
-from multiprocessing.sharedctypes import Value
 from typing import Optional
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
