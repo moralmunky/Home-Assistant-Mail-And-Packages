@@ -31,9 +31,10 @@ from .helpers import default_image_path, process_emails
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(hass, config_entry):
-    """Disallow configuration via YAML"""
-
+async def async_setup(
+    hass: HomeAssistant, config_entry: ConfigEntry
+):  # pylint: disable=unused-argument
+    """Disallow configuration via YAML."""
     return True
 
 
@@ -116,7 +117,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
-
     _LOGGER.debug("Attempting to unload sensors from the %s integration", DOMAIN)
 
     unload_ok = all(
@@ -137,7 +137,6 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 
 async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
     """Update listener."""
-
     _LOGGER.debug("Attempting to reload sensors from the %s integration", DOMAIN)
 
     if config_entry.data == config_entry.options:
@@ -242,7 +241,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         super().__init__(hass, _LOGGER, name=self.name, update_interval=self.interval)
 
     async def _async_update_data(self):
-        """Fetch data"""
+        """Fetch data."""
         async with timeout(self.timeout):
             try:
                 data = await self.hass.async_add_executor_job(

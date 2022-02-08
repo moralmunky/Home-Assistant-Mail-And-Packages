@@ -1,4 +1,4 @@
-""" Constants for Mail and Packages."""
+"""Constants for Mail and Packages."""
 from __future__ import annotations
 
 from typing import Final
@@ -7,7 +7,7 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescr
 from homeassistant.const import ENTITY_CATEGORY_DIAGNOSTIC
 
 DOMAIN = "mail_and_packages"
-DOMAIN_DATA = "{}_data".format(DOMAIN)
+DOMAIN_DATA = f"{DOMAIN}_data"
 VERSION = "0.0.0-dev"  # Now updated by release workflow
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
@@ -75,6 +75,7 @@ AMAZON_DOMAINS = [
     "amazon.in",
     "amazon.de",
     "amazon.it",
+    "amazon.com.au",
     "amazon.pl",
 ]
 AMAZON_DELIVERED_SUBJECT = ["Delivered: Your", "Consegna effettuata:", "Dostarczono: "]
@@ -351,7 +352,7 @@ SENSOR_DATA = {
     },
     "auspost_delivering": {
         "email": ["noreply@notifications.auspost.com.au"],
-        "subject": ["Your delivery is coming today"],
+        "subject": ["is on its way", "is coming today"],
     },
     "auspost_packages": {},
     "auspost_tracking": {"pattern": ["\\d{7,10,12}|[A-Za-z]{2}[0-9]{9}AU "]},

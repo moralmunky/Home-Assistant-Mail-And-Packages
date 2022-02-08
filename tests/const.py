@@ -1,4 +1,4 @@
-""" Constants for tests. """
+"""Constants for tests."""
 
 FAKE_CONFIG_DATA_BAD = {
     "folder": '"INBOX"',
