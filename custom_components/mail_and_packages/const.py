@@ -68,9 +68,15 @@ DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.
 DEFAULT_AMAZON_DAYS = 3
 
 # Amazon
-AMAZON_DOMAINS = (
-    "amazon.com,amazon.ca,amazon.co.uk,amazon.in,amazon.de,amazon.it,amazon.com.au"
-)
+AMAZON_DOMAINS = [
+    "amazon.com",
+    "amazon.ca",
+    "amazon.co.uk",
+    "amazon.in",
+    "amazon.de",
+    "amazon.it",
+    "amazon.com.au",
+]
 AMAZON_DELIVERED_SUBJECT = ["Delivered: Your", "Consegna effettuata:"]
 AMAZON_SHIPMENT_TRACKING = ["shipment-tracking", "conferma-spedizione"]
 AMAZON_EMAIL = "order-update@"
