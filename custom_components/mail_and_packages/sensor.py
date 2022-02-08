@@ -1,10 +1,10 @@
-"""
-Based on @skalavala work at
-https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
+"""Based on @skalavala work.
 
+https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 import logging
+from multiprocessing.sharedctypes import Value
 from typing import Optional
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
@@ -41,10 +41,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
     for variable in resources:
         sensors.append(PackagesSensor(entry, SENSOR_TYPES[variable], coordinator))
 
-    for variable in IMAGE_SENSORS:
-        sensors.append(
-            ImagePathSensors(hass, entry, IMAGE_SENSORS[variable], coordinator)
-        )
+    for variable, value in IMAGE_SENSORS.items():
+        sensors.append(ImagePathSensors(hass, entry, value, coordinator))
 
     async_add_entities(sensors, False)
 
@@ -58,7 +56,7 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         sensor_description: SensorEntityDescription,
         coordinator: str,
     ):
-        """Initialize the sensor"""
+        """Initialize the sensor."""
         super().__init__(coordinator)
         self.entity_description = sensor_description
         self.coordinator = coordinator
@@ -72,7 +70,6 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
     @property
     def device_info(self) -> dict:
         """Return device information about the mailbox."""
-
         return {
             "connections": {(DOMAIN, self._unique_id)},
             "name": self._host,
@@ -144,7 +141,7 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
         sensor_description: SensorEntityDescription,
         coordinator: str,
     ):
-        """Initialize the sensor"""
+        """Initialize the sensor."""
         super().__init__(coordinator)
         self.entity_description = sensor_description
         self.hass = hass
@@ -158,7 +155,6 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
     @property
     def device_info(self) -> dict:
         """Return device information about the mailbox."""
-
         return {
             "connections": {(DOMAIN, self._unique_id)},
             "name": self._host,

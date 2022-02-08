@@ -8,6 +8,8 @@ persistent=no
 [BASIC]
 good-names=id,i,j,k,ex,Run,_,fp
 max-attributes=15
+argument-naming-style=snake_case
+attr-naming-style=snake_case
 
 [MESSAGES CONTROL]
 # Reasons disabled:
@@ -30,7 +32,12 @@ disable=
   too-many-statements,
   broad-except,
   too-many-lines,
-  too-many-locals
+  too-many-locals,
+
+[REFACTORING]
+
+# Maximum number of nested blocks for function / method body
+max-nested-blocks=8
 
 [REPORTS]
 score=no
