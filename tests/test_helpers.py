@@ -812,8 +812,7 @@ async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
     result = amazon_search(
         mock_imap_amazon_shipped, "test/path", hass, "testfilename.jpg"
     )
-    assert result == 15
-
+    assert result == 19
 
 
 async def test_amazon_search_delivered(
@@ -822,7 +821,7 @@ async def test_amazon_search_delivered(
     result = amazon_search(
         mock_imap_amazon_delivered, "test/path", hass, "testfilename.jpg"
     )
-    assert result == 15
+    assert result == 19
     assert mock_download_img.called
 
 
@@ -832,8 +831,7 @@ async def test_amazon_search_delivered_it(
     result = amazon_search(
         mock_imap_amazon_delivered_it, "test/path", hass, "testfilename.jpg"
     )
-    assert result == 15
-
+    assert result == 19
 
 
 async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
@@ -1044,13 +1042,13 @@ async def test_image_file_name(
 
 async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
     result = amazon_exception(mock_imap_amazon_exception, ['""'])
-    assert result["order"] == ["123-1234567-1234567"] * 8
-    assert result["count"] == 8
+    assert result["order"] == ["123-1234567-1234567"] * 10
+    assert result["count"] == 10
 
     result = amazon_exception(mock_imap_amazon_exception, ["testemail@fakedomain.com"])
-    assert result["count"] == 9
+    assert result["count"] == 11
     assert (
-        "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'amazon.com.au', 'amazon.pl', 'testemail@fakedomain.com']"
+        "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'amazon.com.au', 'amazon.pl', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'testemail@fakedomain.com']"
         in caplog.text
     )
 

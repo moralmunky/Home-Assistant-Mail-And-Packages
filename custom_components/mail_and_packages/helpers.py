@@ -976,12 +976,12 @@ def amazon_search(
     Returns email found count as integer
     """
     _LOGGER.debug("Searching for Amazon delivered email(s)...")
-    domains = AMAZON_DOMAINS
+
     subjects = AMAZON_DELIVERED_SUBJECT
     today = get_formatted_date()
     count = 0
 
-    for domain in domains:
+    for domain in AMAZON_DOMAINS:
         for subject in subjects:
             email_address = AMAZON_EMAIL + domain
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
@@ -1068,7 +1068,7 @@ def _process_amazon_forwards(email_list: Union[List[str], None]) -> list:
     result = []
     if email_list:
         for fwd in email_list:
-            if fwd and fwd != '""':
+            if fwd and fwd != '""' and fwd not in result:
                 result.append(fwd)
 
     return result
@@ -1155,7 +1155,7 @@ def amazon_exception(
     domains = AMAZON_DOMAINS
     if isinstance(fwds, list):
         for fwd in fwds:
-            if fwd and fwd != '""':
+            if fwd and fwd != '""' and fwd not in domains:
                 domains.append(fwd)
                 _LOGGER.debug("Amazon email adding %s to list", str(fwd))
 
@@ -1206,8 +1206,7 @@ def get_items(
     order_number = []
     domains = _process_amazon_forwards(fwds)
 
-    main_domains = AMAZON_DOMAINS
-    for main_domain in main_domains:
+    for main_domain in AMAZON_DOMAINS:
         domains.append(main_domain)
 
     _LOGGER.debug("Amazon email list: %s", str(domains))
