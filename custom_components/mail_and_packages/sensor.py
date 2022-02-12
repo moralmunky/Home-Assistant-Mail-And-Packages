@@ -111,7 +111,7 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
     def extra_state_attributes(self) -> Optional[str]:
         """Return device specific state attributes."""
         attr = {}
-        tracking = f"{self.type.split('_')[0]}_tracking"
+        tracking = f"{'_'.join(self.type.split('_')[:-1])}_tracking"
         data = self.coordinator.data
 
         # Catch no data entries
@@ -127,6 +127,7 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
             attr[ATTR_IMAGE] = data[ATTR_IMAGE_NAME]
         elif "_delivering" in self.type and tracking in self.data.keys():
             attr[ATTR_TRACKING_NUM] = data[tracking]
+            # TODO: Add Tracking URL when applicable
         return attr
 
 
