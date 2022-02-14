@@ -477,23 +477,20 @@ def update_time() -> str:
     return updated
 
 
-def email_search(
-    account: Type[imaplib.IMAP4_SSL], address: list, date: str, subject: str = None
-) -> tuple:
-    """Search emails with from, subject, senton date.
+def build_search(address: list, date: str, subject: str = None) -> tuple:
+    """Build IMAP search query.
 
-    Returns a tuple
+    Return tuple of utf8 flag and search query.
     """
-    imap_search = None  # Holds our IMAP SEARCH command
-    prefix_list = None
-    email_list = address
-    search = None
     the_date = f'SINCE "{date}"'
+    imap_search = None
+    utf8_flag = False
+    prefix_list = None
+    email_list = None
 
     if isinstance(address, list):
         if len(address) == 1:
             email_list = address[0]
-
         else:
             email_list = '" FROM "'.join(address)
             prefix_list = " ".join(["OR"] * (len(address) - 1))
@@ -501,27 +498,57 @@ def email_search(
     _LOGGER.debug("DEBUG subject: %s", subject)
 
     if subject is not None:
-        search = f'FROM "{email_list}" SUBJECT "{subject}" {the_date}'
+        if not subject.isascii():
+            utf8_flag = True
+            # if prefix_list is not None:
+            #     imap_search = f"CHARSET UTF-8 {prefix_list}"
+            #     imap_search = f'{imap_search} FROM "{email_list} {the_date} SUBJECT'
+            # else:
+            #     imap_search = (
+            #         f"CHARSET UTF-8 FROM {email_list} {the_date} SUBJECT"
+            #     )
+            imap_search = f"{the_date} SUBJECT"
+        else:
+            if prefix_list is not None:
+                imap_search = f'({prefix_list} FROM "{email_list}" SUBJECT "{subject}" {the_date})'
+            else:
+                imap_search = f'(FROM "{email_list}" SUBJECT "{subject}" {the_date})'
     else:
-        search = f'FROM "{email_list}" {the_date}'
-
-    if prefix_list is not None:
-        imap_search = f"({prefix_list} {search})"
-    else:
-        imap_search = f"({search})"
+        if prefix_list is not None:
+            imap_search = f'({prefix_list} FROM "{email_list}" {the_date})'
+        else:
+            imap_search = f'(FROM "{email_list}" {the_date})'
 
     _LOGGER.debug("DEBUG imap_search: %s", imap_search)
 
-    try:
-        if subject is not None and not subject.isascii():
-            subject = subject.encode("utf-8")
-            account.literal = subject
-            value = account.uid("SEARCH", "CHARSET", "UTF-8", "SUBJECT")
-        else:
-            value = account.search("utf-8", imap_search)
-    except Exception as err:
-        _LOGGER.error("Error searching emails: %s", str(err))
-        value = "BAD", err.args[0]
+    return (utf8_flag, imap_search)
+
+
+def email_search(
+    account: Type[imaplib.IMAP4_SSL], address: list, date: str, subject: str = None
+) -> tuple:
+    """Search emails with from, subject, senton date.
+
+    Returns a tuple
+    """
+    utf8_flag, search = build_search(address, date, subject)
+
+    if utf8_flag:
+        subject = subject.encode("utf-8")
+        account.literal = subject
+        try:
+            value = account.uid("SEARCH", "CHARSET", "UTF-8", search)
+        except Exception as err:
+            _LOGGER.warning(
+                "Error searching emails with unicode characters: %s", str(err)
+            )
+            value = "BAD", err.args[0]
+    else:
+        try:
+            value = account.search(None, search)
+        except Exception as err:
+            _LOGGER.error("Error searching emails: %s", str(err))
+            value = "BAD", err.args[0]
 
     _LOGGER.debug("DEBUG email_search value: %s", value)
 
