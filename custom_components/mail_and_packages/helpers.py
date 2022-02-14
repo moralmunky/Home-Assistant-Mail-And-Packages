@@ -493,7 +493,6 @@ def email_search(
     if isinstance(address, list):
         if len(address) == 1:
             email_list = address[0]
-
         else:
             email_list = '" FROM "'.join(address)
             prefix_list = " ".join(["OR"] * (len(address) - 1))
@@ -516,7 +515,8 @@ def email_search(
         if subject is not None and not subject.isascii():
             subject = subject.encode("utf-8")
             account.literal = subject
-            value = account.uid("SEARCH", "CHARSET", "UTF-8", "SUBJECT")
+            imap_search = f"SEARCH CHARSET UTF-8 {the_date} SUBJECT"
+            value = account.uid("SEARCH", "CHARSET", "UTF-8", f"{the_date}", "SUBJECT")
         else:
             value = account.search(None, imap_search)
     except Exception as err:
