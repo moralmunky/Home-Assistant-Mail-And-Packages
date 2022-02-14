@@ -42,6 +42,7 @@ def mock_imap():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
 
@@ -120,6 +121,7 @@ def mock_imap_no_email():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b""])
+        mock_conn.uid.return_value = ("OK", [b""])
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
 
@@ -164,6 +166,7 @@ def mock_imap_fetch_error():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.fetch.side_effect = Exception("Invalid Email")
         yield mock_conn
@@ -208,6 +211,7 @@ def mock_imap_index_error_2():
             [b'(\\HasNoChildren) ";" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"0"])
+        mock_conn.uid.return_value = ("OK", [b"0"])
         yield mock_imap_index_error
 
 
@@ -229,6 +233,7 @@ def mock_imap_mailbox_format2():
             [b'(\\HasNoChildren) "." "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"0"])
+        mock_conn.uid.return_value = ("OK", [b"0"])
         yield mock_conn
 
 
@@ -250,6 +255,7 @@ def mock_imap_usps_informed_digest():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/informed_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -275,6 +281,7 @@ def mock_imap_usps_informed_digest_missing():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/informed_delivery_missing_mailpiece.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -300,6 +307,7 @@ def mock_imap_usps_informed_digest_no_mail():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/informed_delivery_no_mail.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -325,6 +333,7 @@ def mock_imap_ups_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/ups_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -350,6 +359,7 @@ def mock_imap_ups_out_for_delivery_html():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/ups_out_for_delivery_new.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -375,6 +385,7 @@ def mock_imap_dhl_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/dhl_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -400,6 +411,7 @@ def mock_imap_fedex_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/fedex_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -425,6 +437,7 @@ def mock_imap_fedex_out_for_delivery_2():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/fedex_out_for_delivery_2.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -450,6 +463,7 @@ def mock_imap_usps_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/usps_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -475,6 +489,7 @@ def mock_imap_amazon_shipped():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_shipped.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -500,6 +515,7 @@ def mock_imap_amazon_shipped_uk():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_uk_shipped.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -525,6 +541,7 @@ def mock_imap_amazon_shipped_uk_2():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_uk_shipped_2.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -550,6 +567,7 @@ def mock_imap_amazon_shipped_alt():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_shipped_alt.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -575,6 +593,7 @@ def mock_imap_amazon_shipped_alt_2():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_shipped_alt_2.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -600,6 +619,7 @@ def mock_imap_amazon_shipped_it():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_shipped_it.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -625,6 +645,7 @@ def mock_imap_amazon_shipped_alt_timeformat():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_shipped_alt_timeformat.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -650,6 +671,7 @@ def mock_imap_amazon_delivered():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_delivered.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -675,6 +697,7 @@ def mock_imap_amazon_delivered_it():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_delivered_it.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -700,6 +723,7 @@ def mock_imap_amazon_the_hub():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_hub_notice.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -725,6 +749,7 @@ def mock_imap_amazon_the_hub_2():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_hub_notice_2.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -969,6 +994,7 @@ def mock_imap_hermes_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/hermes_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -994,6 +1020,7 @@ def mock_imap_royal_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/royal_mail_uk_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -1087,6 +1114,7 @@ def mock_imap_usps_exception():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/usps_exception.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -1154,6 +1182,7 @@ def mock_imap_amazon_exception():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_exception.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -1179,6 +1208,7 @@ def mock_imap_auspost_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/auspost_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -1204,6 +1234,7 @@ def mock_imap_auspost_delivered():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/auspost_delivered.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -1229,6 +1260,7 @@ def mock_imap_poczta_polska_delivering():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/poczta_polska_delivering.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -1254,6 +1286,7 @@ def mock_imap_inpost_pl_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/inpost_pl_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -1279,6 +1312,7 @@ def mock_imap_inpost_pl_delivered():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/inpost_pl_delivered.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -1304,6 +1338,7 @@ def mock_imap_dpd_com_pl_delivering():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/dpd_com_pl_delivering.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -1351,6 +1386,7 @@ def mock_imap_amazon_fwd():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_fwd.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
