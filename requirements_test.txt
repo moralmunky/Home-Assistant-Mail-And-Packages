@@ -1,5 +1,4 @@
 -r requirements.txt
-pip>=21.0,<22.1
 av==8.1.0
 aiohttp_cors
 aioresponses==0.7.3
