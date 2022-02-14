@@ -16,8 +16,9 @@ from .const import (
 
 REDACT_KEYS = {CONF_PASSWORD, CONF_USERNAME}
 
+
 async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, config_entry: ConfigEntry
+    hass: HomeAssistant, config_entry: ConfigEntry  # pylint: disable=unused-argument
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
     diag: dict[str, Any] = {}
@@ -26,7 +27,9 @@ async def async_get_config_entry_diagnostics(
 
 
 async def async_get_device_diagnostics(
-    hass: HomeAssistant, config_entry: ConfigEntry, device: DeviceEntry
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    device: DeviceEntry,  # pylint: disable=unused-argument
 ) -> dict[str, Any]:
     """Return diagnostics for a device."""
     coordinator = hass.data[DOMAIN][config_entry.entry_id][COORDINATOR]

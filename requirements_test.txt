@@ -1,9 +1,11 @@
 -r requirements.txt
-av
+pip>=21.0,<22.1
+av==8.1.0
 aiohttp_cors
-aioresponses
-black
-isort
-pytest
-pytest-cov
-pytest-homeassistant-custom-component
+aioresponses==0.7.3
+black==22.1.0
+isort==5.10.1
+pytest==7.0.1
+pytest-cov==3.0.0
+pytest-homeassistant-custom-component==0.6.12
+homeassistant==2022.2.6
