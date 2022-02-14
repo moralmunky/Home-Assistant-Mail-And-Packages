@@ -8,7 +8,7 @@ from custom_components.mail_and_packages.diagnostics import async_get_config_ent
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from tests.const import FAKE_CONFIG_DATA, FAKE_UPDATE_DATA
+from tests.const import FAKE_CONFIG_DATA, FAKE_UPDATE_DATA, FAKE_UPDATE_DATA_REDACTED
 
 async def test_config_entry_diagnostics(hass):
     """Test the config entry level diagnostics data dump."""
@@ -43,4 +43,4 @@ async def test_device_diagnostics(hass, mock_update):
 
     result = await async_get_device_diagnostics(hass, entry, None)
 
-    assert result == FAKE_UPDATE_DATA
+    assert result == FAKE_UPDATE_DATA_REDACTED
