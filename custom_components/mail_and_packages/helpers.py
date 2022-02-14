@@ -518,7 +518,7 @@ def email_search(
             account.literal = subject
             value = account.uid("SEARCH", "CHARSET", "UTF-8", "SUBJECT")
         else:
-            value = account.search("utf-8", imap_search)
+            value = account.search(None, imap_search)
     except Exception as err:
         _LOGGER.error("Error searching emails: %s", str(err))
         value = "BAD", err.args[0]
