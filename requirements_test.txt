@@ -7,3 +7,4 @@ isort
 pytest
 pytest-cov
 pytest-homeassistant-custom-component
+homeassistant
