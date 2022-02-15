@@ -1,10 +1,10 @@
 -r requirements.txt
-av==8.1.0
+av
 aiohttp_cors
-aioresponses==0.7.3
-black==22.1.0
-isort==5.10.1
+aioresponses
+black
+isort
 pytest
 pytest-cov
-pytest-homeassistant-custom-component==0.6.12
-homeassistant==2022.2.6
+pytest-homeassistant-custom-component
+homeassistant
