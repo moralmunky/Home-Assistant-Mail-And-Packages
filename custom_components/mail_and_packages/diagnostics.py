@@ -2,19 +2,15 @@
 from __future__ import annotations
 
 import logging
-
 from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, CONF_RESOURCES
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
 
-from .const import (
-    COORDINATOR,
-    DOMAIN,
-)
+from .const import COORDINATOR, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 REDACT_KEYS = {CONF_PASSWORD, CONF_USERNAME}
@@ -45,4 +41,3 @@ async def async_get_device_diagnostics(
     _LOGGER.debug("Redacted keys: %s", REDACT_KEYS)
 
     return async_redact_data(coordinator.data, REDACT_KEYS)
-
