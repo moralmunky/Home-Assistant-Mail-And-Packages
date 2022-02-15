@@ -1,6 +1,6 @@
-black==22.1.0
-isort==5.10.1
-flake8==4.0.1
-pydocstyle==6.1.1
-pylint==2.12.2
-mypy==0.931
+black
+isort
+flake8
+pydocstyle
+pylint
+mypy
