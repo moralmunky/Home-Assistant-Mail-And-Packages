@@ -494,6 +494,8 @@ def build_search(address: list, date: str, subject: str = None) -> tuple:
         else:
             email_list = '" FROM "'.join(address)
             prefix_list = " ".join(["OR"] * (len(address) - 1))
+    else:
+        email_list = address
 
     _LOGGER.debug("DEBUG subject: %s", subject)
 
