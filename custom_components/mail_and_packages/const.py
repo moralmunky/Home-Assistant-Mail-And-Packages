@@ -78,7 +78,12 @@ AMAZON_DOMAINS = [
     "amazon.com.au",
     "amazon.pl",
 ]
-AMAZON_DELIVERED_SUBJECT = ["Delivered: Your", "Consegna effettuata:", "Dostarczono: "]
+AMAZON_DELIVERED_SUBJECT = [
+    "Delivered: Your",
+    "Consegna effettuata:",
+    "Dostarczono:",
+    "Geliefert:",
+]
 AMAZON_SHIPMENT_TRACKING = ["shipment-tracking", "conferma-spedizione"]
 AMAZON_EMAIL = "order-update@"
 AMAZON_PACKAGES = "amazon_packages"
@@ -101,13 +106,22 @@ AMAZON_TIME_PATTERN = [
     "Arriverà:",
     "arriving:",
     "Dostawa:",
+    "Zustellung:",
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
 AMAZON_EXCEPTION = "amazon_exception"
 AMAZON_EXCEPTION_ORDER = "amazon_exception_order"
 AMAZON_PATTERN = "[0-9]{3}-[0-9]{7}-[0-9]{7}"
-AMAZON_LANGS = ["it_IT", "it_IT.UTF-8", "pl_PL", "pl_PL.UTF-8", ""]
+AMAZON_LANGS = [
+    "it_IT",
+    "it_IT.UTF-8",
+    "pl_PL",
+    "pl_PL.UTF-8",
+    "de_DE",
+    "de_DE.UTF-8",
+    "",
+]
 
 # Sensor Data
 SENSOR_DATA = {
