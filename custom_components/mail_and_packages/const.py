@@ -194,7 +194,11 @@ SENSOR_DATA = {
     },
     "auspost_delivering": {
         "email": ["noreply@notifications.auspost.com.au"],
-        "subject": ["Your delivery is coming today"],
+        "subject": [
+            "is coming today",
+            "is on its way", 
+            "is being prepared"
+        ],
     },
     "auspost_packages": {},
     "auspost_tracking": {"pattern": ["\\d{7,10,12}|[A-Za-z]{2}[0-9]{9}AU "]},
