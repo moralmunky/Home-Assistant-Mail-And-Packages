@@ -14,7 +14,6 @@ from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .helpers import update_time
 from .const import (
     AMAZON_EXCEPTION_ORDER,
     AMAZON_ORDER,

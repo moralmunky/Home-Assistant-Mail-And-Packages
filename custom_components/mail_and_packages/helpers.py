@@ -27,7 +27,6 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.util import dt as dt_util
 from PIL import Image
 from resizeimage import resizeimage
 
