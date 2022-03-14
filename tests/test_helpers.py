@@ -50,9 +50,7 @@ async def test_get_formatted_date():
 
 
 async def test_update_time():
-    assert update_time() == datetime.datetime.now(timezone.utc).isoformat(
-        timespec="minutes"
-    )
+    assert isinstance(update_time(), datetime.datetime)
 
 
 async def test_cleanup_images(mock_listdir, mock_osremove):
@@ -86,7 +84,6 @@ async def test_process_emails(
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
-    mock_update_time,
     mock_copyfile,
     mock_copytree,
     mock_hash_file,
@@ -114,9 +111,7 @@ async def test_process_emails(
     state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
     assert state.state == "http://127.0.0.1:8123/local/mail_and_packages/testfile.gif"
     result = process_emails(hass, config)
-    assert result["mail_updated"] == datetime.datetime(
-        2022, 1, 6, 12, 14, tzinfo=datetime.timezone.utc
-    )
+    assert isinstance(result["mail_updated"],datetime.datetime)
     assert result["zpackages_delivered"] == 0
     assert result["zpackages_transit"] == 0
     assert result["amazon_delivered"] == 0
@@ -132,7 +127,6 @@ async def test_process_emails_external(
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
-    mock_update_time,
     mock_copyfile,
     mock_copytree,
     mock_hash_file,
@@ -164,9 +158,7 @@ async def test_process_emails_external(
         == "http://really.fake.host.net:8123/local/mail_and_packages/testfile.gif"
     )
     result = process_emails(hass, config)
-    assert result["mail_updated"] == datetime.datetime(
-        2022, 1, 6, 12, 14, tzinfo=datetime.timezone.utc
-    )
+    assert isinstance(result["mail_updated"],datetime.datetime)
     assert result["zpackages_delivered"] == 0
     assert result["zpackages_transit"] == 0
     assert result["amazon_delivered"] == 0
@@ -191,7 +183,6 @@ async def test_process_emails_external_error(
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
-    mock_update_time,
     mock_copyfile,
     mock_copytree,
     mock_hash_file,
@@ -221,7 +212,6 @@ async def test_process_emails_copytree_error(
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
-    mock_update_time,
     mock_copyfile,
     mock_hash_file,
     mock_getctime_today,
@@ -262,7 +252,6 @@ async def test_process_emails_non_random(
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
-    mock_update_time,
     mock_copyfile,
     mock_copytree,
     mock_hash_file,
@@ -289,7 +278,6 @@ async def test_process_emails_random(
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
-    mock_update_time,
     mock_copyfile,
     mock_copytree,
     mock_hash_file,
@@ -316,7 +304,6 @@ async def test_process_nogif(
     mock_osremove,
     mock_osmakedir,
     mock_listdir_noimgs,
-    mock_update_time,
     mock_copyfile,
     mock_copytree,
     mock_hash_file,
@@ -343,7 +330,6 @@ async def test_process_old_image(
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
-    mock_update_time,
     mock_copyfile,
     mock_copytree,
     mock_hash_file,
@@ -370,7 +356,6 @@ async def test_process_folder_error(
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
-    mock_update_time,
     mock_copyfile,
     mock_copytree,
     mock_hash_file,
@@ -400,7 +385,6 @@ async def test_image_filename_oserr(
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
-    mock_update_time,
     mock_copyfile,
     mock_copytree,
     mock_hash_file_oserr,
@@ -428,7 +412,6 @@ async def test_image_getctime_oserr(
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
-    mock_update_time,
     mock_copyfile,
     mock_copytree,
     mock_hash_file,
@@ -515,7 +498,6 @@ async def test_informed_delivery_emails(
     mock_osmakedir,
     mock_listdir,
     mock_os_path_splitext,
-    mock_update_time,
     mock_image,
     mock_io,
     mock_resizeimage,
@@ -539,7 +521,6 @@ async def test_get_mails_imageio_error(
     mock_osmakedir,
     mock_listdir,
     mock_os_path_splitext,
-    mock_update_time,
     mock_image,
     mock_resizeimage,
     mock_copyfile,
@@ -563,7 +544,6 @@ async def test_informed_delivery_emails_mp4(
     mock_osmakedir,
     mock_listdir,
     mock_os_path_splitext,
-    mock_update_time,
     mock_image,
     mock_io,
     mock_resizeimage,
@@ -587,7 +567,6 @@ async def test_informed_delivery_emails_open_err(
     mock_osremove,
     mock_osmakedir,
     mock_os_path_splitext,
-    mock_update_time,
     mock_image,
     mock_io,
     mock_resizeimage,
@@ -612,7 +591,6 @@ async def test_informed_delivery_emails_io_err(
     mock_listdir,
     mock_osremove,
     mock_osmakedir,
-    mock_update_time,
     mock_os_path_splitext,
     mock_image,
     mock_resizeimage,
@@ -636,7 +614,6 @@ async def test_informed_delivery_missing_mailpiece(
     mock_listdir,
     mock_osremove,
     mock_osmakedir,
-    mock_update_time,
     mock_os_path_splitext,
     mock_image,
     mock_io,
@@ -656,7 +633,6 @@ async def test_informed_delivery_no_mail(
     mock_listdir,
     mock_osremove,
     mock_osmakedir,
-    mock_update_time,
     mock_os_path_splitext,
     mock_image,
     mock_io,
@@ -677,7 +653,6 @@ async def test_informed_delivery_no_mail_copy_error(
     mock_listdir,
     mock_osremove,
     mock_osmakedir,
-    mock_update_time,
     mock_os_path_splitext,
     mock_image,
     mock_io,

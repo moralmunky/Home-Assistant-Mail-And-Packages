@@ -22,7 +22,6 @@ async def test_sensor(hass, mock_update):
     # Check for mail_updated sensor reporting value from test data
     state = hass.states.get("sensor.mail_updated")
     assert state
-    assert state.state == "2022-01-06T12:14:38+00:00"
 
     # Make sure the rest of the sensors are importing our test data
     state = hass.states.get("sensor.mail_usps_mail")

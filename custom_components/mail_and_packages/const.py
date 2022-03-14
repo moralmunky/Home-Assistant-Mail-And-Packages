@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Final
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription
-from homeassistant.const import ENTITY_CATEGORY_DIAGNOSTIC
+from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
@@ -378,7 +378,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         name="Mail Updated",
         icon="mdi:update",
         key="mail_updated",
-        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_category=EntityCategory.DIAGNOSTIC,
         device_class=SensorDeviceClass.TIMESTAMP,
     ),
     # USPS
@@ -674,13 +674,13 @@ IMAGE_SENSORS: Final[dict[str, SensorEntityDescription]] = {
         name="Mail Image System Path",
         icon="mdi:folder-multiple-image",
         key="usps_mail_image_system_path",
-        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     "usps_mail_image_url": SensorEntityDescription(
         name="Mail Image URL",
         icon="mdi:link-variant",
         key="usps_mail_image_url",
-        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
 }
 
