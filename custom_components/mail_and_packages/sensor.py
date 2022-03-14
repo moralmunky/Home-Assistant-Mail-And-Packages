@@ -3,8 +3,10 @@
 https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
+import datetime
+from datetime import timezone
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
@@ -87,12 +89,14 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         return self._name
 
     @property
-    def native_value(self) -> Optional[int]:
+    def native_value(self) -> Any:
         """Return the state of the sensor."""
         value = None
 
         if self.type in self.coordinator.data.keys():
             value = self.coordinator.data[self.type]
+            if self.type == "mail_updated":
+                value = datetime.datetime.now(timezone.utc)
         else:
             value = None
         return value

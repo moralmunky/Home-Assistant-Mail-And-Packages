@@ -27,7 +27,6 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.util import dt as dt_util
 from PIL import Image
 from resizeimage import resizeimage
 
@@ -402,7 +401,7 @@ def fetch(
                 total += fetch(hass, config, account, data, delivering)
         count[sensor] = max(0, total)
     elif sensor == "mail_updated":
-        count[sensor] = dt_util.parse_datetime(update_time())
+        count[sensor] = update_time()
     else:
         count[sensor] = get_count(
             account, sensor, False, img_out_path, hass, amazon_image_name
@@ -466,13 +465,14 @@ def get_formatted_date() -> str:
     return today
 
 
-def update_time() -> str:
+def update_time() -> Any:
     """Get update time.
 
     Returns current timestamp as string
     """
     # updated = datetime.datetime.now().strftime("%b-%d-%Y %I:%M %p")
-    updated = datetime.datetime.now(timezone.utc).isoformat(timespec="minutes")
+    # updated = datetime.datetime.now(timezone.utc).isoformat(timespec="minutes")
+    updated = datetime.datetime.now(timezone.utc)
 
     return updated
 
