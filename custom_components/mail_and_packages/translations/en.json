@@ -34,7 +34,7 @@
           "image_security": "Random Image Filename",
           "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
           "generate_mp4": "Create mp4 from images",
-          "amazon_fwds": "Amazon fowarded email addresses",
+          "amazon_fwds": "Amazon forwarded email addresses",
           "amazon_days": "Days back to check for Amazon emails",
           "allow_external": "Create image for notification apps",
           "custom_img": "Use custom 'no image' image?"    
@@ -82,7 +82,7 @@
           "image_security": "Random Image Filename",
           "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
           "generate_mp4": "Create mp4 from images",
-          "amazon_fwds": "Amazon fowarded email addresses",
+          "amazon_fwds": "Amazon forwarded email addresses",
           "amazon_days": "Days back to check for Amazon emails",
           "allow_external": "Create image for notification apps",
           "custom_img": "Use custom 'no image' image?"      
