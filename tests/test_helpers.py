@@ -525,6 +525,7 @@ async def test_informed_delivery_emails(
         assert "USPSInformedDelivery@usps.gov" in caplog.text
         assert "USPSInformeddelivery@informeddelivery.usps.com" in caplog.text
         assert "USPSInformeddelivery@email.informeddelivery.usps.com" in caplog.text
+        assert "USPS Informed Delivery" in caplog.text
 
 
 async def test_get_mails_imageio_error(
