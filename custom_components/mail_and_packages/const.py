@@ -146,6 +146,7 @@ SENSOR_DATA = {
             "USPSInformedDelivery@usps.gov",
             "USPSInformeddelivery@email.informeddelivery.usps.com",
             "USPSInformeddelivery@informeddelivery.usps.com",
+            "USPS Informed Delivery",
         ],
         "subject": ["Your Daily Digest"],
     },
