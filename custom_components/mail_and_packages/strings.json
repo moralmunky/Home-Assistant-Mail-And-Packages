@@ -1,5 +1,4 @@
 {
-  "title": "Mail and Packages",
   "config": {
     "abort": {
       "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed."
