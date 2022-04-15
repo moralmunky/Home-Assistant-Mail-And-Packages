@@ -6,7 +6,11 @@
         "error": {
             "communication": "Es kann keine Verbindung zum Mailserver hergestellt oder angemeldet werden. Bitte überprüfen Sie das Protokoll für Details.",
             "invalid_path": "Bitte speichern Sie die Bilder in einem anderen Verzeichnis.",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
+            "amazon_domain": "Invalid forwarding email address.",
+            "file_not_found": "Image file not found",
+            "scan_too_low": "Scan interval too low (minimum 5)",
+            "timeout_too_low": "IMAP timeout too low (minimum 10)"
         },
         "step": {
             "user": {
@@ -30,10 +34,19 @@
                     "resources": "Sensors List",
                     "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
                     "amazon_fwds": "Amazon fowarded email addresses",
-                    "allow_external": "Create image for notification apps"
+                    "allow_external": "Create image for notification apps",
+                    "amazon_days": "Days back to check for Amazon emails",
+                    "custom_img": "Use custom 'no image' image?"
                 },
                 "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
                 "title": "Post und Pakete (Schritt 2 von 2)"
+            },
+            "options_3": {
+                "data": {
+                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                },
+                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
+                "title": "Mail and Packages (Step 3 of 3)"
             }
         },
         "title": "Mail and Packages"
@@ -42,7 +55,11 @@
         "error": {
             "communication": "Es kann keine Verbindung zum Mailserver hergestellt oder angemeldet werden. Bitte überprüfen Sie das Protokoll für Details.",
             "invalid_path": "Bitte speichern Sie die Bilder in einem anderen Verzeichnis.",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
+            "amazon_domain": "Ungültige Weiterleitungs-E-Mail-Adresse.",
+            "file_not_found": "Image file not found",
+            "scan_too_low": "Scan interval too low (minimum 5)",
+            "timeout_too_low": "IMAP timeout too low (minimum 10)"
         },
         "step": {
             "init": {
@@ -66,11 +83,21 @@
                     "resources": "Liste der Sensoren",
                     "imap_timeout": "Zeit in Sekunden vor dem Verbindungszeitlimit (Sekunden, mindestens 10)",
                     "amazon_fwds": "Amazon forwarded email addresses",
-                    "allow_external": "Erstellen Sie ein Bild für Benachrichtigungs-Apps"
+                    "allow_external": "Erstellen Sie ein Bild für Benachrichtigungs-Apps",
+                    "amazon_days": "Days back to check for Amazon emails",
+                    "custom_img": "Use custom 'no image' image?"
                 },
                 "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
                 "title": "Post und Pakete (Schritt 2 von 2)"
+            },
+            "options_3": {
+                "data": {
+                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                },
+                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
+                "title": "Mail and Packages (Step 3 of 3)"
             }
         }
-    }
+    },
+    "title": "Mail and Packages"
 }
