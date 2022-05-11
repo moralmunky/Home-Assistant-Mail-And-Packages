@@ -482,7 +482,7 @@ def build_search(address: list, date: str, subject: str = None) -> tuple:
 
     Return tuple of utf8 flag and search query.
     """
-    the_date = f'SINCE "{date}"'
+    the_date = f"SINCE {date}"
     imap_search = None
     utf8_flag = False
     prefix_list = None
