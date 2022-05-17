@@ -6,7 +6,11 @@
         "error": {
             "communication": "無法連接或登錄到郵件服務器。請檢查日誌以獲取詳細信息。",
             "invalid_path": "請將圖像存儲在另一個目錄中。",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
+            "amazon_domain": "Invalid forwarding email address.",
+            "file_not_found": "Image file not found",
+            "scan_too_low": "Scan interval too low (minimum 5)",
+            "timeout_too_low": "IMAP timeout too low (minimum 10)"
         },
         "step": {
             "user": {
@@ -30,10 +34,19 @@
                     "resources": "Sensors List",
                     "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
                     "amazon_fwds": "Amazon fowarded email addresses",
-                    "allow_external": "Create image for notification apps"
+                    "allow_external": "Create image for notification apps",
+                    "amazon_days": "Days back to check for Amazon emails",
+                    "custom_img": "Use custom 'no image' image?"
                 },
                 "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成]（https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration）選項的詳細信息，請查看[配置，模板和自動化部分]（GitHub上的https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration）。",
                 "title": "郵件和包裹（第2步，共2步）"
+            },
+            "options_3": {
+                "data": {
+                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                },
+                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
+                "title": "Mail and Packages (Step 3 of 3)"
             }
         },
         "title": "Mail and Packages"
@@ -42,7 +55,11 @@
         "error": {
             "communication": "無法連接或登錄到郵件服務器。請檢查日誌以獲取詳細信息。",
             "invalid_path": "請將圖像存儲在另一個目錄中。",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
+            "amazon_domain": "無效的轉發電子郵件地址。",
+            "file_not_found": "Image file not found",
+            "scan_too_low": "Scan interval too low (minimum 5)",
+            "timeout_too_low": "IMAP timeout too low (minimum 10)"
         },
         "step": {
             "init": {
@@ -66,11 +83,21 @@
                     "resources": "傳感器清單",
                     "imap_timeout": "連接超時之前的時間（以秒為單位）（秒，至少10）",
                     "amazon_fwds": "Amazon forwarded email addresses",
-                    "allow_external": "為通知應用創建圖像"
+                    "allow_external": "為通知應用創建圖像",
+                    "amazon_days": "Days back to check for Amazon emails",
+                    "custom_img": "Use custom 'no image' image?"
                 },
                 "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)選項的詳細信息，請查看[配置，模板和自動化部分](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHub上的。",
                 "title": "郵件和包裹（第2步，共2步）"
+            },
+            "options_3": {
+                "data": {
+                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                },
+                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
+                "title": "Mail and Packages (Step 3 of 3)"
             }
         }
-    }
+    },
+    "title": "Mail and Packages"
 }

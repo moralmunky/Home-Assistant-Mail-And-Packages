@@ -1,0 +1,75 @@
+Delivered-To: redacted@gmail.com
+Received: by 2002:a59:dd4c:0:b0:271:7674:4f97 with SMTP id s12csp7418849vqs;
+        Fri, 24 Dec 2021 02:24:22 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJz5Ig4uxL9BL+dYNU+hvaV5+AVMiPmKFRatFH33ZOqzPd7zgw6GC+JhX4I1DwNVAmNwB9Bo
+X-Received: by 2002:a05:6512:3497:: with SMTP id v23mr4779880lfr.251.1640341461901;
+        Fri, 24 Dec 2021 02:24:21 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1640341461; cv=none;
+        d=google.com; s=arc-20160816;
+        b=wgvuQm+xPlnqvw4z8WsZ+r2VcR9NC3496C/mQdqovu7voaHe15R5FpASU2Ajdc85se
+         GBpmqSbPCJcev3KYKNm0PyeXX59jFEHoxyWzjbjW23JJVelKq0m4gKcV3L0fewXMExzu
+         Dj1c1y26c1WbgGiNNfz1/PRgGvpUkwh0+07yOGXoPOv0BrHwDS/ydj+Y2H88azotJUMv
+         lOwhb29k8J21l+hB69KhYUo8lvC/QuHaUCYSk0zvW6E8djCGmyYmqrV/yZ7q6PckBHeX
+         BZaLlOE7rWI91izdYHeZkogiaho1FOXykQa1qZbkZpxygDuvCDx7jmyyAlAosWsi0yMz
+         51qg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=date:message-id:subject:cc:to:from;
+        bh=h+GyfITiKT9mThGdsFTIQlqBHYxdSdWsTIg6DmHsMws=;
+        b=rJTaoa2OMxhXFZ3qiRR/jpMCy8JAI6V0FBTNPjLKgvNxYspOkq355Vc11ez/xJ7itN
+         nqJKEn7vOH2/XWw3ATYvrEQvnZPvDLcdNgD1o5ZbWnM53VXQMLjxVeITbQyMnVLVQvSn
+         y+PPJTnAcRdgk9mf4GbFiTVWfpbLE443/RXclV4ZcNFMeNwDCc9V+Jpt/3txicBn+MrN
+         RitiURmAR0ML/CrZaLIUQ3BaNlIBDoWQz9ezuUaJUo04u8xWsVBSv+bwwOJlEIVZeKfS
+         Yf/Vtfwln9ziuY5IOGnb9NpwF6YOZgE/ZExqF2vaE4CypLWhYAHHxfk1/peahrjIu30Y
+         m6kw==
+ARC-Authentication-Results: i=1; mx.google.com;
+       spf=pass (google.com: domain of noreply@gls-group.eu designates 193.106.225.236 as permitted sender) smtp.mailfrom=noreply@gls-group.eu;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=gls-group.eu
+Return-Path: <noreply@gls-group.eu>
+Received: from glsmail02.gls-group.eu (glsmail02.gls-group.eu. [193.106.225.236])
+        by mx.google.com with ESMTPS id l8si6678000ljg.487.2021.12.24.02.24.21
+        for <redacted@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 24 Dec 2021 02:24:21 -0800 (PST)
+Received-SPF: pass (google.com: domain of noreply@gls-group.eu designates 193.106.225.236 as permitted sender) client-ip=193.106.225.236;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of noreply@gls-group.eu designates 193.106.225.236 as permitted sender) smtp.mailfrom=noreply@gls-group.eu;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=gls-group.eu
+Received: from apl1.portal1.gls-unique.com (glsmail-vip [193.106.225.20])
+	by glsmail02.gls-group.eu (Postfix) with ESMTP id 19699803EFE7
+	for <redacted@gmail.com>; Fri, 24 Dec 2021 11:24:21 +0100 (CET)
+Received: by apl1.portal1.gls-unique.com (Postfix, from userid 1000)
+	id 1A49C18000A7; Fri, 24 Dec 2021 11:24:21 +0100 (CET)
+From: GLS<noreply@gls-group.eu>
+To: redacted@gmail.com
+CC: 
+Subject: =?ISO-8859-1?Q?Twoja=20paczka=20od=20Mailboxde.com=20GmbH=20CLIPA:=20informacja=20o=20dostawie?=
+Content-Type: text/html; charset=UTF-8
+Message-Id: <20211224102421.1A49C18000A7@apl1.portal1.gls-unique.com>
+Date: Fri, 24 Dec 2021 11:24:21 +0100 (CET)
+
+<HTML>
+<BODY>
+<font face='Arial'><p><img src='https://gls-group.eu/resources/img/mail/header03.jpg' alt='GLS FlexDeliveryService'></p>Szanowny Odbiorco,<br>
+<br>
+informujemy, &#380;e Twoja paczka o numerze <a href=https://gls-group.eu/track/90346692444>90346692444</a> nadana przez Sender Name, zosta&#322;a dzisiaj dostarczona o godzinie 11:18 na nast&#281;puj&#261;cy adres:<br>
+<br>
+John Doe A redacted@gmail.com<br>
+Address Line 7<br>
+12-345 City<br>
+<br>
+Dzi&#281;kujemy za skorzystanie z us&#322;ug GLS!<br>
+<br>
+Pozdrawiamy,<br>
+Zesp&#243;&#322; GLS<br>
+<br>
+Infolinia GLS:<br>
+<br>
+46 814 82 20 (koszt wg stawek operatora osoby dzwoni&#261;cej).<br>
+Godziny pracy: pon.-pt. w godzinach 7.00 - 19.00, w sob. w godzinach 7.00 - 15.00.<br>
+<br>
+Odwied&#378; nas na <a href=https://gls-group.eu>www.gls-group.eu</a><br>
+<br>
+Wiadomo&#347;&#263; wygenerowana  automatycznie, prosimy na ni&#261; nie odpowiada&#263;.<br>
+<br>
+</font></BODY>
+</HTML>

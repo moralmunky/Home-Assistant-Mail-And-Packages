@@ -1,0 +1,379 @@
+Delivered-To: redacted@gmail.com
+Received: by 2002:a02:92c6:0:0:0:0:0 with SMTP id c6csp26473jah;
+        Wed, 12 Jan 2022 23:09:11 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJxp85amMJLKyRyTZ1HiXivViHfnBQJ+286Y3B1phEYe0JE/jm+T5tIAYSg0rPav1f3ASild
+X-Received: by 2002:a05:6512:3341:: with SMTP id y1mr2364960lfd.311.1642057751293;
+        Wed, 12 Jan 2022 23:09:11 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1642057751; cv=none;
+        d=google.com; s=arc-20160816;
+        b=A/+C63f2OZCcpaoD/ND1h7U7mAMJohm+YSGGgu2BGnpsNAuo/vU5PyNhhXJP+dcNPh
+         ZzKMWMasxIF8SlN+z4OSvkTmVqVyfwNGRlpcSg41lSUc0BX15A6wqgu9cFJfzEo1uDVU
+         djJ0Qsxj+rLcsgU0x/Oo5hsM6O3OKqtXWZRlvDnGAgEKWLtvlSEmU85przZMdtD7VDl0
+         XnoHkzOpte8u8ypUe/XoTiJX4GBWGPqtGugh1Nie5c4IXIDlY1YFRJd5ickd3G6r1zfg
+         zBQXkZV+Jx86mw82GmCvDWrVEAs9k6DqxWtpsJfkof8udRZeujCigD5XCBz3x6z+hwk9
+         pR/A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=subject:to:from:mime-version:content-transfer-encoding:message-id
+         :original-message-id:reply-to:date:dkim-signature;
+        bh=7et06Yb8grI6flUsaVcXiIDgjMTnnCL+V2GSvgGdzjg=;
+        b=VVTsda3dV+VxGh8hPpHzhWGbCoHSGrFw5FA5dW/kfmBejsZmbjY4H+pp6gnjxQ04sH
+         ELAOVVepy2XiH4DMCYzlocD42mIYfiI2daML+X5Svr/LN1TDFhSF/by4xl+FctWe9u3b
+         Gfqv4EL5/c5i/bHBCIHsS5vxgeCTDMgB6fzTVO1U4qc02rBhfN/RnpGwg2xikhRD/rig
+         wKQGJZTnJXQFtp+ITho5llBfA5AwIW9E+AfRR2Q8DJyUxHK+OLk+zE4kW/4DKbwdFU2L
+         QSzgrynz3KfrfzLhwansj9M27c20EjPb8j2EkimdYjZQj3E/OhcYrwY5QmgUw5c22gFH
+         VC9Q==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@allegromail.pl header.s=smtp header.b=qfe1NVAM;
+       spf=pass (google.com: domain of powiadomienia@allegromail.pl designates 91.207.14.253 as permitted sender) smtp.mailfrom=powiadomienia@allegromail.pl;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=allegromail.pl
+Return-Path: <powiadomienia@allegromail.pl>
+Received: from smtpfarm11.allegro.pl (smtpfarm11.allegro.pl. [91.207.14.253])
+        by mx.google.com with ESMTPS id h18si2261684lja.319.2022.01.12.23.09.11
+        for <redacted@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 12 Jan 2022 23:09:11 -0800 (PST)
+Received-SPF: pass (google.com: domain of powiadomienia@allegromail.pl designates 91.207.14.253 as permitted sender) client-ip=91.207.14.253;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@allegromail.pl header.s=smtp header.b=qfe1NVAM;
+       spf=pass (google.com: domain of powiadomienia@allegromail.pl designates 91.207.14.253 as permitted sender) smtp.mailfrom=powiadomienia@allegromail.pl;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=allegromail.pl
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=allegromail.pl; i=@allegromail.pl; q=dns/txt; s=smtp;
+  t=1642057751; x=1673593751;
+  h=reply-to:message-id:content-transfer-encoding:
+   mime-version:from:to:subject:date;
+  bh=paezi65dKZpfKqyW40fKmxJLbQjEiSvEtLwNJ+Gp44c=;
+  b=qfe1NVAMSIFRQMKH2A6xOaDro/I3rHxhk/vF6Fqc6HCqXDASwMnPbTiw
+   nDcEVRNXmCkyxDDkLk8CMB5053NH3pN8V9fn8ICfqt87b+nLpwzUfeFAL
+   XDXMVeVm9tLrSFHhwRebAlzreWzO8oQ3kpvN2xUNgTdlCNPAQgPDKRTAV
+   8=;
+Date: 13 Jan 2022 08:09:09 +0100
+Reply-To: KurierDPD3@dpd.com.pl
+Original-Message-ID: <20220113070801.02CA71E15@middle.masterlink.com.pl>
+Message-ID: 
+ <20220113080909.c824f64b-1a0b-4bf1-86ac-b0d6c4cfcf27@allegromail.pl>
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+From: "Kurier DPD (via Poczta Allegro)" <powiadomienia@allegromail.pl>
+To: redacted@gmail.com
+Subject: =?utf-8?q?Bezpieczne_dor=C4=99czenie_Twojej_paczki_1000399528451U_-?=
+ =?utf-8?q?_DPD_Polska?=
+
+<!---header---><html><head><meta http-equiv=3D"Content-Type"content=3D"text=
+/html; charset=3DUTF-8"><meta content=3D"telephone=3Dno"name=3D"format-dete=
+ction"><style type=3D"text/css">.appleLinksFooter a{color:#b1b2b2!important=
+;}.appleLinksAddress a{color:#666666!important;text-decoration:none;}div,p,=
+a,li,td{-webkit-text-size-adjust:none;}a:link,a:visited,a:hover{color:#dc00=
+32;}</style></head><body style=3D"background: #fff; margin: 0; padding: 0;"=
+><!---header---><div align=3D"center"><table width=3D"600"border=3D"0"cellp=
+adding=3D"0"cellspacing=3D"0"><tr><td width=3D"600"height=3D"8"style=3D"fon=
+t-size:1px; line-height:0px;"><img src=3D"https://predict.azureedge.net/bla=
+nk.gif"width=3D"1"height=3D"8"alt=3D""border=3D"0"style=3D"display:block;">=
+</td></tr><tr><td width=3D"600"height=3D"1"bgcolor=3D"#d9d9d9"style=3D"font=
+-size:1px; line-height:0px;"><img src=3D"https://predict.azureedge.net/blan=
+k.gif"width=3D"1"height=3D"1"alt=3D""border=3D"0"style=3D"display:block;"><=
+/td></tr></table><table width=3D"600"border=3D"0"cellpadding=3D"0"cellspaci=
+ng=3D"0"><tr><td width=3D"600"bgcolor=3D"#d9d9d9"style=3D"font-size: 13px; =
+line-height: 1.5em; font-family: Arial, Helvetica, sans-serif; color: #0000=
+00; text-align:left;"><img width=3D"600"src=3D"https://predict.azureedge.ne=
+t/udepotbanerh_min.gif"alt=3D"Predict - a service by DPD"style=3D"display:b=
+lock;"><!--Banner--><!--<img width=3D"600"src=3D"https://predict.azureedge.=
+net/udepotbaner_min.jpg"alt=3D"Predict - a service by DPD"style=3D"display:=
+block;">--></td></tr><tr><td height=3D"1"bgcolor=3D"#d9d9d9"style=3D"font-s=
+ize:1px; line-height:0px;"><img src=3D"https://predict.azureedge.net/blank.=
+gif"width=3D"1"height=3D"1"alt=3D""border=3D"0"style=3D"display:block;"></t=
+d></tr></table><table width=3D"600"border=3D"0"cellpadding=3D"0"cellspacing=
+=3D"0"><tr><td width=3D"1"bgcolor=3D"#d9d9d9"><img src=3D"https://predict.a=
+zureedge.net/blank.gif"width=3D"1"height=3D"1"alt=3D""border=3D"0"style=3D"=
+display:block;"></td><td width=3D"11"bgcolor=3D"#ffffff"><img src=3D"https:=
+//predict.azureedge.net/blank.gif"width=3D"11"height=3D"1"alt=3D""border=3D=
+"0"style=3D"display:block;"></td><td width=3D"576"valign=3D"top"><table wid=
+th=3D"100%"border=3D"0"cellpadding=3D"0"cellspacing=3D"0"><tr><td height=3D=
+"20"style=3D"font-size:1px;"><img src=3D"https://predict.azureedge.net/blan=
+k.gif"width=3D"1"height=3D"20"alt=3D""border=3D"0"style=3D"display:block;">=
+</td></tr></table>                        <table border=3D"0" cellspacing=
+=3D"0" cellpadding=3D"0">
+                           <tbody><tr>
+                              <td style=3D"font-size: 18px; line-height:1em=
+; color: #666666; font-family: Arial, Helvetica, sans-serif;text-align:left=
+;">Drogi Odbiorco,</td>
+                           </tr>
+                           <tr>
+                              <td height=3D"10" style=3D"font-size:1px; lin=
+e-height:1px;">&nbsp;</td>
+                           </tr>
+                           <tr>
+                              <td style=3D"font-size: 13px; line-height:1.4=
+em; color: #666666; font-family: Arial, Helvetica, sans-serif; text-align:l=
+eft;">
+							  Dzi=C5=9B dor=C4=99czamy Twoj=C4=85 paczk=C4=99 <a href=3D"https:/=
+/tracktrace.dpd.com.pl/parcelDetails?p1=3D1000399528451U"><b>1000399528451U=
+</b></a><br>
+							  Mo=C5=BCesz j=C4=85 odebra=C4=87 bezpiecznie - na zewn=C4=85trz lu=
+b popro=C5=9B o pozostawienie w portierni/recepcji<br>
+							  Uzgodnij z kurierem najbezpieczniejszy dla Ciebie spos=C3=B3b dost=
+awy. <br>
+							  P=C5=82a=C4=87 bezpiecznie kart=C4=85 za pobranie u kuriera DPD.<b=
+r><br>
+							  Poinformuj kuriera je=C5=BCeli przebywasz na kwarantannie.<br><br>
+							  <b>Kurier DPD Polska - 739070409</b><br><br>
+							  <div></div>
+							  <div>P=C5=82atno=C5=9B=C4=87 mo=C5=BCliwa kart=C4=85, <u>BLIKIEM</=
+u> lub got=C3=B3wk=C4=85.</div>
+							  </td>
+                           </tr>
+                           <tr>
+                              <td height=3D"10" style=3D"font-size:1px; lin=
+e-height:1px;">&nbsp;</td>
+                           </tr>
+                           <tr>
+                              <td style=3D"font-size: 13px; line-height:1.4=
+em; color: #666666; font-family: Arial, Helvetica, sans-serif; text-align:l=
+eft;">
+							  Nie mo=C5=BCesz odebra=C4=87 paczki? Nic straconego! Sprawd=C5=BA =
+nowe, ju=C5=BC dost=C4=99pne w ca=C5=82ej Polsce funkcjonalno=C5=9Bci porta=
+lu Moja Paczka: <a href=3D"https://mojapaczka.dpd.com.pl/login?parcel=3D100=
+0399528451U">https://mojapaczka.dpd.com.pl</a>
+							  </td>
+                           </tr>
+                           <tr>
+                              <td height=3D"10" style=3D"font-size:1px; lin=
+e-height:1px;">&nbsp;</td>
+                           </tr>
+                           <tr>
+                              <td style=3D"font-size: 11px; line-height:1.4=
+em; color: #666666; font-family: Arial, Helvetica, sans-serif; text-align:l=
+eft;">
+							  Portal pozwala na przekierowanie, zmian=C4=99 daty dor=C4=99czenia=
+, rezygnacj=C4=99 z paczki i przekierowanie do punktu Pickup.<br>
+							  </td>
+                           </tr>
+                           <tr>
+                              <td height=3D"10" style=3D"font-size:1px; lin=
+e-height:1px;">&nbsp;</td>
+                           </tr>
+                           <tr>
+                              <td style=3D"font-size: 13px; line-height:1.5=
+em; color: #666666; font-family: Arial, Helvetica, sans-serif;text-align:le=
+ft;"><span class=3D"appleLinksAddress"><b>Nadawca:</b><br>
+                                    <div>ZIELONY PARAPET MARTYN DROZDA WERO=
+NIKA KLIMEK SP=C3=93=C5=81KA CYWILNA</div>
+                                    <div></div></span></td>
+                           </tr>
+                           <tr>
+                              <td height=3D"10" style=3D"font-size:1px; lin=
+e-height:1px;">&nbsp;</td>
+                           </tr>
+                           <tr>
+                              <td style=3D"font-size: 13px; line-height:1.5=
+em; color: #666666; font-family: Arial, Helvetica, sans-serif;text-align:le=
+ft;"><span class=3D"appleLinksAddress"><b>Odbiorca:</b><br>
+                                    <div>Adama Pra=C5=BCmowskiego, 7A</div>
+                                    <div>30399, Krak=C3=B3w, PL</div></span=
+></td>
+                           </tr>
+						    <tr>
+                              <td height=3D"10" style=3D"font-size:1px; lin=
+e-height:1px;">&nbsp;</td>
+                           </tr>
+						     <tr>
+                              <td style=3D"font-size: 13px; line-height:1.4=
+em; color: #666666; font-family: Arial, Helvetica, sans-serif; text-align:l=
+eft;">
+								Numer referencyjny przesy=C5=82ki 1:  <b>367174256 [ucv8ws]</b></td>
+							  </tr>
+							  <tr>
+							     <td style=3D"font-size: 13px; line-height:1.4em; color: #666666=
+; font-family: Arial, Helvetica, sans-serif; text-align:left;">
+								Numer referencyjny przesy=C5=82ki 2: <b></b></td>
+                           </tr>
+                        </tbody></table><!---footer=3D-->=0D
+            <table width=3D"100%" border=3D"0" cellpadding=3D"0" cellspacin=
+g=3D"0">=0D
+              <tr>=0D
+                <td height=3D"15" style=3D"font-size:1px; line-height:0px;"=
+>=0D
+                  <img src=3D"https://predict.azureedge.net/blank.gif" widt=
+h=3D"1" height=3D"15" alt=3D"" border=3D"0"=0D
+                  style=3D"display:block;" />=0D
+                </td>=0D
+              </tr>=0D
+              <tr>=0D
+                <td height=3D"1" bgcolor=3D"#D9D9D9" style=3D"font-size:1px=
+; line-height:0px;">=0D
+                  <img src=3D"https://predict.azureedge.net/blank.gif" widt=
+h=3D"1" height=3D"1" alt=3D"" border=3D"0"=0D
+                  style=3D"display:block;" />=0D
+                </td>=0D
+              </tr>=0D
+              <tr>=0D
+                <td height=3D"13" style=3D"font-size:1px; line-height:0px;"=
+>=0D
+                  <img src=3D"https://predict.azureedge.net/blank.gif" widt=
+h=3D"1" height=3D"13" alt=3D"" border=3D"0"=0D
+                  style=3D"display:block;" />=0D
+                </td>=0D
+              </tr>=0D
+            </table>=0D
+            <table cellpadding=3D"0" cellspacing=3D"0" border=3D"0">=0D
+              <tr>=0D
+                <td height=3D"10" style=3D"font-size:1px; line-height:1px;"=
+>&nbsp;</td>=0D
+              </tr>=0D
+              <tr>=0D
+                <td style=3D"font-size: 13px; line-height:1.4em; color: #66=
+6666; font-family: Arial, Helvetica, sans-serif; text-align:left;">=0D
+=0D
+                  <b>Informujemy, =C5=BCe niniejsze powiadomienie zosta=C5=
+=82o wygenerowane automatycznie, prosimy nie odpowiada=C4=87 na t=C4=99=0D
+                  wiadomo=C5=9B=C4=87.=0D
+                  <br /></b>=0D
+                </td>=0D
+              </tr>=0D
+              <tr>=0D
+                <td height=3D"10" style=3D"font-size:1px; line-height:1px;"=
+>&nbsp;</td>=0D
+              </tr>=0D
+              <tr>=0D
+                <td style=3D"font-size: 10px; line-height:1.5em; color: #66=
+6666; font-family: Arial, Helvetica, sans-serif;text-align:left;">=0D
+                Szczeg=C3=B3=C5=82owe informacje o przesy=C5=82ce: =0D
+                <a href=3D"https://www.dpd.com.pl">www.dpd.com.pl</a></td>=
+=0D
+              </tr>=0D
+              <tr>=0D
+                <td style=3D"font-size: 10px; line-height:1.5em; color: #66=
+6666; font-family: Arial, Helvetica, sans-serif;text-align:left;">=0D
+                <br />Pa=C5=84stwa dane osobowe s=C4=85 przetwarzane przez =
+DPD Polska sp. z o.o. z siedzib=C4=85 w Warszawie 02-274 przy ul.=0D
+                Mineralnej 15, w celu i zakresie wskazanym na stronie inter=
+netowej: =0D
+                <a href=3D"https://www.dpd.com.pl">www.dpd.com.pl</a></td>=
+=0D
+              </tr>=0D
+              <tr>=0D
+                <td height=3D"10" style=3D"font-size:1px; line-height:1px;"=
+>&nbsp;</td>=0D
+              </tr>=0D
+              <tr>=0D
+                <td style=3D"font-size: 13px; line-height:1.5em; color: #66=
+6666; font-family: Arial, Helvetica, sans-serif;text-align:left;">=0D
+                Dzi=C4=99kujemy za skorzystanie z naszych us=C5=82ug.=0D
+                <br />=0D
+                <br />Pozdrawiamy,=0D
+                <br />=0D
+                <b>DPD Polska sp. z o.o.</b></td>=0D
+              </tr>=0D
+              <tr>=0D
+                <td height=3D"10" style=3D"font-size:1px; line-height:1px;"=
+>&nbsp;</td>=0D
+              </tr>=0D
+            </table>=0D
+          </td>=0D
+          <td width=3D"11" bgcolor=3D"#FFFFFF">=0D
+            <img src=3D"https://predict.azureedge.net/blank.gif" width=3D"1=
+1" height=3D"1" alt=3D"" border=3D"0" style=3D"display:block;" />=0D
+          </td>=0D
+          <td width=3D"1" bgcolor=3D"#D9D9D9">=0D
+            <img src=3D"https://predict.azureedge.net/blank.gif" width=3D"1=
+" height=3D"1" alt=3D"" border=3D"0" style=3D"display:block;" />=0D
+          </td>=0D
+        </tr>=0D
+        <tr>=0D
+          <td colspan=3D"5" height=3D"1" bgcolor=3D"#D9D9D9" style=3D"font-=
+size:1px; line-height:0px;">=0D
+            <img src=3D"https://predict.azureedge.net/blank.gif" width=3D"1=
+" height=3D"1" alt=3D"" border=3D"0" style=3D"display:block;" />=0D
+          </td>=0D
+        </tr>=0D
+      </table>=0D
+    </div>=0D
+    <!---footer=3D-->=0D
+    <div align=3D"center">=0D
+      <table width=3D"600" cellpadding=3D"0" cellspacing=3D"0" border=3D"0"=
+>=0D
+        <tr>=0D
+          <td height=3D"5" width=3D"12px" style=3D"font-size:1px; line-heig=
+ht:0px;"></td>=0D
+          <td style=3D"font-size:1px; line-height:0px;">=0D
+            <table width=3D"600" cellpadding=3D"0" cellspacing=3D"0" border=
+=3D"0">=0D
+              <tr>=0D
+                <td colspan=3D"2" height=3D"16" style=3D"font-size:1px; lin=
+e-height:1px;">&nbsp;</td>=0D
+              </tr>=0D
+              <tr>=0D
+                <td>=0D
+                  <p style=3D"line-height: 1.2; font-family: Arial, Helveti=
+ca, sans-serif; font-size:11px; padding-bottom:0; padding-top:0px; margin-b=
+ottom:0; margin-top:0; margin:0;">=0D
+=0D
+                    <a href=3D"https://www.dpd.com.pl" style=3D"color:#dc00=
+32">www.dpd.com.pl</a>=0D
+                  </p>=0D
+                </td>=0D
+                <td valign=3D"bottom" align=3D"right">=0D
+                  <p style=3D"line-height: 1.2; padding-bottom:0px; padding=
+-top:0px; margin-bottom:0; margin-top:0; margin:0;">=0D
+                    <img src=3D"https://predict.azureedge.net/signature_end=
+orsement_dpdg.gif" />=0D
+                  </p>=0D
+                </td>=0D
+              </tr>=0D
+              <tr>=0D
+                <td colspan=3D"2" height=3D"12" style=3D"font-size:1px; lin=
+e-height:1px;">&nbsp;</td>=0D
+              </tr>=0D
+              <tr>=0D
+                <td colspan=3D"2" height=3D"13" style=3D"font-size:1px; lin=
+e-height:1px; border-top:1px solid #dc0032;">&nbsp;</td>=0D
+              </tr>=0D
+              <tr>=0D
+                <td colspan=3D"2"=0D
+                style=3D"font-size: 11px; line-height: 1.25; font-family: A=
+rial, Helvetica, sans-serif;color:#b1b2b2;">=0D
+                  <span class=3D"appleLinksFooter">DPD Polska sp. z o.o., 0=
+2-274 Warszawa, ul. Mineralna 15=0D
+                  <br />Sp=C3=B3=C5=82ka wpisana do rejestru przedsi=C4=99b=
+iorc=C3=B3w w S=C4=85dzie Rejonowym dla m.st.Warszawy=0D
+                  <br />XIV Wydzia=C5=82 Gospodarczy Krajowego Rejestru S=
+=C4=85dowego=0D
+                  <br />KRS nr 0000028368, NIP:526-020-41-10, kapita=C5=82 =
+zak=C5=82adowy: 228.604.000 PLN.</span>=0D
+                </td>=0D
+              </tr>=0D
+              <tr>=0D
+                <td colspan=3D"2" height=3D"6" style=3D"font-size:1px; line=
+-height:1px;">&nbsp;</td>=0D
+              </tr>=0D
+              <tr>=0D
+                <td colspan=3D"2"=0D
+                style=3D"font-size: 11px; line-height: 1.25; font-family: A=
+rial, Helvetica, sans-serif;color:#b1b2b2;">=0D
+                  <span class=3D"appleLinksFooter">Pomy=C5=9Bl o =C5=9Brodo=
+wisku! Nie drukuj tej wiadomo=C5=9Bci je=C5=9Bli nie jest to=0D
+                  konieczne.</span>=0D
+                </td>=0D
+              </tr>=0D
+              <tr>=0D
+                <td colspan=3D"2" height=3D"6" style=3D"font-size:1px; line=
+-height:1px;">&nbsp;</td>=0D
+              </tr>=0D
+            </table>=0D
+          </td>=0D
+          <td height=3D"5" width=3D"12px" style=3D"font-size:1px; line-heig=
+ht:0px;"></td>=0D
+        </tr>=0D
+        <tr>=0D
+          <td colspan=3D"3" height=3D"20" style=3D"font-size:1px; line-heig=
+ht:0px;">=0D
+            <img src=3D"https://predict.azureedge.net/blank.gif" width=3D"1=
+" height=3D"5" alt=3D"" border=3D"0" style=3D"display:block;" />=0D
+          </td>=0D
+        </tr>=0D
+      </table>=0D
+    </div>=0D
+  </body>=0D
+</html>=0D
+<!---footer=3D-->=

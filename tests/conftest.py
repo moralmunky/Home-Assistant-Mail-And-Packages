@@ -1,7 +1,9 @@
-""" Fixtures for Mail and Packages tests. """
+"""Fixtures for Mail and Packages tests."""
+import datetime
 import errno
 import imaplib
 import time
+from datetime import timezone
 from unittest import mock
 from unittest.mock import patch
 
@@ -40,6 +42,7 @@ def mock_imap():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
 
@@ -118,6 +121,7 @@ def mock_imap_no_email():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b""])
+        mock_conn.uid.return_value = ("OK", [b""])
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
 
@@ -162,6 +166,7 @@ def mock_imap_fetch_error():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.fetch.side_effect = Exception("Invalid Email")
         yield mock_conn
@@ -206,6 +211,7 @@ def mock_imap_index_error_2():
             [b'(\\HasNoChildren) ";" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"0"])
+        mock_conn.uid.return_value = ("OK", [b"0"])
         yield mock_imap_index_error
 
 
@@ -227,6 +233,7 @@ def mock_imap_mailbox_format2():
             [b'(\\HasNoChildren) "." "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"0"])
+        mock_conn.uid.return_value = ("OK", [b"0"])
         yield mock_conn
 
 
@@ -248,6 +255,7 @@ def mock_imap_usps_informed_digest():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/informed_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -273,6 +281,7 @@ def mock_imap_usps_informed_digest_missing():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/informed_delivery_missing_mailpiece.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -298,6 +307,7 @@ def mock_imap_usps_informed_digest_no_mail():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/informed_delivery_no_mail.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -323,6 +333,7 @@ def mock_imap_ups_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/ups_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -348,6 +359,7 @@ def mock_imap_ups_out_for_delivery_html():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/ups_out_for_delivery_new.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -373,6 +385,7 @@ def mock_imap_dhl_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/dhl_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -398,7 +411,34 @@ def mock_imap_fedex_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/fedex_out_for_delivery.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_fedex_out_for_delivery_2():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_dhl_out_for_delivery:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_dhl_out_for_delivery.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/fedex_out_for_delivery_2.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
@@ -423,6 +463,7 @@ def mock_imap_usps_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/usps_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -448,6 +489,7 @@ def mock_imap_amazon_shipped():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_shipped.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -473,7 +515,34 @@ def mock_imap_amazon_shipped_uk():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_uk_shipped.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_amazon_shipped_uk_2():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_amazon_shipped:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_amazon_shipped.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/amazon_uk_shipped_2.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
@@ -498,7 +567,34 @@ def mock_imap_amazon_shipped_alt():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_shipped_alt.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_amazon_shipped_alt_2():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_amazon_shipped_alt_2:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_amazon_shipped_alt_2.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/amazon_shipped_alt_2.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
@@ -523,6 +619,7 @@ def mock_imap_amazon_shipped_it():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_shipped_it.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -548,6 +645,7 @@ def mock_imap_amazon_shipped_alt_timeformat():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_shipped_alt_timeformat.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -573,6 +671,7 @@ def mock_imap_amazon_delivered():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_delivered.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -598,6 +697,7 @@ def mock_imap_amazon_delivered_it():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_delivered_it.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -623,7 +723,34 @@ def mock_imap_amazon_the_hub():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_hub_notice.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_amazon_the_hub_2():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_amazon_the_hub:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_amazon_the_hub.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/amazon_hub_notice_2.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
@@ -632,7 +759,7 @@ def mock_imap_amazon_the_hub():
 
 @pytest.fixture
 def test_valid_ffmpeg():
-    """Fixture to mock which"""
+    """Fixture to mock which."""
     with patch("custom_components.mail_and_packages.helpers.which") as mock_which:
         mock_which.return_value = "anything"
         yield mock_which
@@ -640,7 +767,7 @@ def test_valid_ffmpeg():
 
 @pytest.fixture
 def test_invalid_ffmpeg():
-    """Fixture to mock which"""
+    """Fixture to mock which."""
     with patch("custom_components.mail_and_packages.helpers.which") as mock_which:
         mock_which.return_value = None
         yield mock_which
@@ -648,7 +775,7 @@ def test_invalid_ffmpeg():
 
 @pytest.fixture
 def mock_copyfile_exception():
-    """Fixture to mock which"""
+    """Fixture to mock copyfile."""
     with patch("custom_components.mail_and_packages.helpers.copyfile") as mock_copyfile:
         mock_copyfile.side_effect = Exception("File not found")
         yield mock_copyfile
@@ -656,7 +783,7 @@ def mock_copyfile_exception():
 
 @pytest.fixture
 def mock_copyfile():
-    """Fixture to mock copyfile"""
+    """Fixture to mock copyfile."""
     with patch("custom_components.mail_and_packages.helpers.copyfile") as mock_copyfile:
         mock_copyfile.return_value = True
         yield mock_copyfile
@@ -664,7 +791,7 @@ def mock_copyfile():
 
 @pytest.fixture
 def mock_listdir():
-    """Fixture to mock listdir"""
+    """Fixture to mock listdir."""
     with patch("os.listdir") as mock_listdir:
         mock_listdir.return_value = [
             "testfile.gif",
@@ -676,7 +803,7 @@ def mock_listdir():
 
 @pytest.fixture
 def mock_listdir_nogif():
-    """Fixture to mock listdir"""
+    """Fixture to mock listdir."""
     with patch("os.listdir") as mock_listdir_nogif:
         mock_listdir_nogif.return_value = [
             "testfile.jpg",
@@ -688,7 +815,7 @@ def mock_listdir_nogif():
 
 @pytest.fixture
 def mock_listdir_noimgs():
-    """Fixture to mock listdir"""
+    """Fixture to mock listdir."""
     with patch("os.listdir") as mock_listdir_noimgs:
         mock_listdir_noimgs.return_value = [
             "testfile.xls",
@@ -700,7 +827,7 @@ def mock_listdir_noimgs():
 
 @pytest.fixture
 def mock_osremove():
-    """Fixture to mock remove"""
+    """Fixture to mock remove."""
     with patch("os.remove") as mock_remove:
         mock_remove.return_value = True
         yield mock_remove
@@ -708,7 +835,7 @@ def mock_osremove():
 
 @pytest.fixture
 def mock_osremove_exception():
-    """Fixture to mock remove"""
+    """Fixture to mock remove."""
     with patch("os.remove") as mock_osremove_exception:
         mock_osremove_exception.side_effect = Exception("Invalid directory")
         yield mock_osremove_exception
@@ -716,7 +843,7 @@ def mock_osremove_exception():
 
 @pytest.fixture
 def mock_osmakedir():
-    """Fixture to mock makedirs"""
+    """Fixture to mock makedirs."""
     with patch("os.makedirs") as mock_osmakedir:
         mock_osmakedir.return_value = True
         yield mock_osmakedir
@@ -724,7 +851,7 @@ def mock_osmakedir():
 
 @pytest.fixture
 def mock_osmakedir_excpetion():
-    """Fixture to mock makedir"""
+    """Fixture to mock makedir."""
     with patch("os.makedir") as mock_osmakedir:
         mock_osmakedir.side_effect = Exception("File not found")
         yield mock_osmakedir
@@ -732,7 +859,7 @@ def mock_osmakedir_excpetion():
 
 @pytest.fixture
 def mock_open_excpetion():
-    """Fixture to mock open"""
+    """Fixture to mock open."""
     with patch("builtins.open") as mock_open_excpetion:
         mock_open_excpetion.side_effect = Exception("File not found")
 
@@ -741,7 +868,7 @@ def mock_open_excpetion():
 
 @pytest.fixture
 def mock_os_path_splitext():
-    """Fixture to mock splitext"""
+    """Fixture to mock splitext."""
     with patch("os.path.splitext") as mock_os_path_splitext:
         mock_os_path_splitext.return_value = ("test_filename", "gif")
         yield mock_os_path_splitext
@@ -749,17 +876,20 @@ def mock_os_path_splitext():
 
 @pytest.fixture
 def mock_update_time():
-    """Fixture to mock splitext"""
+    """Fixture to mock update_time."""
     with patch(
         "custom_components.mail_and_packages.helpers.update_time"
     ) as mock_update_time:
-        mock_update_time.return_value = "Sep-23-2020 10:28 AM"
+        mock_update_time.return_value = datetime.datetime(
+            2022, 1, 6, 12, 14, 38, tzinfo=timezone.utc
+        ).isoformat(timespec="minutes")
+        # mock_update_time.return_value = "2022-01-06T12:14:38+00:00"
         yield mock_update_time
 
 
 @pytest.fixture
 def mock_image():
-    """Fixture to mock splitext"""
+    """Fixture to mock Image."""
     with patch("custom_components.mail_and_packages.helpers.Image") as mock_image:
 
         yield mock_image
@@ -767,7 +897,7 @@ def mock_image():
 
 @pytest.fixture
 def mock_image_excpetion():
-    """Fixture to mock splitext"""
+    """Fixture to mock Image."""
     with patch(
         "custom_components.mail_and_packages.helpers.Image"
     ) as mock_image_excpetion:
@@ -778,7 +908,7 @@ def mock_image_excpetion():
 
 @pytest.fixture
 def mock_resizeimage():
-    """Fixture to mock splitext"""
+    """Fixture to mock splitext."""
     with patch(
         "custom_components.mail_and_packages.helpers.resizeimage"
     ) as mock_resizeimage:
@@ -788,7 +918,7 @@ def mock_resizeimage():
 
 @pytest.fixture
 def mock_io():
-    """Fixture to mock splitext"""
+    """Fixture to mock io."""
     with patch("custom_components.mail_and_packages.helpers.io") as mock_io:
 
         yield mock_io
@@ -796,7 +926,7 @@ def mock_io():
 
 @pytest.fixture
 def mock_os_path_isfile():
-    """Fixture to mock splitext"""
+    """Fixture to mock isfile."""
     with patch("os.path.isfile") as mock_os_path_isfile:
         mock_os_path_isfile.return_value = True
         yield mock_os_path_isfile
@@ -804,7 +934,7 @@ def mock_os_path_isfile():
 
 @pytest.fixture
 def mock_os_path_join():
-    """Fixture to mock splitext"""
+    """Fixture to mock join."""
     with patch("os.path.join") as mock_path_join:
 
         yield mock_path_join
@@ -812,7 +942,7 @@ def mock_os_path_join():
 
 @pytest.fixture
 def mock_os_path_split():
-    """Fixture to mock split"""
+    """Fixture to mock split."""
     with patch("os.path.split") as mock_os_path_split:
 
         yield mock_os_path_split
@@ -820,7 +950,7 @@ def mock_os_path_split():
 
 @pytest.fixture
 def mock_subprocess_call():
-    """Fixture to mock splitext"""
+    """Fixture to mock subprocess."""
     with patch("subprocess.call") as mock_subprocess_call:
 
         yield mock_subprocess_call
@@ -828,7 +958,7 @@ def mock_subprocess_call():
 
 @pytest.fixture
 def mock_copy_overlays():
-    """Fixture to mock splitext"""
+    """Fixture to mock copy_overlays."""
     with patch(
         "custom_components.mail_and_packages.helpers.copy_overlays"
     ) as mock_copy_overlays:
@@ -864,6 +994,7 @@ def mock_imap_hermes_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/hermes_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -889,6 +1020,7 @@ def mock_imap_royal_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/royal_mail_uk_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -898,7 +1030,7 @@ def mock_imap_royal_out_for_delivery():
 
 @pytest.fixture
 def mock_copyoverlays():
-    """Fixture to mock makedirs"""
+    """Fixture to mock copy_overlays."""
     with patch(
         "custom_components.mail_and_packages.helpers.copy_overlays"
     ) as mock_copyoverlays:
@@ -908,7 +1040,7 @@ def mock_copyoverlays():
 
 @pytest.fixture
 def mock_hash_file():
-    """Fixture to mock makedirs"""
+    """Fixture to mock hash_file."""
     with patch(
         "custom_components.mail_and_packages.helpers.hash_file"
     ) as mock_hash_file:
@@ -917,6 +1049,7 @@ def mock_hash_file():
 
 
 def hash_side_effect(value):
+    """Side effect value."""
     if "mail_none.gif" in value:
         return "633d7356947eec543c50b76a1852f92427f4dca9"
     else:
@@ -925,7 +1058,7 @@ def hash_side_effect(value):
 
 @pytest.fixture
 def mock_getctime_today():
-    """Fixture to mock os.path.getctime"""
+    """Fixture to mock os.path.getctime."""
     with patch(
         "custom_components.mail_and_packages.helpers.os.path.getctime"
     ) as mock_getctime_today:
@@ -935,7 +1068,7 @@ def mock_getctime_today():
 
 @pytest.fixture
 def mock_getctime_yesterday():
-    """Fixture to mock os.path.getctime"""
+    """Fixture to mock os.path.getctime."""
     with patch(
         "custom_components.mail_and_packages.helpers.os.path.getctime"
     ) as mock_getctime_yesterday:
@@ -945,7 +1078,7 @@ def mock_getctime_yesterday():
 
 @pytest.fixture
 def mock_hash_file_oserr():
-    """Fixture to mock makedirs"""
+    """Fixture to mock hash_file."""
     with patch(
         "custom_components.mail_and_packages.helpers.hash_file"
     ) as mock_hash_file_oserr:
@@ -955,7 +1088,7 @@ def mock_hash_file_oserr():
 
 @pytest.fixture
 def mock_getctime_err():
-    """Fixture to mock os.path.getctime"""
+    """Fixture to mock os.path.getctime."""
     with patch(
         "custom_components.mail_and_packages.helpers.os.path.getctime"
     ) as mock_getctime_err:
@@ -981,6 +1114,7 @@ def mock_imap_usps_exception():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/usps_exception.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
@@ -1024,7 +1158,7 @@ def aioclient_mock_error():
 
 @pytest.fixture
 def mock_copytree():
-    """Fixture to mock copyfile"""
+    """Fixture to mock copytree."""
     with patch("custom_components.mail_and_packages.helpers.copytree") as mock_copytree:
         mock_copytree.return_value = True
         yield mock_copytree
@@ -1048,11 +1182,13 @@ def mock_imap_amazon_exception():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_exception.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
+
 
 @pytest.fixture()
 def mock_imap_auspost_out_for_delivery():
@@ -1072,11 +1208,13 @@ def mock_imap_auspost_out_for_delivery():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/auspost_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
+
 
 @pytest.fixture()
 def mock_imap_auspost_delivered():
@@ -1096,12 +1234,167 @@ def mock_imap_auspost_delivered():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
         mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/auspost_delivered.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
 
+
+@pytest.fixture()
+def mock_imap_poczta_polska_delivering():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_poczta_polska_delivering:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_poczta_polska_delivering.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/poczta_polska_delivering.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_inpost_pl_out_for_delivery():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_inpost_pl_out_for_delivery:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_inpost_pl_out_for_delivery.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/inpost_pl_out_for_delivery.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_inpost_pl_delivered():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_inpost_pl_delivered:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_inpost_pl_delivered.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/inpost_pl_delivered.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_dpd_com_pl_delivering():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_dpd_com_pl_delivering:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_dpd_com_pl_delivering.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/dpd_com_pl_delivering.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_search_error_none():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_search_error_none:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_search_error_none.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [None])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_amazon_fwd():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_amazon_fwd:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_amazon_fwd.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/amazon_fwd.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations):
+    """Enable custom integration tests."""
     yield

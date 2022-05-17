@@ -6,7 +6,11 @@
         "error": {
             "communication": "Kan ikke koble til eller logge inn på postserveren. Vennligst sjekk loggen for detaljer.",
             "invalid_path": "Lagre bildene i en annen katalog.",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
+            "amazon_domain": "Invalid forwarding email address.",
+            "file_not_found": "Image file not found",
+            "scan_too_low": "Scan interval too low (minimum 5)",
+            "timeout_too_low": "IMAP timeout too low (minimum 10)"
         },
         "step": {
             "user": {
@@ -30,10 +34,19 @@
                     "resources": "Sensors List",
                     "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
                     "amazon_fwds": "Amazon fowarded email addresses",
-                    "allow_external": "Create image for notification apps"
+                    "allow_external": "Create image for notification apps",
+                    "amazon_days": "Days back to check for Amazon emails",
+                    "custom_img": "Use custom 'no image' image?"
                 },
                 "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på e-poststrukturen og Home Assistant-installasjonen. \n\n For detaljer om alternativene [Mail and Packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), les gjennom [konfigurasjon, maler , og automatiseringsdel] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
                 "title": "E-post og pakker (trinn 2 av 2)"
+            },
+            "options_3": {
+                "data": {
+                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                },
+                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
+                "title": "Mail and Packages (Step 3 of 3)"
             }
         },
         "title": "Mail and Packages"
@@ -42,7 +55,11 @@
         "error": {
             "communication": "Kan ikke koble til eller logge inn på postserveren. Vennligst sjekk loggen for detaljer.",
             "invalid_path": "Lagre bildene i en annen katalog.",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg"
+            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
+            "amazon_domain": "Ugyldig videresendings-e-postadresse.",
+            "file_not_found": "Image file not found",
+            "scan_too_low": "Scan interval too low (minimum 5)",
+            "timeout_too_low": "IMAP timeout too low (minimum 10)"
         },
         "step": {
             "init": {
@@ -66,11 +83,21 @@
                     "resources": "Sensorliste",
                     "imap_timeout": "Tid i sekunder før tidsavbrudd for tilkobling (sekunder, minimum 10)",
                     "amazon_fwds": "Amazon forwarded email addresses",
-                    "allow_external": "Lag bilde for varslingsapper"
+                    "allow_external": "Lag bilde for varslingsapper",
+                    "amazon_days": "Days back to check for Amazon emails",
+                    "custom_img": "Use custom 'no image' image?"
                 },
                 "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på e-poststrukturen og Home Assistant-installasjonen. \n\n For detaljer om alternativene [Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), les gjennom [konfigurasjon, maler , og automatiseringsdel](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
                 "title": "E-post og pakker (trinn 2 av 2)"
+            },
+            "options_3": {
+                "data": {
+                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                },
+                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
+                "title": "Mail and Packages (Step 3 of 3)"
             }
         }
-    }
+    },
+    "title": "Mail and Packages"
 }

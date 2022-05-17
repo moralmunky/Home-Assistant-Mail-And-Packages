@@ -12,12 +12,14 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import (
     CONF_ALLOW_EXTERNAL,
+    CONF_AMAZON_DAYS,
     CONF_AMAZON_FWDS,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_TIMEOUT,
     CONF_PATH,
     CONF_SCAN_INTERVAL,
     COORDINATOR,
+    DEFAULT_AMAZON_DAYS,
     DEFAULT_IMAP_TIMEOUT,
     DOMAIN,
     ISSUE_URL,
@@ -29,9 +31,10 @@ from .helpers import default_image_path, process_emails
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(hass, config_entry):
-    """Disallow configuration via YAML"""
-
+async def async_setup(
+    hass: HomeAssistant, config_entry: ConfigEntry
+):  # pylint: disable=unused-argument
+    """Disallow configuration via YAML."""
     return True
 
 
@@ -114,7 +117,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
-
     _LOGGER.debug("Attempting to unload sensors from the %s integration", DOMAIN)
 
     unload_ok = all(
@@ -135,7 +137,6 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 
 async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
     """Update listener."""
-
     _LOGGER.debug("Attempting to reload sensors from the %s integration", DOMAIN)
 
     if config_entry.data == config_entry.options:
@@ -156,7 +157,7 @@ async def async_migrate_entry(hass, config_entry):
     """Migrate an old config entry."""
     version = config_entry.version
 
-    # 1 -> 3: Migrate format
+    # 1 -> 4: Migrate format
     if version == 1:
         _LOGGER.debug("Migrating from version %s", version)
         updated_config = config_entry.data.copy()
@@ -178,12 +179,16 @@ async def async_migrate_entry(hass, config_entry):
         if not config_entry.data[CONF_IMAGE_SECURITY]:
             updated_config[CONF_IMAGE_SECURITY] = True
 
+        # Add default Amazon Days configuration
+        updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
+
         if updated_config != config_entry.data:
             hass.config_entries.async_update_entry(config_entry, data=updated_config)
 
-        config_entry.version = 3
+        config_entry.version = 4
         _LOGGER.debug("Migration to version %s complete", config_entry.version)
 
+    # 2 -> 4
     if version == 2:
         _LOGGER.debug("Migrating from version %s", version)
         updated_config = config_entry.data.copy()
@@ -195,10 +200,26 @@ async def async_migrate_entry(hass, config_entry):
         if not config_entry.data[CONF_IMAGE_SECURITY]:
             updated_config[CONF_IMAGE_SECURITY] = True
 
+        # Add default Amazon Days configuration
+        updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
+
         if updated_config != config_entry.data:
             hass.config_entries.async_update_entry(config_entry, data=updated_config)
 
-        config_entry.version = 3
+        config_entry.version = 4
+        _LOGGER.debug("Migration to version %s complete", config_entry.version)
+
+    if version == 3:
+        _LOGGER.debug("Migrating from version %s", version)
+        updated_config = config_entry.data.copy()
+
+        # Add default Amazon Days configuration
+        updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
+
+        if updated_config != config_entry.data:
+            hass.config_entries.async_update_entry(config_entry, data=updated_config)
+
+        config_entry.version = 4
         _LOGGER.debug("Migration to version %s complete", config_entry.version)
 
     return True
@@ -220,12 +241,13 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         super().__init__(hass, _LOGGER, name=self.name, update_interval=self.interval)
 
     async def _async_update_data(self):
-        """Fetch data"""
+        """Fetch data."""
         async with timeout(self.timeout):
             try:
                 data = await self.hass.async_add_executor_job(
                     process_emails, self.hass, self.config
                 )
             except Exception as error:
+                _LOGGER.error("Problem updating sensors: %s", error)
                 raise UpdateFailed(error) from error
             return data

@@ -21,6 +21,7 @@ from .const import (
     COORDINATOR,
     DOMAIN,
     SENSOR_NAME,
+    VERSION,
 )
 
 SERVICE_UPDATE_IMAGE = "update_image"
@@ -129,9 +130,12 @@ class MailCam(Camera):
 
     def update_file_path(self) -> None:
         """Update the file_path."""
-
         _LOGGER.debug("Camera Update: %s", self._type)
         _LOGGER.debug("Custom No Mail: %s", self._no_mail)
+
+        if not self._coordinator.last_update_success:
+            _LOGGER.warning("Update to update camera image. Unavailable.")
+            return
 
         if self._coordinator.data is None:
             _LOGGER.warning("Unable to update camera image, no data.")
@@ -169,6 +173,16 @@ class MailCam(Camera):
         self.async_schedule_update_ha_state(True)
 
     @property
+    def device_info(self) -> dict:
+        """Return device information about the mailbox."""
+        return {
+            "connections": {(DOMAIN, self._unique_id)},
+            "name": self._host,
+            "manufacturer": "IMAP E-Mail",
+            "sw_version": VERSION,
+        }
+
+    @property
     def unique_id(self) -> str:
         """Return a unique, Home Assistant friendly identifier for this entity."""
         return f"{self._host}_{self._name}_{self._unique_id}"
@@ -179,9 +193,9 @@ class MailCam(Camera):
         return self._name
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the camera state attributes."""
-        return {"file_path": self._file_path, CONF_HOST: self._host}
+        return {"file_path": self._file_path}
 
     @property
     def should_poll(self) -> bool:
