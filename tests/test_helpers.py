@@ -698,12 +698,21 @@ async def test_usps_out_for_delivery(hass, mock_imap_usps_out_for_delivery):
     assert result["tracking"] == ["92123456508577307776690000"]
 
 
-async def test_dhl_out_for_delivery(hass, mock_imap_dhl_out_for_delivery):
+async def test_dhl_out_for_delivery(hass, mock_imap_dhl_out_for_delivery, caplog):
     result = get_count(
         mock_imap_dhl_out_for_delivery, "dhl_delivering", True, "./", hass
     )
     assert result["count"] == 1
     assert result["tracking"] == ["4212345678"]
+    assert "UTF-8 not supported." not in caplog.text
+
+async def test_dhl_no_utf8(hass, mock_imap_dhl_no_utf8, caplog):
+    result = get_count(
+        mock_imap_dhl_no_utf8, "dhl_delivering", True, "./", hass
+    )
+    assert result["count"] == 1
+    assert result["tracking"] == ["4212345678"]
+    assert "UTF-8 not supported: ('BAD', ['Unsupported'])" in caplog.text    
 
 
 async def test_hermes_out_for_delivery(hass, mock_imap_hermes_out_for_delivery):
