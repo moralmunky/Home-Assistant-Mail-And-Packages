@@ -541,7 +541,7 @@ def email_search(
         try:
             cmd = account.enable("UTF8=ACCEPT")
         except Exception as err:
-            _LOGGER.warning("UTF-8 not supported: %s", str(err))
+            _LOGGER.debug("UTF-8 not supported: %s", str(err))
             value = "BAD", err.args[0]
 
         if cmd == "OK":
@@ -550,7 +550,7 @@ def email_search(
             try:
                 value = account.uid("SEARCH", "CHARSET", "UTF-8", search)
             except Exception as err:
-                _LOGGER.warning(
+                _LOGGER.debug(
                     "Error searching emails with unicode characters: %s", str(err)
                 )
                 value = "BAD", err.args[0]
@@ -709,14 +709,14 @@ def get_mails(
                     all_images,
                     duration=gif_duration,
                 )
-                _LOGGER.info("Mail image generated.")
+                _LOGGER.debug("Mail image generated.")
             except Exception as err:
                 _LOGGER.error("Error attempting to generate image: %s", str(err))
             for image in images_delete:
                 cleanup_images(f"{os.path.split(image)[0]}/", os.path.split(image)[1])
 
         elif image_count == 0:
-            _LOGGER.info("No mail found.")
+            _LOGGER.debug("No mail found.")
             if os.path.isfile(image_output_path + image_name):
                 _LOGGER.debug("Removing " + image_output_path + image_name)
                 cleanup_images(image_output_path, image_name)
@@ -1309,8 +1309,6 @@ def get_items(
                             continue
                         email_msg = email_msg.decode("utf-8", "ignore")
 
-                        _LOGGER.debug("RAW EMAIL: %s", email_msg)
-
                         # Check message body for order number
                         if (
                             (found := pattern.findall(email_msg))
@@ -1348,7 +1346,7 @@ def get_items(
                                 try:
                                     locale.setlocale(locale.LC_TIME, lang)
                                 except Exception as err:
-                                    _LOGGER.info("Locale error: %s (%s)", err, lang)
+                                    _LOGGER.debug("Locale error: %s (%s)", err, lang)
                                     continue
 
                                 _LOGGER.debug("Arrive Date: %s", arrive_date)
@@ -1371,7 +1369,7 @@ def get_items(
                                         new_arrive_date, time_format
                                     )
                                 except ValueError as err:
-                                    _LOGGER.info(
+                                    _LOGGER.debug(
                                         "International dates not supported. (%s)", err
                                     )
                                     continue
