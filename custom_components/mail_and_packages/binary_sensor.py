@@ -105,12 +105,3 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
                         return True
                 return False
         return False
-
-    def _compare_files(self, file1, file2) -> bool:
-        """Compare hash values and return bool."""
-        hash1 = hash_file(file1)
-        hash2 = hash_file(file2)
-
-        if hash1 == hash2:
-            return True
-        return False
