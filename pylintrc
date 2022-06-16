@@ -18,7 +18,6 @@ attr-naming-style=snake_case
 # too-few-* - same as too-many-*
 # import-outside-toplevel - TODO
 disable=
-  bad-continuation,
   duplicate-code,
   fixme,
   import-outside-toplevel,
@@ -28,7 +27,6 @@ disable=
   too-many-public-methods,
   too-many-instance-attributes,
   too-many-branches,
-  no-self-use,
   too-many-statements,
   broad-except,
   too-many-lines,

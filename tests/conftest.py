@@ -10,7 +10,7 @@ from unittest.mock import patch
 import pytest
 from aioresponses import aioresponses
 
-from tests.const import FAKE_UPDATE_DATA
+from tests.const import FAKE_UPDATE_DATA, FAKE_UPDATE_DATA_BIN
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
@@ -395,6 +395,7 @@ def mock_imap_dhl_out_for_delivery():
         mock_conn.enable.return_value = ("OK", [])
         yield mock_conn
 
+
 @pytest.fixture()
 def mock_imap_dhl_no_utf8():
     """Mock imap class values."""
@@ -419,7 +420,7 @@ def mock_imap_dhl_no_utf8():
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.enable.side_effect = Exception("BAD", ["Unsupported"])
-        yield mock_conn        
+        yield mock_conn
 
 
 @pytest.fixture()
@@ -1422,6 +1423,16 @@ def mock_imap_amazon_fwd():
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
+
+@pytest.fixture()
+def mock_update_amazon_image():
+    """Mock email data update class values."""
+    with patch(
+        "custom_components.mail_and_packages.process_emails", autospec=True
+    ) as mock_update:
+        # value = mock.Mock()
+        mock_update.return_value = FAKE_UPDATE_DATA_BIN
+        yield mock_update        
 
 
 @pytest.fixture(autouse=True)

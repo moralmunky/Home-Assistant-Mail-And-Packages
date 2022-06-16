@@ -1,4 +1,4 @@
-""" Test Mail and Packages Sensor """
+""" Test Mail and Packages sensors."""
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import DOMAIN
