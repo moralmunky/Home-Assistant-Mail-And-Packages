@@ -111,7 +111,7 @@ async def test_process_emails(
     state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
     assert state.state == "http://127.0.0.1:8123/local/mail_and_packages/testfile.gif"
     result = process_emails(hass, config)
-    assert isinstance(result["mail_updated"],datetime.datetime)
+    assert isinstance(result["mail_updated"], datetime.datetime)
     assert result["zpackages_delivered"] == 0
     assert result["zpackages_transit"] == 0
     assert result["amazon_delivered"] == 0
@@ -158,7 +158,7 @@ async def test_process_emails_external(
         == "http://really.fake.host.net:8123/local/mail_and_packages/testfile.gif"
     )
     result = process_emails(hass, config)
-    assert isinstance(result["mail_updated"],datetime.datetime)
+    assert isinstance(result["mail_updated"], datetime.datetime)
     assert result["zpackages_delivered"] == 0
     assert result["zpackages_transit"] == 0
     assert result["amazon_delivered"] == 0
@@ -706,13 +706,12 @@ async def test_dhl_out_for_delivery(hass, mock_imap_dhl_out_for_delivery, caplog
     assert result["tracking"] == ["4212345678"]
     assert "UTF-8 not supported." not in caplog.text
 
+
 async def test_dhl_no_utf8(hass, mock_imap_dhl_no_utf8, caplog):
-    result = get_count(
-        mock_imap_dhl_no_utf8, "dhl_delivering", True, "./", hass
-    )
+    result = get_count(mock_imap_dhl_no_utf8, "dhl_delivering", True, "./", hass)
     assert result["count"] == 1
     assert result["tracking"] == ["4212345678"]
-    assert "UTF-8 not supported: ('BAD', ['Unsupported'])" in caplog.text    
+    assert "UTF-8 not supported: ('BAD', ['Unsupported'])" in caplog.text
 
 
 async def test_hermes_out_for_delivery(hass, mock_imap_hermes_out_for_delivery):

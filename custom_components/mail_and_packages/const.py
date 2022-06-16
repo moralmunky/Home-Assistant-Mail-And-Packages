@@ -3,6 +3,10 @@ from __future__ import annotations
 
 from typing import Final
 
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntityDescription,
+)
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription
 from homeassistant.helpers.entity import EntityCategory
 
@@ -11,7 +15,7 @@ DOMAIN_DATA = f"{DOMAIN}_data"
 VERSION = "0.0.0-dev"  # Now updated by release workflow
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
-PLATFORMS = ["camera", "sensor"]
+PLATFORMS = ["binary_sensor", "camera", "sensor"]
 DATA = "data"
 COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
@@ -682,6 +686,19 @@ IMAGE_SENSORS: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:link-variant",
         key="usps_mail_image_url",
         entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+}
+
+BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
+    "usps_update": BinarySensorEntityDescription(
+        name="USPS Image Updated",
+        key="usps_update",
+        device_class=BinarySensorDeviceClass.UPDATE,
+    ),
+    "amazon_update": BinarySensorEntityDescription(
+        name="Amazon Image Updated",
+        key="amazon_update",
+        device_class=BinarySensorDeviceClass.UPDATE,
     ),
 }
 
