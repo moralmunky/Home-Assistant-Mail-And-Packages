@@ -742,6 +742,7 @@ FAKE_UPDATE_DATA_REDACTED = {
 FAKE_UPDATE_DATA_BIN = {
     "amazon_image": "fake_amazon_image.gif",
     "image_name": "mail_today.gif",
+    "image_path": "custom_components/mail_and_packages/images/",
     "mail_updated": "2022-01-06T12:14:38+00:00",
     "usps_mail": 6,
     "usps_delivered": 3,
