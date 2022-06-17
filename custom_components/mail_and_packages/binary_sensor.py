@@ -18,6 +18,7 @@ from .helpers import hash_file
 from .const import (
     ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_NAME,
+    ATTR_IMAGE_PATH,
     BINARY_SENSORS,
     COORDINATOR,
     DOMAIN,
@@ -71,13 +72,26 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
         }
 
     @property
+    def should_poll(self) -> bool:
+        """No need to poll. Coordinator notifies entity of updates."""
+        return False
+
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return self.coordinator.last_update_success
+
+    @property
     def is_on(self) -> bool:
         """Return True if the image is updated."""
         if self._type == "usps_update":
             if ATTR_IMAGE_NAME in self.coordinator.data.keys():
-                usps_image = self.coordinator.data[ATTR_IMAGE_NAME]
+                image = self.coordinator.data[ATTR_IMAGE_NAME]
+                path = self.coordinator.data[ATTR_IMAGE_PATH]
+                usps_image = f"{self.hass.config.path()}/{path}{image}"
                 usps_none = f"{os.path.dirname(__file__)}/mail_none.gif"
                 usps_check = os.path.exists(usps_image)
+                _LOGGER.debug("USPS Check: %s", usps_check)
                 if usps_check:
                     image_hash = hash_file(usps_image)
                     none_hash = hash_file(usps_none)
@@ -91,9 +105,12 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
 
         if self._type == "amazon_update":
             if ATTR_AMAZON_IMAGE in self.coordinator.data.keys():
-                amazon_image = self.coordinator.data[ATTR_AMAZON_IMAGE]
+                image = self.coordinator.data[ATTR_IMAGE_NAME]
+                path = f"{self.coordinator.data[ATTR_IMAGE_PATH]}amazon/"
+                amazon_image = f"{self.hass.config.path()}/{path}{image}"
                 amazon_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
                 amazon_check = os.path.exists(amazon_image)
+                _LOGGER.debug("Amazon Check: %s", amazon_check)
                 if amazon_check:
                     image_hash = hash_file(amazon_image)
                     none_hash = hash_file(amazon_none)
