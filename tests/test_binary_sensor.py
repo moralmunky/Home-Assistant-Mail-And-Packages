@@ -61,7 +61,7 @@ def hash_side_effect(value):
     """Side effect value."""
     if "mail_none.gif" in value:
         return "633d7356947eec543c50b76a1852f92427f4dca9"
-    elif "fake_amazon_image.gif" in value:
+    elif "no_deliveries.jpg" in value:
         return "633d7356947ffc643c50b76a1852f92427f4dca9"
     else:
         return "133d7356947fec542c50b76b1856f92427f5dca9" 
