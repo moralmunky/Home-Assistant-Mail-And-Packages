@@ -105,7 +105,7 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
 
         if self._type == "amazon_update":
             if ATTR_AMAZON_IMAGE in self.coordinator.data.keys():
-                image = self.coordinator.data[ATTR_IMAGE_NAME]
+                image = self.coordinator.data[ATTR_AMAZON_IMAGE]
                 path = f"{self.coordinator.data[ATTR_IMAGE_PATH]}amazon/"
                 amazon_image = f"{self.hass.config.path()}/{path}{image}"
                 amazon_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
