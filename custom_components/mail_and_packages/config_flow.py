@@ -185,9 +185,7 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
             vol.Required(
                 CONF_RESOURCES, default=_get_default(CONF_RESOURCES)
             ): cv.multi_select(get_resources()),
-            vol.Optional(
-                CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS, "")
-            ): str,
+            vol.Optional(CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS)): str,
             vol.Optional(CONF_AMAZON_DAYS, default=_get_default(CONF_AMAZON_DAYS)): int,
             vol.Optional(
                 CONF_SCAN_INTERVAL, default=_get_default(CONF_SCAN_INTERVAL)
