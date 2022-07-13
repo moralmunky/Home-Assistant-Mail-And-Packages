@@ -190,6 +190,10 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     if config.get(CONF_ALLOW_EXTERNAL):
         copy_images(hass, config)
 
+    # Close the IMAP session and logout
+    account.close
+    account.logout
+
     return data
 
 
