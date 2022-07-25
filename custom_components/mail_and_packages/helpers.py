@@ -1186,7 +1186,7 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
 
 
 def amazon_exception(
-    account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None
+    account: Type[imaplib.IMAP4_SSL], fwds: Optional[list] = None
 ) -> dict:
     """Find Amazon exception emails.
 

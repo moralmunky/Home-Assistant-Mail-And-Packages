@@ -2030,7 +2030,7 @@ async def test_options_flow_mailbox_format2(
             {
                 "allow_external": False,
                 "amazon_days": 3,
-                "amazon_fwds": ['""'],
+                "amazon_fwds": [],
                 "custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,
