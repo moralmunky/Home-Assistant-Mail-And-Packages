@@ -1027,7 +1027,7 @@ async def test_image_file_name(
 async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
     result = amazon_exception(mock_imap_amazon_exception, ['""'])
     assert result["order"] == ["123-1234567-1234567"] * 11
-    assert result["count"] == 10
+    assert result["count"] == 11
 
     result = amazon_exception(mock_imap_amazon_exception, ["testemail@fakedomain.com"])
     assert result["count"] == 11
