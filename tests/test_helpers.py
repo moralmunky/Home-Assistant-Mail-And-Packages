@@ -1032,7 +1032,7 @@ async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
     result = amazon_exception(mock_imap_amazon_exception, ["testemail@fakedomain.com"])
     assert result["count"] == 12
     assert (
-        "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'amazon.com.au', 'amazon.pl', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'testemail@fakedomain.com']"
+        "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'amazon.com.au', 'amazon.pl', 'amazon.es', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'testemail@fakedomain.com']"
         in caplog.text
     )
 
