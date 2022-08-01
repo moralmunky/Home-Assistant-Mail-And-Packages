@@ -81,6 +81,7 @@ AMAZON_DOMAINS = [
     "amazon.it",
     "amazon.com.au",
     "amazon.pl",
+    "amazon.es",
 ]
 AMAZON_DELIVERED_SUBJECT = [
     "Delivered: Your",
@@ -111,6 +112,8 @@ AMAZON_TIME_PATTERN = [
     "arriving:",
     "Dostawa:",
     "Zustellung:",
+    "Entrega:",
+    "A chegar:"
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
