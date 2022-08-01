@@ -1424,6 +1424,7 @@ def mock_imap_amazon_fwd():
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
 
+
 @pytest.fixture()
 def mock_update_amazon_image():
     """Mock email data update class values."""
@@ -1432,7 +1433,7 @@ def mock_update_amazon_image():
     ) as mock_update:
         # value = mock.Mock()
         mock_update.return_value = FAKE_UPDATE_DATA_BIN
-        yield mock_update        
+        yield mock_update
 
 
 @pytest.fixture(autouse=True)
