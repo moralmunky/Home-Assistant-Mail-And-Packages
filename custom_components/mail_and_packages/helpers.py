@@ -28,7 +28,6 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from PIL import Image
-from resizeimage import resizeimage
 
 from .const import (
     AMAZON_DELIVERED,
