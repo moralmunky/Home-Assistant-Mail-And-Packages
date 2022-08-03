@@ -15,9 +15,9 @@
         "step": {
             "user": {
                 "data": {
-                    "host": "Gastheer",
+                    "host": "Server",
                     "password": "Wachtwoord",
-                    "port": "Haven",
+                    "port": "Poort",
                     "username": "Gebruikersnaam"
                 },
                 "description": "Voer de verbindingsgegevens van uw mailserver in.",
