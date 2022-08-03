@@ -136,7 +136,7 @@ AMAZON_LANGS = [
     "pt_PT",
     "pt_PT.UTF-8",
     "pt_BR",
-    "pt_BR.UTF-8",    
+    "pt_BR.UTF-8",
     "",
 ]
 
