@@ -11,7 +11,7 @@
   "config_flow": true,
   "requirements": [
     "imageio>=2.9.0",
-    "python-resize-image>=1.1.19"
+    "Pillow>=9.0"
   ],
   "iot_class": "cloud_polling",
   "version": "0.0.0-dev"
