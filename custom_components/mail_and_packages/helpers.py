@@ -782,7 +782,7 @@ def resize_images(images: list, width: int, height: int) -> list:
             with open(image, "rb") as fd_img:
                 try:
                     img = Image.open(fd_img)
-                    img = Image.thumbnail((width, height),resample=Image.LANCZOS)
+                    img = Image.thumbnail((width, height), resample=Image.LANCZOS)
                     pre = os.path.splitext(image)[0]
                     image = pre + ".gif"
                     img.save(image, img.format)
