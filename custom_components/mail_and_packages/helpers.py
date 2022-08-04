@@ -1331,6 +1331,10 @@ def get_items(
                                 end = email_msg.find("Per tracciare il tuo pacco")
                             elif email_msg.find("View or manage order") != -1:
                                 end = email_msg.find("View or manage order")
+                            elif email_msg.find("Acompanhar") != -1:
+                                end = email_msg.find("Acompanhar")
+                            elif email_msg.find("Sguimiento") != -1:
+                                end = email_msg.find("Sguimiento")
 
                             arrive_date = email_msg[start:end].replace(">", "").strip()
                             _LOGGER.debug("First pass: %s", arrive_date)
