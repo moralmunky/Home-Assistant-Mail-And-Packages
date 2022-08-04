@@ -27,7 +27,7 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
-from PIL import Image
+from PIL import Image, ImageOps
 
 from .const import (
     AMAZON_DELIVERED,
@@ -782,6 +782,10 @@ def resize_images(images: list, width: int, height: int) -> list:
                 try:
                     img = Image.open(fd_img)
                     img.thumbnail((width, height), resample=Image.LANCZOS)
+
+                    # Add padding as needed
+                    img = ImageOps.pad(img, (width, height), method=Image.LANCZOS)
+
                     pre = os.path.splitext(image)[0]
                     image = pre + ".gif"
                     img.save(image, img.format)
