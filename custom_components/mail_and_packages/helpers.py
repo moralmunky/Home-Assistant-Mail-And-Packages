@@ -1242,7 +1242,7 @@ def get_items(
     """
     _LOGGER.debug("Attempting to find Amazon email with item list ...")
 
-    # Limit to past X days 
+    # Limit to past X days
     past_date = datetime.date.today() - datetime.timedelta(days=days)
     tfmt = past_date.strftime("%d-%b-%Y")
     deliveries_today = []
