@@ -1371,9 +1371,12 @@ def get_items(
                                     dateobj = datetime.datetime.strptime(
                                         new_arrive_date, time_format
                                     )
+                                    _LOGGER.debug("Valid date format found.")
                                 except ValueError as err:
                                     _LOGGER.debug(
-                                        "International dates not supported. (%s)", err
+                                        "Invalid date format found for language %s. (%s)",
+                                        lang,
+                                        err,
                                     )
                                     continue
 
