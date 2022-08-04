@@ -1242,7 +1242,7 @@ def get_items(
     """
     _LOGGER.debug("Attempting to find Amazon email with item list ...")
 
-    # Limit to past 3 days (plan to make this configurable)
+    # Limit to past X days
     past_date = datetime.date.today() - datetime.timedelta(days=days)
     tfmt = past_date.strftime("%d-%b-%Y")
     deliveries_today = []
@@ -1340,11 +1340,11 @@ def get_items(
                             _LOGGER.debug("First pass: %s", arrive_date)
                             arrive_date = arrive_date.split(" ")
                             arrive_date = arrive_date[0:3]
-                            # arrive_date[2] = arrive_date[2][:3]
                             arrive_date = " ".join(arrive_date).strip()
                             time_format = None
                             new_arrive_date = None
 
+                            # Loop through all the langs for date format
                             for lang in AMAZON_LANGS:
                                 try:
                                     locale.setlocale(locale.LC_TIME, lang)
@@ -1371,9 +1371,12 @@ def get_items(
                                     dateobj = datetime.datetime.strptime(
                                         new_arrive_date, time_format
                                     )
+                                    _LOGGER.debug("Valid date format found.")
                                 except ValueError as err:
                                     _LOGGER.debug(
-                                        "International dates not supported. (%s)", err
+                                        "Invalid date format found for language %s. (%s)",
+                                        lang,
+                                        err,
                                     )
                                     continue
 
