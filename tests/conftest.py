@@ -942,7 +942,7 @@ def mock_resizeimage():
     """Fixture to mock splitext."""
     with patch(
         "custom_components.mail_and_packages.helpers.Image"
-    ) as mock_resizeimage:
+    ) as mock_resizeimage, patch("custom_components.mail_and_packages.helpers.ImageOps"):
 
         yield mock_resizeimage
 
