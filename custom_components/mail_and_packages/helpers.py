@@ -785,7 +785,7 @@ def resize_images(images: list, width: int, height: int) -> list:
 
                     # Add padding as needed
                     img = ImageOps.pad(img, (width, height), method=Image.LANCZOS)
-                    
+
                     pre = os.path.splitext(image)[0]
                     image = pre + ".gif"
                     img.save(image, img.format)
