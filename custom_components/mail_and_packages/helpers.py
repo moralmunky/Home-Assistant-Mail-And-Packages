@@ -17,7 +17,6 @@ from shutil import copyfile, copytree, which
 from typing import Any, List, Optional, Type, Union
 
 import aiohttp
-import imageio as io
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
