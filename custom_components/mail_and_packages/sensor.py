@@ -4,8 +4,8 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 import datetime
-from datetime import timezone
 import logging
+from datetime import timezone
 from typing import Any, Optional
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription

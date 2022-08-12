@@ -705,11 +705,11 @@ def get_mails(
                 # Use Pillow to create mail images
                 img.save(
                     fp=os.path.join(image_output_path, image_name),
-                    format='GIF', 
-                    append_images=imgs, 
-                    save_all=True, 
-                    duration=gif_duration*1000, 
-                    loop=0
+                    format="GIF",
+                    append_images=imgs,
+                    save_all=True,
+                    duration=gif_duration * 1000,
+                    loop=0,
                 )
                 _LOGGER.debug("Mail image generated.")
             except Exception as err:
@@ -789,8 +789,8 @@ def resize_images(images: list, width: int, height: int) -> list:
                     # Add padding as needed
                     img = ImageOps.pad(img, (width, height), method=Image.LANCZOS)
                     # Crop to size
-                    img = img.crop((0,0,width,height))
-                 
+                    img = img.crop((0, 0, width, height))
+
                     pre = os.path.splitext(image)[0]
                     image = pre + ".gif"
                     img.save(image, img.format)
