@@ -516,7 +516,7 @@ async def test_informed_delivery_emails(
         assert "USPS Informed Delivery" in caplog.text
 
 
-async def test_get_mails_imageio_error(
+async def test_get_mails_image_error(
     mock_imap_usps_informed_digest,
     mock_osremove,
     mock_osmakedir,
@@ -527,11 +527,11 @@ async def test_get_mails_imageio_error(
     mock_copyfile,
     caplog,
 ):
-    with patch("custom_components.mail_and_packages.helpers.io") as mock_imageio:
+    with patch("custom_components.mail_and_packages.helpers.io") as mock_image:
         m_open = mock_open()
         with patch("builtins.open", m_open, create=True):
-            mock_imageio.return_value = mock.Mock(autospec=True)
-            mock_imageio.mimwrite.side_effect = Exception("Processing Error")
+            mock_image.return_value = mock.Mock(autospec=True)
+            mock_image.save.side_effect = Exception("Processing Error")
             result = get_mails(
                 mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
             )

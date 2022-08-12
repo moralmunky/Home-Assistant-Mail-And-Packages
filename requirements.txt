@@ -1,2 +1,1 @@
-imageio
 Pillow>=9.0
