@@ -936,6 +936,15 @@ def mock_image_excpetion():
         mock_image_excpetion.open.side_effect = Exception("SystemError")
         yield mock_image_excpetion
 
+@pytest.fixture
+def mock_image_save_excpetion():
+    """Fixture to mock Image."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.Image"
+    ) as mock_image_save_excpetion:
+        mock_image_save_excpetion.return_value = mock.Mock(autospec=True)
+        mock_image_save_excpetion.Image.save.side_effect = Exception("ValueError")
+        yield mock_image_save_excpetion
 
 @pytest.fixture
 def mock_resizeimage():
@@ -945,14 +954,6 @@ def mock_resizeimage():
     ) as mock_resizeimage, patch("custom_components.mail_and_packages.helpers.ImageOps"):
 
         yield mock_resizeimage
-
-
-@pytest.fixture
-def mock_io():
-    """Fixture to mock io."""
-    with patch("custom_components.mail_and_packages.helpers.io") as mock_io:
-
-        yield mock_io
 
 
 @pytest.fixture
