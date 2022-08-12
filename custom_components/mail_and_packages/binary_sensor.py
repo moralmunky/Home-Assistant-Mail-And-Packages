@@ -13,8 +13,6 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
-from .helpers import hash_file
-
 from .const import (
     ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_NAME,
@@ -24,6 +22,7 @@ from .const import (
     DOMAIN,
     VERSION,
 )
+from .helpers import hash_file
 
 _LOGGER = logging.getLogger(__name__)
 
