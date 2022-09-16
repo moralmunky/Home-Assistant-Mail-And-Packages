@@ -388,6 +388,17 @@ SENSOR_DATA = {
     },
     "auspost_packages": {},
     "auspost_tracking": {"pattern": ["\\d{7,10,12}|[A-Za-z]{2}[0-9]{9}AU "]},
+    # Evri
+    "evri_delivered": {
+        "email": ["do-not-reply@evri.com"],
+        "subject": ["successfully delivered"],
+    },
+    "evri_delivering": {
+        "email": ["do-not-reply@evri.com"],
+        "subject": ["is now with your local Evri courier for delivery"],
+    },
+    "evri_packages": {},
+    "evri_tracking": {"pattern": ["H[0-9A-Z]{15}"]}
 }
 
 # Sensor definitions
@@ -670,6 +681,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="gls_packages",
     ),
+    # Evri
+    "evri_delivered": SensorEntityDescription(
+        name="Mail Evri Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="evri_delivered",
+    ),
+    "evri_delivering": SensorEntityDescription(
+        name="Mail Evri Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="evri_delivering",
+    ),
+    "evri_packages": SensorEntityDescription(
+        name="Mail Evri Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="evri_packages",
+    ),    
     ###
     # !!! Insert new sensors above these two !!!
     ###
