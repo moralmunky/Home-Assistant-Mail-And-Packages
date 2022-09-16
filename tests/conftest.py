@@ -936,6 +936,7 @@ def mock_image_excpetion():
         mock_image_excpetion.open.side_effect = Exception("SystemError")
         yield mock_image_excpetion
 
+
 @pytest.fixture
 def mock_image_save_excpetion():
     """Fixture to mock Image."""
@@ -946,12 +947,15 @@ def mock_image_save_excpetion():
         mock_image_save_excpetion.Image.save.side_effect = Exception("ValueError")
         yield mock_image_save_excpetion
 
+
 @pytest.fixture
 def mock_resizeimage():
     """Fixture to mock splitext."""
     with patch(
         "custom_components.mail_and_packages.helpers.Image"
-    ) as mock_resizeimage, patch("custom_components.mail_and_packages.helpers.ImageOps"):
+    ) as mock_resizeimage, patch(
+        "custom_components.mail_and_packages.helpers.ImageOps"
+    ):
 
         yield mock_resizeimage
 
@@ -1028,6 +1032,32 @@ def mock_imap_hermes_out_for_delivery():
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/hermes_out_for_delivery.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_evri_out_for_delivery():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_evri_out_for_delivery:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_evri_out_for_delivery.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/evri_out_for_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])

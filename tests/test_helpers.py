@@ -714,6 +714,14 @@ async def test_hermes_out_for_delivery(hass, mock_imap_hermes_out_for_delivery):
     assert result["tracking"] == ["8888888888888888"]
 
 
+async def test_evri_out_for_delivery(hass, mock_imap_evri_out_for_delivery):
+    result = get_count(
+        mock_imap_evri_out_for_delivery, "evri_delivering", True, "./", hass
+    )
+    assert result["count"] == 1
+    assert result["tracking"] == ["H01QPZ0007431687"]
+
+
 async def test_royal_out_for_delivery(hass, mock_imap_royal_out_for_delivery):
     result = get_count(
         mock_imap_royal_out_for_delivery, "royal_delivering", True, "./", hass
