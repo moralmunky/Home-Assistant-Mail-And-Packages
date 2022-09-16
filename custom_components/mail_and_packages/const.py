@@ -398,7 +398,7 @@ SENSOR_DATA = {
         "subject": ["is now with your local Evri courier for delivery"],
     },
     "evri_packages": {},
-    "evri_tracking": {"pattern": ["H[0-9A-Z]{15}"]}
+    "evri_tracking": {"pattern": ["H[0-9A-Z]{15}"]},
 }
 
 # Sensor definitions
@@ -699,7 +699,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="evri_packages",
-    ),    
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
