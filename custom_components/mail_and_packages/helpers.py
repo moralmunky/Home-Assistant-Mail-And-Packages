@@ -1334,7 +1334,7 @@ def get_items(
                             if email_msg.find("Previously expected:") != -1:
                                 end = email_msg.find("Previously expected:")
                             elif email_msg.find("This contains") != -1:
-                                end = email_msg.find("This contains")                                
+                                end = email_msg.find("This contains")
                             elif email_msg.find("Track your") != -1:
                                 end = email_msg.find("Track your")
                             elif email_msg.find("Per tracciare il tuo pacco") != -1:
