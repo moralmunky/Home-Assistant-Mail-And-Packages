@@ -208,12 +208,17 @@ SENSOR_DATA = {
             "NoReply.ODD@dhl.com",
             "noreply@dhl.de",
             "pl.no.reply@dhl.com",
+            "support@dhl.com",
         ],
         "subject": [
             "DHL On Demand Delivery",
             "Powiadomienie o przesyłce",
+            "DHL Shipment Notification",
         ],
-        "body": ["has been delivered", "została doręczona"],
+        "body": [
+            "has been delivered",
+            "została doręczona",
+        ],
     },
     "dhl_delivering": {
         "email": [
@@ -221,13 +226,19 @@ SENSOR_DATA = {
             "NoReply.ODD@dhl.com",
             "noreply@dhl.de",
             "pl.no.reply@dhl.com",
+            "support@dhl.com",
         ],
         "subject": [
             "DHL On Demand Delivery",
             "paket kommt heute",
             "Powiadomienie o przesyłce",
+            "DHL Shipment Notification",
         ],
-        "body": ["scheduled for delivery TODAY", "zostanie dziś do Państwa doręczona"],
+        "body": [
+            "scheduled for delivery TODAY",
+            "zostanie dziś do Państwa doręczona",
+            "Shipment is scheduled for delivery",
+        ],
     },
     "dhl_packages": {},
     "dhl_tracking": {"pattern": ["\\d{10,11}"]},
