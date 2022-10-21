@@ -193,7 +193,7 @@ SENSOR_DATA = {
     "fedex_tracking": {"pattern": ["\\d{12,20}"]},
     # Canada Post
     "capost_delivered": {
-        "email": ["donotreply@canadapost.postescanada.ca"],
+        "email": ["donotreply@canadapost.postescanada.ca", "donotreply-nepasrepondre@notifications.canadapost-postescanada.ca"],
         "subject": [
             "Delivery Notification",
         ],
