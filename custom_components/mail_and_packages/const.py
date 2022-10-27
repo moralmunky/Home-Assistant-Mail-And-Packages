@@ -263,6 +263,8 @@ SENSOR_DATA = {
             "has been delivered",
             "została doręczona",
             "ist angekommen",
+            "Notification for shipment event group \"Delivered",
+            " - Delivered - ",
         ],
     },
     "dhl_delivering": {
@@ -284,6 +286,7 @@ SENSOR_DATA = {
             "scheduled for delivery TODAY",
             "zostanie dziś do Państwa doręczona",
             "wird Ihnen heute",
+            " - Shipment is out with courier for delivery - ",
             "Shipment is scheduled for delivery",
             "voraussichtlich innerhalb",
         ],
