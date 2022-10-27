@@ -218,6 +218,8 @@ SENSOR_DATA = {
         "body": [
             "has been delivered",
             "została doręczona",
+            "Notification for shipment event group \"Delivered",
+            " - Delivered - ",
         ],
     },
     "dhl_delivering": {
@@ -237,7 +239,7 @@ SENSOR_DATA = {
         "body": [
             "scheduled for delivery TODAY",
             "zostanie dziś do Państwa doręczona",
-            "Shipment is scheduled for delivery",
+            " - Shipment is out with courier for delivery - ",
         ],
     },
     "dhl_packages": {},
