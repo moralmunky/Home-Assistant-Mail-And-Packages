@@ -652,7 +652,7 @@ def get_mails(
                                 continue
                             if "data:image/jpeg;base64" not in part:
                                 _LOGGER.warning("Unexpected html format found.")
-                                continue                            
+                                continue
                             _LOGGER.debug("Found images: %s", bool(found_images))
 
                             # Convert all the images to binary data
