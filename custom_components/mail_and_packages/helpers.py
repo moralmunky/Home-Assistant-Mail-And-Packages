@@ -1,7 +1,6 @@
 """Helper functions for Mail and Packages."""
 
 import base64
-from bs4 import BeautifulSoup
 import datetime
 import email
 import hashlib
@@ -19,6 +18,7 @@ from shutil import copyfile, copytree, which
 from typing import Any, List, Optional, Type, Union
 
 import aiohttp
+from bs4 import BeautifulSoup
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
@@ -642,11 +642,7 @@ def get_mails(
 
                     # walking through the email parts to find images
                     for part in msg.walk():
-                        if part.get_content_type() == "multipart":
-                            continue
-                        # if part.get("Content-Disposition") is None:
-                        #     continue
-                        elif part.get_content_type() == "text/html":
+                        if part.get_content_type() == "text/html":
                             _LOGGER.debug("Found html email processing...")
                             part = part.get_payload(decode=True)
                             part = part.decode("utf-8", "ignore")
@@ -659,8 +655,6 @@ def get_mails(
                             # Convert all the images to binary data
                             for image in found_images:
                                 filename = random_filename()
-                                # soup_img = BeautifulSoup(image, 'html.parser')
-                                # data = soup_img.find("src")
                                 data = str(image["src"]).split(",")[1]
                                 _LOGGER.debug("Data: %s", data)
                                 try:
@@ -692,6 +686,9 @@ def get_mails(
                             except Exception as err:
                                 _LOGGER.critical("Error opening filepath: %s", str(err))
                                 return image_count
+
+                        elif part.get_content_type() == "multipart":
+                            continue
 
         # Remove duplicate images
         _LOGGER.debug("Removing duplicate images.")
