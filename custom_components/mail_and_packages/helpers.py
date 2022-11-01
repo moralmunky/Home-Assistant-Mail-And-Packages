@@ -676,14 +676,17 @@ def get_mails(
                         # some reason
                         elif part.get_content_type() == "image/jpeg":
                             _LOGGER.debug("Extracting image from email")
+                            filename = part.get_filename()
+                            junkmail = ["mailer", "content"]
+                            if any(junk in filename for junk in junkmail):
+                                _LOGGER.debug("Discarding junk mail.")
+                                continue
                             try:
                                 with open(
-                                    image_output_path + part.get_filename(), "wb"
+                                    image_output_path + filename, "wb"
                                 ) as the_file:
                                     the_file.write(part.get_payload(decode=True))
-                                    images.append(
-                                        image_output_path + part.get_filename()
-                                    )
+                                    images.append(image_output_path + filename)
                                     image_count = image_count + 1
                             except Exception as err:
                                 _LOGGER.critical("Error opening filepath: %s", str(err))
