@@ -650,13 +650,15 @@ def get_mails(
                             found_images = soup.find_all(id="mailpiece-image-src-id")
                             if not found_images:
                                 continue
+                            if "data:image/jpeg;base64" not in part:
+                                _LOGGER.warning("Unexpected html format found.")
+                                continue
                             _LOGGER.debug("Found images: %s", bool(found_images))
 
                             # Convert all the images to binary data
                             for image in found_images:
                                 filename = random_filename()
                                 data = str(image["src"]).split(",")[1]
-                                _LOGGER.debug("Data: %s", data)
                                 try:
                                     with open(
                                         image_output_path + filename, "wb"
