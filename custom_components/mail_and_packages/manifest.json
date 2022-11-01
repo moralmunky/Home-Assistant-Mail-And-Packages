@@ -9,7 +9,7 @@
     "@firstof9"
   ],
   "config_flow": true,
-  "requirements": ["Pillow>=9.0"],
+  "requirements": ["beautifulsoup4","Pillow>=9.0"],
   "iot_class": "cloud_polling",
   "version": "0.0.0-dev"
 }

@@ -515,6 +515,29 @@ async def test_informed_delivery_emails(
         assert "USPS Informed Delivery" in caplog.text
 
 
+async def test_new_informed_delivery_emails(
+    mock_imap_usps_new_informed_digest,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_os_path_splitext,
+    mock_image,
+    mock_resizeimage,
+    mock_copyfile,
+    caplog,
+):
+    m_open = mock_open()
+    with patch("builtins.open", m_open, create=True):
+        result = get_mails(
+            mock_imap_usps_new_informed_digest, "./", "5", "mail_today.gif", False
+        )
+        assert result == 4
+        assert "USPSInformedDelivery@usps.gov" in caplog.text
+        assert "USPSInformeddelivery@informeddelivery.usps.com" in caplog.text
+        assert "USPSInformeddelivery@email.informeddelivery.usps.com" in caplog.text
+        assert "USPS Informed Delivery" in caplog.text
+
+
 # async def test_get_mails_image_error(
 #     mock_imap_usps_informed_digest,
 #     mock_osremove,

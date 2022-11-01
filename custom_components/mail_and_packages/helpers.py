@@ -1,5 +1,7 @@
 """Helper functions for Mail and Packages."""
 
+import base64
+from bs4 import BeautifulSoup
 import datetime
 import email
 import hashlib
@@ -632,31 +634,64 @@ def get_mails(
     if server_response == "OK":
         _LOGGER.debug("Informed Delivery email found processing...")
         for num in data[0].split():
-            msg = email.message_from_string(
-                email_fetch(account, num, "(RFC822)")[1][0][1].decode("utf-8")
-            )
+            msg = email_fetch(account, num, "(RFC822)")[1]
+            for response_part in msg:
+                if isinstance(response_part, tuple):
+                    msg = email.message_from_bytes(response_part[1])
+                    _LOGGER.debug("msg: %s", msg)
 
-            # walking through the email parts to find images
-            for part in msg.walk():
-                if part.get_content_maintype() == "multipart":
-                    continue
-                if part.get("Content-Disposition") is None:
-                    continue
+                    # walking through the email parts to find images
+                    for part in msg.walk():
+                        if part.get_content_type() == "multipart":
+                            continue
+                        # if part.get("Content-Disposition") is None:
+                        #     continue
+                        elif part.get_content_type() == "text/html":
+                            _LOGGER.debug("Found html email processing...")
+                            part = part.get_payload(decode=True)
+                            part = part.decode("utf-8", "ignore")
+                            soup = BeautifulSoup(part, "html.parser")
+                            found_images = soup.find_all(id="mailpiece-image-src-id")
+                            if not found_images:
+                                continue
+                            _LOGGER.debug("Found images: %s", bool(found_images))
 
-                _LOGGER.debug("Extracting image from email")
+                            # Convert all the images to binary data
+                            for image in found_images:
+                                filename = random_filename()
+                                # soup_img = BeautifulSoup(image, 'html.parser')
+                                # data = soup_img.find("src")
+                                data = str(image["src"]).split(",")[1]
+                                _LOGGER.debug("Data: %s", data)
+                                try:
+                                    with open(
+                                        image_output_path + filename, "wb"
+                                    ) as the_file:
+                                        the_file.write(base64.b64decode(data))
+                                        images.append(image_output_path + filename)
+                                        image_count = image_count + 1
+                                except Exception as err:
+                                    _LOGGER.critical(
+                                        "Error opening filepath: %s", str(err)
+                                    )
+                                    return image_count
 
-                # Log error message if we are unable to open the filepath for
-                # some reason
-                try:
-                    with open(
-                        image_output_path + part.get_filename(), "wb"
-                    ) as the_file:
-                        the_file.write(part.get_payload(decode=True))
-                        images.append(image_output_path + part.get_filename())
-                        image_count = image_count + 1
-                except Exception as err:
-                    _LOGGER.critical("Error opening filepath: %s", str(err))
-                    return image_count
+                        # Log error message if we are unable to open the filepath for
+                        # some reason
+                        elif part.get_content_type() == "image/jpeg":
+                            _LOGGER.debug("Extracting image from email")
+                            try:
+                                with open(
+                                    image_output_path + part.get_filename(), "wb"
+                                ) as the_file:
+                                    the_file.write(part.get_payload(decode=True))
+                                    images.append(
+                                        image_output_path + part.get_filename()
+                                    )
+                                    image_count = image_count + 1
+                            except Exception as err:
+                                _LOGGER.critical("Error opening filepath: %s", str(err))
+                                return image_count
 
         # Remove duplicate images
         _LOGGER.debug("Removing duplicate images.")
@@ -736,6 +771,11 @@ def get_mails(
             _generate_mp4(image_output_path, image_name)
 
     return image_count
+
+
+def random_filename(ext: str = ".jpg") -> str:
+    """Generate random filename."""
+    return f"{str(uuid.uuid4())}{ext}"
 
 
 def _generate_mp4(path: str, image_file: str) -> None:
