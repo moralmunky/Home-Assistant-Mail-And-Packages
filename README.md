@@ -54,4 +54,4 @@ Please note that files stored in the `www` Home Assistant folder are [publicly a
 
 [Text Summary](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Mail-Summary-Message)
 
-[Notificaions](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Notifications)
+[Notifications](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Notifications)
