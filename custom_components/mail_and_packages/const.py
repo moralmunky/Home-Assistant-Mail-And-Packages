@@ -12,7 +12,7 @@ from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.0.0-dev"  # Now updated by release workflow
+VERSION = "3-dev"  # Now updated by release workflow
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -402,6 +402,17 @@ SENSOR_DATA = {
     },
     "evri_packages": {},
     "evri_tracking": {"pattern": ["H[0-9A-Z]{15}"]},
+    # DHL Parcel NL
+    "dhl_parcel_nl_delivered": {
+        "email": ["noreply@dhlparcel.nl"],
+        "subject": ["Je pakket is bezorgd"],
+    },
+    "dhl_parcel_nl_delivering": {
+        "email": ["noreply@dhlparcel.nl"],
+        "subject": ["We staan vandaag", "We staan vanavond"],
+    },
+    "dhl_parcel_nl_packages": {},
+    "dhl_parcel_nl_tracking": {"pattern": ["[0-9A-Z]{12,24}"]},
 }
 
 # Sensor definitions
@@ -703,6 +714,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="evri_packages",
     ),
+    # DHL Parcel NL
+    "dhl_parcel_nl_delivering": SensorEntityDescription(
+        name="DHL Parcel NL Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="dhl_parcel_nl_delivering",
+    ),
+    "dhl_parcel_nl_delivered": SensorEntityDescription(
+        name="DHL Parcel NL Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="dhl_parcel_nl_delivered",
+    ),
+    "dhl_parcel_nl_packages": SensorEntityDescription(
+        name="DHL Parcel NL Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="dhl_parcel_nl_packages",
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -773,4 +803,5 @@ SHIPPERS = [
     "inpost_pl",
     "dpd_com_pl",
     "gls",
+    "dhl_parcel_nl",
 ]
