@@ -383,6 +383,8 @@ def fetch(
         count[sensor] = delivering + delivered
     elif "_delivering" in sensor or "_exception" in sensor or "_processing" in sensor:
         prefix = sensor.replace("_delivering", "")
+        prefix = sensor.replace("_exception", "")
+        prefix = sensor.replace("_processing", "")
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
         info = get_count(account, sensor, True)
         count[sensor] = max(0, info[ATTR_COUNT] - delivered)
