@@ -381,7 +381,7 @@ def fetch(
         delivering = fetch(hass, config, account, data, f"{prefix}_delivering")
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
         count[sensor] = delivering + delivered
-    elif "_delivering" in sensor:
+    elif "_delivering" in sensor or "_exception" in sensor or "_processing" in sensor:
         prefix = sensor.replace("_delivering", "")
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
         info = get_count(account, sensor, True)

@@ -426,6 +426,29 @@ SENSOR_DATA = {
     },
     "dhl_parcel_nl_packages": {},
     "dhl_parcel_nl_tracking": {"pattern": ["[0-9A-Z]{12,24}"]},
+    # Post NL
+    "post_nl_processing": {
+        "email": ["noreply@notificatie.postnl.nl"],
+        "subject": ["Je pakket is ontvangen door PostNL"],
+    },
+    "post_nl_collection": {
+        "email": ["noreply@notificatie.postnl.nl"],
+        "subject": ["Je pakket ligt klaar"],
+    },
+    "post_nl_delivering": {
+        "email": ["noreply@notificatie.postnl.nl"],
+        "subject": ["Je pakket is onderweg", "De chauffer is onderweg"],
+    },
+    "post_nl_exception": {
+        "email": ["noreply@notificatie.postnl.nl"],
+        "subject": ["We hebben je gemist"],
+    },
+    "post_nl_delivered": {
+        "email": ["noreply@notificatie.postnl.nl"],
+        "subject": ["Je pakket is bezorgd"],
+    },
+    "post_nl_packages": {},
+    "post_nl_tracking": {"pattern": ["3S?[0-9A-Z]{14}"]},
 }
 
 # Sensor definitions
@@ -746,6 +769,43 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="dhl_parcel_nl_packages",
     ),
+    # Post NL
+    "post_nl_processing": SensorEntityDescription(
+        name="Post NL Processing",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:dolly",
+        key="post_nl_preparing",
+    ),
+    "post_nl_collection": SensorEntityDescription(
+        name="Post NL Ready for Collection",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:store-clock",
+        key="post_nl_ready_for_collection",
+    ),
+    "post_nl_delivering": SensorEntityDescription(
+        name="Post NL Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="post_nl_delivering",
+    ),
+    "post_nl_exception": SensorEntityDescription(
+        name="Post NL Missed Delivery",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-alert",
+        key="post_nl_exception",
+    ),
+    "post_nl_delivered": SensorEntityDescription(
+        name="Post NL Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="post_nl_delivered",
+    ),
+    "post_nl_packages": SensorEntityDescription(
+        name="Post NL Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="post_nl_packages",
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -817,4 +877,5 @@ SHIPPERS = [
     "dpd_com_pl",
     "gls",
     "dhl_parcel_nl",
+    "post_nl",
 ]
