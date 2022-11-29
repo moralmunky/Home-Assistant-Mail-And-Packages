@@ -1373,6 +1373,9 @@ def get_items(
 
                             start = email_msg.find(search) + len(search)
                             end = -1
+
+                            # TODO: make this a function
+                            # function should include the following in an array to loop thru
                             if email_msg.find("Previously expected:") != -1:
                                 end = email_msg.find("Previously expected:")
                             elif email_msg.find("This contains") != -1:
@@ -1387,6 +1390,8 @@ def get_items(
                                 end = email_msg.find("Acompanhar")
                             elif email_msg.find("Sguimiento") != -1:
                                 end = email_msg.find("Sguimiento")
+                            elif email_msg.find("Verfolge deine(n) Artikel") != -1:
+                                end = email_msg.find("Verfolge deine(n) Artikel")
 
                             arrive_date = email_msg[start:end].replace(">", "").strip()
                             _LOGGER.debug("First pass: %s", arrive_date)

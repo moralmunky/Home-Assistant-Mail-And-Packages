@@ -93,6 +93,7 @@ AMAZON_SHIPMENT_TRACKING = [
     "shipment-tracking",
     "conferma-spedizione",
     "confirmar-envio",
+    "versandbestaetigung",
 ]
 AMAZON_EMAIL = "order-update@"
 AMAZON_PACKAGES = "amazon_packages"
