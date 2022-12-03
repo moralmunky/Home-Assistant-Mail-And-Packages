@@ -120,6 +120,7 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_form(
     input_1,
     step_id_2,
@@ -282,6 +283,7 @@ async def test_form(
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_form_invalid_custom_img_path(
     input_1,
     step_id_2,
@@ -349,6 +351,7 @@ async def test_form_invalid_custom_img_path(
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -474,6 +477,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_form_invalid_ffmpeg(
     input_1, step_id_2, input_2, title, data, hass, mock_imap
 ):
@@ -611,6 +615,7 @@ async def test_form_invalid_ffmpeg(
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_form_index_error(
     input_1,
     step_id_2,
@@ -757,6 +762,7 @@ async def test_form_index_error(
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_form_index_error_2(
     input_1,
     step_id_2,
@@ -902,6 +908,7 @@ async def test_form_index_error_2(
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_form_mailbox_format2(
     input_1,
     step_id_2,
@@ -950,29 +957,29 @@ async def test_form_mailbox_format2(
     assert len(mock_setup.mock_calls) == 1
     assert len(mock_setup_entry.mock_calls) == 1
 
-
+@pytest.mark.asyncio
 async def test_valid_ffmpeg(test_valid_ffmpeg):
     result = await _check_ffmpeg()
     assert result
 
-
+@pytest.mark.asyncio
 async def test_invalid_ffmpeg(test_invalid_ffmpeg):
     result = await _check_ffmpeg()
     assert not result
 
-
+@pytest.mark.asyncio
 async def test_imap_login(mock_imap):
     result = await _test_login(
         "127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword"
     )
     assert result
 
-
+@pytest.mark.asyncio
 async def test_imap_connection_error(caplog):
     await _test_login("127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword")
     assert "Error connecting into IMAP Server:" in caplog.text
 
-
+@pytest.mark.asyncio
 async def test_imap_login_error(mock_imap_login_error, caplog):
     await _test_login("127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword")
     assert "Error logging into IMAP Server:" in caplog.text
@@ -1083,6 +1090,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_options_flow(
     input_1,
     step_id_2,
@@ -1259,6 +1267,7 @@ async def test_options_flow(
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_options_flow_invalid_custom_img_path(
     input_1,
     step_id_2,
@@ -1340,6 +1349,7 @@ async def test_options_flow_invalid_custom_img_path(
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_options_flow_connection_error(
     input_1,
     step_id_2,
@@ -1480,6 +1490,7 @@ async def test_options_flow_connection_error(
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_options_flow_invalid_ffmpeg(
     input_1,
     step_id_2,
@@ -1628,6 +1639,7 @@ async def test_options_flow_invalid_ffmpeg(
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_options_flow_index_error(
     input_1,
     step_id_2,
@@ -1777,6 +1789,7 @@ async def test_options_flow_index_error(
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_options_flow_index_error_2(
     input_1,
     step_id_2,
@@ -1926,6 +1939,7 @@ async def test_options_flow_index_error_2(
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_options_flow_mailbox_format2(
     input_1,
     step_id_2,
@@ -2076,6 +2090,7 @@ async def test_options_flow_mailbox_format2(
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_options_flow_bad(
     input_1,
     step_id_2,
@@ -2187,6 +2202,7 @@ async def test_options_flow_bad(
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_form_amazon_error(
     input_1,
     step_id_2,
@@ -2281,6 +2297,7 @@ async def test_form_amazon_error(
         ),
     ],
 )
+@pytest.mark.asyncio
 async def test_form_interval_low(
     input_1,
     step_id_2,

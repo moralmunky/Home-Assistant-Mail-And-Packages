@@ -15,7 +15,7 @@ from tests.const import (
     FAKE_CONFIG_DATA_NO_PATH,
 )
 
-
+@pytest.mark.asyncio
 async def test_unload_entry(hass, mock_update, mock_copy_overlays):
     """Test unloading entities."""
     entry = MockConfigEntry(
@@ -41,7 +41,7 @@ async def test_unload_entry(hass, mock_update, mock_copy_overlays):
     await hass.async_block_till_done()
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 0
 
-
+@pytest.mark.asyncio
 async def test_setup_entry(
     hass,
     mock_imap_no_email,
@@ -69,7 +69,7 @@ async def test_setup_entry(
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
-
+@pytest.mark.asyncio
 async def test_no_path_no_sec(
     hass,
     mock_imap_no_email,
@@ -95,7 +95,7 @@ async def test_no_path_no_sec(
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
-
+@pytest.mark.asyncio
 async def test_missing_imap_timeout(
     hass,
     mock_imap_no_email,
@@ -124,7 +124,7 @@ async def test_missing_imap_timeout(
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
-
+@pytest.mark.asyncio
 async def test_amazon_fwds_string(
     hass,
     mock_imap_no_email,
@@ -153,7 +153,7 @@ async def test_amazon_fwds_string(
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
-
+@pytest.mark.asyncio
 async def test_custom_img(
     hass,
     mock_imap_no_email,

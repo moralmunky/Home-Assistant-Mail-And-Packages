@@ -1,4 +1,5 @@
 """Fixtures for Mail and Packages tests."""
+import asyncio
 import datetime
 import errno
 import imaplib
