@@ -45,14 +45,17 @@ MAIL_IMAGE_URL_ENTITY = "sensor.mail_image_url"
 MAIL_IMAGE_SYSTEM_PATH = "sensor.mail_image_system_path"
 
 
+@pytest.mark.asyncio
 async def test_get_formatted_date():
     assert get_formatted_date() == datetime.datetime.today().strftime("%d-%b-%Y")
 
 
+@pytest.mark.asyncio
 async def test_update_time():
     assert isinstance(update_time(), datetime.datetime)
 
 
+@pytest.mark.asyncio
 async def test_cleanup_images(mock_listdir, mock_osremove):
     cleanup_images("/tests/fakedir/")
     calls = [
@@ -62,6 +65,7 @@ async def test_cleanup_images(mock_listdir, mock_osremove):
     mock_osremove.assert_has_calls(calls)
 
 
+@pytest.mark.asyncio
 async def test_cleanup_found_images_remove_err(
     mock_listdir, mock_osremove_exception, caplog
 ):
@@ -71,6 +75,7 @@ async def test_cleanup_found_images_remove_err(
     assert "Error attempting to remove found image:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_cleanup_images_remove_err(mock_listdir, mock_osremove_exception, caplog):
     cleanup_images("/tests/fakedir/", "testimage.jpg")
 
@@ -78,6 +83,7 @@ async def test_cleanup_images_remove_err(mock_listdir, mock_osremove_exception, 
     assert "Error attempting to remove image:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_process_emails(
     hass,
     mock_imap_no_email,
@@ -121,6 +127,7 @@ async def test_process_emails(
     assert result["amazon_hub_code"] == []
 
 
+@pytest.mark.asyncio
 async def test_process_emails_external(
     hass,
     mock_imap_no_email,
@@ -177,6 +184,7 @@ async def test_process_emails_external(
     )
 
 
+@pytest.mark.asyncio
 async def test_process_emails_external_error(
     hass,
     mock_imap_no_email,
@@ -206,6 +214,7 @@ async def test_process_emails_external_error(
     assert "Problem creating:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_process_emails_copytree_error(
     hass,
     mock_imap_no_email,
@@ -233,6 +242,7 @@ async def test_process_emails_copytree_error(
     assert "Problem copying files from" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_process_emails_bad(hass, mock_imap_no_email, mock_update):
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -246,6 +256,7 @@ async def test_process_emails_bad(hass, mock_imap_no_email, mock_update):
     await hass.async_block_till_done()
 
 
+@pytest.mark.asyncio
 async def test_process_emails_non_random(
     hass,
     mock_imap_no_email,
@@ -272,6 +283,7 @@ async def test_process_emails_non_random(
     assert result["image_name"] == "testfile.gif"
 
 
+@pytest.mark.asyncio
 async def test_process_emails_random(
     hass,
     mock_imap_no_email,
@@ -298,6 +310,7 @@ async def test_process_emails_random(
     assert ".gif" in result["image_name"]
 
 
+@pytest.mark.asyncio
 async def test_process_nogif(
     hass,
     mock_imap_no_email,
@@ -324,6 +337,7 @@ async def test_process_nogif(
     assert ".gif" in result["image_name"]
 
 
+@pytest.mark.asyncio
 async def test_process_old_image(
     hass,
     mock_imap_no_email,
@@ -350,6 +364,7 @@ async def test_process_old_image(
     assert ".gif" in result["image_name"]
 
 
+@pytest.mark.asyncio
 async def test_process_folder_error(
     hass,
     mock_imap_no_email,
@@ -379,6 +394,7 @@ async def test_process_folder_error(
         assert result == {}
 
 
+@pytest.mark.asyncio
 async def test_image_filename_oserr(
     hass,
     mock_imap_no_email,
@@ -406,6 +422,7 @@ async def test_image_filename_oserr(
     assert "Problem accessing file:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_image_getctime_oserr(
     hass,
     mock_imap_no_email,
@@ -433,6 +450,7 @@ async def test_image_getctime_oserr(
     assert "Problem accessing file:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_email_search(mock_imap_search_error, caplog):
     result = email_search(mock_imap_search_error, "fake@eamil.address", "01-Jan-20")
     assert result == ("BAD", "Invalid SEARCH format")
@@ -445,17 +463,20 @@ async def test_email_search(mock_imap_search_error, caplog):
     assert "Error searching emails:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_email_fetch(mock_imap_fetch_error, caplog):
     result = email_fetch(mock_imap_fetch_error, 1, "(RFC822)")
     assert result == ("BAD", "Invalid Email")
     assert "Error fetching emails:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_get_mails(mock_imap_no_email, mock_copyfile):
     result = get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
     assert result == 0
 
 
+@pytest.mark.asyncio
 async def test_get_mails_makedirs_error(mock_imap_no_email, mock_copyfile, caplog):
     with patch("os.path.isdir", return_value=False), patch(
         "os.makedirs", side_effect=OSError
@@ -464,6 +485,7 @@ async def test_get_mails_makedirs_error(mock_imap_no_email, mock_copyfile, caplo
         assert "Error creating directory:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_get_mails_copyfile_error(
     mock_imap_usps_informed_digest_no_mail,
     mock_copyoverlays,
@@ -476,6 +498,7 @@ async def test_get_mails_copyfile_error(
     assert "File not found" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_get_mails_email_search_error(
     mock_imap_usps_informed_digest_no_mail,
     mock_copyoverlays,
@@ -492,6 +515,7 @@ async def test_get_mails_email_search_error(
         assert result == 0
 
 
+@pytest.mark.asyncio
 async def test_informed_delivery_emails(
     mock_imap_usps_informed_digest,
     mock_osremove,
@@ -515,6 +539,7 @@ async def test_informed_delivery_emails(
         assert "USPS Informed Delivery" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_new_informed_delivery_emails(
     mock_imap_usps_new_informed_digest,
     mock_osremove,
@@ -560,6 +585,7 @@ async def test_new_informed_delivery_emails(
 #             assert "Error attempting to generate image:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_informed_delivery_emails_mp4(
     mock_imap_usps_informed_digest,
     mock_osremove,
@@ -582,6 +608,7 @@ async def test_informed_delivery_emails_mp4(
             assert mock_generate_mp4.called_with("./", "mail_today.gif")
 
 
+@pytest.mark.asyncio
 async def test_informed_delivery_emails_open_err(
     mock_imap_usps_informed_digest,
     mock_listdir,
@@ -606,6 +633,7 @@ async def test_informed_delivery_emails_open_err(
     )
 
 
+@pytest.mark.asyncio
 async def test_informed_delivery_emails_io_err(
     mock_imap_usps_informed_digest,
     mock_listdir,
@@ -628,6 +656,7 @@ async def test_informed_delivery_emails_io_err(
     assert type(exc_info.value) is ValueError
 
 
+@pytest.mark.asyncio
 async def test_informed_delivery_missing_mailpiece(
     mock_imap_usps_informed_digest_missing,
     mock_listdir,
@@ -646,6 +675,7 @@ async def test_informed_delivery_missing_mailpiece(
         assert result == 5
 
 
+@pytest.mark.asyncio
 async def test_informed_delivery_no_mail(
     mock_imap_usps_informed_digest_no_mail,
     mock_listdir,
@@ -665,6 +695,7 @@ async def test_informed_delivery_no_mail(
         assert result == 0
 
 
+@pytest.mark.asyncio
 async def test_informed_delivery_no_mail_copy_error(
     mock_imap_usps_informed_digest_no_mail,
     mock_listdir,
@@ -687,6 +718,7 @@ async def test_informed_delivery_no_mail_copy_error(
         assert "File not found" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):
     result = get_count(
         mock_imap_ups_out_for_delivery, "ups_delivering", True, "./", hass
@@ -695,6 +727,7 @@ async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):
     assert result["tracking"] == ["1Z2345YY0678901234"]
 
 
+@pytest.mark.asyncio
 async def test_ups_out_for_delivery_html_only(
     hass, mock_imap_ups_out_for_delivery_html
 ):
@@ -705,6 +738,7 @@ async def test_ups_out_for_delivery_html_only(
     assert result["tracking"] == ["1Z0Y12345678031234"]
 
 
+@pytest.mark.asyncio
 async def test_usps_out_for_delivery(hass, mock_imap_usps_out_for_delivery):
     result = get_count(
         mock_imap_usps_out_for_delivery, "usps_delivering", True, "./", hass
@@ -713,6 +747,7 @@ async def test_usps_out_for_delivery(hass, mock_imap_usps_out_for_delivery):
     assert result["tracking"] == ["92123456508577307776690000"]
 
 
+@pytest.mark.asyncio
 async def test_dhl_out_for_delivery(hass, mock_imap_dhl_out_for_delivery, caplog):
     result = get_count(
         mock_imap_dhl_out_for_delivery, "dhl_delivering", True, "./", hass
@@ -722,6 +757,7 @@ async def test_dhl_out_for_delivery(hass, mock_imap_dhl_out_for_delivery, caplog
     assert "UTF-8 not supported." not in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_dhl_no_utf8(hass, mock_imap_dhl_no_utf8, caplog):
     result = get_count(mock_imap_dhl_no_utf8, "dhl_delivering", True, "./", hass)
     assert result["count"] == 1
@@ -729,6 +765,7 @@ async def test_dhl_no_utf8(hass, mock_imap_dhl_no_utf8, caplog):
     assert "UTF-8 not supported: ('BAD', ['Unsupported'])" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_hermes_out_for_delivery(hass, mock_imap_hermes_out_for_delivery):
     result = get_count(
         mock_imap_hermes_out_for_delivery, "hermes_delivering", True, "./", hass
@@ -737,6 +774,7 @@ async def test_hermes_out_for_delivery(hass, mock_imap_hermes_out_for_delivery):
     assert result["tracking"] == ["8888888888888888"]
 
 
+@pytest.mark.asyncio
 async def test_evri_out_for_delivery(hass, mock_imap_evri_out_for_delivery):
     result = get_count(
         mock_imap_evri_out_for_delivery, "evri_delivering", True, "./", hass
@@ -745,6 +783,7 @@ async def test_evri_out_for_delivery(hass, mock_imap_evri_out_for_delivery):
     assert result["tracking"] == ["H01QPZ0007431687"]
 
 
+@pytest.mark.asyncio
 async def test_royal_out_for_delivery(hass, mock_imap_royal_out_for_delivery):
     result = get_count(
         mock_imap_royal_out_for_delivery, "royal_delivering", True, "./", hass
@@ -753,6 +792,7 @@ async def test_royal_out_for_delivery(hass, mock_imap_royal_out_for_delivery):
     assert result["tracking"] == ["MA038501234GB"]
 
 
+@pytest.mark.asyncio
 async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):
     with patch("datetime.date") as mock_date:
         mock_date.today.return_value = date(2020, 9, 11)
@@ -761,16 +801,19 @@ async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):
         assert result == 1
 
 
+@pytest.mark.asyncio
 async def test_amazon_shipped_order(hass, mock_imap_amazon_shipped):
     result = get_items(mock_imap_amazon_shipped, "order")
     assert result == ["123-1234567-1234567"]
 
 
+@pytest.mark.asyncio
 async def test_amazon_shipped_order_alt(hass, mock_imap_amazon_shipped_alt):
     result = get_items(mock_imap_amazon_shipped_alt, "order")
     assert result == ["123-1234567-1234567"]
 
 
+@pytest.mark.asyncio
 async def test_amazon_shipped_order_alt_2(hass, mock_imap_amazon_shipped_alt_2):
     result = get_items(mock_imap_amazon_shipped_alt_2, "order")
     assert result == ["113-9999999-8459426"]
@@ -781,6 +824,7 @@ async def test_amazon_shipped_order_alt_2(hass, mock_imap_amazon_shipped_alt_2):
         assert result == 1
 
 
+@pytest.mark.asyncio
 async def test_amazon_shipped_order_alt_timeformat(
     hass, mock_imap_amazon_shipped_alt_timeformat
 ):
@@ -788,21 +832,25 @@ async def test_amazon_shipped_order_alt_timeformat(
     assert result == ["321-1234567-1234567"]
 
 
+@pytest.mark.asyncio
 async def test_amazon_shipped_order_uk(hass, mock_imap_amazon_shipped_uk):
     result = get_items(mock_imap_amazon_shipped_uk, "order")
     assert result == ["123-4567890-1234567"]
 
 
+@pytest.mark.asyncio
 async def test_amazon_shipped_order_uk(hass, mock_imap_amazon_shipped_uk_2):
     result = get_items(mock_imap_amazon_shipped_uk_2, "order")
     assert result == ["123-4567890-1234567"]
 
 
+@pytest.mark.asyncio
 async def test_amazon_shipped_order_it(hass, mock_imap_amazon_shipped_it):
     result = get_items(mock_imap_amazon_shipped_it, "order")
     assert result == ["405-5236882-9395563"]
 
 
+@pytest.mark.asyncio
 async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
     with patch("datetime.date") as mock_date:
         mock_date.today.return_value = date(2021, 12, 1)
@@ -810,11 +858,13 @@ async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
         assert result == 1
 
 
+@pytest.mark.asyncio
 async def test_amazon_search(hass, mock_imap_no_email):
     result = amazon_search(mock_imap_no_email, "test/path", hass, "testfilename.jpg")
     assert result == 0
 
 
+@pytest.mark.asyncio
 async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
     result = amazon_search(
         mock_imap_amazon_shipped, "test/path", hass, "testfilename.jpg"
@@ -822,6 +872,7 @@ async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
     assert result == 44
 
 
+@pytest.mark.asyncio
 async def test_amazon_search_delivered(
     hass, mock_imap_amazon_delivered, mock_download_img
 ):
@@ -832,6 +883,7 @@ async def test_amazon_search_delivered(
     assert mock_download_img.called
 
 
+@pytest.mark.asyncio
 async def test_amazon_search_delivered_it(
     hass, mock_imap_amazon_delivered_it, mock_download_img
 ):
@@ -841,6 +893,7 @@ async def test_amazon_search_delivered_it(
     assert result == 44
 
 
+@pytest.mark.asyncio
 async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
     result = amazon_hub(mock_imap_amazon_the_hub)
     assert result["count"] == 1
@@ -861,6 +914,7 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
         assert result == {}
 
 
+@pytest.mark.asyncio
 async def test_amazon_hub_2(hass, mock_imap_amazon_the_hub_2):
     result = amazon_hub(mock_imap_amazon_the_hub_2)
     assert result["count"] == 1
@@ -881,18 +935,21 @@ async def test_amazon_hub_2(hass, mock_imap_amazon_the_hub_2):
         assert result == {}
 
 
+@pytest.mark.asyncio
 async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
     with patch("quopri.decodestring", side_effect=ValueError):
         get_items(mock_imap_amazon_shipped, "order")
         assert "Problem decoding email message:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
     with patch("quopri.decodestring", side_effect=ValueError):
         get_items(mock_imap_amazon_shipped, "order")
         assert "Problem decoding email message:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_generate_mp4(
     mock_osremove, mock_os_path_join, mock_subprocess_call, mock_os_path_split
 ):
@@ -915,32 +972,38 @@ async def test_generate_mp4(
         )
 
 
+@pytest.mark.asyncio
 async def test_connection_error(caplog):
     result = login("localhost", 993, "fakeuser", "suchfakemuchpassword")
     assert not result
     assert "Network error while connecting to server:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_login_error(mock_imap_login_error, caplog):
     login("localhost", 993, "fakeuser", "suchfakemuchpassword")
     assert "Error logging into IMAP Server:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_selectfolder_list_error(mock_imap_list_error, caplog):
     assert not selectfolder(mock_imap_list_error, "somefolder")
     assert "Error listing folders:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_selectfolder_select_error(mock_imap_select_error, caplog):
     assert not selectfolder(mock_imap_select_error, "somefolder")
     assert "Error selecting folder:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_resize_images_open_err(mock_open_excpetion, caplog):
     resize_images(["testimage.jpg", "anothertest.jpg"], 724, 320)
     assert "Error attempting to open image" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_resize_images_read_err(mock_image_excpetion, caplog):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
@@ -948,6 +1011,7 @@ async def test_resize_images_read_err(mock_image_excpetion, caplog):
         assert "Error attempting to read image" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_process_emails_random_image(hass, mock_imap_login_error, caplog):
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -964,11 +1028,13 @@ async def test_process_emails_random_image(hass, mock_imap_login_error, caplog):
     assert "Error logging into IMAP Server:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_usps_exception(hass, mock_imap_usps_exception):
     result = get_count(mock_imap_usps_exception, "usps_exception", False, "./", hass)
     assert result["count"] == 1
 
 
+@pytest.mark.asyncio
 async def test_download_img(
     aioclient_mock,
     mock_osremove,
@@ -992,6 +1058,7 @@ async def test_download_img(
         assert "Amazon image downloaded" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_download_img_error(aioclient_mock_error, caplog):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
@@ -1003,6 +1070,7 @@ async def test_download_img_error(aioclient_mock_error, caplog):
         assert "Problem downloading file http error: 404" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_image_file_name_path_error(hass, caplog):
     config = FAKE_CONFIG_DATA_CORRECTED
 
@@ -1014,6 +1082,7 @@ async def test_image_file_name_path_error(hass, caplog):
         assert "Problem creating:" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_image_file_name_amazon(
     hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, mock_copyfile, caplog
 ):
@@ -1026,6 +1095,7 @@ async def test_image_file_name_amazon(
         assert result == "testfile.jpg"
 
 
+@pytest.mark.asyncio
 async def test_image_file_name(
     hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, mock_copyfile, caplog
 ):
@@ -1047,6 +1117,7 @@ async def test_image_file_name(
         assert "Copying images/test.gif to" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
     result = amazon_exception(mock_imap_amazon_exception, ['""'])
     assert result["order"] == ["123-1234567-1234567"] * 11
@@ -1060,12 +1131,14 @@ async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
     )
 
 
+@pytest.mark.asyncio
 async def test_hash_file():
     """Test file hashing function."""
     result = hash_file("tests/test_emails/amazon_delivered.eml")
     assert result == "7f9d94e97bb4fc870d2d2b3aeae0c428ebed31dc"
 
 
+@pytest.mark.asyncio
 async def test_fedex_out_for_delivery(hass, mock_imap_fedex_out_for_delivery):
     result = get_count(
         mock_imap_fedex_out_for_delivery, "fedex_delivering", True, "./", hass
@@ -1074,6 +1147,7 @@ async def test_fedex_out_for_delivery(hass, mock_imap_fedex_out_for_delivery):
     assert result["tracking"] == ["61290912345678912345"]
 
 
+@pytest.mark.asyncio
 async def test_fedex_out_for_delivery_2(hass, mock_imap_fedex_out_for_delivery_2):
     result = get_count(
         mock_imap_fedex_out_for_delivery_2, "fedex_delivering", True, "./", hass
@@ -1082,6 +1156,7 @@ async def test_fedex_out_for_delivery_2(hass, mock_imap_fedex_out_for_delivery_2
     assert result["tracking"] == ["286548999999"]
 
 
+@pytest.mark.asyncio
 async def test_get_mails_email_search_none(
     mock_imap_usps_informed_digest_no_mail,
     mock_copyoverlays,
@@ -1098,6 +1173,7 @@ async def test_get_mails_email_search_none(
         assert result == 0
 
 
+@pytest.mark.asyncio
 async def test_email_search_none(mock_imap_search_error_none, caplog):
     result = email_search(
         mock_imap_search_error_none, "fake@eamil.address", "01-Jan-20"
@@ -1105,6 +1181,7 @@ async def test_email_search_none(mock_imap_search_error_none, caplog):
     assert result == ("OK", [b""])
 
 
+@pytest.mark.asyncio
 async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
     result = get_items(mock_imap_amazon_fwd, "order")
     assert result == ["123-1234567-1234567"]

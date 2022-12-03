@@ -1,4 +1,6 @@
 """Fixtures for Mail and Packages tests."""
+import asyncio
+import aiohttp
 import datetime
 import errno
 import imaplib
@@ -13,6 +15,7 @@ from aioresponses import aioresponses
 from tests.const import FAKE_UPDATE_DATA, FAKE_UPDATE_DATA_BIN
 
 pytest_plugins = "pytest_homeassistant_custom_component"
+pytestmark = pytest.mark.asyncio
 
 
 @pytest.fixture()

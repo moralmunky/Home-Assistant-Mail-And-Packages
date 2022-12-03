@@ -1,5 +1,5 @@
 """Test Mail and Packages binary sensors."""
-
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from sqlalchemy import true
 
@@ -9,6 +9,7 @@ from tests.const import FAKE_CONFIG_DATA
 from unittest.mock import patch
 
 
+@pytest.mark.asyncio
 async def test_binary_sensor_no_updates(hass, mock_imap_no_email):
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -31,6 +32,7 @@ async def test_binary_sensor_no_updates(hass, mock_imap_no_email):
     assert state.state == "off"
 
 
+@pytest.mark.asyncio
 async def test_binary_sensor_updated(hass, mock_update_amazon_image):
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -57,6 +59,7 @@ async def test_binary_sensor_updated(hass, mock_update_amazon_image):
         assert state.state == "on"
 
 
+@pytest.mark.asyncio
 def hash_side_effect(value):
     """Side effect value."""
     if "mail_none.gif" in value:

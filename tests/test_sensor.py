@@ -1,10 +1,12 @@
 """ Test Mail and Packages sensors."""
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import DOMAIN
 from tests.const import FAKE_CONFIG_DATA_NO_RND
 
 
+@pytest.mark.asyncio
 async def test_sensor(hass, mock_update):
 
     entry = MockConfigEntry(

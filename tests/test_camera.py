@@ -1,5 +1,6 @@
 """Tests for camera component."""
 import logging
+import pytest
 from unittest.mock import mock_open, patch
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -10,6 +11,7 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_CUSTOM_IMG
 _LOGGER = logging.getLogger(__name__)
 
 
+@pytest.mark.asyncio
 async def test_update_file_path(
     hass,
     mock_imap_no_email,
@@ -95,6 +97,7 @@ async def test_update_file_path(
     # TODO: Add process_mail and check camera file path
 
 
+@pytest.mark.asyncio
 async def test_check_file_path_access(
     hass,
     mock_imap_no_email,
@@ -124,6 +127,7 @@ async def test_check_file_path_access(
         assert "Could not read camera" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_async_camera_image(
     hass,
     mock_imap_no_email,
@@ -164,6 +168,7 @@ async def test_async_camera_image(
         assert m_open.call_args.args[1] == "rb"
 
 
+@pytest.mark.asyncio
 async def test_async_camera_image_file_error(
     hass,
     mock_imap_no_email,
@@ -201,6 +206,7 @@ async def test_async_camera_image_file_error(
         assert "Could not read camera" in caplog.text
 
 
+@pytest.mark.asyncio
 async def test_async_on_demand_update(
     hass,
     mock_imap_no_email,
