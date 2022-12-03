@@ -957,15 +957,18 @@ async def test_form_mailbox_format2(
     assert len(mock_setup.mock_calls) == 1
     assert len(mock_setup_entry.mock_calls) == 1
 
+
 @pytest.mark.asyncio
 async def test_valid_ffmpeg(test_valid_ffmpeg):
     result = await _check_ffmpeg()
     assert result
 
+
 @pytest.mark.asyncio
 async def test_invalid_ffmpeg(test_invalid_ffmpeg):
     result = await _check_ffmpeg()
     assert not result
+
 
 @pytest.mark.asyncio
 async def test_imap_login(mock_imap):
@@ -974,10 +977,12 @@ async def test_imap_login(mock_imap):
     )
     assert result
 
+
 @pytest.mark.asyncio
 async def test_imap_connection_error(caplog):
     await _test_login("127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword")
     assert "Error connecting into IMAP Server:" in caplog.text
+
 
 @pytest.mark.asyncio
 async def test_imap_login_error(mock_imap_login_error, caplog):

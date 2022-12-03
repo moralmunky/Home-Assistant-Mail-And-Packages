@@ -13,6 +13,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from tests.const import FAKE_CONFIG_DATA, FAKE_UPDATE_DATA, FAKE_UPDATE_DATA_REDACTED
 
+
 @pytest.mark.asyncio
 async def test_config_entry_diagnostics(hass):
     """Test the config entry level diagnostics data dump."""

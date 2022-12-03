@@ -10,6 +10,7 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_CUSTOM_IMG
 
 _LOGGER = logging.getLogger(__name__)
 
+
 @pytest.mark.asyncio
 async def test_update_file_path(
     hass,
@@ -95,6 +96,7 @@ async def test_update_file_path(
 
     # TODO: Add process_mail and check camera file path
 
+
 @pytest.mark.asyncio
 async def test_check_file_path_access(
     hass,
@@ -123,6 +125,7 @@ async def test_check_file_path_access(
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
         assert "Could not read camera" in caplog.text
+
 
 @pytest.mark.asyncio
 async def test_async_camera_image(
@@ -164,6 +167,7 @@ async def test_async_camera_image(
         )
         assert m_open.call_args.args[1] == "rb"
 
+
 @pytest.mark.asyncio
 async def test_async_camera_image_file_error(
     hass,
@@ -200,6 +204,7 @@ async def test_async_camera_image_file_error(
             image = await cameras[0].async_camera_image()
 
         assert "Could not read camera" in caplog.text
+
 
 @pytest.mark.asyncio
 async def test_async_on_demand_update(
