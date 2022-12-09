@@ -233,8 +233,9 @@ SENSOR_DATA = {
         "subject": [
             "DHL On Demand Delivery",
             "Powiadomienie o przesyłce",
+            "Ihr DHL Paket wurde zugestellt",
         ],
-        "body": ["has been delivered", "została doręczona"],
+        "body": ["has been delivered", "została doręczona", "ist angekommen"],
     },
     "dhl_delivering": {
         "email": [
@@ -245,10 +246,10 @@ SENSOR_DATA = {
         ],
         "subject": [
             "DHL On Demand Delivery",
-            "paket kommt heute",
+            "Ihr DHL Paket kommt heute",
             "Powiadomienie o przesyłce",
         ],
-        "body": ["scheduled for delivery TODAY", "zostanie dziś do Państwa doręczona"],
+        "body": ["scheduled for delivery TODAY", "zostanie dziś do Państwa doręczona", "wird Ihnen heute"],
     },
     "dhl_packages": {},
     "dhl_tracking": {"pattern": ["\\d{10,11}"]},
