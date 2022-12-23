@@ -174,6 +174,8 @@ SENSOR_DATA = {
         "subject": [
             "Your UPS Package was delivered",
             "Your UPS Packages were delivered",
+            "Your UPS Parcel was delivered",
+            "Your UPS Parcels were delivered",
         ],
     },
     "ups_delivering": {
@@ -182,6 +184,7 @@ SENSOR_DATA = {
             "UPS Update: Package Scheduled for Delivery Today",
             "UPS Update: Follow Your Delivery on a Live Map",
             "UPS Pre-Arrival: Your Driver is Arriving Soon! Follow on a Live Map",
+            "UPS Update: Parcel Scheduled for Delivery Today",
         ],
     },
     "ups_exception": {
