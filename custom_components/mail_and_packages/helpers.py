@@ -930,9 +930,7 @@ def get_count(
         )
         if server_response == "OK" and data[0] is not None:
             if ATTR_BODY in SENSOR_DATA[sensor_type].keys():
-                count += find_text(
-                    data, account, SENSOR_DATA[sensor_type][ATTR_BODY][0]
-                )
+                count += find_text(data, account, SENSOR_DATA[sensor_type][ATTR_BODY])
             else:
                 count += len(data[0].split())
 
@@ -1025,12 +1023,12 @@ def get_tracking(
     return tracking
 
 
-def find_text(sdata: Any, account: Type[imaplib.IMAP4_SSL], search: str) -> int:
+def find_text(sdata: Any, account: Type[imaplib.IMAP4_SSL], search_terms: list) -> int:
     """Filter for specific words in email.
 
     Return count of items found as integer
     """
-    _LOGGER.debug("Searching for (%s) in (%s) emails", search, len(sdata))
+    _LOGGER.debug("Searching for (%s) in (%s) emails", search_terms, len(sdata))
     mail_list = sdata[0].split()
     count = 0
     found = None
@@ -1042,19 +1040,20 @@ def find_text(sdata: Any, account: Type[imaplib.IMAP4_SSL], search: str) -> int:
                 msg = email.message_from_bytes(response_part[1])
 
                 for part in msg.walk():
-                    _LOGGER.debug("Content type: %s", part.get_content_type())
-                    if part.get_content_type() not in ["text/html", "text/plain"]:
-                        continue
-                    email_msg = part.get_payload(decode=True)
-                    email_msg = email_msg.decode("utf-8", "ignore")
-                    pattern = re.compile(rf"{search}")
-                    if (found := pattern.findall(email_msg)) and len(found) > 0:
-                        _LOGGER.debug(
-                            "Found (%s) in email %s times.", search, str(len(found))
-                        )
-                        count += len(found)
+                    for search in search_terms:
+                        _LOGGER.debug("Content type: %s", part.get_content_type())
+                        if part.get_content_type() not in ["text/html", "text/plain"]:
+                            continue
+                        email_msg = part.get_payload(decode=True)
+                        email_msg = email_msg.decode("utf-8", "ignore")
+                        pattern = re.compile(rf"{search}")
+                        if (found := pattern.findall(email_msg)) and len(found) > 0:
+                            _LOGGER.debug(
+                                "Found (%s) in email %s times.", search, str(len(found))
+                            )
+                            count += len(found)
 
-    _LOGGER.debug("Search for (%s) count results: %s", search, count)
+    _LOGGER.debug("Search for (%s) count results: %s", search_terms, count)
     return count
 
 
