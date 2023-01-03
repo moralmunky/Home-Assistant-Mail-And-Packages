@@ -930,9 +930,7 @@ def get_count(
         )
         if server_response == "OK" and data[0] is not None:
             if ATTR_BODY in SENSOR_DATA[sensor_type].keys():
-                count += find_text(
-                    data, account, SENSOR_DATA[sensor_type][ATTR_BODY]
-                )
+                count += find_text(data, account, SENSOR_DATA[sensor_type][ATTR_BODY])
             else:
                 count += len(data[0].split())
 
