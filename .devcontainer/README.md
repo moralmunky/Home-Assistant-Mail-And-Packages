@@ -58,3 +58,7 @@ Then launch the task `Run Home Assistant on port 9123`, and launch the debugger
 with the existing debugging configuration `Python: Attach Local`.
 
 For more information, look at [the Remote Python Debugger integration documentation](https://www.home-assistant.io/integrations/debugpy/).
+
+If you get an error 128 when running the container, you may need to change git to use HTTPs
+```git config --global url.https://github.com/.insteadOf git://github.com/```
+
