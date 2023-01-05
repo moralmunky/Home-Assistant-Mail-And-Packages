@@ -122,6 +122,7 @@ AMAZON_TIME_PATTERN = [
     "Zustellung:",
     "Entrega:",
     "A chegar:",
+    "Arrivée :",
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
