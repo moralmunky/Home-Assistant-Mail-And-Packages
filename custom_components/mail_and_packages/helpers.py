@@ -1391,6 +1391,8 @@ def get_items(
                                 end = email_msg.find("Sguimiento")
                             elif email_msg.find("Verfolge deine(n) Artikel") != -1:
                                 end = email_msg.find("Verfolge deine(n) Artikel")
+                            elif email_msg.find("Suivre") != -1:
+                                end = email_msg.find("Suivre")
 
                             arrive_date = email_msg[start:end].replace(">", "").strip()
                             _LOGGER.debug("First pass: %s", arrive_date)
