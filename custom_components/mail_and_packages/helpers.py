@@ -445,7 +445,7 @@ def selectfolder(account: Type[imaplib.IMAP4_SSL], folder: str) -> bool:
         _LOGGER.error("Error listing folders: %s", str(err))
         return False
     try:
-        account.select(folder)
+        account.select(folder, readonly=True)
     except Exception as err:
         _LOGGER.error("Error selecting folder: %s", str(err))
         return False
