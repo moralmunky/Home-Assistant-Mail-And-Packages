@@ -123,13 +123,16 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
             return attr
 
         if "Amazon" in self._name:
-            if self._name == "amazon_exception":
+            if (
+                self._name == "amazon_exception"
+                and AMAZON_EXCEPTION_ORDER in data.keys()
+            ):
                 attr[ATTR_ORDER] = data[AMAZON_EXCEPTION_ORDER]
-            else:
+            elif AMAZON_ORDER in data.keys():
                 attr[ATTR_ORDER] = data[AMAZON_ORDER]
-        elif self._name == "Mail USPS Mail":
+        elif self._name == "Mail USPS Mail" and ATTR_IMAGE_NAME in data.keys():
             attr[ATTR_IMAGE] = data[ATTR_IMAGE_NAME]
-        elif "_delivering" in self.type and tracking in self.data.keys():
+        elif "_delivering" in self.type and tracking in data.keys():
             attr[ATTR_TRACKING_NUM] = data[tracking]
             # TODO: Add Tracking URL when applicable
         return attr
