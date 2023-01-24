@@ -430,7 +430,7 @@ SENSOR_DATA = {
     },
     "dhl_parcel_nl_packages": {},
     "dhl_parcel_nl_tracking": {"pattern": ["[0-9A-Z]{12,24}"]},
-   # Purolator
+    # Purolator
     "purolator_delivered": {
         "email": ["NotificationService@purolator.com"],
         "subject": ["Purolator - Your shipment is delivered"],
@@ -457,7 +457,7 @@ SENSOR_DATA = {
         "email": ["notifications@intelcom.ca"],
         "subject": ["Your package has been received!"],
     },
-    "intelcom_tracking": {"pattern": ["INTLCMD[0-9]{9}"]},    
+    "intelcom_tracking": {"pattern": ["INTLCMD[0-9]{9}"]},
 }
 
 # Sensor definitions
@@ -815,7 +815,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="intelcom_packages",
-    ),    
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -888,5 +888,5 @@ SHIPPERS = [
     "gls",
     "dhl_parcel_nl",
     "purolator",
-    "intelcom",    
+    "intelcom",
 ]
