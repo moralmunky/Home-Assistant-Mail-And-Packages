@@ -430,6 +430,34 @@ SENSOR_DATA = {
     },
     "dhl_parcel_nl_packages": {},
     "dhl_parcel_nl_tracking": {"pattern": ["[0-9A-Z]{12,24}"]},
+    # Purolator
+    "purolator_delivered": {
+        "email": ["NotificationService@purolator.com"],
+        "subject": ["Purolator - Your shipment is delivered"],
+    },
+    "purolator_delivering": {
+        "email": ["NotificationService@purolator.com"],
+        "subject": ["Purolator - Your shipment is out for delivery"],
+    },
+    "purolator_packages": {
+        "email": ["NotificationService@purolator.com"],
+        "subject": ["Purolator - Your shipment has been picked up"],
+    },
+    "purolator_tracking": {"pattern": ["\\d{12,15}"]},
+    # Intelcom
+    "intelcom_delivered": {
+        "email": ["notifications@intelcom.ca"],
+        "subject": ["Your order has been delivered!"],
+    },
+    "intelcom_delivering": {
+        "email": ["notifications@intelcom.ca"],
+        "subject": ["Your package is on the way!"],
+    },
+    "intelcom_packages": {
+        "email": ["notifications@intelcom.ca"],
+        "subject": ["Your package has been received!"],
+    },
+    "intelcom_tracking": {"pattern": ["INTLCMD[0-9]{9}"]},
 }
 
 # Sensor definitions
@@ -750,6 +778,44 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="dhl_parcel_nl_packages",
     ),
+    # Purolator
+    "purolator_delivered": SensorEntityDescription(
+        name="Mail Purolator Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="purolator_delivered",
+    ),
+    "purolator_delivering": SensorEntityDescription(
+        name="Mail Purolator Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="purolator_delivering",
+    ),
+    "purolator_packages": SensorEntityDescription(
+        name="Mail Purolator Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="purolator_packages",
+    ),
+    # Intelcom
+    "intelcom_delivered": SensorEntityDescription(
+        name="Mail Intelcom Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="intelcom_delivered",
+    ),
+    "intelcom_delivering": SensorEntityDescription(
+        name="Mail Intelcom Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="intelcom_delivering",
+    ),
+    "intelcom_packages": SensorEntityDescription(
+        name="Mail Intelcom Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="intelcom_packages",
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -821,4 +887,6 @@ SHIPPERS = [
     "dpd_com_pl",
     "gls",
     "dhl_parcel_nl",
+    "purolator",
+    "intelcom",
 ]
