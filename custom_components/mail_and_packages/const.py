@@ -83,6 +83,7 @@ AMAZON_DOMAINS = [
     "amazon.pl",
     "amazon.es",
     "amazon.fr",
+    "amazon.ae",
 ]
 AMAZON_DELIVERED_SUBJECT = [
     "Delivered: Your",

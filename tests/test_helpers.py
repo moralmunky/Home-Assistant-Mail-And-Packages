@@ -869,7 +869,7 @@ async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
     result = amazon_search(
         mock_imap_amazon_shipped, "test/path", hass, "testfilename.jpg"
     )
-    assert result == 48
+    assert result == 52
 
 
 @pytest.mark.asyncio
@@ -879,7 +879,7 @@ async def test_amazon_search_delivered(
     result = amazon_search(
         mock_imap_amazon_delivered, "test/path", hass, "testfilename.jpg"
     )
-    assert result == 48
+    assert result == 52
     assert mock_download_img.called
 
 
@@ -890,7 +890,7 @@ async def test_amazon_search_delivered_it(
     result = amazon_search(
         mock_imap_amazon_delivered_it, "test/path", hass, "testfilename.jpg"
     )
-    assert result == 48
+    assert result == 52
 
 
 @pytest.mark.asyncio
@@ -1120,13 +1120,13 @@ async def test_image_file_name(
 @pytest.mark.asyncio
 async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
     result = amazon_exception(mock_imap_amazon_exception, ['""'])
-    assert result["order"] == ["123-1234567-1234567"] * 12
-    assert result["count"] == 12
+    assert result["order"] == ["123-1234567-1234567"] * 13
+    assert result["count"] == 13
 
     result = amazon_exception(mock_imap_amazon_exception, ["testemail@fakedomain.com"])
-    assert result["count"] == 13
+    assert result["count"] == 14
     assert (
-        "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'amazon.com.au', 'amazon.pl', 'amazon.es', 'amazon.fr', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'testemail@fakedomain.com']"
+        "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'amazon.com.au', 'amazon.pl', 'amazon.es', 'amazon.fr', 'amazon.ae', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'testemail@fakedomain.com']"
         in caplog.text
     )
 
