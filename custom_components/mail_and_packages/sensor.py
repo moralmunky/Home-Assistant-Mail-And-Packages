@@ -200,7 +200,7 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
             ):
                 the_path = None
             elif self.hass.config.external_url is None:
-                _LOGGER.warning("External URL not set in configuration.")
+                _LOGGER.debug("External URL not set in configuration.")
                 url = self.hass.config.internal_url
                 the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
             else:

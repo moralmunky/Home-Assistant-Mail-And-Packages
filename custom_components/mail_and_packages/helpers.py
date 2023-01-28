@@ -562,11 +562,11 @@ def email_search(
             _LOGGER.error("Error searching emails: %s", str(err))
             value = "BAD", err.args[0]
 
-    _LOGGER.debug("DEBUG email_search value: %s", value)
+    _LOGGER.debug("email_search value: %s", value)
 
     (check, new_value) = value
     if new_value[0] is None:
-        _LOGGER.warning("DEBUG email_search value was invalid: None")
+        _LOGGER.debug("email_search value was invalid: None")
         value = (check, [b""])
 
     return value
@@ -651,7 +651,7 @@ def get_mails(
                             if not found_images:
                                 continue
                             if "data:image/jpeg;base64" not in part:
-                                _LOGGER.warning("Unexpected html format found.")
+                                _LOGGER.debug("Unexpected html format found.")
                                 continue
                             _LOGGER.debug("Found images: %s", bool(found_images))
 
