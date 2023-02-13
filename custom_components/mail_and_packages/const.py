@@ -431,6 +431,20 @@ SENSOR_DATA = {
     },
     "dhl_parcel_nl_packages": {},
     "dhl_parcel_nl_tracking": {"pattern": ["[0-9A-Z]{12,24}"]},
+    # Bonshaw Distribution Network
+    "bonshaw_distribution_network_delivered": {
+        "email": ["parcel_tracking@bonshawdelivery.com"],
+        "subject": ["Parcel Delivered! Commande Livrée!"],
+    },
+    "bonshaw_distribution_network_delivering": {
+        "email": ["parcel_tracking@bonshawdelivery.com"],
+        "subject": ["Parcel Out for Delivery! En attente de livraison!"],
+    },
+    "bonshaw_distribution_network_packages": {
+        "email": ["parcel_tracking@bonshawdelivery.com"],
+        "subject": ["Your package has been received!"],
+    },
+    "bonshaw_distribution_network_tracking": {"pattern": ["BNI[0-9]{9}"]},
     # Purolator
     "purolator_delivered": {
         "email": ["NotificationService@purolator.com"],
@@ -779,6 +793,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="dhl_parcel_nl_packages",
     ),
+    # Bonshaw Distribution Network
+    "bonshaw_distribution_network_delivered": SensorEntityDescription(
+        name="Mail Bonshaw Distribution Network Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="bonshaw_distribution_network_delivered",
+    ),
+    "bonshaw_distribution_network_delivering": SensorEntityDescription(
+        name="Mail Bonshaw Distribution Network Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="bonshaw_distribution_network_delivering",
+    ),
+    "bonshaw_distribution_network_packages": SensorEntityDescription(
+        name="Mail Bonshaw Distribution Network Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="bonshaw_distribution_network_packages",
+    ),
     # Purolator
     "purolator_delivered": SensorEntityDescription(
         name="Mail Purolator Delivered",
@@ -888,6 +921,7 @@ SHIPPERS = [
     "dpd_com_pl",
     "gls",
     "dhl_parcel_nl",
+    "bonshaw_distribution_network",
     "purolator",
     "intelcom",
 ]
