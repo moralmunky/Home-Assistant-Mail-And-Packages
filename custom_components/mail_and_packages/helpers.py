@@ -309,7 +309,6 @@ def hash_file(filename: str) -> str:
 
     # open file for reading in binary mode
     with open(filename, "rb") as file:
-
         # loop till the end of the file
         chunk = 0
         while chunk != b"":
@@ -918,7 +917,6 @@ def get_count(
 
     subjects = SENSOR_DATA[sensor_type][ATTR_SUBJECT]
     for subject in subjects:
-
         _LOGGER.debug(
             "Attempting to find mail from (%s) with subject (%s)",
             SENSOR_DATA[sensor_type][ATTR_EMAIL],

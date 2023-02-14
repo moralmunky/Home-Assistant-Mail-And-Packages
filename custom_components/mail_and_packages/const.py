@@ -444,7 +444,7 @@ SENSOR_DATA = {
         "email": ["parcel_tracking@bonshawdelivery.com"],
         "subject": ["Your package has been received!"],
     },
-    "bonshaw_distribution_network_tracking": {"pattern": ["BNI[0-9]{9}"]}, 
+    "bonshaw_distribution_network_tracking": {"pattern": ["BNI[0-9]{9}"]},
     # Purolator
     "purolator_delivered": {
         "email": ["NotificationService@purolator.com"],
