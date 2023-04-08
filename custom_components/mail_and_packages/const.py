@@ -478,7 +478,7 @@ SENSOR_DATA = {
         "email": ["help@walmart.com"],
         "subject": ["Your order was delivered", "Some of your items were delivered"],
     },
-    "walmart_exception":{
+    "walmart_exception": {
         "email": ["help@walmart.com"],
         "subject": ["delivery is delayed"],
     },
@@ -879,7 +879,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="walmart_packages",
-    ),    
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
