@@ -954,4 +954,5 @@ SHIPPERS = [
     "bonshaw_distribution_network",
     "purolator",
     "intelcom",
+    "walmart",
 ]
