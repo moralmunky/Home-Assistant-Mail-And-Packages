@@ -473,6 +473,17 @@ SENSOR_DATA = {
         "subject": ["Your package has been received!"],
     },
     "intelcom_tracking": {"pattern": ["INTLCMD[0-9]{9}"]},
+    # Walmart
+    "walmart_delivered": {
+        "email": ["help@walmart.com"],
+        "subject": ["Your order was delivered", "Some of your items were delivered"],
+    },
+    "walmart_exception": {
+        "email": ["help@walmart.com"],
+        "subject": ["delivery is delayed"],
+    },
+    "walmart_tracking": {"patern": ["#[0-9]{7}-[0-9]{7}"]},
+    "walmart_packages": {},
 }
 
 # Sensor definitions
@@ -850,6 +861,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="intelcom_packages",
     ),
+    # Walmart
+    "walmart_delivered": SensorEntityDescription(
+        name="Mail Walmart Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="walmart_delivered",
+    ),
+    "walmart_exception": SensorEntityDescription(
+        name="Mail Walmart Exception",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:archive-alert",
+        key="walmart_exception",
+    ),
+    "walmart_packages": SensorEntityDescription(
+        name="Mail Walmart Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="walmart_packages",
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -924,4 +954,5 @@ SHIPPERS = [
     "bonshaw_distribution_network",
     "purolator",
     "intelcom",
+    "walmart",
 ]
