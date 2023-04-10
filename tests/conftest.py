@@ -951,7 +951,6 @@ def mock_update_time():
 def mock_image():
     """Fixture to mock Image."""
     with patch("custom_components.mail_and_packages.helpers.Image") as mock_image:
-
         yield mock_image
 
 
@@ -985,7 +984,6 @@ def mock_resizeimage():
     ) as mock_resizeimage, patch(
         "custom_components.mail_and_packages.helpers.ImageOps"
     ):
-
         yield mock_resizeimage
 
 
@@ -1001,7 +999,6 @@ def mock_os_path_isfile():
 def mock_os_path_join():
     """Fixture to mock join."""
     with patch("os.path.join") as mock_path_join:
-
         yield mock_path_join
 
 
@@ -1009,7 +1006,6 @@ def mock_os_path_join():
 def mock_os_path_split():
     """Fixture to mock split."""
     with patch("os.path.split") as mock_os_path_split:
-
         yield mock_os_path_split
 
 
@@ -1017,7 +1013,6 @@ def mock_os_path_split():
 def mock_subprocess_call():
     """Fixture to mock subprocess."""
     with patch("subprocess.call") as mock_subprocess_call:
-
         yield mock_subprocess_call
 
 
@@ -1027,7 +1022,6 @@ def mock_copy_overlays():
     with patch(
         "custom_components.mail_and_packages.helpers.copy_overlays"
     ) as mock_copy_overlays:
-
         yield mock_copy_overlays
 
 

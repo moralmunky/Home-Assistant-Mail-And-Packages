@@ -8,7 +8,6 @@ from tests.const import FAKE_CONFIG_DATA_NO_RND
 
 @pytest.mark.asyncio
 async def test_sensor(hass, mock_update):
-
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
