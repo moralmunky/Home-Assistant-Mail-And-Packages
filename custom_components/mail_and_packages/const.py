@@ -483,7 +483,6 @@ SENSOR_DATA = {
         "subject": ["delivery is delayed"],
     },
     "walmart_tracking": {"patern": ["#[0-9]{7}-[0-9]{7}"]},
-    "walmart_packages": {},
 }
 
 # Sensor definitions
@@ -873,12 +872,6 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:archive-alert",
         key="walmart_exception",
-    ),
-    "walmart_packages": SensorEntityDescription(
-        name="Mail Walmart Packages",
-        native_unit_of_measurement="package(s)",
-        icon="mdi:package-variant-closed",
-        key="walmart_packages",
     ),
     ###
     # !!! Insert new sensors above these two !!!

@@ -155,7 +155,6 @@ async def test_form(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -315,7 +314,6 @@ async def test_form_invalid_custom_img_path(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -374,7 +372,6 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -502,7 +499,6 @@ async def test_form_invalid_ffmpeg(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -645,7 +641,6 @@ async def test_form_index_error(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -792,7 +787,6 @@ async def test_form_index_error_2(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -938,7 +932,6 @@ async def test_form_mailbox_format2(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -1141,7 +1134,6 @@ async def test_options_flow(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.options.async_configure(
             result["flow_id"], input_1
         )
@@ -1315,7 +1307,6 @@ async def test_options_flow_invalid_custom_img_path(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.options.async_configure(
             result["flow_id"], input_1
         )
@@ -1389,7 +1380,6 @@ async def test_options_flow_connection_error(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.options.async_configure(
             result["flow_id"], input_1
         )
@@ -1532,7 +1522,6 @@ async def test_options_flow_invalid_ffmpeg(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.options.async_configure(
             result["flow_id"], input_1
         )
@@ -1681,7 +1670,6 @@ async def test_options_flow_index_error(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.options.async_configure(
             result["flow_id"], input_1
         )
@@ -1831,7 +1819,6 @@ async def test_options_flow_index_error_2(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.options.async_configure(
             result["flow_id"], input_1
         )
@@ -1981,7 +1968,6 @@ async def test_options_flow_mailbox_format2(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.options.async_configure(
             result["flow_id"], input_1
         )
@@ -2136,7 +2122,6 @@ async def test_options_flow_bad(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.options.async_configure(
             result["flow_id"], input_1
         )
@@ -2234,7 +2219,6 @@ async def test_form_amazon_error(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -2329,7 +2313,6 @@ async def test_form_interval_low(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
