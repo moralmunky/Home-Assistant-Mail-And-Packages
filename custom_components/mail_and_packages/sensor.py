@@ -132,7 +132,10 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
                 attr[ATTR_ORDER] = data[AMAZON_ORDER]
         elif self._name == "Mail USPS Mail" and ATTR_IMAGE_NAME in data.keys():
             attr[ATTR_IMAGE] = data[ATTR_IMAGE_NAME]
-        elif "_delivering" in self.type and tracking in data.keys():
+        elif (
+            any(sensor in self.type for sensor in ["_delivering", "_delivered"])
+            and tracking in data.keys()
+        ):
             attr[ATTR_TRACKING_NUM] = data[tracking]
             # TODO: Add Tracking URL when applicable
         return attr

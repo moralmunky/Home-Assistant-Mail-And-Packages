@@ -34,6 +34,7 @@ async def test_sensor(hass, mock_update):
     state = hass.states.get("sensor.mail_usps_delivered")
     assert state
     assert state.state == "3"
+    assert state.attributes["tracking_#"] == ["92123456789012345"]
 
     state = hass.states.get("sensor.mail_usps_delivering")
     assert state
