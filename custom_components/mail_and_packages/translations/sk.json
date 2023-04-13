@@ -1,0 +1,103 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Je povolená iba jedna konfigurácia pošty a balíkov."
+        },
+        "error": {
+            "communication": "Nedá sa pripojiť alebo prihlásiť na poštový server. Podrobnosti nájdete v protokole.",
+            "invalid_path": "Uložte obrázky do iného adresára.",
+            "ffmpeg_not_found": "Generovanie MP4 vyžaduje ffmpeg",
+            "amazon_domain": "Neplatná e-mailová adresa na preposielanie.",
+            "file_not_found": "Súbor obrázka sa nenašiel",
+            "scan_too_low": "Interval skenovania je príliš nízky (minimálne 5)",
+            "timeout_too_low": "Časový limit IMAP je príliš nízky (minimálne 10)"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Host",
+                    "password": "Heslo",
+                    "port": "Port",
+                    "username": "Užívateľské meno"
+                },
+                "description": "Zadajte informácie o pripojení vášho poštového servera.",
+                "title": "Pošta a balíky (1. krok z 2)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "Priečinok pošty",
+                    "scan_interval": "Interval skenovania (minúty)",
+                    "image_path": "Cesta obrázka",
+                    "gif_duration": "Trvanie obrázka (sekundy)",
+                    "image_security": "Náhodný názov súboru obrázka",
+                    "generate_mp4": "Vytvorte mp4 z obrázkov",
+                    "resources": "Zoznam senzorov",
+                    "imap_timeout": "Čas v sekundách pred časovým limitom pripojenia (sekundy, minimálne 10)",
+                    "amazon_fwds": "Amazon preposielal e-mailové adresy",
+                    "allow_external": "Vytvorte obrázok pre aplikácie upozornení",
+                    "amazon_days": "Niekoľko dní späť na kontrolu e-mailov Amazon",
+                    "custom_img": "Použiť vlastný obrázok 'bez obrázka'?"
+                },
+                "description": "Dokončite konfiguráciu prispôsobením nasledujúcich položiek na základe štruktúry e-mailu a inštalácie Home Assistant.\n\nPodrobnosti nájdete na [Pošta a balíky integrácia](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) možnosti si pozrite v časti [konfigurácia, šablóny a automatizácie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHube.",
+                "title": "Pošta a balíky (krok 2 z 2)"
+            },
+            "options_3": {
+                "data": {
+                    "custom_img_file": "Cesta k vlastnému obrázku: (t. j.: images/my_custom_no_mail.jpg)"
+                },
+                "description": "Nižšie zadajte cestu a názov súboru k svojmu vlastnému obrázku bez pošty.\n\nPríklad: images/custom_nomail.gif",
+                "title": "Pošta a balíky (krok 3 z 3)"
+            }
+        },
+        "title": "Pošta a balíky"
+    },
+    "options": {
+        "error": {
+            "communication": "Nedá sa pripojiť alebo prihlásiť na poštový server. Podrobnosti nájdete v protokole.",
+            "invalid_path": "Uložte obrázky do iného adresára.",
+            "ffmpeg_not_found": "Generovanie MP4 vyžaduje ffmpeg",
+            "amazon_domain": "Neplatná e-mailová adresa na preposielanie.",
+            "file_not_found": "Súbor obrázka sa nenašiel",
+            "scan_too_low": "Interval skenovania je príliš nízky (minimálne 5)",
+            "timeout_too_low": "Časový limit IMAP je príliš nízky (minimálne 10)"
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Host",
+                    "password": "Heslo",
+                    "port": "Port",
+                    "username": "Užívateľské meno"
+                },
+                "description": "Zadajte informácie o pripojení vášho poštového servera.",
+                "title": "Pošta a balíky (1. krok z 2)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "Priečinok pošty",
+                    "scan_interval": "Interval skenovania (minúty)",
+                    "image_path": "Cesta k obrázku",
+                    "gif_duration": "Trvanie obrázka (sekundy)",
+                    "image_security": "Náhodný názov súboru obrázka",
+                    "generate_mp4": "Vytvorte mp4 z obrázkov",
+                    "resources": "Zoznam senzorov",
+                    "imap_timeout": "Čas v sekundách pred časovým limitom pripojenia (sekundy, minimálne 10)",
+                    "amazon_fwds": "Amazon preposielal e-mailové adresy",
+                    "allow_external": "Vytvorte obrázok pre aplikácie upozornení",
+                    "amazon_days": "Niekoľko dní späť na kontrolu e-mailov Amazon",
+                    "custom_img": "Použiť vlastný obrázok 'bez obrázka'?"
+                },
+                "description": "Dokončite konfiguráciu prispôsobením nasledujúcich položiek na základe štruktúry e-mailu a inštalácie aplikácie Home Assistant.\n\nPodrobnosti o [integrácii pošty a balíkov](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) možnosti si pozrite v časti [konfigurácia, šablóny a automatizácie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHub.",
+                "title": "Pošta a balíky (krok 2 z 2)"
+            },
+            "options_3": {
+                "data": {
+                    "custom_img_file": "Cesta k vlastnému obrázku: (t. j.: images/my_custom_no_mail.jpg)"
+                },
+                "description": "Nižšie zadajte cestu a názov súboru k svojmu vlastnému obrázku bez pošty.\n\nPríklad: images/custom_nomail.gif",
+                "title": "Pošta a balíky (3. krok z 3)"
+            }
+        }
+    },
+    "title": "Pošta a balíky"
+}
