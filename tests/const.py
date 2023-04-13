@@ -110,7 +110,6 @@ FAKE_CONFIG_DATA = {
         "post_nl_delivered",
         "post_nl_delivering",
         "post_nl_packages",
-
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
@@ -286,7 +285,7 @@ FAKE_CONFIG_DATA_CORRECTED = {
         "poczta_polska_packages",
         "post_nl_delivered",
         "post_nl_delivering",
-        "post_nl_packages",        
+        "post_nl_packages",
         "royal_delivered",
         "royal_delivering",
         "ups_delivered",

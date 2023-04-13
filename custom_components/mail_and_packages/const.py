@@ -912,7 +912,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="post_nl_packages",
-    ),    
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
