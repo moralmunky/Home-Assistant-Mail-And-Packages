@@ -125,6 +125,17 @@ AMAZON_TIME_PATTERN = [
     "A chegar:",
     "Arrivée :",
 ]
+AMAZON_TIME_PATTERN_END = [
+    "Previously expected:",
+    "This contains",
+    "Track your",
+    "Per tracciare il tuo pacco",
+    "View or manage order",
+    "Acompanhar",
+    "Sguimiento",
+    "Verfolge deine(n) Artikel",
+    "Suivre",
+]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
 AMAZON_EXCEPTION = "amazon_exception"
