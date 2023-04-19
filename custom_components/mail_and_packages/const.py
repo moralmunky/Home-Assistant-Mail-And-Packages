@@ -498,6 +498,18 @@ SENSOR_DATA = {
     },
     "post_nl_packages": {},
     "post_nl_tracking": {"pattern": ["3S?[0-9A-Z]{14}"]},
+    # Post DE
+    "post_de_delivering": {
+        "email": [
+            "ankuendigung@brief.deutschepost.de",
+        ],
+        "subject": [
+            "Ein Brief kommt in Kürze bei Ihnen an",
+        ],
+    },
+    "post_de_delivered": {},
+    "post_de_packages": {},
+    "post_de_tracking": {},
 }
 
 # Sensor definitions
@@ -988,4 +1000,5 @@ SHIPPERS = [
     "purolator",
     "intelcom",
     "post_nl",
+    "post_de",
 ]
