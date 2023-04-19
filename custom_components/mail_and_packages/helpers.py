@@ -1303,10 +1303,11 @@ def amazon_date_format(arrive_date: str, lang: str) -> tuple:
     return (arrive_date, "%A, %B %d")
 
 
-def amazon_date_lang(arrive_date: str) -> datetime:
+def amazon_date_lang(arrive_date: str) -> datetime.datetime | None:
     """Return the datetime for the date based on language."""
     time_format = None
     new_arrive_date = None
+    dateobj = None
 
     for lang in AMAZON_LANGS:
         try:
@@ -1321,7 +1322,7 @@ def amazon_date_lang(arrive_date: str) -> datetime:
         try:
             dateobj = datetime.datetime.strptime(new_arrive_date, time_format)
             _LOGGER.debug("Valid date format found.")
-            return dateobj
+            break
         except ValueError as err:
             _LOGGER.debug(
                 "Invalid date format found for language %s. (%s)",
@@ -1329,6 +1330,7 @@ def amazon_date_lang(arrive_date: str) -> datetime:
                 err,
             )
             continue
+    return dateobj
 
 
 def get_items(
@@ -1435,7 +1437,8 @@ def get_items(
                             dateobj = amazon_date_lang(arrive_date)
 
                             if (
-                                dateobj.day == datetime.date.today().day
+                                dateobj is not None
+                                and dateobj.day == datetime.date.today().day
                                 and dateobj.month == datetime.date.today().month
                             ):
                                 deliveries_today.append("Amazon Order")
