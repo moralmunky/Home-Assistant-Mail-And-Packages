@@ -36,7 +36,7 @@
           "amazon_fwds": "Amazon forwarded email addresses",
           "amazon_days": "Days back to check for Amazon emails",
           "allow_external": "Create image for notification apps",
-          "custom_img": "Use custom 'no image' image?"    
+          "custom_img": "Use custom 'no image' image?"
         },
         "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.",
         "title": "Mail and Packages (Step 2 of 2)"
@@ -46,8 +46,8 @@
           "custom_img_file": "Path to custom image: (ie: images/my_custom_no_mail.jpg)"
         },
         "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-        "title": "Mail and Packages (Step 3 of 3)"        
-      }       
+        "title": "Mail and Packages (Step 3 of 3)"
+      }
     }
   },
   "options": {
@@ -58,7 +58,7 @@
       "amazon_domain": "Invalid forwarding email address.",
       "file_not_found": "Image file not found",
       "scan_too_low": "Scan interval too low (minimum 5)",
-      "timeout_too_low": "IMAP timeout too low (minumim 10)"      
+      "timeout_too_low": "IMAP timeout too low (minumim 10)"
     },
     "step": {
       "init": {
@@ -84,7 +84,7 @@
           "amazon_fwds": "Amazon forwarded email addresses",
           "amazon_days": "Days back to check for Amazon emails",
           "allow_external": "Create image for notification apps",
-          "custom_img": "Use custom 'no image' image?"      
+          "custom_img": "Use custom 'no image' image?"
         },
         "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.",
         "title": "Mail and Packages (Step 2 of 2)"
@@ -94,8 +94,8 @@
           "custom_img_file": "Path to custom image: (ie: images/my_custom_no_mail.jpg)"
         },
         "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-        "title": "Mail and Packages (Step 3 of 3)"          
-      }      
+        "title": "Mail and Packages (Step 3 of 3)"
+      }
     }
   }
 }
