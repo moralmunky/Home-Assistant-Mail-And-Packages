@@ -290,7 +290,7 @@ SENSOR_DATA = {
         ],
     },
     "hermes_packages": {},
-    "hermes_tracking": {"pattern": ["\\d{11,16}"]},
+    "hermes_tracking": {"pattern": ["\\d{11,20}"]},
     # Royal Mail
     "royal_delivered": {
         "email": ["no-reply@royalmail.com"],
