@@ -1302,6 +1302,37 @@ def amazon_date_format(arrive_date: str, lang: str) -> tuple:
 
     return (arrive_date, "%A, %B %d")
 
+def amazon_date_lang(arrive_date: str) -> datetime:
+    """Return the datetime for the date based on language."""
+    time_format = None
+    new_arrive_date = None
+    
+    for lang in AMAZON_LANGS:
+        try:
+            locale.setlocale(locale.LC_TIME, lang)
+        except Exception as err:
+            _LOGGER.debug("Locale error: %s (%s)", err, lang)
+            continue
+
+        _LOGGER.debug("Arrive Date: %s", arrive_date)
+        new_arrive_date, time_format = amazon_date_format(
+            arrive_date, lang
+        )
+
+        try:
+            dateobj = datetime.datetime.strptime(
+                new_arrive_date, time_format
+            )
+            _LOGGER.debug("Valid date format found.")
+            return dateobj
+        except ValueError as err:
+            _LOGGER.debug(
+                "Invalid date format found for language %s. (%s)",
+                lang,
+                err,
+            )
+            continue
+
 
 def get_items(
     account: Type[imaplib.IMAP4_SSL],
@@ -1402,40 +1433,15 @@ def get_items(
                             arrive_date = arrive_date.split(" ")
                             arrive_date = arrive_date[0:3]
                             arrive_date = " ".join(arrive_date).strip()
-                            time_format = None
-                            new_arrive_date = None
 
                             # Loop through all the langs for date format
-                            for lang in AMAZON_LANGS:
-                                try:
-                                    locale.setlocale(locale.LC_TIME, lang)
-                                except Exception as err:
-                                    _LOGGER.debug("Locale error: %s (%s)", err, lang)
-                                    continue
+                            dateobj = amazon_date_lang(arrive_date)
 
-                                _LOGGER.debug("Arrive Date: %s", arrive_date)
-                                new_arrive_date, time_format = amazon_date_format(
-                                    arrive_date, lang
-                                )
-
-                                try:
-                                    dateobj = datetime.datetime.strptime(
-                                        new_arrive_date, time_format
-                                    )
-                                    _LOGGER.debug("Valid date format found.")
-                                except ValueError as err:
-                                    _LOGGER.debug(
-                                        "Invalid date format found for language %s. (%s)",
-                                        lang,
-                                        err,
-                                    )
-                                    continue
-
-                                if (
-                                    dateobj.day == datetime.date.today().day
-                                    and dateobj.month == datetime.date.today().month
-                                ):
-                                    deliveries_today.append("Amazon Order")
+                            if (
+                                dateobj.day == datetime.date.today().day
+                                and dateobj.month == datetime.date.today().month
+                            ):
+                                deliveries_today.append("Amazon Order")
 
     value = None
     if param == "count":
