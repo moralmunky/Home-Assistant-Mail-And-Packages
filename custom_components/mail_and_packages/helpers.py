@@ -1302,11 +1302,12 @@ def amazon_date_format(arrive_date: str, lang: str) -> tuple:
 
     return (arrive_date, "%A, %B %d")
 
+
 def amazon_date_lang(arrive_date: str) -> datetime:
     """Return the datetime for the date based on language."""
     time_format = None
     new_arrive_date = None
-    
+
     for lang in AMAZON_LANGS:
         try:
             locale.setlocale(locale.LC_TIME, lang)
@@ -1315,14 +1316,10 @@ def amazon_date_lang(arrive_date: str) -> datetime:
             continue
 
         _LOGGER.debug("Arrive Date: %s", arrive_date)
-        new_arrive_date, time_format = amazon_date_format(
-            arrive_date, lang
-        )
+        new_arrive_date, time_format = amazon_date_format(arrive_date, lang)
 
         try:
-            dateobj = datetime.datetime.strptime(
-                new_arrive_date, time_format
-            )
+            dateobj = datetime.datetime.strptime(new_arrive_date, time_format)
             _LOGGER.debug("Valid date format found.")
             return dateobj
         except ValueError as err:
