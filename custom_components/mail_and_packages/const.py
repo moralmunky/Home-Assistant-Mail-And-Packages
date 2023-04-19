@@ -372,7 +372,36 @@ SENSOR_DATA = {
     "dpd_com_pl_packages": {},
     "dpd_com_pl_tracking": {
         # https://tracktrace.dpd.com.pl/parcelDetails?p1=13490015284111
-        "pattern": ["\\d{13}[A-Z0-9]{1,2}"],
+        "pattern": [
+            "\\d{13}[A-Z0-9]{1,2}",
+        ],
+    },
+    # DPD
+    "dpd_delivered": {
+        "email": [
+            "noreply@service.dpd.de",
+        ],
+        "subject": [
+            "Ihr Paket ist da!",
+        ],
+    },
+    "dpd_delivering": {
+        "email": [
+            "noreply@service.dpd.de",
+        ],
+        "subject": [
+            "Bald ist ihr DPD Paket da",
+        ],
+        "body": [
+            "Paketnummer",
+        ],
+    },
+    "dpd_packages": {},
+    "dpd_tracking": {
+        # https://tracktrace.dpd.com.pl/parcelDetails?p1=13490015284111
+        "pattern": [
+            "\\d{11,20}",
+        ],
     },
     # GLS
     "gls_delivered": {
@@ -773,6 +802,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="dpd_com_pl_packages",
     ),
+    # DPD
+    "dpd_delivering": SensorEntityDescription(
+        name="Mail DPD Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="dpd_delivering",
+    ),
+    "dpd_delivered": SensorEntityDescription(
+        name="Mail DPD Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="dpd_delivered",
+    ),
+    "dpd_packages": SensorEntityDescription(
+        name="Mail DPD Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="dpd_packages",
+    ),
     # GLS
     "gls_delivering": SensorEntityDescription(
         name="Mail GLS Delivering",
@@ -1013,6 +1061,7 @@ SHIPPERS = [
     "poczta_polska",
     "inpost_pl",
     "dpd_com_pl",
+    "dpd",
     "gls",
     "dhl_parcel_nl",
     "bonshaw_distribution_network",
