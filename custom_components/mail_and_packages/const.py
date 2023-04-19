@@ -925,6 +925,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="post_nl_packages",
     ),
+    # Post DE
+    "post_de_delivering": SensorEntityDescription(
+        name="Post DE Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="post_de_delivering",
+    ),
+    # "post_de_delivered": SensorEntityDescription(
+    #    name="Post DE Delivered",
+    #    native_unit_of_measurement="package(s)",
+    #    icon="mdi:truck-delivery",
+    #    key="post_de_delivered",
+    # ),
+    "post_de_packages": SensorEntityDescription(
+        name="Post DE Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="post_de_packages",
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
