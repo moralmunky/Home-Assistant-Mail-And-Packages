@@ -536,24 +536,15 @@ def email_search(
     value = ("", [""])
 
     if utf8_flag:
-        cmd = None
+        subject = subject.encode("utf-8")
+        account.literal = subject
         try:
-            cmd = account.enable("UTF8=ACCEPT")
+            value = account.search("utf-8", "SUBJECT")
         except Exception as err:
-            _LOGGER.debug("UTF-8 not supported: %s", str(err))
+            _LOGGER.debug(
+                "Error searching emails with unicode characters: %s", str(err)
+            )
             value = "BAD", err.args[0]
-
-        if cmd == "OK":
-            subject = subject.encode("utf-8")
-            account.literal = subject
-            try:
-                value = account.uid("SEARCH", "CHARSET", "UTF-8", search)
-            except Exception as err:
-                _LOGGER.debug(
-                    "Error searching emails with unicode characters: %s", str(err)
-                )
-                value = "BAD", err.args[0]
-
     else:
         try:
             value = account.search(None, search)
