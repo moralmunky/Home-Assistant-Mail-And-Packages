@@ -33,9 +33,9 @@
                     "generate_mp4": "Erstellen Sie mp4 aus Bildern",
                     "resources": "Sensoren Liste",
                     "imap_timeout": "Zeit in Sekunden bis zum Timeout der Verbindung (Sekunden, mindestens 10)",
-                    "amazon_fwds": "Amazon Weiterleitungs-E-Mail-Adresse",
+                    "amazon_fwds": "Weitere weiterleitungs-E-Mail-Adressen für Amazon (wenn keine, setz (none) ein",
                     "allow_external": "Bild für Benachrichtigungs-Apps erstellen",
-                    "amazon_days": "Days back to check for Amazon emails",
+                    "amazon_days": "Tage zurück, um nach Amazon-E-Mails zu suchen",
                     "custom_img": "Benutzerdefiniertes Bild 'kein Bild' verwenden?"
                 },
                 "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
@@ -80,14 +80,14 @@
                     "gif_duration": "Bilddauer (Sekunden)",
                     "image_security": "Zufälliger Bilddateiname",
                     "generate_mp4": "Erstellen Sie mp4 aus Bildern",
-                    "resources": "Liste der Sensoren",
-                    "imap_timeout": "Zeit in Sekunden vor dem Verbindungszeitlimit (Sekunden, mindestens 10)",
-                    "amazon_fwds": "Amazon forwarded email addresses",
-                    "allow_external": "Erstellen Sie ein Bild für Benachrichtigungs-Apps",
-                    "amazon_days": "Days back to check for Amazon emails",
+                    "resources": "Sensoren Liste",
+                    "imap_timeout": "Zeit in Sekunden bis zum Timeout der Verbindung (Sekunden, mindestens 10)",
+                    "amazon_fwds": "Weitere weiterleitungs-E-Mail-Adressen für Amazon (wenn keine, setz (none) ein",
+                    "allow_external": "Bild für Benachrichtigungs-Apps erstellen",
+                    "amazon_days": "Tage zurück, um nach Amazon-E-Mails zu suchen",
                     "custom_img": "Benutzerdefiniertes Bild 'kein Bild' verwenden?"
                 },
-                "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
+                "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
                 "title": "Briefe und Pakete (Schritt 2 von 2)"
             },
             "options_3": {
