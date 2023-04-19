@@ -1079,7 +1079,6 @@ SHIPPERS = [
     "hermes",
     "royal",
     "auspost",
-    "poczta_polska",
     "inpost_pl",
     "dpd_com_pl",
     "dpd",
@@ -1089,5 +1088,4 @@ SHIPPERS = [
     "purolator",
     "intelcom",
     "post_nl",
-    "post_de",
 ]
