@@ -1,4 +1,5 @@
 """Helper functions for Mail and Packages."""
+from __future__ import annotations
 
 import base64
 import datetime
@@ -51,6 +52,7 @@ from .const import (
     AMAZON_PATTERN,
     AMAZON_SHIPMENT_TRACKING,
     AMAZON_TIME_PATTERN,
+    AMAZON_TIME_PATTERN_END,
     ATTR_AMAZON_IMAGE,
     ATTR_BODY,
     ATTR_CODE,
@@ -1268,6 +1270,61 @@ def amazon_exception(
     return info
 
 
+def amazon_date_search(email_msg: str) -> int:
+    """Search for amazon date strings in email message."""
+    for pattern in AMAZON_TIME_PATTERN_END:
+        if (result := email_msg.find(pattern)) != -1:
+            return result
+    return -1
+
+
+def amazon_date_format(arrive_date: str, lang: str) -> tuple:
+    """Return the date format."""
+    if "de_" in lang:
+        return (arrive_date.split(",", 1)[1].strip(), "%d %B")
+
+    if "today" in arrive_date or "tomorrow" in arrive_date:
+        return (arrive_date.split(",")[1].strip(), "%B %d")
+
+    if arrive_date.endswith(","):
+        return (arrive_date.rstrip(","), "%A, %B %d")
+
+    if "," not in arrive_date:
+        return (arrive_date, "%A %d %B")
+
+    return (arrive_date, "%A, %B %d")
+
+
+def amazon_date_lang(arrive_date: str) -> datetime.datetime | None:
+    """Return the datetime for the date based on language."""
+    time_format = None
+    new_arrive_date = None
+    dateobj = None
+
+    for lang in AMAZON_LANGS:
+        try:
+            locale.setlocale(locale.LC_TIME, lang)
+        except Exception as err:
+            _LOGGER.debug("Locale error: %s (%s)", err, lang)
+            continue
+
+        _LOGGER.debug("Arrive Date: %s", arrive_date)
+        new_arrive_date, time_format = amazon_date_format(arrive_date, lang)
+
+        try:
+            dateobj = datetime.datetime.strptime(new_arrive_date, time_format)
+            _LOGGER.debug("Valid date format found.")
+            break
+        except ValueError as err:
+            _LOGGER.debug(
+                "Invalid date format found for language %s. (%s)",
+                lang,
+                err,
+            )
+            continue
+    return dateobj
+
+
 def get_items(
     account: Type[imaplib.IMAP4_SSL],
     param: str = None,
@@ -1360,78 +1417,23 @@ def get_items(
                                 continue
 
                             start = email_msg.find(search) + len(search)
-                            end = -1
-
-                            # TODO: make this a function
-                            # function should include the following in an array to loop thru
-                            if email_msg.find("Previously expected:") != -1:
-                                end = email_msg.find("Previously expected:")
-                            elif email_msg.find("This contains") != -1:
-                                end = email_msg.find("This contains")
-                            elif email_msg.find("Track your") != -1:
-                                end = email_msg.find("Track your")
-                            elif email_msg.find("Per tracciare il tuo pacco") != -1:
-                                end = email_msg.find("Per tracciare il tuo pacco")
-                            elif email_msg.find("View or manage order") != -1:
-                                end = email_msg.find("View or manage order")
-                            elif email_msg.find("Acompanhar") != -1:
-                                end = email_msg.find("Acompanhar")
-                            elif email_msg.find("Sguimiento") != -1:
-                                end = email_msg.find("Sguimiento")
-                            elif email_msg.find("Verfolge deine(n) Artikel") != -1:
-                                end = email_msg.find("Verfolge deine(n) Artikel")
-                            elif email_msg.find("Suivre") != -1:
-                                end = email_msg.find("Suivre")
+                            end = amazon_date_search(email_msg)
 
                             arrive_date = email_msg[start:end].replace(">", "").strip()
                             _LOGGER.debug("First pass: %s", arrive_date)
                             arrive_date = arrive_date.split(" ")
                             arrive_date = arrive_date[0:3]
                             arrive_date = " ".join(arrive_date).strip()
-                            time_format = None
-                            new_arrive_date = None
 
                             # Loop through all the langs for date format
-                            for lang in AMAZON_LANGS:
-                                try:
-                                    locale.setlocale(locale.LC_TIME, lang)
-                                except Exception as err:
-                                    _LOGGER.debug("Locale error: %s (%s)", err, lang)
-                                    continue
+                            dateobj = amazon_date_lang(arrive_date)
 
-                                _LOGGER.debug("Arrive Date: %s", arrive_date)
-
-                                if "today" in arrive_date or "tomorrow" in arrive_date:
-                                    new_arrive_date = arrive_date.split(",")[1].strip()
-                                    time_format = "%B %d"
-                                elif arrive_date.endswith(","):
-                                    new_arrive_date = arrive_date.rstrip(",")
-                                    time_format = "%A, %B %d"
-                                elif "," not in arrive_date:
-                                    new_arrive_date = arrive_date
-                                    time_format = "%A %d %B"
-                                else:
-                                    new_arrive_date = arrive_date
-                                    time_format = "%A, %B %d"
-
-                                try:
-                                    dateobj = datetime.datetime.strptime(
-                                        new_arrive_date, time_format
-                                    )
-                                    _LOGGER.debug("Valid date format found.")
-                                except ValueError as err:
-                                    _LOGGER.debug(
-                                        "Invalid date format found for language %s. (%s)",
-                                        lang,
-                                        err,
-                                    )
-                                    continue
-
-                                if (
-                                    dateobj.day == datetime.date.today().day
-                                    and dateobj.month == datetime.date.today().month
-                                ):
-                                    deliveries_today.append("Amazon Order")
+                            if (
+                                dateobj is not None
+                                and dateobj.day == datetime.date.today().day
+                                and dateobj.month == datetime.date.today().month
+                            ):
+                                deliveries_today.append("Amazon Order")
 
     value = None
     if param == "count":
