@@ -790,14 +790,8 @@ def _generate_mp4(path: str, image_file: str) -> None:
     subprocess.call(
         [
             "ffmpeg",
-            "-f",
-            "gif",
             "-i",
             gif_image,
-            "-pix_fmt",
-            "yuv420p",
-            "-filter:v",
-            "crop='floor(in_w/2)*2:floor(in_h/2)*2'",
             mp4_file,
         ],
         stdout=subprocess.DEVNULL,
