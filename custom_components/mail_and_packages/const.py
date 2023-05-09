@@ -702,6 +702,12 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="amazon_delivered",
     ),
+     "amazon_delivering": SensorEntityDescription(
+     name="Mail Amazon Packages Delivering",
+     native_unit_of_measurement="package(s)",
+     icon="mdi:package-variant-closed",
+     key="amazon_delivering",
+    ),
     "amazon_exception": SensorEntityDescription(
         name="Mail Amazon Exception",
         native_unit_of_measurement="package(s)",
