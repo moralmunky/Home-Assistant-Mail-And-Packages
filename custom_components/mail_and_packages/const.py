@@ -12,7 +12,7 @@ from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.0.0-dev"  # Now updated by release workflow
+VERSION = "0.3.14"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -91,6 +91,9 @@ AMAZON_DELIVERED_SUBJECT = [
     "Dostarczono:",
     "Geliefert:",
     "Livré",
+]
+AMAZON_DELIVERING_SUBJECT = [
+    "Now arriving today: Your",    
 ]
 AMAZON_SHIPMENT_TRACKING = [
     "shipment-tracking",
@@ -571,8 +574,18 @@ SENSOR_DATA = {
     "post_de_delivered": {},
     "post_de_packages": {},
     "post_de_tracking": {},
-}
-
+    # Ebay
+    "ebay_delivering": {
+        "email": ["ebay@ebay.com"],
+        "subject": ["DELIVERY UPDATE:"],
+    },
+    "ebay_delivered": {
+        "email": ["ebay@ebay.com"],
+        "subject": ["ORDER DELIVERED:"],
+    },
+    "ebay_packages": {},
+    "ebay_tracking": {"pattern": ["9[0-9]{21}"]},
+}    
 # Sensor definitions
 SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
     "mail_updated": SensorEntityDescription(
@@ -581,6 +594,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         key="mail_updated",
         entity_category=EntityCategory.DIAGNOSTIC,
         device_class=SensorDeviceClass.TIMESTAMP,
+    ),
+    #eBay
+    "ebay_delivering": SensorEntityDescription(
+        name="eBay Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="ebay_delivering",
+    ),
+    "ebay_delivered": SensorEntityDescription(
+        name="eBay Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="ebay_delivered",
+    ),
+    "ebay_packages": SensorEntityDescription(
+        name="eBay Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="ebay_packages",
     ),
     # USPS
     "usps_mail": SensorEntityDescription(
@@ -1099,4 +1131,5 @@ SHIPPERS = [
     "purolator",
     "intelcom",
     "post_nl",
+    "ebay",
 ]
