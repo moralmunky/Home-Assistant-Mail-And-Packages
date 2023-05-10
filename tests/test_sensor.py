@@ -83,6 +83,7 @@ async def test_sensor(hass, mock_update):
     state = hass.states.get("sensor.mail_amazon_packages_delivered")
     assert state
     assert state.state == "2"
+    assert state.attributes["order"] == ["#123-4567890"]
 
     state = hass.states.get("sensor.mail_dhl_delivered")
     assert state
