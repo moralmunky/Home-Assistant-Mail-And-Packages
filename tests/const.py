@@ -114,7 +114,6 @@ FAKE_CONFIG_DATA = {
         "post_nl_delivered",
         "post_nl_delivering",
         "post_nl_packages",
-        "ebay_delivering",
         "ebay_packages",
         "ebay_delivered",
     ],
