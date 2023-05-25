@@ -305,7 +305,6 @@ FAKE_CONFIG_DATA_CORRECTED = {
         "walmart_exception",
         "zpackages_delivered",
         "zpackages_transit",
-        "ebay_delivering",
         "ebay_packages",
         "ebay_delivered",
     ],
