@@ -1137,5 +1137,4 @@ SHIPPERS = [
     "purolator",
     "intelcom",
     "post_nl",
-    "ebay",
 ]
