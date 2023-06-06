@@ -15,8 +15,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
+    AMAZON_EXCEPTION,
     AMAZON_EXCEPTION_ORDER,
     AMAZON_ORDER,
+    AMAZON_DELIVERED,
     ATTR_IMAGE,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
@@ -123,11 +125,10 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
             return attr
 
         if "Amazon" in self._name:
-            if (
-                self._name == "amazon_exception"
-                and AMAZON_EXCEPTION_ORDER in data.keys()
-            ):
+            if self._name == AMAZON_EXCEPTION and AMAZON_EXCEPTION_ORDER in data.keys():
                 attr[ATTR_ORDER] = data[AMAZON_EXCEPTION_ORDER]
+            elif self._name == AMAZON_DELIVERED:
+                attr[ATTR_ORDER] = data[AMAZON_DELIVERED]
             elif AMAZON_ORDER in data.keys():
                 attr[ATTR_ORDER] = data[AMAZON_ORDER]
         elif self._name == "Mail USPS Mail" and ATTR_IMAGE_NAME in data.keys():

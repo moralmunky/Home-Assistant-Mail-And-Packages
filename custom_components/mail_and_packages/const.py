@@ -134,6 +134,8 @@ AMAZON_TIME_PATTERN_END = [
     "Acompanhar",
     "Sguimiento",
     "Verfolge deine(n) Artikel",
+    "Lieferung verfolgen",
+    "Ihr Paket verfolgen",
     "Suivre",
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
