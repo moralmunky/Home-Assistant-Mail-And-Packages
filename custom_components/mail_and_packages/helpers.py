@@ -792,6 +792,8 @@ def _generate_mp4(path: str, image_file: str) -> None:
             "ffmpeg",
             "-i",
             gif_image,
+            "-pix_fmt",
+            "yuv420p",
             mp4_file,
         ],
         stdout=subprocess.DEVNULL,
