@@ -538,7 +538,7 @@ def email_search(
         subject = subject.encode("utf-8")
         account.literal = subject
         try:
-            value = account.search("utf-8", subject)
+            value = account.search("utf-8", search)
         except Exception as err:
             _LOGGER.debug(
                 "Error searching emails with unicode characters: %s", str(err)
