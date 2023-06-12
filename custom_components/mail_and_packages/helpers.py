@@ -504,9 +504,9 @@ def build_search(address: list, date: str, subject: str = None) -> tuple:
         if not subject.isascii():
             utf8_flag = True
             if prefix_list is not None:
-                imap_search = f'({prefix_list} FROM "{email_list}" {the_date} SUBJECT)'
+                imap_search = f'{prefix_list} FROM "{email_list}" {the_date} SUBJECT'
             else:
-                imap_search = f'(FROM "{email_list}" {the_date} SUBJECT)'
+                imap_search = f'FROM "{email_list}" {the_date} SUBJECT'
             # imap_search = f"{the_date} SUBJECT"
         else:
             if prefix_list is not None:
