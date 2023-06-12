@@ -503,14 +503,11 @@ def build_search(address: list, date: str, subject: str = None) -> tuple:
     if subject is not None:
         if not subject.isascii():
             utf8_flag = True
-            # if prefix_list is not None:
-            #     imap_search = f"CHARSET UTF-8 {prefix_list}"
-            #     imap_search = f'{imap_search} FROM "{email_list} {the_date} SUBJECT'
-            # else:
-            #     imap_search = (
-            #         f"CHARSET UTF-8 FROM {email_list} {the_date} SUBJECT"
-            #     )
-            imap_search = f"{the_date} SUBJECT"
+            if prefix_list is not None:
+                imap_search = f'{prefix_list} FROM "{email_list}" {the_date} SUBJECT'
+            else:
+                imap_search = f'FROM "{email_list}" {the_date} SUBJECT'
+            # imap_search = f"{the_date} SUBJECT"
         else:
             if prefix_list is not None:
                 imap_search = f'({prefix_list} FROM "{email_list}" SUBJECT "{subject}" {the_date})'
@@ -541,7 +538,7 @@ def email_search(
         subject = subject.encode("utf-8")
         account.literal = subject
         try:
-            value = account.search("utf-8", "SUBJECT")
+            value = account.search("utf-8", search)
         except Exception as err:
             _LOGGER.debug(
                 "Error searching emails with unicode characters: %s", str(err)
