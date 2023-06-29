@@ -186,8 +186,11 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> Optional[str]:
         """Return the state of the sensor."""
-        image = self.coordinator.data[ATTR_IMAGE_NAME]
+        image = ""
         the_path = None
+
+        if ATTR_IMAGE_NAME in self.coordinator.data.keys():
+            image = self.coordinator.data[ATTR_IMAGE_NAME]
 
         if ATTR_IMAGE_PATH in self.coordinator.data.keys():
             path = self.coordinator.data[ATTR_IMAGE_PATH]
