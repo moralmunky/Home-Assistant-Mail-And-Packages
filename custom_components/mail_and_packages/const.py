@@ -79,6 +79,7 @@ AMAZON_DOMAINS = [
     "amazon.pl",
 ]
 AMAZON_DELIVERED_SUBJECT = [
+    "Livraison : Votre",
     "Delivered: Your",
     "Consegna effettuata:",
     "Dostarczono:",
@@ -99,6 +100,7 @@ AMAZON_HUB_SUBJECT = "ready for pickup from Amazon Hub Locker"
 AMAZON_HUB_SUBJECT_SEARCH = "(You have a package to pick up)(.*)(\\d{6})"
 AMAZON_HUB_BODY = "(Your pickup code is <b>)(\\d{6})"
 AMAZON_TIME_PATTERN = [
+    "Votre date de livraison prévue est :",
     "will arrive:",
     "estimated delivery date is:",
     "guaranteed delivery date is:",
@@ -120,7 +122,7 @@ AMAZON_LANGS = [
     "pl_PL.UTF-8",
     "de_DE",
     "de_DE.UTF-8",
-    "",
+    "fr_CA",
 ]
 
 # Sensor Data
@@ -156,6 +158,8 @@ SENSOR_DATA = {
         "subject": [
             "Your UPS Package was delivered",
             "Your UPS Packages were delivered",
+            "Votre colis UPS a été livré",
+            
         ],
     },
     "ups_delivering": {
@@ -163,6 +167,8 @@ SENSOR_DATA = {
         "subject": [
             "UPS Update: Package Scheduled for Delivery Today",
             "UPS Update: Follow Your Delivery on a Live Map",
+            "Mise à jour UPS : Livraison du colis prévue demain",
+            "Mise à jour UPS : Livraison du colis prévue aujourd'hui",
             "UPS Pre-Arrival: Your Driver is Arriving Soon! Follow on a Live Map",
         ],
     },
@@ -191,6 +197,22 @@ SENSOR_DATA = {
     },
     "fedex_packages": {},
     "fedex_tracking": {"pattern": ["\\d{12,20}"]},
+    # IntelCom
+    "intelcom_delivered": {
+        "email": ["notifications@intelcom.ca"],
+        "subject": [
+            "Votre commande a été livrée!",
+            "Votre colis a été livré!",
+        ],
+    },
+    "intelcom_delivering": {
+        "email": ["notifications@intelcom.ca"],
+        "subject": [
+            "Votre colis est en chemin!",
+        ],
+    },
+    "intelcom_packages": {},
+    "intelcom_tracking": {},
     # Canada Post
     "capost_delivered": {
         "email": ["donotreply@canadapost.postescanada.ca"],
@@ -698,6 +720,7 @@ SENSOR_ICON = 2
 
 # For sensors with delivering and delivered statuses
 SHIPPERS = [
+    "intelcom",
     "capost",
     "dhl",
     "fedex",
