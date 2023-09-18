@@ -810,10 +810,12 @@ def resize_images(images: list, width: int, height: int) -> list:
             with open(image, "rb") as fd_img:
                 try:
                     img = Image.open(fd_img)
-                    img.thumbnail((width, height), resample=Image.LANCZOS)
+                    img.thumbnail((width, height), resample=Image.Resampling.LANCZOS)
 
                     # Add padding as needed
-                    img = ImageOps.pad(img, (width, height), method=Image.LANCZOS)
+                    img = ImageOps.pad(
+                        img, (width, height), method=Image.Resampling.LANCZOS
+                    )
                     # Crop to size
                     img = img.crop((0, 0, width, height))
 
