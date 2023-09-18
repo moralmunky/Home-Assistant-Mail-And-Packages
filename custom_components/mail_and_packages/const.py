@@ -91,6 +91,7 @@ AMAZON_DELIVERED_SUBJECT = [
     "Dostarczono:",
     "Geliefert:",
     "Livré",
+    "Entregado:",
 ]
 AMAZON_SHIPMENT_TRACKING = [
     "shipment-tracking",
@@ -132,7 +133,7 @@ AMAZON_TIME_PATTERN_END = [
     "Per tracciare il tuo pacco",
     "View or manage order",
     "Acompanhar",
-    "Sguimiento",
+    "Seguimiento",
     "Verfolge deine(n) Artikel",
     "Lieferung verfolgen",
     "Ihr Paket verfolgen",
