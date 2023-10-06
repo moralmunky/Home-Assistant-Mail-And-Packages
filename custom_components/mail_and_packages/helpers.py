@@ -1378,6 +1378,11 @@ def get_items(
                             )
                         else:
                             email_subject = decode_header(msg["subject"])[0][0]
+
+                        if not isinstance(email_subject, str):
+                            _LOGGER.debug("Converting subject to string.")
+                            email_subject = email_subject.decode("utf-8", "ignore")
+
                         _LOGGER.debug("Amazon Subject: %s", str(email_subject))
                         pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
 
