@@ -263,7 +263,7 @@ SENSOR_DATA = {
             "has been delivered",
             "została doręczona",
             "ist angekommen",
-            "Notification for shipment event group \"Delivered",
+            'Notification for shipment event group "Delivered',
             " - Delivered - ",
         ],
     },
