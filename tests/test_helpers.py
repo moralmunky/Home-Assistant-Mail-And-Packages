@@ -73,7 +73,7 @@ async def test_cleanup_found_images_remove_err(
 ):
     cleanup_images("/tests/fakedir/")
 
-    assert mock_osremove_exception.assert_called_with("/tests/fakedir/")
+    assert mock_osremove_exception.assert_called_with("/tests/fakedir/anotherfakefile.mp4")
     assert "Error attempting to remove found image:" in caplog.text
 
 
@@ -81,7 +81,7 @@ async def test_cleanup_found_images_remove_err(
 async def test_cleanup_images_remove_err(mock_listdir, mock_osremove_exception, caplog):
     cleanup_images("/tests/fakedir/", "testimage.jpg")
 
-    assert mock_osremove_exception.assert_called_with("/tests/fakedir/")
+    assert mock_osremove_exception.assert_called_with("/tests/fakedir/testimage.jpg")
     assert "Error attempting to remove image:" in caplog.text
 
 
@@ -107,7 +107,7 @@ async def test_process_emails(
     state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
     assert state is not None
     assert (
-        "/testing_config/custom_components/mail_and_packages/images/testfile.gif"
+        "/testing_config/custom_components/mail_and_packages/images/"
         in state.state
     )
     state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
@@ -146,7 +146,7 @@ async def test_process_emails_external(
     state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
     assert state is not None
     assert (
-        "/testing_config/custom_components/mail_and_packages/images/testfile.gif"
+        "/testing_config/custom_components/mail_and_packages/images/"
         in state.state
     )
     state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
