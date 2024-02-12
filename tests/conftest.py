@@ -1,4 +1,5 @@
 """Fixtures for Mail and Packages tests."""
+
 import asyncio
 import aiohttp
 import datetime
@@ -16,6 +17,12 @@ from tests.const import FAKE_UPDATE_DATA, FAKE_UPDATE_DATA_BIN
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 pytestmark = pytest.mark.asyncio
+
+
+@pytest.fixture(autouse=True)
+def auto_enable_custom_integrations(enable_custom_integrations):
+    """Enable custom integration tests."""
+    yield
 
 
 @pytest.fixture()
@@ -1488,9 +1495,3 @@ def mock_update_amazon_image():
         # value = mock.Mock()
         mock_update.return_value = FAKE_UPDATE_DATA_BIN
         yield mock_update
-
-
-@pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations):
-    """Enable custom integration tests."""
-    yield

@@ -1,4 +1,5 @@
 """Tests for camera component."""
+
 import logging
 import pytest
 from unittest.mock import mock_open, patch

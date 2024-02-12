@@ -1,4 +1,5 @@
 """Test the Mail and Packages diagnostics."""
+
 from unittest.mock import patch
 
 import pytest
