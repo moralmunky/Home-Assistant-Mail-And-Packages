@@ -1104,6 +1104,7 @@ def mock_os_path_isfile():
 def mock_os_path_join():
     """Fixture to mock join."""
     with patch("os.path.join") as mock_os_path_join:
+        mock_os_path_join.return_value = "./testfile.mp4"
         yield mock_os_path_join
 
 
