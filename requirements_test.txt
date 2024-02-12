@@ -11,3 +11,4 @@ pytest-cov==3.0.0
 pytest-homeassistant-custom-component
 homeassistant
 freezegun
+cython
