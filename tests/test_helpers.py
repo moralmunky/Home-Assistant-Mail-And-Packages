@@ -73,7 +73,7 @@ async def test_cleanup_found_images_remove_err(
 ):
     cleanup_images("/tests/fakedir/")
 
-    assert mock_osremove_exception.called_with("/tests/fakedir/")
+    assert mock_osremove_exception.assert_called_with("/tests/fakedir/")
     assert "Error attempting to remove found image:" in caplog.text
 
 
@@ -81,7 +81,7 @@ async def test_cleanup_found_images_remove_err(
 async def test_cleanup_images_remove_err(mock_listdir, mock_osremove_exception, caplog):
     cleanup_images("/tests/fakedir/", "testimage.jpg")
 
-    assert mock_osremove_exception.called_with("/tests/fakedir/")
+    assert mock_osremove_exception.assert_called_with("/tests/fakedir/")
     assert "Error attempting to remove image:" in caplog.text
 
 
@@ -532,7 +532,7 @@ async def test_informed_delivery_emails_mp4(
                 mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", True
             )
             assert result == 3
-            assert mock_generate_mp4.called_with("./", "mail_today.gif")
+            assert mock_generate_mp4.assert_called_with("./", "mail_today.gif")
 
 
 @pytest.mark.asyncio
@@ -641,7 +641,7 @@ async def test_informed_delivery_no_mail_copy_error(
         get_mails(
             mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
         )
-        assert mock_copyfile_exception.called_with("./mail_today.gif")
+        assert mock_copyfile_exception.assert_called_with("./mail_today.gif")
         assert "File not found" in caplog.text
 
 
