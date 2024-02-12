@@ -19,18 +19,9 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 pytestmark = pytest.mark.asyncio
 
 
-@pytest.fixture(autouse=False)
+@pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations):
     """Enable custom integration tests."""
-    yield
-
-
-@pytest.fixture(autouse=True)
-def auto_enable(request: pytest.FixtureRequest):
-    if "recorder_mock" in request.fixturenames:
-        request.getfixturevalue("recorder_mock")
-    hass = request.getfixturevalue("hass")
-    hass.data.pop("custom_components")
     yield
 
 

@@ -2,7 +2,6 @@
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from sqlalchemy import true
 
 from custom_components.mail_and_packages.const import DOMAIN
 from tests.const import FAKE_CONFIG_DATA
