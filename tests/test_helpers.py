@@ -882,9 +882,9 @@ async def test_generate_mp4(
     with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
         _generate_mp4("./", "testfile.gif")
 
-        mock_os_path_join.called_with("./", "testfile.gif")
-        mock_osremove.called_with("./", "testfile.mp4")
-        mock_subprocess_call.called_with(
+        mock_os_path_join.assert_called_with("./", "testfile.gif")
+        mock_osremove.assert_called_with("./", "testfile.mp4")
+        mock_subprocess_call.assert_called_with(
             "ffmpeg",
             "-f",
             "gif",
