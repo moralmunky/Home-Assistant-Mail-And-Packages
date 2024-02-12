@@ -1,4 +1,5 @@
 """Helper functions for Mail and Packages."""
+
 from __future__ import annotations
 
 import base64
@@ -6,7 +7,6 @@ import datetime
 import email
 import hashlib
 import imaplib
-import locale
 import logging
 import os
 import quopri
@@ -19,6 +19,7 @@ from shutil import copyfile, copytree, which
 from typing import Any, List, Optional, Type, Union
 
 import aiohttp
+import dateparser
 from bs4 import BeautifulSoup
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -46,7 +47,6 @@ from .const import (
     AMAZON_HUB_SUBJECT,
     AMAZON_HUB_SUBJECT_SEARCH,
     AMAZON_IMG_PATTERN,
-    AMAZON_LANGS,
     AMAZON_ORDER,
     AMAZON_PACKAGES,
     AMAZON_PATTERN,
@@ -1290,36 +1290,6 @@ def amazon_date_format(arrive_date: str, lang: str) -> tuple:
     return (arrive_date, "%A, %B %d")
 
 
-def amazon_date_lang(arrive_date: str) -> datetime.datetime | None:
-    """Return the datetime for the date based on language."""
-    time_format = None
-    new_arrive_date = None
-    dateobj = None
-
-    for lang in AMAZON_LANGS:
-        try:
-            locale.setlocale(locale.LC_TIME, lang)
-        except Exception as err:
-            _LOGGER.debug("Locale error: %s (%s)", err, lang)
-            continue
-
-        _LOGGER.debug("Arrive Date: %s", arrive_date)
-        new_arrive_date, time_format = amazon_date_format(arrive_date, lang)
-
-        try:
-            dateobj = datetime.datetime.strptime(new_arrive_date, time_format)
-            _LOGGER.debug("Valid date format found.")
-            break
-        except ValueError as err:
-            _LOGGER.debug(
-                "Invalid date format found for language %s. (%s)",
-                lang,
-                err,
-            )
-            continue
-    return dateobj
-
-
 def get_items(
     account: Type[imaplib.IMAP4_SSL],
     param: str = None,
@@ -1425,8 +1395,8 @@ def get_items(
                             arrive_date = arrive_date[0:3]
                             arrive_date = " ".join(arrive_date).strip()
 
-                            # Loop through all the langs for date format
-                            dateobj = amazon_date_lang(arrive_date)
+                            # Get the date object
+                            dateobj = dateparser.parse(arrive_date)
 
                             if (
                                 dateobj is not None

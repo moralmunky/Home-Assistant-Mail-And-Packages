@@ -1,6 +1,7 @@
 """Tests for helpers module."""
 import datetime
 import errno
+from freezegun import freeze_time
 from datetime import date, timezone
 from unittest import mock
 from unittest.mock import call, mock_open, patch
@@ -792,13 +793,11 @@ async def test_royal_out_for_delivery(hass, mock_imap_royal_out_for_delivery):
     assert result["tracking"] == ["MA038501234GB"]
 
 
+@freeze_time("2020-09-11")
 @pytest.mark.asyncio
 async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):
-    with patch("datetime.date") as mock_date:
-        mock_date.today.return_value = date(2020, 9, 11)
-
-        result = get_items(mock_imap_amazon_shipped, "count")
-        assert result == 1
+    result = get_items(mock_imap_amazon_shipped, "count")
+    assert result == 1
 
 
 @pytest.mark.asyncio
@@ -1185,4 +1184,4 @@ async def test_email_search_none(mock_imap_search_error_none, caplog):
 async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
     result = get_items(mock_imap_amazon_fwd, "order")
     assert result == ["123-1234567-1234567"]
-    assert "Arrive Date: Tuesday, January 11" in caplog.text
+    assert "First pass: Tuesday, January 11" in caplog.text

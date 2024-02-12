@@ -1,4 +1,5 @@
 """Provide diagnostics for Mail and Packages."""
+
 from __future__ import annotations
 
 import logging
