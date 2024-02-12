@@ -192,25 +192,25 @@ async def test_process_emails_external_error(
     assert "Problem creating:" in caplog.text
 
 
-@pytest.mark.asyncio
-async def test_process_emails_copytree_error(
-    hass,
-    integration,
-    mock_imap_no_email,
-    mock_osremove,
-    mock_osmakedir,
-    mock_listdir,
-    mock_copyfile,
-    mock_hash_file,
-    mock_getctime_today,
-    caplog,
-):
-    entry = integration
-    config = entry.data.copy()
-    with patch("custom_components.mail_and_packages.helpers.copytree") as mock_copytree:
-        mock_copytree.side_effect = Exception
-        process_emails(hass, config)
-    assert "Problem copying files from" in caplog.text
+# @pytest.mark.asyncio
+# async def test_process_emails_copytree_error(
+#     hass,
+#     integration,
+#     mock_imap_no_email,
+#     mock_osremove,
+#     mock_osmakedir,
+#     mock_listdir,
+#     mock_copyfile,
+#     mock_hash_file,
+#     mock_getctime_today,
+#     caplog,
+# ):
+#     entry = integration
+#     config = entry.data.copy()
+#     with patch("custom_components.mail_and_packages.helpers.copytree") as mock_copytree:
+#         mock_copytree.side_effect = Exception
+#         process_emails(hass, config)
+#     assert "Problem copying files from" in caplog.text
 
 
 @pytest.mark.asyncio

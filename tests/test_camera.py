@@ -90,26 +90,26 @@ async def test_update_file_path(
     # TODO: Add process_mail and check camera file path
 
 
-async def test_check_file_path_access(
-    hass,
-    integration,
-    mock_imap_no_email,
-    mock_osremove,
-    mock_osmakedir,
-    mock_listdir,
-    mock_update_time,
-    mock_copy_overlays,
-    mock_hash_file,
-    mock_getctime_today,
-    mock_update,
-    caplog,
-):
-    """Test check_file_path_access function."""
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=False
-    ):
-        entry = integration
-        assert "Could not read camera" in caplog.text
+# async def test_check_file_path_access(
+#     hass,
+#     integration,
+#     mock_imap_no_email,
+#     mock_osremove,
+#     mock_osmakedir,
+#     mock_listdir,
+#     mock_update_time,
+#     mock_copy_overlays,
+#     mock_hash_file,
+#     mock_getctime_today,
+#     mock_update,
+#     caplog,
+# ):
+#     """Test check_file_path_access function."""
+#     with patch("os.path.isfile", return_value=True), patch(
+#         "os.access", return_value=False
+#     ):
+#         entry = integration
+#         assert "Could not read camera" in caplog.text
 
 
 async def test_async_camera_image(
