@@ -8,10 +8,12 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_CUSTOM_IMG
 
 from unittest.mock import mock_open, patch
 
+pytestmark = pytest.mark.asyncio
 
-@pytest.mark.asyncio
+
 async def test_update_file_path(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -24,15 +26,8 @@ async def test_update_file_path(
     caplog,
 ):
     """Test update_file_path service."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-    )
+    entry = integration
 
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
     entries = hass.config_entries.async_entries(DOMAIN)
 
     with patch("os.path.isfile", return_value=True), patch(
@@ -95,9 +90,9 @@ async def test_update_file_path(
     # TODO: Add process_mail and check camera file path
 
 
-@pytest.mark.asyncio
 async def test_check_file_path_access(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -113,21 +108,13 @@ async def test_check_file_path_access(
     with patch("os.path.isfile", return_value=True), patch(
         "os.access", return_value=False
     ):
-        entry = MockConfigEntry(
-            domain=DOMAIN,
-            title="imap.test.email",
-            data=FAKE_CONFIG_DATA,
-        )
-
-        entry.add_to_hass(hass)
-        assert await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
+        entry = integration
         assert "Could not read camera" in caplog.text
 
 
-@pytest.mark.asyncio
 async def test_async_camera_image(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -143,15 +130,7 @@ async def test_async_camera_image(
     with patch("os.path.isfile", return_value=True), patch(
         "os.access", return_value=False
     ):
-        entry = MockConfigEntry(
-            domain=DOMAIN,
-            title="imap.test.email",
-            data=FAKE_CONFIG_DATA,
-        )
-
-        entry.add_to_hass(hass)
-        assert await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
+        entry = integration
 
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         m_open = mock_open()
@@ -166,9 +145,9 @@ async def test_async_camera_image(
         assert m_open.call_args.args[1] == "rb"
 
 
-@pytest.mark.asyncio
 async def test_async_camera_image_file_error(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -185,15 +164,7 @@ async def test_async_camera_image_file_error(
     with patch("os.path.isfile", return_value=True), patch(
         "os.access", return_value=False
     ):
-        entry = MockConfigEntry(
-            domain=DOMAIN,
-            title="imap.test.email",
-            data=FAKE_CONFIG_DATA,
-        )
-
-        entry.add_to_hass(hass)
-        assert await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
+        entry = integration
 
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         m_open = mock_open()
@@ -204,9 +175,9 @@ async def test_async_camera_image_file_error(
         assert "Could not read camera" in caplog.text
 
 
-@pytest.mark.asyncio
 async def test_async_on_demand_update(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -222,15 +193,7 @@ async def test_async_on_demand_update(
     with patch("os.path.isfile", return_value=True), patch(
         "os.access", return_value=False
     ):
-        entry = MockConfigEntry(
-            domain=DOMAIN,
-            title="imap.test.email",
-            data=FAKE_CONFIG_DATA,
-        )
-
-        entry.add_to_hass(hass)
-        assert await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
+        entry = integration
 
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         m_open = mock_open()

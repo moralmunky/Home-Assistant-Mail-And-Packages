@@ -13,7 +13,19 @@ from unittest.mock import patch
 import pytest
 from aioresponses import aioresponses
 
-from tests.const import FAKE_UPDATE_DATA, FAKE_UPDATE_DATA_BIN
+from tests.const import (
+    FAKE_UPDATE_DATA,
+    FAKE_UPDATE_DATA_BIN,
+    FAKE_CONFIG_DATA,
+    FAKE_CONFIG_DATA_CUSTOM_IMG,
+    FAKE_CONFIG_DATA_NO_PATH,
+    FAKE_CONFIG_DATA_MISSING_TIMEOUT,
+    FAKE_CONFIG_DATA_AMAZON_FWD_STRING,
+    FAKE_CONFIG_DATA_EXTERNAL,
+)
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.mail_and_packages.const import DOMAIN
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 pytestmark = pytest.mark.asyncio
@@ -34,6 +46,94 @@ def mock_update():
         # value = mock.Mock()
         mock_update.return_value = FAKE_UPDATE_DATA
         yield mock_update
+
+
+@pytest.fixture(name="integration")
+async def integration_fixture(hass):
+    """Set up the mail_and_packages integration."""
+    entry = MockConfigEntry(
+        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    return entry
+
+
+@pytest.fixture(name="integration_no_path")
+async def integration_fixture_2(hass):
+    """Set up the mail_and_packages integration."""
+    entry = MockConfigEntry(
+        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA_NO_PATH, version=3
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    return entry
+
+
+@pytest.fixture(name="integration_no_timeout")
+async def integration_fixture_3(hass):
+    """Set up the mail_and_packages integration."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_MISSING_TIMEOUT,
+        version=3,
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    return entry
+
+
+@pytest.fixture(name="integration_fwd_string")
+async def integration_fixture_4(hass):
+    """Set up the mail_and_packages integration."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_AMAZON_FWD_STRING,
+        version=3,
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    return entry
+
+
+@pytest.fixture(name="integration_custom_img")
+async def integration_fixture_5(hass):
+    """Set up the mail_and_packages integration."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    return entry
+
+
+@pytest.fixture(name="integration_fake_external")
+async def integration_fixture_6(hass):
+    """Set up the mail_and_packages integration."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_EXTERNAL,
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    return entry
 
 
 @pytest.fixture()
@@ -957,8 +1057,8 @@ def mock_update_time():
 @pytest.fixture
 def mock_image():
     """Fixture to mock Image."""
-    with patch("custom_components.mail_and_packages.helpers.Image") as mock_image:
-        yield mock_image
+    with patch("custom_components.mail_and_packages.helpers.Image"):
+        yield
 
 
 @pytest.fixture
@@ -986,12 +1086,10 @@ def mock_image_save_excpetion():
 @pytest.fixture
 def mock_resizeimage():
     """Fixture to mock splitext."""
-    with patch(
-        "custom_components.mail_and_packages.helpers.Image"
-    ) as mock_resizeimage, patch(
+    with patch("custom_components.mail_and_packages.helpers.Image"), patch(
         "custom_components.mail_and_packages.helpers.ImageOps"
     ):
-        yield mock_resizeimage
+        yield
 
 
 @pytest.fixture
@@ -1005,8 +1103,8 @@ def mock_os_path_isfile():
 @pytest.fixture
 def mock_os_path_join():
     """Fixture to mock join."""
-    with patch("os.path.join") as mock_path_join:
-        yield mock_path_join
+    with patch("os.path.join") as mock_os_path_join:
+        yield mock_os_path_join
 
 
 @pytest.fixture
@@ -1181,9 +1279,7 @@ def mock_hash_file_oserr():
 @pytest.fixture
 def mock_getctime_err():
     """Fixture to mock os.path.getctime."""
-    with patch(
-        "custom_components.mail_and_packages.helpers.os.path.getctime"
-    ) as mock_getctime_err:
+    with patch("os.path.getctime") as mock_getctime_err:
         mock_getctime_err.side_effect = OSError(errno.EEXIST, "error")
         yield mock_getctime_err
 

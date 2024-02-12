@@ -88,6 +88,7 @@ async def test_cleanup_images_remove_err(mock_listdir, mock_osremove_exception, 
 @pytest.mark.asyncio
 async def test_process_emails(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -97,16 +98,9 @@ async def test_process_emails(
     mock_hash_file,
     mock_getctime_today,
 ):
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-    )
+    entry = integration
 
     hass.config.internal_url = "http://127.0.0.1:8123/"
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
 
     config = entry.data.copy()
     assert config == FAKE_CONFIG_DATA_CORRECTED
@@ -132,6 +126,7 @@ async def test_process_emails(
 @pytest.mark.asyncio
 async def test_process_emails_external(
     hass,
+    integration_fake_external,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -141,17 +136,10 @@ async def test_process_emails_external(
     mock_hash_file,
     mock_getctime_today,
 ):
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_EXTERNAL,
-    )
+    entry = integration_fake_external
 
     hass.config.internal_url = "http://127.0.0.1:8123/"
     hass.config.external_url = "http://really.fake.host.net:8123/"
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
 
     config = entry.data.copy()
     assert config == FAKE_CONFIG_DATA_CORRECTED_EXTERNAL
@@ -189,6 +177,7 @@ async def test_process_emails_external(
 @pytest.mark.asyncio
 async def test_process_emails_external_error(
     hass,
+    integration_fake_external,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -199,15 +188,7 @@ async def test_process_emails_external_error(
     mock_getctime_today,
     caplog,
 ):
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_EXTERNAL,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration_fake_external
     config = entry.data.copy()
     with patch("os.makedirs") as mock_osmakedirs:
         mock_osmakedirs.side_effect = OSError
@@ -219,6 +200,7 @@ async def test_process_emails_external_error(
 @pytest.mark.asyncio
 async def test_process_emails_copytree_error(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -228,15 +210,7 @@ async def test_process_emails_copytree_error(
     mock_getctime_today,
     caplog,
 ):
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_EXTERNAL,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration
     config = entry.data.copy()
     with patch("custom_components.mail_and_packages.helpers.copytree") as mock_copytree:
         mock_copytree.side_effect = Exception
@@ -261,6 +235,7 @@ async def test_process_emails_bad(hass, mock_imap_no_email, mock_update):
 @pytest.mark.asyncio
 async def test_process_emails_non_random(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -270,15 +245,7 @@ async def test_process_emails_non_random(
     mock_hash_file,
     mock_getctime_today,
 ):
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration
 
     config = entry.data
     result = process_emails(hass, config)
@@ -288,6 +255,7 @@ async def test_process_emails_non_random(
 @pytest.mark.asyncio
 async def test_process_emails_random(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -297,15 +265,7 @@ async def test_process_emails_random(
     mock_hash_file,
     mock_getctime_yesterday,
 ):
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration
 
     config = entry.data
     result = process_emails(hass, config)
@@ -315,6 +275,7 @@ async def test_process_emails_random(
 @pytest.mark.asyncio
 async def test_process_nogif(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -324,15 +285,7 @@ async def test_process_nogif(
     mock_hash_file,
     mock_getctime_today,
 ):
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration
 
     config = entry.data
     result = process_emails(hass, config)
@@ -342,6 +295,7 @@ async def test_process_nogif(
 @pytest.mark.asyncio
 async def test_process_old_image(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -351,15 +305,7 @@ async def test_process_old_image(
     mock_hash_file,
     mock_getctime_yesterday,
 ):
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration
 
     config = entry.data
     result = process_emails(hass, config)
@@ -369,6 +315,7 @@ async def test_process_old_image(
 @pytest.mark.asyncio
 async def test_process_folder_error(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -378,15 +325,7 @@ async def test_process_folder_error(
     mock_hash_file,
     mock_getctime_yesterday,
 ):
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration
 
     config = entry.data
     with patch(
@@ -399,6 +338,7 @@ async def test_process_folder_error(
 @pytest.mark.asyncio
 async def test_image_filename_oserr(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -410,15 +350,7 @@ async def test_image_filename_oserr(
     caplog,
 ):
     """Test settting up entities."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration
 
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 48
     assert "Problem accessing file:" in caplog.text
@@ -427,6 +359,7 @@ async def test_image_filename_oserr(
 @pytest.mark.asyncio
 async def test_image_getctime_oserr(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -438,15 +371,7 @@ async def test_image_getctime_oserr(
     caplog,
 ):
     """Test settting up entities."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration
 
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 48
     assert "Problem accessing file:" in caplog.text
