@@ -17,17 +17,9 @@ from tests.const import (
 
 
 @pytest.mark.asyncio
-async def test_unload_entry(hass, mock_update, mock_copy_overlays):
+async def test_unload_entry(hass, integration, mock_update, mock_copy_overlays):
     """Test unloading entities."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration
 
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 48
     entries = hass.config_entries.async_entries(DOMAIN)
@@ -46,6 +38,7 @@ async def test_unload_entry(hass, mock_update, mock_copy_overlays):
 @pytest.mark.asyncio
 async def test_setup_entry(
     hass,
+    integration,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -57,15 +50,7 @@ async def test_setup_entry(
     mock_update,
 ):
     """Test settting up entities."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration
 
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 48
     entries = hass.config_entries.async_entries(DOMAIN)
@@ -75,6 +60,7 @@ async def test_setup_entry(
 @pytest.mark.asyncio
 async def test_no_path_no_sec(
     hass,
+    integration_no_path,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -86,13 +72,7 @@ async def test_no_path_no_sec(
     mock_update,
 ):
     """Test settting up entities."""
-    entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA_NO_PATH, version=3
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration_no_path
 
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 43
     entries = hass.config_entries.async_entries(DOMAIN)
@@ -102,6 +82,7 @@ async def test_no_path_no_sec(
 @pytest.mark.asyncio
 async def test_missing_imap_timeout(
     hass,
+    integration_no_timeout,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -113,16 +94,7 @@ async def test_missing_imap_timeout(
     mock_update,
 ):
     """Test settting up entities."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_MISSING_TIMEOUT,
-        version=3,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration_no_timeout
 
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 42
     entries = hass.config_entries.async_entries(DOMAIN)
@@ -132,6 +104,7 @@ async def test_missing_imap_timeout(
 @pytest.mark.asyncio
 async def test_amazon_fwds_string(
     hass,
+    integration_fwd_string,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -143,16 +116,7 @@ async def test_amazon_fwds_string(
     mock_update,
 ):
     """Test settting up entities."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_AMAZON_FWD_STRING,
-        version=3,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration_fwd_string
 
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 42
     entries = hass.config_entries.async_entries(DOMAIN)
@@ -162,6 +126,7 @@ async def test_amazon_fwds_string(
 @pytest.mark.asyncio
 async def test_custom_img(
     hass,
+    integration_custom_img,
     mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
@@ -173,15 +138,7 @@ async def test_custom_img(
     mock_update,
 ):
     """Test settting up entities."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
-    )
-
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = integration_custom_img
 
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 43
     entries = hass.config_entries.async_entries(DOMAIN)

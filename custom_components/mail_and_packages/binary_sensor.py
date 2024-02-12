@@ -1,4 +1,5 @@
 """Binary sensors for Mail and Packages."""
+
 import logging
 import os
 

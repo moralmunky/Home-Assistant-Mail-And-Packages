@@ -1,9 +1,9 @@
 """Mail and Packages Integration."""
+
 import asyncio
 import logging
 from datetime import timedelta
 
-from async_timeout import timeout
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
@@ -242,7 +242,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Fetch data."""
-        async with timeout(self.timeout):
+        async with asyncio.timeout(self.timeout):
             try:
                 data = await self.hass.async_add_executor_job(
                     process_emails, self.hass, self.config
