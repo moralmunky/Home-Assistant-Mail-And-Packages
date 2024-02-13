@@ -558,15 +558,15 @@ SENSOR_DATA = {
     "walmart_tracking": {"pattern": ["#[0-9]{7}-[0-9]{7}"]},
     # Post NL
     "post_nl_delivering": {
-        "email": ["noreply@notificatie.postnl.nl"],
-        "subject": ["Je pakket is onderweg", "De chauffer is onderweg"],
+        "email": ["noreply@notificatie.postnl.nl", "notificatie@edm.postnl.nl"],
+        "subject": ["Je pakket is onderweg", "De chauffer is onderweg", "Dit is de bezorgtijd van je pakket"],
     },
     "post_nl_exception": {
-        "email": ["noreply@notificatie.postnl.nl"],
-        "subject": ["We hebben je gemist"],
+        "email": ["noreply@notificatie.postnl.nl", "notificatie@edm.postnl.nl"],
+        "subject": ["We hebben je gemist", "We brengen je pakket naar een PostNL-punt"],
     },
     "post_nl_delivered": {
-        "email": ["noreply@notificatie.postnl.nl"],
+        "email": ["noreply@notificatie.postnl.nl", "notificatie@edm.postnl.nl"],
         "subject": ["Je pakket is bezorgd"],
     },
     "post_nl_packages": {},
