@@ -556,6 +556,20 @@ SENSOR_DATA = {
         "subject": ["delivery is delayed"],
     },
     "walmart_tracking": {"pattern": ["#[0-9]{7}-[0-9]{7}"]},
+    # BuildingLink
+    "buildinglink_delivered": {
+        "email": ["notify@buildinglink.com"],
+        "subject": [
+            "Your Amazon order has arrived",
+            "Your USPS delivery has arrived",
+            "Your UPS delivery has arrived",
+            "Your FEDEX delivery has arrived",
+            "You have a package delivery",
+            "You have a DHL delivery",
+            "You have an envelope",
+        ],
+    },
+    "buildinglink_tracking": {},
     # Post NL
     "post_nl_delivering": {
         "email": ["noreply@notificatie.postnl.nl"],
@@ -991,6 +1005,13 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:archive-alert",
         key="walmart_exception",
+    ),
+    # BuildingLink
+    "buildinglink_delivered": SensorEntityDescription(
+        name="Mail BuildingLink Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="buildinglink_delivered",
     ),
     # Post NL
     "post_nl_delivering": SensorEntityDescription(
