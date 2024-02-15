@@ -1051,7 +1051,6 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="post_de_packages",
     ),
-
     ###
     # !!! Insert new sensors above these two !!!
     ###
