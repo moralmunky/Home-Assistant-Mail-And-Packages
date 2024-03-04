@@ -84,9 +84,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     config_entry.add_update_listener(update_listener)
 
-    await hass.config_entries.async_update_entry(
-        config_entry, options=config_entry.data
-    )
+    hass.config_entries.async_update_entry(config_entry, options=config_entry.data)
     config = config_entry.data
 
     # Variables for data coordinator
