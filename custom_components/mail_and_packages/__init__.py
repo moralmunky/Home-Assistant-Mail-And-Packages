@@ -84,7 +84,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     config_entry.add_update_listener(update_listener)
 
-    config_entry.options = config_entry.data
+    hass.config_entries.async_update_entry(config_entry, options=config_entry.data)
     config = config_entry.data
 
     # Variables for data coordinator
@@ -183,10 +183,9 @@ async def async_migrate_entry(hass, config_entry):
         updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
 
         if updated_config != config_entry.data:
-            hass.config_entries.async_update_entry(config_entry, data=updated_config)
-
-        config_entry.version = 4
-        _LOGGER.debug("Migration to version %s complete", config_entry.version)
+            hass.config_entries.async_update_entry(
+                config_entry, data=updated_config, version=4
+            )
 
     # 2 -> 4
     if version == 2:
@@ -204,10 +203,9 @@ async def async_migrate_entry(hass, config_entry):
         updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
 
         if updated_config != config_entry.data:
-            hass.config_entries.async_update_entry(config_entry, data=updated_config)
-
-        config_entry.version = 4
-        _LOGGER.debug("Migration to version %s complete", config_entry.version)
+            hass.config_entries.async_update_entry(
+                config_entry, data=updated_config, version=4
+            )
 
     if version == 3:
         _LOGGER.debug("Migrating from version %s", version)
@@ -217,10 +215,11 @@ async def async_migrate_entry(hass, config_entry):
         updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
 
         if updated_config != config_entry.data:
-            hass.config_entries.async_update_entry(config_entry, data=updated_config)
+            hass.config_entries.async_update_entry(
+                config_entry, data=updated_config, version=4
+            )
 
-        config_entry.version = 4
-        _LOGGER.debug("Migration to version %s complete", config_entry.version)
+    _LOGGER.debug("Migration complete")
 
     return True
 
