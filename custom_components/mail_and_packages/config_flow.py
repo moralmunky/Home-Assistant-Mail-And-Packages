@@ -189,13 +189,13 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
             vol.Required(
                 CONF_RESOURCES, default=_get_default(CONF_RESOURCES)
             ): cv.multi_select(get_resources()),
-            vol.Optional(CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS,"")): cv.string,
+            vol.Optional(CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS)): cv.string,
             vol.Optional(CONF_AMAZON_DAYS, default=_get_default(CONF_AMAZON_DAYS)): int,
             vol.Optional(
-                CONF_SCAN_INTERVAL, default=_get_default(CONF_SCAN_INTERVAL, 30)
+                CONF_SCAN_INTERVAL, default=_get_default(CONF_SCAN_INTERVAL)
             ): vol.All(vol.Coerce(int)),
             vol.Optional(
-                CONF_IMAP_TIMEOUT, default=_get_default(CONF_IMAP_TIMEOUT, 30)
+                CONF_IMAP_TIMEOUT, default=_get_default(CONF_IMAP_TIMEOUT)
             ): vol.All(vol.Coerce(int)),
             vol.Optional(
                 CONF_DURATION, default=_get_default(CONF_DURATION)
@@ -234,7 +234,7 @@ def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
 class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Mail and Packages."""
 
-    VERSION = 4
+    VERSION = 5
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):

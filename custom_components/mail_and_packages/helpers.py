@@ -80,6 +80,7 @@ from .const import (
     SENSOR_TYPES,
     SHIPPERS,
 )
+import homeassistant.helpers.config_validation as cv
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -332,7 +333,7 @@ def fetch(
     img_out_path = f"{hass.config.path()}/{config.get(CONF_PATH)}"
     gif_duration = config.get(CONF_DURATION)
     generate_mp4 = config.get(CONF_GENERATE_MP4)
-    amazon_fwds = config.get(CONF_AMAZON_FWDS)
+    amazon_fwds = cv.ensure_list_csv(config.get(CONF_AMAZON_FWDS))
     image_name = data[ATTR_IMAGE_NAME]
     amazon_image_name = data[ATTR_AMAZON_IMAGE]
     amazon_days = config.get(CONF_AMAZON_DAYS)
