@@ -20,6 +20,7 @@ from typing import Any, List, Optional, Type, Union
 
 import aiohttp
 import dateparser
+import homeassistant.helpers.config_validation as cv
 from bs4 import BeautifulSoup
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -80,7 +81,6 @@ from .const import (
     SENSOR_TYPES,
     SHIPPERS,
 )
-import homeassistant.helpers.config_validation as cv
 
 _LOGGER = logging.getLogger(__name__)
 
