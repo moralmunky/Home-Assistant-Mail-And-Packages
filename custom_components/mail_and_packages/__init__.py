@@ -204,7 +204,6 @@ async def async_migrate_entry(hass, config_entry):
 
         if updated_config[CONF_AMAZON_FWDS] == ['""']:
             updated_config[CONF_AMAZON_FWDS] = DEFAULT_AMAZON_FWDS
-        
 
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(
@@ -242,7 +241,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             except Exception as error:
                 _LOGGER.error("Problem updating sensors: %s", error)
                 raise UpdateFailed(error) from error
-            
+
             if data:
                 self._data = data
             return self._data

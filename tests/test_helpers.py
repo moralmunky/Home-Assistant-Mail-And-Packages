@@ -101,10 +101,7 @@ async def test_process_emails(
     assert config == FAKE_CONFIG_DATA_CORRECTED
     state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
     assert state is not None
-    assert (
-        "/testing_config/custom_components/mail_and_packages/images/"
-        in state.state
-    )
+    assert "/testing_config/custom_components/mail_and_packages/images/" in state.state
     state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
     assert state.state == "unknown"
     result = process_emails(hass, config)
@@ -133,22 +130,16 @@ async def test_process_emails_external(
 ):
     hass.config.internal_url = "http://127.0.0.1:8123/"
     hass.config.external_url = "http://really.fake.host.net:8123/"
-    
+
     entry = integration_fake_external
 
     config = entry.data.copy()
     assert config == FAKE_CONFIG_DATA_CORRECTED_EXTERNAL
     state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
     assert state is not None
-    assert (
-        "/testing_config/custom_components/mail_and_packages/images/"
-        in state.state
-    )
+    assert "/testing_config/custom_components/mail_and_packages/images/" in state.state
     state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
-    assert (
-        state.state
-        == "unknown"
-    )
+    assert state.state == "unknown"
     result = process_emails(hass, config)
     assert isinstance(result["mail_updated"], datetime.datetime)
     assert result["zpackages_delivered"] == 0
@@ -888,7 +879,7 @@ async def test_generate_mp4(
                 "yuv420p",
                 "./testfile.mp4",
             ],
-            stdout=-3, 
+            stdout=-3,
             stderr=-3,
         )
 

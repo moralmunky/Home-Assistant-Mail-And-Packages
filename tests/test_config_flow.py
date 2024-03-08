@@ -339,6 +339,7 @@ async def test_form_no_fwds(
     assert len(mock_setup.mock_calls) == 1
     assert len(mock_setup_entry.mock_calls) == 1
 
+
 @pytest.mark.parametrize(
     "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
     [
