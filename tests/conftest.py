@@ -22,6 +22,7 @@ from tests.const import (
     FAKE_CONFIG_DATA_MISSING_TIMEOUT,
     FAKE_CONFIG_DATA_AMAZON_FWD_STRING,
     FAKE_CONFIG_DATA_EXTERNAL,
+    FAKE_CONFIG_DATA_V4_MIGRATE,
 )
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -135,6 +136,19 @@ async def integration_fixture_6(hass):
 
     return entry
 
+@pytest.fixture(name="integration_v4_migration")
+async def integration_fixture_7(hass):
+    """Set up the mail_and_packages integration."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_V4_MIGRATE,
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    return entry
 
 @pytest.fixture()
 def mock_imap():
