@@ -20,6 +20,7 @@ from .const import (
     CONF_SCAN_INTERVAL,
     COORDINATOR,
     DEFAULT_AMAZON_DAYS,
+    DEFAULT_AMAZON_FWDS,
     DEFAULT_IMAP_TIMEOUT,
     DOMAIN,
     ISSUE_URL,
@@ -68,16 +69,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Sort the resources
     updated_config[CONF_RESOURCES] = sorted(updated_config[CONF_RESOURCES])
-
-    # Make sure amazon forwarding emails are not a string
-    if isinstance(updated_config[CONF_AMAZON_FWDS], str):
-        tmp = updated_config[CONF_AMAZON_FWDS]
-        tmp_list = []
-        if "," in tmp:
-            tmp_list = tmp.split(",")
-        else:
-            tmp_list.append(tmp)
-        updated_config[CONF_AMAZON_FWDS] = tmp_list
 
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(config_entry, data=updated_config)
@@ -156,6 +147,7 @@ async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry) -> Non
 async def async_migrate_entry(hass, config_entry):
     """Migrate an old config entry."""
     version = config_entry.version
+    new_version = 5
 
     # 1 -> 4: Migrate format
     if version == 1:
@@ -182,11 +174,6 @@ async def async_migrate_entry(hass, config_entry):
         # Add default Amazon Days configuration
         updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
 
-        if updated_config != config_entry.data:
-            hass.config_entries.async_update_entry(
-                config_entry, data=updated_config, version=4
-            )
-
     # 2 -> 4
     if version == 2:
         _LOGGER.debug("Migrating from version %s", version)
@@ -202,11 +189,6 @@ async def async_migrate_entry(hass, config_entry):
         # Add default Amazon Days configuration
         updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
 
-        if updated_config != config_entry.data:
-            hass.config_entries.async_update_entry(
-                config_entry, data=updated_config, version=4
-            )
-
     if version == 3:
         _LOGGER.debug("Migrating from version %s", version)
         updated_config = config_entry.data.copy()
@@ -214,12 +196,19 @@ async def async_migrate_entry(hass, config_entry):
         # Add default Amazon Days configuration
         updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
 
-        if updated_config != config_entry.data:
-            hass.config_entries.async_update_entry(
-                config_entry, data=updated_config, version=4
-            )
+    if version == 4:
+        _LOGGER.debug("Migrating from version %s", version)
+        updated_config = config_entry.data.copy()
 
-    _LOGGER.debug("Migration complete")
+        if updated_config[CONF_AMAZON_FWDS] == ['""']:
+            updated_config[CONF_AMAZON_FWDS] = DEFAULT_AMAZON_FWDS
+
+    if updated_config != config_entry.data:
+        hass.config_entries.async_update_entry(
+            config_entry, data=updated_config, version=new_version
+        )
+
+    _LOGGER.debug("Migration complete to version %s", new_version)
 
     return True
 
@@ -234,6 +223,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self.timeout = the_timeout
         self.config = config
         self.hass = hass
+        self._data = {}
 
         _LOGGER.debug("Data will be update every %s", self.interval)
 
@@ -249,4 +239,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             except Exception as error:
                 _LOGGER.error("Problem updating sensors: %s", error)
                 raise UpdateFailed(error) from error
-            return data
+
+            if data:
+                self._data = data
+            return self._data

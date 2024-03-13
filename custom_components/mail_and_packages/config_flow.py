@@ -65,7 +65,7 @@ async def _check_amazon_forwards(forwards: str) -> tuple:
         amazon_forwards_list = forwards.split(",")
 
     # No forwards
-    elif forwards in ["", "(none)", ""]:
+    elif forwards in ["", "(none)", '""']:
         amazon_forwards_list = []
 
     # If only one address append it to the list
@@ -159,10 +159,10 @@ def _get_schema_step_1(user_input: list, default_dict: list) -> Any:
 
     return vol.Schema(
         {
-            vol.Required(CONF_HOST, default=_get_default(CONF_HOST)): str,
-            vol.Required(CONF_PORT, default=_get_default(CONF_PORT)): vol.Coerce(int),
-            vol.Required(CONF_USERNAME, default=_get_default(CONF_USERNAME)): str,
-            vol.Required(CONF_PASSWORD, default=_get_default(CONF_PASSWORD)): str,
+            vol.Required(CONF_HOST, default=_get_default(CONF_HOST)): cv.string,
+            vol.Required(CONF_PORT, default=_get_default(CONF_PORT, 993)): cv.port,
+            vol.Required(CONF_USERNAME, default=_get_default(CONF_USERNAME)): cv.string,
+            vol.Required(CONF_PASSWORD, default=_get_default(CONF_PASSWORD)): cv.string,
         }
     )
 
@@ -189,7 +189,9 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
             vol.Required(
                 CONF_RESOURCES, default=_get_default(CONF_RESOURCES)
             ): cv.multi_select(get_resources()),
-            vol.Optional(CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS)): str,
+            vol.Optional(
+                CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS)
+            ): cv.string,
             vol.Optional(CONF_AMAZON_DAYS, default=_get_default(CONF_AMAZON_DAYS)): int,
             vol.Optional(
                 CONF_SCAN_INTERVAL, default=_get_default(CONF_SCAN_INTERVAL)
@@ -202,11 +204,13 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
             ): vol.Coerce(int),
             vol.Optional(
                 CONF_GENERATE_MP4, default=_get_default(CONF_GENERATE_MP4)
-            ): bool,
+            ): cv.boolean,
             vol.Optional(
                 CONF_ALLOW_EXTERNAL, default=_get_default(CONF_ALLOW_EXTERNAL)
-            ): bool,
-            vol.Optional(CONF_CUSTOM_IMG, default=_get_default(CONF_CUSTOM_IMG)): bool,
+            ): cv.boolean,
+            vol.Optional(
+                CONF_CUSTOM_IMG, default=_get_default(CONF_CUSTOM_IMG)
+            ): cv.boolean,
         }
     )
 
@@ -225,7 +229,7 @@ def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
             vol.Optional(
                 CONF_CUSTOM_IMG_FILE,
                 default=_get_default(CONF_CUSTOM_IMG_FILE, DEFAULT_CUSTOM_IMG_FILE),
-            ): str,
+            ): cv.string,
         }
     )
 
@@ -234,7 +238,7 @@ def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
 class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Mail and Packages."""
 
-    VERSION = 4
+    VERSION = 5
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):

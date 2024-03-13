@@ -143,3 +143,24 @@ async def test_custom_img(
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 43
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
+
+@pytest.mark.asyncio
+async def test_v4_migration(
+    hass,
+    integration_v4_migration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_update,
+):
+    """Test settting up entities."""
+    entry = integration_v4_migration
+
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 42
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
