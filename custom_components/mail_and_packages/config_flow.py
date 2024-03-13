@@ -65,7 +65,7 @@ async def _check_amazon_forwards(forwards: str) -> tuple:
         amazon_forwards_list = forwards.split(",")
 
     # No forwards
-    elif forwards in ["", "(none)", ""]:
+    elif forwards in ["", "(none)", "\"\""]:
         amazon_forwards_list = []
 
     # If only one address append it to the list
