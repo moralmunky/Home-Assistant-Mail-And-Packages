@@ -110,7 +110,11 @@ AMAZON_IMG_PATTERN = (
 )
 AMAZON_HUB = "amazon_hub"
 AMAZON_HUB_CODE = "amazon_hub_code"
-AMAZON_HUB_EMAIL = ["thehub@amazon.com", "order-update@amazon.com", "amazonlockers@amazon.com"]
+AMAZON_HUB_EMAIL = [
+    "thehub@amazon.com",
+    "order-update@amazon.com",
+    "amazonlockers@amazon.com",
+]
 AMAZON_HUB_SUBJECT = "ready for pickup from Amazon Hub Locker"
 AMAZON_HUB_SUBJECT_SEARCH = "(a package to pick up)(.*)(\\d{6})"
 AMAZON_HUB_BODY = "(Your pickup code is <b>)(\\d{6})"
