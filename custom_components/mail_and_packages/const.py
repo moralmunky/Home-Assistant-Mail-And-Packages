@@ -13,7 +13,7 @@ from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.3.23"
+VERSION = "0.0.0-dev"  # Now updated by release workflow
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -557,7 +557,11 @@ SENSOR_DATA = {
     },
     "walmart_delivered": {
         "email": ["help@walmart.com"],
-        "subject": ["Your order was delivered", "Some of your items were delivered", "Delivered: items from order"],
+        "subject": [
+            "Your order was delivered",
+            "Some of your items were delivered",
+            "Delivered: items from order",
+        ],
     },
     "walmart_exception": {
         "email": ["help@walmart.com"],
