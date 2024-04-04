@@ -551,15 +551,23 @@ SENSOR_DATA = {
     },
     "intelcom_tracking": {"pattern": ["INTLCMD[0-9]{9}"]},
     # Walmart
+    "walmart_delivering": {
+        "email": ["help@walmart.com"],
+        "subject": ["Out for delivery"],
+    },
     "walmart_delivered": {
         "email": ["help@walmart.com"],
-        "subject": ["Your order was delivered", "Some of your items were delivered"],
+        "subject": [
+            "Your order was delivered",
+            "Some of your items were delivered",
+            "Delivered: items from order",
+        ],
     },
     "walmart_exception": {
         "email": ["help@walmart.com"],
         "subject": ["delivery is delayed"],
     },
-    "walmart_tracking": {"pattern": ["#[0-9]{7}-[0-9]{7}"]},
+    "walmart_tracking": {"pattern": ["#[0-9]{7}-[0-9]{7,8}"]},
     # BuildingLink
     "buildinglink_delivered": {
         "email": ["notify@buildinglink.com"],
@@ -998,6 +1006,12 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         key="intelcom_packages",
     ),
     # Walmart
+    "walmart_delivering": SensorEntityDescription(
+        name="Mail Walmart Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="walmart_delivering",
+    ),
     "walmart_delivered": SensorEntityDescription(
         name="Mail Walmart Delivered",
         native_unit_of_measurement="package(s)",
