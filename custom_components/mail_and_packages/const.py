@@ -560,7 +560,7 @@ SENSOR_DATA = {
         "subject": [
             "Your order was delivered",
             "Some of your items were delivered",
-            "Delivered: items from order",
+            "Delivered:",
         ],
     },
     "walmart_exception": {
