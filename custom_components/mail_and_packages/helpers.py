@@ -303,7 +303,9 @@ async def image_file_name(
     # Insert place holder image
     _LOGGER.debug("Copying %s to %s", mail_none, os.path.join(path, image_name))
 
-    await hass.async_add_executor_job(copyfile,mail_none, os.path.join(path, image_name))
+    await hass.async_add_executor_job(
+        copyfile, mail_none, os.path.join(path, image_name)
+    )
 
     return image_name
 
