@@ -367,17 +367,17 @@ async def fetch(
     elif sensor == AMAZON_PACKAGES:
         count[sensor] = await hass.async_add_executor_job(
             get_items,
-            account=account,
-            param=ATTR_COUNT,
-            fwds=amazon_fwds,
-            days=amazon_days,
+            account,
+            ATTR_COUNT,
+            amazon_fwds,
+            amazon_days,
         )
         count[AMAZON_ORDER] = await hass.async_add_executor_job(
             get_items,
-            account=account,
-            param=ATTR_ORDER,
-            fwds=amazon_fwds,
-            days=amazon_days,
+            account,
+            ATTR_ORDER,
+            amazon_fwds,
+            amazon_days,
         )
     elif sensor == AMAZON_HUB:
         value = amazon_hub(account, amazon_fwds)
