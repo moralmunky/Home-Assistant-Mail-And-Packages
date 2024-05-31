@@ -133,6 +133,7 @@ class MailCam(Camera):
         """Update the file_path."""
         _LOGGER.debug("Camera Update: %s", self._type)
         _LOGGER.debug("Custom No Mail: %s", self._no_mail)
+        file_path = None
 
         if not self._coordinator.last_update_success:
             _LOGGER.debug("Update to update camera image. Unavailable.")
@@ -145,25 +146,23 @@ class MailCam(Camera):
         if self._type == "usps_camera":
             # Update camera image for USPS informed delivery images
             image = self._coordinator.data[ATTR_IMAGE_NAME]
+            file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
 
             if ATTR_IMAGE_PATH in self._coordinator.data.keys():
                 path = self._coordinator.data[ATTR_IMAGE_PATH]
                 file_path = f"{self.hass.config.path()}/{path}{image}"
             else:
-                if self._no_mail is None:
-                    file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
-                else:
+                if self._no_mail:
                     file_path = self._no_mail
 
         elif self._type == "amazon_camera":
             # Update camera image for Amazon deliveries
             image = self._coordinator.data[ATTR_AMAZON_IMAGE]
+            file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
 
             if ATTR_IMAGE_PATH in self._coordinator.data.keys():
                 path = f"{self._coordinator.data[ATTR_IMAGE_PATH]}amazon/"
                 file_path = f"{self.hass.config.path()}/{path}{image}"
-            else:
-                file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
 
         self.check_file_path_access(file_path)
         self._file_path = file_path
