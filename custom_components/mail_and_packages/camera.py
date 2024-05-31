@@ -158,12 +158,11 @@ class MailCam(Camera):
         elif self._type == "amazon_camera":
             # Update camera image for Amazon deliveries
             image = self._coordinator.data[ATTR_AMAZON_IMAGE]
+            file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
 
             if ATTR_IMAGE_PATH in self._coordinator.data.keys():
                 path = f"{self._coordinator.data[ATTR_IMAGE_PATH]}amazon/"
                 file_path = f"{self.hass.config.path()}/{path}{image}"
-            else:
-                file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
 
         self.check_file_path_access(file_path)
         self._file_path = file_path

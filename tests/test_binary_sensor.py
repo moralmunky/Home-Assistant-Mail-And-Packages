@@ -47,8 +47,7 @@ async def test_binary_sensor_updated(hass, mock_update_amazon_image):
         mock_hash_file.side_effect = hash_side_effect
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
-
-        assert "mail_and_packages" in hass.config.components
+        assert "mail_and_packages" in hass.config.components    
 
         state = hass.states.get("binary_sensor.usps_image_updated")
         assert state

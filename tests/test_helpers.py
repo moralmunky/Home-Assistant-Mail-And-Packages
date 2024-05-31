@@ -104,7 +104,7 @@ async def test_process_emails(
     assert "/testing_config/custom_components/mail_and_packages/images/" in state.state
     state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
     assert state.state == "unknown"
-    result = process_emails(hass, config)
+    result = await process_emails(hass, config)
     assert isinstance(result["mail_updated"], datetime.datetime)
     assert result["zpackages_delivered"] == 0
     assert result["zpackages_transit"] == 0
@@ -140,7 +140,7 @@ async def test_process_emails_external(
     assert "/testing_config/custom_components/mail_and_packages/images/" in state.state
     state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
     assert state.state == "unknown"
-    result = process_emails(hass, config)
+    result = await process_emails(hass, config)
     assert isinstance(result["mail_updated"], datetime.datetime)
     assert result["zpackages_delivered"] == 0
     assert result["zpackages_transit"] == 0
@@ -178,7 +178,7 @@ async def test_process_emails_external_error(
     config = entry.data.copy()
     with patch("os.makedirs") as mock_osmakedirs:
         mock_osmakedirs.side_effect = OSError
-        process_emails(hass, config)
+        await process_emails(hass, config)
 
     assert "Problem creating:" in caplog.text
 
@@ -234,7 +234,7 @@ async def test_process_emails_non_random(
     entry = integration
 
     config = entry.data
-    result = process_emails(hass, config)
+    result = await process_emails(hass, config)
     assert result["image_name"] == "testfile.gif"
 
 
@@ -254,7 +254,7 @@ async def test_process_emails_random(
     entry = integration
 
     config = entry.data
-    result = process_emails(hass, config)
+    result = await process_emails(hass, config)
     assert ".gif" in result["image_name"]
 
 
@@ -274,7 +274,7 @@ async def test_process_nogif(
     entry = integration
 
     config = entry.data
-    result = process_emails(hass, config)
+    result = await process_emails(hass, config)
     assert ".gif" in result["image_name"]
 
 
@@ -294,7 +294,7 @@ async def test_process_old_image(
     entry = integration
 
     config = entry.data
-    result = process_emails(hass, config)
+    result = await process_emails(hass, config)
     assert ".gif" in result["image_name"]
 
 
@@ -317,7 +317,7 @@ async def test_process_folder_error(
     with patch(
         "custom_components.mail_and_packages.helpers.selectfolder", return_value=False
     ):
-        result = process_emails(hass, config)
+        result = await process_emails(hass, config)
         assert result == {}
 
 
@@ -989,7 +989,7 @@ async def test_image_file_name_path_error(hass, caplog):
     with patch("os.path.exists", return_value=False), patch(
         "os.makedirs", side_effect=OSError
     ):
-        result = image_file_name(hass, config)
+        result = await image_file_name(hass, config)
         assert result == "mail_none.gif"
         assert "Problem creating:" in caplog.text
 
@@ -1003,7 +1003,7 @@ async def test_image_file_name_amazon(
     with patch("os.path.exists", return_value=True), patch(
         "os.makedirs", return_value=True
     ):
-        result = image_file_name(hass, config, True)
+        result = await image_file_name(hass, config, True)
         assert result == "testfile.jpg"
 
 
@@ -1016,13 +1016,13 @@ async def test_image_file_name(
     with patch("os.path.exists", return_value=True), patch(
         "os.makedirs", return_value=True
     ):
-        result = image_file_name(hass, config)
+        result = await image_file_name(hass, config)
         assert ".gif" in result
         assert not result == "mail_none.gif"
 
         # Test custom image settings
         config = FAKE_CONFIG_DATA_CUSTOM_IMG
-        result = image_file_name(hass, config)
+        result = await image_file_name(hass, config)
         assert ".gif" in result
         assert not result == "mail_none.gif"
         assert len(mock_copyfile.mock_calls) == 2
