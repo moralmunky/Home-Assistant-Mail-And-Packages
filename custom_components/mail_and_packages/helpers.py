@@ -284,7 +284,13 @@ async def image_file_name(
             _LOGGER.debug("Created: %s, Today: %s", created, today)
             # If image isn't mail_none and not created today,
             # return a new filename
-            if sha1 != await hass.async_add_executor_job(hash_file,os.path.join(path, file)) and today != created:
+            if (
+                sha1
+                != await hass.async_add_executor_job(
+                    hash_file, os.path.join(path, file)
+                )
+                and today != created
+            ):
                 image_name = f"{str(uuid.uuid4())}{ext}"
             else:
                 image_name = file
@@ -395,13 +401,13 @@ async def fetch(
         for shipper in SHIPPERS:
             delivered = f"{shipper}_delivered"
             if delivered in data and delivered != sensor:
-                count[sensor] += fetch(hass, config, account, data, delivered)
+                count[sensor] += await fetch(hass, config, account, data, delivered)
     elif sensor == "zpackages_transit":
         total = 0
         for shipper in SHIPPERS:
             delivering = f"{shipper}_delivering"
             if delivering in data and delivering != sensor:
-                total += fetch(hass, config, account, data, delivering)
+                total += await fetch(hass, config, account, data, delivering)
         count[sensor] = max(0, total)
     elif sensor == "mail_updated":
         count[sensor] = update_time()
