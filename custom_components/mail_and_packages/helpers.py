@@ -303,7 +303,7 @@ async def image_file_name(
     # Insert place holder image
     _LOGGER.debug("Copying %s to %s", mail_none, os.path.join(path, image_name))
 
-    copyfile(mail_none, os.path.join(path, image_name))
+    await hass.async_add_executor_job(copyfile,mail_none, os.path.join(path, image_name))
 
     return image_name
 
@@ -365,13 +365,15 @@ async def fetch(
             nomail,
         )
     elif sensor == AMAZON_PACKAGES:
-        count[sensor] = get_items(
+        count[sensor] = await hass.async_add_executor_job(
+            get_items,
             account=account,
             param=ATTR_COUNT,
             fwds=amazon_fwds,
             days=amazon_days,
         )
-        count[AMAZON_ORDER] = get_items(
+        count[AMAZON_ORDER] = await hass.async_add_executor_job(
+            get_items,
             account=account,
             param=ATTR_ORDER,
             fwds=amazon_fwds,
