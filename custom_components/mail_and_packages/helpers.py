@@ -141,7 +141,7 @@ def default_image_path(
     return "custom_components/mail_and_packages/images/"
 
 
-def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
+async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     """Process emails and return value.
 
     Returns dict containing sensor data
@@ -171,12 +171,12 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     _image = {}
 
     # USPS Mail Image name
-    image_name = image_file_name(hass, config)
+    image_name = await image_file_name(hass, config)
     _LOGGER.debug("Image name: %s", image_name)
     _image[ATTR_IMAGE_NAME] = image_name
 
     # Amazon delivery image name
-    image_name = image_file_name(hass, config, True)
+    image_name = await image_file_name(hass, config, True)
     _LOGGER.debug("Amazon Image Name: %s", image_name)
     _image[ATTR_AMAZON_IMAGE] = image_name
 
@@ -187,11 +187,11 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
 
     # Only update sensors we're intrested in
     for sensor in resources:
-        fetch(hass, config, account, data, sensor)
+        await fetch(hass, config, account, data, sensor)
 
     # Copy image file to www directory if enabled
     if config.get(CONF_ALLOW_EXTERNAL):
-        copy_images(hass, config)
+        await hass.async_add_executor_job(copy_images, hass, config)
 
     return data
 
@@ -227,7 +227,7 @@ def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
         return
 
 
-def image_file_name(
+async def image_file_name(
     hass: HomeAssistant, config: ConfigEntry, amazon: bool = False
 ) -> str:
     """Determine if filename is to be changed or not.
@@ -261,7 +261,7 @@ def image_file_name(
 
     # SHA1 file hash check
     try:
-        sha1 = hash_file(mail_none)
+        sha1 = await hass.async_add_executor_job(hash_file, mail_none)
     except OSError as err:
         _LOGGER.error("Problem accessing file: %s, error returned: %s", mail_none, err)
         return image_name
@@ -284,7 +284,7 @@ def image_file_name(
             _LOGGER.debug("Created: %s, Today: %s", created, today)
             # If image isn't mail_none and not created today,
             # return a new filename
-            if sha1 != hash_file(os.path.join(path, file)) and today != created:
+            if sha1 != await hass.async_add_executor_job(hash_file,os.path.join(path, file)) and today != created:
                 image_name = f"{str(uuid.uuid4())}{ext}"
             else:
                 image_name = file
@@ -323,7 +323,7 @@ def hash_file(filename: str) -> str:
     return the_hash.hexdigest()
 
 
-def fetch(
+async def fetch(
     hass: HomeAssistant, config: ConfigEntry, account: Any, data: dict, sensor: str
 ) -> int:
     """Fetch data for a single sensor, including any sensors it depends on.
@@ -349,7 +349,8 @@ def fetch(
     count = {}
 
     if sensor == "usps_mail":
-        count[sensor] = get_mails(
+        count[sensor] = await hass.async_add_executor_job(
+            get_mails,
             account,
             img_out_path,
             gif_duration,
@@ -380,12 +381,12 @@ def fetch(
         count[AMAZON_EXCEPTION_ORDER] = info[ATTR_ORDER]
     elif "_packages" in sensor:
         prefix = sensor.replace("_packages", "")
-        delivering = fetch(hass, config, account, data, f"{prefix}_delivering")
-        delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
+        delivering = await fetch(hass, config, account, data, f"{prefix}_delivering")
+        delivered = await fetch(hass, config, account, data, f"{prefix}_delivered")
         count[sensor] = delivering + delivered
     elif "_delivering" in sensor:
         prefix = sensor.replace("_delivering", "")
-        delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
+        delivered = await fetch(hass, config, account, data, f"{prefix}_delivered")
         info = get_count(account, sensor, True)
         count[sensor] = max(0, info[ATTR_COUNT] - delivered)
         count[f"{prefix}_tracking"] = info[ATTR_TRACKING]
