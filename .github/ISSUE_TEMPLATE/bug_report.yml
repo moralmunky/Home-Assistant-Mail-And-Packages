@@ -1,0 +1,64 @@
+name: Report an issue with Mail and Packages
+labels: ["pending"]
+title: "[Bug]: "
+description: Report an issue with Mail and Packages.
+body:
+  - type: textarea
+    validations:
+      required: true
+    attributes:
+      label: The problem
+      description: >-
+        Describe the issue you are experiencing here, to communicate to the
+        maintainers. Tell us what you were trying to do and what happened.
+
+        Provide a clear and concise description of what the problem is.
+  - type: markdown
+    attributes:
+      value: |
+        ## Environment
+  - type: input
+    id: version
+    validations:
+      required: true
+    attributes:
+      label: What version of Home Assistant?
+      placeholder: core-
+      description: >
+        Can be found in: [Settings ⇒ System ⇒ Repairs ⇒ Three Dots in Upper Right ⇒ System information](https://my.home-assistant.io/redirect/system_health/).
+
+        [![Open your Home Assistant instance and show the system information.](https://my.home-assistant.io/badges/system_health.svg)](https://my.home-assistant.io/redirect/system_health/)
+  - type: input
+    validations:
+      required: true  
+    attributes:
+      label: What version of Mail and Packages?
+      description: >
+        Can be found in: [Settings ⇒ Devices & services ⇒ Mail and Packages under the Mail and Packages logo](https://my.home-assistant.io/redirect/integration/?domain=mail_and_packages)
+
+        [![Open your Home Assistant instance and show the integration information.](https://my.home-assistant.io/badges/integration.svg)](https://my.home-assistant.io/redirect/integration/?domain=mail_and_packages)
+  - type: markdown
+    attributes:
+      value: |
+        # Details
+  - type: textarea
+    attributes:
+      label: Diagnostics information
+      placeholder: "drag-and-drop the diagnostics data file here (do not copy-and-paste the content)"
+      description: >-
+        Many integrations provide the ability to [download diagnostic data](https://www.home-assistant.io/docs/configuration/troubleshooting/#debug-logs-and-diagnostics).
+
+        **It would really help if you could download the diagnostics data for the device you are having issues with,
+        and <ins>drag-and-drop that file into the textbox below.</ins>**
+
+        It generally allows pinpointing defects and thus resolving issues faster.
+  - type: textarea
+    attributes:
+      label: Anything in the logs that might be useful for us?
+      description: For example, error message, or stack traces.
+      render: txt
+  - type: textarea
+    attributes:
+      label: Additional information
+      description: >
+        If you have any additional information for us, use the field below.
