@@ -2,16 +2,14 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/moralmunky/Home-Assistant-Mail-And-Packages)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/moralmunky/Home-Assistant-Mail-And-Packages)
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
-![Pytest](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/workflows/Pytest/badge.svg?branch=master)
-![CodeQL](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/workflows/CodeQL/badge.svg?branch=master)
-![Validate with hassfest](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/workflows/Validate%20with%20hassfest/badge.svg?branch=master)
+![Pytest](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/workflows/Pytest/badge.svg?branch=dev)
+![CodeQL](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/workflows/CodeQL/badge.svg?branch=dev)
 
 ![GitHub contributors](https://img.shields.io/github/contributors/moralmunky/Home-Assistant-Mail-And-Packages)
-![Maintenance](https://img.shields.io/maintenance/yes/2023)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/moralmunky/Home-Assistant-Mail-And-Packages)
 ![GitHub commits since tagged version](https://img.shields.io/github/commits-since/moralmunky/Home-Assistant-Mail-And-Packages/0.3.3-2/dev)
 ![GitHub last commit](https://img.shields.io/github/last-commit/moralmunky/Home-Assistant-Mail-And-Packages/dev)
-![Codecov branch](https://img.shields.io/codecov/c/github/moralmunky/Home-Assistant-Mail-And-Packages/master)
+![Codecov branch](https://img.shields.io/codecov/c/github/moralmunky/Home-Assistant-Mail-And-Packages/dev)
 
 ## About Mail and Packages integration
 
