@@ -113,8 +113,8 @@ class MailCam(Camera):
     ) -> bytes | None:
         """Return image response."""
         try:
-            with open(self._file_path, "rb") as file:
-                return file.read()
+            file = await self.hass.async_add_executor_job(open, self._file_path, "rb")
+            return file.read()
         except FileNotFoundError:
             _LOGGER.warning(
                 "Could not read camera %s image from file: %s",
