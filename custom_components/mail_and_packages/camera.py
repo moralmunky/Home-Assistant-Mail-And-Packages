@@ -145,10 +145,10 @@ class MailCam(Camera):
 
         if self._type == "usps_camera":
             # Update camera image for USPS informed delivery images
-            image = self._coordinator.data[ATTR_IMAGE_NAME]
             file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
-
-            if ATTR_IMAGE_PATH in self._coordinator.data.keys():
+            s1 = set([ATTR_IMAGE_NAME, ATTR_IMAGE_PATH])
+            if s1.issubset(self._coordinator.data.keys()):
+                image = self._coordinator.data[ATTR_IMAGE_NAME]
                 path = self._coordinator.data[ATTR_IMAGE_PATH]
                 file_path = f"{self.hass.config.path()}/{path}{image}"
             else:
@@ -157,10 +157,10 @@ class MailCam(Camera):
 
         elif self._type == "amazon_camera":
             # Update camera image for Amazon deliveries
-            image = self._coordinator.data[ATTR_AMAZON_IMAGE]
             file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
-
-            if ATTR_IMAGE_PATH in self._coordinator.data.keys():
+            s1 = set([ATTR_AMAZON_IMAGE, ATTR_IMAGE_PATH])
+            if s1.issubset(self._coordinator.data.keys()):
+                image = self._coordinator.data[ATTR_AMAZON_IMAGE]
                 path = f"{self._coordinator.data[ATTR_IMAGE_PATH]}amazon/"
                 file_path = f"{self.hass.config.path()}/{path}{image}"
 
