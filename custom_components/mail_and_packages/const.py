@@ -604,6 +604,7 @@ SENSOR_DATA = {
         ],
         "subject": [
             "Ein Brief kommt in Kürze bei Ihnen an",
+            "Ein Brief ist unterwegs zu Ihnen",
         ],
     },
     "post_de_delivered": {},
