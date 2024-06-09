@@ -1083,7 +1083,7 @@ def amazon_search(
             if server_response == "OK" and data[0] is not None:
                 count += len(data[0].split())
                 _LOGGER.debug("Amazon delivered email(s) found: %s", count)
-                get_amazon_image(data[0], account, image_path, hass, amazon_image_name)
+                hass.async_add_executor_job(get_amazon_image, data[0], account, image_path, hass, amazon_image_name)
 
     return count
 
