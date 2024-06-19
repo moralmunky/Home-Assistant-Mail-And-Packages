@@ -1141,20 +1141,24 @@ async def test_invalid_ffmpeg(test_invalid_ffmpeg):
 @pytest.mark.asyncio
 async def test_imap_login(mock_imap):
     result = await _test_login(
-        "127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword"
+        "127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword", False
     )
     assert result
 
 
 @pytest.mark.asyncio
 async def test_imap_connection_error(caplog):
-    await _test_login("127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword")
+    await _test_login(
+        "127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword", False
+    )
     assert "Error connecting into IMAP Server:" in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_imap_login_error(mock_imap_login_error, caplog):
-    await _test_login("127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword")
+    await _test_login(
+        "127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword", True
+    )
     assert "Error logging into IMAP Server:" in caplog.text
 
 
