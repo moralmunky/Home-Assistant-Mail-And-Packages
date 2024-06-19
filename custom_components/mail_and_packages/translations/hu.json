@@ -18,7 +18,8 @@
                     "host": "Házigazda",
                     "password": "Jelszó",
                     "port": "Kikötő",
-                    "username": "Felhasználónév"
+                    "username": "Felhasználónév",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Kérjük, adja meg a levelezőszerver csatlakozási adatait.",
                 "title": "Levél és csomagok (1. lépés a 2-ből)"
@@ -67,7 +68,8 @@
                     "host": "Házigazda",
                     "password": "Jelszó",
                     "port": "Kikötő",
-                    "username": "Felhasználónév"
+                    "username": "Felhasználónév",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Kérjük, adja meg a levelezőszerver csatlakozási adatait.",
                 "title": "Levél és csomagok (1. lépés a 2-ből)"

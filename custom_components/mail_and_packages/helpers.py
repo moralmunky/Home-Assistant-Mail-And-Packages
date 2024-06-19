@@ -11,6 +11,8 @@ import logging
 import os
 import quopri
 import re
+import ssl
+from ssl import Purpose
 import subprocess  # nosec
 import uuid
 from datetime import timezone
@@ -75,6 +77,7 @@ from .const import (
     CONF_FOLDER,
     CONF_GENERATE_MP4,
     CONF_PATH,
+    CONF_VERIFY_SSL,
     DEFAULT_AMAZON_DAYS,
     OVERLAY,
     SENSOR_DATA,
@@ -152,12 +155,13 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     pwd = config.get(CONF_PASSWORD)
     folder = config.get(CONF_FOLDER)
     resources = config.get(CONF_RESOURCES)
+    verify_ssl = config.get(CONF_VERIFY_SSL)
 
     # Create the dict container
     data = {}
 
     # Login to email server and select the folder
-    account = login(host, port, user, pwd)
+    account = login(host, port, user, pwd, verify_ssl)
 
     # Do not process if account returns false
     if not account:
@@ -426,15 +430,21 @@ async def fetch(
 
 
 def login(
-    host: str, port: int, user: str, pwd: str
+    host: str, port: int, user: str, pwd: str, verify: bool = True
 ) -> Union[bool, Type[imaplib.IMAP4_SSL]]:
     """Login to IMAP server.
 
     Returns account object
     """
+    context = ssl.create_default_context()
+    if not verify:
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+    else:
+        context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
     # Catch invalid mail server / host names
     try:
-        account = imaplib.IMAP4_SSL(host, port)
+        account = imaplib.IMAP4_SSL(host=host,port=port,ssl_context=context)
 
     except Exception as err:
         _LOGGER.error("Network error while connecting to server: %s", str(err))
