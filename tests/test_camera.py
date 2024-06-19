@@ -1,12 +1,12 @@
 """Tests for camera component."""
 
+from unittest.mock import mock_open, patch
+
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import CAMERA, DOMAIN
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_CUSTOM_IMG
-
-from unittest.mock import mock_open, patch
 
 pytestmark = pytest.mark.asyncio
 

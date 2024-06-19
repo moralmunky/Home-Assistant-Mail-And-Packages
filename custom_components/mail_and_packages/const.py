@@ -54,6 +54,7 @@ CONF_IMAP_TIMEOUT = "imap_timeout"
 CONF_GENERATE_MP4 = "generate_mp4"
 CONF_AMAZON_FWDS = "amazon_fwds"
 CONF_AMAZON_DAYS = "amazon_days"
+CONF_VERIFY_SSL = "verify_ssl"
 
 # Defaults
 DEFAULT_CAMERA_NAME = "Mail USPS Camera"

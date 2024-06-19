@@ -144,6 +144,7 @@ async def test_custom_img(
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
+
 @pytest.mark.asyncio
 async def test_v4_migration(
     hass,

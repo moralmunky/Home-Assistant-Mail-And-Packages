@@ -18,7 +18,8 @@
                     "host": "Gastheer",
                     "password": "Wachtwoord",
                     "port": "Haven",
-                    "username": "Gebruikersnaam"
+                    "username": "Gebruikersnaam",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Voer de verbindingsgegevens van uw mailserver in.",
                 "title": "Mail en pakketten (stap 1 van 2)"
@@ -67,7 +68,8 @@
                     "host": "Gastheer",
                     "password": "Wachtwoord",
                     "port": "Haven",
-                    "username": "Gebruikersnaam"
+                    "username": "Gebruikersnaam",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Voer de verbindingsgegevens van uw mailserver in.",
                 "title": "Mail en pakketten (stap 1 van 2)"

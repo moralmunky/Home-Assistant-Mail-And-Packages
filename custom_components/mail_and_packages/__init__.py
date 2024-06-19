@@ -18,6 +18,7 @@ from .const import (
     CONF_IMAP_TIMEOUT,
     CONF_PATH,
     CONF_SCAN_INTERVAL,
+    CONF_VERIFY_SSL,
     COORDINATOR,
     DEFAULT_AMAZON_DAYS,
     DEFAULT_AMAZON_FWDS,
@@ -147,7 +148,7 @@ async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry) -> Non
 async def async_migrate_entry(hass, config_entry):
     """Migrate an old config entry."""
     version = config_entry.version
-    new_version = 5
+    new_version = 6
 
     # 1 -> 4: Migrate format
     if version == 1:
@@ -202,6 +203,18 @@ async def async_migrate_entry(hass, config_entry):
 
         if updated_config[CONF_AMAZON_FWDS] == ['""']:
             updated_config[CONF_AMAZON_FWDS] = DEFAULT_AMAZON_FWDS
+
+    if updated_config != config_entry.data:
+        hass.config_entries.async_update_entry(
+            config_entry, data=updated_config, version=new_version
+        )
+
+    if version == 5:
+        _LOGGER.debug("Migrating from version %s", version)
+        updated_config = config_entry.data.copy()
+
+        if CONF_VERIFY_SSL not in updated_config:
+            updated_config[CONF_VERIFY_SSL] = True
 
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(

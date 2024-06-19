@@ -1,12 +1,12 @@
 """Test Mail and Packages binary sensors."""
 
+from unittest.mock import patch
+
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import DOMAIN
 from tests.const import FAKE_CONFIG_DATA
-
-from unittest.mock import patch
 
 
 @pytest.mark.asyncio
@@ -47,7 +47,7 @@ async def test_binary_sensor_no_updates(hass, mock_imap_no_email):
 #         mock_hash_file.side_effect = hash_side_effect
 #         assert await hass.config_entries.async_setup(entry.entry_id)
 #         await hass.async_block_till_done()
-#         assert "mail_and_packages" in hass.config.components    
+#         assert "mail_and_packages" in hass.config.components
 
 #         state = hass.states.get("binary_sensor.usps_image_updated")
 #         assert state

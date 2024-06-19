@@ -18,7 +18,8 @@
                     "host": "Värd",
                     "password": "Lösenord",
                     "port": "Hamn",
-                    "username": "Användarnamn"
+                    "username": "Användarnamn",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Ange anslutningsinformationen för din postserver.",
                 "title": "Mail och paket (steg 1 av 2)"
@@ -67,7 +68,8 @@
                     "host": "Värd",
                     "password": "Lösenord",
                     "port": "Hamn",
-                    "username": "Användarnamn"
+                    "username": "Användarnamn",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Ange anslutningsinformationen för din postserver.",
                 "title": "Mail och paket (steg 1 av 2)"

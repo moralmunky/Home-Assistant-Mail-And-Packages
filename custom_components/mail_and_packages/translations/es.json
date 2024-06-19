@@ -18,7 +18,8 @@
                     "host": "Anfitrión",
                     "password": "Contraseña",
                     "port": "Puerto",
-                    "username": "Nombre de usuario"
+                    "username": "Nombre de usuario",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Ingrese la información de conexión de su servidor de correo.",
                 "title": "Correo y paquetes (Paso 1 de 2)"
@@ -67,7 +68,8 @@
                     "host": "Anfitrión",
                     "password": "Contraseña",
                     "port": "Puerto",
-                    "username": "Nombre de usuario"
+                    "username": "Nombre de usuario",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Ingrese la información de conexión de su servidor de correo.",
                 "title": "Correo y paquetes (Paso 1 de 2)"
