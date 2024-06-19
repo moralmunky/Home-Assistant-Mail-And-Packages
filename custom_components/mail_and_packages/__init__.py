@@ -219,7 +219,7 @@ async def async_migrate_entry(hass, config_entry):
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(
             config_entry, data=updated_config, version=new_version
-        )        
+        )
 
     _LOGGER.debug("Migration complete to version %s", new_version)
 

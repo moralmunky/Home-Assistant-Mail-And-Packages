@@ -444,7 +444,7 @@ def login(
         context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
     # Catch invalid mail server / host names
     try:
-        account = imaplib.IMAP4_SSL(host=host,port=port,ssl_context=context)
+        account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
 
     except Exception as err:
         _LOGGER.error("Network error while connecting to server: %s", str(err))
