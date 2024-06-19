@@ -18,7 +18,8 @@
                     "host": "Gostitelj",
                     "password": "Geslo",
                     "port": "Pristanišče",
-                    "username": "Uporabniško ime"
+                    "username": "Uporabniško ime",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Vnesite podatke o povezavi vašega poštnega strežnika.",
                 "title": "Pošta in paketi (1. korak od 2)"
@@ -67,7 +68,8 @@
                     "host": "Gostitelj",
                     "password": "Geslo",
                     "port": "Pristanišče",
-                    "username": "Uporabniško ime"
+                    "username": "Uporabniško ime",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Vnesite podatke o povezavi vašega poštnega strežnika.",
                 "title": "Pošta in paketi (1. korak od 2)"

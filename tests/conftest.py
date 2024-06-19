@@ -1,7 +1,6 @@
 """Fixtures for Mail and Packages tests."""
 
 import asyncio
-import aiohttp
 import datetime
 import errno
 import imaplib
@@ -10,23 +9,23 @@ from datetime import timezone
 from unittest import mock
 from unittest.mock import patch
 
+import aiohttp
 import pytest
 from aioresponses import aioresponses
-
-from tests.const import (
-    FAKE_UPDATE_DATA,
-    FAKE_UPDATE_DATA_BIN,
-    FAKE_CONFIG_DATA,
-    FAKE_CONFIG_DATA_CUSTOM_IMG,
-    FAKE_CONFIG_DATA_NO_PATH,
-    FAKE_CONFIG_DATA_MISSING_TIMEOUT,
-    FAKE_CONFIG_DATA_AMAZON_FWD_STRING,
-    FAKE_CONFIG_DATA_EXTERNAL,
-    FAKE_CONFIG_DATA_V4_MIGRATE,
-)
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import DOMAIN
+from tests.const import (
+    FAKE_CONFIG_DATA,
+    FAKE_CONFIG_DATA_AMAZON_FWD_STRING,
+    FAKE_CONFIG_DATA_CUSTOM_IMG,
+    FAKE_CONFIG_DATA_EXTERNAL,
+    FAKE_CONFIG_DATA_MISSING_TIMEOUT,
+    FAKE_CONFIG_DATA_NO_PATH,
+    FAKE_CONFIG_DATA_V4_MIGRATE,
+    FAKE_UPDATE_DATA,
+    FAKE_UPDATE_DATA_BIN,
+)
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 pytestmark = pytest.mark.asyncio

@@ -18,7 +18,8 @@
                     "host": "Amfitrió",
                     "password": "Contrasenya",
                     "port": "Port",
-                    "username": "Nom d'usuari"
+                    "username": "Nom d'usuari",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Introduïu la informació de connexió del vostre servidor de correu.",
                 "title": "Correu i paquets (pas 1 de 2)"
@@ -67,7 +68,8 @@
                     "host": "Amfitrió",
                     "password": "Contrasenya",
                     "port": "Port",
-                    "username": "Nom d'usuari"
+                    "username": "Nom d'usuari",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Introduïu la informació de connexió del vostre servidor de correu.",
                 "title": "Correu i paquets (pas 1 de 2)"

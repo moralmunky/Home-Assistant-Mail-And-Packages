@@ -18,7 +18,8 @@
                     "host": "Host",
                     "password": "Password",
                     "port": "Port",
-                    "username": "Username"
+                    "username": "Username",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Please enter the connection information of your mail server.",
                 "title": "Mail and Packages (Step 1 of 2)"
@@ -67,7 +68,8 @@
                     "host": "Host",
                     "password": "Password",
                     "port": "Port",
-                    "username": "Username"
+                    "username": "Username",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Please enter the connection information of your mail server.",
                 "title": "Mail and Packages (Step 1 of 2)"

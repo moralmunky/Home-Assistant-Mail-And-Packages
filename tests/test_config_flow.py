@@ -27,6 +27,7 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "config_2",
             {
@@ -116,6 +117,7 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+                "verify_ssl": False,
             },
         ),
     ],
@@ -188,6 +190,7 @@ async def test_form(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "config_2",
             {
@@ -277,6 +280,7 @@ async def test_form(
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+                "verify_ssl": False,
             },
         ),
     ],
@@ -349,6 +353,7 @@ async def test_form_no_fwds(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "config_2",
             {
@@ -438,6 +443,7 @@ async def test_form_no_fwds(
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+                "verify_ssl": False,
             },
         ),
     ],
@@ -504,6 +510,7 @@ async def test_form_invalid_custom_img_path(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "user",
         ),
@@ -549,6 +556,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "config_2",
             {
@@ -630,6 +638,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+                "verify_ssl": False,
             },
         ),
     ],
@@ -683,6 +692,7 @@ async def test_form_invalid_ffmpeg(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "config_2",
             {
@@ -767,6 +777,7 @@ async def test_form_invalid_ffmpeg(
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+                "verify_ssl": False,
             },
         ),
     ],
@@ -829,6 +840,7 @@ async def test_form_index_error(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "config_2",
             {
@@ -913,6 +925,7 @@ async def test_form_index_error(
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+                "verify_ssl": False,
             },
         ),
     ],
@@ -975,6 +988,7 @@ async def test_form_index_error_2(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "config_2",
             {
@@ -1058,6 +1072,7 @@ async def test_form_index_error_2(
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+                "verify_ssl": False,
             },
         ),
     ],
@@ -1126,20 +1141,24 @@ async def test_invalid_ffmpeg(test_invalid_ffmpeg):
 @pytest.mark.asyncio
 async def test_imap_login(mock_imap):
     result = await _test_login(
-        "127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword"
+        "127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword", False
     )
     assert result
 
 
 @pytest.mark.asyncio
 async def test_imap_connection_error(caplog):
-    await _test_login("127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword")
+    await _test_login(
+        "127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword", False
+    )
     assert "Error connecting into IMAP Server:" in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_imap_login_error(mock_imap_login_error, caplog):
-    await _test_login("127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword")
+    await _test_login(
+        "127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword", True
+    )
     assert "Error logging into IMAP Server:" in caplog.text
 
 
@@ -1152,6 +1171,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "options_2",
             {
@@ -1244,6 +1264,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+                "verify_ssl": False,
             },
         ),
     ],
@@ -1328,6 +1349,7 @@ async def test_options_flow(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "options_2",
             {
@@ -1420,6 +1442,7 @@ async def test_options_flow(
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+                "verify_ssl": False,
             },
         ),
     ],
@@ -1500,6 +1523,7 @@ async def test_options_flow_invalid_custom_img_path(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "init",
         ),
@@ -1557,6 +1581,7 @@ async def test_options_flow_connection_error(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "options_2",
             {
@@ -1641,6 +1666,7 @@ async def test_options_flow_connection_error(
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+                "verify_ssl": False,
             },
         ),
     ],
@@ -1705,6 +1731,7 @@ async def test_options_flow_invalid_ffmpeg(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "options_2",
             {
@@ -1789,6 +1816,7 @@ async def test_options_flow_invalid_ffmpeg(
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+                "verify_ssl": False,
             },
         ),
     ],
@@ -1854,6 +1882,7 @@ async def test_options_flow_index_error(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "options_2",
             {
@@ -1938,6 +1967,7 @@ async def test_options_flow_index_error(
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+                "verify_ssl": False,
             },
         ),
     ],
@@ -2003,6 +2033,7 @@ async def test_options_flow_index_error_2(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "options_2",
             {
@@ -2087,6 +2118,7 @@ async def test_options_flow_index_error_2(
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+                "verify_ssl": False,
             },
         ),
     ],
@@ -2152,6 +2184,7 @@ async def test_options_flow_mailbox_format2(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "options_2",
             {
@@ -2238,6 +2271,7 @@ async def test_options_flow_mailbox_format2(
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+                "verify_ssl": False,
             },
         ),
     ],
@@ -2309,6 +2343,7 @@ async def test_options_flow_bad(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "config_2",
             {
@@ -2403,6 +2438,7 @@ async def test_form_amazon_error(
                 "port": "993",
                 "username": "test@test.email",
                 "password": "notarealpassword",
+                "verify_ssl": False,
             },
             "config_2",
             {

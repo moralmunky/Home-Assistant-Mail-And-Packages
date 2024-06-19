@@ -18,7 +18,8 @@
                     "host": "주최자",
                     "password": "암호",
                     "port": "포트",
-                    "username": "사용자 이름"
+                    "username": "사용자 이름",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "메일 서버의 연결 정보를 입력하십시오.",
                 "title": "메일 및 패키지 (1/2 단계)"
@@ -67,7 +68,8 @@
                     "host": "주최자",
                     "password": "암호",
                     "port": "포트",
-                    "username": "사용자 이름"
+                    "username": "사용자 이름",
+                    "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "메일 서버의 연결 정보를 입력하십시오.",
                 "title": "메일 및 패키지 (1/2 단계)"

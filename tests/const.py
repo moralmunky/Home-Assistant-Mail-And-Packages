@@ -117,6 +117,7 @@ FAKE_CONFIG_DATA = {
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
+    "verify_ssl": False,
 }
 
 FAKE_CONFIG_DATA_EXTERNAL = {
@@ -178,6 +179,7 @@ FAKE_CONFIG_DATA_EXTERNAL = {
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
+    "verify_ssl": False,
 }
 
 FAKE_CONFIG_DATA_CORRECTED_EXTERNAL = {
@@ -239,6 +241,7 @@ FAKE_CONFIG_DATA_CORRECTED_EXTERNAL = {
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
+    "verify_ssl": False,
 }
 
 FAKE_CONFIG_DATA_CORRECTED = {
@@ -306,6 +309,7 @@ FAKE_CONFIG_DATA_CORRECTED = {
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
+    "verify_ssl": False,
 }
 
 FAKE_CONFIG_DATA_NO_PATH = {
@@ -364,6 +368,7 @@ FAKE_CONFIG_DATA_NO_PATH = {
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
+    "verify_ssl": False,
 }
 
 FAKE_CONFIG_DATA_NO_RND = {
@@ -420,6 +425,7 @@ FAKE_CONFIG_DATA_NO_RND = {
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
+    "verify_ssl": False,
 }
 
 FAKE_CONFIG_DATA_MP4 = {
@@ -474,6 +480,7 @@ FAKE_CONFIG_DATA_MP4 = {
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
+    "verify_ssl": False,
 }
 
 FAKE_UPDATE_DATA = {
@@ -581,6 +588,7 @@ FAKE_CONFIG_DATA_MISSING_TIMEOUT = {
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
+    "verify_ssl": False,
 }
 
 FAKE_CONFIG_DATA_AMAZON_FWD_STRING = {
@@ -641,6 +649,7 @@ FAKE_CONFIG_DATA_AMAZON_FWD_STRING = {
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
+    "verify_ssl": False,
 }
 FAKE_CONFIG_DATA_CUSTOM_IMG = {
     "allow_external": False,
@@ -702,6 +711,7 @@ FAKE_CONFIG_DATA_CUSTOM_IMG = {
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
+    "verify_ssl": False,
 }
 
 FAKE_UPDATE_DATA_REDACTED = {
@@ -861,4 +871,5 @@ FAKE_CONFIG_DATA_V4_MIGRATE = {
     ],
     "scan_interval": 20,
     "username": "user@fake.email",
+    "verify_ssl": False,
 }

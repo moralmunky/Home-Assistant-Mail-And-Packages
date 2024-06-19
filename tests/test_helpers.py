@@ -2,12 +2,12 @@
 
 import datetime
 import errno
-from freezegun import freeze_time
 from datetime import date, timezone
 from unittest import mock
 from unittest.mock import call, mock_open, patch
 
 import pytest
+from freezegun import freeze_time
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
