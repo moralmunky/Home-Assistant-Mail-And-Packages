@@ -110,14 +110,20 @@ async def _check_ffmpeg() -> bool:
     return which("ffmpeg")
 
 
-async def _test_login(host: str, port: int, user: str, pwd: str) -> bool:
+async def _test_login(host: str, port: int, user: str, pwd: str, verify: bool) -> bool:
     """Test IMAP login to specified server.
 
     Returns success boolean
     """
-    # Attempt to catch invalid mail server hosts
+    context = ssl.create_default_context()
+    if not verify:
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+    else:
+        context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
+    # Catch invalid mail server / host names
     try:
-        account = imaplib.IMAP4_SSL(host, port)
+        account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
     except Exception as err:
         _LOGGER.error("Error connecting into IMAP Server: %s", str(err))
         return False
