@@ -385,7 +385,7 @@ async def test_email_fetch(mock_imap_fetch_error, caplog):
 
 @pytest.mark.asyncio
 async def test_get_mails(mock_imap_no_email, mock_copyfile):
-    result = get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
+    result = await get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
     assert result == 0
 
 
@@ -394,7 +394,7 @@ async def test_get_mails_makedirs_error(mock_imap_no_email, mock_copyfile, caplo
     with patch("os.path.isdir", return_value=False), patch(
         "os.makedirs", side_effect=OSError
     ):
-        get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
+        await get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
         assert "Error creating directory:" in caplog.text
 
 
@@ -405,7 +405,7 @@ async def test_get_mails_copyfile_error(
     mock_copyfile_exception,
     caplog,
 ):
-    result = get_mails(
+    result = await get_mails(
         mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
     )
     assert "File not found" in caplog.text
@@ -422,7 +422,7 @@ async def test_get_mails_email_search_error(
         "custom_components.mail_and_packages.helpers.email_search",
         return_value=("BAD", []),
     ):
-        result = get_mails(
+        result = await get_mails(
             mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
         )
         assert result == 0
@@ -442,7 +442,7 @@ async def test_informed_delivery_emails(
 ):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
-        result = get_mails(
+        result = await get_mails(
             mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
         )
         assert result == 3
@@ -466,7 +466,7 @@ async def test_new_informed_delivery_emails(
 ):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
-        result = get_mails(
+        result = await get_mails(
             mock_imap_usps_new_informed_digest, "./", "5", "mail_today.gif", False
         )
         assert result == 4
@@ -514,7 +514,7 @@ async def test_informed_delivery_emails_mp4(
     ) as mock_generate_mp4:
         m_open = mock_open()
         with patch("builtins.open", m_open, create=True):
-            result = get_mails(
+            result = await get_mails(
                 mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", True
             )
             assert result == 3
@@ -533,7 +533,7 @@ async def test_informed_delivery_emails_open_err(
     mock_copyfile,
     caplog,
 ):
-    get_mails(
+    await get_mails(
         mock_imap_usps_informed_digest,
         "/totally/fake/path/",
         "5",
@@ -559,7 +559,7 @@ async def test_informed_delivery_emails_io_err(
     with pytest.raises(ValueError) as exc_info:
         m_open = mock_open()
         with patch("builtins.open", m_open, create=True):
-            get_mails(
+            await get_mails(
                 mock_imap_usps_informed_digest,
                 "/totally/fake/path/",
                 "5",
@@ -582,7 +582,7 @@ async def test_informed_delivery_missing_mailpiece(
 ):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
-        result = get_mails(
+        result = await get_mails(
             mock_imap_usps_informed_digest_missing, "./", "5", "mail_today.gif", False
         )
         assert result == 5
@@ -602,7 +602,7 @@ async def test_informed_delivery_no_mail(
 ):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
-        result = get_mails(
+        result = await get_mails(
             mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
         )
         assert result == 0
@@ -624,7 +624,7 @@ async def test_informed_delivery_no_mail_copy_error(
 ):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
-        get_mails(
+        await get_mails(
             mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
         )
         assert "./mail_today.gif" in mock_copyfile_exception.call_args.args
@@ -633,7 +633,7 @@ async def test_informed_delivery_no_mail_copy_error(
 
 @pytest.mark.asyncio
 async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):
-    result = get_count(
+    result = await get_count(
         mock_imap_ups_out_for_delivery, "ups_delivering", True, "./", hass
     )
     assert result["count"] == 1
@@ -644,7 +644,7 @@ async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):
 async def test_ups_out_for_delivery_html_only(
     hass, mock_imap_ups_out_for_delivery_html
 ):
-    result = get_count(
+    result = await get_count(
         mock_imap_ups_out_for_delivery_html, "ups_delivering", True, "./", hass
     )
     assert result["count"] == 1
@@ -653,7 +653,7 @@ async def test_ups_out_for_delivery_html_only(
 
 @pytest.mark.asyncio
 async def test_usps_out_for_delivery(hass, mock_imap_usps_out_for_delivery):
-    result = get_count(
+    result = await get_count(
         mock_imap_usps_out_for_delivery, "usps_delivering", True, "./", hass
     )
     assert result["count"] == 1
@@ -662,7 +662,7 @@ async def test_usps_out_for_delivery(hass, mock_imap_usps_out_for_delivery):
 
 @pytest.mark.asyncio
 async def test_dhl_out_for_delivery(hass, mock_imap_dhl_out_for_delivery, caplog):
-    result = get_count(
+    result = await get_count(
         mock_imap_dhl_out_for_delivery, "dhl_delivering", True, "./", hass
     )
     assert result["count"] == 1
@@ -672,7 +672,7 @@ async def test_dhl_out_for_delivery(hass, mock_imap_dhl_out_for_delivery, caplog
 
 @pytest.mark.asyncio
 async def test_dhl_no_utf8(hass, mock_imap_dhl_no_utf8, caplog):
-    result = get_count(mock_imap_dhl_no_utf8, "dhl_delivering", True, "./", hass)
+    result = await get_count(mock_imap_dhl_no_utf8, "dhl_delivering", True, "./", hass)
     assert result["count"] == 1
     assert result["tracking"] == ["4212345678"]
     # assert "UTF-8 not supported: ('BAD', ['Unsupported'])" in caplog.text
@@ -690,7 +690,7 @@ async def test_dhl_no_utf8(hass, mock_imap_dhl_no_utf8, caplog):
 
 @pytest.mark.asyncio
 async def test_evri_out_for_delivery(hass, mock_imap_evri_out_for_delivery):
-    result = get_count(
+    result = await get_count(
         mock_imap_evri_out_for_delivery, "evri_delivering", True, "./", hass
     )
     assert result["count"] == 1
@@ -699,7 +699,7 @@ async def test_evri_out_for_delivery(hass, mock_imap_evri_out_for_delivery):
 
 @pytest.mark.asyncio
 async def test_royal_out_for_delivery(hass, mock_imap_royal_out_for_delivery):
-    result = get_count(
+    result = await get_count(
         mock_imap_royal_out_for_delivery, "royal_delivering", True, "./", hass
     )
     assert result["count"] == 1
@@ -709,30 +709,30 @@ async def test_royal_out_for_delivery(hass, mock_imap_royal_out_for_delivery):
 @freeze_time("2020-09-11")
 @pytest.mark.asyncio
 async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):
-    result = get_items(mock_imap_amazon_shipped, "count")
+    result = await get_items(mock_imap_amazon_shipped, "count")
     assert result == 1
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order(hass, mock_imap_amazon_shipped):
-    result = get_items(mock_imap_amazon_shipped, "order")
+    result = await get_items(mock_imap_amazon_shipped, "order")
     assert result == ["123-1234567-1234567"]
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_alt(hass, mock_imap_amazon_shipped_alt):
-    result = get_items(mock_imap_amazon_shipped_alt, "order")
+    result = await get_items(mock_imap_amazon_shipped_alt, "order")
     assert result == ["123-1234567-1234567"]
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_alt_2(hass, mock_imap_amazon_shipped_alt_2):
-    result = get_items(mock_imap_amazon_shipped_alt_2, "order")
+    result = await get_items(mock_imap_amazon_shipped_alt_2, "order")
     assert result == ["113-9999999-8459426"]
     with patch("datetime.date") as mock_date:
         mock_date.today.return_value = date(2021, 12, 3)
 
-        result = get_items(mock_imap_amazon_shipped_alt_2, "count")
+        result = await get_items(mock_imap_amazon_shipped_alt_2, "count")
         assert result == 1
 
 
@@ -740,25 +740,25 @@ async def test_amazon_shipped_order_alt_2(hass, mock_imap_amazon_shipped_alt_2):
 async def test_amazon_shipped_order_alt_timeformat(
     hass, mock_imap_amazon_shipped_alt_timeformat
 ):
-    result = get_items(mock_imap_amazon_shipped_alt_timeformat, "order")
+    result = await get_items(mock_imap_amazon_shipped_alt_timeformat, "order")
     assert result == ["321-1234567-1234567"]
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_uk(hass, mock_imap_amazon_shipped_uk):
-    result = get_items(mock_imap_amazon_shipped_uk, "order")
+    result = await get_items(mock_imap_amazon_shipped_uk, "order")
     assert result == ["123-4567890-1234567"]
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_uk(hass, mock_imap_amazon_shipped_uk_2):
-    result = get_items(mock_imap_amazon_shipped_uk_2, "order")
+    result = await get_items(mock_imap_amazon_shipped_uk_2, "order")
     assert result == ["123-4567890-1234567"]
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_it(hass, mock_imap_amazon_shipped_it):
-    result = get_items(mock_imap_amazon_shipped_it, "order")
+    result = await get_items(mock_imap_amazon_shipped_it, "order")
     assert result == ["405-5236882-9395563"]
 
 
@@ -766,19 +766,19 @@ async def test_amazon_shipped_order_it(hass, mock_imap_amazon_shipped_it):
 async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
     with patch("datetime.date") as mock_date:
         mock_date.today.return_value = date(2021, 12, 1)
-        result = get_items(mock_imap_amazon_shipped_it, "count")
+        result = await get_items(mock_imap_amazon_shipped_it, "count")
         assert result == 1
 
 
 @pytest.mark.asyncio
 async def test_amazon_search(hass, mock_imap_no_email):
-    result = amazon_search(mock_imap_no_email, "test/path", hass, "testfilename.jpg")
+    result = await amazon_search(mock_imap_no_email, "test/path", hass, "testfilename.jpg")
     assert result == 0
 
 
 @pytest.mark.asyncio
 async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
-    result = amazon_search(
+    result = await amazon_search(
         mock_imap_amazon_shipped, "test/path", hass, "testfilename.jpg"
     )
     assert result == 78
@@ -788,7 +788,7 @@ async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
 async def test_amazon_search_delivered(
     hass, mock_imap_amazon_delivered, mock_download_img
 ):
-    result = amazon_search(
+    result = await amazon_search(
         mock_imap_amazon_delivered, "test/path", hass, "testfilename.jpg"
     )
     assert result == 78
@@ -799,7 +799,7 @@ async def test_amazon_search_delivered(
 async def test_amazon_search_delivered_it(
     hass, mock_imap_amazon_delivered_it, mock_download_img
 ):
-    result = amazon_search(
+    result = await amazon_search(
         mock_imap_amazon_delivered_it, "test/path", hass, "testfilename.jpg"
     )
     assert result == 78
@@ -850,14 +850,14 @@ async def test_amazon_hub_2(hass, mock_imap_amazon_the_hub_2):
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
     with patch("quopri.decodestring", side_effect=ValueError):
-        get_items(mock_imap_amazon_shipped, "order")
+        await get_items(mock_imap_amazon_shipped, "order")
         assert "Problem decoding email message:" in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
     with patch("quopri.decodestring", side_effect=ValueError):
-        get_items(mock_imap_amazon_shipped, "order")
+        await get_items(mock_imap_amazon_shipped, "order")
         assert "Problem decoding email message:" in caplog.text
 
 
@@ -866,7 +866,7 @@ async def test_generate_mp4(
     mock_osremove, mock_os_path_join, mock_subprocess_call, mock_os_path_split
 ):
     with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
-        _generate_mp4("./", "testfile.gif")
+        await _generate_mp4("./", "testfile.gif")
 
         mock_os_path_join.assert_called_with("./", "testfile.mp4")
         # mock_osremove.assert_called_with("./", "testfile.mp4")
@@ -911,7 +911,7 @@ async def test_selectfolder_select_error(mock_imap_select_error, caplog):
 
 @pytest.mark.asyncio
 async def test_resize_images_open_err(mock_open_excpetion, caplog):
-    resize_images(["testimage.jpg", "anothertest.jpg"], 724, 320)
+    await resize_images(["testimage.jpg", "anothertest.jpg"], 724, 320)
     assert "Error attempting to open image" in caplog.text
 
 
@@ -919,7 +919,7 @@ async def test_resize_images_open_err(mock_open_excpetion, caplog):
 async def test_resize_images_read_err(mock_image_excpetion, caplog):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
-        resize_images(["testimage.jpg", "anothertest.jpg"], 724, 320)
+        await resize_images(["testimage.jpg", "anothertest.jpg"], 724, 320)
         assert "Error attempting to read image" in caplog.text
 
 
@@ -942,7 +942,7 @@ async def test_process_emails_random_image(hass, mock_imap_login_error, caplog):
 
 @pytest.mark.asyncio
 async def test_usps_exception(hass, mock_imap_usps_exception):
-    result = get_count(mock_imap_usps_exception, "usps_exception", False, "./", hass)
+    result = await get_count(mock_imap_usps_exception, "usps_exception", False, "./", hass)
     assert result["count"] == 1
 
 
@@ -1052,7 +1052,7 @@ async def test_hash_file():
 
 @pytest.mark.asyncio
 async def test_fedex_out_for_delivery(hass, mock_imap_fedex_out_for_delivery):
-    result = get_count(
+    result = await get_count(
         mock_imap_fedex_out_for_delivery, "fedex_delivering", True, "./", hass
     )
     assert result["count"] == 1
@@ -1061,7 +1061,7 @@ async def test_fedex_out_for_delivery(hass, mock_imap_fedex_out_for_delivery):
 
 @pytest.mark.asyncio
 async def test_fedex_out_for_delivery_2(hass, mock_imap_fedex_out_for_delivery_2):
-    result = get_count(
+    result = await get_count(
         mock_imap_fedex_out_for_delivery_2, "fedex_delivering", True, "./", hass
     )
     assert result["count"] == 1
@@ -1079,7 +1079,7 @@ async def test_get_mails_email_search_none(
         "custom_components.mail_and_packages.helpers.email_search",
         return_value=("OK", [None]),
     ):
-        result = get_mails(
+        result = await get_mails(
             mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
         )
         assert result == 0
@@ -1095,6 +1095,6 @@ async def test_email_search_none(mock_imap_search_error_none, caplog):
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
-    result = get_items(mock_imap_amazon_fwd, "order")
+    result = await get_items(mock_imap_amazon_fwd, "order")
     assert result == ["123-1234567-1234567"]
     assert "First pass: Tuesday, January 11" in caplog.text
