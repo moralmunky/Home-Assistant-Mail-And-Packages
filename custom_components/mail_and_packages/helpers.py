@@ -426,9 +426,10 @@ async def fetch(
     elif sensor == "mail_updated":
         count[sensor] = update_time()
     else:
-        count[sensor] = await get_count(
+        the_count = await get_count(
             account, sensor, False, img_out_path, hass, amazon_image_name
-        )[ATTR_COUNT]
+        )
+        count[sensor] = the_count[ATTR_COUNT]
 
     data.update(count)
     _LOGGER.debug("Sensor: %s Count: %s", sensor, str(count[sensor]))

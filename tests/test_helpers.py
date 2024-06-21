@@ -58,8 +58,8 @@ async def test_update_time():
 
 
 @pytest.mark.asyncio
-async def test_cleanup_images(mock_listdir, mock_osremove):
-    cleanup_images("/tests/fakedir/")
+async def test_cleanup_images(hass, mock_listdir, mock_osremove):
+    await cleanup_images(hass, "/tests/fakedir/")
     calls = [
         call("/tests/fakedir/testfile.gif"),
         call("/tests/fakedir/anotherfakefile.mp4"),
@@ -69,15 +69,17 @@ async def test_cleanup_images(mock_listdir, mock_osremove):
 
 @pytest.mark.asyncio
 async def test_cleanup_found_images_remove_err(
-    mock_listdir, mock_osremove_exception, caplog
+    hass, mock_listdir, mock_osremove_exception, caplog
 ):
-    cleanup_images("/tests/fakedir/")
+    await cleanup_images(hass, "/tests/fakedir/")
     assert "Error attempting to remove found image:" in caplog.text
 
 
 @pytest.mark.asyncio
-async def test_cleanup_images_remove_err(mock_listdir, mock_osremove_exception, caplog):
-    cleanup_images("/tests/fakedir/", "testimage.jpg")
+async def test_cleanup_images_remove_err(
+    hass, mock_listdir, mock_osremove_exception, caplog
+):
+    await cleanup_images(hass, "/tests/fakedir/", "testimage.jpg")
     assert "Error attempting to remove image:" in caplog.text
 
 
@@ -865,10 +867,10 @@ async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, ca
 
 @pytest.mark.asyncio
 async def test_generate_mp4(
-    mock_osremove, mock_os_path_join, mock_subprocess_call, mock_os_path_split
+    hass, mock_osremove, mock_os_path_join, mock_subprocess_call, mock_os_path_split
 ):
     with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
-        await _generate_mp4("./", "testfile.gif")
+        await _generate_mp4(hass, "./", "testfile.gif")
 
         mock_os_path_join.assert_called_with("./", "testfile.mp4")
         # mock_osremove.assert_called_with("./", "testfile.mp4")
@@ -912,16 +914,16 @@ async def test_selectfolder_select_error(mock_imap_select_error, caplog):
 
 
 @pytest.mark.asyncio
-async def test_resize_images_open_err(mock_open_excpetion, caplog):
-    await resize_images(["testimage.jpg", "anothertest.jpg"], 724, 320)
+async def test_resize_images_open_err(hass, mock_open_excpetion, caplog):
+    await resize_images(hass, ["testimage.jpg", "anothertest.jpg"], 724, 320)
     assert "Error attempting to open image" in caplog.text
 
 
 @pytest.mark.asyncio
-async def test_resize_images_read_err(mock_image_excpetion, caplog):
+async def test_resize_images_read_err(hass, mock_image_excpetion, caplog):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
-        await resize_images(["testimage.jpg", "anothertest.jpg"], 724, 320)
+        await resize_images(hass, ["testimage.jpg", "anothertest.jpg"], 724, 320)
         assert "Error attempting to read image" in caplog.text
 
 
