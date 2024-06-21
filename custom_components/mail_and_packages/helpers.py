@@ -769,7 +769,9 @@ async def get_mails(
             except Exception as err:
                 _LOGGER.error("Error attempting to generate image: %s", str(err))
             for image in images_delete:
-                cleanup_images(hass, f"{os.path.split(image)[0]}/", os.path.split(image)[1])
+                cleanup_images(
+                    hass, f"{os.path.split(image)[0]}/", os.path.split(image)[1]
+                )
 
         elif image_count == 0:
             _LOGGER.debug("No mail found.")
@@ -827,7 +829,9 @@ async def _generate_mp4(hass: HomeAssistant, path: str, image_file: str) -> None
     )
 
 
-async def resize_images(hass: HomeAssistant, images: list, width: int, height: int) -> list:
+async def resize_images(
+    hass: HomeAssistant, images: list, width: int, height: int
+) -> list:
     """Resize images.
 
     This should keep the aspect ratio of the images
@@ -881,7 +885,9 @@ async def copy_overlays(hass: HomeAssistant, path: str) -> None:
             )
 
 
-async def cleanup_images(hass: HomeAssistant, path: str, image: Optional[str] = None) -> None:
+async def cleanup_images(
+    hass: HomeAssistant, path: str, image: Optional[str] = None
+) -> None:
     """Clean up image storage directory.
 
     Only supose to delete .gif, .mp4, and .jpg files
@@ -922,7 +928,9 @@ async def get_count(
 
     # Return Amazon delivered info
     if sensor_type == AMAZON_DELIVERED:
-        result[ATTR_COUNT] = await amazon_search(account, image_path, hass, amazon_image_name)
+        result[ATTR_COUNT] = await amazon_search(
+            account, image_path, hass, amazon_image_name
+        )
         result[ATTR_TRACKING] = ""
         return result
 

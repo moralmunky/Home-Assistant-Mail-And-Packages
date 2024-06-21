@@ -772,7 +772,9 @@ async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
 
 @pytest.mark.asyncio
 async def test_amazon_search(hass, mock_imap_no_email):
-    result = await amazon_search(mock_imap_no_email, "test/path", hass, "testfilename.jpg")
+    result = await amazon_search(
+        mock_imap_no_email, "test/path", hass, "testfilename.jpg"
+    )
     assert result == 0
 
 
@@ -942,7 +944,9 @@ async def test_process_emails_random_image(hass, mock_imap_login_error, caplog):
 
 @pytest.mark.asyncio
 async def test_usps_exception(hass, mock_imap_usps_exception):
-    result = await get_count(mock_imap_usps_exception, "usps_exception", False, "./", hass)
+    result = await get_count(
+        mock_imap_usps_exception, "usps_exception", False, "./", hass
+    )
     assert result["count"] == 1
 
 
