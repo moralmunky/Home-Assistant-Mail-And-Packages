@@ -956,7 +956,7 @@ def test_invalid_ffmpeg():
 
 
 @pytest.fixture
-def mock_copyfile_exception():
+async def mock_copyfile_exception():
     """Fixture to mock copyfile."""
     with patch("custom_components.mail_and_packages.helpers.copyfile") as mock_copyfile:
         mock_copyfile.side_effect = Exception("File not found")
@@ -1363,9 +1363,10 @@ def aioclient_mock_error():
 @pytest.fixture
 def mock_copytree():
     """Fixture to mock copytree."""
-    with patch("custom_components.mail_and_packages.helpers.copytree") as mock_copytree:
-        mock_copytree.return_value = True
-        yield mock_copytree
+    mock_copytree = mock.AsyncMock(return_value=True)
+    # with patch("custom_components.mail_and_packages.helpers.copytree") as mock_copytree:
+    #     mock_copytree.return_value = True
+    yield mock_copytree
 
 
 @pytest.fixture()

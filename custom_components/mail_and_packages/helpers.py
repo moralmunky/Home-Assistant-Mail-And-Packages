@@ -784,7 +784,7 @@ async def get_mails(
                     nomail = custom_img
                 else:
                     nomail = os.path.dirname(__file__) + "/mail_none.gif"
-                copyfile(nomail, image_output_path + image_name)
+                await hass.async_add_executor_job(copyfile, nomail, image_output_path + image_name)
             except Exception as err:
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
 
