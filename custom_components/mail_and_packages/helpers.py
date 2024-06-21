@@ -378,14 +378,12 @@ async def fetch(
         )
     elif sensor == AMAZON_PACKAGES:
         count[sensor] = await get_items(
-            hass,
             account,
             ATTR_COUNT,
             amazon_fwds,
             amazon_days,
         )
         count[AMAZON_ORDER] = await get_items(
-            hass,
             account,
             ATTR_ORDER,
             amazon_fwds,
@@ -1336,7 +1334,6 @@ def amazon_date_format(arrive_date: str, lang: str) -> tuple:
 
 
 async def get_items(
-    hass: HomeAssistant,
     account: Type[imaplib.IMAP4_SSL],
     param: str = None,
     fwds: Optional[str] = None,
