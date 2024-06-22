@@ -4,13 +4,14 @@ from unittest.mock import patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.helpers import entity_registry as er
 
 from custom_components.mail_and_packages.const import DOMAIN
 from tests.const import FAKE_CONFIG_DATA
 
 
 @pytest.mark.asyncio
-async def test_binary_sensor_no_updates(hass, mock_imap_no_email):
+async def test_binary_sensor_no_updates(hass, mock_imap_no_email, entity_registry: er.EntityRegistry):
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
@@ -30,6 +31,25 @@ async def test_binary_sensor_no_updates(hass, mock_imap_no_email):
     state = hass.states.get("binary_sensor.amazon_image_updated")
     assert state
     assert state.state == "off"
+
+    entity_entry = entity_registry.async_get("binary_sensor.usps_mail_delivered")
+
+    assert entity_entry
+    assert entity_entry.disabled
+    assert entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+
+    updated_entry = entity_registry.async_update_entity(
+        entity_entry.entity_id, disabled_by=None
+    )
+    assert updated_entry != entity_entry
+    assert updated_entry.disabled is False
+
+    # reload the integration
+    await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
+    await hass.config_entries.async_forward_entry_setups(
+        entry, ["binary_sensor"]
+    )
+    await hass.async_block_till_done()
 
     state = hass.states.get("binary_sensor.usps_mail_delivered")
     assert state
