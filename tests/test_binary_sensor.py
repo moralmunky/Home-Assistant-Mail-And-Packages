@@ -31,6 +31,10 @@ async def test_binary_sensor_no_updates(hass, mock_imap_no_email):
     assert state
     assert state.state == "off"
 
+    state = hass.states.get("binary_sensor.usps_mail_delivered")
+    assert state
+    assert state.state == "off"
+
 
 # @pytest.mark.asyncio
 # async def test_binary_sensor_updated(hass, mock_update_amazon_image):
