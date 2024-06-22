@@ -19,6 +19,7 @@
                     "password": "Contrasenya",
                     "port": "Port",
                     "username": "Nom d'usuari",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Introduïu la informació de connexió del vostre servidor de correu.",
@@ -69,6 +70,7 @@
                     "password": "Contrasenya",
                     "port": "Port",
                     "username": "Nom d'usuari",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Introduïu la informació de connexió del vostre servidor de correu.",

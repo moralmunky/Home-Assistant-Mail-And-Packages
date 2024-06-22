@@ -19,6 +19,7 @@
                     "password": "пароль",
                     "port": "порт",
                     "username": "имя пользователя",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Пожалуйста, введите информацию о соединении вашего почтового сервера.",
@@ -69,6 +70,7 @@
                     "password": "пароль",
                     "port": "порт",
                     "username": "имя пользователя",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Пожалуйста, введите информацию о соединении вашего почтового сервера.",

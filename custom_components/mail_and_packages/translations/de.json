@@ -19,6 +19,7 @@
                     "password": "Passwort",
                     "port": "Port",
                     "username": "Nutzername",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Bitte geben Sie die Verbindungsinformationen Ihres Mailservers ein.",
@@ -69,6 +70,7 @@
                     "password": "Passwort",
                     "port": "Port",
                     "username": "Nutzername",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Bitte geben Sie die Verbindungsinformationen Ihres Mailservers ein.",

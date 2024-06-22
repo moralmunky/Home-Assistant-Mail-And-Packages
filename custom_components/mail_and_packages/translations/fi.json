@@ -19,6 +19,7 @@
                     "password": "Salasana",
                     "port": "portti",
                     "username": "Käyttäjätunnus",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Anna sähköpostipalvelimesi yhteydetiedot.",
@@ -69,6 +70,7 @@
                     "password": "Salasana",
                     "port": "portti",
                     "username": "Käyttäjätunnus",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Anna sähköpostipalvelimesi yhteydetiedot.",

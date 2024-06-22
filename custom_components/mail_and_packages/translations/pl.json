@@ -19,6 +19,7 @@
                     "password": "Hasło",
                     "port": "Port",
                     "username": "Nazwa Użytkownika",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Podaj informacje o połączeniu swojego serwera pocztowego.",
@@ -69,6 +70,7 @@
                     "password": "Hasło",
                     "port": "Port",
                     "username": "Nazwa Użytkownika",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Podaj informacje o połączeniu swojego serwera pocztowego.",

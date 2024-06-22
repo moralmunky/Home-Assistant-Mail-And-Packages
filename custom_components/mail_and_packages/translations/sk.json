@@ -19,6 +19,7 @@
                     "password": "Heslo",
                     "port": "Port",
                     "username": "Užívateľské meno",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Zadajte informácie o pripojení vášho poštového servera.",
@@ -69,6 +70,7 @@
                     "password": "Heslo",
                     "port": "Port",
                     "username": "Užívateľské meno",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Zadajte informácie o pripojení vášho poštového servera.",

@@ -19,6 +19,7 @@
                     "password": "密碼",
                     "port": "港口",
                     "username": "用戶名",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "請輸入您的郵件服務器的連接信息。",
@@ -69,6 +70,7 @@
                     "password": "密碼",
                     "port": "港口",
                     "username": "用戶名",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "請輸入您的郵件服務器的連接信息。",

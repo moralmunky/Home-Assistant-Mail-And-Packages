@@ -19,6 +19,7 @@
                     "password": "Parola d'ordine",
                     "port": "Porta",
                     "username": "Nome utente",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Inserisci le informazioni di connessione del tuo server di posta.",
@@ -69,6 +70,7 @@
                     "password": "Parola d'ordine",
                     "port": "Porta",
                     "username": "Nome utente",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Inserisci le informazioni di connessione del tuo server di posta.",

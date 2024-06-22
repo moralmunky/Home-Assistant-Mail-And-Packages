@@ -19,6 +19,7 @@
                     "password": "암호",
                     "port": "포트",
                     "username": "사용자 이름",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "메일 서버의 연결 정보를 입력하십시오.",
@@ -69,6 +70,7 @@
                     "password": "암호",
                     "port": "포트",
                     "username": "사용자 이름",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "메일 서버의 연결 정보를 입력하십시오.",

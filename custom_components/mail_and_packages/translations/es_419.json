@@ -19,6 +19,7 @@
                     "password": "Contraseña",
                     "port": "Puerto",
                     "username": "Nombre de usuario",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Ingrese la información de conexión de su servidor de correo.",
@@ -69,6 +70,7 @@
                     "password": "Contraseña",
                     "port": "Puerto",
                     "username": "Nombre de usuario",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Ingrese la información de conexión de su servidor de correo.",

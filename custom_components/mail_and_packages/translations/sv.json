@@ -19,6 +19,7 @@
                     "password": "Lösenord",
                     "port": "Hamn",
                     "username": "Användarnamn",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Ange anslutningsinformationen för din postserver.",
@@ -69,6 +70,7 @@
                     "password": "Lösenord",
                     "port": "Hamn",
                     "username": "Användarnamn",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Ange anslutningsinformationen för din postserver.",
