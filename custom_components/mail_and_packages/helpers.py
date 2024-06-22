@@ -310,13 +310,7 @@ def image_file_name(
             _LOGGER.debug("Created: %s, Today: %s", created, today)
             # If image isn't mail_none and not created today,
             # return a new filename
-            if (
-                sha1
-                != hash_file(
-                    os.path.join(path, file)
-                )
-                and today != created
-            ):
+            if sha1 != hash_file(os.path.join(path, file)) and today != created:
                 image_name = f"{str(uuid.uuid4())}{ext}"
             else:
                 image_name = file
