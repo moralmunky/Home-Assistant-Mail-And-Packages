@@ -1134,7 +1134,7 @@ BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
         name="USPS Mail Delivered",
         key="usps_mail_delivered",
         device_class=BinarySensorDeviceClass.UPDATE,
-    ),    
+    ),
 }
 
 # Name

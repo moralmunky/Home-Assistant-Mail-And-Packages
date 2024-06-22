@@ -971,7 +971,8 @@ def get_count(
             found.append(data[0])
 
     if (
-        ATTR_PATTERN
+        f"{'_'.join(sensor_type.split('_')[:-1])}_tracking" in SENSOR_DATA
+        and ATTR_PATTERN
         in SENSOR_DATA[f"{'_'.join(sensor_type.split('_')[:-1])}_tracking"].keys()
     ):
         track = SENSOR_DATA[f"{'_'.join(sensor_type.split('_')[:-1])}_tracking"][
