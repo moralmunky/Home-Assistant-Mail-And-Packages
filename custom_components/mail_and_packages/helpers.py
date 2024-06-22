@@ -86,6 +86,7 @@ from .const import (
     SHIPPERS,
 )
 
+NO_SSL = "Email will be accessed without encryption using this method and is not recommended."
 _LOGGER = logging.getLogger(__name__)
 
 # Config Flow Helpers
@@ -136,9 +137,7 @@ async def _test_login(
             account = imaplib.IMAP4(host=host, port=port)
             account.starttls(context)
         else:
-            _LOGGER.warning(
-                "Email will be accessed without encryption using this method and is not recommended."
-            )
+            _LOGGER.warning(NO_SSL)
             account = imaplib.IMAP4(host=host, port=port)
     except Exception as err:
         _LOGGER.error("Error connecting into IMAP Server: %s", str(err))
