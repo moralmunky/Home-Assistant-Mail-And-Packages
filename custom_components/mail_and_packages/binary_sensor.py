@@ -121,4 +121,6 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
                     if image_hash != none_hash:
                         return True
                 return False
+        if self._type in self.coordinator.data.keys():
+            return bool(self.coordinator.data[self._type])
         return False
