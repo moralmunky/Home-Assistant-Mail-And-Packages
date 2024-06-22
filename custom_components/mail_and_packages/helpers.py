@@ -33,7 +33,7 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 from .const import (
     AMAZON_DELIVERED,
@@ -206,7 +206,7 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     return data
 
 
-async def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
+def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
     """Copy images to www directory if enabled."""
     paths = []
     src = f"{hass.config.path()}/{config.get(CONF_PATH)}"
@@ -226,10 +226,10 @@ async def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
             except OSError as err:
                 _LOGGER.error("Problem creating: %s, error returned: %s", path, err)
                 return
-        await cleanup_images(hass, path)
+        cleanup_images(hass, path)
 
     try:
-        await hass.async_add_executor_job(copytree, src, dst, dirs_exist_ok=True)
+        hass.async_add_executor_job(copytree, src, dst, dirs_exist_ok=True)
     except Exception as err:
         _LOGGER.error(
             "Problem copying files from %s to %s error returned: %s", src, dst, err
@@ -367,7 +367,7 @@ async def fetch(
     count = {}
 
     if sensor == "usps_mail":
-        count[sensor] = await get_mails(
+        count[sensor] = get_mails(
             hass,
             account,
             img_out_path,
@@ -604,7 +604,7 @@ def email_fetch(
     return value
 
 
-async def get_mails(
+def get_mails(
     hass: HomeAssistant,
     account: Type[imaplib.IMAP4_SSL],
     image_output_path: str,
@@ -636,13 +636,13 @@ async def get_mails(
     # Check to see if the path exists, if not make it
     if not os.path.isdir(image_output_path):
         try:
-            await hass.async_add_executor_job(os.makedirs, image_output_path)
+            hass.async_add_executor_job(os.makedirs, image_output_path)
         except Exception as err:
             _LOGGER.critical("Error creating directory: %s", str(err))
 
     # Clean up image directory
     _LOGGER.debug("Cleaning up image directory: %s", str(image_output_path))
-    await cleanup_images(hass, image_output_path)
+    cleanup_images(hass, image_output_path)
 
     # Copy overlays to image directory
     _LOGGER.debug("Checking for overlay files in: %s", str(image_output_path))
@@ -677,12 +677,12 @@ async def get_mails(
                                 filename = random_filename()
                                 data = str(image["src"]).split(",")[1]
                                 try:
-                                    with open(
-                                        image_output_path + filename, "wb"
-                                    ) as the_file:
-                                        the_file.write(base64.b64decode(data))
-                                        images.append(image_output_path + filename)
-                                        image_count = image_count + 1
+                                    the_file = hass.async_add_executor_job(
+                                        open, image_output_path + filename, "wb"
+                                    )
+                                    the_file.write(base64.b64decode(data))
+                                    images.append(image_output_path + filename)
+                                    image_count = image_count + 1
                                 except Exception as err:
                                     _LOGGER.critical(
                                         "Error opening filepath: %s", str(err)
@@ -699,12 +699,12 @@ async def get_mails(
                                 _LOGGER.debug("Discarding junk mail.")
                                 continue
                             try:
-                                with open(
-                                    image_output_path + filename, "wb"
-                                ) as the_file:
-                                    the_file.write(part.get_payload(decode=True))
-                                    images.append(image_output_path + filename)
-                                    image_count = image_count + 1
+                                the_file = hass.async_add_executor_job(
+                                    open, image_output_path + filename, "wb"
+                                )
+                                the_file.write(part.get_payload(decode=True))
+                                images.append(image_output_path + filename)
+                                image_count = image_count + 1
                             except Exception as err:
                                 _LOGGER.critical("Error opening filepath: %s", str(err))
                                 return image_count
@@ -743,7 +743,9 @@ async def get_mails(
 
             _LOGGER.debug("Resizing images to 724x320...")
             # Resize images to 724x320
-            all_images = resize_images(hass, images, 724, 320)
+            all_images = hass.async_add_executor_job(
+                resize_images, hass, images, 724, 320
+            )
 
             # Create copy of image list for deleting temporary images
             for image in all_images:
@@ -751,18 +753,17 @@ async def get_mails(
 
             # Create numpy array of images
             _LOGGER.debug("Creating array of image files...")
-            img, *imgs = [Image.open(file) for file in all_images]
+            img, imgs = hass.async_add_executor_job(generate_list, all_images)
 
             try:
                 _LOGGER.debug("Generating animated GIF")
                 # Use Pillow to create mail images
-                img.save(
-                    fp=os.path.join(image_output_path, image_name),
-                    format="GIF",
-                    append_images=imgs,
-                    save_all=True,
-                    duration=gif_duration * 1000,
-                    loop=0,
+                hass.async_add_executor_job(
+                    save_image,
+                    img,
+                    os.path.join(image_output_path, image_name),
+                    imgs,
+                    gif_duration,
                 )
                 _LOGGER.debug("Mail image generated.")
             except Exception as err:
@@ -784,12 +785,14 @@ async def get_mails(
                     nomail = custom_img
                 else:
                     nomail = os.path.dirname(__file__) + "/mail_none.gif"
-                await hass.async_add_executor_job(copyfile, nomail, image_output_path + image_name)
+                hass.async_add_executor_job(
+                    copyfile, nomail, image_output_path + image_name
+                )
             except Exception as err:
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
 
         if gen_mp4:
-            await _generate_mp4(hass, image_output_path, image_name)
+            _generate_mp4(hass, image_output_path, image_name)
 
     return image_count
 
@@ -799,7 +802,25 @@ def random_filename(ext: str = ".jpg") -> str:
     return f"{str(uuid.uuid4())}{ext}"
 
 
-async def _generate_mp4(hass: HomeAssistant, path: str, image_file: str) -> None:
+def generate_list(images: list) -> tuple:
+    """Generate list of images."""
+    img, *imgs = [Image.open(file) for file in images]
+    return img, imgs
+
+
+def save_image(img: Image, fp, imgs, duration) -> None:
+    """Save an image."""
+    img.save(
+        fp=fp,
+        format="GIF",
+        append_images=imgs,
+        save_all=True,
+        duration=duration * 1000,
+        loop=0,
+    )
+
+
+def _generate_mp4(hass: HomeAssistant, path: str, image_file: str) -> None:
     """Generate mp4 from gif.
 
     use a subprocess so we don't lock up the thread
@@ -810,7 +831,7 @@ async def _generate_mp4(hass: HomeAssistant, path: str, image_file: str) -> None
     filecheck = os.path.isfile(mp4_file)
     _LOGGER.debug("Generating mp4: %s", mp4_file)
     if filecheck:
-        await cleanup_images(hass, os.path.split(mp4_file))
+        cleanup_images(hass, os.path.split(mp4_file))
         _LOGGER.debug("Removing old mp4: %s", mp4_file)
 
     # TODO: find a way to call ffmpeg the right way from HA
@@ -828,9 +849,7 @@ async def _generate_mp4(hass: HomeAssistant, path: str, image_file: str) -> None
     )
 
 
-async def resize_images(
-    hass: HomeAssistant, images: list, width: int, height: int
-) -> list:
+def resize_images(hass: HomeAssistant, images: list, width: int, height: int) -> list:
     """Resize images.
 
     This should keep the aspect ratio of the images
@@ -839,28 +858,35 @@ async def resize_images(
     all_images = []
     for image in images:
         try:
-            fd_img = await hass.async_add_executor_job(open, image, "rb")
-            try:
-                img = Image.open(fd_img)
-                img.thumbnail((width, height), resample=Image.Resampling.LANCZOS)
+            with open(image, "rb") as fd_img:
+                try:
+                    img = Image.open(fd_img)
+                    img.thumbnail((width, height), resample=Image.Resampling.LANCZOS)
 
-                # Add padding as needed
-                img = ImageOps.pad(
-                    img, (width, height), method=Image.Resampling.LANCZOS
-                )
-                # Crop to size
-                img = img.crop((0, 0, width, height))
+                    # Add padding as needed
+                    img = ImageOps.pad(
+                        img, (width, height), method=Image.Resampling.LANCZOS
+                    )
+                    # Crop to size
+                    img = img.crop((0, 0, width, height))
 
-                pre = os.path.splitext(image)[0]
-                image = pre + ".gif"
-                img.save(image, img.format)
-                fd_img.close()
-                all_images.append(image)
-            except Exception as err:
-                _LOGGER.error(
-                    "Error attempting to read image %s: %s", str(image), str(err)
-                )
-                continue
+                    pre = os.path.splitext(image)[0]
+                    image = pre + ".gif"
+                    img.save(image, img.format)
+                    fd_img.close()
+                    all_images.append(image)
+                except UnidentifiedImageError as err:
+                    _LOGGER.warning(
+                        "Unable to read image file: %s\nReason: %s",
+                        str(image),
+                        str(err),
+                    )
+                    continue
+                except Exception as err:
+                    _LOGGER.error(
+                        "Error attempting to read image %s: %s", str(image), str(err)
+                    )
+                    continue
         except Exception as err:
             _LOGGER.error("Error attempting to open image %s: %s", str(image), str(err))
             continue
@@ -868,7 +894,7 @@ async def resize_images(
     return all_images
 
 
-async def copy_overlays(hass: HomeAssistant, path: str) -> None:
+def copy_overlays(hass: HomeAssistant, path: str) -> None:
     """Copy overlay images to image output path."""
     overlays = OVERLAY
     check = all(item in overlays for item in os.listdir(path))
@@ -877,23 +903,21 @@ async def copy_overlays(hass: HomeAssistant, path: str) -> None:
     if not check:
         for file in overlays:
             _LOGGER.debug("Copying file to: %s", str(path + file))
-            await hass.async_add_executor_job(
+            hass.async_add_executor_job(
                 copyfile,
                 os.path.dirname(__file__) + "/" + file,
                 path + file,
             )
 
 
-async def cleanup_images(
-    hass: HomeAssistant, path: str, image: Optional[str] = None
-) -> None:
+def cleanup_images(hass: HomeAssistant, path: str, image: Optional[str] = None) -> None:
     """Clean up image storage directory.
 
     Only supose to delete .gif, .mp4, and .jpg files
     """
     if image is not None:
         try:
-            await hass.async_add_executor_job(os.remove, path + image)
+            hass.async_add_executor_job(os.remove, path + image)
         except Exception as err:
             _LOGGER.error("Error attempting to remove image: %s", str(err))
         return
@@ -901,7 +925,7 @@ async def cleanup_images(
     for file in os.listdir(path):
         if file.endswith(".gif") or file.endswith(".mp4") or file.endswith(".jpg"):
             try:
-                await hass.async_add_executor_job(os.remove, path + file)
+                hass.async_add_executor_job(os.remove, path + file)
             except Exception as err:
                 _LOGGER.error("Error attempting to remove found image: %s", str(err))
 

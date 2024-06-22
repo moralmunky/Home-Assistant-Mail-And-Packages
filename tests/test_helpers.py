@@ -59,7 +59,7 @@ async def test_update_time():
 
 @pytest.mark.asyncio
 async def test_cleanup_images(hass, mock_listdir, mock_osremove):
-    await cleanup_images(hass, "/tests/fakedir/")
+    cleanup_images(hass, "/tests/fakedir/")
     calls = [
         call("/tests/fakedir/testfile.gif"),
         call("/tests/fakedir/anotherfakefile.mp4"),
@@ -71,7 +71,7 @@ async def test_cleanup_images(hass, mock_listdir, mock_osremove):
 async def test_cleanup_found_images_remove_err(
     hass, mock_listdir, mock_osremove_exception, caplog
 ):
-    await cleanup_images(hass, "/tests/fakedir/")
+    cleanup_images(hass, "/tests/fakedir/")
     assert "Error attempting to remove found image:" in caplog.text
 
 
@@ -79,7 +79,7 @@ async def test_cleanup_found_images_remove_err(
 async def test_cleanup_images_remove_err(
     hass, mock_listdir, mock_osremove_exception, caplog
 ):
-    await cleanup_images(hass, "/tests/fakedir/", "testimage.jpg")
+    cleanup_images(hass, "/tests/fakedir/", "testimage.jpg")
     assert "Error attempting to remove image:" in caplog.text
 
 
@@ -387,7 +387,7 @@ async def test_email_fetch(mock_imap_fetch_error, caplog):
 
 @pytest.mark.asyncio
 async def test_get_mails(mock_imap_no_email, mock_copyfile):
-    result = await get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
+    result = get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
     assert result == 0
 
 
@@ -396,7 +396,7 @@ async def test_get_mails_makedirs_error(mock_imap_no_email, mock_copyfile, caplo
     with patch("os.path.isdir", return_value=False), patch(
         "os.makedirs", side_effect=OSError
     ):
-        await get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
+        get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
         assert "Error creating directory:" in caplog.text
 
 
@@ -407,7 +407,7 @@ async def test_get_mails_copyfile_error(
     mock_copyfile_exception,
     caplog,
 ):
-    result = await get_mails(
+    get_mails(
         mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
     )
     assert "File not found" in caplog.text
@@ -424,7 +424,7 @@ async def test_get_mails_email_search_error(
         "custom_components.mail_and_packages.helpers.email_search",
         return_value=("BAD", []),
     ):
-        result = await get_mails(
+        result = get_mails(
             mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
         )
         assert result == 0
@@ -444,7 +444,7 @@ async def test_informed_delivery_emails(
 ):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
-        result = await get_mails(
+        result = get_mails(
             mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
         )
         assert result == 3
@@ -468,7 +468,7 @@ async def test_new_informed_delivery_emails(
 ):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
-        result = await get_mails(
+        result = get_mails(
             mock_imap_usps_new_informed_digest, "./", "5", "mail_today.gif", False
         )
         assert result == 4
@@ -516,7 +516,7 @@ async def test_informed_delivery_emails_mp4(
     ) as mock_generate_mp4:
         m_open = mock_open()
         with patch("builtins.open", m_open, create=True):
-            result = await get_mails(
+            result = get_mails(
                 mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", True
             )
             assert result == 3
@@ -535,7 +535,7 @@ async def test_informed_delivery_emails_open_err(
     mock_copyfile,
     caplog,
 ):
-    await get_mails(
+    get_mails(
         mock_imap_usps_informed_digest,
         "/totally/fake/path/",
         "5",
@@ -561,7 +561,7 @@ async def test_informed_delivery_emails_io_err(
     with pytest.raises(ValueError) as exc_info:
         m_open = mock_open()
         with patch("builtins.open", m_open, create=True):
-            await get_mails(
+            get_mails(
                 mock_imap_usps_informed_digest,
                 "/totally/fake/path/",
                 "5",
@@ -584,7 +584,7 @@ async def test_informed_delivery_missing_mailpiece(
 ):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
-        result = await get_mails(
+        result = get_mails(
             mock_imap_usps_informed_digest_missing, "./", "5", "mail_today.gif", False
         )
         assert result == 5
@@ -604,7 +604,7 @@ async def test_informed_delivery_no_mail(
 ):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
-        result = await get_mails(
+        result = get_mails(
             mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
         )
         assert result == 0
@@ -626,7 +626,7 @@ async def test_informed_delivery_no_mail_copy_error(
 ):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
-        await get_mails(
+        get_mails(
             mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
         )
         # assert "./mail_today.gif" in mock_copyfile_exception.call_args.args
@@ -870,7 +870,7 @@ async def test_generate_mp4(
     hass, mock_osremove, mock_os_path_join, mock_subprocess_call, mock_os_path_split
 ):
     with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
-        await _generate_mp4(hass, "./", "testfile.gif")
+        _generate_mp4(hass, "./", "testfile.gif")
 
         mock_os_path_join.assert_called_with("./", "testfile.mp4")
         # mock_osremove.assert_called_with("./", "testfile.mp4")
@@ -915,7 +915,7 @@ async def test_selectfolder_select_error(mock_imap_select_error, caplog):
 
 @pytest.mark.asyncio
 async def test_resize_images_open_err(hass, mock_open_excpetion, caplog):
-    await resize_images(hass, ["testimage.jpg", "anothertest.jpg"], 724, 320)
+    resize_images(hass, ["testimage.jpg", "anothertest.jpg"], 724, 320)
     assert "Error attempting to open image" in caplog.text
 
 
@@ -923,7 +923,7 @@ async def test_resize_images_open_err(hass, mock_open_excpetion, caplog):
 async def test_resize_images_read_err(hass, mock_image_excpetion, caplog):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
-        await resize_images(hass, ["testimage.jpg", "anothertest.jpg"], 724, 320)
+        resize_images(hass, ["testimage.jpg", "anothertest.jpg"], 724, 320)
         assert "Error attempting to read image" in caplog.text
 
 
@@ -1085,7 +1085,7 @@ async def test_get_mails_email_search_none(
         "custom_components.mail_and_packages.helpers.email_search",
         return_value=("OK", [None]),
     ):
-        result = await get_mails(
+        result = get_mails(
             mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
         )
         assert result == 0
