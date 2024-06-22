@@ -19,6 +19,7 @@
                     "password": "Jelszó",
                     "port": "Kikötő",
                     "username": "Felhasználónév",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Kérjük, adja meg a levelezőszerver csatlakozási adatait.",
@@ -69,6 +70,7 @@
                     "password": "Jelszó",
                     "port": "Kikötő",
                     "username": "Felhasználónév",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Kérjük, adja meg a levelezőszerver csatlakozási adatait.",
