@@ -194,6 +194,15 @@ SENSOR_DATA = {
         ],
         "subject": ["Your Daily Digest"],
     },
+    "usps_mail_delivered": {
+        "email": [
+            "USPSInformedDelivery@usps.gov",
+            "USPSInformeddelivery@email.informeddelivery.usps.com",
+            "USPSInformeddelivery@informeddelivery.usps.com",
+            "USPS Informed Delivery",
+        ],
+        "subject": ["Your Mail Was Delivered"],
+    },
     # UPS
     "ups_delivered": {
         "email": ["mcinfo@ups.com"],
