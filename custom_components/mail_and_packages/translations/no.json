@@ -19,6 +19,7 @@
                     "password": "Passord",
                     "port": "Havn",
                     "username": "Brukernavn",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Vennligst skriv inn tilkoblingsinformasjonen til din postserver.",
@@ -69,6 +70,7 @@
                     "password": "Passord",
                     "port": "Havn",
                     "username": "Brukernavn",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Vennligst skriv inn tilkoblingsinformasjonen til din postserver.",

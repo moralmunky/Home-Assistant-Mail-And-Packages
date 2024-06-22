@@ -886,14 +886,14 @@ async def test_generate_mp4(
 
 @pytest.mark.asyncio
 async def test_connection_error(caplog):
-    result = login("localhost", 993, "fakeuser", "suchfakemuchpassword")
+    result = login("localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
     assert not result
     assert "Network error while connecting to server:" in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_login_error(mock_imap_login_error, caplog):
-    login("localhost", 993, "fakeuser", "suchfakemuchpassword")
+    login("localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
     assert "Error logging into IMAP Server:" in caplog.text
 
 

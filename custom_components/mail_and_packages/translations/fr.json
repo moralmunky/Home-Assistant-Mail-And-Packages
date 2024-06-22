@@ -19,6 +19,7 @@
                     "password": "Mot de passe",
                     "port": "Port",
                     "username": "Nom d'utilisateur",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Veuillez saisir les informations de connexion de votre serveur de messagerie.",
@@ -69,6 +70,7 @@
                     "password": "Mot de passe",
                     "port": "Port",
                     "username": "Nom d'utilisateur",
+                    "imap_security": "IMAP Security",
                     "verify_ssl": "Verify SSL Cert"
                 },
                 "description": "Veuillez saisir les informations de connexion de votre serveur de messagerie.",

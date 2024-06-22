@@ -76,6 +76,7 @@ from .const import (
     CONF_DURATION,
     CONF_FOLDER,
     CONF_GENERATE_MP4,
+    CONF_IMAP_SECURITY,
     CONF_PATH,
     CONF_VERIFY_SSL,
     DEFAULT_AMAZON_DAYS,
@@ -110,20 +111,35 @@ async def _check_ffmpeg() -> bool:
     return which("ffmpeg")
 
 
-async def _test_login(host: str, port: int, user: str, pwd: str, verify: bool) -> bool:
+async def _test_login(
+    host: str, port: int, user: str, pwd: str, security: str, verify: bool
+) -> bool:
     """Test IMAP login to specified server.
 
     Returns success boolean
     """
     context = ssl.create_default_context()
-    if not verify:
-        context.check_hostname = False
-        context.verify_mode = ssl.CERT_NONE
-    else:
-        context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
     # Catch invalid mail server / host names
     try:
-        account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
+        if security == "SSL":
+            if not verify:
+                context = ssl.create_default_context()
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
+            else:
+                context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
+            account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
+        elif security == "startTLS":
+            context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+            account = imaplib.IMAP4(host=host, port=port)
+            account.starttls(context)
+        else:
+            _LOGGER.warning(
+                "Email will be accessed without encryption using this method and is not recommended."
+            )
+            account = imaplib.IMAP4(host=host, port=port)
     except Exception as err:
         _LOGGER.error("Error connecting into IMAP Server: %s", str(err))
         return False
@@ -161,13 +177,14 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     pwd = config.get(CONF_PASSWORD)
     folder = config.get(CONF_FOLDER)
     resources = config.get(CONF_RESOURCES)
+    imap_security = config.get(CONF_IMAP_SECURITY)
     verify_ssl = config.get(CONF_VERIFY_SSL)
 
     # Create the dict container
     data = {}
 
     # Login to email server and select the folder
-    account = login(host, port, user, pwd, verify_ssl)
+    account = login(host, port, user, pwd, imap_security, verify_ssl)
 
     # Do not process if account returns false
     if not account:
@@ -436,21 +453,29 @@ async def fetch(
 
 
 def login(
-    host: str, port: int, user: str, pwd: str, verify: bool = True
+    host: str, port: int, user: str, pwd: str, security: str, verify: bool = True
 ) -> Union[bool, Type[imaplib.IMAP4_SSL]]:
     """Login to IMAP server.
 
     Returns account object
     """
-    context = ssl.create_default_context()
-    if not verify:
-        context.check_hostname = False
-        context.verify_mode = ssl.CERT_NONE
-    else:
-        context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
-    # Catch invalid mail server / host names
     try:
-        account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
+        if security == "SSL":
+            if not verify:
+                context = ssl.create_default_context()
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
+            else:
+                context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
+            account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
+        elif security == "startTLS":
+            context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+            account = imaplib.IMAP4(host=host, port=port)
+            account.starttls(context)
+        else:
+            account = imaplib.IMAP4(host=host, port=port)
 
     except Exception as err:
         _LOGGER.error("Network error while connecting to server: %s", str(err))
