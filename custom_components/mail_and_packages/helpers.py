@@ -165,7 +165,7 @@ def default_image_path(
     return "custom_components/mail_and_packages/images/"
 
 
-async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
+def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     """Process emails and return value.
 
     Returns dict containing sensor data
@@ -197,12 +197,12 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     _image = {}
 
     # USPS Mail Image name
-    image_name = await image_file_name(hass, config)
+    image_name = image_file_name(hass, config)
     _LOGGER.debug("Image name: %s", image_name)
     _image[ATTR_IMAGE_NAME] = image_name
 
     # Amazon delivery image name
-    image_name = await image_file_name(hass, config, True)
+    image_name = image_file_name(hass, config, True)
     _LOGGER.debug("Amazon Image Name: %s", image_name)
     _image[ATTR_AMAZON_IMAGE] = image_name
 
@@ -213,11 +213,11 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
 
     # Only update sensors we're intrested in
     for sensor in resources:
-        await fetch(hass, config, account, data, sensor)
+        fetch(hass, config, account, data, sensor)
 
     # Copy image file to www directory if enabled
     if config.get(CONF_ALLOW_EXTERNAL):
-        await hass.async_add_executor_job(copy_images, hass, config)
+        copy_images(hass, config)
 
     return data
 
@@ -253,7 +253,7 @@ def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
         return
 
 
-async def image_file_name(
+def image_file_name(
     hass: HomeAssistant, config: ConfigEntry, amazon: bool = False
 ) -> str:
     """Determine if filename is to be changed or not.
@@ -287,7 +287,7 @@ async def image_file_name(
 
     # SHA1 file hash check
     try:
-        sha1 = await hass.async_add_executor_job(hash_file, mail_none)
+        sha1 = hash_file(mail_none)
     except OSError as err:
         _LOGGER.error("Problem accessing file: %s, error returned: %s", mail_none, err)
         return image_name
@@ -312,8 +312,8 @@ async def image_file_name(
             # return a new filename
             if (
                 sha1
-                != await hass.async_add_executor_job(
-                    hash_file, os.path.join(path, file)
+                != hash_file(
+                    os.path.join(path, file)
                 )
                 and today != created
             ):
@@ -329,9 +329,7 @@ async def image_file_name(
     # Insert place holder image
     _LOGGER.debug("Copying %s to %s", mail_none, os.path.join(path, image_name))
 
-    await hass.async_add_executor_job(
-        copyfile, mail_none, os.path.join(path, image_name)
-    )
+    copyfile(mail_none, os.path.join(path, image_name))
 
     return image_name
 
@@ -357,7 +355,7 @@ def hash_file(filename: str) -> str:
     return the_hash.hexdigest()
 
 
-async def fetch(
+def fetch(
     hass: HomeAssistant, config: ConfigEntry, account: Any, data: dict, sensor: str
 ) -> int:
     """Fetch data for a single sensor, including any sensors it depends on.
@@ -383,8 +381,7 @@ async def fetch(
     count = {}
 
     if sensor == "usps_mail":
-        count[sensor] = await hass.async_add_executor_job(
-            get_mails,
+        count[sensor] = get_mails(
             account,
             img_out_path,
             gif_duration,
@@ -393,15 +390,13 @@ async def fetch(
             nomail,
         )
     elif sensor == AMAZON_PACKAGES:
-        count[sensor] = await hass.async_add_executor_job(
-            get_items,
+        count[sensor] = get_items(
             account,
             ATTR_COUNT,
             amazon_fwds,
             amazon_days,
         )
-        count[AMAZON_ORDER] = await hass.async_add_executor_job(
-            get_items,
+        count[AMAZON_ORDER] = get_items(
             account,
             ATTR_ORDER,
             amazon_fwds,
@@ -417,12 +412,12 @@ async def fetch(
         count[AMAZON_EXCEPTION_ORDER] = info[ATTR_ORDER]
     elif "_packages" in sensor:
         prefix = sensor.replace("_packages", "")
-        delivering = await fetch(hass, config, account, data, f"{prefix}_delivering")
-        delivered = await fetch(hass, config, account, data, f"{prefix}_delivered")
+        delivering = fetch(hass, config, account, data, f"{prefix}_delivering")
+        delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
         count[sensor] = delivering + delivered
     elif "_delivering" in sensor:
         prefix = sensor.replace("_delivering", "")
-        delivered = await fetch(hass, config, account, data, f"{prefix}_delivered")
+        delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
         info = get_count(account, sensor, True)
         count[sensor] = max(0, info[ATTR_COUNT] - delivered)
         count[f"{prefix}_tracking"] = info[ATTR_TRACKING]
@@ -431,13 +426,13 @@ async def fetch(
         for shipper in SHIPPERS:
             delivered = f"{shipper}_delivered"
             if delivered in data and delivered != sensor:
-                count[sensor] += await fetch(hass, config, account, data, delivered)
+                count[sensor] += fetch(hass, config, account, data, delivered)
     elif sensor == "zpackages_transit":
         total = 0
         for shipper in SHIPPERS:
             delivering = f"{shipper}_delivering"
             if delivering in data and delivering != sensor:
-                total += await fetch(hass, config, account, data, delivering)
+                total += fetch(hass, config, account, data, delivering)
         count[sensor] = max(0, total)
     elif sensor == "mail_updated":
         count[sensor] = update_time()
@@ -1123,8 +1118,7 @@ def amazon_search(
             if server_response == "OK" and data[0] is not None:
                 count += len(data[0].split())
                 _LOGGER.debug("Amazon delivered email(s) found: %s", count)
-                hass.async_add_executor_job(
-                    get_amazon_image,
+                get_amazon_image(
                     data[0],
                     account,
                     image_path,

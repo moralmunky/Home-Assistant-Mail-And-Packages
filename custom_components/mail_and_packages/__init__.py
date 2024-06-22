@@ -251,7 +251,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         """Fetch data."""
         async with asyncio.timeout(self.timeout):
             try:
-                data = await process_emails(self.hass, self.config)
+                data = await self.hass.async_add_executor_job(process_emails, self.hass, self.config)
             except Exception as error:
                 _LOGGER.error("Problem updating sensors: %s", error)
                 raise UpdateFailed(error) from error
