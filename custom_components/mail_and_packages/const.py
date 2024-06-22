@@ -1133,6 +1133,7 @@ BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
     "usps_mail_delivered": BinarySensorEntityDescription(
         name="USPS Mail Delivered",
         key="usps_mail_delivered",
+        entity_registry_enabled_default=False,
     ),
 }
 
