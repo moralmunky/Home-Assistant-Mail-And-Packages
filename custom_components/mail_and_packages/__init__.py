@@ -204,11 +204,6 @@ async def async_migrate_entry(hass, config_entry):
         if updated_config[CONF_AMAZON_FWDS] == ['""']:
             updated_config[CONF_AMAZON_FWDS] = DEFAULT_AMAZON_FWDS
 
-    if updated_config != config_entry.data:
-        hass.config_entries.async_update_entry(
-            config_entry, data=updated_config, version=new_version
-        )
-
     if version == 5:
         _LOGGER.debug("Migrating from version %s", version)
         updated_config = config_entry.data.copy()
