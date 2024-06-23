@@ -1183,7 +1183,7 @@ async def download_img(
             if "image" in content_type:
                 data = await resp.read()
                 _LOGGER.debug("Downloading image to: %s", filepath)
-                the_file = hass.async_add_executor_job(open, filepath, "wb")
+                the_file = await hass.async_add_executor_job(open, filepath, "wb")
                 the_file.write(data)
                 _LOGGER.debug("Amazon image downloaded")
 

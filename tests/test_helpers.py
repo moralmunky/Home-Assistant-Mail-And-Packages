@@ -973,10 +973,11 @@ async def test_download_img(
 
 
 @pytest.mark.asyncio
-async def test_download_img_error(aioclient_mock_error, caplog):
+async def test_download_img_error(hass, aioclient_mock_error, caplog):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
         await download_img(
+            hass,
             "http://fake.website.com/not/a/real/website/image.jpg",
             "/fake/directory/",
             "testfilename.jpg",
