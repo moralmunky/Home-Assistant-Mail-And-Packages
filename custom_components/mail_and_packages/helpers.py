@@ -1166,7 +1166,9 @@ def get_amazon_image(
         hass.add_job(download_img(hass, img_url, image_path, image_name))
 
 
-async def download_img(hass: HomeAssistant, img_url: str, img_path: str, img_name: str) -> None:
+async def download_img(
+    hass: HomeAssistant, img_url: str, img_path: str, img_name: str
+) -> None:
     """Download image from url."""
     img_path = f"{img_path}amazon/"
     filepath = f"{img_path}{img_name}"

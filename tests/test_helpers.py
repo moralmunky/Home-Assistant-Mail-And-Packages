@@ -948,6 +948,7 @@ async def test_usps_exception(hass, mock_imap_usps_exception):
 
 @pytest.mark.asyncio
 async def test_download_img(
+    hass,
     aioclient_mock,
     mock_osremove,
     mock_osmakedir,
@@ -960,6 +961,7 @@ async def test_download_img(
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
         await download_img(
+            hass,
             "http://fake.website.com/not/a/real/website/image.jpg",
             "/fake/directory/",
             "testfilename.jpg",
