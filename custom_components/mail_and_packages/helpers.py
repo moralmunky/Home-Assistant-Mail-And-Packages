@@ -1163,10 +1163,12 @@ def get_amazon_image(
 
     if img_url is not None:
         # Download the image we found
-        hass.add_job(download_img(img_url, image_path, image_name))
+        hass.add_job(download_img(hass, img_url, image_path, image_name))
 
 
-async def download_img(img_url: str, img_path: str, img_name: str) -> None:
+async def download_img(
+    hass: HomeAssistant, img_url: str, img_path: str, img_name: str
+) -> None:
     """Download image from url."""
     img_path = f"{img_path}amazon/"
     filepath = f"{img_path}{img_name}"
@@ -1181,9 +1183,9 @@ async def download_img(img_url: str, img_path: str, img_name: str) -> None:
             if "image" in content_type:
                 data = await resp.read()
                 _LOGGER.debug("Downloading image to: %s", filepath)
-                with open(filepath, "wb") as the_file:
-                    the_file.write(data)
-                    _LOGGER.debug("Amazon image downloaded")
+                the_file = await hass.async_add_executor_job(open, filepath, "wb")
+                the_file.write(data)
+                _LOGGER.debug("Amazon image downloaded")
 
 
 def _process_amazon_forwards(email_list: Union[List[str], None]) -> list:
