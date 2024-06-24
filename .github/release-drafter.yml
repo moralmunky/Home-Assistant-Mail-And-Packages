@@ -19,27 +19,27 @@ autolabeler:
     title:
       - "/tests:/i"
 categories:
-  - title: ":boom: Breaking Change :boom:"
+  - title: "💥 Breaking Change 💥"
     labels:
       - "breaking-change"
-  - title: ":zap: Enhancements :zap:"
+  - title: "⚡ Enhancements ⚡"
     labels:
       - "enhancement"
-  - title: ":sparkles: New Features :sparkles:"
+  - title: "✨ New Features ✨"
     labels:
       - "feature"
-  - title: ":bug: Bug Fixes :bug:"
+  - title: "🐛 Bug Fixes 🐛"
     labels:
       - "fix"
       - "bugfix"
       - "bug"
-  - title: ":wrench: Maintenance :wrench:"
+  - title: "🔧 Maintenance 🔧"
     labels:
       - "chore"
-  - title: ":mortar_board: Code Quality :mortar_board:"
+  - title: "🎓 Code Quality 🎓"
     labels:
       - "code-quality"
-  - title: ":books: Documentation :books:"
+  - title: "📚 Documentation 📚"
     labels:
       - "documentation"
 template: |
