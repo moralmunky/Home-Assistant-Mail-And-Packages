@@ -87,6 +87,7 @@ AMAZON_DOMAINS = [
     "amazon.es",
     "amazon.fr",
     "amazon.ae",
+    "amazon.nl",
 ]
 AMAZON_DELIVERED_SUBJECT = [
     "Delivered: Your",
@@ -95,6 +96,7 @@ AMAZON_DELIVERED_SUBJECT = [
     "Geliefert:",
     "Livré",
     "Entregado:",
+    "Bezorgd:",
 ]
 AMAZON_SHIPMENT_TRACKING = [
     "shipment-tracking",
@@ -102,6 +104,8 @@ AMAZON_SHIPMENT_TRACKING = [
     "confirmar-envio",
     "versandbestaetigung",
     "confirmation-commande",
+    "verzending-volgen",
+    "update-bestelling",
 ]
 AMAZON_EMAIL = "order-update@"
 AMAZON_PACKAGES = "amazon_packages"
