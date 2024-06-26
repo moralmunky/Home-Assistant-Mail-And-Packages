@@ -213,7 +213,10 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
 
     # Only update sensors we're intrested in
     for sensor in resources:
-        fetch(hass, config, account, data, sensor)
+        try:
+            fetch(hass, config, account, data, sensor)
+        except Exception as err:
+            _LOGGER.error("Error updating sensor: %s reason: %s", sensor, err)
 
     # Copy image file to www directory if enabled
     if config.get(CONF_ALLOW_EXTERNAL):
