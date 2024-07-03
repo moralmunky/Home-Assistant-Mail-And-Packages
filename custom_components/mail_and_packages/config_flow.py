@@ -116,14 +116,6 @@ async def _validate_user_input(user_input: dict) -> tuple:
     if not valid:
         errors[CONF_CUSTOM_IMG_FILE] = "file_not_found"
 
-    # validate scan interval
-    if user_input[CONF_SCAN_INTERVAL] < 5:
-        errors[CONF_SCAN_INTERVAL] = "scan_too_low"
-
-    # validate imap timeout
-    if user_input[CONF_IMAP_TIMEOUT] < 10:
-        errors[CONF_IMAP_TIMEOUT] = "timeout_too_low"
-
     return errors, user_input
 
 
