@@ -47,6 +47,7 @@ from .const import (
 )
 from .helpers import _check_ffmpeg, _test_login, get_resources, login
 
+ERROR_MAILBOX_FAIL = "Problem getting mailbox listing using 'INBOX' message"
 IMAP_SECURITY = ["none", "startTLS", "SSL"]
 _LOGGER = logging.getLogger(__name__)
 
@@ -149,6 +150,9 @@ def _get_mailboxes(
             except IndexError:
                 _LOGGER.error("Error creating folder array, using INBOX")
                 mailboxes.append(DEFAULT_FOLDER)
+            except Exception as err:
+                _LOGGER.error("%s: %s", ERROR_MAILBOX_FAIL, err)
+                mailboxes.append(DEFAULT_FOLDER)
 
     return mailboxes
 
@@ -171,7 +175,7 @@ def _get_schema_step_1(user_input: list, default_dict: list) -> Any:
             vol.Required(
                 CONF_IMAP_SECURITY, default=_get_default(CONF_IMAP_SECURITY)
             ): vol.In(IMAP_SECURITY),
-            vol.Required(CONF_VERIFY_SSL, default=_get_default(CONF_VERIFY_SSL)): bool,
+            vol.Required(CONF_VERIFY_SSL, default=_get_default(CONF_VERIFY_SSL)): cv.boolean,
         }
     )
 
