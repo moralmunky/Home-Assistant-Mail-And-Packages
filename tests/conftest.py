@@ -365,6 +365,28 @@ def mock_imap_mailbox_format2():
 
 
 @pytest.fixture()
+def mock_imap_mailbox_format3():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_mailbox_format3:
+        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_imap_mailbox_format3.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "ERR",
+            [b'(\\HasNoChildren) "%" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"0"])
+        mock_conn.uid.return_value = ("OK", [b"0"])
+        yield mock_conn        
+
+
+@pytest.fixture()
 def mock_imap_usps_informed_digest():
     """Mock imap class values."""
     with patch(
