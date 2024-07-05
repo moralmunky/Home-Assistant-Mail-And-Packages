@@ -383,7 +383,7 @@ def mock_imap_mailbox_format3():
         )
         mock_conn.search.return_value = ("OK", [b"0"])
         mock_conn.uid.return_value = ("OK", [b"0"])
-        yield mock_conn        
+        yield mock_conn
 
 
 @pytest.fixture()

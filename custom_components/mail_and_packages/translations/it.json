@@ -1,7 +1,8 @@
 {
     "config": {
         "abort": {
-            "single_instance_allowed": "È consentita una sola configurazione di posta e pacchetti."
+            "single_instance_allowed": "È consentita una sola configurazione di posta e pacchetti.",
+            "reconfigure_successful": "Reconfigure Successful"
         },
         "error": {
             "communication": "Impossibile connettersi o accedere al server di posta. Si prega di controllare il registro per i dettagli.",
@@ -49,7 +50,44 @@
                 },
                 "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
                 "title": "Mail and Packages (Step 3 of 3)"
-            }
+            },
+            "reconfigure": {
+                "data": {
+                    "host": "Host",
+                    "password": "Password",
+                    "port": "Port",
+                    "username": "Username",
+                    "imap_security": "IMAP Security",
+                    "verify_ssl": "Verify SSL Cert"
+                },
+                "description": "Please enter the connection information of your mail server.",
+                "title": "Mail and Packages (Step 1 of 2)"
+            },
+            "reconfig_2": {
+                "data": {
+                    "folder": "Mail Folder",
+                    "scan_interval": "Scanning Interval (minutes)",
+                    "image_path": "Image Path",
+                    "gif_duration": "Image Duration (seconds)",
+                    "image_security": "Random Image Filename",
+                    "generate_mp4": "Create mp4 from images",
+                    "resources": "Sensors List",
+                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+                    "amazon_fwds": "Amazon fowarded email addresses",
+                    "allow_external": "Create image for notification apps",
+                    "amazon_days": "Days back to check for Amazon emails",
+                    "custom_img": "Use custom 'no image' image?"
+                },
+                "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma or enter (none) to clear this setting.",
+                "title": "Mail and Packages (Step 2 of 2)"
+            },
+            "reconfig_3": {
+                "data": {
+                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                },
+                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
+                "title": "Mail and Packages (Step 3 of 3)"
+            }            
         },
         "title": "Mail and Packages"
     },
