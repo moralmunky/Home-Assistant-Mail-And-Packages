@@ -199,7 +199,7 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
                 CONF_RESOURCES, default=_get_default(CONF_RESOURCES)
             ): cv.multi_select(get_resources()),
             vol.Optional(
-                CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS)
+                CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS, '(none)')
             ): cv.string,
             vol.Optional(CONF_AMAZON_DAYS, default=_get_default(CONF_AMAZON_DAYS)): int,
             vol.Optional(
@@ -359,27 +359,15 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
-    @staticmethod
-    @callback
-    def async_get_options_flow(config_entry):
-        """Redirect to options flow."""
-        return MailAndPackagesOptionsFlow(config_entry)
-
-
-class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
-    """Options flow for Mail and Packages."""
-
-    def __init__(self, config_entry):
-        """Initialize."""
-        self.config = config_entry
-        self._data = dict(config_entry.options)
+    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None):
+        """Add reconfigure step to allow to reconfigure a config entry."""
+        self._entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        assert self._entry
+        self._data = dict(self._entry.data)
         self._errors = {}
 
-    async def async_step_init(self, user_input=None):
-        """Manage Mail and Packages options."""
         if user_input is not None:
             self._data.update(user_input)
-
             valid = await _test_login(
                 user_input[CONF_HOST],
                 user_input[CONF_PORT],
@@ -391,21 +379,22 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             if not valid:
                 self._errors["base"] = "communication"
             else:
-                return await self.async_step_options_2()
+                return await self.async_step_reconfig_2()
 
-            return await self._show_options_form(user_input)
+            return await self._show_reconfig_form(user_input)
 
-        return await self._show_options_form(user_input)
+        return await self._show_reconfig_form(user_input)        
+    
 
-    async def _show_options_form(self, user_input):
-        """Show the configuration form to edit location data."""
+    async def _show_reconfig_form(self, user_input):
+        """Show the configuration form to edit configuration data."""
         return self.async_show_form(
-            step_id="init",
+            step_id="reconfigure",
             data_schema=_get_schema_step_1(user_input, self._data),
             errors=self._errors,
         )
 
-    async def async_step_options_2(self, user_input=None):
+    async def async_step_reconfig_2(self, user_input=None):
         """Configure form step 2."""
         self._errors = {}
         if user_input is not None:
@@ -413,58 +402,181 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             self._data.update(user_input)
             if len(self._errors) == 0:
                 if self._data[CONF_CUSTOM_IMG]:
-                    return await self.async_step_options_3()
-                return self.async_create_entry(title="", data=self._data)
-            return await self._show_step_options_2(user_input)
-        return await self._show_step_options_2(user_input)
+                    return await self.async_step_reconfig_3()
+                self.hass.config_entries.async_update_entry(
+                    self._entry, data=self._data
+                )
+                await self.hass.config_entries.async_reload(self._entry.entry_id)
+                _LOGGER.debug("%s reconfigured.", DOMAIN)
+                return self.async_abort(reason="reconfigure_successful")
 
-    async def _show_step_options_2(self, user_input):
-        """Step 2 of options."""
+            return await self._show_reconfig_2(user_input)
+
+        return await self._show_reconfig_2(user_input)
+
+    async def _show_reconfig_2(self, user_input):
+        """Step 2 setup."""
         # Defaults
         defaults = {
-            CONF_FOLDER: self._data.get(CONF_FOLDER),
-            CONF_SCAN_INTERVAL: self._data.get(CONF_SCAN_INTERVAL),
-            CONF_PATH: self._data.get(CONF_PATH),
-            CONF_DURATION: self._data.get(CONF_DURATION),
-            CONF_IMAGE_SECURITY: self._data.get(CONF_IMAGE_SECURITY),
-            CONF_IMAP_TIMEOUT: self._data.get(CONF_IMAP_TIMEOUT)
-            or DEFAULT_IMAP_TIMEOUT,
-            CONF_AMAZON_FWDS: self._data.get(CONF_AMAZON_FWDS) or DEFAULT_AMAZON_FWDS,
-            CONF_AMAZON_DAYS: self._data.get(CONF_AMAZON_DAYS) or DEFAULT_AMAZON_DAYS,
-            CONF_GENERATE_MP4: self._data.get(CONF_GENERATE_MP4),
-            CONF_ALLOW_EXTERNAL: self._data.get(CONF_ALLOW_EXTERNAL),
-            CONF_RESOURCES: self._data.get(CONF_RESOURCES),
-            CONF_CUSTOM_IMG: self._data.get(CONF_CUSTOM_IMG) or DEFAULT_CUSTOM_IMG,
+            CONF_FOLDER: DEFAULT_FOLDER,
+            CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
+            CONF_PATH: self.hass.config.path() + DEFAULT_PATH,
+            CONF_DURATION: DEFAULT_GIF_DURATION,
+            CONF_IMAGE_SECURITY: DEFAULT_IMAGE_SECURITY,
+            CONF_IMAP_TIMEOUT: DEFAULT_IMAP_TIMEOUT,
+            CONF_AMAZON_FWDS: DEFAULT_AMAZON_FWDS,
+            CONF_AMAZON_DAYS: DEFAULT_AMAZON_DAYS,
+            CONF_GENERATE_MP4: False,
+            CONF_ALLOW_EXTERNAL: DEFAULT_ALLOW_EXTERNAL,
+            CONF_CUSTOM_IMG: DEFAULT_CUSTOM_IMG,
         }
+        if self._data[CONF_AMAZON_FWDS] == []:
+            self._data[CONF_AMAZON_FWDS] = "(none)"
 
         return self.async_show_form(
-            step_id="options_2",
-            data_schema=_get_schema_step_2(self._data, user_input, defaults),
+            step_id="reconfig_2",
+            data_schema=_get_schema_step_2(self._data, user_input, self._data),
             errors=self._errors,
         )
 
-    async def async_step_options_3(self, user_input=None):
-        """Configure form step 3."""
+    async def async_step_reconfig_3(self, user_input=None):
+        """Configure form step 2."""
         self._errors = {}
         if user_input is not None:
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
-                return self.async_create_entry(title="", data=self._data)
-            return await self._show_step_options_3(user_input)
+                self.hass.config_entries.async_update_entry(
+                    self._entry, data=self._data
+                )                
+                await self.hass.config_entries.async_reload(self._entry.entry_id)
+                _LOGGER.debug("%s reconfigured.", DOMAIN)
+                return self.async_abort(reason="reconfigure_successful")
+            
+            return await self._show_reconfig_3(user_input)
 
-        return await self._show_step_options_3(user_input)
+        return await self._show_reconfig_3(user_input)
 
-    async def _show_step_options_3(self, user_input):
+    async def _show_reconfig_3(self, user_input):
         """Step 3 setup."""
         # Defaults
         defaults = {
-            CONF_CUSTOM_IMG_FILE: self._data.get(CONF_CUSTOM_IMG_FILE)
-            or DEFAULT_CUSTOM_IMG_FILE,
+            CONF_CUSTOM_IMG_FILE: DEFAULT_CUSTOM_IMG_FILE,
         }
 
         return self.async_show_form(
-            step_id="options_3",
+            step_id="reconfig_3",
             data_schema=_get_schema_step_3(user_input, defaults),
             errors=self._errors,
         )
+
+
+    # @staticmethod
+    # @callback
+    # def async_get_options_flow(config_entry):
+    #     """Redirect to options flow."""
+    #     return MailAndPackagesOptionsFlow(config_entry)
+
+
+# class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
+#     """Options flow for Mail and Packages."""
+
+#     def __init__(self, config_entry):
+#         """Initialize."""
+#         self.config = config_entry
+#         self._data = dict(config_entry.options)
+#         self._errors = {}
+
+#     async def async_step_init(self, user_input=None):
+#         """Manage Mail and Packages options."""
+#         if user_input is not None:
+#             self._data.update(user_input)
+
+#             valid = await _test_login(
+#                 user_input[CONF_HOST],
+#                 user_input[CONF_PORT],
+#                 user_input[CONF_USERNAME],
+#                 user_input[CONF_PASSWORD],
+#                 user_input[CONF_IMAP_SECURITY],
+#                 user_input[CONF_VERIFY_SSL],
+#             )
+#             if not valid:
+#                 self._errors["base"] = "communication"
+#             else:
+#                 return await self.async_step_options_2()
+
+#             return await self._show_options_form(user_input)
+
+#         return await self._show_options_form(user_input)
+
+#     async def _show_options_form(self, user_input):
+#         """Show the configuration form to edit location data."""
+#         return self.async_show_form(
+#             step_id="init",
+#             data_schema=_get_schema_step_1(user_input, self._data),
+#             errors=self._errors,
+#         )
+
+#     async def async_step_options_2(self, user_input=None):
+#         """Configure form step 2."""
+#         self._errors = {}
+#         if user_input is not None:
+#             self._errors, user_input = await _validate_user_input(user_input)
+#             self._data.update(user_input)
+#             if len(self._errors) == 0:
+#                 if self._data[CONF_CUSTOM_IMG]:
+#                     return await self.async_step_options_3()
+#                 return self.async_create_entry(title="", data=self._data)
+#             return await self._show_step_options_2(user_input)
+#         return await self._show_step_options_2(user_input)
+
+#     async def _show_step_options_2(self, user_input):
+#         """Step 2 of options."""
+#         # Defaults
+#         defaults = {
+#             CONF_FOLDER: self._data.get(CONF_FOLDER),
+#             CONF_SCAN_INTERVAL: self._data.get(CONF_SCAN_INTERVAL),
+#             CONF_PATH: self._data.get(CONF_PATH),
+#             CONF_DURATION: self._data.get(CONF_DURATION),
+#             CONF_IMAGE_SECURITY: self._data.get(CONF_IMAGE_SECURITY),
+#             CONF_IMAP_TIMEOUT: self._data.get(CONF_IMAP_TIMEOUT)
+#             or DEFAULT_IMAP_TIMEOUT,
+#             CONF_AMAZON_FWDS: self._data.get(CONF_AMAZON_FWDS) or DEFAULT_AMAZON_FWDS,
+#             CONF_AMAZON_DAYS: self._data.get(CONF_AMAZON_DAYS) or DEFAULT_AMAZON_DAYS,
+#             CONF_GENERATE_MP4: self._data.get(CONF_GENERATE_MP4),
+#             CONF_ALLOW_EXTERNAL: self._data.get(CONF_ALLOW_EXTERNAL),
+#             CONF_RESOURCES: self._data.get(CONF_RESOURCES),
+#             CONF_CUSTOM_IMG: self._data.get(CONF_CUSTOM_IMG) or DEFAULT_CUSTOM_IMG,
+#         }
+
+#         return self.async_show_form(
+#             step_id="options_2",
+#             data_schema=_get_schema_step_2(self._data, user_input, defaults),
+#             errors=self._errors,
+#         )
+
+#     async def async_step_options_3(self, user_input=None):
+#         """Configure form step 3."""
+#         self._errors = {}
+#         if user_input is not None:
+#             self._data.update(user_input)
+#             self._errors, user_input = await _validate_user_input(self._data)
+#             if len(self._errors) == 0:
+#                 return self.async_create_entry(title="", data=self._data)
+#             return await self._show_step_options_3(user_input)
+
+#         return await self._show_step_options_3(user_input)
+
+#     async def _show_step_options_3(self, user_input):
+#         """Step 3 setup."""
+#         # Defaults
+#         defaults = {
+#             CONF_CUSTOM_IMG_FILE: self._data.get(CONF_CUSTOM_IMG_FILE)
+#             or DEFAULT_CUSTOM_IMG_FILE,
+#         }
+
+#         return self.async_show_form(
+#             step_id="options_3",
+#             data_schema=_get_schema_step_3(user_input, defaults),
+#             errors=self._errors,
+#         )
