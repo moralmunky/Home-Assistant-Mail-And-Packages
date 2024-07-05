@@ -108,11 +108,10 @@ async def async_migrate_entry(hass, config_entry):
     new_version = 7
 
     _LOGGER.debug("Migrating from version %s", version)
+    updated_config = config_entry.data.copy()
 
     # 1 -> 4: Migrate format
     if version == 1:
-        updated_config = config_entry.data.copy()
-
         if CONF_AMAZON_FWDS in updated_config.keys():
             if not isinstance(updated_config[CONF_AMAZON_FWDS], list):
                 updated_config[CONF_AMAZON_FWDS] = [
@@ -124,7 +123,7 @@ async def async_migrate_entry(hass, config_entry):
             _LOGGER.warning("Missing configuration data: %s", CONF_AMAZON_FWDS)
 
         # Force path change
-        updated_config[CONF_PATH] = "images/mail_and_packages/"
+        updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
 
         # Always on image security
         if not config_entry.data[CONF_IMAGE_SECURITY]:
@@ -135,10 +134,8 @@ async def async_migrate_entry(hass, config_entry):
 
     # 2 -> 4
     if version <= 2:
-        updated_config = config_entry.data.copy()
-
         # Force path change
-        updated_config[CONF_PATH] = "images/mail_and_packages/"
+        updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
 
         # Always on image security
         if not config_entry.data[CONF_IMAGE_SECURITY]:
@@ -148,28 +145,20 @@ async def async_migrate_entry(hass, config_entry):
         updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
 
     if version <= 3:
-        updated_config = config_entry.data.copy()
-
         # Add default Amazon Days configuration
         updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
 
     if version <= 4:
-        updated_config = config_entry.data.copy()
-
         if CONF_AMAZON_FWDS in updated_config and updated_config[CONF_AMAZON_FWDS] == [
             '""'
         ]:
             updated_config[CONF_AMAZON_FWDS] = DEFAULT_AMAZON_FWDS
 
     if version <= 5:
-        updated_config = config_entry.data.copy()
-
         if CONF_VERIFY_SSL not in updated_config:
             updated_config[CONF_VERIFY_SSL] = True
 
     if version <= 6:
-        updated_config = config_entry.data.copy()
-
         if CONF_IMAP_SECURITY not in updated_config:
             updated_config[CONF_IMAP_SECURITY] = "SSL"
 

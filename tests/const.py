@@ -55,6 +55,7 @@ FAKE_CONFIG_DATA_BAD = {
 }
 
 FAKE_CONFIG_DATA = {
+    "allow_external": False,
     "amazon_days": 3,
     "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
     "custom_img": False,
@@ -188,7 +189,7 @@ FAKE_CONFIG_DATA_EXTERNAL = {
 FAKE_CONFIG_DATA_CORRECTED_EXTERNAL = {
     "allow_external": True,
     "amazon_days": 3,
-    "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
+    "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
     "custom_img": False,
     "folder": '"INBOX"',
     "generate_mp4": False,
@@ -251,7 +252,7 @@ FAKE_CONFIG_DATA_CORRECTED_EXTERNAL = {
 FAKE_CONFIG_DATA_CORRECTED = {
     "allow_external": False,
     "amazon_days": 3,
-    "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
+    "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
     "custom_img": False,
     "folder": '"INBOX"',
     "generate_mp4": False,
