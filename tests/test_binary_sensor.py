@@ -11,7 +11,9 @@ from tests.const import FAKE_CONFIG_DATA
 
 
 @pytest.mark.asyncio
-async def test_binary_sensor_no_updates(hass, mock_imap_no_email, entity_registry: er.EntityRegistry):
+async def test_binary_sensor_no_updates(
+    hass, mock_imap_no_email, entity_registry: er.EntityRegistry
+):
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
@@ -46,9 +48,7 @@ async def test_binary_sensor_no_updates(hass, mock_imap_no_email, entity_registr
 
     # reload the integration
     await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
-    await hass.config_entries.async_forward_entry_setups(
-        entry, ["binary_sensor"]
-    )
+    await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
     await hass.async_block_till_done()
 
     state = hass.states.get("binary_sensor.usps_mail_delivered")

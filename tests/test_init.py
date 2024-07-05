@@ -74,7 +74,7 @@ async def test_no_path_no_sec(
     """Test settting up entities."""
     entry = integration_no_path
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 43
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 41
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
