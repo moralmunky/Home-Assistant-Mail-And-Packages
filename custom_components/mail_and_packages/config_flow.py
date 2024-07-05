@@ -14,7 +14,6 @@ from homeassistant.const import (
     CONF_RESOURCES,
     CONF_USERNAME,
 )
-from homeassistant.core import callback
 
 from .const import (
     CONF_ALLOW_EXTERNAL,
@@ -252,6 +251,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     def __init__(self):
         """Initialize."""
+        self._entry = {}
         self._data = {}
         self._errors = {}
 
@@ -415,20 +415,6 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _show_reconfig_2(self, user_input):
         """Step 2 setup."""
-        # Defaults
-        defaults = {
-            CONF_FOLDER: DEFAULT_FOLDER,
-            CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
-            CONF_PATH: self.hass.config.path() + DEFAULT_PATH,
-            CONF_DURATION: DEFAULT_GIF_DURATION,
-            CONF_IMAGE_SECURITY: DEFAULT_IMAGE_SECURITY,
-            CONF_IMAP_TIMEOUT: DEFAULT_IMAP_TIMEOUT,
-            CONF_AMAZON_FWDS: DEFAULT_AMAZON_FWDS,
-            CONF_AMAZON_DAYS: DEFAULT_AMAZON_DAYS,
-            CONF_GENERATE_MP4: False,
-            CONF_ALLOW_EXTERNAL: DEFAULT_ALLOW_EXTERNAL,
-            CONF_CUSTOM_IMG: DEFAULT_CUSTOM_IMG,
-        }
         if self._data[CONF_AMAZON_FWDS] == []:
             self._data[CONF_AMAZON_FWDS] = "(none)"
 

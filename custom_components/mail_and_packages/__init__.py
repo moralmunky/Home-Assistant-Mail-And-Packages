@@ -11,7 +11,6 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
-    CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_FWDS,
     CONF_IMAGE_SECURITY,
@@ -23,13 +22,12 @@ from .const import (
     COORDINATOR,
     DEFAULT_AMAZON_DAYS,
     DEFAULT_AMAZON_FWDS,
-    DEFAULT_IMAP_TIMEOUT,
     DOMAIN,
     ISSUE_URL,
     PLATFORMS,
     VERSION,
 )
-from .helpers import default_image_path, process_emails
+from .helpers import process_emails
 
 _LOGGER = logging.getLogger(__name__)
 
