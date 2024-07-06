@@ -1,5 +1,6 @@
 """Tests for init."""
 
+import logging
 from unittest.mock import patch
 
 import pytest
@@ -117,7 +118,6 @@ async def test_amazon_fwds_string(
 ):
     """Test settting up entities."""
     entry = integration_fwd_string
-
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 42
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1

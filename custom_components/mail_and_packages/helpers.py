@@ -38,7 +38,6 @@ from PIL import Image, ImageOps
 from .const import (
     AMAZON_DELIVERED,
     AMAZON_DELIVERED_SUBJECT,
-    AMAZON_DOMAINS,
     AMAZON_EMAIL,
     AMAZON_EXCEPTION,
     AMAZON_EXCEPTION_ORDER,
@@ -70,6 +69,7 @@ from .const import (
     ATTR_USPS_MAIL,
     CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_DAYS,
+    CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
@@ -359,6 +359,9 @@ def fetch(
 
     Returns integer of sensor passed to it
     """
+    if sensor in data:
+        return data[sensor]
+
     img_out_path = f"{hass.config.path()}/{config.get(CONF_PATH)}"
     gif_duration = config.get(CONF_DURATION)
     generate_mp4 = config.get(CONF_GENERATE_MP4)
@@ -367,13 +370,13 @@ def fetch(
     amazon_image_name = data[ATTR_AMAZON_IMAGE]
     amazon_days = config.get(CONF_AMAZON_DAYS)
 
-    if config.get(CONF_CUSTOM_IMG):
-        nomail = config.get(CONF_CUSTOM_IMG_FILE)
-    else:
-        nomail = None
-
-    if sensor in data:
-        return data[sensor]
+    # Conditional variables
+    nomail = (
+        config.get(CONF_CUSTOM_IMG_FILE) if config.get(CONF_CUSTOM_IMG_FILE) else None
+    )
+    amazon_domain = (
+        config.get(CONF_AMAZON_DOMAIN) if config.get(CONF_AMAZON_DOMAIN) else None
+    )
 
     count = {}
 
@@ -392,19 +395,21 @@ def fetch(
             ATTR_COUNT,
             amazon_fwds,
             amazon_days,
+            amazon_domain,
         )
         count[AMAZON_ORDER] = get_items(
             account,
             ATTR_ORDER,
             amazon_fwds,
             amazon_days,
+            amazon_domain,
         )
     elif sensor == AMAZON_HUB:
         value = amazon_hub(account, amazon_fwds)
         count[sensor] = value[ATTR_COUNT]
         count[AMAZON_HUB_CODE] = value[ATTR_CODE]
     elif sensor == AMAZON_EXCEPTION:
-        info = amazon_exception(account, amazon_fwds)
+        info = amazon_exception(account, amazon_fwds, amazon_domain)
         count[sensor] = info[ATTR_COUNT]
         count[AMAZON_EXCEPTION_ORDER] = info[ATTR_ORDER]
     elif "_packages" in sensor:
@@ -415,7 +420,7 @@ def fetch(
     elif "_delivering" in sensor:
         prefix = sensor.replace("_delivering", "")
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
-        info = get_count(account, sensor, True)
+        info = get_count(account, sensor, True, amazon_domain=amazon_domain)
         count[sensor] = max(0, info[ATTR_COUNT] - delivered)
         count[f"{prefix}_tracking"] = info[ATTR_TRACKING]
     elif sensor == "zpackages_delivered":
@@ -435,7 +440,7 @@ def fetch(
         count[sensor] = update_time()
     else:
         count[sensor] = get_count(
-            account, sensor, False, img_out_path, hass, amazon_image_name
+            account, sensor, False, img_out_path, hass, amazon_image_name, amazon_domain
         )[ATTR_COUNT]
 
     data.update(count)
@@ -922,6 +927,7 @@ def get_count(
     image_path: Optional[str] = None,
     hass: Optional[HomeAssistant] = None,
     amazon_image_name: Optional[str] = None,
+    amazon_domain: Optional[str] = None,
 ) -> dict:
     """Get Package Count.
 
@@ -936,7 +942,9 @@ def get_count(
 
     # Return Amazon delivered info
     if sensor_type == AMAZON_DELIVERED:
-        result[ATTR_COUNT] = amazon_search(account, image_path, hass, amazon_image_name)
+        result[ATTR_COUNT] = amazon_search(
+            account, image_path, hass, amazon_image_name, amazon_domain
+        )
         result[ATTR_TRACKING] = ""
         return result
 
@@ -1093,6 +1101,7 @@ def amazon_search(
     image_path: str,
     hass: HomeAssistant,
     amazon_image_name: str,
+    amazon_domain: str,
 ) -> int:
     """Find Amazon Delivered email.
 
@@ -1103,8 +1112,9 @@ def amazon_search(
     subjects = AMAZON_DELIVERED_SUBJECT
     today = get_formatted_date()
     count = 0
+    domains = amazon_domain.split()
 
-    for domain in AMAZON_DOMAINS:
+    for domain in domains:
         for subject in subjects:
             email_address = AMAZON_EMAIL + domain
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
@@ -1273,7 +1283,9 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
 
 
 def amazon_exception(
-    account: Type[imaplib.IMAP4_SSL], fwds: Optional[list] = None
+    account: Type[imaplib.IMAP4_SSL],
+    fwds: Optional[list] = None,
+    the_domain: str = None,
 ) -> dict:
     """Find Amazon exception emails.
 
@@ -1283,7 +1295,7 @@ def amazon_exception(
     tfmt = get_formatted_date()
     count = 0
     info = {}
-    domains = AMAZON_DOMAINS
+    domains = the_domain.split()
     if isinstance(fwds, list):
         for fwd in fwds:
             if fwd and fwd != '""' and fwd not in domains:
@@ -1348,6 +1360,7 @@ def get_items(
     param: str = None,
     fwds: Optional[str] = None,
     days: int = DEFAULT_AMAZON_DAYS,
+    the_domain: str = None,
 ) -> Union[List[str], int]:
     """Parse Amazon emails for delivery date and order number.
 
@@ -1361,9 +1374,8 @@ def get_items(
     deliveries_today = []
     order_number = []
     domains = _process_amazon_forwards(fwds)
-
-    for main_domain in AMAZON_DOMAINS:
-        domains.append(main_domain)
+    the_domain = the_domain.split()
+    domains.append(the_domain)
 
     _LOGGER.debug("Amazon email list: %s", str(domains))
 

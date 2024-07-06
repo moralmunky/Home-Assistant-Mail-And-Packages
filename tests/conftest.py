@@ -14,7 +14,7 @@ import pytest
 from aioresponses import aioresponses
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.mail_and_packages.const import DOMAIN
+from custom_components.mail_and_packages.const import CONF_AMAZON_DOMAIN, DOMAIN
 from tests.const import (
     FAKE_CONFIG_DATA,
     FAKE_CONFIG_DATA_AMAZON_FWD_STRING,
@@ -91,7 +91,7 @@ async def integration_fixture_3(hass):
 
 
 @pytest.fixture(name="integration_fwd_string")
-async def integration_fixture_4(hass):
+async def integration_fixture_4(hass, caplog):
     """Set up the mail_and_packages integration."""
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -102,6 +102,11 @@ async def integration_fixture_4(hass):
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+
+    assert "Migrating from version 3" in caplog.text
+    assert "Migration complete to version 8" in caplog.text
+
+    assert CONF_AMAZON_DOMAIN in entry.data
 
     return entry
 
@@ -143,6 +148,7 @@ async def integration_fixture_7(hass):
         domain=DOMAIN,
         title="imap.test.email",
         data=FAKE_CONFIG_DATA_V4_MIGRATE,
+        version=4,
     )
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)

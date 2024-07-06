@@ -709,30 +709,32 @@ async def test_royal_out_for_delivery(hass, mock_imap_royal_out_for_delivery):
 @freeze_time("2020-09-11")
 @pytest.mark.asyncio
 async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):
-    result = get_items(mock_imap_amazon_shipped, "count")
+    result = get_items(mock_imap_amazon_shipped, "count", the_domain="amazon.com")
     assert result == 1
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order(hass, mock_imap_amazon_shipped):
-    result = get_items(mock_imap_amazon_shipped, "order")
+    result = get_items(mock_imap_amazon_shipped, "order", the_domain="amazon.com")
     assert result == ["123-1234567-1234567"]
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_alt(hass, mock_imap_amazon_shipped_alt):
-    result = get_items(mock_imap_amazon_shipped_alt, "order")
+    result = get_items(mock_imap_amazon_shipped_alt, "order", the_domain="amazon.com")
     assert result == ["123-1234567-1234567"]
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_alt_2(hass, mock_imap_amazon_shipped_alt_2):
-    result = get_items(mock_imap_amazon_shipped_alt_2, "order")
+    result = get_items(mock_imap_amazon_shipped_alt_2, "order", the_domain="amazon.com")
     assert result == ["113-9999999-8459426"]
     with patch("datetime.date") as mock_date:
         mock_date.today.return_value = date(2021, 12, 3)
 
-        result = get_items(mock_imap_amazon_shipped_alt_2, "count")
+        result = get_items(
+            mock_imap_amazon_shipped_alt_2, "count", the_domain="amazon.com"
+        )
         assert result == 1
 
 
@@ -740,25 +742,29 @@ async def test_amazon_shipped_order_alt_2(hass, mock_imap_amazon_shipped_alt_2):
 async def test_amazon_shipped_order_alt_timeformat(
     hass, mock_imap_amazon_shipped_alt_timeformat
 ):
-    result = get_items(mock_imap_amazon_shipped_alt_timeformat, "order")
+    result = get_items(
+        mock_imap_amazon_shipped_alt_timeformat, "order", the_domain="amazon.com"
+    )
     assert result == ["321-1234567-1234567"]
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_uk(hass, mock_imap_amazon_shipped_uk):
-    result = get_items(mock_imap_amazon_shipped_uk, "order")
+    result = get_items(mock_imap_amazon_shipped_uk, "order", the_domain="amazon.co.uk")
     assert result == ["123-4567890-1234567"]
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_uk(hass, mock_imap_amazon_shipped_uk_2):
-    result = get_items(mock_imap_amazon_shipped_uk_2, "order")
+    result = get_items(
+        mock_imap_amazon_shipped_uk_2, "order", the_domain="amazon.co.uk"
+    )
     assert result == ["123-4567890-1234567"]
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_it(hass, mock_imap_amazon_shipped_it):
-    result = get_items(mock_imap_amazon_shipped_it, "order")
+    result = get_items(mock_imap_amazon_shipped_it, "order", the_domain="amazon.it")
     assert result == ["405-5236882-9395563"]
 
 
@@ -766,22 +772,24 @@ async def test_amazon_shipped_order_it(hass, mock_imap_amazon_shipped_it):
 async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
     with patch("datetime.date") as mock_date:
         mock_date.today.return_value = date(2021, 12, 1)
-        result = get_items(mock_imap_amazon_shipped_it, "count")
+        result = get_items(mock_imap_amazon_shipped_it, "count", the_domain="amazon.it")
         assert result == 1
 
 
 @pytest.mark.asyncio
 async def test_amazon_search(hass, mock_imap_no_email):
-    result = amazon_search(mock_imap_no_email, "test/path", hass, "testfilename.jpg")
+    result = amazon_search(
+        mock_imap_no_email, "test/path", hass, "testfilename.jpg", "amazon.com"
+    )
     assert result == 0
 
 
 @pytest.mark.asyncio
 async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
     result = amazon_search(
-        mock_imap_amazon_shipped, "test/path", hass, "testfilename.jpg"
+        mock_imap_amazon_shipped, "test/path", hass, "testfilename.jpg", "amazon.com"
     )
-    assert result == 98
+    assert result == 7
 
 
 @pytest.mark.asyncio
@@ -789,9 +797,9 @@ async def test_amazon_search_delivered(
     hass, mock_imap_amazon_delivered, mock_download_img
 ):
     result = amazon_search(
-        mock_imap_amazon_delivered, "test/path", hass, "testfilename.jpg"
+        mock_imap_amazon_delivered, "test/path", hass, "testfilename.jpg", "amazon.com"
     )
-    assert result == 98
+    assert result == 7
     assert mock_download_img.called
 
 
@@ -800,9 +808,13 @@ async def test_amazon_search_delivered_it(
     hass, mock_imap_amazon_delivered_it, mock_download_img
 ):
     result = amazon_search(
-        mock_imap_amazon_delivered_it, "test/path", hass, "testfilename.jpg"
+        mock_imap_amazon_delivered_it,
+        "test/path",
+        hass,
+        "testfilename.jpg",
+        "amazon.it",
     )
-    assert result == 98
+    assert result == 7
 
 
 @pytest.mark.asyncio
@@ -850,14 +862,14 @@ async def test_amazon_hub_2(hass, mock_imap_amazon_the_hub_2):
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
     with patch("quopri.decodestring", side_effect=ValueError):
-        get_items(mock_imap_amazon_shipped, "order")
+        get_items(mock_imap_amazon_shipped, "order", the_domain="amazon.com")
         assert "Problem decoding email message:" in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
     with patch("quopri.decodestring", side_effect=ValueError):
-        get_items(mock_imap_amazon_shipped, "order")
+        get_items(mock_imap_amazon_shipped, "order", the_domain="amazon.com")
         assert "Problem decoding email message:" in caplog.text
 
 
@@ -1034,14 +1046,20 @@ async def test_image_file_name(
 
 @pytest.mark.asyncio
 async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
-    result = amazon_exception(mock_imap_amazon_exception, ['""'])
-    assert result["order"] == ["123-1234567-1234567"] * 14
-    assert result["count"] == 14
+    result = amazon_exception(
+        mock_imap_amazon_exception, ['""'], the_domain="amazon.com"
+    )
+    assert result["order"] == ["123-1234567-1234567"]
+    assert result["count"] == 1
 
-    result = amazon_exception(mock_imap_amazon_exception, ["testemail@fakedomain.com"])
-    assert result["count"] == 15
+    result = amazon_exception(
+        mock_imap_amazon_exception,
+        ["testemail@fakedomain.com"],
+        the_domain="amazon.com",
+    )
+    assert result["count"] == 2
     assert (
-        "Amazon domains to be checked: ['amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.in', 'amazon.de', 'amazon.it', 'amazon.com.au', 'amazon.pl', 'amazon.es', 'amazon.fr', 'amazon.ae', 'amazon.nl', 'fakeuser@fake.email', 'fakeuser2@fake.email', 'testemail@fakedomain.com']"
+        "Amazon domains to be checked: ['amazon.com', 'testemail@fakedomain.com']"
         in caplog.text
     )
 
@@ -1098,6 +1116,6 @@ async def test_email_search_none(mock_imap_search_error_none, caplog):
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
-    result = get_items(mock_imap_amazon_fwd, "order")
+    result = get_items(mock_imap_amazon_fwd, "order", the_domain="amazon.com")
     assert result == ["123-1234567-1234567"]
     assert "First pass: Tuesday, January 11" in caplog.text

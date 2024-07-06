@@ -19,7 +19,7 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
+    "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,title,data",
     [
         (
             {
@@ -33,8 +33,6 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
             "config_2",
             {
                 "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
                 "custom_img": True,
                 "folder": '"INBOX"',
                 "generate_mp4": False,
@@ -70,6 +68,12 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
                     "inpost_pl_packages",
                 ],
             },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
+            },
             "config_3",
             {
                 "custom_img_file": "images/test.gif",
@@ -78,6 +82,7 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
             {
                 "allow_external": False,
                 "amazon_days": 3,
+                "amazon_domain": "amazon.com",
                 "amazon_fwds": ["fakeuser@test.email", "fakeuser2@test.email"],
                 "custom_img": True,
                 "custom_img_file": "images/test.gif",
@@ -131,6 +136,8 @@ async def test_form(
     input_2,
     step_id_3,
     input_3,
+    step_id_4,
+    input_4,
     title,
     data,
     hass,
@@ -158,25 +165,30 @@ async def test_form(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-        result2 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
-        assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
 
-        result3 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_2
         )
 
-        assert result3["type"] == "form"
-        assert result3["step_id"] == step_id_3
-        result4 = await hass.config_entries.flow.async_configure(
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_3
         )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
+        )
 
-    assert result4["type"] == "create_entry"
-    assert result4["title"] == title
-    assert result4["data"] == data
+    assert result["type"] == "create_entry"
+    assert result["title"] == title
+    assert result["data"] == data
 
     await hass.async_block_till_done()
     assert len(mock_setup.mock_calls) == 1
@@ -184,7 +196,7 @@ async def test_form(
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
+    "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,title,data",
     [
         (
             {
@@ -198,8 +210,6 @@ async def test_form(
             "config_2",
             {
                 "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "(none)",
                 "custom_img": True,
                 "folder": '"INBOX"',
                 "generate_mp4": False,
@@ -235,6 +245,12 @@ async def test_form(
                     "inpost_pl_packages",
                 ],
             },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "(none)",
+            },
             "config_3",
             {
                 "custom_img_file": "images/test.gif",
@@ -243,6 +259,7 @@ async def test_form(
             {
                 "allow_external": False,
                 "amazon_days": 3,
+                "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
                 "custom_img": True,
                 "custom_img_file": "images/test.gif",
@@ -296,6 +313,8 @@ async def test_form_no_fwds(
     input_2,
     step_id_3,
     input_3,
+    step_id_4,
+    input_4,
     title,
     data,
     hass,
@@ -323,25 +342,30 @@ async def test_form_no_fwds(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-        result2 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
-        assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
 
-        result3 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_2
         )
 
-        assert result3["type"] == "form"
-        assert result3["step_id"] == step_id_3
-        result4 = await hass.config_entries.flow.async_configure(
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_3
         )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
+        )
 
-    assert result4["type"] == "create_entry"
-    assert result4["title"] == title
-    assert result4["data"] == data
+    assert result["type"] == "create_entry"
+    assert result["title"] == title
+    assert result["data"] == data
 
     await hass.async_block_till_done()
     assert len(mock_setup.mock_calls) == 1
@@ -349,7 +373,7 @@ async def test_form_no_fwds(
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
+    "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,title,data",
     [
         (
             {
@@ -363,8 +387,6 @@ async def test_form_no_fwds(
             "config_2",
             {
                 "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
                 "custom_img": True,
                 "folder": '"INBOX"',
                 "generate_mp4": False,
@@ -400,6 +422,12 @@ async def test_form_no_fwds(
                     "inpost_pl_packages",
                 ],
             },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
+            },
             "config_3",
             {
                 "custom_img_file": "images/test.gif",
@@ -408,6 +436,7 @@ async def test_form_no_fwds(
             {
                 "allow_external": False,
                 "amazon_days": 3,
+                "amazon_domain": "amazon.com",
                 "amazon_fwds": ["fakeuser@test.email", "fakeuser2@test.email"],
                 "custom_img": True,
                 "custom_img_file": "images/test.gif",
@@ -461,6 +490,8 @@ async def test_form_invalid_custom_img_path(
     input_2,
     step_id_3,
     input_3,
+    step_id_4,
+    input_4,
     title,
     data,
     hass,
@@ -486,25 +517,30 @@ async def test_form_invalid_custom_img_path(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-        result2 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
-        assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
 
-        result3 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_2
         )
 
-        assert result3["type"] == "form"
-        assert result3["step_id"] == step_id_3
-        result4 = await hass.config_entries.flow.async_configure(
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_3
         )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
+        )
 
-    assert result4["type"] == "form"
-    assert result4["step_id"] == step_id_3
-    assert result4["errors"] == {"custom_img_file": "file_not_found"}
+    assert result["type"] == "form"
+    assert result["step_id"] == step_id_4
+    assert result["errors"] == {"custom_img_file": "file_not_found"}
 
 
 @pytest.mark.parametrize(
@@ -555,7 +591,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
     [
         (
             {
@@ -569,8 +605,6 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
             "config_2",
             {
                 "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": True,
                 "gif_duration": 5,
@@ -605,9 +639,16 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
                     "inpost_pl_packages",
                 ],
             },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "(none)",
+            },
             "imap.test.email",
             {
                 "amazon_days": 3,
+                "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
                 "host": "imap.test.email",
                 "port": 993,
@@ -654,7 +695,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
 )
 @pytest.mark.asyncio
 async def test_form_invalid_ffmpeg(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap
+    input_1, step_id_2, input_2, step_id_3, input_3, title, data, hass, mock_imap
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -693,7 +734,7 @@ async def test_form_invalid_ffmpeg(
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
     [
         (
             {
@@ -708,8 +749,6 @@ async def test_form_invalid_ffmpeg(
             {
                 "allow_external": False,
                 "custom_img": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
@@ -744,11 +783,18 @@ async def test_form_invalid_ffmpeg(
                     "inpost_pl_packages",
                 ],
             },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "(none)",
+            },
             "imap.test.email",
             {
                 "allow_external": False,
                 "custom_img": False,
                 "amazon_days": 3,
+                "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
                 "host": "imap.test.email",
                 "port": 993,
@@ -798,6 +844,8 @@ async def test_form_index_error(
     input_1,
     step_id_2,
     input_2,
+    step_id_3,
+    input_3,
     title,
     data,
     hass,
@@ -823,19 +871,25 @@ async def test_form_index_error(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-        result2 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
-        assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
 
-        result3 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_2
         )
 
-    assert result3["type"] == "create_entry"
-    assert result3["title"] == title
-    assert result3["data"] == data
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+
+    assert result["type"] == "create_entry"
+    assert result["title"] == title
+    assert result["data"] == data
 
     await hass.async_block_till_done()
     assert len(mock_setup.mock_calls) == 1
@@ -843,7 +897,7 @@ async def test_form_index_error(
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
     [
         (
             {
@@ -857,8 +911,6 @@ async def test_form_index_error(
             "config_2",
             {
                 "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
                 "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_mp4": False,
@@ -894,10 +946,17 @@ async def test_form_index_error(
                     "inpost_pl_packages",
                 ],
             },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "(none)",
+            },
             "imap.test.email",
             {
                 "allow_external": False,
                 "amazon_days": 3,
+                "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
                 "custom_img": False,
                 "host": "imap.test.email",
@@ -948,6 +1007,8 @@ async def test_form_index_error_2(
     input_1,
     step_id_2,
     input_2,
+    step_id_3,
+    input_3,
     title,
     data,
     hass,
@@ -973,19 +1034,25 @@ async def test_form_index_error_2(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-        result2 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
-        assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
 
-        result3 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_2
         )
 
-    assert result3["type"] == "create_entry"
-    assert result3["title"] == title
-    assert result3["data"] == data
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+
+    assert result["type"] == "create_entry"
+    assert result["title"] == title
+    assert result["data"] == data
 
     await hass.async_block_till_done()
     assert len(mock_setup.mock_calls) == 1
@@ -993,7 +1060,7 @@ async def test_form_index_error_2(
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
     [
         (
             {
@@ -1007,8 +1074,6 @@ async def test_form_index_error_2(
             "config_2",
             {
                 "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
@@ -1043,11 +1108,18 @@ async def test_form_index_error_2(
                     "inpost_pl_packages",
                 ],
             },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "(none)",
+            },
             "imap.test.email",
             {
                 "allow_external": False,
                 "custom_img": False,
                 "amazon_days": 3,
+                "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
                 "host": "imap.test.email",
                 "port": 993,
@@ -1097,6 +1169,8 @@ async def test_form_mailbox_format2(
     input_1,
     step_id_2,
     input_2,
+    step_id_3,
+    input_3,
     title,
     data,
     hass,
@@ -1122,19 +1196,25 @@ async def test_form_mailbox_format2(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-        result2 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
-        assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
 
-        result3 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_2
         )
 
-    assert result3["type"] == "create_entry"
-    assert result3["title"] == title
-    assert result3["data"] == data
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+
+    assert result["type"] == "create_entry"
+    assert result["title"] == title
+    assert result["data"] == data
 
     await hass.async_block_till_done()
     assert len(mock_setup.mock_calls) == 1
@@ -1142,7 +1222,7 @@ async def test_form_mailbox_format2(
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
     [
         (
             {
@@ -1156,8 +1236,6 @@ async def test_form_mailbox_format2(
             "config_2",
             {
                 "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
@@ -1192,11 +1270,18 @@ async def test_form_mailbox_format2(
                     "inpost_pl_packages",
                 ],
             },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "(none)",
+            },
             "imap.test.email",
             {
                 "allow_external": False,
                 "custom_img": False,
                 "amazon_days": 3,
+                "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
                 "host": "imap.test.email",
                 "port": 993,
@@ -1246,6 +1331,8 @@ async def test_form_mailbox_format3(
     input_1,
     step_id_2,
     input_2,
+    step_id_3,
+    input_3,
     title,
     data,
     hass,
@@ -1271,19 +1358,25 @@ async def test_form_mailbox_format3(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-        result2 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
-        assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
 
-        result3 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_2
         )
 
-    assert result3["type"] == "create_entry"
-    assert result3["title"] == title
-    assert result3["data"] == data
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+
+    assert result["type"] == "create_entry"
+    assert result["title"] == title
+    assert result["data"] == data
 
     await hass.async_block_till_done()
     assert len(mock_setup.mock_calls) == 1
@@ -1327,7 +1420,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2",
+    "input_1,step_id_2,input_2,step_id_3,input_3",
     [
         (
             {
@@ -1341,8 +1434,6 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
             "config_2",
             {
                 "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "testemail@amazon.com",
                 "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_mp4": False,
@@ -1378,6 +1469,12 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
                     "inpost_pl_packages",
                 ],
             },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "testemail@amazon.com",
+            },
         ),
     ],
 )
@@ -1386,6 +1483,8 @@ async def test_form_amazon_error(
     input_1,
     step_id_2,
     input_2,
+    step_id_3,
+    input_3,
     mock_imap,
     hass,
 ):
@@ -1408,15 +1507,21 @@ async def test_form_amazon_error(
         "custom_components.mail_and_packages.async_setup_entry",
         return_value=True,
     ) as mock_setup_entry:
-        result2 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
-        assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
 
-        result3 = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_2
         )
-        assert result3["type"] == "form"
-        assert result3["step_id"] == step_id_2
-        assert result3["errors"] == {CONF_AMAZON_FWDS: "amazon_domain"}
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        assert result["errors"] == {CONF_AMAZON_FWDS: "amazon_domain"}

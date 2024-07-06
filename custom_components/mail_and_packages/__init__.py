@@ -12,6 +12,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import (
     CONF_AMAZON_DAYS,
+    CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_SECURITY,
@@ -103,10 +104,10 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 async def async_migrate_entry(hass, config_entry):
     """Migrate an old config entry."""
     version = config_entry.version
-    new_version = 7
+    new_version = 8
 
     _LOGGER.debug("Migrating from version %s", version)
-    updated_config = config_entry.data.copy()
+    updated_config = {**config_entry.data}
 
     # 1 -> 4: Migrate format
     if version == 1:
@@ -159,6 +160,10 @@ async def async_migrate_entry(hass, config_entry):
     if version <= 6:
         if CONF_IMAP_SECURITY not in updated_config:
             updated_config[CONF_IMAP_SECURITY] = "SSL"
+
+    if version <= 7:
+        if CONF_AMAZON_DOMAIN not in updated_config:
+            updated_config[CONF_AMAZON_DOMAIN] = "amazon.com"
 
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(
