@@ -2,119 +2,73 @@
     "config": {
         "abort": {
             "single_instance_allowed": "僅允許郵件和軟件包的單個配置。",
-            "reconfigure_successful": "Reconfigure Successful"
+            "reconfigure_successful": "重新配置成功"
         },
         "error": {
             "communication": "無法連接或登錄到郵件服務器。請檢查日誌以獲取詳細信息。",
             "invalid_path": "請將圖像存儲在另一個目錄中。",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
-            "amazon_domain": "Invalid forwarding email address.",
-            "file_not_found": "Image file not found",
-            "scan_too_low": "Scan interval too low (minimum 5)",
-            "timeout_too_low": "IMAP timeout too low (minimum 10)"
+            "ffmpeg_not_found": "",
+            "amazon_domain": "無效的轉發電郵地址。",
+            "file_not_found": "找不到圖像檔案"
         },
         "step": {
             "user": {
+                "description": "請輸入您的郵件伺服器的連接資訊。",
                 "data": {
                     "host": "主辦",
                     "password": "密碼",
                     "port": "港口",
                     "username": "用戶名",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
+                    "verify_ssl": "驗證 SSL 證書",
+                    "imap_security": "IMAP 安全性"
                 },
-                "description": "請輸入您的郵件服務器的連接信息。",
                 "title": "郵件和包裹（第1步，共2步）"
             },
             "config_2": {
                 "data": {
                     "folder": "郵件文件夾",
+                    "resources": "感應器列表",
                     "scan_interval": "掃描間隔（分鐘）",
                     "image_path": "圖像路徑",
                     "gif_duration": "圖像持續時間（秒）",
                     "image_security": "隨機圖像文件名",
+                    "imap_timeout": "連接超時前的時間（秒，最少10秒）",
                     "generate_mp4": "從圖像創建mp4",
-                    "resources": "Sensors List",
-                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-                    "amazon_fwds": "Amazon fowarded email addresses",
-                    "allow_external": "Create image for notification apps",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
+                    "allow_external": "為通知應用程式創建圖像",
+                    "custom_img": "使用自訂的「無圖片」圖像？"
                 },
-                "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成]（https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration）選項的詳細信息，請查看[配置，模板和自動化部分]（GitHub上的https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration）。",
+                "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成]（https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration）選項的詳細信息，請查看[配置，模板和自動化部分]（GitHub上的https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration）。",
                 "title": "郵件和包裹（第2步，共2步）"
             },
-            "options_3": {
+            "config_3": {
                 "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                    "custom_img_file": "自訂圖片的路徑：（例如：images\/my_custom_no_mail.jpg）"
                 },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
+                "description": "在下方輸入您的自訂無郵件圖像的路徑和檔案名稱。\n\n例如：images\/custom_nomail.gif",
+                "title": "郵件和包裹（第3步，共3步）"
+            },
+            "config_amazon": {
+                "data": {
+                    "amazon_domain": "Amazon 域名",
+                    "amazon_fwds": "Amazon 轉發的電郵地址",
+                    "amazon_days": "檢查Amazon電郵的天數"
+                },
+                "description": "請輸入亞馬遜發送電子郵件的域名（例如：amazon.com或amazon.de）\n\n如果使用亞馬遜轉發的電子郵件，請用逗號分隔每個地址，或輸入（無）以清除此設定。",
+                "title": "Amazon 設定"
             },
             "reconfigure": {
-                "data": {
-                    "host": "Host",
-                    "password": "Password",
-                    "port": "Port",
-                    "username": "Username",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
-                },
-                "description": "Please enter the connection information of your mail server.",
-                "title": "Mail and Packages (Step 1 of 2)"
-            },
-            "reconfig_2": {
-                "data": {
-                    "folder": "Mail Folder",
-                    "scan_interval": "Scanning Interval (minutes)",
-                    "image_path": "Image Path",
-                    "gif_duration": "Image Duration (seconds)",
-                    "image_security": "Random Image Filename",
-                    "generate_mp4": "Create mp4 from images",
-                    "resources": "Sensors List",
-                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-                    "amazon_fwds": "Amazon fowarded email addresses",
-                    "allow_external": "Create image for notification apps",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
-                },
-                "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma or enter (none) to clear this setting.",
-                "title": "Mail and Packages (Step 2 of 2)"
-            },
-            "reconfig_3": {
-                "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
-                },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
-            }            
-        },
-        "title": "Mail and Packages"
-    },
-    "options": {
-        "error": {
-            "communication": "無法連接或登錄到郵件服務器。請檢查日誌以獲取詳細信息。",
-            "invalid_path": "請將圖像存儲在另一個目錄中。",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
-            "amazon_domain": "無效的轉發電子郵件地址。",
-            "file_not_found": "Image file not found",
-            "scan_too_low": "Scan interval too low (minimum 5)",
-            "timeout_too_low": "IMAP timeout too low (minimum 10)"
-        },
-        "step": {
-            "init": {
                 "data": {
                     "host": "主辦",
                     "password": "密碼",
                     "port": "港口",
                     "username": "用戶名",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
+                    "imap_security": "IMAP 安全性",
+                    "verify_ssl": "驗證 SSL 證書"
                 },
-                "description": "請輸入您的郵件服務器的連接信息。",
+                "description": "請輸入您的郵件伺服器的連接資訊。",
                 "title": "郵件和包裹（第1步，共2步）"
             },
-            "options_2": {
+            "reconfig_2": {
                 "data": {
                     "folder": "郵件文件夾",
                     "scan_interval": "掃描間隔（分鐘）",
@@ -122,24 +76,30 @@
                     "gif_duration": "圖像持續時間（秒）",
                     "image_security": "隨機圖像文件名",
                     "generate_mp4": "從圖像創建mp4",
-                    "resources": "傳感器清單",
-                    "imap_timeout": "連接超時之前的時間（以秒為單位）（秒，至少10）",
-                    "amazon_fwds": "Amazon forwarded email addresses",
-                    "allow_external": "為通知應用創建圖像",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
+                    "resources": "感應器列表",
+                    "imap_timeout": "連接超時前的時間（秒，最少10秒）",
+                    "allow_external": "為通知應用程式創建圖像",
+                    "custom_img": "使用自訂的「無圖片」圖像？"
                 },
-                "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)選項的詳細信息，請查看[配置，模板和自動化部分](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHub上的。",
+                "description": "根據您的電郵結構和Home Assistant安裝來完成配置。\n\n有關[郵件和包裹整合](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration)選項的詳情，請查閱GitHub上的[配置、模板和自動化部分](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration)。\n\n如果使用Amazon轉發的電郵，請用逗號分隔每個地址，或輸入(none)以清除此設定。",
                 "title": "郵件和包裹（第2步，共2步）"
             },
-            "options_3": {
+            "reconfig_3": {
                 "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                    "custom_img_file": "Path to custom image: (i.e.: images\/my_custom_no_mail.jpg)"
                 },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
+                "description": "在下方輸入您的自訂無郵件圖像的路徑和檔案名稱。\n\n例如：images\/custom_nomail.gif",
+                "title": "郵件和包裹（第3步，共3步）"
+            },
+            "reconfig_amazon": {
+                "data": {
+                    "amazon_domain": "Amazon 域名",
+                    "amazon_fwds": "Amazon 轉發的電郵地址",
+                    "amazon_days": "檢查Amazon電郵的天數"
+                },
+                "description": "請輸入亞馬遜發送電子郵件的域名（例如：amazon.com或amazon.de）\n\n如果使用亞馬遜轉發的電子郵件，請用逗號分隔每個地址，或輸入（無）以清除此設定。",
+                "title": "Amazon 設定"
             }
         }
-    },
-    "title": "Mail and Packages"
+    }
 }
