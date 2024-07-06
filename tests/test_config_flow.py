@@ -1704,4 +1704,4 @@ async def test_reconfigure(
         await hass.async_block_till_done()
 
         entry = hass.config_entries.async_entries(DOMAIN)[0]
-        assert entry.data == data
+        assert entry.data.copy() == data
