@@ -460,9 +460,9 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 if any(
                     sensor in self._data[CONF_RESOURCES] for sensor in AMAZON_SENSORS
                 ):
-                    return await self.async_step_config_amazon()
+                    return await self.async_step_reconfig_amazon()
                 if self._data[CONF_CUSTOM_IMG]:
-                    return await self.async_step_config_3()
+                    return await self.async_step_reconfig_3()
                 self.hass.config_entries.async_update_entry(
                     self._entry, data=self._data
                 )
