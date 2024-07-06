@@ -2,119 +2,73 @@
     "config": {
         "abort": {
             "single_instance_allowed": "Slechts een enkele configuratie van Mail en pakketten is toegestaan.",
-            "reconfigure_successful": "Reconfigure Successful"
+            "reconfigure_successful": "Herconfiguratie succesvol"
         },
         "error": {
             "communication": "Kan geen verbinding maken met of inloggen op de mailserver. Controleer het logboek voor details.",
             "invalid_path": "Bewaar de afbeeldingen in een andere map.",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
-            "amazon_domain": "Invalid forwarding email address.",
-            "file_not_found": "Image file not found",
-            "scan_too_low": "Scan interval too low (minimum 5)",
-            "timeout_too_low": "IMAP timeout too low (minimum 10)"
+            "ffmpeg_not_found": "",
+            "amazon_domain": "Ongeldig doorstuur e-mailadres.",
+            "file_not_found": "Afbeeldingsbestand niet gevonden"
         },
         "step": {
             "user": {
+                "description": "Vul de verbindingsinformatie van uw mailserver in.",
                 "data": {
                     "host": "Gastheer",
                     "password": "Wachtwoord",
                     "port": "Haven",
                     "username": "Gebruikersnaam",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
+                    "verify_ssl": "SSL Certificaat Verifiëren",
+                    "imap_security": "IMAP-beveiliging"
                 },
-                "description": "Voer de verbindingsgegevens van uw mailserver in.",
                 "title": "Mail en pakketten (stap 1 van 2)"
             },
             "config_2": {
                 "data": {
                     "folder": "E-mailmap",
+                    "resources": "Lijst van sensoren",
                     "scan_interval": "Scaninterval (minuten)",
                     "image_path": "Afbeeldingspad",
                     "gif_duration": "Beeldduur (seconden)",
                     "image_security": "Bestandsnaam willekeurige afbeelding",
+                    "imap_timeout": "Tijd in seconden voordat de verbinding verloopt (seconden, minimaal 10)",
                     "generate_mp4": "Maak mp4 van afbeeldingen",
-                    "resources": "Sensors List",
-                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-                    "amazon_fwds": "Amazon fowarded email addresses",
-                    "allow_external": "Create image for notification apps",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
+                    "allow_external": "Maak afbeelding voor meldingsapps",
+                    "custom_img": "Gebruik aangepaste 'geen afbeelding' afbeelding?"
                 },
-                "description": "Voltooi de configuratie door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie. \n\n Voor meer informatie over de [E-mail en pakketten integratie] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties bekijk de [configuratie, sjablonen , en automatisering sectie] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.",
+                "description": "Voltooi de configuratie door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie. \n\n Voor meer informatie over de [E-mail en pakketten integratie] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) opties bekijk de [configuratie, sjablonen , en automatisering sectie] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) op GitHub.",
                 "title": "Mail en pakketten (stap 2 van 2)"
             },
-            "options_3": {
+            "config_3": {
                 "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                    "custom_img_file": "Pad naar aangepaste afbeelding: (bijv: images\/my_custom_no_mail.jpg)"
                 },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
+                "description": "Voer hieronder het pad en de bestandsnaam in voor uw aangepaste afbeelding voor geen mail.\n\nVoorbeeld: images\/custom_nomail.gif",
+                "title": "Mail en Pakketten (Stap 3 van 3)"
+            },
+            "config_amazon": {
+                "data": {
+                    "amazon_domain": "Amazon domein",
+                    "amazon_fwds": "Amazon stuurde e-mailadressen door",
+                    "amazon_days": "Dagen terug om te controleren op Amazon e-mails"
+                },
+                "description": "Voer het domein in waarvan Amazon e-mails verstuurt (bijv: amazon.com of amazon.de)\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
+                "title": "Amazon Instellingen"
             },
             "reconfigure": {
-                "data": {
-                    "host": "Host",
-                    "password": "Password",
-                    "port": "Port",
-                    "username": "Username",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
-                },
-                "description": "Please enter the connection information of your mail server.",
-                "title": "Mail and Packages (Step 1 of 2)"
-            },
-            "reconfig_2": {
-                "data": {
-                    "folder": "Mail Folder",
-                    "scan_interval": "Scanning Interval (minutes)",
-                    "image_path": "Image Path",
-                    "gif_duration": "Image Duration (seconds)",
-                    "image_security": "Random Image Filename",
-                    "generate_mp4": "Create mp4 from images",
-                    "resources": "Sensors List",
-                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-                    "amazon_fwds": "Amazon fowarded email addresses",
-                    "allow_external": "Create image for notification apps",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
-                },
-                "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma or enter (none) to clear this setting.",
-                "title": "Mail and Packages (Step 2 of 2)"
-            },
-            "reconfig_3": {
-                "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
-                },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
-            }            
-        },
-        "title": "Mail and Packages"
-    },
-    "options": {
-        "error": {
-            "communication": "Kan geen verbinding maken met of inloggen op de mailserver. Controleer het logboek voor details.",
-            "invalid_path": "Bewaar de afbeeldingen in een andere map.",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
-            "amazon_domain": "Ongeldig e-mailadres voor doorsturen.",
-            "file_not_found": "Image file not found",
-            "scan_too_low": "Scan interval too low (minimum 5)",
-            "timeout_too_low": "IMAP timeout too low (minimum 10)"
-        },
-        "step": {
-            "init": {
                 "data": {
                     "host": "Gastheer",
                     "password": "Wachtwoord",
                     "port": "Haven",
                     "username": "Gebruikersnaam",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
+                    "imap_security": "IMAP-beveiliging",
+                    "verify_ssl": "SSL Certificaat Verifiëren"
                 },
-                "description": "Voer de verbindingsgegevens van uw mailserver in.",
+                "description": "Vul de verbindingsinformatie van uw mailserver in.",
                 "title": "Mail en pakketten (stap 1 van 2)"
             },
-            "options_2": {
+            "reconfig_2": {
                 "data": {
                     "folder": "E-mailmap",
                     "scan_interval": "Scaninterval (minuten)",
@@ -122,24 +76,30 @@
                     "gif_duration": "Beeldduur (seconden)",
                     "image_security": "Bestandsnaam willekeurige afbeelding",
                     "generate_mp4": "Maak mp4 van afbeeldingen",
-                    "resources": "Sensoren lijst",
-                    "imap_timeout": "Tijd in seconden voordat verbinding wordt verbroken (seconden, minimaal 10)",
-                    "amazon_fwds": "Amazon forwarded email addresses",
-                    "allow_external": "Maak een afbeelding voor meldings-apps",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
+                    "resources": "Lijst van sensoren",
+                    "imap_timeout": "Tijd in seconden voordat de verbinding verloopt (seconden, minimaal 10)",
+                    "allow_external": "Maak afbeelding voor meldingsapps",
+                    "custom_img": "Gebruik aangepaste 'geen afbeelding' afbeelding?"
                 },
-                "description": "Voltooi de configuratie door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie. \n\n Voor meer informatie over de [E-mail en pakketten integratie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties bekijk de [configuratie, sjablonen , en automatisering sectie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.",
+                "description": "Rond de configuratie af door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie.\n\nVoor details over de [Mail en Packages integratie](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) opties, bekijk de [configuratie, sjablonen en automatiseringen sectie](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) op GitHub.\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
                 "title": "Mail en pakketten (stap 2 van 2)"
             },
-            "options_3": {
+            "reconfig_3": {
                 "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                    "custom_img_file": "Pad naar aangepaste afbeelding: (bijv.: images\/my_custom_no_mail.jpg)"
                 },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
+                "description": "Voer hieronder het pad en de bestandsnaam in voor uw aangepaste afbeelding voor geen mail.\n\nVoorbeeld: images\/custom_nomail.gif",
+                "title": "Mail en Pakketten (Stap 3 van 3)"
+            },
+            "reconfig_amazon": {
+                "data": {
+                    "amazon_domain": "Amazon domein",
+                    "amazon_fwds": "Amazon stuurde e-mailadressen door",
+                    "amazon_days": "Dagen terug om te controleren op Amazon e-mails"
+                },
+                "description": "Voer het domein in waarvan Amazon e-mails verstuurt (bijv: amazon.com of amazon.de)\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
+                "title": "Amazon Instellingen"
             }
         }
-    },
-    "title": "Mail and Packages"
+    }
 }

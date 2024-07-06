@@ -2,119 +2,73 @@
     "config": {
         "abort": {
             "single_instance_allowed": "Vain yksi posti- ja pakettien kokoonpano on sallittu.",
-            "reconfigure_successful": "Reconfigure Successful"
+            "reconfigure_successful": "Uudelleenmääritys onnistui"
         },
         "error": {
             "communication": "Ei voida muodostaa yhteyttä tai kirjautua sisään postipalvelimeen. Tarkista lokista yksityiskohdat.",
             "invalid_path": "Tallenna kuvat toiseen hakemistoon.",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
-            "amazon_domain": "Invalid forwarding email address.",
-            "file_not_found": "Image file not found",
-            "scan_too_low": "Scan interval too low (minimum 5)",
-            "timeout_too_low": "IMAP timeout too low (minimum 10)"
+            "ffmpeg_not_found": "",
+            "amazon_domain": "Virheellinen edelleenlähetettävä sähköpostiosoite.",
+            "file_not_found": "Kuvatiedostoa ei löydy"
         },
         "step": {
             "user": {
+                "description": "Anna postipalvelimesi yhteystiedot.",
                 "data": {
                     "host": "isäntä",
                     "password": "Salasana",
                     "port": "portti",
                     "username": "Käyttäjätunnus",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
+                    "verify_ssl": "Varmenna SSL-sertifikaatti",
+                    "imap_security": "IMAP-tietoturva"
                 },
-                "description": "Anna sähköpostipalvelimesi yhteydetiedot.",
-                "title": "Posti ja paketit (vaihe 1/2)"
+                "title": "Posti ja paketit (vaihe 1\/2)"
             },
             "config_2": {
                 "data": {
                     "folder": "Mail-kansio",
+                    "resources": "Anturiluettelo",
                     "scan_interval": "Skannausväli (minuutit)",
                     "image_path": "Kuvan polku",
                     "gif_duration": "Kuvan kesto (sekunteina)",
                     "image_security": "Satunnainen kuvatiedostonimi",
+                    "imap_timeout": "Aika sekunneissa ennen yhteyden aikakatkaisua (sekuntia, vähintään 10)",
                     "generate_mp4": "Luo mp4 kuvista",
-                    "resources": "Sensors List",
-                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-                    "amazon_fwds": "Amazon fowarded email addresses",
-                    "allow_external": "Create image for notification apps",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
+                    "allow_external": "Luo kuva ilmoitussovelluksille",
+                    "custom_img": "Käytä mukautettua 'ei kuvaa' kuvaa?"
                 },
-                "description": "Viimeistele kokoonpano mukauttamalla seuraava sähköpostirakenteen ja Home Assistant -asennuksen perusteella. \n\n Lisätietoja [Posti ja paketit-integroinnista] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) -asetuksista on [kokoonpano, mallit , ja automaatiot-osio] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHubissa.",
-                "title": "Posti ja paketit (vaihe 2/2)"
+                "description": "Viimeistele kokoonpano mukauttamalla seuraava sähköpostirakenteen ja Home Assistant -asennuksen perusteella. \n\n Lisätietoja [Posti ja paketit-integroinnista] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) -asetuksista on [kokoonpano, mallit , ja automaatiot-osio] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) GitHubissa.",
+                "title": "Posti ja paketit (vaihe 2\/2)"
             },
-            "options_3": {
+            "config_3": {
                 "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                    "custom_img_file": "Polku mukautettuun kuvaan: (esim: images\/my_custom_no_mail.jpg)"
                 },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
+                "description": "Syötä alla olevaan kenttään polku ja tiedostonimi mukautetulle ei-postia -kuvallesi.\n\nEsimerkki: kuvat\/mukautettu_eipostia.gif",
+                "title": "Posti ja paketit (vaihe 3\/3)"
+            },
+            "config_amazon": {
+                "data": {
+                    "amazon_domain": "Amazonin verkkotunnus",
+                    "amazon_fwds": "Amazon välitti sähköpostiosoitteet",
+                    "amazon_days": "Päiviä, joiden aikana tarkistetaan Amazonin sähköpostit"
+                },
+                "description": "Anna domaini, josta Amazon lähettää sähköposteja (esim: amazon.com tai amazon.de)\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai kirjoita (none) tyhjentääksesi tämän asetuksen.",
+                "title": "Amazonin asetukset"
             },
             "reconfigure": {
-                "data": {
-                    "host": "Host",
-                    "password": "Password",
-                    "port": "Port",
-                    "username": "Username",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
-                },
-                "description": "Please enter the connection information of your mail server.",
-                "title": "Mail and Packages (Step 1 of 2)"
-            },
-            "reconfig_2": {
-                "data": {
-                    "folder": "Mail Folder",
-                    "scan_interval": "Scanning Interval (minutes)",
-                    "image_path": "Image Path",
-                    "gif_duration": "Image Duration (seconds)",
-                    "image_security": "Random Image Filename",
-                    "generate_mp4": "Create mp4 from images",
-                    "resources": "Sensors List",
-                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-                    "amazon_fwds": "Amazon fowarded email addresses",
-                    "allow_external": "Create image for notification apps",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
-                },
-                "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma or enter (none) to clear this setting.",
-                "title": "Mail and Packages (Step 2 of 2)"
-            },
-            "reconfig_3": {
-                "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
-                },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
-            }            
-        },
-        "title": "Mail and Packages"
-    },
-    "options": {
-        "error": {
-            "communication": "Ei voida muodostaa yhteyttä tai kirjautua sisään postipalvelimeen. Tarkista lokista yksityiskohdat.",
-            "invalid_path": "Tallenna kuvat toiseen hakemistoon.",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
-            "amazon_domain": "Virheellinen edelleenlähetyssähköpostiosoite.",
-            "file_not_found": "Image file not found",
-            "scan_too_low": "Scan interval too low (minimum 5)",
-            "timeout_too_low": "IMAP timeout too low (minimum 10)"
-        },
-        "step": {
-            "init": {
                 "data": {
                     "host": "isäntä",
                     "password": "Salasana",
                     "port": "portti",
                     "username": "Käyttäjätunnus",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
+                    "imap_security": "IMAP-tietoturva",
+                    "verify_ssl": "Varmenna SSL-sertifikaatti"
                 },
-                "description": "Anna sähköpostipalvelimesi yhteydetiedot.",
-                "title": "Posti ja paketit (vaihe 1/2)"
+                "description": "Anna postipalvelimesi yhteystiedot.",
+                "title": "Posti ja paketit (vaihe 1\/2)"
             },
-            "options_2": {
+            "reconfig_2": {
                 "data": {
                     "folder": "Mail-kansio",
                     "scan_interval": "Skannausväli (minuutit)",
@@ -123,23 +77,29 @@
                     "image_security": "Satunnainen kuvatiedostonimi",
                     "generate_mp4": "Luo mp4 kuvista",
                     "resources": "Anturiluettelo",
-                    "imap_timeout": "Aika sekunteina ennen yhteyden aikakatkaisua (sekuntia, vähintään 10)",
-                    "amazon_fwds": "Amazon forwarded email addresses",
-                    "allow_external": "Luo kuva ilmoitussovelluksia varten",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
+                    "imap_timeout": "Aika sekunneissa ennen yhteyden aikakatkaisua (sekuntia, vähintään 10)",
+                    "allow_external": "Luo kuva ilmoitussovelluksille",
+                    "custom_img": "Käytä mukautettua 'ei kuvaa' kuvaa?"
                 },
-                "description": "Viimeistele kokoonpano mukauttamalla seuraava sähköpostirakenteen ja Home Assistant -asennuksen perusteella. \n\n Lisätietoja [Posti ja paketit-integroinnista](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) -asetuksista on [kokoonpano, mallit , ja automaatiot-osio](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHubissa.",
-                "title": "Posti ja paketit (vaihe 2/2)"
+                "description": "Suorita määritys loppuun mukauttamalla seuraavat sähköpostirakenteeseesi ja Home Assistant -asennukseesi perustuen.\n\nLisätietoja [Mail and Packages -integraation](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) vaihtoehdoista löydät GitHubista [määritys-, mallit- ja automaatiot-osiossa](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration).\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai syötä (none) tyhjentääksesi tämän asetuksen.",
+                "title": "Posti ja paketit (vaihe 2\/2)"
             },
-            "options_3": {
+            "reconfig_3": {
                 "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                    "custom_img_file": "Polku mukautettuun kuvaan: (esim.: images\/my_custom_no_mail.jpg)"
                 },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
+                "description": "Syötä alla olevaan kenttään polku ja tiedostonimi mukautetulle ei-postia -kuvallesi.\n\nEsimerkki: kuvat\/mukautettu_eipostia.gif",
+                "title": "Posti ja paketit (vaihe 3\/3)"
+            },
+            "reconfig_amazon": {
+                "data": {
+                    "amazon_domain": "Amazonin verkkotunnus",
+                    "amazon_fwds": "Amazon välitti sähköpostiosoitteet",
+                    "amazon_days": "Päiviä, joiden aikana tarkistetaan Amazonin sähköpostit"
+                },
+                "description": "Anna domaini, josta Amazon lähettää sähköposteja (esim: amazon.com tai amazon.de)\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai kirjoita (none) tyhjentääksesi tämän asetuksen.",
+                "title": "Amazonin asetukset"
             }
         }
-    },
-    "title": "Mail and Packages"
+    }
 }

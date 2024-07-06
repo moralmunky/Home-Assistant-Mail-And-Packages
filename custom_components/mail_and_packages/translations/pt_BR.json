@@ -2,119 +2,73 @@
     "config": {
         "abort": {
             "single_instance_allowed": "Somente uma única configuração de correio e pacotes é permitida.",
-            "reconfigure_successful": "Reconfigure Successful"
+            "reconfigure_successful": "Reconfiguração bem-sucedida"
         },
         "error": {
             "communication": "Não foi possível conectar ou fazer login no servidor de email. Por favor, verifique o log para obter detalhes.",
             "invalid_path": "Por favor, guarde as imagens em outro diretório.",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
-            "amazon_domain": "Invalid forwarding email address.",
-            "file_not_found": "Image file not found",
-            "scan_too_low": "Scan interval too low (minimum 5)",
-            "timeout_too_low": "IMAP timeout too low (minimum 10)"
+            "ffmpeg_not_found": "",
+            "amazon_domain": "Endereço de encaminhamento de email inválido.",
+            "file_not_found": "Arquivo de imagem não encontrado"
         },
         "step": {
             "user": {
+                "description": "Por favor, insira as informações de conexão do seu servidor de e-mail.",
                 "data": {
                     "host": "Hospedeiro",
                     "password": "Senha",
                     "port": "Porta",
                     "username": "Nome do usuário",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
+                    "verify_ssl": "Verificar Certificado SSL",
+                    "imap_security": "Segurança IMAP"
                 },
-                "description": "Por favor, insira as informações de conexão do seu servidor de correio.",
                 "title": "Correio e pacotes (Etapa 1 de 2)"
             },
             "config_2": {
                 "data": {
                     "folder": "Pasta de Correio",
+                    "resources": "Lista de Sensores",
                     "scan_interval": "Intervalo de digitalização (minutos)",
                     "image_path": "Caminho da imagem",
                     "gif_duration": "Duração da imagem (segundos)",
                     "image_security": "Nome da imagem aleatória",
+                    "imap_timeout": "Tempo em segundos antes do tempo limite de conexão (segundos, mínimo 10)",
                     "generate_mp4": "Crie mp4 a partir de imagens",
-                    "resources": "Sensors List",
-                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-                    "amazon_fwds": "Amazon fowarded email addresses",
-                    "allow_external": "Create image for notification apps",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
+                    "allow_external": "Crie imagem para aplicativos de notificação",
+                    "custom_img": "Usar imagem personalizada para 'sem imagem'?"
                 },
-                "description": "Conclua a configuração, personalizando o seguinte com base na sua estrutura de email e instalação do Home Assistant. \n\n Para obter detalhes sobre as opções [integração de Mail e Pacotes] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), revise as opções de [configuração, modelos e seção de automações] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) no GitHub.",
+                "description": "Conclua a configuração, personalizando o seguinte com base na sua estrutura de email e instalação do Home Assistant. \n\n Para obter detalhes sobre as opções [integração de Mail e Pacotes] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), revise as opções de [configuração, modelos e seção de automações] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) no GitHub.",
                 "title": "Correio e pacotes (Etapa 2 de 2)"
             },
-            "options_3": {
+            "config_3": {
                 "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                    "custom_img_file": "Caminho para imagem personalizada: (ex: images\/my_custom_no_mail.jpg)"
                 },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
+                "description": "Insira o caminho e o nome do arquivo para a sua imagem personalizada de sem correio abaixo.\n\nExemplo: images\/custom_nomail.gif",
+                "title": "Correio e Pacotes (Etapa 3 de 3)"
+            },
+            "config_amazon": {
+                "data": {
+                    "amazon_domain": "Domínio da Amazon",
+                    "amazon_fwds": "A Amazon encaminhou endereços de email",
+                    "amazon_days": "Dias atrás para verificar os emails da Amazon"
+                },
+                "description": "Por favor, insira o domínio do qual a Amazon envia e-mails (por exemplo: amazon.com ou amazon.de)\n\nSe estiver usando e-mails encaminhados pela Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.",
+                "title": "Configurações da Amazon"
             },
             "reconfigure": {
-                "data": {
-                    "host": "Host",
-                    "password": "Password",
-                    "port": "Port",
-                    "username": "Username",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
-                },
-                "description": "Please enter the connection information of your mail server.",
-                "title": "Mail and Packages (Step 1 of 2)"
-            },
-            "reconfig_2": {
-                "data": {
-                    "folder": "Mail Folder",
-                    "scan_interval": "Scanning Interval (minutes)",
-                    "image_path": "Image Path",
-                    "gif_duration": "Image Duration (seconds)",
-                    "image_security": "Random Image Filename",
-                    "generate_mp4": "Create mp4 from images",
-                    "resources": "Sensors List",
-                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-                    "amazon_fwds": "Amazon fowarded email addresses",
-                    "allow_external": "Create image for notification apps",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
-                },
-                "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma or enter (none) to clear this setting.",
-                "title": "Mail and Packages (Step 2 of 2)"
-            },
-            "reconfig_3": {
-                "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
-                },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
-            }            
-        },
-        "title": "Mail and Packages"
-    },
-    "options": {
-        "error": {
-            "communication": "Não foi possível conectar ou fazer login no servidor de email. Por favor, verifique o log para obter detalhes.",
-            "invalid_path": "Por favor, guarde as imagens em outro diretório.",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
-            "amazon_domain": "Endereço de email de encaminhamento inválido.",
-            "file_not_found": "Image file not found",
-            "scan_too_low": "Scan interval too low (minimum 5)",
-            "timeout_too_low": "IMAP timeout too low (minimum 10)"
-        },
-        "step": {
-            "init": {
                 "data": {
                     "host": "Hospedeiro",
                     "password": "Senha",
                     "port": "Porta",
                     "username": "Nome do usuário",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
+                    "imap_security": "Segurança IMAP",
+                    "verify_ssl": "Verificar Certificado SSL"
                 },
-                "description": "Por favor, insira as informações de conexão do seu servidor de correio.",
+                "description": "Por favor, insira as informações de conexão do seu servidor de e-mail.",
                 "title": "Correio e pacotes (Etapa 1 de 2)"
             },
-            "options_2": {
+            "reconfig_2": {
                 "data": {
                     "folder": "Pasta de Correio",
                     "scan_interval": "Intervalo de digitalização (minutos)",
@@ -122,24 +76,30 @@
                     "gif_duration": "Duração da imagem (segundos)",
                     "image_security": "Nome da imagem aleatória",
                     "generate_mp4": "Crie mp4 a partir de imagens",
-                    "resources": "Sensors List",
-                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-                    "amazon_fwds": "Amazon forwarded email addresses",
-                    "allow_external": "Create image for notification apps",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
+                    "resources": "Lista de Sensores",
+                    "imap_timeout": "Tempo em segundos antes do tempo limite de conexão (segundos, mínimo 10)",
+                    "allow_external": "Crie imagem para aplicativos de notificação",
+                    "custom_img": "Usar imagem personalizada para 'sem imagem'?"
                 },
-                "description": "Conclua a configuração, personalizando o seguinte com base na sua estrutura de email e instalação do Home Assistant. \n\n Para obter detalhes sobre as opções [integração de Mail e Pacotes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), revise as opções de [configuração, modelos e seção de automações](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) no GitHub.",
+                "description": "Conclua a configuração personalizando o seguinte com base na estrutura do seu email e na instalação do Home Assistant.\n\nPara detalhes sobre as opções de [integração de Mail e Pacotes](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), consulte a [seção de configuração, modelos e automações](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) no GitHub.\n\nSe estiver usando emails encaminhados da Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.",
                 "title": "Correio e pacotes (Etapa 2 de 2)"
             },
-            "options_3": {
+            "reconfig_3": {
                 "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                    "custom_img_file": "Caminho para imagem personalizada: (ex.: images\/my_custom_no_mail.jpg)"
                 },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
+                "description": "Insira o caminho e o nome do arquivo para a sua imagem personalizada de sem correio abaixo.\n\nExemplo: images\/custom_nomail.gif",
+                "title": "Correio e Pacotes (Etapa 3 de 3)"
+            },
+            "reconfig_amazon": {
+                "data": {
+                    "amazon_domain": "Domínio da Amazon",
+                    "amazon_fwds": "A Amazon encaminhou endereços de email",
+                    "amazon_days": "Dias atrás para verificar os emails da Amazon"
+                },
+                "description": "Por favor, insira o domínio do qual a Amazon envia e-mails (por exemplo: amazon.com ou amazon.de)\n\nSe estiver usando e-mails encaminhados pela Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.",
+                "title": "Configurações da Amazon"
             }
         }
-    },
-    "title": "Mail and Packages"
+    }
 }

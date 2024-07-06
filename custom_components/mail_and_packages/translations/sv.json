@@ -2,119 +2,73 @@
     "config": {
         "abort": {
             "single_instance_allowed": "Endast en enda konfiguration av post och paket är tillåten.",
-            "reconfigure_successful": "Reconfigure Successful"
+            "reconfigure_successful": "Omkonfigurering lyckades"
         },
         "error": {
             "communication": "Det går inte att ansluta eller logga in på e-postservern. Kontrollera loggen för mer information.",
             "invalid_path": "Förvara bilderna i en annan katalog.",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
-            "amazon_domain": "Invalid forwarding email address.",
-            "file_not_found": "Image file not found",
-            "scan_too_low": "Scan interval too low (minimum 5)",
-            "timeout_too_low": "IMAP timeout too low (minimum 10)"
+            "ffmpeg_not_found": "",
+            "amazon_domain": "Ogiltig vidarebefordrings e-postadress.",
+            "file_not_found": "Bildfilen hittades inte"
         },
         "step": {
             "user": {
+                "description": "Vänligen ange anslutningsinformationen för din e-postserver.",
                 "data": {
                     "host": "Värd",
                     "password": "Lösenord",
                     "port": "Hamn",
                     "username": "Användarnamn",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
+                    "verify_ssl": "Verifiera SSL-certifikat",
+                    "imap_security": "IMAP-säkerhet"
                 },
-                "description": "Ange anslutningsinformationen för din postserver.",
                 "title": "Mail och paket (steg 1 av 2)"
             },
             "config_2": {
                 "data": {
                     "folder": "E-postmapp",
+                    "resources": "Sensorlista",
                     "scan_interval": "Skanningsintervall (minuter)",
                     "image_path": "Bildväg",
                     "gif_duration": "Bildens längd (sekunder)",
                     "image_security": "Slumpmässig bildfilnamn",
+                    "imap_timeout": "Tid i sekunder innan anslutningen kopplas från (sekunder, minst 10)",
                     "generate_mp4": "Skapa mp4 från bilder",
-                    "resources": "Sensors List",
-                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-                    "amazon_fwds": "Amazon fowarded email addresses",
-                    "allow_external": "Create image for notification apps",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
+                    "allow_external": "Skapa bild för notifikationsappar",
+                    "custom_img": "Använd anpassad 'ingen bild' bild?"
                 },
-                "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
+                "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) på GitHub.",
                 "title": "Mail och paket (steg 2 av 2)"
             },
-            "options_3": {
+            "config_3": {
                 "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                    "custom_img_file": "Sökväg till anpassad bild: (t.ex: bilder\/min_anpassade_ingen_mail.jpg)"
                 },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
+                "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder\/anpassad_nomail.gif",
+                "title": "Post och paket (Steg 3 av 3)"
+            },
+            "config_amazon": {
+                "data": {
+                    "amazon_domain": "Amazon domän",
+                    "amazon_fwds": "Amazon vidarebefordrade e-postadresser",
+                    "amazon_days": "Dagar tillbaka för att kontrollera Amazon-e-postmeddelanden"
+                },
+                "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
+                "title": "Amazon-inställningar"
             },
             "reconfigure": {
-                "data": {
-                    "host": "Host",
-                    "password": "Password",
-                    "port": "Port",
-                    "username": "Username",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
-                },
-                "description": "Please enter the connection information of your mail server.",
-                "title": "Mail and Packages (Step 1 of 2)"
-            },
-            "reconfig_2": {
-                "data": {
-                    "folder": "Mail Folder",
-                    "scan_interval": "Scanning Interval (minutes)",
-                    "image_path": "Image Path",
-                    "gif_duration": "Image Duration (seconds)",
-                    "image_security": "Random Image Filename",
-                    "generate_mp4": "Create mp4 from images",
-                    "resources": "Sensors List",
-                    "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-                    "amazon_fwds": "Amazon fowarded email addresses",
-                    "allow_external": "Create image for notification apps",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
-                },
-                "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma or enter (none) to clear this setting.",
-                "title": "Mail and Packages (Step 2 of 2)"
-            },
-            "reconfig_3": {
-                "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
-                },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
-            }            
-        },
-        "title": "Mail and Packages"
-    },
-    "options": {
-        "error": {
-            "communication": "Det går inte att ansluta eller logga in på e-postservern. Kontrollera loggen för mer information.",
-            "invalid_path": "Förvara bilderna i en annan katalog.",
-            "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
-            "amazon_domain": "Ogiltig vidarebefordran av e-postadress.",
-            "file_not_found": "Image file not found",
-            "scan_too_low": "Scan interval too low (minimum 5)",
-            "timeout_too_low": "IMAP timeout too low (minimum 10)"
-        },
-        "step": {
-            "init": {
                 "data": {
                     "host": "Värd",
                     "password": "Lösenord",
                     "port": "Hamn",
                     "username": "Användarnamn",
-                    "imap_security": "IMAP Security",
-                    "verify_ssl": "Verify SSL Cert"
+                    "imap_security": "IMAP-säkerhet",
+                    "verify_ssl": "Verifiera SSL-certifikat"
                 },
-                "description": "Ange anslutningsinformationen för din postserver.",
+                "description": "Vänligen ange anslutningsinformationen för din e-postserver.",
                 "title": "Mail och paket (steg 1 av 2)"
             },
-            "options_2": {
+            "reconfig_2": {
                 "data": {
                     "folder": "E-postmapp",
                     "scan_interval": "Skanningsintervall (minuter)",
@@ -123,23 +77,29 @@
                     "image_security": "Slumpmässig bildfilnamn",
                     "generate_mp4": "Skapa mp4 från bilder",
                     "resources": "Sensorlista",
-                    "imap_timeout": "Tid i sekunder före timeout för anslutning (sekunder, minimum 10)",
-                    "amazon_fwds": "Amazon forwarded email addresses",
-                    "allow_external": "Skapa bild för anmälningsappar",
-                    "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
+                    "imap_timeout": "Tid i sekunder innan anslutningen kopplas från (sekunder, minst 10)",
+                    "allow_external": "Skapa bild för notifikationsappar",
+                    "custom_img": "Använd anpassad 'ingen bild' bild?"
                 },
-                "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
+                "description": "Slutför konfigurationen genom att anpassa följande baserat på din e-poststruktur och Home Assistant-installation.\n\nFör detaljer om [Mail and Packages integration](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) alternativen granska [konfiguration, mallar och automatiseringssektionen](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) på GitHub.\n\nOm du använder vidarebefordrade e-postmeddelanden från Amazon, separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
                 "title": "Mail och paket (steg 2 av 2)"
             },
-            "options_3": {
+            "reconfig_3": {
                 "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+                    "custom_img_file": "Sökväg till anpassad bild: (t.ex.: bilder\/min_anpassade_ingen_mail.jpg)"
                 },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-                "title": "Mail and Packages (Step 3 of 3)"
+                "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder\/anpassad_nomail.gif",
+                "title": "Post och paket (Steg 3 av 3)"
+            },
+            "reconfig_amazon": {
+                "data": {
+                    "amazon_domain": "Amazon domän",
+                    "amazon_fwds": "Amazon vidarebefordrade e-postadresser",
+                    "amazon_days": "Dagar tillbaka för att kontrollera Amazon-e-postmeddelanden"
+                },
+                "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
+                "title": "Amazon-inställningar"
             }
         }
-    },
-    "title": "Mail and Packages"
+    }
 }

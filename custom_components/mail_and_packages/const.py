@@ -56,6 +56,7 @@ CONF_AMAZON_FWDS = "amazon_fwds"
 CONF_AMAZON_DAYS = "amazon_days"
 CONF_VERIFY_SSL = "verify_ssl"
 CONF_IMAP_SECURITY = "imap_security"
+CONF_AMAZON_DOMAIN = "amazon_domain"
 
 # Defaults
 DEFAULT_CAMERA_NAME = "Mail USPS Camera"
@@ -73,6 +74,7 @@ DEFAULT_ALLOW_EXTERNAL = False
 DEFAULT_CUSTOM_IMG = False
 DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
 DEFAULT_AMAZON_DAYS = 3
+DEFAULT_AMAZON_DOMAIN = "amazon.com"
 
 # Amazon
 AMAZON_DOMAINS = [
