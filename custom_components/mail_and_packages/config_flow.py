@@ -524,7 +524,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
                 if self._data[CONF_CUSTOM_IMG]:
-                    return await self.async_step_config_3()
+                    return await self.async_step_reconfig_3()
                 return self.async_create_entry(
                     title=self._data[CONF_HOST], data=self._data
                 )
