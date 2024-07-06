@@ -1689,6 +1689,10 @@ async def test_reconfigure(
     assert result["step_id"] == step_id_3
     result = await hass.config_entries.flow.async_configure(result["flow_id"], input_3)
 
+    assert result["type"] == "form"
+    assert result["step_id"] == step_id_4
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_4)
+
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reconfigure_successful"
     await hass.async_block_till_done()
