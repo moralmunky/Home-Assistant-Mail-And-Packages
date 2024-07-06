@@ -58,12 +58,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Variables for data coordinator
     config = config_entry.data
-    host = config.get(CONF_HOST)
-    the_timeout = config.get(CONF_IMAP_TIMEOUT)
-    interval = config.get(CONF_SCAN_INTERVAL)
 
     # Setup the data coordinator
-    coordinator = MailDataUpdateCoordinator(hass, host, the_timeout, interval, config)
+    coordinator = MailDataUpdateCoordinator(hass, config)
 
     # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
@@ -178,11 +175,11 @@ async def async_migrate_entry(hass, config_entry):
 class MailDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching mail data."""
 
-    def __init__(self, hass, host, the_timeout, interval, config):
+    def __init__(self, hass, config):
         """Initialize."""
-        self.interval = timedelta(minutes=interval)
-        self.name = f"Mail and Packages ({host})"
-        self.timeout = the_timeout
+        self.interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
+        self.name = f"Mail and Packages ({config.get(CONF_HOST)})"
+        self.timeout = config.get(CONF_IMAP_TIMEOUT)
         self.config = config
         self.hass = hass
         self._data = {}
