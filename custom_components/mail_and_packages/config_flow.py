@@ -457,8 +457,12 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._errors, user_input = await _validate_user_input(user_input)
             self._data.update(user_input)
             if len(self._errors) == 0:
+                if any(
+                    sensor in self._data[CONF_RESOURCES] for sensor in AMAZON_SENSORS
+                ):
+                    return await self.async_step_config_amazon()
                 if self._data[CONF_CUSTOM_IMG]:
-                    return await self.async_step_reconfig_3()
+                    return await self.async_step_config_3()
                 self.hass.config_entries.async_update_entry(
                     self._entry, data=self._data
                 )
