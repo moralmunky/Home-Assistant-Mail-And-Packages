@@ -1669,7 +1669,7 @@ async def test_reconfigure(
     reconfigure_result = await hass.config_entries.flow.async_init(
         DOMAIN,
         context={
-            "source": hass.config_entries.SOURCE_RECONFIGURE,
+            "source": config_entries.SOURCE_RECONFIGURE,
             "entry_id": entry.entry_id,
         },
     )
