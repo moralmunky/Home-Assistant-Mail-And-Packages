@@ -1666,37 +1666,42 @@ async def test_reconfigure(
     """Test reconfigure flow."""
     entry = integration
 
-    reconfigure_result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={
-            "source": config_entries.SOURCE_RECONFIGURE,
-            "entry_id": entry.entry_id,
-        },
-    )
-    assert reconfigure_result["type"] is FlowResultType.FORM
-    assert reconfigure_result["step_id"] == "reconfigure"
+    with patch(
+        "custom_components.mail_and_packages.config_flow.path",
+        return_value=True,
+    ):
 
-    result = await hass.config_entries.flow.async_configure(
-        reconfigure_result["flow_id"],
-        input_1,
-    )
-    assert result["type"] == "form"
-    assert result["step_id"] == step_id_2
+        reconfigure_result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={
+                "source": config_entries.SOURCE_RECONFIGURE,
+                "entry_id": entry.entry_id,
+            },
+        )
+        assert reconfigure_result["type"] is FlowResultType.FORM
+        assert reconfigure_result["step_id"] == "reconfigure"
 
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_2)
+        result = await hass.config_entries.flow.async_configure(
+            reconfigure_result["flow_id"],
+            input_1,
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
 
-    assert result["type"] == "form"
-    assert result["step_id"] == step_id_3
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_3)
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], input_2)
 
-    assert result["type"] == "form"
-    assert result["step_id"] == step_id_4
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_4)
-    assert result["errors"] == {}
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], input_3)
 
-    assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "reconfigure_successful"
-    await hass.async_block_till_done()
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], input_4)
+        assert result["errors"] == {}
 
-    entry = hass.config_entries.async_entries(DOMAIN)[0]
-    assert entry.data == data
+        assert result["type"] is FlowResultType.ABORT
+        assert result["reason"] == "reconfigure_successful"
+        await hass.async_block_till_done()
+
+        entry = hass.config_entries.async_entries(DOMAIN)[0]
+        assert entry.data == data
