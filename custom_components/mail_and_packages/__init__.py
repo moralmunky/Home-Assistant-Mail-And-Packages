@@ -22,7 +22,6 @@ from .const import (
     CONF_VERIFY_SSL,
     COORDINATOR,
     DEFAULT_AMAZON_DAYS,
-    DEFAULT_AMAZON_FWDS,
     DOMAIN,
     ISSUE_URL,
     PLATFORMS,
@@ -148,7 +147,7 @@ async def async_migrate_entry(hass, config_entry):
         if CONF_AMAZON_FWDS in updated_config and updated_config[CONF_AMAZON_FWDS] == [
             '""'
         ]:
-            updated_config[CONF_AMAZON_FWDS] = DEFAULT_AMAZON_FWDS
+            updated_config[CONF_AMAZON_FWDS] = []
 
     if version <= 5:
         if CONF_VERIFY_SSL not in updated_config:
