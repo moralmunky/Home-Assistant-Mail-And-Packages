@@ -57,6 +57,7 @@ FAKE_CONFIG_DATA_BAD = {
 FAKE_CONFIG_DATA = {
     "allow_external": False,
     "amazon_days": 3,
+    "amazon_domain": "amazon.com",
     "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
     "custom_img": False,
     "folder": '"INBOX"',
@@ -126,6 +127,7 @@ FAKE_CONFIG_DATA = {
 FAKE_CONFIG_DATA_EXTERNAL = {
     "allow_external": True,
     "amazon_days": 3,
+    "amazon_domain": "amazon.com",
     "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
     "custom_img": False,
     "folder": '"INBOX"',
@@ -189,6 +191,7 @@ FAKE_CONFIG_DATA_EXTERNAL = {
 FAKE_CONFIG_DATA_CORRECTED_EXTERNAL = {
     "allow_external": True,
     "amazon_days": 3,
+    "amazon_domain": "amazon.com",
     "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
     "custom_img": False,
     "folder": '"INBOX"',
@@ -252,6 +255,7 @@ FAKE_CONFIG_DATA_CORRECTED_EXTERNAL = {
 FAKE_CONFIG_DATA_CORRECTED = {
     "allow_external": False,
     "amazon_days": 3,
+    "amazon_domain": "amazon.com",
     "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
     "custom_img": False,
     "folder": '"INBOX"',
@@ -319,6 +323,7 @@ FAKE_CONFIG_DATA_CORRECTED = {
 }
 
 FAKE_CONFIG_DATA_NO_PATH = {
+    "amazon_domain": "amazon.com",
     "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
     "custom_img": False,
     "folder": '"INBOX"',
@@ -380,6 +385,7 @@ FAKE_CONFIG_DATA_NO_PATH = {
 
 FAKE_CONFIG_DATA_NO_RND = {
     "amazon_days": 3,
+    "amazon_domain": "amazon.com",
     "amazon_fwds": ["fakeuser@fake.email"],
     "custom_img": False,
     "folder": '"INBOX"',
@@ -437,6 +443,7 @@ FAKE_CONFIG_DATA_NO_RND = {
 }
 
 FAKE_CONFIG_DATA_MP4 = {
+    "amazon_domain": "amazon.com",
     "amazon_fwds": ["fakeuser@fake.email"],
     "custom_img": False,
     "folder": '"INBOX"',
@@ -542,6 +549,7 @@ FAKE_UPDATE_DATA = {
 }
 
 FAKE_CONFIG_DATA_MISSING_TIMEOUT = {
+    "amazon_domain": "amazon.com",
     "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
     "custom_img": False,
     "folder": '"INBOX"',
@@ -603,6 +611,7 @@ FAKE_CONFIG_DATA_MISSING_TIMEOUT = {
 
 FAKE_CONFIG_DATA_AMAZON_FWD_STRING = {
     "allow_external": True,
+    "amazon_domain": "amazon.com",
     "amazon_fwds": "fakeuser@fake.email",
     "custom_img": False,
     "folder": '"INBOX"',
@@ -664,6 +673,7 @@ FAKE_CONFIG_DATA_AMAZON_FWD_STRING = {
 }
 FAKE_CONFIG_DATA_CUSTOM_IMG = {
     "amazon_days": 3,
+    "amazon_domain": "amazon.com",
     "allow_external": False,
     "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
     "custom_img": True,
@@ -828,6 +838,7 @@ FAKE_UPDATE_DATA_BIN = {
 }
 FAKE_CONFIG_DATA_V4_MIGRATE = {
     "allow_external": True,
+    "amazon_domain": "amazon.com",
     "amazon_fwds": ['""'],
     "custom_img": False,
     "folder": '"INBOX"',

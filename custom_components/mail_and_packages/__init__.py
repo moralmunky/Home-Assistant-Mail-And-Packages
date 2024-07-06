@@ -12,6 +12,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import (
     CONF_AMAZON_DAYS,
+    CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_SECURITY,
@@ -21,7 +22,6 @@ from .const import (
     CONF_VERIFY_SSL,
     COORDINATOR,
     DEFAULT_AMAZON_DAYS,
-    DEFAULT_AMAZON_FWDS,
     DOMAIN,
     ISSUE_URL,
     PLATFORMS,
@@ -57,12 +57,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Variables for data coordinator
     config = config_entry.data
-    host = config.get(CONF_HOST)
-    the_timeout = config.get(CONF_IMAP_TIMEOUT)
-    interval = config.get(CONF_SCAN_INTERVAL)
 
     # Setup the data coordinator
-    coordinator = MailDataUpdateCoordinator(hass, host, the_timeout, interval, config)
+    coordinator = MailDataUpdateCoordinator(hass, config)
 
     # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
@@ -103,10 +100,10 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 async def async_migrate_entry(hass, config_entry):
     """Migrate an old config entry."""
     version = config_entry.version
-    new_version = 7
+    new_version = 8
 
     _LOGGER.debug("Migrating from version %s", version)
-    updated_config = config_entry.data.copy()
+    updated_config = {**config_entry.data}
 
     # 1 -> 4: Migrate format
     if version == 1:
@@ -150,7 +147,7 @@ async def async_migrate_entry(hass, config_entry):
         if CONF_AMAZON_FWDS in updated_config and updated_config[CONF_AMAZON_FWDS] == [
             '""'
         ]:
-            updated_config[CONF_AMAZON_FWDS] = DEFAULT_AMAZON_FWDS
+            updated_config[CONF_AMAZON_FWDS] = []
 
     if version <= 5:
         if CONF_VERIFY_SSL not in updated_config:
@@ -159,6 +156,10 @@ async def async_migrate_entry(hass, config_entry):
     if version <= 6:
         if CONF_IMAP_SECURITY not in updated_config:
             updated_config[CONF_IMAP_SECURITY] = "SSL"
+
+    if version <= 7:
+        if CONF_AMAZON_DOMAIN not in updated_config:
+            updated_config[CONF_AMAZON_DOMAIN] = "amazon.com"
 
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(
@@ -173,11 +174,11 @@ async def async_migrate_entry(hass, config_entry):
 class MailDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching mail data."""
 
-    def __init__(self, hass, host, the_timeout, interval, config):
+    def __init__(self, hass, config):
         """Initialize."""
-        self.interval = timedelta(minutes=interval)
-        self.name = f"Mail and Packages ({host})"
-        self.timeout = the_timeout
+        self.interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
+        self.name = f"Mail and Packages ({config.get(CONF_HOST)})"
+        self.timeout = config.get(CONF_IMAP_TIMEOUT)
         self.config = config
         self.hass = hass
         self._data = {}
