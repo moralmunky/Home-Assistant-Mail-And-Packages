@@ -1829,8 +1829,6 @@ async def test_reconfigure_no_amazon(
     input_2,
     step_id_3,
     input_3,
-    step_id_4,
-    input_4,
     title,
     data,
     hass: HomeAssistant,
