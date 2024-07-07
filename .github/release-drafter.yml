@@ -43,7 +43,7 @@ categories:
     labels:
       - "documentation"
 template: |
-  [![Downloads for this release](https://img.shields.io/github/downloads/moralmunky/Home-Assistant-Mail-And-Packages/$RESOLVED_VERSION/total.svg)](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/releases/$RESOLVED_VERSION)
+  [![Downloads for this release](https://img.shields.io/github/downloads/moralmunky/Home-Assistant-Mail-And-Packages/$RESOLVED_VERSION/total)](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/releases/$RESOLVED_VERSION)
 
   $CHANGES
 
