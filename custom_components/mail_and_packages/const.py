@@ -109,7 +109,10 @@ AMAZON_SHIPMENT_TRACKING = [
     "verzending-volgen",
     "update-bestelling",
 ]
-AMAZON_EMAIL = "order-update@"
+AMAZON_EMAIL = [
+    "order-update@",
+    "update-bestelling@",
+]
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
 AMAZON_DELIVERED = "amazon_delivered"

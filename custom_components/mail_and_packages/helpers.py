@@ -1116,7 +1116,9 @@ def amazon_search(
 
     for domain in domains:
         for subject in subjects:
-            email_address = AMAZON_EMAIL + domain
+            email_address = []
+            for address in AMAZON_EMAIL:
+                email_address.append(address + domain)
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
 
             (server_response, data) = email_search(
