@@ -484,8 +484,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Configure form step 2."""
         self._errors = {}
         if user_input is not None:
-            self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data)
+            self._data.update(user_input)
             if len(self._errors) == 0:
                 self._complete_reconfig_flow()
 
@@ -510,8 +510,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Configure form step amazon."""
         self._errors = {}
         if user_input is not None:
-            self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data)
+            self._data.update(user_input)
             if len(self._errors) == 0:
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_reconfig_3()
