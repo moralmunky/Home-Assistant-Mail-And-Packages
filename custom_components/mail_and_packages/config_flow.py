@@ -454,8 +454,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Configure form step 2."""
         self._errors = {}
         if user_input is not None:
-            self._errors, user_input = await _validate_user_input(user_input)
             self._data.update(user_input)
+            self._errors, user_input = await _validate_user_input(user_input)
             if len(self._errors) == 0:
                 if any(
                     sensor in self._data[CONF_RESOURCES] for sensor in AMAZON_SENSORS
@@ -488,8 +488,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Configure form step 2."""
         self._errors = {}
         if user_input is not None:
-            self._errors, user_input = await _validate_user_input(self._data)
             self._data.update(user_input)
+            self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
                 self.hass.config_entries.async_update_entry(self._entry, data=self._data)
                 await self.hass.config_entries.async_reload(self._entry.entry_id)
@@ -517,8 +517,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Configure form step amazon."""
         self._errors = {}
         if user_input is not None:
-            self._errors, user_input = await _validate_user_input(self._data)
             self._data.update(user_input)
+            self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_reconfig_3()
