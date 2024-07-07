@@ -591,12 +591,7 @@ SENSOR_DATA = {
         "email": ["notify@buildinglink.com"],
         "subject": [
             "Your Amazon order has arrived",
-            "Your USPS delivery has arrived",
-            "Your UPS delivery has arrived",
-            "Your FEDEX delivery has arrived",
-            "Your Veho delivery has arrived",
-            "Your LasterShip delivery has arrived",
-            "Your CDL delivery has arrived",
+            "delivery has arrived",
             "You have a package delivery",
             "You have a delivery at the front desk",
             "You have a DHL delivery",
