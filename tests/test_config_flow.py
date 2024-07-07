@@ -1776,6 +1776,9 @@ async def test_reconfigure(
             "imap.test.email",
             {
                 "allow_external": False,
+                "amazon_days": 3,
+                "amazon_domain": "amazon.com",
+                "amazon_fwds": ["fakeuser@test.email", "fakeuser2@test.email"],                
                 "custom_img": True,
                 "custom_img_file": "images/test.gif",
                 "host": "imap.test.email",
