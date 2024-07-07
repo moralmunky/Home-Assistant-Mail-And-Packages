@@ -2,6 +2,8 @@
 
 from unittest.mock import patch
 
+import logging
+
 import pytest
 from homeassistant import config_entries, setup
 from homeassistant.core import HomeAssistant
@@ -19,6 +21,7 @@ from custom_components.mail_and_packages.const import (
 from custom_components.mail_and_packages.helpers import _check_ffmpeg, _test_login
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
 
+_LOGGER = logging.getLogger(__name__)
 
 @pytest.mark.parametrize(
     "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,title,data",
@@ -1701,6 +1704,8 @@ async def test_reconfigure(
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(result["flow_id"], input_4)
         assert result["errors"] == {}
+
+        _LOGGER.debug("Result: %s", str(result))
 
         assert result["type"] is FlowResultType.ABORT
         assert result["reason"] == "reconfigure_successful"
