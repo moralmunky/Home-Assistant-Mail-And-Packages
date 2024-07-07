@@ -463,8 +463,10 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     return await self.async_step_reconfig_amazon()
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_reconfig_3()
-                
-                self.hass.config_entries.async_update_entry(self._entry, data=self._data)
+
+                self.hass.config_entries.async_update_entry(
+                    self._entry, data=self._data
+                )
                 await self.hass.config_entries.async_reload(self._entry.entry_id)
                 _LOGGER.debug("%s reconfigured.", DOMAIN)
                 return self.async_abort(reason="reconfigure_successful")
@@ -491,7 +493,9 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
-                self.hass.config_entries.async_update_entry(self._entry, data=self._data)
+                self.hass.config_entries.async_update_entry(
+                    self._entry, data=self._data
+                )
                 await self.hass.config_entries.async_reload(self._entry.entry_id)
                 _LOGGER.debug("%s reconfigured.", DOMAIN)
                 return self.async_abort(reason="reconfigure_successful")
@@ -522,8 +526,10 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             if len(self._errors) == 0:
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_reconfig_3()
-                
-                self.hass.config_entries.async_update_entry(self._entry, data=self._data)
+
+                self.hass.config_entries.async_update_entry(
+                    self._entry, data=self._data
+                )
                 await self.hass.config_entries.async_reload(self._entry.entry_id)
                 _LOGGER.debug("%s reconfigured.", DOMAIN)
                 return self.async_abort(reason="reconfigure_successful")

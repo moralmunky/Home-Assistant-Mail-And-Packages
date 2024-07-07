@@ -23,6 +23,7 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
 
 _LOGGER = logging.getLogger(__name__)
 
+
 @pytest.mark.parametrize(
     "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,title,data",
     [
@@ -1607,15 +1608,15 @@ async def test_form_amazon_error(
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
-                'image_name': 'mail_today.gif',
-                'image_path': 'custom_components/mail_and_packages/images/',
-                'image_security': True,
+                "image_name": "mail_today.gif",
+                "image_path": "custom_components/mail_and_packages/images/",
+                "image_security": True,
                 "imap_security": "SSL",
                 "imap_timeout": 120,
                 "scan_interval": 60,
                 "resources": [
                     "amazon_delivered",
-                    "amazon_packages",                    
+                    "amazon_packages",
                     "auspost_delivered",
                     "auspost_delivering",
                     "auspost_packages",
@@ -1630,7 +1631,7 @@ async def test_form_amazon_error(
                     "inpost_pl_packages",
                     "mail_updated",
                     "poczta_polska_delivering",
-                    "poczta_polska_packages",                    
+                    "poczta_polska_packages",
                     "ups_delivered",
                     "ups_delivering",
                     "ups_packages",
@@ -1639,7 +1640,7 @@ async def test_form_amazon_error(
                     "usps_mail",
                     "usps_packages",
                     "zpackages_delivered",
-                    "zpackages_transit",                    
+                    "zpackages_transit",
                 ],
                 "verify_ssl": False,
             },
@@ -1694,15 +1695,21 @@ async def test_reconfigure(
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], input_2)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], input_3)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
-        result = await hass.config_entries.flow.async_configure(result["flow_id"], input_4)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
+        )
         # assert "errors" not in result
 
         assert result["type"] is FlowResultType.ABORT
