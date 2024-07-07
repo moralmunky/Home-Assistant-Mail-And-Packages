@@ -1709,5 +1709,6 @@ async def test_reconfigure(
         assert result["reason"] == "reconfigure_successful"
         await hass.async_block_till_done()
 
+        _LOGGER.debug("Entries: %s", len(hass.config_entries.async_entries(DOMAIN)))
         entry = hass.config_entries.async_entries(DOMAIN)[0]
         assert entry.data.copy() == data

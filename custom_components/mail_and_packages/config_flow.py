@@ -463,7 +463,11 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     return await self.async_step_reconfig_amazon()
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_reconfig_3()
-                await self._complete_reconfig_flow()
+                
+                self.hass.config_entries.async_update_entry(self._entry, data=self._data)
+                await self.hass.config_entries.async_reload(self._entry.entry_id)
+                _LOGGER.debug("%s reconfigured.", DOMAIN)
+                return self.async_abort(reason="reconfigure_successful")
 
             return await self._show_reconfig_2(user_input)
 
@@ -487,7 +491,10 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._errors, user_input = await _validate_user_input(self._data)
             self._data.update(user_input)
             if len(self._errors) == 0:
-                await self._complete_reconfig_flow()
+                self.hass.config_entries.async_update_entry(self._entry, data=self._data)
+                await self.hass.config_entries.async_reload(self._entry.entry_id)
+                _LOGGER.debug("%s reconfigured.", DOMAIN)
+                return self.async_abort(reason="reconfigure_successful")
 
             return await self._show_reconfig_3(user_input)
 
@@ -515,7 +522,11 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             if len(self._errors) == 0:
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_reconfig_3()
-                await self._complete_reconfig_flow()
+                
+                self.hass.config_entries.async_update_entry(self._entry, data=self._data)
+                await self.hass.config_entries.async_reload(self._entry.entry_id)
+                _LOGGER.debug("%s reconfigured.", DOMAIN)
+                return self.async_abort(reason="reconfigure_successful")
 
             return await self._show_reconfig_amazon(user_input)
 
@@ -535,10 +546,3 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=_get_schema_step_amazon(user_input, defaults),
             errors=self._errors,
         )
-
-    async def _complete_reconfig_flow(self):
-        """Complete reconfigure flow."""
-        self.hass.config_entries.async_update_entry(self._entry, data=self._data)
-        await self.hass.config_entries.async_reload(self._entry.entry_id)
-        _LOGGER.debug("%s reconfigured.", DOMAIN)
-        return self.async_abort(reason="reconfigure_successful")
