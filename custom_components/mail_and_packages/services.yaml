@@ -1,6 +1,6 @@
 update_image:
   name: Refresh the Mail Camera(s)
-  description: Refershes the Mail Camera sepcified or all of them at once. Leave blank to refresh them all.
+  description: Refreshes the Mail Camera specified or all of them at once. Leave blank to refresh them all.
   fields:
     entity_id:
       name: Camera Entity
