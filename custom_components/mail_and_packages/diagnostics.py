@@ -11,10 +11,10 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
 
-from .const import COORDINATOR, DOMAIN
+from .const import CONF_AMAZON_FWDS, COORDINATOR, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
-REDACT_KEYS = {CONF_PASSWORD, CONF_USERNAME}
+REDACT_KEYS = {CONF_PASSWORD, CONF_USERNAME, CONF_AMAZON_FWDS}
 
 
 async def async_get_config_entry_diagnostics(
