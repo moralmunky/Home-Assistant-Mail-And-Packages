@@ -161,7 +161,7 @@ async def async_migrate_entry(hass, config_entry):
     if version <= 7:
         if CONF_AMAZON_DOMAIN not in updated_config:
             updated_config[CONF_AMAZON_DOMAIN] = "amazon.com"
-    
+
     if CONF_PATH not in updated_config:
         updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
 
