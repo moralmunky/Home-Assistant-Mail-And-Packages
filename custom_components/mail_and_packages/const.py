@@ -22,6 +22,7 @@ COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
 SERVICE_UPDATE_FILE_PATH = "update_file_path"
 CAMERA = "cameras"
+CONFIG_VERSION = 9
 
 # Attributes
 ATTR_AMAZON_IMAGE = "amazon_image"
