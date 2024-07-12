@@ -799,7 +799,10 @@ async def test_amazon_search_delivered(
     result = amazon_search(
         mock_imap_amazon_delivered, "test/path", hass, "testfilename.jpg", "amazon.com"
     )
-    assert "Amazon email search address: ['order-update@amazon.com', 'update-bestelling@amazon.com']" in caplog.text
+    assert (
+        "Amazon email search address: ['order-update@amazon.com', 'update-bestelling@amazon.com']"
+        in caplog.text
+    )
     assert result == 7
     assert mock_download_img.called
 
