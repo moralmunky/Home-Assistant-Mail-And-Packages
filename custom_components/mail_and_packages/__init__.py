@@ -20,6 +20,7 @@ from .const import (
     CONF_PATH,
     CONF_SCAN_INTERVAL,
     CONF_VERIFY_SSL,
+    CONFIG_VERSION,
     COORDINATOR,
     DEFAULT_AMAZON_DAYS,
     DOMAIN,
@@ -100,7 +101,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 async def async_migrate_entry(hass, config_entry):
     """Migrate an old config entry."""
     version = config_entry.version
-    new_version = 8
+    new_version = CONFIG_VERSION
 
     _LOGGER.debug("Migrating from version %s", version)
     updated_config = {**config_entry.data}
@@ -160,6 +161,9 @@ async def async_migrate_entry(hass, config_entry):
     if version <= 7:
         if CONF_AMAZON_DOMAIN not in updated_config:
             updated_config[CONF_AMAZON_DOMAIN] = "amazon.com"
+    
+    if CONF_PATH not in updated_config:
+        updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
 
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(
