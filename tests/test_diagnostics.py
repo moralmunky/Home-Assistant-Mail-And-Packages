@@ -6,7 +6,7 @@ import pytest
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.mail_and_packages.const import DOMAIN
+from custom_components.mail_and_packages.const import CONF_AMAZON_FWDS, DOMAIN
 from custom_components.mail_and_packages.diagnostics import (
     async_get_config_entry_diagnostics,
     async_get_device_diagnostics,
@@ -31,6 +31,7 @@ async def test_config_entry_diagnostics(hass):
     assert result["config"]["data"][CONF_PORT] == 993
     assert result["config"]["data"][CONF_PASSWORD] == "**REDACTED**"
     assert result["config"]["data"][CONF_USERNAME] == "**REDACTED**"
+    assert result["config"]["data"][CONF_AMAZON_FWDS] == "**REDACTED**"
 
 
 @pytest.mark.asyncio
