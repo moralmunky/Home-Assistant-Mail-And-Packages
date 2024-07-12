@@ -31,6 +31,7 @@ from .const import (
     CONF_PATH,
     CONF_SCAN_INTERVAL,
     CONF_VERIFY_SSL,
+    CONFIG_VERSION,
     DEFAULT_ALLOW_EXTERNAL,
     DEFAULT_AMAZON_DAYS,
     DEFAULT_AMAZON_DOMAIN,
@@ -270,7 +271,7 @@ def _get_schema_step_amazon(user_input: list, default_dict: list) -> Any:
 class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Mail and Packages."""
 
-    VERSION = 8
+    VERSION = CONFIG_VERSION
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
