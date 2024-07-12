@@ -1,8 +1,7 @@
 """ Test Mail and Packages config flow """
 
-from unittest.mock import patch
-
 import logging
+from unittest.mock import patch
 
 import pytest
 from homeassistant import config_entries, setup
@@ -89,7 +88,7 @@ _LOGGER = logging.getLogger(__name__)
                 "allow_external": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
-                "amazon_fwds": ["fakeuser@test.email", "fakeuser2@test.email"],
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
                 "custom_img": True,
                 "custom_img_file": "images/test.gif",
                 "host": "imap.test.email",
@@ -1598,7 +1597,7 @@ async def test_form_amazon_error(
                 "allow_external": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
-                "amazon_fwds": ["fakeuser@test.email", "fakeuser2@test.email"],
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
                 "custom_img": True,
                 "custom_img_file": "images/test.gif",
                 "host": "imap.test.email",
@@ -1778,7 +1777,7 @@ async def test_reconfigure(
                 "allow_external": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
-                "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
+                "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
                 "custom_img": True,
                 "custom_img_file": "images/test.gif",
                 "host": "imap.test.email",
@@ -1943,7 +1942,7 @@ async def test_reconfigure_no_amazon(
                 "allow_external": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
-                "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
+                "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
                 "custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,

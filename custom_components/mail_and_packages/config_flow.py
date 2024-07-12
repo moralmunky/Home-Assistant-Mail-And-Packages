@@ -60,24 +60,16 @@ async def _check_amazon_forwards(forwards: str) -> tuple:
 
     Returns tuple: dict of errors, list of email addresses
     """
-    amazon_forwards_list = []
+    amazon_forwards_list = forwards
     errors = []
 
     # Check for amazon domains
     if "@amazon" in forwards:
         errors.append("amazon_domain")
 
-    # Check for commas
-    if "," in forwards:
-        amazon_forwards_list = forwards.split(",")
-
     # No forwards
     elif forwards in ["", "(none)", '""']:
         amazon_forwards_list = []
-
-    # If only one address append it to the list
-    elif forwards:
-        amazon_forwards_list.append(forwards)
 
     if len(errors) == 0:
         errors.append("ok")

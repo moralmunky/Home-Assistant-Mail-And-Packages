@@ -14,7 +14,11 @@ import pytest
 from aioresponses import aioresponses
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.mail_and_packages.const import CONF_AMAZON_DOMAIN, DOMAIN
+from custom_components.mail_and_packages.const import (
+    CONF_AMAZON_DOMAIN,
+    CONFIG_VERSION,
+    DOMAIN,
+)
 from tests.const import (
     FAKE_CONFIG_DATA,
     FAKE_CONFIG_DATA_AMAZON_FWD_STRING,
@@ -52,7 +56,10 @@ def mock_update():
 async def integration_fixture(hass):
     """Set up the mail_and_packages integration."""
     entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA,
+        version=CONFIG_VERSION,
     )
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
