@@ -1,6 +1,7 @@
 name: Release
 
 on:
+  workflow_dispatch:
   release:
     types: [published]
 
@@ -18,7 +19,7 @@ jobs:
 
       - name: "Set version numbmer"
         run: |
-          sed -i '/VERSION = /c\VERSION = "${{ steps.get_version.outputs.VERSION }}"' ${{ github.workspace }}/custom_components/mail_and_packages/const.py
+          sed -i '/\bVERSION\b = /c\VERSION = "${{ steps.get_version.outputs.VERSION }}"' ${{ github.workspace }}/custom_components/mail_and_packages/const.py
           sed -i '/version/c\  \"version\": \"${{ steps.get_version.outputs.VERSION }}\"' ${{ github.workspace }}/custom_components/mail_and_packages/manifest.json
       # Pack the mail_and_packages dir as a zip and upload to the release
       - name: ZIP MnP Dir
