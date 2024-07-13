@@ -16,7 +16,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import (
     CONF_AMAZON_DOMAIN,
-    CONFIG_VERSION,
+    CONFIG_VER,
     DOMAIN,
 )
 from tests.const import (
@@ -59,7 +59,7 @@ async def integration_fixture(hass):
         domain=DOMAIN,
         title="imap.test.email",
         data=FAKE_CONFIG_DATA,
-        version=CONFIG_VERSION,
+        version=CONFIG_VER,
     )
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
