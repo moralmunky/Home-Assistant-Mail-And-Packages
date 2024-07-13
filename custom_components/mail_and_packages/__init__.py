@@ -20,7 +20,7 @@ from .const import (
     CONF_PATH,
     CONF_SCAN_INTERVAL,
     CONF_VERIFY_SSL,
-    CONFIG_VERSION,
+    CONFIG_VER,
     COORDINATOR,
     DEFAULT_AMAZON_DAYS,
     DOMAIN,
@@ -101,7 +101,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 async def async_migrate_entry(hass, config_entry):
     """Migrate an old config entry."""
     version = config_entry.version
-    new_version = CONFIG_VERSION
+    new_version = CONFIG_VER
 
     _LOGGER.debug("Migrating from version %s", version)
     updated_config = {**config_entry.data}
