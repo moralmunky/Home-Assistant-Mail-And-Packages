@@ -77,7 +77,6 @@ from .const import (
     CONF_FOLDER,
     CONF_GENERATE_MP4,
     CONF_IMAP_SECURITY,
-    CONF_PATH,
     CONF_VERIFY_SSL,
     DEFAULT_AMAZON_DAYS,
     OVERLAY,
