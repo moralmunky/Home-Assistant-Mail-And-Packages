@@ -588,7 +588,7 @@ SENSOR_DATA = {
         "email": ["notifications@intelcom.ca"],
         "subject": ["Your package has been received!"],
     },
-    "intelcom_tracking": {"pattern": ["INTLCMD[0-9]{9}"]},    
+    "intelcom_tracking": {"pattern": ["INTLCMD[0-9]{9}"]},
     # Walmart
     "walmart_delivering": {
         "email": ["help@walmart.com"],
