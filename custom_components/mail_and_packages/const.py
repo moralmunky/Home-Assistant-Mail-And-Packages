@@ -582,7 +582,6 @@ SENSOR_DATA = {
             "Your package is on the way!",
             "Votre colis est en chemin!",
         ],
-        "subject": [],
     },
     "intelcom_packages": {
         "email": ["notifications@intelcom.ca"],
