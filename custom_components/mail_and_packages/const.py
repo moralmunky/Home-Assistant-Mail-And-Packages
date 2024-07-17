@@ -114,6 +114,7 @@ AMAZON_SHIPMENT_TRACKING = [
 AMAZON_EMAIL = [
     "order-update@",
     "update-bestelling@",
+    "versandbestaetigung@"
 ]
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
@@ -127,6 +128,7 @@ AMAZON_HUB_EMAIL = [
     "thehub@amazon.com",
     "order-update@amazon.com",
     "amazonlockers@amazon.com",
+    "versandbestaetigung@amazon.de",
 ]
 AMAZON_HUB_SUBJECT = "ready for pickup from Amazon Hub Locker"
 AMAZON_HUB_SUBJECT_SEARCH = "(a package to pick up)(.*)(\\d{6})"
