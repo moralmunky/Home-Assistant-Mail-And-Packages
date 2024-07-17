@@ -570,17 +570,25 @@ SENSOR_DATA = {
     # Intelcom
     "intelcom_delivered": {
         "email": ["notifications@intelcom.ca"],
-        "subject": ["Your order has been delivered!"],
+        "subject": [
+            "Your order has been delivered!"
+            "Votre commande a été livrée!",
+            "Votre colis a été livré!",
+        ],
     },
     "intelcom_delivering": {
         "email": ["notifications@intelcom.ca"],
-        "subject": ["Your package is on the way!"],
+        "subject": [
+            "Your package is on the way!",
+            "Votre colis est en chemin!",
+        ],
+        "subject": [],
     },
     "intelcom_packages": {
         "email": ["notifications@intelcom.ca"],
         "subject": ["Your package has been received!"],
     },
-    "intelcom_tracking": {"pattern": ["INTLCMD[0-9]{9}"]},
+    "intelcom_tracking": {"pattern": ["INTLCMD[0-9]{9}"]},    
     # Walmart
     "walmart_delivering": {
         "email": ["help@walmart.com"],
@@ -640,22 +648,6 @@ SENSOR_DATA = {
     "post_de_delivered": {},
     "post_de_packages": {},
     "post_de_tracking": {},
-    # IntelCom
-    "intelcom_delivered": {
-        "email": ["notifications@intelcom.ca"],
-        "subject": [
-            "Votre commande a été livrée!",
-            "Votre colis a été livré!",
-        ],
-    },
-    "intelcom_delivering": {
-        "email": ["notifications@intelcom.ca"],
-        "subject": [
-            "Votre colis est en chemin!",
-        ],
-    },
-    "intelcom_packages": {},
-    "intelcom_tracking": {},
 }
 
 # Sensor definitions
