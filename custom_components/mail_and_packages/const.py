@@ -85,7 +85,7 @@ AMAZON_DELIVERED_SUBJECT = [
     "Geliefert:",
 ]
 AMAZON_SHIPMENT_TRACKING = ["shipment-tracking", "conferma-spedizione"]
-AMAZON_EMAIL = "order-update@"
+AMAZON_EMAIL = "versandbestaetigung@amazon.de"
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
 AMAZON_DELIVERED = "amazon_delivered"
