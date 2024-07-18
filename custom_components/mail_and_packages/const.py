@@ -111,11 +111,7 @@ AMAZON_SHIPMENT_TRACKING = [
     "verzending-volgen",
     "update-bestelling",
 ]
-AMAZON_EMAIL = [
-    "order-update@",
-    "update-bestelling@",
-    "versandbestaetigung@"
-]
+AMAZON_EMAIL = ["order-update@", "update-bestelling@", "versandbestaetigung@"]
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
 AMAZON_DELIVERED = "amazon_delivered"
@@ -573,8 +569,7 @@ SENSOR_DATA = {
     "intelcom_delivered": {
         "email": ["notifications@intelcom.ca"],
         "subject": [
-            "Your order has been delivered!"
-            "Votre commande a été livrée!",
+            "Your order has been delivered!" "Votre commande a été livrée!",
             "Votre colis a été livré!",
         ],
     },
