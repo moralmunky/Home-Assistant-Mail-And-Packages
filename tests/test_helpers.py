@@ -789,7 +789,7 @@ async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
     result = amazon_search(
         mock_imap_amazon_shipped, "test/path", hass, "testfilename.jpg", "amazon.com"
     )
-    assert result == 7
+    assert result == 8
 
 
 @pytest.mark.asyncio
@@ -800,10 +800,10 @@ async def test_amazon_search_delivered(
         mock_imap_amazon_delivered, "test/path", hass, "testfilename.jpg", "amazon.com"
     )
     assert (
-        "Amazon email search address: ['order-update@amazon.com', 'update-bestelling@amazon.com']"
+        "Amazon email search address: ['order-update@amazon.com', 'update-bestelling@amazon.com', 'versandbestaetigung@amazon.com']"
         in caplog.text
     )
-    assert result == 7
+    assert result == 8
     assert mock_download_img.called
 
 
@@ -818,7 +818,7 @@ async def test_amazon_search_delivered_it(
         "testfilename.jpg",
         "amazon.it",
     )
-    assert result == 7
+    assert result == 8
 
 
 @pytest.mark.asyncio

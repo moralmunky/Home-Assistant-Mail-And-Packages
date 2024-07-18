@@ -100,6 +100,7 @@ AMAZON_DELIVERED_SUBJECT = [
     "Livré",
     "Entregado:",
     "Bezorgd:",
+    "Livraison : Votre",
 ]
 AMAZON_SHIPMENT_TRACKING = [
     "shipment-tracking",
@@ -110,10 +111,7 @@ AMAZON_SHIPMENT_TRACKING = [
     "verzending-volgen",
     "update-bestelling",
 ]
-AMAZON_EMAIL = [
-    "order-update@",
-    "update-bestelling@",
-]
+AMAZON_EMAIL = ["order-update@", "update-bestelling@", "versandbestaetigung@"]
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
 AMAZON_DELIVERED = "amazon_delivered"
@@ -126,6 +124,7 @@ AMAZON_HUB_EMAIL = [
     "thehub@amazon.com",
     "order-update@amazon.com",
     "amazonlockers@amazon.com",
+    "versandbestaetigung@amazon.de",
 ]
 AMAZON_HUB_SUBJECT = "ready for pickup from Amazon Hub Locker"
 AMAZON_HUB_SUBJECT_SEARCH = "(a package to pick up)(.*)(\\d{6})"
@@ -143,6 +142,7 @@ AMAZON_TIME_PATTERN = [
     "A chegar:",
     "Arrivée :",
     "Verwachte bezorgdatum:",
+    "Votre date de livraison prévue est :",
 ]
 AMAZON_TIME_PATTERN_END = [
     "Previously expected:",
@@ -177,6 +177,8 @@ AMAZON_LANGS = [
     "pt_PT.UTF-8",
     "pt_BR",
     "pt_BR.UTF-8",
+    "fr_CA",
+    "fr_CA.UTF-8",
     "",
 ]
 
@@ -224,6 +226,7 @@ SENSOR_DATA = {
             "Your UPS Packages were delivered",
             "Your UPS Parcel was delivered",
             "Your UPS Parcels were delivered",
+            "Votre colis UPS a été livré",
         ],
     },
     "ups_delivering": {
@@ -233,6 +236,8 @@ SENSOR_DATA = {
             "UPS Update: Follow Your Delivery on a Live Map",
             "UPS Pre-Arrival: Your Driver is Arriving Soon! Follow on a Live Map",
             "UPS Update: Parcel Scheduled for Delivery Today",
+            "Mise à jour UPS : Livraison du colis prévue demain",
+            "Mise à jour UPS : Livraison du colis prévue aujourd'hui",
         ],
     },
     "ups_exception": {
@@ -563,11 +568,18 @@ SENSOR_DATA = {
     # Intelcom
     "intelcom_delivered": {
         "email": ["notifications@intelcom.ca"],
-        "subject": ["Your order has been delivered!"],
+        "subject": [
+            "Your order has been delivered!",
+            "Votre commande a été livrée!",
+            "Votre colis a été livré!",
+        ],
     },
     "intelcom_delivering": {
         "email": ["notifications@intelcom.ca"],
-        "subject": ["Your package is on the way!"],
+        "subject": [
+            "Your package is on the way!",
+            "Votre colis est en chemin!",
+        ],
     },
     "intelcom_packages": {
         "email": ["notifications@intelcom.ca"],
