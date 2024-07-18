@@ -569,7 +569,8 @@ SENSOR_DATA = {
     "intelcom_delivered": {
         "email": ["notifications@intelcom.ca"],
         "subject": [
-            "Your order has been delivered!" "Votre commande a été livrée!",
+            "Your order has been delivered!",
+            "Votre commande a été livrée!",
             "Votre colis a été livré!",
         ],
     },
