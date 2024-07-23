@@ -1,6 +1,7 @@
 """Adds config flow for Mail and Packages."""
 
 import logging
+import re
 from os import path
 from typing import Any
 
@@ -14,7 +15,6 @@ from homeassistant.const import (
     CONF_RESOURCES,
     CONF_USERNAME,
 )
-import re
 
 from .const import (
     CONF_ALLOW_EXTERNAL,

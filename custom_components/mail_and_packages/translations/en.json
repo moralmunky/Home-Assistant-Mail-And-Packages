@@ -8,7 +8,7 @@
             "communication": "Unable to connect or login to the mail server. Please check the log for details.",
             "invalid_path": "Please store the images in another directory.",
             "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
-            "amazon_domain": "Cannot use amazon email addresses as forward from emails.",
+            "amazon_domain": "Invalid forwarding email address.",
             "file_not_found": "Image file not found",
             "invalid_email_format": "Invalid email address format."
         },

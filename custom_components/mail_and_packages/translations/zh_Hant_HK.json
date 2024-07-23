@@ -7,9 +7,10 @@
         "error": {
             "communication": "無法連接或登錄到郵件服務器。請檢查日誌以獲取詳細信息。",
             "invalid_path": "請將圖像存儲在另一個目錄中。",
-            "ffmpeg_not_found": "",
+            "ffmpeg_not_found": "生成MP4需要ffmpeg",
             "amazon_domain": "無效的轉發電郵地址。",
-            "file_not_found": "找不到圖像檔案"
+            "file_not_found": "找不到圖像檔案",
+            "invalid_email_format": "無效的電郵地址格式。"
         },
         "step": {
             "user": {

@@ -7,9 +7,10 @@
         "error": {
             "communication": "Kan geen verbinding maken met of inloggen op de mailserver. Controleer het logboek voor details.",
             "invalid_path": "Bewaar de afbeeldingen in een andere map.",
-            "ffmpeg_not_found": "",
+            "ffmpeg_not_found": "MP4 genereren vereist ffmpeg",
             "amazon_domain": "Ongeldig doorstuur e-mailadres.",
-            "file_not_found": "Afbeeldingsbestand niet gevonden"
+            "file_not_found": "Afbeeldingsbestand niet gevonden",
+            "invalid_email_format": "Ongeldig e-mailadres formaat."
         },
         "step": {
             "user": {
