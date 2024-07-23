@@ -77,7 +77,7 @@ _LOGGER = logging.getLogger(__name__)
             {
                 "amazon_domain": "amazon.com",
                 "amazon_days": 3,
-                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email,amazon@example.com,fake@email%$^&@example.com",
             },
             "config_3",
             {
@@ -88,7 +88,7 @@ _LOGGER = logging.getLogger(__name__)
                 "allow_external": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
-                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email,amazon@example.com,fake@email%$^&@example.com",
                 "custom_img": True,
                 "custom_img_file": "images/test.gif",
                 "host": "imap.test.email",
@@ -1492,6 +1492,7 @@ async def test_form_amazon_error(
     input_3,
     mock_imap,
     hass,
+    caplog,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -1529,6 +1530,7 @@ async def test_form_amazon_error(
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
+        assert "Invalid domain for email: testemail@amazon.com" in caplog.text
         assert result["errors"] == {CONF_AMAZON_FWDS: "amazon_domain"}
 
 

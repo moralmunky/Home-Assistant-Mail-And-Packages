@@ -14,6 +14,7 @@ from homeassistant.const import (
     CONF_RESOURCES,
     CONF_USERNAME,
 )
+import re
 
 from .const import (
     CONF_ALLOW_EXTERNAL,
@@ -55,26 +56,44 @@ AMAZON_SENSORS = ["amazon_packages", "amazon_delivered", "amazon_exception"]
 _LOGGER = logging.getLogger(__name__)
 
 
-async def _check_amazon_forwards(forwards: str) -> tuple:
+async def _check_amazon_forwards(forwards: str, domain: str) -> tuple:
     """Validate and format amazon forward emails for user input.
 
     Returns tuple: dict of errors, list of email addresses
     """
-    amazon_forwards_list = forwards
+    emails = forwards.split(",")
     errors = []
 
-    # Check for amazon domains
-    if "@amazon" in forwards:
-        errors.append("amazon_domain")
+    # Validate each email address
+    for email in emails:
+        email = email.strip()
 
-    # No forwards
-    elif forwards in ["", "(none)", '""']:
-        amazon_forwards_list = []
+        if "@" in email:
+            if not re.match(r"[a-zA-Z\.0-9\s]+@", email):
+                _LOGGER.error("Invalid email address: %s", email)
+                errors.append("invalid_email_format")
+
+            # Check for amazon domains
+            if f"@{domain}" in email:
+                _LOGGER.error("Invalid domain for email: %s", email)
+                errors.append("amazon_domain")
+
+        # No forwards
+        elif forwards in ["", "(none)", '""']:
+            forwards = []
+
+        else:
+            _LOGGER.error("Missing '@' in email address: %s", email)
+            errors.append("invalid_email_format")
+            # Add error message for Amazon emails
+            if f"{domain}" in email:
+                _LOGGER.error("Invalid domain for email: %s", email)
+                errors.append("amazon_domain")
 
     if len(errors) == 0:
         errors.append("ok")
 
-    return errors, amazon_forwards_list
+    return errors, forwards
 
 
 async def _validate_user_input(user_input: dict) -> tuple:
@@ -88,7 +107,7 @@ async def _validate_user_input(user_input: dict) -> tuple:
     if CONF_AMAZON_FWDS in user_input:
         if isinstance(user_input[CONF_AMAZON_FWDS], str):
             status, amazon_list = await _check_amazon_forwards(
-                user_input[CONF_AMAZON_FWDS]
+                user_input[CONF_AMAZON_FWDS], user_input[CONF_AMAZON_DOMAIN]
             )
             if status[0] == "ok":
                 user_input[CONF_AMAZON_FWDS] = amazon_list
@@ -252,7 +271,7 @@ def _get_schema_step_amazon(user_input: list, default_dict: list) -> Any:
                 CONF_AMAZON_DOMAIN, default=_get_default(CONF_AMAZON_DOMAIN)
             ): cv.string,
             vol.Optional(
-                CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS, "(none)")
+                CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS)
             ): cv.string,
             vol.Optional(CONF_AMAZON_DAYS, default=_get_default(CONF_AMAZON_DAYS)): int,
         }
