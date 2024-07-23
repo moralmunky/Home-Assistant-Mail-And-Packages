@@ -86,7 +86,7 @@ async def _check_amazon_forwards(forwards: str, domain: str) -> tuple:
             _LOGGER.error("Missing '@' in email address: %s", email)
             errors.append("invalid_email_format")
             # Add error message for Amazon emails
-            if f"{domain}" in email:
+            if re.match(fr"\b{domain}\b", email):
                 _LOGGER.error("Invalid domain for email: %s", email)
                 errors.append("amazon_domain")
 

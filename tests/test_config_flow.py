@@ -77,7 +77,7 @@ _LOGGER = logging.getLogger(__name__)
             {
                 "amazon_domain": "amazon.com",
                 "amazon_days": 3,
-                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email,amazon@example.com,fake@email%$^&@example.com",
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email,amazon@example.com,fake@email%$^&@example.com,bogusemail@testamazon.com",
             },
             "config_3",
             {
@@ -88,7 +88,7 @@ _LOGGER = logging.getLogger(__name__)
                 "allow_external": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
-                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email,amazon@example.com,fake@email%$^&@example.com",
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email,amazon@example.com,fake@email%$^&@example.com,bogusemail@testamazon.com",
                 "custom_img": True,
                 "custom_img_file": "images/test.gif",
                 "host": "imap.test.email",
@@ -1588,7 +1588,7 @@ async def test_form_amazon_error(
             {
                 "amazon_domain": "amazon.com",
                 "amazon_days": 3,
-                "amazon_fwds": "testemailamazon.com",
+                "amazon_fwds": "amazon.com",
             },
         ),
     ],
@@ -1640,8 +1640,8 @@ async def test_form_amazon_error_2(
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
-        assert "Missing '@' in email address: testemailamazon.com" in caplog.text
-        assert "Invalid domain for email: testemailamazon.com" in caplog.text
+        assert "Missing '@' in email address: amazon.com" in caplog.text
+        assert "Invalid domain for email: amazon.com" in caplog.text
         assert result["errors"] == {CONF_AMAZON_FWDS: "invalid_email_format"}
 
 
