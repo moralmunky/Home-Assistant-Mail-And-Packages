@@ -1588,7 +1588,7 @@ async def test_form_amazon_error(
             {
                 "amazon_domain": "amazon.com",
                 "amazon_days": 3,
-                "amazon_fwds": "amazon.com",
+                "amazon_fwds": "@bademail.com, amazon.com",
             },
         ),
     ],
