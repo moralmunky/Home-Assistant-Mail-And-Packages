@@ -1535,6 +1535,117 @@ async def test_form_amazon_error(
 
 
 @pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "config_2",
+            {
+                "allow_external": False,
+                "custom_img": False,
+                "folder": '"INBOX"',
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+            },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "testemailamazon.com",
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_form_amazon_error_2(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    mock_imap,
+    hass,
+    caplog,
+):
+    """Test we get the form."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_1
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        assert "Missing '@' in email address: testemailamazon.com" in caplog.text
+        assert "Invalid domain for email: testemailamazon.com" in caplog.text
+        assert result["errors"] == {CONF_AMAZON_FWDS: "invalid_email_format"}
+
+
+@pytest.mark.parametrize(
     "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,title,data",
     [
         (
