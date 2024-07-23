@@ -7,9 +7,10 @@
         "error": {
             "communication": "Poštnega strežnika ni mogoče povezati ali prijaviti. Za podrobnosti preverite dnevnik.",
             "invalid_path": "Shranite slike v drugem imeniku.",
-            "ffmpeg_not_found": "",
+            "ffmpeg_not_found": "Ustvarjanje MP4 zahteva ffmpeg",
             "amazon_domain": "Neveljaven naslov za preusmerjanje e-pošte.",
-            "file_not_found": "Slikovna datoteka ni najdena"
+            "file_not_found": "Slikovna datoteka ni najdena",
+            "invalid_email_format": "Neveljaven format e-poštnega naslova."
         },
         "step": {
             "user": {

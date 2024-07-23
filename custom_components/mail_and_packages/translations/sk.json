@@ -7,9 +7,10 @@
         "error": {
             "communication": "Nedá sa pripojiť alebo prihlásiť na poštový server. Podrobnosti nájdete v protokole.",
             "invalid_path": "Uložte obrázky do iného adresára.",
-            "ffmpeg_not_found": "",
+            "ffmpeg_not_found": "Vytvorenie MP4 vyžaduje ffmpeg",
             "amazon_domain": "Neplatná adresa pre presmerovanie e-mailov.",
-            "file_not_found": "Obrázokový súbor nebol nájdený"
+            "file_not_found": "Obrázokový súbor nebol nájdený",
+            "invalid_email_format": "Neplatný formát e-mailovej adresy."
         },
         "step": {
             "user": {

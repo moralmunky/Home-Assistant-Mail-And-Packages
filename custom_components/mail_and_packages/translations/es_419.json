@@ -7,9 +7,10 @@
         "error": {
             "communication": "No se puede conectar o iniciar sesión en el servidor de correo. Por favor, consulte el registro para más detalles.",
             "invalid_path": "Guarde las imágenes en otro directorio.",
-            "ffmpeg_not_found": "",
+            "ffmpeg_not_found": "Generar MP4 requiere ffmpeg",
             "amazon_domain": "Dirección de correo electrónico de reenvío no válida.",
-            "file_not_found": "Archivo de imagen no encontrado"
+            "file_not_found": "Archivo de imagen no encontrado",
+            "invalid_email_format": "Formato de dirección de correo electrónico inválido."
         },
         "step": {
             "user": {

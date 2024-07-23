@@ -7,9 +7,10 @@
         "error": {
             "communication": "Det går inte att ansluta eller logga in på e-postservern. Kontrollera loggen för mer information.",
             "invalid_path": "Förvara bilderna i en annan katalog.",
-            "ffmpeg_not_found": "",
+            "ffmpeg_not_found": "Generera MP4 kräver ffmpeg",
             "amazon_domain": "Ogiltig vidarebefordrings e-postadress.",
-            "file_not_found": "Bildfilen hittades inte"
+            "file_not_found": "Bildfilen hittades inte",
+            "invalid_email_format": "Ogiltigt format för e-postadress."
         },
         "step": {
             "user": {

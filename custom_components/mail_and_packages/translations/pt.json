@@ -7,9 +7,10 @@
         "error": {
             "communication": "Não foi possível conectar ou fazer login no servidor de email. Por favor, verifique o log para obter detalhes.",
             "invalid_path": "Por favor, guarde as imagens em outro diretório.",
-            "ffmpeg_not_found": "",
+            "ffmpeg_not_found": "Gerar MP4 requer ffmpeg",
             "amazon_domain": "Endereço de encaminhamento de email inválido.",
-            "file_not_found": "Arquivo de imagem não encontrado"
+            "file_not_found": "Arquivo de imagem não encontrado",
+            "invalid_email_format": "Formato de endereço de email inválido."
         },
         "step": {
             "user": {

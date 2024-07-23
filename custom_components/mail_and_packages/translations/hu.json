@@ -7,9 +7,10 @@
         "error": {
             "communication": "Nem lehet csatlakozni vagy bejelentkezni az e-mail szerverhez. Kérjük, ellenőrizze a naplót a részletekért.",
             "invalid_path": "Tárolja a képeket egy másik könyvtárban.",
-            "ffmpeg_not_found": "",
+            "ffmpeg_not_found": "Az MP4 generálása ffmpeg-et igényel",
             "amazon_domain": "Érvénytelen továbbítási e-mail cím.",
-            "file_not_found": "Képfájl nem található"
+            "file_not_found": "Képfájl nem található",
+            "invalid_email_format": "Érvénytelen e-mail cím formátum."
         },
         "step": {
             "user": {
