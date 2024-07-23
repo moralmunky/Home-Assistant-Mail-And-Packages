@@ -7,9 +7,10 @@
         "error": {
             "communication": "No es pot connectar o iniciar la sessió al servidor de correu. Consulteu el registre per obtenir més detalls.",
             "invalid_path": "Guardeu les imatges en un altre directori.",
-            "ffmpeg_not_found": "",
+            "ffmpeg_not_found": "Generar MP4 requereix ffmpeg",
             "amazon_domain": "Adreça de correu electrònic de reenviament no vàlida.",
-            "file_not_found": "No s'ha trobat el fitxer d'imatge"
+            "file_not_found": "No s'ha trobat el fitxer d'imatge",
+            "invalid_email_format": "Format d'adreça de correu electrònic no vàlid."
         },
         "step": {
             "user": {

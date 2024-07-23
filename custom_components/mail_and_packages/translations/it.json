@@ -7,9 +7,10 @@
         "error": {
             "communication": "Impossibile connettersi o accedere al server di posta. Si prega di controllare il registro per i dettagli.",
             "invalid_path": "Conservare le immagini in un'altra directory.",
-            "ffmpeg_not_found": "",
+            "ffmpeg_not_found": "Generare MP4 richiede ffmpeg",
             "amazon_domain": "Indirizzo email di inoltro non valido.",
-            "file_not_found": "File immagine non trovato"
+            "file_not_found": "File immagine non trovato",
+            "invalid_email_format": "Formato dell'indirizzo email non valido."
         },
         "step": {
             "user": {

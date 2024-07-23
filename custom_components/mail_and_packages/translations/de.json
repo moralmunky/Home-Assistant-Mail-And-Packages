@@ -7,9 +7,10 @@
         "error": {
             "communication": "Es kann keine Verbindung zum Mailserver hergestellt oder angemeldet werden. Bitte überprüfen Sie das Protokoll für Details.",
             "invalid_path": "Bitte speichern Sie die Bilder in einem anderen Verzeichnis.",
-            "ffmpeg_not_found": "",
+            "ffmpeg_not_found": "MP4 erstellen erfordert ffmpeg",
             "amazon_domain": "Ungültige Weiterleitungs-E-Mail-Adresse.",
-            "file_not_found": "Bilddatei nicht gefunden"
+            "file_not_found": "Bilddatei nicht gefunden",
+            "invalid_email_format": "Ungültiges E-Mail-Adressformat."
         },
         "step": {
             "user": {

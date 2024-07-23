@@ -7,9 +7,10 @@
         "error": {
             "communication": "Nie można połączyć się lub zalogować do serwera pocztowego. Sprawdź szczegóły w dzienniku.",
             "invalid_path": "Proszę przechowywać obrazy w innym katalogu.",
-            "ffmpeg_not_found": "",
+            "ffmpeg_not_found": "Generowanie MP4 wymaga ffmpeg",
             "amazon_domain": "Nieprawidłowy adres e-mail do przekierowania.",
-            "file_not_found": "Nie znaleziono pliku obrazu"
+            "file_not_found": "Nie znaleziono pliku obrazu",
+            "invalid_email_format": "Nieprawidłowy format adresu e-mail."
         },
         "step": {
             "user": {

@@ -7,9 +7,10 @@
         "error": {
             "communication": "Impossible de se connecter ou de se connecter au serveur de messagerie. Veuillez consulter le journal pour plus de détails.",
             "invalid_path": "Veuillez stocker les images dans un autre répertoire.",
-            "ffmpeg_not_found": "",
+            "ffmpeg_not_found": "Générer MP4 nécessite ffmpeg",
             "amazon_domain": "Adresse e-mail de transfert invalide.",
-            "file_not_found": "Fichier image non trouvé"
+            "file_not_found": "Fichier image non trouvé",
+            "invalid_email_format": "Format d'adresse e-mail invalide."
         },
         "step": {
             "user": {
