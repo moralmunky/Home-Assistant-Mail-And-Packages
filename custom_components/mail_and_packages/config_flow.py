@@ -418,6 +418,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Step 3 setup."""
         # Defaults
         defaults = {
+            CONF_AMAZON_DOMAIN: DEFAULT_AMAZON_DOMAIN,
             CONF_AMAZON_FWDS: DEFAULT_AMAZON_FWDS,
             CONF_AMAZON_DAYS: DEFAULT_AMAZON_DAYS,
         }
@@ -552,15 +553,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _show_reconfig_amazon(self, user_input):
         """Step 3 setup."""
-        # Defaults
-        defaults = {
-            CONF_AMAZON_DOMAIN: DEFAULT_AMAZON_DOMAIN,
-            CONF_AMAZON_FWDS: DEFAULT_AMAZON_FWDS,
-            CONF_AMAZON_DAYS: DEFAULT_AMAZON_DAYS,
-        }
-
         return self.async_show_form(
             step_id="reconfig_amazon",
-            data_schema=_get_schema_step_amazon(user_input, defaults),
+            data_schema=_get_schema_step_amazon(user_input, self._data),
             errors=self._errors,
         )
