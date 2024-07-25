@@ -418,6 +418,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Step 3 setup."""
         # Defaults
         defaults = {
+            CONF_AMAZON_DOMAIN: DEFAULT_AMAZON_DOMAIN,
             CONF_AMAZON_FWDS: DEFAULT_AMAZON_FWDS,
             CONF_AMAZON_DAYS: DEFAULT_AMAZON_DAYS,
         }
