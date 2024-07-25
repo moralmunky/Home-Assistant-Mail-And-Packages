@@ -122,5 +122,10 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
                         return True
                 return False
         if self._type in self.coordinator.data.keys():
+            _LOGGER.debug(
+                "binary_sensor: %s value: %s",
+                self._type,
+                self.coordinator.data[self._type],
+            )
             return bool(self.coordinator.data[self._type])
         return False

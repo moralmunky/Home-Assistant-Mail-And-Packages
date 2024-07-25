@@ -898,3 +898,26 @@ FAKE_CONFIG_DATA_V4_MIGRATE = {
     "username": "user@fake.email",
     "verify_ssl": False,
 }
+
+FAKE_CONFIG_DATA_USPS_DELIVERED = {
+    "allow_external": False,
+    "amazon_days": 3,
+    "amazon_domain": "amazon.com",
+    "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
+    "custom_img": False,
+    "folder": '"INBOX"',
+    "generate_mp4": False,
+    "gif_duration": 5,
+    "host": "imap.test.email",
+    "image_name": "mail_today.gif",
+    "image_path": "custom_components/mail_and_packages/images/",
+    "image_security": True,
+    "imap_security": "SSL",
+    "imap_timeout": 30,
+    "password": "suchfakemuchpassword",
+    "port": 993,
+    "resources": ["usps_mail_delivered"],
+    "scan_interval": 20,
+    "username": "user@fake.email",
+    "verify_ssl": False,
+}
