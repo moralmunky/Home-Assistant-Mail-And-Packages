@@ -43,7 +43,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
     resources = entry.data[CONF_RESOURCES]
 
     for variable in resources:
-        sensors.append(PackagesSensor(entry, SENSOR_TYPES[variable], coordinator))
+        if variable in SENSOR_TYPES:
+            sensors.append(PackagesSensor(entry, SENSOR_TYPES[variable], coordinator))
 
     for variable, value in IMAGE_SENSORS.items():
         sensors.append(ImagePathSensors(hass, entry, value, coordinator))

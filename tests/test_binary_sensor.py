@@ -7,7 +7,7 @@ from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import DOMAIN
-from tests.const import FAKE_CONFIG_DATA
+from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_USPS_DELIVERED
 
 
 @pytest.mark.asyncio
@@ -54,6 +54,53 @@ async def test_binary_sensor_no_updates(
     state = hass.states.get("binary_sensor.usps_mail_delivered")
     assert state
     assert state.state == "off"
+
+
+@pytest.mark.asyncio
+async def test_binary_sensor_mail_delivered(
+    hass, mock_imap_usps_mail_delivered, entity_registry: er.EntityRegistry, caplog
+):
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_USPS_DELIVERED,
+    )
+
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert "mail_and_packages" in hass.config.components
+
+    state = hass.states.get("binary_sensor.usps_image_updated")
+    assert state
+    assert state.state == "off"
+
+    state = hass.states.get("binary_sensor.amazon_image_updated")
+    assert state
+    assert state.state == "off"
+
+    entity_entry = entity_registry.async_get("binary_sensor.usps_mail_delivered")
+
+    assert entity_entry
+    assert entity_entry.disabled
+    assert entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+
+    updated_entry = entity_registry.async_update_entity(
+        entity_entry.entity_id, disabled_by=None
+    )
+    assert updated_entry != entity_entry
+    assert updated_entry.disabled is False
+
+    # reload the integration
+    await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
+    await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
+    await hass.async_block_till_done()
+
+    state = hass.states.get("binary_sensor.usps_mail_delivered")
+    assert state
+    assert state.state == "on"
+    assert "binary_sensor: usps_mail_delivered value: 1" in caplog.text
 
 
 # @pytest.mark.asyncio

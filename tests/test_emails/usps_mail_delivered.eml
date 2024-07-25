@@ -1,0 +1,1208 @@
+Delivered-To: usps.emailuser@gmail.com
+Received: by 2002:a05:7010:fa15:b0:3e7:8f91:c410 with SMTP id qv21csp3277846mdb;
+        Wed, 24 Jul 2024 12:06:53 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHxvIdIYIxU4880Kpv0oSrVhmI4VVYX4uiiSRTt9LXnM4z6w6jwUHCqcqbwLOP0KjoJGyAa
+X-Received: by 2002:a05:620a:24d6:b0:79d:9ccd:9421 with SMTP id af79cd13be357-7a1d4514712mr74976285a.48.1721848013699;
+        Wed, 24 Jul 2024 12:06:53 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1721848013; cv=none;
+        d=google.com; s=arc-20160816;
+        b=BINgNllVhBVD3tf5d3ir901xOAXbJBdxNAvr3o3mE8edQgAKPIDDzFo7KP8Tz22XUp
+         bb9xaFn6BLPhsMMArXiaq795FGNmgit9fTZnloIHI6M1RBWT0XC7SE7VBEb3+lQ5Z6j9
+         /suZJ90H7mwiWf+QJmaXuwqPWpjkdWXMlj3hEZvYeRT5Kv2pzo1FKjd5p+PcSZTy+1pl
+         aTHdAVpexJ/7lGa42l7JiuXp91dLKbPVsiL8l5vehD1SxfZ5FFvTv50hWqrySpTVPmm5
+         PICfc4tyNXi6NHMuv5WASwYMQkqXZF+T6GmYDB+gkEF/F3EZp1Jh1KMtXGRYUhwbchWE
+         Fu8A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=content-transfer-encoding:message-id:to:from:subject:mime-version
+         :date:sender:dkim-signature:dkim-signature;
+        bh=F2slSVT/hDvTuNwbnA+63+abakRuaMkGOmkiBvfOD3U=;
+        fh=jrMwuYj9j2Sb1Uz+WBKF6Gdf9DFOShvhdLJmLv2yLyM=;
+        b=tape357FNnVjcLcgZvMOzSXpECe6iSeNLJDqr9VHrA5o6y5e5rDFhxgnrPwc/Qz/kL
+         o7fIvyOTMdmR7pKcTEUjFCzjP0SiuL+tjs1mHICUnMMpdUdA9ZhkPJGKk9KrFHmftNGA
+         BrgX9vAT+w3gXAEWfR+URUDJATJtmnGWGKqi7eLHh/5dY2iBZ++/Exp+RzP6LRt/XyFt
+         e2ITqurFgJT3AcDYRFzD1e8GoZ7xHuo6OgpV5dF9L0gHXQSflNpn7nmVnzyRzCTkWUzf
+         rYdIeXjsCMx2SMdN7CoWb0gjp1ukrv6I5u/kEnHm8pIXLk4JCD6Vb9p0yIbamsS7PMOf
+         RvmQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@email.informeddelivery.usps.com header.s=krs header.b=VpMFDPjZ;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=IzzvhGDb;
+       spf=pass (google.com: domain of bounce+1097e0.f7c326-usps.emailuser=gmail.com@email.informeddelivery.usps.com designates 159.112.244.229 as permitted sender) smtp.mailfrom="bounce+1097e0.f7c326-usps.emailuser=gmail.com@email.informeddelivery.usps.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=usps.com
+Return-Path: <bounce+1097e0.f7c326-usps.emailuser=gmail.com@email.informeddelivery.usps.com>
+Received: from mg229.informeddelivery.usps.com (mg229.informeddelivery.usps.com. [159.112.244.229])
+        by mx.google.com with UTF8SMTPS id af79cd13be357-7a1990b2b3dsi1341201585a.697.2024.07.24.12.06.53
+        for <usps.emailuser@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 24 Jul 2024 12:06:53 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bounce+1097e0.f7c326-usps.emailuser=gmail.com@email.informeddelivery.usps.com designates 159.112.244.229 as permitted sender) client-ip=159.112.244.229;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@email.informeddelivery.usps.com header.s=krs header.b=VpMFDPjZ;
+       dkim=pass header.i=@mailgun.org header.s=mg header.b=IzzvhGDb;
+       spf=pass (google.com: domain of bounce+1097e0.f7c326-usps.emailuser=gmail.com@email.informeddelivery.usps.com designates 159.112.244.229 as permitted sender) smtp.mailfrom="bounce+1097e0.f7c326-usps.emailuser=gmail.com@email.informeddelivery.usps.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=usps.com
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=email.informeddelivery.usps.com; q=dns/txt; s=krs; t=1721848013; x=1721855213; h=Content-Type: Content-Transfer-Encoding: Message-Id: To: To: From: From: Subject: Subject: Mime-Version: Date: Sender: Sender: X-Feedback-Id; bh=F2slSVT/hDvTuNwbnA+63+abakRuaMkGOmkiBvfOD3U=; b=VpMFDPjZEk2z2+ilhJY2ppeoqkZ98T6fRtEehX4g6Lcjs1l2XpVHTbJdcVqJFs5YsXLNaqfBumpvylSXssJYaLENT88wPpBcdr4lqXQkG5XivYUN9xvgAFmtkqPKoAthpLevL8GegX3sfVjN6eKVPDl1umrii93kwXBD8ZDiR3bQic5ex/aasPFZcxkaCmNfYhuFzE63NMbTbPqzmnf/EY1GZnKCYXZfRi0H9pFCGYSJeO04T7LJjmLrkKko9oRRCdo2W2r+p+3YX/YTqVtE19U9BVTFn1Y0lK2MHl7iuJ1HQQLqhM5GkXfiD/H9vDuU/qaNrDP24MYEsQ58JA0pFQ==
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mailgun.org; q=dns/txt; s=mg; t=1721848013; x=1721855213; h=Content-Type: Content-Transfer-Encoding: Message-Id: To: To: From: From: Subject: Subject: Mime-Version: Date: Sender: Sender: X-Feedback-Id; bh=F2slSVT/hDvTuNwbnA+63+abakRuaMkGOmkiBvfOD3U=; b=IzzvhGDbewrk20ga+aLoAIz+PRTYaG+KEzaniqlR3u+jZflmdXre1OqCNKKIzK/BCLRIEIA441JBWfkxwrF5jgMvg8+ra3u7njQ5wOrORfobE1DYYaG+O0uQk9YVzcYEEcYa3EkfZ09pdWGtMvV0iWxn6jVeK7+iozd/76y7sNQ=
+X-Feedback-Id: USPSInformeddelivery@email.informeddelivery.usps.com:MDN:628d49d589e2a96a9951e974:mailgun
+X-Mailgun-Sending-Ip: 159.112.244.229
+X-Mailgun-Sid: WyI1ZjdkMCIsImdhcnJldHQucGVhdnkrdXNwcy5jb21AZ21haWwuY29tIiwiZjdjMzI2Il0=
+Received: from <unknown> (<unknown> []) by 817214700d08 with HTTP id 66a14fa253311c018e638c6a; Wed, 24 Jul 2024 19:01:54 GMT
+Sender: USPSInformeddelivery@email.informeddelivery.usps.com
+Date: Wed, 24 Jul 2024 19:01:54 +0000
+Mime-Version: 1.0
+Subject: Your Mail Was Delivered Wed, Jul 24
+From: USPS Informed Delivery <USPSInformeddelivery@email.informeddelivery.usps.com>
+To: usps.emailuser@gmail.com
+X-Mailgun-Tag: MDN
+X-Mailgun-Drop-Message: false
+X-Mailgun-Deliver-By: Wed, 24 Jul 2024 19:06:53 +0000
+Message-Id: <20240724190154.b758d0d2c0cd8936@email.informeddelivery.usps.com>
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="utf-8"
+
+<!doctype html>
+<html lang=3D"">=20
+ <head>=20
+  <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Diso-885=
+9-1">=20
+  <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D=
+1.0">=20
+  <meta name=3D"color-scheme" content=3D"light dark">=20
+  <meta name=3D"supported-color-schemes" content=3D"light dark">=20
+  <title>Mail Delivery Notification</title>=20
+  <style type=3D"text/css">
+:root {
+    color-scheme: light dark;
+    supported-color-schemes: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+img {
+    filter: none!important;
+}
+.darkimage, img.darkimage {
+    display: inline-block!important;
+}
+.light, .lightimage, img.lightimage {
+    display: none !important;
+}
+.dark {
+    display: inline-block!important;
+}
+[data-ogsc] h2.responsive-header {
+    color: #ffffff!important;
+}
+/* targets color styles */
+[data-ogsc] .fubar {
+}
+/* targets background styles */
+[data-ogsb] .fubar {
+}
+/* Dark Mode media queries to target Apple and iOS*/
+.fubar {
+}
+/* Exclude Outlook from Dark Mode styles */
+hr {
+    background-color: #ffffff !important;
+}
+.email-background:not([class^=3D"x_"]) {
+    background-color: #000;
+}
+/* Add Outlook Dark Mode specific styles */
+.email-box-shadow:not([class^=3D"x_"]) {
+    box-shadow: none !important;
+}
+.svg-dark-mode, .multi-envelope-icon-dark-mode {
+    filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(204deg) bright=
+ness(103%) contrast(104%);
+}
+body {
+    color: #ffffff !important;
+    background-color: #000000 !important;
+}
+.primary-background-color {
+    background-color: #3573B1;
+}
+.secondary-background-color {
+    background-color: #333366;
+}
+.tertiary-background-color {
+    background-color: white !important;
+}
+.header-font-colors {
+    color: white !important;
+}
+.dark-mode-section {
+    background-color: #2A2A32 !important;
+}
+.primary-font-color {
+    color: #ffffff !important;
+}
+.secondary-font-color {
+    color: #ffffff !important;
+}
+.tracking-number a {
+    color: #ffffff !important;
+}
+.estimated-delivery {
+    color: white !important;
+}
+.warning-message {
+    color: #ffffff !important;
+}
+.linkable-text {
+    color: #ffffff !important;
+}
+.anchored-text {
+    color: white !important;
+}
+.tablebg {
+    background-color: #000000 !important;
+}
+.background {
+    background-color: #000000 !important;
+}
+p.numbers {
+    color: #ffffff !important;
+    font-weight: bold;
+}
+h1.responsive-header.primary-font-color, h1.responsive-header, h2.responsiv=
+e-header, h3 {
+    color: #ffffff !important;
+    text-align: center;
+}
+.mail-delivered-styling {
+    max-width: 798px;
+    background-color: #2a2a32 !important;
+    border-bottom-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    border-collapse: separate !important;
+    border: 1px solid #000000;
+    text-align: center;
+}
+.view-dashboard-button, a.view-dashboard-button, a#mailbox-url-link, span.v=
+iew-dashboard-button, span.dashboard-button {
+    padding: 9px 10px;
+    text-decoration: none;
+    cursor: pointer;
+    text-align: center;
+    font-weight: bold!important;
+    font-size: 17px;
+    color: #ffffff!important;
+    border: 1px solid #ffffff;
+    height: 44px;
+    width: 200px;
+    white-space: nowrap;
+}
+.primary-button {
+    margin-top: 20px;
+    background-color: #333367 !important;
+    border: none !important;
+    border-radius: 3px;
+    color: #ffffff !important;
+    display: inline-block;
+    font-size: 17px;
+    line-height: 44px;
+    text-align: center;
+    text-decoration: none;
+    width: 225px;
+    -webkit-text-size-adjust: none;
+    white-space: nowrap;
+    -webkit-text-size-adjust: none;
+    height: 42px;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
+    vertical-align: middle !important;
+    margin-right: 20px;
+}
+h2, h2.blue {
+    color: #ffffff !important;
+}
+p.blue {
+    font-weight: bold;
+    color: #ffffff !important;
+    font-size: 16px;
+    padding-left: 20%;
+    padding-right: 20%;
+}
+p.indented, p.legal, a {
+    color: #ffffff !important;
+}
+p.numbers {
+    color: #ffffff !important;
+    font-weight: bold;
+}
+.primary-background-color {
+    background-color: #3573B1 !important;
+}
+.secondary-background-color {
+    background-color: #333366 !important;
+}
+.primary-font-color {
+    color: #333366;
+}
+.secondary-font-color {
+    color: #ffffff !important;
+}
+.items, p.items {
+    min-width: 106px;
+    max-width: 106px;
+    padding: 10px 8px 8px 8px;
+    margin: 0;
+    font-size: 18px;
+    text-align: center;
+    color: #333366 !important;
+    border-radius: 12px;
+    font-weight: bold;
+    background-color: #FFFFFE !important;
+}
+.itembackground {
+    background-color: #FFFFFE !important;
+}
+.mobile-centered {
+    text-align: center !important;
+    background-color: #000000;
+}
+}
+
+@media only screen and (min-device-width: 320px) and (max-device-width: 767=
+px) {
+=09=09=09.view-dashboard-button, a.view-dashboard-button {
+=09=09=09border: none!important;=20
+=09=09=09text-decoration: underline !important;
+=09=09=09font-weight: normal !important;
+        }
+     =20
+=09=09=09a#mailbox-url-link,  a#mailbox-url-link.view-dashboard-button{
+=09=09=09border: none!important;
+=09=09=09text-decoration: underline !important;
+=09=09=09font-weight: normal !important;
+}
+}
+@media screen and (max-width: 767px) {
+span#dashboard {
+    border: none!important;
+}
+.view-dashboard-button, a.view-dashboard-button, a#mailbox-url-link, span.v=
+iew-dashboard-button, span.dashboard-button {
+    border: none 0px!important;
+    text-decoration: underline !important;
+    font-weight: normal !important;
+}
+a#mailbox-url-link {
+    border: none 0px!important;
+    text-decoration: underline !important;
+    font-weight: normal !important;
+}
+    }
+   =20
+</style>=20
+  <style type=3D"text/css">
+        span#viewdashmso {
+            display: none !important;
+        }
+            .light {  =20
+             display:inline-block !important;
+        }
+        .dark {
+            display: none!important;
+        }
+        .custom-email-doc {
+            max-width: 820px !important;
+        }
+        .background {
+            background-color: #FFFFFF;
+        }
+        .tablebg {
+            background-color: #f7f7f7;
+        }
+        .mail-delivered-styling {
+            max-width: 798px;
+            background-color: #F7F7F7;
+            border-bottom-right-radius: 12px;
+            border-bottom-left-radius: 12px;
+            border-collapse: separate !important;
+            border: 1px solid #999999;
+            text-align: center;
+        }
+        .view-dashboard-button,
+        a.view-dashboard-button, a#mailbox-url-link {
+            padding: 9px 10px;
+            text-decoration: none;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+            font-size: 17px;
+            color: #ffffff !important;
+            border: 1px solid #ffffff;
+            height: 44px;
+            width: 200px;
+            white-space: nowrap;
+           =20
+        }
+        .primary-button {
+            margin-top: 20px;
+            background-color: #333367 !important;
+            border: none !important;
+            border-radius: 3px;
+            color: #ffffff !important;
+            display: inline-block;
+            font-size: 16px;
+            line-height: 44px;
+            text-align: center;
+            text-decoration: none;
+            width: 225px;
+            -webkit-text-size-adjust: none;
+            white-space: nowrap;
+            -webkit-text-size-adjust: none;
+            height: 42px;
+            font-weight: bold;
+            font-family: Arial, Helvetica, sans-serif;
+            vertical-align: middle !important;
+            margin-right: 20px;
+        }
+        h1.responsive-header, h2.responsive-header {
+            font-size: 30px;
+            font-weight: bold!important;
+            color: #ffffff;
+             margin: 0px;
+            =20
+        }
+        h1.mail, .mail, h2.mail {
+            font-size: 30px;
+            font-weight: bold!important;
+            color: #ffffff;
+            vertical-align: middle !important;
+            padding-left: 5px!important;
+      =20
+         =20
+        }
+      =20
+        h2.blue {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 5px;
+            padding: 5px 0;
+            color: #333366;
+        }
+        p.blue {
+            font-weight: bold;
+            color: #333366;
+            font-size: 16px;
+            padding-left: 20% !important;
+            padding-right: 20% !important;
+        }
+        h1.responsive-header.primary-font-color,
+        h1.primary-font-color,
+        h1.responsive-header,  h2.responsive-header, h3 {
+            color: #333366;
+            text-align: center;
+        }
+        .primary-background-color {
+            background-color: #333366;
+        }
+        .secondary-background-color {
+            background-color: #3573B1;
+        }
+        body,
+        div {
+            font-family: arial, helvetica, sans-serif;
+            font-size: 15px;
+        }
+        body {
+            color: #000000;
+            background-color: #ffffff;
+            font-family: arial, helvetica, sans-serif;
+        }
+        body a {
+            color: #3573B1;
+        }
+        table.wrapper {
+            width: 100% !important;
+=09=09=09max-width:820px;
+            table-layout: fixed;
+            -webkit-font-smoothing: antialiased;
+            -webkit-text-size-adjust: 100%;
+            -moz-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        p {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            font-weight: normal;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        table.header {
+            width: 100%;
+        }
+        th {
+            text-align: center;
+            display: inline-block
+        }
+        .buttonimage {
+            width: 270px;
+            margin-bottom: 10px;
+        }
+        .viewall {
+            font-size: 18px;
+            color: #3573B1;
+            padding-right: 10px;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: right;
+        }
+        .currentdate {
+            float: right;
+            text-align: right;
+            font-size: 12px;
+            font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+            color: #595959;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .delivered {
+            float: left;
+            text-align: left;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+            color: #595959;
+        }
+        .title-text {
+            color: #333366;
+            font-weight: bold;
+            font-size: 22px;
+            float: left;
+            display: block;
+            font-family: helvetica, arial, sans-serif;
+            padding-top: 10px;
+        }
+        p.delivertext {
+            font-size: 22px;
+            font-family: arial, helvetica, sans-serif;
+            font-weight: bold;
+            line-height: 30px;
+        }
+        * {
+            -ms-text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+        html,
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        table,
+        td {
+            mso-table-lspace: 0pt !important;
+            mso-table-rspace: 0pt !important;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .custom-email-doc {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            font-weight: normal;
+            display: block;
+            margin: 0 auto;
+            max-width: 820px !important;
+        }
+        p {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            font-weight: normal;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        p.indented {
+            padding-left: 20% !important;
+            padding-right: 20% !important;
+            font-size: 15px;
+            color: #000000;
+            font-family: arial, helvetica, sans-serif;
+            line-height: 1.4em;
+        }
+        p.details {
+            color: #6f6e6e;
+            font-size: 12px;
+            padding-top: 8px;
+        }
+        p.legal {
+            font-size: 11px;
+            color: #000000;
+            font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+            line-height: 14px;
+            text-align: left
+        }
+        .footer {
+            padding-left: 20px;
+            padding-right: 20px
+        }
+        hr {
+            clear: both;
+            display: block;
+            height: 1px;
+            background-color: #010000;
+            border-top-width: 0px;
+            border-right-width: 0px;
+            border-bottom-width: 0px;
+            border-left-width: 0px;
+            border-top-style: none;
+            border-right-style: none;
+            border-bottom-style: none;
+            border-left-style: none;
+            margin-top: 0px;
+            margin-right: 0px;
+            margin-bottom: 0px;
+            margin-left: 0px;
+        }
+        a {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #333366;
+        }
+        a img {
+            border-top-width: medium;
+            border-right-width: medium;
+            border-bottom-width: medium;
+            border-left-width: medium;
+            border-top-style: none;
+            border-right-style: none;
+            border-bottom-style: none;
+            border-left-style: none;
+            filter: none!important;
+        }
+        img {
+            outline-width: medium;
+            outline-style: none;
+            outline-color: initial;
+            text-decoration: none;
+             filter: none!important;
+        }
+        table {
+            border-top-width: medium;
+            border-right-width: medium;
+            border-bottom-width: medium;
+            border-left-width: medium;
+            border-top-style: none;
+            border-right-style: none;
+            border-bottom-style: none;
+            border-left-style: none;
+            vertical-align: text-top;
+            border-spacing: 0 !important;
+            border-collapse: collapse !important;
+            table-layout: fixed !important;
+            margin: 0 auto;
+        }
+        ol,
+        ul {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            font-weight: normal;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 5px;
+            margin-left: 0;
+            padding-left: 0;
+        }
+        /* Begin Apple Fixes */
+        a[x-apple-data-detectors],
+        /* iOS */
+        .unstyle-auto-detected-links a,
+        .aBn {
+            border-bottom: 0 !important;
+            cursor: default !important;
+            color: inherit !important;
+            text-decoration: none !important;
+            font-size: inherit !important;
+            font-family: inherit !important;
+            font-weight: inherit !important;
+            line-height: inherit !important;
+        }
+        /* End Apple Fixes */
+        /* Begin Gmail Fixes */
+        .im {
+            color: inherit !important;
+        }
+        .a6S {
+            display: none !important;
+            opacity: 0.01 !important;
+        }
+        img.g-img+div {
+            display: none !important;
+        }
+        /* End Gmail Fixes */
+        /* Begin iPhone Fixes */
+        @media only screen and (min-device-width: 320px) and (max-device-wi=
+dth: 374px) {
+            u~div .email-container {
+                min-width: 320px !important;
+            }
+        }
+        @media only screen and (min-device-width: 375px) and (max-device-wi=
+dth: 415px) {
+            u~div .email-container {
+                min-width: 375px !important;
+            }
+            .buttonimage {
+                width: 295px !important;
+            }
+        }
+        @media only screen and (min-device-width: 415px) and (max-device-wi=
+dth: 440px) {
+            u~div .email-container {
+                min-width: 375px !important;
+            }
+            .buttonimage {
+                width: 295px !important;
+            }
+        }
+        @media only screen and (max-device-width: 375px) {
+            .buttonimage {
+                width: 295px !important;
+            }
+        }
+        @media only screen and (min-device-width: 414px) {
+            u~div .email-container {
+                min-width: 414px !important;
+            }
+        }
+        /* End iPhone Fixes */
+        b,
+        strong {
+            font-weight: bold;
+        }
+        i,
+        em {
+            font-style: italic;
+        }
+        .desktop-only {
+            display: block;
+        }
+        .mobile-only {
+            display: none;
+            mso-hide: all;
+        }
+ @media screen and (max-width: 768px) {
+        .view-dashboard-button, a.view-dashboard-button {
+        border: none!important;=20
+        text-decoration: underline !important;
+        font-weight: normal !important;
+        }
+     =20
+     a#mailbox-url-link,  a#mailbox-url-link.view-dashboard-button{
+    border: none!important;
+    text-decoration: underline !important;
+    font-weight: normal !important;
+}
+         =20
+        }
+       =20
+        @media screen and (max-width: 440px) {
+            p.delivertext {
+                font-size: 20px;
+            }
+            .title-text {
+                color: #333366;
+                font-weight: bold;
+                font-size: 18px !important;
+            }
+            p.blue {
+                margin-top: 5px;
+                padding-left: 5% !important;
+                padding-right: 5% !important;
+                font-size: 15px !important;
+            }
+           h2.responsive-header
+            {
+                font-size: 22px!important;
+                font-weight: bold;
+               =20
+            }
+            h1.mail, h2.mail {
+                font-size: 22px !important;
+                vertical-align: middle !important;
+                text-align: left!important;
+                padding-left: 5px!important;
+        =20
+            }
+      =20
+            h2.blue {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 16px !important;
+                font-weight: bold;
+                margin: 0;
+                padding: 5px 0;
+                color: #333366;
+            }
+            p.indented {
+                padding-left: 5% !important;
+                padding-right: 5% !important;
+            }
+        }
+        @media only screen and (min-device-width: 441px) and (max-device-wi=
+dth: 768px) {
+=09=09
+=09=09=09.view-dashboard-button, a.view-dashboard-button {
+=09=09=09border: none!important;=20
+=09=09=09text-decoration: underline !important;
+=09=09=09font-weight: normal !important;
+        }
+     =20
+=09=09=09a#mailbox-url-link,  a#mailbox-url-link.view-dashboard-button{
+=09=09=09border: none!important;
+=09=09=09text-decoration: underline !important;
+=09=09=09font-weight: normal !important;
+}
+        =20
+            p.blue {
+                padding-left: 10% !important;
+                padding-right: 10% !important;
+                margin-top: 5px;
+                font-size: 15px !important;
+            }
+       =20
+            h2.blue {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 24px;
+                font-weight: bold;
+                margin: 0;
+                padding-left: 5% !important;
+                padding-right: 5% !important;
+                color: #333366;
+            }
+            p.indented {
+                padding-left: 10% !important;
+                padding-right: 10% !important;
+            }
+            h2.responsive-header
+            {
+                font-size: 24px!important;
+               =20
+            }
+            h1.mail, h2.mail {
+                font-size: 24px!important;
+                vertical-align: middle !important;
+               padding-left: 5px!important;
+     =20
+              =20
+            }
+            .mobile-button {
+                border: none !important;
+                text-decoration: underline !important;
+                font-weight: normal !important;
+            }
+            .mobile-full-width {
+                width: 100% !important;
+                max-width: 100% !important;
+                direction: ltr !important;
+            }
+            .viewall {
+                font-size: 18px;
+                color: #3573B1;
+                padding-right: 0px;
+                font-weight: bold !important;
+            }
+            .currentdate {
+                text-align: right !important;
+            }
+            .delivered {
+                text-align: left !important;
+            }
+            .desktop-only {
+                display: none;
+                mso-hide: all;
+            }
+            .mobile-only {
+                display: block !important;
+                mso-hide: all !important;
+            }
+            .title-text {
+                font-size: 20px;
+            }
+            .mobile-centered {
+                text-align: center !important;
+            }
+            .responsive-image {
+                height: auto !important;
+            }
+        }
+         @media only screen and (min-device-width: 768px)
+         {
+                 =20
+            h1.responsive-header, .responsive-header,  h2.responsive-header=
+ {
+                font-size: 30px!important;
+              =20
+            }
+            h1.mail, h2.mail {
+                font-size: 30px;
+                padding-left: 5px;
+              =20
+           =20
+               =20
+            }
+        }
+       =20
+    </style> <!--[if mso]>
+            <xml>
+                <o:OfficeDocumentSettings>
+                    <o:AllowPNG/>
+                    <o:PixelsPerInch>96</o:PixelsPerInch>
+                </o:OfficeDocumentSettings>
+            </xml>
+<style type=3D"text/css">
+    .darkimage, img.darkimage {
+    display: none;
+}
+.viewall {
+ =20
+    margin-top: 10px;
+ =20
+}
+a#mailbox-url-link.view-dashboard-button, a.view-dashboard-button {
+  color:#ffffff;=20
+border: solid 1px #ffffff!important;=20
+padding: 10px!important;=20
+margin: 10px;
+height:44px;
+width: 200px;
+}
+ span.view-dashboard-button,
+       .a.view-dashboard-button {
+            border-radius: 3px;
+            padding: 9px 10px!important;
+            border: 1px solid white!important;
+            text-decoration: none;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+            font-size: 17px;
+            height: 44px;
+            color: #ffffff !important;
+            width: 200px;
+            white-space: nowrap;
+        }
+       a.dashboard-button, span.dashboard-button {
+            border-radius: 3px;
+             padding: 9px 10px!important;
+            border: 1px solid white!important;
+=09=09=09display:inline-block;
+            text-decoration: none;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+            font-size: 17px;
+            height: 44px;
+            color: #ffffff !important;
+            width: 200px;
+            white-space: nowrap;
+        }
+img.responsive-header-logo {
+margin-top:20px;
+margin-bottom:10px;
+}
+#feedback, #notices, #dashboard, #nonmso {
+display:none;
+}
+#viewdashmso, #msodashboard {
+display:inline;
+}
+       span#viewdash {
+display:none!important;
+}
+</style>
+            <![endif]-->=20
+ </head>=20
+ <body lang=3D"EN-US">=20
+  <center class=3D"wrapper" data-body-style=3D"font-size:14px; font-family:=
+arial,helvetica,sans-serif; color:#000000; background-color:#FFFFFF;"> <!--=
+[if mso]>
+            <table class=3D"mso-ghost-wrapper" align=3D"center" width=3D"82=
+0" cellpadding=3D"0" cellspacing=3D"0" border=3D"0">
+                <tr>
+                    <td>
+        <![endif]-->=20
+   <div class=3D"custom-email-doc">=20
+    <table role=3D"presentation" class=3D"header" style=3D"text-align: cent=
+er; width: 100%" width=3D"100%" cellpadding=3D"0" cellspacing=3D"0" border=
+=3D"0">=20
+     <tbody>=20
+      <tr style=3D"text-align: center;"> <!--[if mso]>
+            =20
+<p>&nbsp;</p>
+        <![endif]-->=20
+       <td style=3D"width: 100%" class=3D"responsive-header-logo"><img src=
+=3D"https://www.usps.com/email/id/uspslogo.png" alt=3D"USPS Logo image" wid=
+th=3D"64" height=3D"36" style=3D"padding-top: 20px;"></td> <!--[if mso]>
+<br>
+        <![endif]-->=20
+      </tr>=20
+      <tr style=3D"text-align: center;" id=3D"notices">=20
+       <td style=3D"vertical-align: middle; width: 100%;text-align: center!=
+important"><h2 class=3D"responsive-header" style=3D"color:#333366;padding-t=
+op:10px; font-weight: bold; font-size: 26px;margin-bottom: 10px;margin-top:=
+5px;white-space: nowrap">MAIL DELIVERY NOTIFICATION</h2></td>=20
+      </tr> <!--[if mso]>
+                    <tr style=3D"width: 100%; text-align: center;">
+                        <td style=3D"vertical-align: middle; width: 100%;te=
+xt-align: center; padding-top:0px;padding-bottom:10px">
+                            <h1 class=3D"responsive-header" style=3D"color:=
+ #333366">MAIL DELIVERY NOTIFICATION</h1>
+                        </td>
+                    </tr>
+                    <![endif]-->=20
+     </tbody>=20
+    </table>=20
+    <table cellpadding=3D"0" cellspacing=3D"0" border=3D"0" width=3D"820px"=
+ class=3D"wrapper">=20
+     <tbody>
+      <tr>=20
+       <td valign=3D"top" width=3D"100%">=20
+        <table role=3D"presentation" class=3D"outer" width=3D"100%" align=
+=3D"center" cellpadding=3D"0" cellspacing=3D"0" border=3D"0">=20
+         <tbody>
+          <tr>=20
+           <td id=3D"content" style=3D"text-align: center">=20
+            <table role=3D"presentation" class=3D"mail section-header prima=
+ry-background-color" cellpadding=3D"0" cellspacing=3D"0" border=3D"0" style=
+=3D"color: white; border-top-left-radius: 18px;border-top-right-radius: 18p=
+x; width:100%;max-width:820px">=20
+             <tbody>=20
+              <tr height=3D"82px" style=3D"vertical-align: middle; width:10=
+0%" colspan=3D"3"> <!--[if (gte mso 9)|(IE)]>
+                <td class=3D"primary-background-color"
+                                        style=3D"padding-top:15px; padding-=
+bottom:15px; "></td>
+<![endif]-->=20
+               <td class=3D"primary-background-color" style=3D"width: 40px;=
+ padding-left: 15px;padding-right: 10px!important; border-top-left-radius: =
+18px; background-color: #333366;vertical-align: middle!important;"><img src=
+=3D"https://www.usps.com/email/id/icon-envelope.png" alt=3D"Icon Envelope i=
+mage" width=3D"50" height=3D"fit-content" style=3D"vertical-align: middle!i=
+mportant;color:#ffffff"></td>=20
+               <td class=3D"primary-background-color" style=3D"vertical-ali=
+gn: middle; width: 70%;text-align: left!important;background-color: #333366=
+;"><h2 class=3D"mail" style=3D"color: #ffffff;vertical-align: middle!import=
+ant;display: inline; font-size:26px;white-space:nowrap">&nbsp;MAIL</h2></td=
+>=20
+               <style type=3D"text/css">
+                                                      @media screen yahoo a=
+nd (max-width: 768px) {
+                                                    =20
+                                                          a.view-dashboard-=
+button {
+                                                             border: none!i=
+mportant;=20
+                                                              text-decorati=
+on: underline!important;
+                                                               font-weight:=
+ normal!important;
+                                                             =20
+                                                          }
+                                                     a#mailbox-url-link.vie=
+w-dashboard-button {
+                                                         border: none!impor=
+tant;=20
+                                                          text-decoration: =
+underline!important;
+                                                         font-weight: norma=
+l!important;
+                                                     }
+                                                     }
+                                                   =20
+                                                </style>=20
+               <td class=3D"primary-background-color" id=3D"viewdash" style=
+=3D"border-top-right-radius: 18px;color:#ffffff!important;background-color:=
+ #333366;padding-right:15px;text-align: right" width=3D"200px"><a id=3D"mai=
+lbox-url-link" tabindex=3D"0" href=3D"https://informeddelivery.usps.com/box=
+/pages/secure/DashboardAction_input?keyword=3Dmail" style=3D"color:#ffffff!=
+important; padding: 10px!important; border-radius: 3px; border: solid 1px #=
+ffffff;font-size: 17px; font-weight:bold;text-decoration: none;vertical-ali=
+gn: middle; white-space: nowrap;" class=3D"view-dashboard-button">View Dash=
+board</a></td>=20
+              </tr>=20
+             </tbody>=20
+            </table>=20
+            <table align=3D"center" style=3D"width:100%;background-color: #=
+f7f7f7;border-collapse: separate !important;text-align: center;" class=3D"t=
+ablebg" role=3D"none">=20
+             <tbody>
+              <tr>=20
+               <td style=3D"text-align: center; background-color: #f7f7f7;b=
+order-collapse: separate" class=3D"mail-delivered-styling"><p style=3D"padd=
+ing-top:25px" id=3D"nonmso"> <img src=3D"https://www.usps.com/mdn/maildeliv=
+ered-envelope-light.png" width=3D"245" height=3D"138" alt=3D"Mail Delivered=
+" class=3D"lightimage"> </p>
+                <div class=3D"darkimage">=20
+                 <img src=3D"https://www.usps.com/mdn/maildelivered-envelop=
+e-dark.png" width=3D"245" height=3D"138" alt=3D"Mail Delivered" class=3D"da=
+rkimage" style=3D"display: none">=20
+                </div> <p></p> <!--[if mso]>
+<p style=3D"padding-top:25px">=20
+                       =20
+                        <img src=3D"https://www.usps.com/mdn/maildelivered-=
+envelope-light.png" width=3D"245" height=3D"138" alt=3D"Mail Delivered" cla=
+ss=3D"lightimage">
+                     =20
+              =20
+                   =20
+                    </p>
+        <![endif]--> <h2 style=3D"mso-line-height-rule:exactly;line-height:=
+normal;color:#333366" class=3D"blue">Your mail has been delivered today, <b=
+r> <span id=3D"written-out-date" class=3D"blue">July 24</span>! </h2> <!--[=
+if mso]>
+<table width=3D"100%" align=3D"center" style=3D"text-align: center;margin-t=
+op:10px; margin-bottom:10px">
+<tr>
+<td width=3D"10%"></td>
+<td width=3D"80%" align=3D"center" style=3D"padding-top:10px;text-align: ce=
+nter;"> <p class=3D"indented">Please note that Mail Delivery Notifications =
+are not assurances that a specific mailpiece visible in your Informed Deliv=
+ery Daily Digest Email or Dashboard has been delivered.</p>
+<td width=3D"10%"></td>
+</tr>
+</table>
+        <![endif]--> <p class=3D"indented" id=3D"notices" style=3D"font-siz=
+e:15px; padding-left:10%; padding-right:10%">Please note that Mail Delivery=
+ Notifications are not assurances that a specific mailpiece visible in your=
+ Informed Delivery Daily Digest Email or Dashboard has been delivered.</p><=
+/td>=20
+              </tr>=20
+             </tbody>
+            </table>=20
+            <table align=3D"center" class=3D"mobile-centered" role=3D"prese=
+ntation" style=3D" text-align: center; align-content: center;">=20
+             <tbody>
+              <tr> <!--[if mso]>
+<table width=3D"100%" align=3D"center" style=3D"text-align: center;margin-t=
+op:10px; margin-bottom:10px">
+<tr>
+<td width=3D"10%"></td>
+<br>
+<td width=3D"80%" align=3D"center" style=3D"text-align: center;"> <p class=
+=3D"blue" style=3D"font-size:16px"> We value your feedback as we seek to
+                                                    continuously
+                                                    improve the accuracy
+                                                    of this feature.=20
+                                                    After checking your mai=
+lbox today, please tell us about your
+                                                    experience
+                                                    with this notification:=
+</p>
+<td width=3D"10%"></td>
+</tr>
+</table>
+        <![endif]-->=20
+               <td id=3D"mailbox" style=3D"font-family: arial, helvetica, s=
+ans-serif; font-size: 18px; font-weight: bold; display: block; padding-bott=
+om: 20px; line-height: 24px; text-align: center"><p class=3D"blue" id=3D"fe=
+edback" style=3D"font-size:16px;padding-left:10%; padding-right:10%"> We va=
+lue your feedback as we seek to continuously improve the accuracy of this f=
+eature.&nbsp; After checking your mailbox today, please tell us about your =
+experience with this notification:</p></td>=20
+              </tr>=20
+              <tr>=20
+               <td style=3D"margin-bottom:10px" class=3D"background"><a id=
+=3D"delivered" href=3D"https://informeddelivery.usps.com/trackingV2/mdn/mdn=
+SurveyTrack?deliveryDate=3D2024-07-24T10:00:00.000Z&amp;physicalAddrId=3D11=
+813415&amp;sourceParam=3DMAIL_DELIVERED_SUR_LINK&amp;emailToken=3D2e3b6a47b=
+befb8e4665f94dd8a5a2832d&amp;zip11=3D92677515235" target=3D"_blank"> <img s=
+rc=3D"https://www.usps.com/mdn/mdnbutton-ontime-v2.png" alt=3D"My Mail Deli=
+very Notification email arrived on time." class=3D"buttonimage"> </a></td>=
+=20
+              </tr>=20
+              <tr>=20
+               <td style=3D"margin-bottom:10px" class=3D"background"><a id=
+=3D"not-delivered" href=3D"https://informeddelivery.usps.com/trackingV2/mdn=
+/mdnSurveyTrack?deliveryDate=3D2024-07-24T10:00:00.000Z&amp;physicalAddrId=
+=3D11813415&amp;sourceParam=3DMAIL_NOTDELIVERED_SUR_LINK&amp;emailToken=3D2=
+e3b6a47bbefb8e4665f94dd8a5a2832d&amp;zip11=3D92677515235" target=3D"_blank"=
+><img src=3D"https://www.usps.com/mdn/mdnbutton-early-v2.png" alt=3D"My mai=
+l arrived before my Mail Delivery Notification email." class=3D"buttonimage=
+"></a></td>=20
+              </tr>=20
+              <tr>=20
+               <td class=3D"background"><a id=3D"after-delivery" href=3D"ht=
+tps://informeddelivery.usps.com/trackingV2/mdn/mdnSurveyTrack?deliveryDate=
+=3D2024-07-24T10:00:00.000Z&amp;physicalAddrId=3D11813415&amp;sourceParam=
+=3DAFTERDELIVERY_SUR_LINK&amp;emailToken=3D2e3b6a47bbefb8e4665f94dd8a5a2832=
+d&amp;zip11=3D92677515235" target=3D"_blank"><img src=3D"https://www.usps.c=
+om/mdn/mdnbutton-late-v2.png" alt=3D"My mail arrived significantly after my=
+ Mail Delivery Notification email." class=3D"buttonimage"></a></td>=20
+              </tr>=20
+              <tr>=20
+               <td style=3D"line-height: 10px;">&nbsp;</td>=20
+              </tr>=20
+             </tbody>
+            </table></td>=20
+          </tr>=20
+         </tbody>
+        </table></td>=20
+      </tr>=20
+     </tbody>
+    </table>=20
+    <table>=20
+     <tbody>
+      <tr>=20
+       <td style=3D"text-align: center"></td>=20
+      </tr>=20
+      <tr>=20
+       <td style=3D"line-height: 30px"></td>=20
+      </tr>=20
+     </tbody>
+    </table>=20
+    <hr style=3D"background-color:#999999!important">=20
+    <table role=3D"none" class=3D"mobile-centered" style=3D"max-width: 820p=
+x">=20
+     <tbody>
+      <tr>=20
+       <td class=3D"footer"><p class=3D"legal" style=3D"margin-bottom: 5px;=
+">You subscribed to this feature with USPS<sup>=C2=AE</sup> Product Technol=
+ogy Innovation, 475 L'Enfant Plaza SW, Washington, DC 20260. If you no long=
+er wish to receive Mail Delivery Notifications, you can <a id=3D"unsubscrib=
+e-url-link" target=3D"_blank" href=3D"https://informeddelivery.usps.com/tra=
+cking/MdnUnsubscribe?a=3DJZ3qXToQJbFqWLHqJc3aXofyfguffrpwhwPUWCxqG9hvsM82Jm=
+mQALp0yftt8CbUfjQBhyv-RjKU-y-N0wBJxHt_sVzbxDquHTsQ5srknwOHevf0PBC3nPefBBjq2=
+4RoXA_s_1K6zFwsnDRuRzpTLk7yaxQ1t3sKEk7YovH6fH8vpsNk4NQ=3D">click here to un=
+subscribe</a>.</p> <p class=3D"legal"> If you need assistance, please email=
+ questions or concerns to <a href=3D"mailto:USPSInformedDeliveryQuestions@u=
+sps.gov" target=3D"_blank">USPSInformedDeliveryQuestions@usps.gov</a>. </p>=
+ <p class=3D"legal">Copyright=C2=A9 2024 United States Postal Service<sup>=
+=C2=AE</sup>. All Rights Reserved. The Eagle Logo is among the many tradema=
+rks of the U.S. Postal Service<sup>=C2=AE</sup> . This is an automated emai=
+l, please do not reply to this message. This message is for the designated =
+recipient only and may contain privileged, proprietary, or otherwise privat=
+e information. If you have received it in error, please delete. Any other u=
+se of the email by you is prohibited.</p></td>=20
+      </tr>=20
+      <tr>=20
+       <td style=3D"text-align: left" class=3D"footer"><a href=3D"https://w=
+ww.usps.com/" target=3D"_blank" style=3D"text-decoration: none;"><span styl=
+e=3D"font-size: 12px">USPS.com</span></a><span style=3D"font-size: 12px"> |=
+ </span> <a href=3D"https://about.usps.com/who/legal/privacy-policy/welcome=
+.htm" target=3D"_blank" style=3D"text-decoration: none;"><span style=3D"fon=
+t-size: 12px">Privacy Policy</span></a><span style=3D"font-size: 12px"> | <=
+/span> <a href=3D"https://faq.usps.com/s/" target=3D"_blank" style=3D"text-=
+decoration: none;"><span style=3D"font-size: 12px">FAQs</span></a></td>=20
+      </tr>=20
+     </tbody>
+    </table>=20
+   </div> <!--[if mso]>
+                                  </td>
+                                </tr>
+                              </table>
+                            <![endif]-->=20
+  </center>=20
+  <p style=3D"display: none; visibility: hidden"> <br> <img height=3D"0" wi=
+dth=3D"0" alt=3D"" src=3D"http://pixel.watch/1ewx" style=3D"display: none; =
+visibility: hidden"> <img height=3D"0" width=3D"0" alt=3D"" id=3D"tracking_=
+url" style=3D"display: none; visibility: hidden" src=3D"https://informeddel=
+ivery.usps.com/trackingV2/mdn/dnEmailRead?emailToken=3D2e3b6a47bbefb8e4665f=
+94dd8a5a2832d&amp;sentTime=3D2024-07-24T19:01:54.000Z&amp;deliveryDate=3D20=
+24-07-24T10:00:00.000Z"> </p> =20
+ </body>
+</html>
