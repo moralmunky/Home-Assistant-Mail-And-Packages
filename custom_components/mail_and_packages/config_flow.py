@@ -69,14 +69,12 @@ async def _check_amazon_forwards(forwards: str, domain: str) -> tuple:
         email = email.strip()
 
         if "@" in email:
-            if not re.match(r"[a-zA-Z\.0-9\s]+@", email):
-                _LOGGER.error("Invalid email address: %s", email)
-                errors.append("invalid_email_format")
-
             # Check for amazon domains
             if f"@{domain}" in email:
-                _LOGGER.error("Invalid domain for email: %s", email)
-                errors.append("amazon_domain")
+                _LOGGER.error(
+                    "Amazon domain found in email: %s, this may cause errors when searching emails.",
+                    email,
+                )
 
         # No forwards
         elif forwards in ["", "(none)", '""']:
@@ -85,10 +83,6 @@ async def _check_amazon_forwards(forwards: str, domain: str) -> tuple:
         else:
             _LOGGER.error("Missing '@' in email address: %s", email)
             errors.append("invalid_email_format")
-            # Add error message for Amazon emails
-            if re.match(rf"\b{domain}\b", email):
-                _LOGGER.error("Invalid domain for email: %s", email)
-                errors.append("amazon_domain")
 
     if len(errors) == 0:
         errors.append("ok")

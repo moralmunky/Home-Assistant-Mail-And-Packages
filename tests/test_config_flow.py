@@ -1528,10 +1528,8 @@ async def test_form_amazon_error(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_3
         )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_3
-        assert "Invalid domain for email: testemail@amazon.com" in caplog.text
-        assert result["errors"] == {CONF_AMAZON_FWDS: "amazon_domain"}
+        assert result["type"] == "create_entry"
+        assert "Amazon domain found in email: testemail@amazon.com, this may cause errors when searching emails." in caplog.text
 
 
 @pytest.mark.parametrize(
@@ -1641,7 +1639,6 @@ async def test_form_amazon_error_2(
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         assert "Missing '@' in email address: amazon.com" in caplog.text
-        assert "Invalid domain for email: amazon.com" in caplog.text
         assert result["errors"] == {CONF_AMAZON_FWDS: "invalid_email_format"}
 
 
