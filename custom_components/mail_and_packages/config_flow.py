@@ -1,7 +1,6 @@
 """Adds config flow for Mail and Packages."""
 
 import logging
-import re
 from os import path
 from typing import Any
 
