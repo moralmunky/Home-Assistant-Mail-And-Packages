@@ -1529,7 +1529,10 @@ async def test_form_amazon_error(
             result["flow_id"], input_3
         )
         assert result["type"] == "create_entry"
-        assert "Amazon domain found in email: testemail@amazon.com, this may cause errors when searching emails." in caplog.text
+        assert (
+            "Amazon domain found in email: testemail@amazon.com, this may cause errors when searching emails."
+            in caplog.text
+        )
 
 
 @pytest.mark.parametrize(
