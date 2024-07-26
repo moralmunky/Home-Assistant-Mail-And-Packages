@@ -1,7 +1,6 @@
 """Adds config flow for Mail and Packages."""
 
 import logging
-import re
 from os import path
 from typing import Any
 
@@ -54,6 +53,9 @@ ERROR_MAILBOX_FAIL = "Problem getting mailbox listing using 'INBOX' message"
 IMAP_SECURITY = ["none", "startTLS", "SSL"]
 AMAZON_SENSORS = ["amazon_packages", "amazon_delivered", "amazon_exception"]
 _LOGGER = logging.getLogger(__name__)
+AMAZON_EMAIL_ERROR = (
+    "Amazon domain found in email: %s, this may cause errors when searching emails."
+)
 
 
 async def _check_amazon_forwards(forwards: str, domain: str) -> tuple:
@@ -69,14 +71,12 @@ async def _check_amazon_forwards(forwards: str, domain: str) -> tuple:
         email = email.strip()
 
         if "@" in email:
-            if not re.match(r"[a-zA-Z\.0-9\s]+@", email):
-                _LOGGER.error("Invalid email address: %s", email)
-                errors.append("invalid_email_format")
-
             # Check for amazon domains
             if f"@{domain}" in email:
-                _LOGGER.error("Invalid domain for email: %s", email)
-                errors.append("amazon_domain")
+                _LOGGER.error(
+                    AMAZON_EMAIL_ERROR,
+                    email,
+                )
 
         # No forwards
         elif forwards in ["", "(none)", '""']:
@@ -85,10 +85,6 @@ async def _check_amazon_forwards(forwards: str, domain: str) -> tuple:
         else:
             _LOGGER.error("Missing '@' in email address: %s", email)
             errors.append("invalid_email_format")
-            # Add error message for Amazon emails
-            if re.match(rf"\b{domain}\b", email):
-                _LOGGER.error("Invalid domain for email: %s", email)
-                errors.append("amazon_domain")
 
     if len(errors) == 0:
         errors.append("ok")
