@@ -181,6 +181,9 @@ AMAZON_LANGS = [
     "fr_CA.UTF-8",
     "",
 ]
+AMAZON_OTP = "amazon_otp"
+AMAZON_OTP_REGEX = "[0-9]{6}"
+AMAZON_OTP_SUBJECT = "A one-time password is required for your Amazon delivery"
 
 # Sensor Data
 SENSOR_DATA = {
@@ -755,6 +758,11 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package",
         key="amazon_hub",
+    ),
+    "amazon_otp": SensorEntityDescription(
+        name="Mail Amazon OTP Code",
+        icon="mdi:counter",
+        key="amazon_otp",
     ),
     # Canada Post
     "capost_delivered": SensorEntityDescription(
