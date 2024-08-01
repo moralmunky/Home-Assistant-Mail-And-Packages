@@ -102,6 +102,9 @@ AMAZON_DELIVERED_SUBJECT = [
     "Bezorgd:",
     "Livraison : Votre",
 ]
+AMAZON_DELIVERING_SUBJECT = [
+    "Now arriving today: Your",    
+]
 AMAZON_SHIPMENT_TRACKING = [
     "shipment-tracking",
     "conferma-spedizione",
@@ -645,8 +648,18 @@ SENSOR_DATA = {
     "post_de_delivered": {},
     "post_de_packages": {},
     "post_de_tracking": {},
-}
-
+    # Ebay
+    "ebay_delivering": {
+        "email": ["ebay@ebay.com"],
+        "subject": ["DELIVERY UPDATE:"],
+    },
+    "ebay_delivered": {
+        "email": ["ebay@ebay.com"],
+        "subject": ["ORDER DELIVERED:"],
+    },
+    "ebay_packages": {},
+    "ebay_tracking": {"pattern": ["9[0-9]{21}"]},
+}    
 # Sensor definitions
 SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
     "mail_updated": SensorEntityDescription(
@@ -655,6 +668,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         key="mail_updated",
         entity_category=EntityCategory.DIAGNOSTIC,
         device_class=SensorDeviceClass.TIMESTAMP,
+    ),
+    #eBay
+    "ebay_delivering": SensorEntityDescription(
+        name="eBay Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="ebay_delivering",
+    ),
+    "ebay_delivered": SensorEntityDescription(
+        name="eBay Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="ebay_delivered",
+    ),
+    "ebay_packages": SensorEntityDescription(
+        name="eBay Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="ebay_packages",
     ),
     # USPS
     "usps_mail": SensorEntityDescription(
@@ -743,6 +775,12 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="amazon_delivered",
+    ),
+     "amazon_delivering": SensorEntityDescription(
+     name="Mail Amazon Packages Delivering",
+     native_unit_of_measurement="package(s)",
+     icon="mdi:truck-delivering",
+     key="amazon_delivering",
     ),
     "amazon_exception": SensorEntityDescription(
         name="Mail Amazon Exception",
