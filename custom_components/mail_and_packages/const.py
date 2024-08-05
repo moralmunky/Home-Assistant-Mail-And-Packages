@@ -143,6 +143,7 @@ AMAZON_TIME_PATTERN = [
     "Arrivée :",
     "Verwachte bezorgdatum:",
     "Votre date de livraison prévue est :",
+    "para entrega"
 ]
 AMAZON_TIME_PATTERN_END = [
     "Previously expected:",
