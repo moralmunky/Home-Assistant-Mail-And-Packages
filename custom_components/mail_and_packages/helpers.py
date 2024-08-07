@@ -217,6 +217,12 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
         except Exception as err:
             _LOGGER.error("Error updating sensor: %s reason: %s", sensor, err)
 
+    # Update usps_mail_delivered
+    try:
+        fetch(hass, config, account, data, "usps_mail_delivered")
+    except Exception as err:
+        _LOGGER.error("Error updating sensor: %s reason: %s", "usps_mail_delivered", err)
+        
     # Copy image file to www directory if enabled
     if config.get(CONF_ALLOW_EXTERNAL):
         copy_images(hass, config)
