@@ -67,6 +67,7 @@ from .const import (
     ATTR_SUBJECT,
     ATTR_TRACKING,
     ATTR_USPS_MAIL,
+    BINARY_SENSORS,
     CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
@@ -100,7 +101,17 @@ def get_resources() -> dict:
         sensor_id: sensor.name for sensor_id, sensor in SENSOR_TYPES.items()
     }
 
-    return known_available_resources
+    # append binary sensors that have selectable set to true
+    additional_resources = {
+        sensor_id: sensor.name
+        for sensor_id, sensor in BINARY_SENSORS.items()
+        if sensor.selectable
+    }
+
+    # add binary sensors to the output list
+    known_available_resources.update(additional_resources)
+
+    return dict(sorted(known_available_resources.items()))
 
 
 async def _check_ffmpeg() -> bool:
@@ -217,12 +228,6 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
         except Exception as err:
             _LOGGER.error("Error updating sensor: %s reason: %s", sensor, err)
 
-    # Update usps_mail_delivered
-    try:
-        fetch(hass, config, account, data, "usps_mail_delivered")
-    except Exception as err:
-        _LOGGER.error("Error updating sensor: %s reason: %s", "usps_mail_delivered", err)
-        
     # Copy image file to www directory if enabled
     if config.get(CONF_ALLOW_EXTERNAL):
         copy_images(hass, config)
