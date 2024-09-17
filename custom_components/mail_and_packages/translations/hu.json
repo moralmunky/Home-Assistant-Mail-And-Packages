@@ -100,6 +100,20 @@
                 },
                 "description": "Kérjük, adja meg azt a domain-t, ahonnan az Amazon e-maileket küld (pl.: amazon.com vagy amazon.de)\n\nHa az Amazon továbbított e-maileket használ, kérjük, válassza el minden címet vesszővel, vagy írja be, hogy (nincs), hogy törölje ezt a beállítást.",
                 "title": "Amazon beállítások"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Képek tárolására szolgáló könyvtár"
+                },
+                "description": "Kérjük, adja meg azt a könyvtárat, ahová a képeit szeretné tárolni.\nAz alapértelmezett automatikusan kitöltődik.",
+                "title": "Képtárolási hely"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Képek tárolására szolgáló könyvtár"
+                },
+                "description": "Kérjük, adja meg azt a könyvtárat, ahová a képeit szeretné tárolni.\nAz alapértelmezett automatikusan kitöltődik.",
+                "title": "Képtárolási hely"
             }
         }
     }

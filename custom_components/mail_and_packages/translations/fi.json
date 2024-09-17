@@ -100,6 +100,20 @@
                 },
                 "description": "Anna domaini, josta Amazon lähettää sähköposteja (esim: amazon.com tai amazon.de)\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai kirjoita (none) tyhjentääksesi tämän asetuksen.",
                 "title": "Amazonin asetukset"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Hakemisto kuvien tallentamiseen"
+                },
+                "description": "Anna hakemisto, johon haluat kuviesi tallentuvan.\nOletusarvo täytetään automaattisesti.",
+                "title": "Kuvien tallennuspaikka"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Hakemisto kuvien tallentamiseen"
+                },
+                "description": "Anna hakemisto, johon haluat kuviesi tallentuvan.\nOletusarvo täytetään automaattisesti.",
+                "title": "Kuvien tallennuspaikka"
             }
         }
     }

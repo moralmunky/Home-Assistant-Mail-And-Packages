@@ -100,6 +100,20 @@
                 },
                 "description": "Wprowadź domenę, z której Amazon wysyła e-maile (np. amazon.com lub amazon.de)\n\nJeśli korzystasz z przekierowanych e-maili od Amazon, oddziel każdy adres przecinkiem lub wpisz (brak), aby wyczyścić to ustawienie.",
                 "title": "Ustawienia Amazon"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Katalog do przechowywania obrazów"
+                },
+                "description": "Wprowadź katalog, w którym chciałbyś przechowywać swoje obrazy.\nDomyślnie jest on automatycznie wypełniany.",
+                "title": "Lokalizacja przechowywania obrazów"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Katalog do przechowywania obrazów"
+                },
+                "description": "Wprowadź katalog, w którym chciałbyś przechowywać swoje obrazy.\nDomyślnie jest on automatycznie wypełniany.",
+                "title": "Lokalizacja przechowywania obrazów"
             }
         }
     }

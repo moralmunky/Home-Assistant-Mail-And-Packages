@@ -100,6 +100,20 @@
                 },
                 "description": "Por favor, insira o domínio do qual a Amazon envia e-mails (por exemplo: amazon.com ou amazon.de)\n\nSe estiver usando e-mails encaminhados pela Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.",
                 "title": "Configurações da Amazon"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Diretório para armazenar imagens"
+                },
+                "description": "Por favor, insira o diretório em que você gostaria que suas imagens fossem armazenadas.\nO padrão é preenchido automaticamente.",
+                "title": "Local de armazenamento de imagens"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Diretório para armazenar imagens"
+                },
+                "description": "Por favor, insira o diretório em que você gostaria que suas imagens fossem armazenadas.\nO padrão é preenchido automaticamente.",
+                "title": "Local de armazenamento de imagens"
             }
         }
     }

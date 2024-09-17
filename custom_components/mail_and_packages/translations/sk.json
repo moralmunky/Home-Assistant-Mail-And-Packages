@@ -100,6 +100,20 @@
                 },
                 "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (žiadne) na vymazanie tohto nastavenia.",
                 "title": "Nastavenia Amazon"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Adresár na ukladanie obrázkov"
+                },
+                "description": "Prosím, zadajte adresár, v ktorom chcete ukladať svoje obrázky.\nPredvolená hodnota je automaticky vyplnená.",
+                "title": "Miesto ukladania obrázkov"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Adresár na ukladanie obrázkov"
+                },
+                "description": "Prosím, zadajte adresár, v ktorom chcete ukladať svoje obrázky.\nPredvolená hodnota je automaticky vyplnená.",
+                "title": "Miesto ukladania obrázkov"
             }
         }
     }

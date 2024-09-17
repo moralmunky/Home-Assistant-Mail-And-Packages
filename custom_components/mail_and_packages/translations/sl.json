@@ -100,6 +100,20 @@
                 },
                 "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
                 "title": "Nastavitve Amazon"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Mapa za shranjevanje slik"
+                },
+                "description": "Prosimo, vnesite imenik, v katerem želite shraniti svoje slike.\nPrivzeto je samodejno izpolnjeno.",
+                "title": "Lokacija shranjevanja slik"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Mapa za shranjevanje slik"
+                },
+                "description": "Prosimo, vnesite imenik, v katerem želite shraniti svoje slike.\nPrivzeto je samodejno izpolnjeno.",
+                "title": "Lokacija shranjevanja slik"
             }
         }
     }

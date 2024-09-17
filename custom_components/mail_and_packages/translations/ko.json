@@ -100,6 +100,20 @@
                 },
                 "description": "Amazon이 이메일을 보내는 도메인을 입력해 주세요 (예: amazon.com 또는 amazon.de)\n\nAmazon에서 전달된 이메일을 사용하는 경우 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 (none)을 입력하세요.",
                 "title": "아마존 설정"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "이미지를 저장할 디렉토리"
+                },
+                "description": "이미지를 저장할 디렉토리를 입력해 주세요.\n기본값은 자동으로 채워집니다.",
+                "title": "이미지 저장 위치"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "이미지를 저장할 디렉토리"
+                },
+                "description": "이미지를 저장할 디렉토리를 입력해 주세요.\n기본값은 자동으로 채워집니다.",
+                "title": "이미지 저장 위치"
             }
         }
     }

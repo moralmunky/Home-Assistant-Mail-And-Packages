@@ -100,6 +100,20 @@
                 },
                 "description": "Voer het domein in waarvan Amazon e-mails verstuurt (bijv: amazon.com of amazon.de)\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
                 "title": "Amazon Instellingen"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Map om afbeeldingen op te slaan"
+                },
+                "description": "Voer de map in waar u uw afbeeldingen wilt opslaan.\nDe standaard is automatisch ingevuld.",
+                "title": "Locatie voor afbeeldingsopslag"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Map om afbeeldingen op te slaan"
+                },
+                "description": "Voer de map in waar u uw afbeeldingen wilt opslaan.\nDe standaard is automatisch ingevuld.",
+                "title": "Locatie voor afbeeldingsopslag"
             }
         }
     }

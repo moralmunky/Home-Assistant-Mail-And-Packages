@@ -100,6 +100,20 @@
                 },
                 "description": "Por favor, ingrese el dominio desde el cual Amazon envía correos electrónicos (es decir: amazon.com o amazon.de)\n\nSi utiliza correos electrónicos reenviados por Amazon, separe cada dirección con una coma o ingrese (ninguno) para borrar esta configuración.",
                 "title": "Configuración de Amazon"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Directorio para almacenar imágenes"
+                },
+                "description": "Por favor, ingrese el directorio en el que le gustaría almacenar sus imágenes.\nEl predeterminado se llena automáticamente.",
+                "title": "Ubicación de almacenamiento de imágenes"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Directorio para almacenar imágenes"
+                },
+                "description": "Por favor, ingrese el directorio en el que le gustaría almacenar sus imágenes.\nEl predeterminado se llena automáticamente.",
+                "title": "Ubicación de almacenamiento de imágenes"
             }
         }
     }
