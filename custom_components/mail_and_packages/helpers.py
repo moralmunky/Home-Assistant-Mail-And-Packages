@@ -78,6 +78,7 @@ from .const import (
     CONF_GENERATE_MP4,
     CONF_IMAP_SECURITY,
     CONF_VERIFY_SSL,
+    CONF_STORAGE,
     DEFAULT_AMAZON_DAYS,
     OVERLAY,
     SENSOR_DATA,
@@ -158,9 +159,11 @@ def default_image_path(
 ) -> str:
     """Return value of the default image path.
 
-    Returns the default path based on logic (placeholder for future code)
+    Returns the default path based on logic
     """
-    # Return the default
+    storage = config_entry.get(CONF_STORAGE)
+    if storage:
+        return storage
     return "custom_components/mail_and_packages/images/"
 
 

@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Ustvarjanje MP4 zahteva ffmpeg",
             "amazon_domain": "Neveljaven naslov za preusmerjanje e-pošte.",
             "file_not_found": "Slikovna datoteka ni najdena",
-            "invalid_email_format": "Neveljaven format e-poštnega naslova."
+            "invalid_email_format": "Neveljaven format e-poštnega naslova.",
+            "path_not_found": "Mapa ni najdena"
         },
         "step": {
             "user": {
@@ -100,6 +101,20 @@
                 },
                 "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
                 "title": "Nastavitve Amazon"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Mapa za shranjevanje slik"
+                },
+                "description": "Prosimo, vnesite imenik, v katerem želite shraniti svoje slike.\nPrivzeto je samodejno izpolnjeno.",
+                "title": "Lokacija shranjevanja slik"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Mapa za shranjevanje slik"
+                },
+                "description": "Prosimo, vnesite imenik, v katerem želite shraniti svoje slike.\nPrivzeto je samodejno izpolnjeno.",
+                "title": "Lokacija shranjevanja slik"
             }
         }
     }

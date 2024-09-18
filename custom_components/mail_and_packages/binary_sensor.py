@@ -85,7 +85,8 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def is_on(self) -> bool:
         """Return True if the image is updated."""
         if self._type == "usps_update":
-            if ATTR_IMAGE_NAME in self.coordinator.data.keys():
+            attributes = (ATTR_IMAGE_NAME, ATTR_IMAGE_PATH)
+            if set(attributes).issubset(self.coordinator.data.keys()):
                 image = self.coordinator.data[ATTR_IMAGE_NAME]
                 path = self.coordinator.data[ATTR_IMAGE_PATH]
                 usps_image = f"{self.hass.config.path()}/{path}{image}"
@@ -104,7 +105,8 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
                 return False
 
         if self._type == "amazon_update":
-            if ATTR_AMAZON_IMAGE in self.coordinator.data.keys():
+            attributes = (ATTR_AMAZON_IMAGE, ATTR_IMAGE_PATH)
+            if set(attributes).issubset(self.coordinator.data.keys()):
                 image = self.coordinator.data[ATTR_AMAZON_IMAGE]
                 path = f"{self.coordinator.data[ATTR_IMAGE_PATH]}amazon/"
                 amazon_image = f"{self.hass.config.path()}/{path}{image}"

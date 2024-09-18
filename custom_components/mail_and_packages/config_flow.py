@@ -22,6 +22,7 @@ from .const import (
     CONF_AMAZON_FWDS,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
+    CONF_STORAGE,
     CONF_DURATION,
     CONF_FOLDER,
     CONF_GENERATE_MP4,
@@ -45,6 +46,7 @@ from .const import (
     DEFAULT_PATH,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_STORAGE,
     DOMAIN,
 )
 from .helpers import _check_ffmpeg, _test_login, get_resources, login
@@ -128,6 +130,14 @@ async def _validate_user_input(user_input: dict) -> tuple:
 
     if not valid:
         errors[CONF_CUSTOM_IMG_FILE] = "file_not_found"
+
+    # validate path exists
+    if CONF_STORAGE in user_input:
+        valid = path.exists(user_input[CONF_STORAGE])
+    else:
+        valid = True
+    if not valid:
+        errors[CONF_STORAGE] = "path_not_found"
 
     return errors, user_input
 
@@ -274,6 +284,22 @@ def _get_schema_step_amazon(user_input: list, default_dict: list) -> Any:
     )
 
 
+def _get_schema_step_storage(user_input: list, default_dict: list) -> Any:
+    """Get a schema using the default_dict as a backup."""
+    if user_input is None:
+        user_input = {}
+
+    def _get_default(key: str, fallback_default: Any = None) -> None:
+        """Get default value for key."""
+        return user_input.get(key, default_dict.get(key, fallback_default))
+
+    return vol.Schema(
+        {
+            vol.Required(CONF_STORAGE, default=_get_default(CONF_STORAGE)): cv.string,
+        }
+    )
+
+
 @config_entries.HANDLERS.register(DOMAIN)
 class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Mail and Packages."""
@@ -374,9 +400,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
-                return self.async_create_entry(
-                    title=self._data[CONF_HOST], data=self._data
-                )
+                return await self.async_step_config_storage()
             return await self._show_config_3(user_input)
 
         return await self._show_config_3(user_input)
@@ -403,9 +427,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             if len(self._errors) == 0:
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_config_3()
-                return self.async_create_entry(
-                    title=self._data[CONF_HOST], data=self._data
-                )
+                return await self.async_step_config_storage()
+
             return await self._show_config_amazon(user_input)
 
         return await self._show_config_amazon(user_input)
@@ -422,6 +445,33 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="config_amazon",
             data_schema=_get_schema_step_amazon(user_input, defaults),
+            errors=self._errors,
+        )
+
+    async def async_step_config_storage(self, user_input=None):
+        """Configure form step storage."""
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            self._errors, user_input = await _validate_user_input(self._data)
+            if len(self._errors) == 0:
+                return self.async_create_entry(
+                    title=self._data[CONF_HOST], data=self._data
+                )
+            return await self._show_config_storage(user_input)
+
+        return await self._show_config_storage(user_input)
+
+    async def _show_config_storage(self, user_input):
+        """Step 3 setup."""
+        # Defaults
+        defaults = {
+            CONF_STORAGE: DEFAULT_STORAGE,
+        }
+
+        return self.async_show_form(
+            step_id="config_storage",
+            data_schema=_get_schema_step_storage(user_input, defaults),
             errors=self._errors,
         )
 
@@ -473,12 +523,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_reconfig_3()
 
-                self.hass.config_entries.async_update_entry(
-                    self._entry, data=self._data
-                )
-                await self.hass.config_entries.async_reload(self._entry.entry_id)
-                _LOGGER.debug("%s reconfigured.", DOMAIN)
-                return self.async_abort(reason="reconfigure_successful")
+                return await self.async_step_reconfig_storage()
 
             return await self._show_reconfig_2(user_input)
 
@@ -502,12 +547,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
-                self.hass.config_entries.async_update_entry(
-                    self._entry, data=self._data
-                )
-                await self.hass.config_entries.async_reload(self._entry.entry_id)
-                _LOGGER.debug("%s reconfigured.", DOMAIN)
-                return self.async_abort(reason="reconfigure_successful")
+                return await self.async_step_reconfig_storage()
 
             return await self._show_reconfig_3(user_input)
 
@@ -536,12 +576,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_reconfig_3()
 
-                self.hass.config_entries.async_update_entry(
-                    self._entry, data=self._data
-                )
-                await self.hass.config_entries.async_reload(self._entry.entry_id)
-                _LOGGER.debug("%s reconfigured.", DOMAIN)
-                return self.async_abort(reason="reconfigure_successful")
+                return await self.async_step_reconfig_storage()
 
             return await self._show_reconfig_amazon(user_input)
 
@@ -552,5 +587,31 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="reconfig_amazon",
             data_schema=_get_schema_step_amazon(user_input, self._data),
+            errors=self._errors,
+        )
+
+    async def async_step_reconfig_storage(self, user_input=None):
+        """Configure form step storage."""
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            self._errors, user_input = await _validate_user_input(self._data)
+            if len(self._errors) == 0:
+                self.hass.config_entries.async_update_entry(
+                    self._entry, data=self._data
+                )
+                await self.hass.config_entries.async_reload(self._entry.entry_id)
+                _LOGGER.debug("%s reconfigured.", DOMAIN)
+                return self.async_abort(reason="reconfigure_successful")
+
+            return await self._show_reconfig_storage(user_input)
+
+        return await self._show_reconfig_storage(user_input)
+
+    async def _show_reconfig_storage(self, user_input):
+        """Step 3 setup."""
+        return self.async_show_form(
+            step_id="reconfig_storage",
+            data_schema=_get_schema_step_storage(user_input, self._data),
             errors=self._errors,
         )

@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "MP4 erstellen erfordert ffmpeg",
             "amazon_domain": "Ungültige Weiterleitungs-E-Mail-Adresse.",
             "file_not_found": "Bilddatei nicht gefunden",
-            "invalid_email_format": "Ungültiges E-Mail-Adressformat."
+            "invalid_email_format": "Ungültiges E-Mail-Adressformat.",
+            "path_not_found": "Verzeichnis nicht gefunden"
         },
         "step": {
             "user": {
@@ -100,6 +101,20 @@
                 },
                 "description": "Bitte geben Sie die Domain ein, von der Amazon E-Mails sendet (z.B.: amazon.com oder amazon.de)\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse mit einem Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
                 "title": "Amazon Einstellungen"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Verzeichnis zum Speichern von Bildern"
+                },
+                "description": "Bitte geben Sie das Verzeichnis ein, in dem Ihre Bilder gespeichert werden sollen.\nStandardmäßig ist es automatisch ausgefüllt.",
+                "title": "Speicherort für Bilder"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Verzeichnis zum Speichern von Bildern"
+                },
+                "description": "Bitte geben Sie das Verzeichnis ein, in dem Ihre Bilder gespeichert werden sollen.\nStandardmäßig ist es automatisch ausgefüllt.",
+                "title": "Speicherort für Bilder"
             }
         }
     }

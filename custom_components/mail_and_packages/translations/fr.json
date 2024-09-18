@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Générer MP4 nécessite ffmpeg",
             "amazon_domain": "Adresse e-mail de transfert invalide.",
             "file_not_found": "Fichier image non trouvé",
-            "invalid_email_format": "Format d'adresse e-mail invalide."
+            "invalid_email_format": "Format d'adresse e-mail invalide.",
+            "path_not_found": "Répertoire non trouvé"
         },
         "step": {
             "user": {
@@ -100,6 +101,20 @@
                 },
                 "description": "Veuillez entrer le domaine à partir duquel Amazon envoie des emails (par exemple : amazon.com ou amazon.de)\n\nSi vous utilisez des emails transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.",
                 "title": "Paramètres Amazon"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Répertoire pour stocker les images"
+                },
+                "description": "Veuillez entrer le répertoire dans lequel vous souhaitez que vos images soient stockées.\nLa valeur par défaut est automatiquement remplie.",
+                "title": "Emplacement de stockage des images"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Répertoire pour stocker les images"
+                },
+                "description": "Veuillez entrer le répertoire dans lequel vous souhaitez que vos images soient stockées.\nLa valeur par défaut est automatiquement remplie.",
+                "title": "Emplacement de stockage des images"
             }
         }
     }

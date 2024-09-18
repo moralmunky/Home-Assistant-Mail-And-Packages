@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Generer MP4 krever ffmpeg",
             "amazon_domain": "Ugyldig videresendings e-postadresse.",
             "file_not_found": "Bildefil ikke funnet",
-            "invalid_email_format": "Ugyldig e-postadresseformat."
+            "invalid_email_format": "Ugyldig e-postadresseformat.",
+            "path_not_found": "Mappen ble ikke funnet"
         },
         "step": {
             "user": {
@@ -100,6 +101,20 @@
                 },
                 "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (ingen) for å tømme denne innstillingen.",
                 "title": "Amazon-innstillinger"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Katalog for å lagre bilder"
+                },
+                "description": "Vennligst oppgi mappen du vil at bildene dine skal lagres i.\nStandard er automatisk fylt ut.",
+                "title": "Bildelagringssted"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Katalog for å lagre bilder"
+                },
+                "description": "Vennligst oppgi mappen du vil at bildene dine skal lagres i.\nStandard er automatisk fylt ut.",
+                "title": "Bildelagringssted"
             }
         }
     }

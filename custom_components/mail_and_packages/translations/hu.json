@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Az MP4 generálása ffmpeg-et igényel",
             "amazon_domain": "Érvénytelen továbbítási e-mail cím.",
             "file_not_found": "Képfájl nem található",
-            "invalid_email_format": "Érvénytelen e-mail cím formátum."
+            "invalid_email_format": "Érvénytelen e-mail cím formátum.",
+            "path_not_found": "Könyvtár nem található"
         },
         "step": {
             "user": {
@@ -100,6 +101,20 @@
                 },
                 "description": "Kérjük, adja meg azt a domain-t, ahonnan az Amazon e-maileket küld (pl.: amazon.com vagy amazon.de)\n\nHa az Amazon továbbított e-maileket használ, kérjük, válassza el minden címet vesszővel, vagy írja be, hogy (nincs), hogy törölje ezt a beállítást.",
                 "title": "Amazon beállítások"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Képek tárolására szolgáló könyvtár"
+                },
+                "description": "Kérjük, adja meg azt a könyvtárat, ahová a képeit szeretné tárolni.\nAz alapértelmezett automatikusan kitöltődik.",
+                "title": "Képtárolási hely"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Képek tárolására szolgáló könyvtár"
+                },
+                "description": "Kérjük, adja meg azt a könyvtárat, ahová a képeit szeretné tárolni.\nAz alapértelmezett automatikusan kitöltődik.",
+                "title": "Képtárolási hely"
             }
         }
     }

@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Generar MP4 requereix ffmpeg",
             "amazon_domain": "Adreça de correu electrònic de reenviament no vàlida.",
             "file_not_found": "No s'ha trobat el fitxer d'imatge",
-            "invalid_email_format": "Format d'adreça de correu electrònic no vàlid."
+            "invalid_email_format": "Format d'adreça de correu electrònic no vàlid.",
+            "path_not_found": "Directori no trobat"
         },
         "step": {
             "user": {
@@ -100,6 +101,20 @@
                 },
                 "description": "Introduïu el domini des d'on Amazon envia correus electrònics (és a dir: amazon.com o amazon.de)\n\nSi utilitzeu correus electrònics reenviats d'Amazon, separeu cada adreça amb una coma o introduïu (cap) per esborrar aquesta configuració.",
                 "title": "Configuració d'Amazon"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Directori per emmagatzemar imatges"
+                },
+                "description": "Introduïu el directori on voleu que es desin les vostres imatges.\nPer defecte, es completa automàticament.",
+                "title": "Ubicació de l'emmagatzematge d'imatges"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Directori per emmagatzemar imatges"
+                },
+                "description": "Introduïu el directori on voleu que es desin les vostres imatges.\nPer defecte, es completa automàticament.",
+                "title": "Ubicació de l'emmagatzematge d'imatges"
             }
         }
     }

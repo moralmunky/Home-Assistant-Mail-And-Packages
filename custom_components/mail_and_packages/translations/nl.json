@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "MP4 genereren vereist ffmpeg",
             "amazon_domain": "Ongeldig doorstuur e-mailadres.",
             "file_not_found": "Afbeeldingsbestand niet gevonden",
-            "invalid_email_format": "Ongeldig e-mailadres formaat."
+            "invalid_email_format": "Ongeldig e-mailadres formaat.",
+            "path_not_found": "Map niet gevonden"
         },
         "step": {
             "user": {
@@ -100,6 +101,20 @@
                 },
                 "description": "Voer het domein in waarvan Amazon e-mails verstuurt (bijv: amazon.com of amazon.de)\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
                 "title": "Amazon Instellingen"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Map om afbeeldingen op te slaan"
+                },
+                "description": "Voer de map in waar u uw afbeeldingen wilt opslaan.\nDe standaard is automatisch ingevuld.",
+                "title": "Locatie voor afbeeldingsopslag"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Map om afbeeldingen op te slaan"
+                },
+                "description": "Voer de map in waar u uw afbeeldingen wilt opslaan.\nDe standaard is automatisch ingevuld.",
+                "title": "Locatie voor afbeeldingsopslag"
             }
         }
     }
