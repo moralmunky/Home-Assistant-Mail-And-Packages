@@ -607,11 +607,6 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _show_reconfig_storage(self, user_input):
         """Step 3 setup."""
-        # Defaults
-        defaults = {
-            CONF_STORAGE: DEFAULT_STORAGE,
-        }
-
         return self.async_show_form(
             step_id="reconfig_storage",
             data_schema=_get_schema_step_storage(user_input, self._data),
