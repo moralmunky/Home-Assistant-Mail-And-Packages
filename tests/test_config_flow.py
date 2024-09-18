@@ -2674,6 +2674,126 @@ async def test_reconfig_no_cust_img(
                 "folder": '"INBOX"',
                 "generate_mp4": False,
                 "gif_duration": 5,
+                "imap_timeout": 120,
+                "scan_interval": 60,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+            },
+            "reconfig_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "amazon.com",
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_reconfig_amazon_error(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    hass: HomeAssistant,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_update,
+    caplog,
+) -> None:
+    """Test reconfigure flow."""
+    entry = integration
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.path",
+        return_value=True,
+    ):
+
+        reconfigure_result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={
+                "source": config_entries.SOURCE_RECONFIGURE,
+                "entry_id": entry.entry_id,
+            },
+        )
+        assert reconfigure_result["type"] is FlowResultType.FORM
+        assert reconfigure_result["step_id"] == "reconfigure"
+
+        result = await hass.config_entries.flow.async_configure(
+            reconfigure_result["flow_id"],
+            input_1,
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == step_id_3
+        assert "Missing '@' in email address: amazon.com" in caplog.text
+        assert result["errors"] == {CONF_AMAZON_FWDS: "invalid_email_format"}
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "reconfig_2",
+            {
+                "allow_external": False,
+                "custom_img": False,
+                "folder": '"INBOX"',
+                "generate_mp4": False,
+                "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "resources": [
