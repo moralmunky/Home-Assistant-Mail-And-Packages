@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
             "amazon_domain": "Invalid forwarding email address.",
             "file_not_found": "Image file not found",
-            "invalid_email_format": "Invalid email address format."
+            "invalid_email_format": "Invalid email address format.",
+            "path_not_found": "Directory not found"
         },
         "step": {
             "user": {

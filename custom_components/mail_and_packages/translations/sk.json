@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Vytvorenie MP4 vyžaduje ffmpeg",
             "amazon_domain": "Neplatná adresa pre presmerovanie e-mailov.",
             "file_not_found": "Obrázokový súbor nebol nájdený",
-            "invalid_email_format": "Neplatný formát e-mailovej adresy."
+            "invalid_email_format": "Neplatný formát e-mailovej adresy.",
+            "path_not_found": "Adresár nebol nájdený"
         },
         "step": {
             "user": {

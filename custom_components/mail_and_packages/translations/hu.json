@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Az MP4 generálása ffmpeg-et igényel",
             "amazon_domain": "Érvénytelen továbbítási e-mail cím.",
             "file_not_found": "Képfájl nem található",
-            "invalid_email_format": "Érvénytelen e-mail cím formátum."
+            "invalid_email_format": "Érvénytelen e-mail cím formátum.",
+            "path_not_found": "Könyvtár nem található"
         },
         "step": {
             "user": {

@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Gerar MP4 requer ffmpeg",
             "amazon_domain": "Endereço de encaminhamento de email inválido.",
             "file_not_found": "Arquivo de imagem não encontrado",
-            "invalid_email_format": "Formato de endereço de email inválido."
+            "invalid_email_format": "Formato de endereço de email inválido.",
+            "path_not_found": "Diretório não encontrado"
         },
         "step": {
             "user": {

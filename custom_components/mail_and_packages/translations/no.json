@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Generer MP4 krever ffmpeg",
             "amazon_domain": "Ugyldig videresendings e-postadresse.",
             "file_not_found": "Bildefil ikke funnet",
-            "invalid_email_format": "Ugyldig e-postadresseformat."
+            "invalid_email_format": "Ugyldig e-postadresseformat.",
+            "path_not_found": "Mappen ble ikke funnet"
         },
         "step": {
             "user": {

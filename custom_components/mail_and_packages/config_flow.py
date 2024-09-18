@@ -131,6 +131,14 @@ async def _validate_user_input(user_input: dict) -> tuple:
     if not valid:
         errors[CONF_CUSTOM_IMG_FILE] = "file_not_found"
 
+    # validate path exists
+    if CONF_STORAGE in user_input:
+        valid = path.exists(user_input[CONF_STORAGE])
+    else:
+        valid = True
+    if not valid:
+        errors[CONF_STORAGE] = "path_not_found"
+
     return errors, user_input
 
 
@@ -515,12 +523,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_reconfig_3()
 
-                self.hass.config_entries.async_update_entry(
-                    self._entry, data=self._data
-                )
-                await self.hass.config_entries.async_reload(self._entry.entry_id)
-                _LOGGER.debug("%s reconfigured.", DOMAIN)
-                return self.async_abort(reason="reconfigure_successful")
+                return await self.async_step_reconfig_storage()
 
             return await self._show_reconfig_2(user_input)
 

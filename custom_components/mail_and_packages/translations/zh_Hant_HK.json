@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "生成MP4需要ffmpeg",
             "amazon_domain": "無效的轉發電郵地址。",
             "file_not_found": "找不到圖像檔案",
-            "invalid_email_format": "無效的電郵地址格式。"
+            "invalid_email_format": "無效的電郵地址格式。",
+            "path_not_found": "找不到目錄"
         },
         "step": {
             "user": {

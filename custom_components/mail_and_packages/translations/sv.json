@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Generera MP4 kräver ffmpeg",
             "amazon_domain": "Ogiltig vidarebefordrings e-postadress.",
             "file_not_found": "Bildfilen hittades inte",
-            "invalid_email_format": "Ogiltigt format för e-postadress."
+            "invalid_email_format": "Ogiltigt format för e-postadress.",
+            "path_not_found": "Katalogen hittades inte"
         },
         "step": {
             "user": {

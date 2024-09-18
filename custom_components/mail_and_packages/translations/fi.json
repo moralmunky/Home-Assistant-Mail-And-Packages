@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "MP4:n luominen vaatii ffmpeg:n",
             "amazon_domain": "Virheellinen edelleenlähetettävä sähköpostiosoite.",
             "file_not_found": "Kuvatiedostoa ei löydy",
-            "invalid_email_format": "Virheellinen sähköpostiosoitteen muoto."
+            "invalid_email_format": "Virheellinen sähköpostiosoitteen muoto.",
+            "path_not_found": "Hakemistoa ei löydy"
         },
         "step": {
             "user": {

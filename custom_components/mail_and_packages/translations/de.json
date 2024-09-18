@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "MP4 erstellen erfordert ffmpeg",
             "amazon_domain": "Ungültige Weiterleitungs-E-Mail-Adresse.",
             "file_not_found": "Bilddatei nicht gefunden",
-            "invalid_email_format": "Ungültiges E-Mail-Adressformat."
+            "invalid_email_format": "Ungültiges E-Mail-Adressformat.",
+            "path_not_found": "Verzeichnis nicht gefunden"
         },
         "step": {
             "user": {

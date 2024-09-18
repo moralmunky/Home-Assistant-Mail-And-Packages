@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Ustvarjanje MP4 zahteva ffmpeg",
             "amazon_domain": "Neveljaven naslov za preusmerjanje e-pošte.",
             "file_not_found": "Slikovna datoteka ni najdena",
-            "invalid_email_format": "Neveljaven format e-poštnega naslova."
+            "invalid_email_format": "Neveljaven format e-poštnega naslova.",
+            "path_not_found": "Mapa ni najdena"
         },
         "step": {
             "user": {

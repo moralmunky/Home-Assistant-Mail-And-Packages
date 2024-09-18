@@ -15,6 +15,7 @@ from custom_components.mail_and_packages.const import (
     CONF_GENERATE_MP4,
     CONF_IMAP_TIMEOUT,
     CONF_SCAN_INTERVAL,
+    CONF_STORAGE,
     DOMAIN,
 )
 from custom_components.mail_and_packages.helpers import _check_ffmpeg, _test_login
@@ -903,6 +904,8 @@ async def test_form_index_error(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
     ), patch(
+        "os.path.exists", return_value=True
+    ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
         "custom_components.mail_and_packages.async_setup_entry",
@@ -930,6 +933,7 @@ async def test_form_index_error(
             result["flow_id"], input_4
         )
 
+    assert "error" not in result
     assert result["type"] == "create_entry"
     assert result["title"] == title
     assert result["data"] == data
@@ -1078,6 +1082,8 @@ async def test_form_index_error_2(
     ), patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
+    ), patch(
+        "os.path.exists", return_value=True
     ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
@@ -1254,6 +1260,8 @@ async def test_form_mailbox_format2(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
     ), patch(
+        "os.path.exists", return_value=True
+    ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
         "custom_components.mail_and_packages.async_setup_entry",
@@ -1429,6 +1437,8 @@ async def test_form_mailbox_format3(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
     ), patch(
+        "os.path.exists", return_value=True
+    ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
         "custom_components.mail_and_packages.async_setup_entry",
@@ -1591,6 +1601,8 @@ async def test_form_amazon_error(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
     ), patch(
+        "os.path.exists", return_value=True
+    ), patch(
         "custom_components.mail_and_packages.async_setup", return_value=True
     ) as mock_setup, patch(
         "custom_components.mail_and_packages.async_setup_entry",
@@ -1731,6 +1743,177 @@ async def test_form_amazon_error_2(
         assert result["step_id"] == step_id_3
         assert "Missing '@' in email address: amazon.com" in caplog.text
         assert result["errors"] == {CONF_AMAZON_FWDS: "invalid_email_format"}
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,title,data",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "config_2",
+            {
+                "allow_external": False,
+                "custom_img": False,
+                "folder": '"INBOX"',
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+            },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email,amazon@example.com,fake@email%$^&@example.com,bogusemail@testamazon.com",
+            },
+            "config_storage",
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+            "imap.test.email",
+            {
+                "allow_external": False,
+                "amazon_days": 3,
+                "amazon_domain": "amazon.com",
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email,amazon@example.com,fake@email%$^&@example.com,bogusemail@testamazon.com",
+                "custom_img": True,
+                "custom_img_file": "images/test.gif",
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "folder": '"INBOX"',
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_security": "SSL",
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "storage": "custom_components/mail_and_packages/images/",
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+                "verify_ssl": False,
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_form_storage_error(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    step_id_4,
+    input_4,
+    title,
+    data,
+    hass,
+    mock_imap,
+):
+    """Test we get the form."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_1
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
+        )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == step_id_4
+    assert result["errors"] == {CONF_STORAGE: "path_not_found"}
 
 
 @pytest.mark.parametrize(
@@ -2116,7 +2299,7 @@ async def test_reconfigure_no_amazon(
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
     [
         (
             {
@@ -2162,6 +2345,10 @@ async def test_reconfigure_no_amazon(
                     "inpost_pl_delivering",
                     "inpost_pl_packages",
                 ],
+            },
+            "reconfig_storage",
+            {
+                "storage": ".storage/mail_and_packages/images",
             },
             "imap.test.email",
             {
@@ -2220,6 +2407,8 @@ async def test_reconfigure_no_amazon_no_custom_image(
     input_1,
     step_id_2,
     input_2,
+    step_id_3,
+    input_3,    
     title,
     data,
     hass: HomeAssistant,
@@ -2263,6 +2452,13 @@ async def test_reconfigure_no_amazon_no_custom_image(
             result["flow_id"], input_2
         )
 
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )        
+
         assert result["type"] is FlowResultType.ABORT
         assert result["reason"] == "reconfigure_successful"
         await hass.async_block_till_done()
@@ -2270,3 +2466,92 @@ async def test_reconfigure_no_amazon_no_custom_image(
         _LOGGER.debug("Entries: %s", len(hass.config_entries.async_entries(DOMAIN)))
         entry = hass.config_entries.async_entries(DOMAIN)[0]
         assert entry.data.copy() == data
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "reconfig_2",
+            {
+                "allow_external": False,
+                "custom_img": False,
+                "folder": '"INBOX"',
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "resources": [
+                    "mail_updated",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                ],
+            },
+            "reconfig_storage",
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_reconfig_storage_error(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    hass: HomeAssistant,
+    integration,
+    mock_imap_no_email,
+):
+    """Test we get the form."""
+    entry = integration
+
+    reconfigure_result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
+    )
+    assert reconfigure_result["type"] is FlowResultType.FORM
+    assert reconfigure_result["step_id"] == "reconfigure"
+
+    result = await hass.config_entries.flow.async_configure(
+        reconfigure_result["flow_id"],
+        input_1,
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == step_id_2
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], input_2
+    )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == step_id_3
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._validate_user_input",
+        return_value=({CONF_STORAGE: "path_not_found"},input_3),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == step_id_3
+    assert result["errors"] == {CONF_STORAGE: "path_not_found"}

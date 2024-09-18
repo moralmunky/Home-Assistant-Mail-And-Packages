@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Generar MP4 requiere ffmpeg",
             "amazon_domain": "Dirección de correo electrónico de reenvío no válida.",
             "file_not_found": "Archivo de imagen no encontrado",
-            "invalid_email_format": "Formato de dirección de correo electrónico no válido."
+            "invalid_email_format": "Formato de dirección de correo electrónico no válido.",
+            "path_not_found": "Directorio no encontrado"
         },
         "step": {
             "user": {
