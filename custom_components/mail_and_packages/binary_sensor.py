@@ -85,7 +85,7 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def is_on(self) -> bool:
         """Return True if the image is updated."""
         if self._type == "usps_update":
-            attributes = (ATTR_IMAGE_NAME,ATTR_IMAGE_PATH)
+            attributes = (ATTR_IMAGE_NAME, ATTR_IMAGE_PATH)
             if set(attributes).issubset(self.coordinator.data.keys()):
                 image = self.coordinator.data[ATTR_IMAGE_NAME]
                 path = self.coordinator.data[ATTR_IMAGE_PATH]

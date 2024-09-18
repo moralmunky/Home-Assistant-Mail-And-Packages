@@ -2408,7 +2408,7 @@ async def test_reconfigure_no_amazon_no_custom_image(
     step_id_2,
     input_2,
     step_id_3,
-    input_3,    
+    input_3,
     title,
     data,
     hass: HomeAssistant,
@@ -2457,7 +2457,7 @@ async def test_reconfigure_no_amazon_no_custom_image(
 
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_3
-        )        
+        )
 
         assert result["type"] is FlowResultType.ABORT
         assert result["reason"] == "reconfigure_successful"
@@ -2537,16 +2537,14 @@ async def test_reconfig_storage_error(
     assert result["type"] == "form"
     assert result["step_id"] == step_id_2
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], input_2
-    )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_2)
 
     assert result["type"] == "form"
     assert result["step_id"] == step_id_3
 
     with patch(
         "custom_components.mail_and_packages.config_flow._validate_user_input",
-        return_value=({CONF_STORAGE: "path_not_found"},input_3),
+        return_value=({CONF_STORAGE: "path_not_found"}, input_3),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_3
