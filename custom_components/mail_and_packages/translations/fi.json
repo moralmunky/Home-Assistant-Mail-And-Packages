@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "MP4:n luominen vaatii ffmpeg:n",
             "amazon_domain": "Virheellinen edelleenlähetettävä sähköpostiosoite.",
             "file_not_found": "Kuvatiedostoa ei löydy",
-            "invalid_email_format": "Virheellinen sähköpostiosoitteen muoto."
+            "invalid_email_format": "Virheellinen sähköpostiosoitteen muoto.",
+            "path_not_found": "Hakemistoa ei löydy"
         },
         "step": {
             "user": {
@@ -100,6 +101,20 @@
                 },
                 "description": "Anna domaini, josta Amazon lähettää sähköposteja (esim: amazon.com tai amazon.de)\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai kirjoita (none) tyhjentääksesi tämän asetuksen.",
                 "title": "Amazonin asetukset"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Hakemisto kuvien tallentamiseen"
+                },
+                "description": "Anna hakemisto, johon haluat kuviesi tallentuvan.\nOletusarvo täytetään automaattisesti.",
+                "title": "Kuvien tallennuspaikka"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Hakemisto kuvien tallentamiseen"
+                },
+                "description": "Anna hakemisto, johon haluat kuviesi tallentuvan.\nOletusarvo täytetään automaattisesti.",
+                "title": "Kuvien tallennuspaikka"
             }
         }
     }

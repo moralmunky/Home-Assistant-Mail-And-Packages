@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Generate MP4 requires ffmpeg",
             "amazon_domain": "Invalid forwarding email address.",
             "file_not_found": "Image file not found",
-            "invalid_email_format": "Invalid email address format."
+            "invalid_email_format": "Invalid email address format.",
+            "path_not_found": "Directory not found"
         },
         "step": {
             "user": {
@@ -100,6 +101,20 @@
                 },
                 "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please seperate each address with a comma or enter (none) to clear this setting.",
                 "title": "Amazon Settings"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Directory to store images"
+                },
+                "description": "Please enter the directory you'd like your images to be stored in.\nThe default is auto populated.",
+                "title": "Image storage location"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Directory to store images"
+                },
+                "description": "Please enter the directory you'd like your images to be stored in.\nThe default is auto populated.",
+                "title": "Image storage location"
             }
         }
     }

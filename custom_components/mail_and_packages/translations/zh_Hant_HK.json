@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "生成MP4需要ffmpeg",
             "amazon_domain": "無效的轉發電郵地址。",
             "file_not_found": "找不到圖像檔案",
-            "invalid_email_format": "無效的電郵地址格式。"
+            "invalid_email_format": "無效的電郵地址格式。",
+            "path_not_found": "找不到目錄"
         },
         "step": {
             "user": {
@@ -100,6 +101,20 @@
                 },
                 "description": "請輸入亞馬遜發送電子郵件的域名（例如：amazon.com或amazon.de）\n\n如果使用亞馬遜轉發的電子郵件，請用逗號分隔每個地址，或輸入（無）以清除此設定。",
                 "title": "Amazon 設定"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "儲存圖片的目錄"
+                },
+                "description": "請輸入您希望存儲圖像的目錄。\n預設值會自動填充。",
+                "title": "圖像儲存位置"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "儲存圖片的目錄"
+                },
+                "description": "請輸入您希望存儲圖像的目錄。\n預設值會自動填充。",
+                "title": "圖像儲存位置"
             }
         }
     }

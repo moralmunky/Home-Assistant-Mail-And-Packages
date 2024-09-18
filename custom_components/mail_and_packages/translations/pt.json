@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Gerar MP4 requer ffmpeg",
             "amazon_domain": "Endereço de encaminhamento de email inválido.",
             "file_not_found": "Arquivo de imagem não encontrado",
-            "invalid_email_format": "Formato de endereço de email inválido."
+            "invalid_email_format": "Formato de endereço de email inválido.",
+            "path_not_found": "Diretório não encontrado"
         },
         "step": {
             "user": {
@@ -100,6 +101,20 @@
                 },
                 "description": "Por favor, insira o domínio de onde a Amazon envia e-mails (por exemplo: amazon.com ou amazon.de)\n\nSe estiver usando e-mails encaminhados pela Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.",
                 "title": "Configurações da Amazon"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Diretório para armazenar imagens"
+                },
+                "description": "Por favor, insira o diretório em que você gostaria que suas imagens fossem armazenadas.\nO padrão é preenchido automaticamente.",
+                "title": "Local de armazenamento de imagens"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Diretório para armazenar imagens"
+                },
+                "description": "Por favor, insira o diretório em que você gostaria que suas imagens fossem armazenadas.\nO padrão é preenchido automaticamente.",
+                "title": "Local de armazenamento de imagens"
             }
         }
     }

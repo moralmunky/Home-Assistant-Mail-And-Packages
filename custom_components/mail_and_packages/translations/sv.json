@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Generera MP4 kräver ffmpeg",
             "amazon_domain": "Ogiltig vidarebefordrings e-postadress.",
             "file_not_found": "Bildfilen hittades inte",
-            "invalid_email_format": "Ogiltigt format för e-postadress."
+            "invalid_email_format": "Ogiltigt format för e-postadress.",
+            "path_not_found": "Katalogen hittades inte"
         },
         "step": {
             "user": {
@@ -100,6 +101,20 @@
                 },
                 "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
                 "title": "Amazon-inställningar"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Katalog för att lagra bilder"
+                },
+                "description": "Vänligen ange den katalog du vill att dina bilder ska lagras i.\nStandardinställningen är automatiskt ifylld.",
+                "title": "Bildlagringsplats"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Katalog för att lagra bilder"
+                },
+                "description": "Vänligen ange den katalog du vill att dina bilder ska lagras i.\nStandardinställningen är automatiskt ifylld.",
+                "title": "Bildlagringsplats"
             }
         }
     }

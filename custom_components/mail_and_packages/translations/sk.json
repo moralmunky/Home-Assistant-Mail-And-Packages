@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Vytvorenie MP4 vyžaduje ffmpeg",
             "amazon_domain": "Neplatná adresa pre presmerovanie e-mailov.",
             "file_not_found": "Obrázokový súbor nebol nájdený",
-            "invalid_email_format": "Neplatný formát e-mailovej adresy."
+            "invalid_email_format": "Neplatný formát e-mailovej adresy.",
+            "path_not_found": "Adresár nebol nájdený"
         },
         "step": {
             "user": {
@@ -100,6 +101,20 @@
                 },
                 "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (žiadne) na vymazanie tohto nastavenia.",
                 "title": "Nastavenia Amazon"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Adresár na ukladanie obrázkov"
+                },
+                "description": "Prosím, zadajte adresár, v ktorom chcete ukladať svoje obrázky.\nPredvolená hodnota je automaticky vyplnená.",
+                "title": "Miesto ukladania obrázkov"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Adresár na ukladanie obrázkov"
+                },
+                "description": "Prosím, zadajte adresár, v ktorom chcete ukladať svoje obrázky.\nPredvolená hodnota je automaticky vyplnená.",
+                "title": "Miesto ukladania obrázkov"
             }
         }
     }

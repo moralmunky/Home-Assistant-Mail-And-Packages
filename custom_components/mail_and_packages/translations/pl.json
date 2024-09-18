@@ -10,7 +10,8 @@
             "ffmpeg_not_found": "Generowanie MP4 wymaga ffmpeg",
             "amazon_domain": "Nieprawidłowy adres e-mail do przekierowania.",
             "file_not_found": "Nie znaleziono pliku obrazu",
-            "invalid_email_format": "Nieprawidłowy format adresu e-mail."
+            "invalid_email_format": "Nieprawidłowy format adresu e-mail.",
+            "path_not_found": "Katalog nie został znaleziony"
         },
         "step": {
             "user": {
@@ -100,6 +101,20 @@
                 },
                 "description": "Wprowadź domenę, z której Amazon wysyła e-maile (np. amazon.com lub amazon.de)\n\nJeśli korzystasz z przekierowanych e-maili od Amazon, oddziel każdy adres przecinkiem lub wpisz (brak), aby wyczyścić to ustawienie.",
                 "title": "Ustawienia Amazon"
+            },
+            "config_storage": {
+                "data": {
+                    "storage": "Katalog do przechowywania obrazów"
+                },
+                "description": "Wprowadź katalog, w którym chciałbyś przechowywać swoje obrazy.\nDomyślnie jest on automatycznie wypełniany.",
+                "title": "Lokalizacja przechowywania obrazów"
+            },
+            "reconfig_storage": {
+                "data": {
+                    "storage": "Katalog do przechowywania obrazów"
+                },
+                "description": "Wprowadź katalog, w którym chciałbyś przechowywać swoje obrazy.\nDomyślnie jest on automatycznie wypełniany.",
+                "title": "Lokalizacja przechowywania obrazów"
             }
         }
     }

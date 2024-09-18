@@ -120,6 +120,7 @@ FAKE_CONFIG_DATA = {
         "post_nl_packages",
     ],
     "scan_interval": 20,
+    "storage": ".storage/mail_and_packages/images",
     "username": "user@fake.email",
     "verify_ssl": False,
 }
@@ -318,6 +319,7 @@ FAKE_CONFIG_DATA_CORRECTED = {
         "zpackages_transit",
     ],
     "scan_interval": 20,
+    "storage": ".storage/mail_and_packages/images",
     "username": "user@fake.email",
     "verify_ssl": False,
 }
