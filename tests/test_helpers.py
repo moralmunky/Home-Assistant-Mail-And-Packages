@@ -32,6 +32,7 @@ from custom_components.mail_and_packages.helpers import (
     resize_images,
     selectfolder,
     update_time,
+    default_image_path,
 )
 from tests.const import (
     FAKE_CONFIG_DATA,
@@ -1123,3 +1124,4 @@ async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
     result = get_items(mock_imap_amazon_fwd, "order", the_domain="amazon.com")
     assert result == ["123-1234567-1234567"]
     assert "First pass: Tuesday, January 11" in caplog.text
+    

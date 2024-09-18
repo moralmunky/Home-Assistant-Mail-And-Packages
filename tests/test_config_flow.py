@@ -2183,6 +2183,7 @@ async def test_reconfigure_no_amazon(
                 "imap_security": "SSL",
                 "imap_timeout": 120,
                 "scan_interval": 60,
+                "storage": ".storage/mail_and_packages/images",
                 "resources": [
                     "auspost_delivered",
                     "auspost_delivering",
