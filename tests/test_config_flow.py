@@ -86,7 +86,7 @@ _LOGGER = logging.getLogger(__name__)
             "config_storage",
             {
                 "storage": "custom_components/mail_and_packages/images/",
-            },            
+            },
             "imap.test.email",
             {
                 "allow_external": False,
@@ -202,7 +202,7 @@ async def test_form(
         assert result["step_id"] == step_id_5
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_5
-        )        
+        )
 
     assert result["type"] == "create_entry"
     assert result["title"] == title
@@ -276,7 +276,7 @@ async def test_form(
             "config_storage",
             {
                 "storage": "custom_components/mail_and_packages/images/",
-            },               
+            },
             "imap.test.email",
             {
                 "allow_external": False,
@@ -391,7 +391,7 @@ async def test_form_no_fwds(
         assert result["step_id"] == step_id_5
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_5
-        )        
+        )
 
     assert result["type"] == "create_entry"
     assert result["title"] == title
@@ -822,7 +822,7 @@ async def test_form_invalid_ffmpeg(
             "config_storage",
             {
                 "storage": "custom_components/mail_and_packages/images/",
-            },               
+            },
             "imap.test.email",
             {
                 "allow_external": False,
@@ -882,7 +882,7 @@ async def test_form_index_error(
     step_id_3,
     input_3,
     step_id_4,
-    input_4,    
+    input_4,
     title,
     data,
     hass,
@@ -928,7 +928,7 @@ async def test_form_index_error(
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_4
-        )        
+        )
 
     assert result["type"] == "create_entry"
     assert result["title"] == title
@@ -998,7 +998,7 @@ async def test_form_index_error(
             "config_storage",
             {
                 "storage": "custom_components/mail_and_packages/images/",
-            },               
+            },
             "imap.test.email",
             {
                 "allow_external": False,
@@ -1058,7 +1058,7 @@ async def test_form_index_error_2(
     step_id_3,
     input_3,
     step_id_4,
-    input_4,    
+    input_4,
     title,
     data,
     hass,
@@ -1104,7 +1104,7 @@ async def test_form_index_error_2(
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_4
-        )        
+        )
 
     assert result["type"] == "create_entry"
     assert result["title"] == title
@@ -1173,7 +1173,7 @@ async def test_form_index_error_2(
             "config_storage",
             {
                 "storage": "custom_components/mail_and_packages/images/",
-            },                         
+            },
             "imap.test.email",
             {
                 "allow_external": False,
@@ -1233,7 +1233,7 @@ async def test_form_mailbox_format2(
     step_id_3,
     input_3,
     step_id_4,
-    input_4,    
+    input_4,
     title,
     data,
     hass,
@@ -1348,7 +1348,7 @@ async def test_form_mailbox_format2(
             "config_storage",
             {
                 "storage": "custom_components/mail_and_packages/images/",
-            },                         
+            },
             "imap.test.email",
             {
                 "allow_external": False,
@@ -1408,7 +1408,7 @@ async def test_form_mailbox_format3(
     step_id_3,
     input_3,
     step_id_4,
-    input_4,  
+    input_4,
     title,
     data,
     hass,
@@ -1454,7 +1454,7 @@ async def test_form_mailbox_format3(
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_4
-        )        
+        )
 
     assert result["type"] == "create_entry"
     assert result["title"] == title
@@ -1560,7 +1560,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
             "config_storage",
             {
                 "storage": "custom_components/mail_and_packages/images/",
-            },              
+            },
         ),
     ],
 )
@@ -1572,7 +1572,7 @@ async def test_form_amazon_error(
     step_id_3,
     input_3,
     step_id_4,
-    input_4,  
+    input_4,
     mock_imap,
     hass,
     caplog,
@@ -1615,7 +1615,7 @@ async def test_form_amazon_error(
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_4
-        )        
+        )
         assert result["type"] == "create_entry"
         assert (
             "Amazon domain found in email: testemail@amazon.com, this may cause errors when searching emails."
@@ -1796,7 +1796,7 @@ async def test_form_amazon_error_2(
             "reconfig_storage",
             {
                 "storage": "custom_components/mail_and_packages/images/",
-            },                          
+            },
             "imap.test.email",
             {
                 "allow_external": False,
@@ -1862,7 +1862,7 @@ async def test_reconfigure(
     step_id_4,
     input_4,
     step_id_5,
-    input_5,    
+    input_5,
     title,
     data,
     hass: HomeAssistant,
@@ -1921,7 +1921,7 @@ async def test_reconfigure(
         assert result["step_id"] == step_id_5
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_5
-        )        
+        )
         # assert "errors" not in result
 
         assert result["type"] is FlowResultType.ABORT
@@ -1988,7 +1988,7 @@ async def test_reconfigure(
             "reconfig_storage",
             {
                 "storage": "custom_components/mail_and_packages/images/",
-            },                 
+            },
             "imap.test.email",
             {
                 "allow_external": False,
@@ -2050,7 +2050,7 @@ async def test_reconfigure_no_amazon(
     step_id_3,
     input_3,
     step_id_4,
-    input_4,    
+    input_4,
     title,
     data,
     hass: HomeAssistant,
@@ -2104,7 +2104,7 @@ async def test_reconfigure_no_amazon(
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_4
-        )        
+        )
 
         assert result["type"] is FlowResultType.ABORT
         assert result["reason"] == "reconfigure_successful"
