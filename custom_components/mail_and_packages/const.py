@@ -254,6 +254,7 @@ SENSOR_DATA = {
         "subject": [
             "Your package has been delivered",
             "Your packages have been delivered",
+            "Your shipment was delivered",
         ],
     },
     "fedex_delivering": {
@@ -262,6 +263,7 @@ SENSOR_DATA = {
             "Delivery scheduled for today",
             "Your package is scheduled for delivery today",
             "Your package is now out for delivery",
+            "Your shipment is out for delivery today",
             "out for delivery today",
         ],
     },
