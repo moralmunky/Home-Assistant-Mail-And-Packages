@@ -32,6 +32,7 @@ disable=
   too-many-lines,
   too-many-locals,
   abstract-method,
+  too-many-positional-arguments,
 
 [REFACTORING]
 
