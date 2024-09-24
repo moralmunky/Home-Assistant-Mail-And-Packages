@@ -4,10 +4,8 @@ from __future__ import annotations
 
 from typing import Final
 
-from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
-    BinarySensorEntityDescription,
-)
+from .entity import MailandPackagesBinarySensorEntityDescription
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription
 from homeassistant.helpers.entity import EntityCategory
 
@@ -1147,21 +1145,24 @@ IMAGE_SENSORS: Final[dict[str, SensorEntityDescription]] = {
     ),
 }
 
-BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
-    "usps_update": BinarySensorEntityDescription(
+BINARY_SENSORS: Final[dict[str, MailandPackagesBinarySensorEntityDescription]] = {
+    "usps_update": MailandPackagesBinarySensorEntityDescription(
         name="USPS Image Updated",
         key="usps_update",
         device_class=BinarySensorDeviceClass.UPDATE,
+        selectable=False,
     ),
-    "amazon_update": BinarySensorEntityDescription(
+    "amazon_update": MailandPackagesBinarySensorEntityDescription(
         name="Amazon Image Updated",
         key="amazon_update",
         device_class=BinarySensorDeviceClass.UPDATE,
+        selectable=False,
     ),
-    "usps_mail_delivered": BinarySensorEntityDescription(
+    "usps_mail_delivered": MailandPackagesBinarySensorEntityDescription(
         name="USPS Mail Delivered",
         key="usps_mail_delivered",
         entity_registry_enabled_default=False,
+        selectable=True,
     ),
 }
 
