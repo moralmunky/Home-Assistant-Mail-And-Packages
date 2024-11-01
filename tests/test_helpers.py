@@ -213,7 +213,6 @@ async def test_process_emails_bad(hass, mock_imap_no_email, mock_update):
         data=FAKE_CONFIG_DATA_BAD,
     )
 
-    entry.version = 2
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
