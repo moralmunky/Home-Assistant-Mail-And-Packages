@@ -780,7 +780,11 @@ async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
 async def test_amazon_search(hass, mock_imap_no_email):
     with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
         result = amazon_search(
-            mock_imap_no_email, "test/path/amazon/", hass, "testfilename.jpg", "amazon.com"
+            mock_imap_no_email,
+            "test/path/amazon/",
+            hass,
+            "testfilename.jpg",
+            "amazon.com",
         )
         assert result == 0
 
@@ -789,7 +793,11 @@ async def test_amazon_search(hass, mock_imap_no_email):
 async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
     with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
         result = amazon_search(
-            mock_imap_amazon_shipped, "test/path/amazon/", hass, "testfilename.jpg", "amazon.com"
+            mock_imap_amazon_shipped,
+            "test/path/amazon/",
+            hass,
+            "testfilename.jpg",
+            "amazon.com",
         )
         assert result == 8
 
@@ -800,7 +808,11 @@ async def test_amazon_search_delivered(
 ):
     with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
         result = amazon_search(
-            mock_imap_amazon_delivered, "test/path/amazon/", hass, "testfilename.jpg", "amazon.com"
+            mock_imap_amazon_delivered,
+            "test/path/amazon/",
+            hass,
+            "testfilename.jpg",
+            "amazon.com",
         )
         assert (
             "Amazon email search address: ['order-update@amazon.com', 'update-bestelling@amazon.com', 'versandbestaetigung@amazon.com']"

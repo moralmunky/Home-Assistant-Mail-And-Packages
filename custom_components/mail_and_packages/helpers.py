@@ -1117,7 +1117,7 @@ def amazon_search(
     domains = amazon_domain.split()
 
     _LOGGER.debug("Cleaning up amazon images...")
-    cleanup_images(f"{image_path}amazon/")    
+    cleanup_images(f"{image_path}amazon/")
 
     for domain in domains:
         for subject in subjects:
