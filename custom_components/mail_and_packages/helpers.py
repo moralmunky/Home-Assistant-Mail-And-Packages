@@ -944,8 +944,6 @@ def get_count(
 
     # Return Amazon delivered info
     if sensor_type == AMAZON_DELIVERED:
-        _LOGGER.debug("Cleaning up amazon images...")
-        cleanup_images(f"{image_path}amazon/")
         result[ATTR_COUNT] = amazon_search(
             account, image_path, hass, amazon_image_name, amazon_domain
         )
@@ -1118,6 +1116,9 @@ def amazon_search(
     count = 0
     domains = amazon_domain.split()
 
+    _LOGGER.debug("Cleaning up amazon images...")
+    cleanup_images(f"{image_path}amazon/")    
+
     for domain in domains:
         for subject in subjects:
             email_address = []
@@ -1139,6 +1140,14 @@ def amazon_search(
                     hass,
                     amazon_image_name,
                 )
+
+    if count == 0:
+        _LOGGER.debug("No Amazon deliveries found.")
+        nomail = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+        try:
+            copyfile(nomail, f"{image_path}amazon/" + amazon_image_name)
+        except Exception as err:
+            _LOGGER.error("Error attempting to copy image: %s", str(err))
 
     return count
 

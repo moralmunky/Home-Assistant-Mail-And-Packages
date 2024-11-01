@@ -778,47 +778,51 @@ async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
 
 @pytest.mark.asyncio
 async def test_amazon_search(hass, mock_imap_no_email):
-    result = amazon_search(
-        mock_imap_no_email, "test/path", hass, "testfilename.jpg", "amazon.com"
-    )
-    assert result == 0
+    with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
+        result = amazon_search(
+            mock_imap_no_email, "test/path/amazon/", hass, "testfilename.jpg", "amazon.com"
+        )
+        assert result == 0
 
 
 @pytest.mark.asyncio
 async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
-    result = amazon_search(
-        mock_imap_amazon_shipped, "test/path", hass, "testfilename.jpg", "amazon.com"
-    )
-    assert result == 8
+    with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
+        result = amazon_search(
+            mock_imap_amazon_shipped, "test/path/amazon/", hass, "testfilename.jpg", "amazon.com"
+        )
+        assert result == 8
 
 
 @pytest.mark.asyncio
 async def test_amazon_search_delivered(
     hass, mock_imap_amazon_delivered, mock_download_img, caplog
 ):
-    result = amazon_search(
-        mock_imap_amazon_delivered, "test/path", hass, "testfilename.jpg", "amazon.com"
-    )
-    assert (
-        "Amazon email search address: ['order-update@amazon.com', 'update-bestelling@amazon.com', 'versandbestaetigung@amazon.com']"
-        in caplog.text
-    )
-    assert result == 8
-    assert mock_download_img.called
+    with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
+        result = amazon_search(
+            mock_imap_amazon_delivered, "test/path/amazon/", hass, "testfilename.jpg", "amazon.com"
+        )
+        assert (
+            "Amazon email search address: ['order-update@amazon.com', 'update-bestelling@amazon.com', 'versandbestaetigung@amazon.com']"
+            in caplog.text
+        )
+        assert result == 8
+        assert mock_download_img.called
 
 
 @pytest.mark.asyncio
 async def test_amazon_search_delivered_it(
     hass, mock_imap_amazon_delivered_it, mock_download_img
 ):
-    result = amazon_search(
-        mock_imap_amazon_delivered_it,
-        "test/path",
-        hass,
-        "testfilename.jpg",
-        "amazon.it",
-    )
-    assert result == 8
+    with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
+        result = amazon_search(
+            mock_imap_amazon_delivered_it,
+            "test/path/amazon/",
+            hass,
+            "testfilename.jpg",
+            "amazon.it",
+        )
+        assert result == 8
 
 
 @pytest.mark.asyncio
