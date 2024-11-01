@@ -944,6 +944,8 @@ def get_count(
 
     # Return Amazon delivered info
     if sensor_type == AMAZON_DELIVERED:
+        _LOGGER.debug("Cleaning up amazon images...")
+        cleanup_images(f"{image_path}amazon/")
         result[ATTR_COUNT] = amazon_search(
             account, image_path, hass, amazon_image_name, amazon_domain
         )
