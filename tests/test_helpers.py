@@ -708,8 +708,12 @@ async def test_royal_out_for_delivery(hass, mock_imap_royal_out_for_delivery):
 
 @freeze_time("2020-09-11")
 @pytest.mark.asyncio
-async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped):
+async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped, caplog):
     result = get_items(mock_imap_amazon_shipped, "count", the_domain="amazon.com")
+    assert (
+        "Amazon email search address: ['shipment-tracking@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
+        in caplog.text
+    )
     assert result == 1
 
 
@@ -1136,6 +1140,10 @@ async def test_email_search_none(mock_imap_search_error_none, caplog):
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
-    result = get_items(mock_imap_amazon_fwd, "order", the_domain="amazon.com")
+    result = get_items(mock_imap_amazon_fwd, "order", fwds="testuser@test.com" ,the_domain="amazon.com")
+    assert (
+        "Amazon email list: ['testuser@test.com', 'amazon.com']"
+        in caplog.text
+    )
     assert result == ["123-1234567-1234567"]
     assert "First pass: Tuesday, January 11" in caplog.text

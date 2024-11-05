@@ -1216,17 +1216,20 @@ async def download_img(
                 _LOGGER.debug("Amazon image downloaded")
 
 
-def _process_amazon_forwards(email_list: Union[List[str], None]) -> list:
+def _process_amazon_forwards(email_list: str | list | None) -> list:
     """Process amazon forward emails.
 
     Returns list of email addresses
     """
     result = []
-    if email_list:
+    if email_list is not None:
+        if not isinstance(email_list, list):
+            email_list = email_list.split()
         for fwd in email_list:
             if fwd and fwd != '""' and fwd not in result:
                 result.append(fwd)
 
+    _LOGGER.debug("Processed forwards: %s", result)
     return result
 
 
@@ -1235,7 +1238,8 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
 
     Returns dict of sensor data
     """
-    email_addresses = _process_amazon_forwards(fwds)
+    email_addresses = []
+    email_addresses.extend(_process_amazon_forwards(fwds))
     body_regex = AMAZON_HUB_BODY
     subject_regex = AMAZON_HUB_SUBJECT_SEARCH
     info = {}
@@ -1388,9 +1392,10 @@ def get_items(
     tfmt = past_date.strftime("%d-%b-%Y")
     deliveries_today = []
     order_number = []
-    domains = _process_amazon_forwards(fwds)
+    domains = []
+    domains.extend(_process_amazon_forwards(fwds))
     the_domain = the_domain.split()
-    domains.append(the_domain)
+    domains.extend(the_domain)
 
     _LOGGER.debug("Amazon email list: %s", str(domains))
 
