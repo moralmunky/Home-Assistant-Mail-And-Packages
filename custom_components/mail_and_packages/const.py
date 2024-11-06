@@ -316,6 +316,7 @@ SENSOR_DATA = {
         "subject": [
             "DHL On Demand Delivery",
             "Paket kommt heute",
+            "kommt heute",
             "Paket wird gleich zugestellt",
             "Powiadomienie o przesyłce",
             "DHL Shipment Notification",
@@ -324,6 +325,7 @@ SENSOR_DATA = {
             "scheduled for delivery TODAY",
             "zostanie dziś do Państwa doręczona",
             "wird Ihnen heute",
+            "heute zwischen",
             " - Shipment is out with courier for delivery - ",
             "Shipment is scheduled for delivery",
             "voraussichtlich innerhalb",
