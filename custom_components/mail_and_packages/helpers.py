@@ -161,7 +161,12 @@ def default_image_path(
 
     Returns the default path based on logic
     """
-    storage = config_entry.get(CONF_STORAGE)
+    storage = None
+    try:
+        storage = config_entry.get(CONF_STORAGE)
+    except AttributeError:
+        storage = config_entry.data[CONF_STORAGE]
+
     if storage:
         return storage
     return "custom_components/mail_and_packages/images/"

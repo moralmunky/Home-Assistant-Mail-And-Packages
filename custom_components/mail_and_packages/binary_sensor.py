@@ -23,7 +23,7 @@ from .const import (
     DOMAIN,
     VERSION,
 )
-from .helpers import hash_file
+from .helpers import default_image_path, hash_file
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -88,8 +88,8 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
             attributes = (ATTR_IMAGE_NAME, ATTR_IMAGE_PATH)
             if set(attributes).issubset(self.coordinator.data.keys()):
                 image = self.coordinator.data[ATTR_IMAGE_NAME]
-                path = self.coordinator.data[ATTR_IMAGE_PATH]
-                usps_image = f"{self.hass.config.path()}/{path}{image}"
+                path = default_image_path(self.hass, self._config)
+                usps_image = f"{path}/{image}"
                 usps_none = f"{os.path.dirname(__file__)}/mail_none.gif"
                 usps_check = os.path.exists(usps_image)
                 _LOGGER.debug("USPS Check: %s", usps_check)
@@ -108,8 +108,8 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
             attributes = (ATTR_AMAZON_IMAGE, ATTR_IMAGE_PATH)
             if set(attributes).issubset(self.coordinator.data.keys()):
                 image = self.coordinator.data[ATTR_AMAZON_IMAGE]
-                path = f"{self.coordinator.data[ATTR_IMAGE_PATH]}amazon/"
-                amazon_image = f"{self.hass.config.path()}/{path}{image}"
+                path = f"{default_image_path(self.hass, self._config)}/amazon/"
+                amazon_image = f"{path}{image}"
                 amazon_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
                 amazon_check = os.path.exists(amazon_image)
                 _LOGGER.debug("Amazon Check: %s", amazon_check)
