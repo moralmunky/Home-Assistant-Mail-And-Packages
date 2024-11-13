@@ -922,4 +922,5 @@ FAKE_CONFIG_DATA_USPS_DELIVERED = {
     "scan_interval": 20,
     "username": "user@fake.email",
     "verify_ssl": False,
+    "storage": "custom_components/mail_and_packages/images/",
 }
