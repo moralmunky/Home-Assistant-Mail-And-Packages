@@ -1,5 +1,6 @@
 """Binary sensors for Mail and Packages."""
 
+import asyncio
 import logging
 import os
 
@@ -94,8 +95,9 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
                 usps_check = os.path.exists(usps_image)
                 _LOGGER.debug("USPS Check: %s", usps_check)
                 if usps_check:
-                    image_hash = self.hass.add_job(hash_file, usps_image)
-                    none_hash = self.hass.add_job(hash_file, usps_none)
+                    loop = asyncio.get_running_loop()
+                    image_hash = loop.run_in_executor(None, hash_file, usps_image)
+                    none_hash = loop.run_in_executor(None, hash_file, usps_none)
 
                     _LOGGER.debug("USPS Image hash: %s", image_hash)
                     _LOGGER.debug("USPS None hash: %s", none_hash)
@@ -114,8 +116,9 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
                 amazon_check = os.path.exists(amazon_image)
                 _LOGGER.debug("Amazon Check: %s", amazon_check)
                 if amazon_check:
-                    image_hash = self.hass.add_job(hash_file, amazon_image)
-                    none_hash = self.hass.add_job(hash_file, amazon_none)
+                    loop = asyncio.get_running_loop()
+                    image_hash = loop.run_in_executor(None, hash_file, amazon_image)
+                    none_hash = loop.run_in_executor(None, hash_file, amazon_none)
 
                     _LOGGER.debug("Amazon Image hash: %s", image_hash)
                     _LOGGER.debug("Amazon None hash: %s", none_hash)
