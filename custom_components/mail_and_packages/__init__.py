@@ -3,6 +3,7 @@
 import asyncio
 import logging
 from datetime import timedelta
+import os
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
@@ -11,6 +12,9 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
+    ATTR_AMAZON_IMAGE,
+    ATTR_IMAGE_NAME,
+    ATTR_IMAGE_PATH,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
@@ -29,7 +33,7 @@ from .const import (
     PLATFORMS,
     VERSION,
 )
-from .helpers import process_emails
+from .helpers import default_image_path, hash_file, process_emails
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -210,4 +214,52 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
             if data:
                 self._data = data
+                await self._binary_sensor_update()
             return self._data
+
+    async def _binary_sensor_update(self):
+        """Update binary sensor states."""
+        attributes = (ATTR_IMAGE_NAME, ATTR_IMAGE_PATH)
+        if set(attributes).issubset(self._data.keys()):
+            image = self._data[ATTR_IMAGE_NAME]
+            path = default_image_path(self.hass, self.config)
+            usps_image = f"{path}/{image}"
+            usps_none = f"{os.path.dirname(__file__)}/mail_none.gif"
+            usps_check = os.path.exists(usps_image)
+            _LOGGER.debug("USPS Check: %s", usps_check)
+            if usps_check:
+                image_hash = await self.hass.async_add_executor_job(
+                    hash_file, usps_image
+                )
+                none_hash = await self.hass.async_add_executor_job(hash_file, usps_none)
+
+                _LOGGER.debug("USPS Image hash: %s", image_hash)
+                _LOGGER.debug("USPS None hash: %s", none_hash)
+
+                if image_hash != none_hash:
+                    self._data["usps_update"] = True
+                else:
+                    self._data["usps_update"] = False
+        attributes = (ATTR_AMAZON_IMAGE, ATTR_IMAGE_PATH)
+        if set(attributes).issubset(self._data.keys()):
+            image = self._data[ATTR_AMAZON_IMAGE]
+            path = f"{default_image_path(self.hass, self.config)}/amazon/"
+            amazon_image = f"{path}{image}"
+            amazon_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            amazon_check = os.path.exists(amazon_image)
+            _LOGGER.debug("Amazon Check: %s", amazon_check)
+            if amazon_check:
+                image_hash = await self.hass.async_add_executor_job(
+                    hash_file, amazon_image
+                )
+                none_hash = await self.hass.async_add_executor_job(
+                    hash_file, amazon_none
+                )
+
+                _LOGGER.debug("Amazon Image hash: %s", image_hash)
+                _LOGGER.debug("Amazon None hash: %s", none_hash)
+
+                if image_hash != none_hash:
+                    self._data["amazon_update"] = True
+                else:
+                    self._data["amazon_update"] = False

@@ -1140,10 +1140,9 @@ async def test_email_search_none(mock_imap_search_error_none, caplog):
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
-    result = get_items(mock_imap_amazon_fwd, "order", fwds="testuser@test.com" ,the_domain="amazon.com")
-    assert (
-        "Amazon email list: ['testuser@test.com', 'amazon.com']"
-        in caplog.text
+    result = get_items(
+        mock_imap_amazon_fwd, "order", fwds="testuser@test.com", the_domain="amazon.com"
     )
+    assert "Amazon email list: ['testuser@test.com', 'amazon.com']" in caplog.text
     assert result == ["123-1234567-1234567"]
     assert "First pass: Tuesday, January 11" in caplog.text
