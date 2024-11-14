@@ -1,8 +1,6 @@
 """Binary sensors for Mail and Packages."""
 
-import asyncio
 import logging
-import os
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
@@ -16,15 +14,11 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import (
-    ATTR_AMAZON_IMAGE,
-    ATTR_IMAGE_NAME,
-    ATTR_IMAGE_PATH,
     BINARY_SENSORS,
     COORDINATOR,
     DOMAIN,
     VERSION,
 )
-from .helpers import default_image_path, hash_file
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -85,47 +79,6 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return True if the image is updated."""
-        if self._type == "usps_update":
-            attributes = (ATTR_IMAGE_NAME, ATTR_IMAGE_PATH)
-            if set(attributes).issubset(self.coordinator.data.keys()):
-                image = self.coordinator.data[ATTR_IMAGE_NAME]
-                path = default_image_path(self.hass, self._config)
-                usps_image = f"{path}/{image}"
-                usps_none = f"{os.path.dirname(__file__)}/mail_none.gif"
-                usps_check = os.path.exists(usps_image)
-                _LOGGER.debug("USPS Check: %s", usps_check)
-                if usps_check:
-                    loop = asyncio.get_running_loop()
-                    image_hash = loop.run_in_executor(None, hash_file, usps_image)
-                    none_hash = loop.run_in_executor(None, hash_file, usps_none)
-
-                    _LOGGER.debug("USPS Image hash: %s", image_hash)
-                    _LOGGER.debug("USPS None hash: %s", none_hash)
-
-                    if image_hash != none_hash:
-                        return True
-                return False
-
-        if self._type == "amazon_update":
-            attributes = (ATTR_AMAZON_IMAGE, ATTR_IMAGE_PATH)
-            if set(attributes).issubset(self.coordinator.data.keys()):
-                image = self.coordinator.data[ATTR_AMAZON_IMAGE]
-                path = f"{default_image_path(self.hass, self._config)}/amazon/"
-                amazon_image = f"{path}{image}"
-                amazon_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
-                amazon_check = os.path.exists(amazon_image)
-                _LOGGER.debug("Amazon Check: %s", amazon_check)
-                if amazon_check:
-                    loop = asyncio.get_running_loop()
-                    image_hash = loop.run_in_executor(None, hash_file, amazon_image)
-                    none_hash = loop.run_in_executor(None, hash_file, amazon_none)
-
-                    _LOGGER.debug("Amazon Image hash: %s", image_hash)
-                    _LOGGER.debug("Amazon None hash: %s", none_hash)
-
-                    if image_hash != none_hash:
-                        return True
-                return False
         if self._type in self.coordinator.data.keys():
             _LOGGER.debug(
                 "binary_sensor: %s value: %s",
