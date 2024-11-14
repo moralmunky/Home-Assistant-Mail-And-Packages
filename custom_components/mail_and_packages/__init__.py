@@ -19,6 +19,7 @@ from .const import (
     CONF_IMAP_TIMEOUT,
     CONF_PATH,
     CONF_SCAN_INTERVAL,
+    CONF_STORAGE,
     CONF_VERIFY_SSL,
     CONFIG_VER,
     COORDINATOR,
@@ -161,6 +162,11 @@ async def async_migrate_entry(hass, config_entry):
     if version <= 7:
         if CONF_AMAZON_DOMAIN not in updated_config:
             updated_config[CONF_AMAZON_DOMAIN] = "amazon.com"
+
+    if version < 10:
+        # Add default for image storage config
+        if CONF_STORAGE not in updated_config:
+            updated_config[CONF_STORAGE] = "custom_components/mail_and_packages/images/"
 
     if CONF_PATH not in updated_config:
         updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
