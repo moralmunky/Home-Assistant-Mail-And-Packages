@@ -64,6 +64,7 @@ async def test_binary_sensor_mail_delivered(
         domain=DOMAIN,
         title="imap.test.email",
         data=FAKE_CONFIG_DATA_USPS_DELIVERED,
+        version=9,
     )
 
     entry.add_to_hass(hass)

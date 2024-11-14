@@ -111,7 +111,7 @@ async def integration_fixture_4(hass, caplog):
     await hass.async_block_till_done()
 
     assert "Migrating from version 3" in caplog.text
-    assert "Migration complete to version 9" in caplog.text
+    assert "Migration complete to version 10" in caplog.text
 
     assert CONF_AMAZON_DOMAIN in entry.data
 
