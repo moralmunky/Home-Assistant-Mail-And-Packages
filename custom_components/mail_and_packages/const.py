@@ -465,6 +465,7 @@ SENSOR_DATA = {
         ],
         "subject": [
             "Bald ist ihr DPD Paket da",
+            "kommt Ihr DPD Paket",
         ],
         "body": [
             "Paketnummer",
