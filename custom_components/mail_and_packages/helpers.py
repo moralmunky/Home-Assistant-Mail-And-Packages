@@ -16,7 +16,6 @@ import uuid
 from datetime import timezone
 from email.header import decode_header
 from shutil import copyfile, copytree, which
-from ssl import Purpose
 from typing import Any, List, Optional, Type, Union
 
 import aiohttp
