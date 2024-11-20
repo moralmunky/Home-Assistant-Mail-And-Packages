@@ -803,7 +803,7 @@ async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
             "testfilename.jpg",
             "amazon.com",
         )
-        assert result == 8
+        assert result == 9
 
 
 @pytest.mark.asyncio
@@ -822,7 +822,7 @@ async def test_amazon_search_delivered(
             "Amazon email search address: ['order-update@amazon.com', 'update-bestelling@amazon.com', 'versandbestaetigung@amazon.com']"
             in caplog.text
         )
-        assert result == 8
+        assert result == 9
         assert mock_download_img.called
 
 
@@ -838,7 +838,7 @@ async def test_amazon_search_delivered_it(
             "testfilename.jpg",
             "amazon.it",
         )
-        assert result == 8
+        assert result == 9
 
 
 @pytest.mark.asyncio
