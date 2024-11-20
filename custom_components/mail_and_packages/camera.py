@@ -116,7 +116,7 @@ class MailCam(Camera):
             file = await self.hass.async_add_executor_job(open, self._file_path, "rb")
             return file.read()
         except FileNotFoundError:
-            _LOGGER.warning(
+            _LOGGER.info(
                 "Could not read camera %s image from file: %s",
                 self._name,
                 self._file_path,
@@ -125,7 +125,7 @@ class MailCam(Camera):
     def check_file_path_access(self, file_path: str) -> None:
         """Check that filepath given is readable."""
         if not os.access(file_path, os.R_OK):
-            _LOGGER.warning(
+            _LOGGER.info(
                 "Could not read camera %s image from file: %s", self._name, file_path
             )
 
