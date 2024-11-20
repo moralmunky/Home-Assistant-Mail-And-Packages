@@ -11,13 +11,11 @@ import logging
 import os
 import quopri
 import re
-import ssl
 import subprocess  # nosec
 import uuid
 from datetime import timezone
 from email.header import decode_header
 from shutil import copyfile, copytree, which
-from ssl import Purpose
 from typing import Any, List, Optional, Type, Union
 
 import aiohttp
@@ -33,6 +31,7 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.util import ssl
 from PIL import Image, ImageOps
 
 from .const import (
@@ -122,21 +121,16 @@ async def _test_login(
 
     Returns success boolean
     """
-    context = ssl.create_default_context()
     # Catch invalid mail server / host names
     try:
         if security == "SSL":
             if not verify:
-                context = ssl.create_default_context()
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
+                context = ssl.client_context_no_verify()
             else:
-                context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
+                context = ssl.client_context()
             account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
         elif security == "startTLS":
-            context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
+            context = ssl.client_context()
             account = imaplib.IMAP4(host=host, port=port)
             account.starttls(context)
         else:
@@ -470,16 +464,12 @@ def login(
     try:
         if security == "SSL":
             if not verify:
-                context = ssl.create_default_context()
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
+                context = ssl.client_context_no_verify()
             else:
-                context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
+                context = ssl.client_context()
             account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
         elif security == "startTLS":
-            context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
+            context = ssl.client_context()
             account = imaplib.IMAP4(host=host, port=port)
             account.starttls(context)
         else:
