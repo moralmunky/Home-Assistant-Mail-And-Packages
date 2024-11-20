@@ -651,6 +651,18 @@ SENSOR_DATA = {
     "post_de_delivered": {},
     "post_de_packages": {},
     "post_de_tracking": {},
+    # Post Austria
+    "post_at_delivering": {
+        "email": ["MeineSendung@post.at"],
+        "subject": ["Sendung ist in Zustellung"],
+    },
+    "post_at_exception": {},
+    "post_at_delivered": {
+        "email": ["MeineSendung@post.at"],
+        "subject": ["Ihre Sendung wurde Zugestellt"],
+    },
+    "post_at_packages": {},
+    "post_at_tracking": {"pattern": ["[0-9]{22}"]},
 }
 
 # Sensor definitions
@@ -1117,6 +1129,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="post_de_packages",
     ),
+    # Post Austria
+    "post_at_delivering": SensorEntityDescription(
+        name="Post AT Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="post_at_delivering",
+    ),
+    "post_at_delivered": SensorEntityDescription(
+        name="Post AT Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="post_at_delivered",
+    ),
+    "post_at_packages": SensorEntityDescription(
+        name="Post AT Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="post_at_packages",
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -1197,4 +1228,5 @@ SHIPPERS = [
     "purolator",
     "intelcom",
     "post_nl",
+    "post_at",
 ]
