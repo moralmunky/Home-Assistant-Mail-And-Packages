@@ -103,6 +103,7 @@ AMAZON_DELIVERED_SUBJECT = [
     "Entregado:",
     "Bezorgd:",
     "Livraison : Votre",
+    "Zugestellt: deine",
 ]
 AMAZON_SHIPMENT_TRACKING = [
     "shipment-tracking",
