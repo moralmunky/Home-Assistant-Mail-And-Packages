@@ -127,7 +127,10 @@ async def _test_login(
                 context = ssl.client_context()
             account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
         elif security == "startTLS":
-            context = ssl.client_context()
+            if not verify:
+                context = ssl.client_context_no_verify()
+            else:
+                context = ssl.client_context()
             account = imaplib.IMAP4(host=host, port=port)
             account.starttls(context)
         else:
@@ -464,7 +467,10 @@ def login(
                 context = ssl.client_context()
             account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
         elif security == "startTLS":
-            context = ssl.client_context()
+            if not verify:
+                context = ssl.client_context_no_verify()
+            else:            
+                context = ssl.client_context()
             account = imaplib.IMAP4(host=host, port=port)
             account.starttls(context)
         else:
