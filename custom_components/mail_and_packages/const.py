@@ -74,6 +74,7 @@ AMAZON_DOMAINS = [
     "amazon.co.uk",
     "amazon.in",
     "amazon.de",
+    "amazon.fr",
     "amazon.it",
     "amazon.com.au",
     "amazon.pl",
@@ -83,6 +84,7 @@ AMAZON_DELIVERED_SUBJECT = [
     "Consegna effettuata:",
     "Dostarczono:",
     "Geliefert:",
+    "livré;",
 ]
 AMAZON_SHIPMENT_TRACKING = ["shipment-tracking", "conferma-spedizione"]
 AMAZON_EMAIL = "order-update@"
@@ -107,6 +109,7 @@ AMAZON_TIME_PATTERN = [
     "arriving:",
     "Dostawa:",
     "Zustellung:",
+    "Arrivée:",
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
@@ -120,6 +123,7 @@ AMAZON_LANGS = [
     "pl_PL.UTF-8",
     "de_DE",
     "de_DE.UTF-8",
+    "fr_FR.UTF-8",
     "",
 ]
 
