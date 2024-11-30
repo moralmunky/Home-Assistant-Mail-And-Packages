@@ -1456,7 +1456,11 @@ def get_items(
                             _LOGGER.debug(
                                 "Problem decoding email message: %s", str(err)
                             )
-                            continue
+                            _LOGGER.debug("Attempting alternative method.")
+                            email_msg = msg.get_payload(0, decode=True)
+                            if email_msg is None:
+                                _LOGGER.error("Unable to process this email. Skipping.")
+                                continue
                         email_msg = email_msg.decode("utf-8", "ignore")
 
                         # Check message body for order number
