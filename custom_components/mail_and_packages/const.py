@@ -578,23 +578,41 @@ SENSOR_DATA = {
     "purolator_tracking": {"pattern": ["\\d{12,15}"]},
     # Intelcom
     "intelcom_delivered": {
-        "email": ["notifications@intelcom.ca"],
+        "email": [
+            "notifications@intelcom.ca",
+            "notifications@dragonflyshipping.ca",
+            "notifications@dragonflyshipping.com",
+        ],
         "subject": [
             "Your order has been delivered!",
+            "Your package has been delivered",
+            "Hooray! Your package is here",
             "Votre commande a été livrée!",
             "Votre colis a été livré!",
         ],
     },
     "intelcom_delivering": {
-        "email": ["notifications@intelcom.ca"],
+        "email": [
+            "notifications@intelcom.ca",
+            "notifications@dragonflyshipping.ca",
+            "notifications@dragonflyshipping.com",
+        ],
         "subject": [
             "Your package is on the way!",
+            "Your package is on its way",
             "Votre colis est en chemin!",
         ],
     },
     "intelcom_packages": {
-        "email": ["notifications@intelcom.ca"],
-        "subject": ["Your package has been received!"],
+        "email": [
+            "notifications@intelcom.ca",
+            "notifications@dragonflyshipping.ca",
+            "notifications@dragonflyshipping.com",
+        ],
+        "subject": [
+            "Your package has been received!",
+            "We've received your package",
+        ],
     },
     "intelcom_tracking": {"pattern": ["INTLCMD[0-9]{9}"]},
     # Walmart
