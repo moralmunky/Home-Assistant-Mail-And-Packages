@@ -1451,16 +1451,16 @@ def get_items(
                             order_number.append(found[0])
 
                         try:
-                            email_msg = quopri.decodestring(msg.get_payload(0))
+                            if msg.is_multipart():
+                                email_msg = quopri.decodestring(msg.get_payload(0))
+                            else:
+                                email_msg = quopri.decodestring(msg.get_payload())
                         except Exception as err:
                             _LOGGER.debug(
                                 "Problem decoding email message: %s", str(err)
                             )
-                            _LOGGER.debug("Attempting alternative method.")
-                            email_msg = msg.get_payload(0, decode=True)
-                            if email_msg is None:
-                                _LOGGER.error("Unable to process this email. Skipping.")
-                                continue
+                            _LOGGER.error("Unable to process this email. Skipping.")
+                            continue
                         email_msg = email_msg.decode("utf-8", "ignore")
 
                         # Check message body for order number
