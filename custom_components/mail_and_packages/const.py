@@ -350,6 +350,7 @@ SENSOR_DATA = {
         "subject": [
             "parcel is now with your local Hermes courier",
             "Ihre Hermes Sendung",
+            "Deine Hermes Sendung",
         ],
         "body": [
             "Voraussichtliche Zustellung",
