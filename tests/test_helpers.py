@@ -711,7 +711,7 @@ async def test_royal_out_for_delivery(hass, mock_imap_royal_out_for_delivery):
 async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped, caplog):
     result = get_items(mock_imap_amazon_shipped, "count", the_domain="amazon.com")
     assert (
-        "Amazon email search address: ['shipment-tracking@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
+        "Amazon email search addresses: ['shipment-tracking@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
         in caplog.text
     )
     assert result == 1
@@ -820,7 +820,7 @@ async def test_amazon_search_delivered(
         )
         await hass.async_block_till_done()
         assert (
-            "Amazon email search address: ['order-update@amazon.com', 'update-bestelling@amazon.com', 'versandbestaetigung@amazon.com']"
+            "Amazon email search addresses: ['shipment-tracking@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
             in caplog.text
         )
         assert result == 9
@@ -1071,9 +1071,7 @@ async def test_image_file_name(
 
 @pytest.mark.asyncio
 async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
-    result = amazon_exception(
-        mock_imap_amazon_exception, ['""'], the_domain="amazon.com"
-    )
+    result = amazon_exception(mock_imap_amazon_exception, the_domain="amazon.com")
     assert result["order"] == ["123-1234567-1234567"]
     assert result["count"] == 1
 
@@ -1082,9 +1080,9 @@ async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
         ["testemail@fakedomain.com"],
         the_domain="amazon.com",
     )
-    assert result["count"] == 2
+    assert result["count"] == 1
     assert (
-        "Amazon domains to be checked: ['amazon.com', 'testemail@fakedomain.com']"
+        "Amazon email list: ['shipment-tracking@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
         in caplog.text
     )
 
@@ -1144,6 +1142,9 @@ async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
     result = get_items(
         mock_imap_amazon_fwd, "order", fwds="testuser@test.com", the_domain="amazon.com"
     )
-    assert "Amazon email list: ['testuser@test.com', 'amazon.com']" in caplog.text
+    assert (
+        "Amazon email list: ['testuser@test.com', 'shipment-tracking@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
+        in caplog.text
+    )
     assert result == ["123-1234567-1234567"]
     assert "First pass: Tuesday, January 11" in caplog.text
