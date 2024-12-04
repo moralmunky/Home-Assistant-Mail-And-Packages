@@ -469,7 +469,7 @@ def login(
         elif security == "startTLS":
             if not verify:
                 context = ssl.client_context_no_verify()
-            else:            
+            else:
                 context = ssl.client_context()
             account = imaplib.IMAP4(host=host, port=port)
             account.starttls(context)
