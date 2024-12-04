@@ -130,7 +130,10 @@ async def _test_login(
                 context = ssl.client_context()
             account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
         elif security == "startTLS":
-            context = ssl.client_context()
+            if not verify:
+                context = ssl.client_context_no_verify()
+            else:
+                context = ssl.client_context()
             account = imaplib.IMAP4(host=host, port=port)
             account.starttls(context)
         else:
@@ -469,7 +472,10 @@ def login(
                 context = ssl.client_context()
             account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
         elif security == "startTLS":
-            context = ssl.client_context()
+            if not verify:
+                context = ssl.client_context_no_verify()
+            else:
+                context = ssl.client_context()
             account = imaplib.IMAP4(host=host, port=port)
             account.starttls(context)
         else:
@@ -1190,6 +1196,7 @@ def get_amazon_image(
                         break
 
     if img_url is not None:
+        _LOGGER.debug("Attempting to download Amazon image.")
         # Download the image we found
         hass.add_job(download_img(hass, img_url, image_path, image_name))
 
@@ -1282,9 +1289,10 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
 
                     # Get combo number from message body
                     try:
-                        email_msg = quopri.decodestring(
-                            str(msg.get_payload(0))
-                        )  # msg.get_payload(0).encode('utf-8')
+                        if msg.is_multipart():
+                            email_msg = quopri.decodestring(str(msg.get_payload(0)))
+                        else:
+                            email_msg = quopri.decodestring(str(msg.get_payload()))
                     except Exception as err:
                         _LOGGER.debug("Problem decoding email message: %s", str(err))
                         continue
@@ -1518,11 +1526,15 @@ def get_items(
                             order_number.append(found[0])
 
                         try:
-                            email_msg = quopri.decodestring(str(msg.get_payload(0)))
+                            if msg.is_multipart():
+                                email_msg = quopri.decodestring(str(msg.get_payload(0)))
+                            else:
+                                email_msg = quopri.decodestring(str(msg.get_payload()))
                         except Exception as err:
                             _LOGGER.debug(
                                 "Problem decoding email message: %s", str(err)
                             )
+                            _LOGGER.error("Unable to process this email. Skipping.")
                             continue
                         email_msg = email_msg.decode("utf-8", "ignore")
 
