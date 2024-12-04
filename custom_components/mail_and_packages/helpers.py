@@ -1283,9 +1283,10 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
 
                     # Get combo number from message body
                     try:
-                        email_msg = quopri.decodestring(
-                            msg.get_payload(0)
-                        )  # msg.get_payload(0).encode('utf-8')
+                        if msg.is_multipart():
+                            email_msg = quopri.decodestring(msg.get_payload(0))
+                        else:
+                            email_msg = quopri.decodestring(msg.get_payload())
                     except Exception as err:
                         _LOGGER.debug("Problem decoding email message: %s", str(err))
                         continue
