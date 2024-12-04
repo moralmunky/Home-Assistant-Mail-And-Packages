@@ -295,7 +295,9 @@ def _get_schema_step_storage(user_input: list, default_dict: list) -> Any:
 
     return vol.Schema(
         {
-            vol.Required(CONF_STORAGE, default=_get_default(CONF_STORAGE)): cv.string,
+            vol.Required(
+                CONF_STORAGE, default=_get_default(CONF_STORAGE, DEFAULT_STORAGE)
+            ): cv.string,
         }
     )
 
