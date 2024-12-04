@@ -168,7 +168,7 @@ async def integration_fixture_7(hass):
 def mock_imap():
     """Mock imap class values."""
     with patch("custom_components.mail_and_packages.helpers.imaplib") as mock_imap:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -192,7 +192,7 @@ def mock_imap_login_error():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_login_error:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_login_error.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.side_effect = Exception("Invalid username or password")
@@ -206,7 +206,7 @@ def mock_imap_select_error():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_select_error:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_select_error.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -229,7 +229,7 @@ def mock_imap_list_error():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_list_error:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_list_error.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -248,7 +248,7 @@ def mock_imap_no_email():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_no_email:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_no_email.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -263,6 +263,7 @@ def mock_imap_no_email():
         mock_conn.uid.return_value = ("OK", [b""])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.enable.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -272,7 +273,7 @@ def mock_imap_search_error():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_search_error:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_search_error.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -285,6 +286,7 @@ def mock_imap_search_error():
         )
         mock_conn.search.side_effect = Exception("Invalid SEARCH format")
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -294,7 +296,7 @@ def mock_imap_fetch_error():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_fetch_error:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_fetch_error.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -318,7 +320,7 @@ def mock_imap_index_error():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_index_error:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_index_error.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -339,7 +341,7 @@ def mock_imap_index_error_2():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_index_error:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_index_error.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -361,7 +363,7 @@ def mock_imap_mailbox_format2():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_mailbox_format2:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_mailbox_format2.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -374,6 +376,7 @@ def mock_imap_mailbox_format2():
         )
         mock_conn.search.return_value = ("OK", [b"0"])
         mock_conn.uid.return_value = ("OK", [b"0"])
+        
         yield mock_conn
 
 
@@ -383,7 +386,7 @@ def mock_imap_mailbox_format3():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_mailbox_format3:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_mailbox_format3.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -396,6 +399,7 @@ def mock_imap_mailbox_format3():
         )
         mock_conn.search.return_value = ("OK", [b"0"])
         mock_conn.uid.return_value = ("OK", [b"0"])
+        
         yield mock_conn
 
 
@@ -405,7 +409,7 @@ def mock_imap_usps_informed_digest():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_usps_informed_digest:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_usps_informed_digest.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -422,6 +426,7 @@ def mock_imap_usps_informed_digest():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -431,7 +436,7 @@ def mock_imap_usps_new_informed_digest():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_usps_new_informed_digest:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_usps_new_informed_digest.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -448,6 +453,7 @@ def mock_imap_usps_new_informed_digest():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -457,7 +463,7 @@ def mock_imap_usps_informed_digest_missing():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_usps_informed_digest_missing:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_usps_informed_digest_missing.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -474,6 +480,7 @@ def mock_imap_usps_informed_digest_missing():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -483,7 +490,7 @@ def mock_imap_usps_informed_digest_no_mail():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_usps_informed_digest_no_mail:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_usps_informed_digest_no_mail.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -500,6 +507,7 @@ def mock_imap_usps_informed_digest_no_mail():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -509,7 +517,7 @@ def mock_imap_usps_mail_delivered():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_usps_mail_delivered:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_usps_mail_delivered.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -526,6 +534,7 @@ def mock_imap_usps_mail_delivered():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -535,7 +544,7 @@ def mock_imap_ups_out_for_delivery():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_ups_out_for_delivery:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_ups_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -552,6 +561,7 @@ def mock_imap_ups_out_for_delivery():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -561,7 +571,7 @@ def mock_imap_ups_out_for_delivery_html():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_ups_out_for_delivery:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_ups_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -578,6 +588,7 @@ def mock_imap_ups_out_for_delivery_html():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -587,7 +598,7 @@ def mock_imap_dhl_out_for_delivery():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_dhl_out_for_delivery:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_dhl_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -605,6 +616,7 @@ def mock_imap_dhl_out_for_delivery():
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.enable.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -614,7 +626,7 @@ def mock_imap_dhl_no_utf8():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_dhl_no_utf8:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_dhl_no_utf8.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -632,6 +644,7 @@ def mock_imap_dhl_no_utf8():
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.enable.side_effect = Exception("BAD", ["Unsupported"])
+        
         yield mock_conn
 
 
@@ -641,7 +654,7 @@ def mock_imap_fedex_out_for_delivery():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_fedex_out_for_delivery:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_fedex_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -659,6 +672,7 @@ def mock_imap_fedex_out_for_delivery():
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.enable.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -668,7 +682,7 @@ def mock_imap_fedex_out_for_delivery_2():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_fedex_out_for_delivery_2:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_fedex_out_for_delivery_2.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -685,6 +699,7 @@ def mock_imap_fedex_out_for_delivery_2():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -694,7 +709,7 @@ def mock_imap_usps_out_for_delivery():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_usps_out_for_delivery:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_usps_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -711,6 +726,7 @@ def mock_imap_usps_out_for_delivery():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -720,7 +736,7 @@ def mock_imap_amazon_shipped():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_shipped:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_amazon_shipped.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -737,6 +753,7 @@ def mock_imap_amazon_shipped():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -746,7 +763,7 @@ def mock_imap_amazon_shipped_uk():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_shipped:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_amazon_shipped.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -763,6 +780,7 @@ def mock_imap_amazon_shipped_uk():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -772,7 +790,7 @@ def mock_imap_amazon_shipped_uk_2():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_shipped:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_amazon_shipped.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -789,6 +807,7 @@ def mock_imap_amazon_shipped_uk_2():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -798,7 +817,7 @@ def mock_imap_amazon_shipped_alt():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_shipped_alt:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_amazon_shipped_alt.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -815,6 +834,7 @@ def mock_imap_amazon_shipped_alt():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -824,7 +844,7 @@ def mock_imap_amazon_shipped_alt_2():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_shipped_alt_2:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_amazon_shipped_alt_2.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -841,6 +861,7 @@ def mock_imap_amazon_shipped_alt_2():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -850,7 +871,7 @@ def mock_imap_amazon_shipped_it():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_shipped_it:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_amazon_shipped_it.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -867,6 +888,7 @@ def mock_imap_amazon_shipped_it():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -876,7 +898,7 @@ def mock_imap_amazon_shipped_alt_timeformat():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_shipped:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_amazon_shipped.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -893,6 +915,7 @@ def mock_imap_amazon_shipped_alt_timeformat():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -902,7 +925,7 @@ def mock_imap_amazon_delivered():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_delivered:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_amazon_delivered.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -919,6 +942,7 @@ def mock_imap_amazon_delivered():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -928,7 +952,7 @@ def mock_imap_amazon_delivered_it():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_delivered_it:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_amazon_delivered_it.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -945,6 +969,7 @@ def mock_imap_amazon_delivered_it():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -954,7 +979,7 @@ def mock_imap_amazon_the_hub():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_the_hub:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_amazon_the_hub.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -971,6 +996,7 @@ def mock_imap_amazon_the_hub():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -980,7 +1006,7 @@ def mock_imap_amazon_the_hub_2():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_the_hub:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_amazon_the_hub.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -997,6 +1023,7 @@ def mock_imap_amazon_the_hub_2():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -1223,7 +1250,7 @@ def mock_imap_hermes_out_for_delivery():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_hermes_out_for_delivery:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_hermes_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -1240,6 +1267,7 @@ def mock_imap_hermes_out_for_delivery():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -1249,7 +1277,7 @@ def mock_imap_evri_out_for_delivery():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_evri_out_for_delivery:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_evri_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -1266,6 +1294,7 @@ def mock_imap_evri_out_for_delivery():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -1275,7 +1304,7 @@ def mock_imap_royal_out_for_delivery():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_royal_out_for_delivery:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_royal_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -1292,6 +1321,7 @@ def mock_imap_royal_out_for_delivery():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -1367,7 +1397,7 @@ def mock_imap_usps_exception():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_usps_informed_digest:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_usps_informed_digest.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -1384,6 +1414,7 @@ def mock_imap_usps_exception():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -1435,7 +1466,7 @@ def mock_imap_amazon_exception():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_exception:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_amazon_exception.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -1452,6 +1483,7 @@ def mock_imap_amazon_exception():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -1461,7 +1493,7 @@ def mock_imap_auspost_out_for_delivery():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_auspost_out_for_delivery:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_auspost_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -1478,6 +1510,7 @@ def mock_imap_auspost_out_for_delivery():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -1487,7 +1520,7 @@ def mock_imap_auspost_delivered():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_auspost_delivered:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_auspost_delivered.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -1504,6 +1537,7 @@ def mock_imap_auspost_delivered():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -1513,7 +1547,7 @@ def mock_imap_poczta_polska_delivering():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_poczta_polska_delivering:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_poczta_polska_delivering.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -1530,6 +1564,7 @@ def mock_imap_poczta_polska_delivering():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -1539,7 +1574,7 @@ def mock_imap_inpost_pl_out_for_delivery():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_inpost_pl_out_for_delivery:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_inpost_pl_out_for_delivery.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -1556,6 +1591,7 @@ def mock_imap_inpost_pl_out_for_delivery():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -1565,7 +1601,7 @@ def mock_imap_inpost_pl_delivered():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_inpost_pl_delivered:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_inpost_pl_delivered.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -1582,6 +1618,7 @@ def mock_imap_inpost_pl_delivered():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -1591,7 +1628,7 @@ def mock_imap_dpd_com_pl_delivering():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_dpd_com_pl_delivering:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_dpd_com_pl_delivering.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -1608,6 +1645,7 @@ def mock_imap_dpd_com_pl_delivering():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -1617,7 +1655,7 @@ def mock_imap_search_error_none():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_search_error_none:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_search_error_none.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -1630,6 +1668,7 @@ def mock_imap_search_error_none():
         )
         mock_conn.search.return_value = ("OK", [None])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
@@ -1639,7 +1678,7 @@ def mock_imap_amazon_fwd():
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib"
     ) as mock_imap_amazon_fwd:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_amazon_fwd.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
@@ -1656,6 +1695,7 @@ def mock_imap_amazon_fwd():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        
         yield mock_conn
 
 
