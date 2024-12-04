@@ -1191,6 +1191,7 @@ def get_amazon_image(
                         break
 
     if img_url is not None:
+        _LOGGER.debug("Attempting to download Amazon image.")
         # Download the image we found
         hass.add_job(download_img(hass, img_url, image_path, image_name))
 
@@ -1284,9 +1285,9 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
                     # Get combo number from message body
                     try:
                         if msg.is_multipart():
-                            email_msg = quopri.decodestring(msg.get_payload(0))
+                            email_msg = quopri.decodestring(str(msg.get_payload(0)))
                         else:
-                            email_msg = quopri.decodestring(msg.get_payload())
+                            email_msg = quopri.decodestring(str(msg.get_payload()))
                     except Exception as err:
                         _LOGGER.debug("Problem decoding email message: %s", str(err))
                         continue
@@ -1453,9 +1454,9 @@ def get_items(
 
                         try:
                             if msg.is_multipart():
-                                email_msg = quopri.decodestring(msg.get_payload(0))
+                                email_msg = quopri.decodestring(str(msg.get_payload(0)))
                             else:
-                                email_msg = quopri.decodestring(msg.get_payload())
+                                email_msg = quopri.decodestring(str(msg.get_payload()))
                         except Exception as err:
                             _LOGGER.debug(
                                 "Problem decoding email message: %s", str(err)

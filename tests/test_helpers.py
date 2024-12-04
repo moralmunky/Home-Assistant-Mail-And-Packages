@@ -818,6 +818,7 @@ async def test_amazon_search_delivered(
             "testfilename.jpg",
             "amazon.com",
         )
+        await hass.async_block_till_done()
         assert (
             "Amazon email search address: ['order-update@amazon.com', 'update-bestelling@amazon.com', 'versandbestaetigung@amazon.com']"
             in caplog.text
