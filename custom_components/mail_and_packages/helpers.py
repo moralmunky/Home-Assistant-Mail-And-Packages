@@ -620,6 +620,10 @@ def email_fetch(
 
     Returns tuple
     """
+    # iCloud doesn't support RFC822 so override the 'message parts'
+    if account.host == "imap.mail.me.com":
+        parts = "BODY[]"
+
     try:
         value = account.fetch(num, parts)
     except Exception as err:
