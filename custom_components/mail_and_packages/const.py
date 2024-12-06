@@ -624,6 +624,7 @@ SENSOR_DATA = {
             "Your order was delivered",
             "Some of your items were delivered",
             "Delivered:",
+            "Arrived:",
         ],
     },
     "walmart_exception": {
