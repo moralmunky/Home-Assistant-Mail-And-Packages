@@ -18,6 +18,7 @@ from custom_components.mail_and_packages.helpers import (
     amazon_hub,
     amazon_search,
     cleanup_images,
+    default_image_path,
     download_img,
     email_fetch,
     email_search,
@@ -32,7 +33,6 @@ from custom_components.mail_and_packages.helpers import (
     resize_images,
     selectfolder,
     update_time,
-    default_image_path,
 )
 from tests.const import (
     FAKE_CONFIG_DATA,

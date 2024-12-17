@@ -13,12 +13,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
-from .const import (
-    BINARY_SENSORS,
-    COORDINATOR,
-    DOMAIN,
-    VERSION,
-)
+from .const import BINARY_SENSORS, COORDINATOR, DOMAIN, VERSION
 
 _LOGGER = logging.getLogger(__name__)
 
