@@ -711,7 +711,7 @@ async def test_royal_out_for_delivery(hass, mock_imap_royal_out_for_delivery):
 async def test_amazon_shipped_count(hass, mock_imap_amazon_shipped, caplog):
     result = get_items(mock_imap_amazon_shipped, "count", the_domain="amazon.com")
     assert (
-        "Amazon email search addresses: ['shipment-tracking@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
+        "Amazon email search addresses: ['shipment-tracking@amazon.com', 'order-update@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
         in caplog.text
     )
     assert result == 1
@@ -820,7 +820,7 @@ async def test_amazon_search_delivered(
         )
         await hass.async_block_till_done()
         assert (
-            "Amazon email search addresses: ['shipment-tracking@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
+            "Amazon email search addresses: ['shipment-tracking@amazon.com', 'order-update@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
             in caplog.text
         )
         assert result == 9
@@ -1082,7 +1082,7 @@ async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
     )
     assert result["count"] == 1
     assert (
-        "Amazon email list: ['shipment-tracking@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
+        "Amazon email list: ['shipment-tracking@amazon.com', 'order-update@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
         in caplog.text
     )
 
@@ -1143,7 +1143,7 @@ async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
         mock_imap_amazon_fwd, "order", fwds="testuser@test.com", the_domain="amazon.com"
     )
     assert (
-        "Amazon email list: ['testuser@test.com', 'shipment-tracking@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
+        "Amazon email list: ['testuser@test.com', 'shipment-tracking@amazon.com', 'order-update@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
         in caplog.text
     )
     assert result == ["123-1234567-1234567"]
