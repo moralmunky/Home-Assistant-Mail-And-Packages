@@ -107,6 +107,7 @@ AMAZON_DELIVERED_SUBJECT = [
 ]
 AMAZON_SHIPMENT_TRACKING = [
     "shipment-tracking",
+    "order-update",
     "conferma-spedizione",
     "confirmar-envio",
     "versandbestaetigung",

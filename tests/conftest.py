@@ -263,7 +263,7 @@ def mock_imap_no_email():
         mock_conn.uid.return_value = ("OK", [b""])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.enable.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -286,7 +286,7 @@ def mock_imap_search_error():
         )
         mock_conn.search.side_effect = Exception("Invalid SEARCH format")
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -376,7 +376,7 @@ def mock_imap_mailbox_format2():
         )
         mock_conn.search.return_value = ("OK", [b"0"])
         mock_conn.uid.return_value = ("OK", [b"0"])
-        
+
         yield mock_conn
 
 
@@ -399,7 +399,7 @@ def mock_imap_mailbox_format3():
         )
         mock_conn.search.return_value = ("OK", [b"0"])
         mock_conn.uid.return_value = ("OK", [b"0"])
-        
+
         yield mock_conn
 
 
@@ -426,7 +426,7 @@ def mock_imap_usps_informed_digest():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -453,7 +453,7 @@ def mock_imap_usps_new_informed_digest():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -480,7 +480,7 @@ def mock_imap_usps_informed_digest_missing():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -507,7 +507,7 @@ def mock_imap_usps_informed_digest_no_mail():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -534,7 +534,7 @@ def mock_imap_usps_mail_delivered():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -561,7 +561,7 @@ def mock_imap_ups_out_for_delivery():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -588,7 +588,7 @@ def mock_imap_ups_out_for_delivery_html():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -616,7 +616,7 @@ def mock_imap_dhl_out_for_delivery():
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.enable.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -644,7 +644,7 @@ def mock_imap_dhl_no_utf8():
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.enable.side_effect = Exception("BAD", ["Unsupported"])
-        
+
         yield mock_conn
 
 
@@ -672,7 +672,7 @@ def mock_imap_fedex_out_for_delivery():
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.enable.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -699,7 +699,7 @@ def mock_imap_fedex_out_for_delivery_2():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -726,7 +726,7 @@ def mock_imap_usps_out_for_delivery():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -753,7 +753,7 @@ def mock_imap_amazon_shipped():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -780,7 +780,7 @@ def mock_imap_amazon_shipped_uk():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -807,7 +807,7 @@ def mock_imap_amazon_shipped_uk_2():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -834,7 +834,7 @@ def mock_imap_amazon_shipped_alt():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -861,7 +861,7 @@ def mock_imap_amazon_shipped_alt_2():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -888,7 +888,7 @@ def mock_imap_amazon_shipped_it():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -915,7 +915,7 @@ def mock_imap_amazon_shipped_alt_timeformat():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -942,7 +942,7 @@ def mock_imap_amazon_delivered():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -969,7 +969,7 @@ def mock_imap_amazon_delivered_it():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -996,7 +996,7 @@ def mock_imap_amazon_the_hub():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -1023,7 +1023,7 @@ def mock_imap_amazon_the_hub_2():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -1267,7 +1267,7 @@ def mock_imap_hermes_out_for_delivery():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -1294,7 +1294,7 @@ def mock_imap_evri_out_for_delivery():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -1321,7 +1321,7 @@ def mock_imap_royal_out_for_delivery():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -1414,7 +1414,7 @@ def mock_imap_usps_exception():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -1483,7 +1483,7 @@ def mock_imap_amazon_exception():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -1510,7 +1510,7 @@ def mock_imap_auspost_out_for_delivery():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -1537,7 +1537,7 @@ def mock_imap_auspost_delivered():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -1564,7 +1564,7 @@ def mock_imap_poczta_polska_delivering():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -1591,7 +1591,7 @@ def mock_imap_inpost_pl_out_for_delivery():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -1618,7 +1618,7 @@ def mock_imap_inpost_pl_delivered():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -1645,7 +1645,7 @@ def mock_imap_dpd_com_pl_delivering():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -1668,7 +1668,7 @@ def mock_imap_search_error_none():
         )
         mock_conn.search.return_value = ("OK", [None])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
@@ -1695,7 +1695,7 @@ def mock_imap_amazon_fwd():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
-        
+
         yield mock_conn
 
 
