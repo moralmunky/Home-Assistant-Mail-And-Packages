@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
-)
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription
 from homeassistant.helpers.entity import EntityCategory
 

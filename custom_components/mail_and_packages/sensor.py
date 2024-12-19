@@ -111,11 +111,6 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         return False
 
     @property
-    def available(self) -> bool:
-        """Return if entity is available."""
-        return self.coordinator.last_update_success
-
-    @property
     def extra_state_attributes(self) -> Optional[str]:
         """Return device specific state attributes."""
         attr = {}
