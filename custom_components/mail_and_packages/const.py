@@ -165,7 +165,7 @@ AMAZON_LANGS = [
     "",
 ]
 AMAZON_OTP = "amazon_otp"
-AMAZON_OTP_REGEX = "[0-9]{6}"
+AMAZON_OTP_REGEX = "(\n)(\\d{6})(\n)"
 AMAZON_OTP_SUBJECT = "A one-time password is required for your Amazon delivery"
 
 # Sensor Data

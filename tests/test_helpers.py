@@ -16,6 +16,7 @@ from custom_components.mail_and_packages.helpers import (
     _generate_mp4,
     amazon_exception,
     amazon_hub,
+    amazon_otp,
     amazon_search,
     cleanup_images,
     download_img,
@@ -936,7 +937,7 @@ async def test_process_emails_random_image(hass, mock_imap_login_error, caplog):
     await hass.async_block_till_done()
 
     config = entry.data
-    process_emails(hass, config)
+    await process_emails(hass, config)
     assert "Error logging into IMAP Server:" in caplog.text
 
 
@@ -1098,3 +1099,9 @@ async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
     result = get_items(mock_imap_amazon_fwd, "order")
     assert result == ["123-1234567-1234567"]
     assert "First pass: Tuesday, January 11" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_amazon_otp(hass, mock_imap_amazon_otp, caplog):
+    result = amazon_otp(mock_imap_amazon_otp, "order")
+    assert result == {"code": ["671314"]}

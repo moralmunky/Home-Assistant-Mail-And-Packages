@@ -1283,8 +1283,12 @@ def amazon_otp(account: Type[imaplib.IMAP4_SSL], fwds: Optional[list] = None) ->
                     if isinstance(response_part, tuple):
                         msg = email.message_from_bytes(response_part[1])
 
+                        _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
+                        _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
+
                         # Get code from message body
                         try:
+                            _LOGGER.debug("Decoding OTP email...")
                             email_msg = quopri.decodestring(
                                 str(msg.get_payload(0))
                             )  # msg.get_payload(0).encode('utf-8')
@@ -1298,6 +1302,9 @@ def amazon_otp(account: Type[imaplib.IMAP4_SSL], fwds: Optional[list] = None) ->
                         search = pattern.search(email_msg)
                         if search is not None:
                             if len(search.groups()) > 1:
+                                _LOGGER.debug(
+                                    "Amazon OTP search results: %s", search.group(2)
+                                )
                                 found.append(search.group(2))
 
     info[ATTR_CODE] = found
