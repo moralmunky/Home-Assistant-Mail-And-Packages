@@ -33,6 +33,7 @@ disable=
   too-many-locals,
   abstract-method,
   too-many-positional-arguments,
+  unexpected-keyword-arg,
 
 [REFACTORING]
 

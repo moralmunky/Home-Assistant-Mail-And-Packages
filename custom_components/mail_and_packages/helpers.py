@@ -68,6 +68,7 @@ from .const import (
     ATTR_SUBJECT,
     ATTR_TRACKING,
     ATTR_USPS_MAIL,
+    BINARY_SENSORS,
     CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
@@ -102,7 +103,16 @@ def get_resources() -> dict:
         sensor_id: sensor.name for sensor_id, sensor in SENSOR_TYPES.items()
     }
 
-    return known_available_resources
+    # append binary sensors that have selectable set to true
+    additional_resources = {
+        sensor_id: sensor.name
+        for sensor_id, sensor in BINARY_SENSORS.items()
+        if sensor.selectable
+    }
+
+    known_available_resources.update(additional_resources)
+
+    return dict(sorted(known_available_resources.items()))
 
 
 async def _check_ffmpeg() -> bool:
