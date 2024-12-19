@@ -1708,3 +1708,27 @@ def mock_update_amazon_image():
         # value = mock.Mock()
         mock_update.return_value = FAKE_UPDATE_DATA_BIN
         yield mock_update
+
+
+@pytest.fixture()
+def mock_imap_amazon_otp():
+    """Mock imap class values."""
+    with patch("custom_components.mail_and_packages.helpers.imaplib") as mock_imap:
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
+        mock_imap.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/amazon_otp.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+        yield mock_conn

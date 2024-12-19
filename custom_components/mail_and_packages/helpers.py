@@ -48,6 +48,9 @@ from .const import (
     AMAZON_HUB_SUBJECT_SEARCH,
     AMAZON_IMG_PATTERN,
     AMAZON_ORDER,
+    AMAZON_OTP,
+    AMAZON_OTP_REGEX,
+    AMAZON_OTP_SUBJECT,
     AMAZON_PACKAGES,
     AMAZON_PATTERN,
     AMAZON_SHIPMENT_TRACKING,
@@ -415,6 +418,8 @@ def fetch(
         info = amazon_exception(account, amazon_fwds, amazon_domain)
         count[sensor] = info[ATTR_COUNT]
         count[AMAZON_EXCEPTION_ORDER] = info[ATTR_ORDER]
+    elif sensor == AMAZON_OTP:
+        count[sensor] = amazon_otp(account, amazon_fwds)
     elif "_packages" in sensor:
         prefix = sensor.replace("_packages", "")
         delivering = fetch(hass, config, account, data, f"{prefix}_delivering")
@@ -1307,6 +1312,61 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
     info[ATTR_COUNT] = len(found)
     info[ATTR_CODE] = found
 
+    return info
+
+
+def amazon_otp(account: Type[imaplib.IMAP4_SSL], fwds: Optional[list] = None) -> dict:
+    """Find Amazon exception emails.
+
+    Returns dict of sensor data
+    """
+    tfmt = get_formatted_date()
+    info = {}
+    body_regex = AMAZON_OTP_REGEX
+    email_addresses = []
+    email_addresses.extend(_process_amazon_forwards(fwds))
+
+    for address in email_addresses:
+
+        (server_response, sdata) = email_search(
+            account, address, tfmt, AMAZON_OTP_SUBJECT
+        )
+
+        if server_response == "OK":
+            id_list = sdata[0].split()
+            _LOGGER.debug("Found Amazon OTP email(s): %s", str(len(id_list)))
+            found = []
+            for i in id_list:
+                data = email_fetch(account, i, "(RFC822)")[1]
+                for response_part in data:
+                    if isinstance(response_part, tuple):
+                        msg = email.message_from_bytes(response_part[1])
+
+                        _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
+                        _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
+
+                        # Get code from message body
+                        try:
+                            _LOGGER.debug("Decoding OTP email...")
+                            email_msg = quopri.decodestring(
+                                str(msg.get_payload(0))
+                            )  # msg.get_payload(0).encode('utf-8')
+                        except Exception as err:
+                            _LOGGER.debug(
+                                "Problem decoding email message: %s", str(err)
+                            )
+                            continue
+                        email_msg = email_msg.decode("utf-8", "ignore")
+                        pattern = re.compile(rf"{body_regex}")
+                        search = pattern.search(email_msg)
+                        if search is not None:
+                            if len(search.groups()) > 1:
+                                _LOGGER.debug(
+                                    "Amazon OTP search results: %s", search.group(2)
+                                )
+                                found.append(search.group(2))
+
+    info[ATTR_CODE] = found
     return info
 
 
