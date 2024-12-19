@@ -1323,26 +1323,13 @@ def amazon_otp(account: Type[imaplib.IMAP4_SSL], fwds: Optional[list] = None) ->
     tfmt = get_formatted_date()
     info = {}
     body_regex = AMAZON_OTP_REGEX
-    domains = AMAZON_DOMAINS
-    if isinstance(fwds, list):
-        for fwd in fwds:
-            if fwd and fwd != '""' and fwd not in domains:
-                domains.append(fwd)
-                _LOGGER.debug("Amazon email adding %s to list", str(fwd))
+    email_addresses = []
+    email_addresses.extend(_process_amazon_forwards(fwds))
 
-    _LOGGER.debug("Amazon domains to be checked: %s", str(domains))
-
-    for domain in domains:
-        if "@" in domain:
-            email_address = domain.strip('"')
-            _LOGGER.debug("Amazon email search address: %s", str(email_address))
-        else:
-            email_address = []
-            email_address.append(f"{AMAZON_EMAIL}{domain}")
-            _LOGGER.debug("Amazon email search address: %s", str(email_address))
+    for address in email_addresses:
 
         (server_response, sdata) = email_search(
-            account, email_address, tfmt, AMAZON_OTP_SUBJECT
+            account, address, tfmt, AMAZON_OTP_SUBJECT
         )
 
         if server_response == "OK":

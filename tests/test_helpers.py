@@ -974,7 +974,7 @@ async def test_process_emails_random_image(hass, mock_imap_login_error, caplog):
     await hass.async_block_till_done()
 
     config = entry.data
-    await process_emails(hass, config)
+    process_emails(hass, config)
     assert "Error logging into IMAP Server:" in caplog.text
 
 

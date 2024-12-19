@@ -1714,7 +1714,7 @@ def mock_update_amazon_image():
 def mock_imap_amazon_otp():
     """Mock imap class values."""
     with patch("custom_components.mail_and_packages.helpers.imaplib") as mock_imap:
-        mock_conn = mock.Mock(spec=imaplib.IMAP4_SSL)
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap.IMAP4_SSL.return_value = mock_conn
 
         mock_conn.login.return_value = (
