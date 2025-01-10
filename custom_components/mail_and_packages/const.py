@@ -105,6 +105,7 @@ AMAZON_DELIVERED_SUBJECT = [
     "Zugestellt: deine",
 ]
 AMAZON_SHIPMENT_TRACKING = [
+    "auto-confirm",
     "shipment-tracking",
     "order-update",
     "conferma-spedizione",
