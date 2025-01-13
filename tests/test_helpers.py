@@ -1149,7 +1149,7 @@ async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
         mock_imap_amazon_fwd, "order", fwds="testuser@test.com", the_domain="amazon.com"
     )
     assert (
-        "Amazon email list: ['auto-confirm@amazon.com', 'testuser@test.com', 'shipment-tracking@amazon.com', 'order-update@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
+        "Amazon email list: ['testuser@test.com', 'auto-confirm@amazon.com', 'shipment-tracking@amazon.com', 'order-update@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
         in caplog.text
     )
     assert result == ["123-1234567-1234567"]
