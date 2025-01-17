@@ -13,6 +13,7 @@ from homeassistant.components.sensor import SensorEntity, SensorEntityDescriptio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.network import get_url
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -195,21 +196,12 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
             path = self._config.data[CONF_PATH]
 
         if self.type == "usps_mail_image_system_path":
-            _LOGGER.debug("Updating system image path to: %s", path)
             the_path = f"{self.hass.config.path()}/{path}{image}"
+            _LOGGER.debug("Updating system image path to: %s", the_path)
         elif self.type == "usps_mail_image_url":
-            if (
-                self.hass.config.external_url is None
-                and self.hass.config.internal_url is None
-            ):
-                the_path = None
-            elif self.hass.config.external_url is None:
-                _LOGGER.debug("External URL not set in configuration.")
-                url = self.hass.config.internal_url
-                the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
-            else:
-                url = self.hass.config.external_url
-                the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
+            url = get_url(self.hass, prefer_external=True)
+            the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
+            _LOGGER.debug("Updating image url to: %s", the_path)
         return the_path
 
     @property
