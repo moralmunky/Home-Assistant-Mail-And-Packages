@@ -4,7 +4,6 @@ import logging
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
-    BinarySensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST
@@ -14,6 +13,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import BINARY_SENSORS, COORDINATOR, DOMAIN, VERSION
+from .entity import MailandPackagesBinarySensorEntityDescription
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
 
     def __init__(
         self,
-        sensor_description: BinarySensorEntityDescription,
+        sensor_description: MailandPackagesBinarySensorEntityDescription,
         coordinator: DataUpdateCoordinator,
         config: ConfigEntry,
     ) -> None:

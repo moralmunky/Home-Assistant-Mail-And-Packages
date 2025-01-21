@@ -483,15 +483,15 @@ def login(
     try:
         if security == "SSL":
             if not verify:
-                context = ssl.client_context_no_verify()
+                context = ssl.get_default_no_verify_context()
             else:
-                context = ssl.client_context()
+                context = ssl.get_default_context()
             account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
         elif security == "startTLS":
             if not verify:
-                context = ssl.client_context_no_verify()
+                context = ssl.get_default_no_verify_context()
             else:
-                context = ssl.client_context()
+                context = ssl.get_default_context()
             account = imaplib.IMAP4(host=host, port=port)
             account.starttls(context)
         else:
