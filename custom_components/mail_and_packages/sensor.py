@@ -20,6 +20,7 @@ from .const import (
     AMAZON_EXCEPTION,
     AMAZON_EXCEPTION_ORDER,
     AMAZON_ORDER,
+    ATTR_GRID_IMAGE_NAME,
     ATTR_IMAGE,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
@@ -186,17 +187,18 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
         image = ""
         the_path = None
 
-        if ATTR_IMAGE_NAME in self.coordinator.data.keys():
-            image = self.coordinator.data[ATTR_IMAGE_NAME]
+        image = self.coordinator.data.get(ATTR_IMAGE_NAME)
 
-        if ATTR_IMAGE_PATH in self.coordinator.data.keys():
-            path = self.coordinator.data[ATTR_IMAGE_PATH]
-        else:
-            path = self._config.data[CONF_PATH]
+        grid_image = self.coordinator.data.get(ATTR_GRID_IMAGE_NAME)
+
+        path = self.coordinator.data.get(ATTR_IMAGE_PATH, self._config.data[CONF_PATH])
 
         if self.type == "usps_mail_image_system_path":
             _LOGGER.debug("Updating system image path to: %s", path)
             the_path = f"{self.hass.config.path()}/{path}{image}"
+        elif self.type == "usps_mail_grid_image_path":
+            _LOGGER.debug("Updating grid image path to: %s", path)
+            the_path = f"{self.hass.config.path()}/{path}{grid_image}"
         elif self.type == "usps_mail_image_url":
             if (
                 self.hass.config.external_url is None

@@ -1248,6 +1248,7 @@ async def test_get_resourcs(hass):
         "zpackages_transit": "Mail Packages In Transit",
     }
 
+
 @pytest.mark.asyncio
 async def test_generate_grid_image(
     mock_osremove, mock_os_path_join2, mock_subprocess_call, mock_os_path_split
@@ -1298,4 +1299,19 @@ async def test_generate_grid_image(
             ],
             stdout=-3,
             stderr=-3,
-        )        
+        )
+        generate_grid_img("./", "testfile.gif", 0)
+        mock_subprocess_call.assert_called_with(
+            [
+                "ffmpeg",
+                "-i",
+                "./testfile_grid.png",
+                "-r",
+                "0.20",
+                "-filter_complex",
+                "tile=2x1:padding=10:color=black",
+                "./testfile_grid.png",
+            ],
+            stdout=-3,
+            stderr=-3,
+        )

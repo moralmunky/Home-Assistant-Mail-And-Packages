@@ -61,6 +61,7 @@ from .const import (
     ATTR_CODE,
     ATTR_COUNT,
     ATTR_EMAIL,
+    ATTR_GRID_IMAGE_NAME,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
     ATTR_ORDER,
@@ -195,6 +196,7 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     resources = config.get(CONF_RESOURCES)
     imap_security = config.get(CONF_IMAP_SECURITY)
     verify_ssl = config.get(CONF_VERIFY_SSL)
+    generate_grid = config.get(CONF_GENERATE_GRID)
 
     # Create the dict container
     data = {}
@@ -217,6 +219,11 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     image_name = image_file_name(hass, config)
     _LOGGER.debug("Image name: %s", image_name)
     _image[ATTR_IMAGE_NAME] = image_name
+
+    if generate_grid:
+        png_file = image_name.replace(".gif", "_grid.png")
+        _LOGGER.debug("Grid image name: %s", png_file)
+        _image[ATTR_GRID_IMAGE_NAME] = png_file
 
     # Amazon delivery image name
     image_name = image_file_name(hass, config, True)
@@ -274,7 +281,9 @@ def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
 
 
 def image_file_name(
-    hass: HomeAssistant, config: ConfigEntry, amazon: bool = False
+    hass: HomeAssistant,
+    config: ConfigEntry,
+    amazon: bool = False,
 ) -> str:
     """Determine if filename is to be changed or not.
 
@@ -887,10 +896,11 @@ def generate_grid_img(path: str, image_file: str, count: int) -> None:
     use a subprocess so we don't lock up the thread
     comamnd: ffmpeg -f gif -i infile.gif outfile.mp4
     """
-    if count%2==0:
-        length = int(count/2)
+    count = max(count, 1)
+    if count % 2 == 0:
+        length = int(count / 2)
     else:
-        length = int(count/2) + count%2
+        length = int(count / 2) + count % 2
 
     gif_image = os.path.join(path, image_file)
     png_file = os.path.join(path, image_file.replace(".gif", "_grid.png"))
@@ -975,6 +985,9 @@ def cleanup_images(path: str, image: Optional[str] = None) -> None:
 
     Only supose to delete .gif, .mp4, and .jpg files
     """
+    if isinstance(path, tuple):
+        path = path[0]
+        image = path[1]
     if image is not None:
         try:
             os.remove(path + image)
@@ -983,7 +996,12 @@ def cleanup_images(path: str, image: Optional[str] = None) -> None:
         return
 
     for file in os.listdir(path):
-        if file.endswith(".gif") or file.endswith(".mp4") or file.endswith(".jpg"):
+        if (
+            file.endswith(".gif")
+            or file.endswith(".mp4")
+            or file.endswith(".jpg")
+            or file.endswith(".png")
+        ):
             try:
                 os.remove(path + file)
             except Exception as err:

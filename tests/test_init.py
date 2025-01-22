@@ -22,13 +22,13 @@ async def test_unload_entry(hass, integration, mock_update, mock_copy_overlays):
     """Test unloading entities."""
     entry = integration
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 48
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 49
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
     assert await hass.config_entries.async_unload(entries[0].entry_id)
     await hass.async_block_till_done()
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 48
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 49
     assert len(hass.states.async_entity_ids(DOMAIN)) == 0
 
     assert await hass.config_entries.async_remove(entries[0].entry_id)
@@ -53,7 +53,7 @@ async def test_setup_entry(
     """Test settting up entities."""
     entry = integration
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 48
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 49
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -75,7 +75,7 @@ async def test_no_path_no_sec(
     """Test settting up entities."""
     entry = integration_no_path
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 43
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 44
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -97,7 +97,7 @@ async def test_missing_imap_timeout(
     """Test settting up entities."""
     entry = integration_no_timeout
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 42
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 43
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -118,7 +118,7 @@ async def test_amazon_fwds_string(
 ):
     """Test settting up entities."""
     entry = integration_fwd_string
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 42
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 43
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -140,7 +140,7 @@ async def test_custom_img(
     """Test settting up entities."""
     entry = integration_custom_img
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 43
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 44
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -162,6 +162,6 @@ async def test_v4_migration(
     """Test settting up entities."""
     entry = integration_v4_migration
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 42
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 43
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
