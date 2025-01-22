@@ -406,6 +406,7 @@ def fetch(
             image_name,
             generate_mp4,
             nomail,
+            generate_grid,
         )
     elif sensor == AMAZON_PACKAGES:
         count[sensor] = get_items(
@@ -841,7 +842,7 @@ def get_mails(
         if gen_mp4:
             _generate_mp4(image_output_path, image_name)
         if gen_grid:
-            generate_grid(image_output_path, image_name)
+            generate_grid_img(image_output_path, image_name)
 
     return image_count
 
@@ -880,7 +881,7 @@ def _generate_mp4(path: str, image_file: str) -> None:
     )
 
 
-def generate_grid(path: str, image_file: str) -> None:
+def generate_grid_img(path: str, image_file: str) -> None:
     """Generate mp4 from gif.
 
     use a subprocess so we don't lock up the thread
