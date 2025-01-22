@@ -26,9 +26,41 @@ async def test_binary_sensor_no_updates(
 
     assert "mail_and_packages" in hass.config.components
 
+    entity_entry = entity_registry.async_get("binary_sensor.usps_image_updated")
+
+    assert entity_entry
+    assert entity_entry.disabled
+    assert entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+
+    updated_entry = entity_registry.async_update_entity(
+        entity_entry.entity_id, disabled_by=None
+    )
+    assert updated_entry != entity_entry
+    assert updated_entry.disabled is False      
+
+    await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
+    await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
+    await hass.async_block_till_done()    
+
     state = hass.states.get("binary_sensor.usps_image_updated")
     assert state
     assert state.state == "off"
+
+    entity_entry = entity_registry.async_get("binary_sensor.amazon_image_updated")
+
+    assert entity_entry
+    assert entity_entry.disabled
+    assert entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+
+    updated_entry = entity_registry.async_update_entity(
+        entity_entry.entity_id, disabled_by=None
+    )
+    assert updated_entry != entity_entry
+    assert updated_entry.disabled is False 
+
+    await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
+    await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
+    await hass.async_block_till_done()    
 
     state = hass.states.get("binary_sensor.amazon_image_updated")
     assert state
@@ -73,9 +105,41 @@ async def test_binary_sensor_mail_delivered(
 
     assert "mail_and_packages" in hass.config.components
 
+    entity_entry = entity_registry.async_get("binary_sensor.usps_image_updated")
+
+    assert entity_entry
+    assert entity_entry.disabled
+    assert entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+
+    updated_entry = entity_registry.async_update_entity(
+        entity_entry.entity_id, disabled_by=None
+    )
+    assert updated_entry != entity_entry
+    assert updated_entry.disabled is False    
+
+    await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
+    await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
+    await hass.async_block_till_done()    
+
     state = hass.states.get("binary_sensor.usps_image_updated")
     assert state
     assert state.state == "off"
+
+    entity_entry = entity_registry.async_get("binary_sensor.amazon_image_updated")
+
+    assert entity_entry
+    assert entity_entry.disabled
+    assert entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+
+    updated_entry = entity_registry.async_update_entity(
+        entity_entry.entity_id, disabled_by=None
+    )
+    assert updated_entry != entity_entry
+    assert updated_entry.disabled is False       
+
+    await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
+    await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
+    await hass.async_block_till_done()     
 
     state = hass.states.get("binary_sensor.amazon_image_updated")
     assert state
