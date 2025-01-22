@@ -37,7 +37,8 @@
                     "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
                     "generate_mp4": "Create mp4 from images",
                     "allow_external": "Create image for notification apps",
-                    "custom_img": "Use custom 'no image' image?"
+                    "custom_img": "Use custom 'no image' image?",
+                    "generate_grid": "Create image grid for LLM vision models"
                 },
                 "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please separate each address with a comma.",
                 "title": "Mail and Packages (Step 2 of 2)"
@@ -81,7 +82,8 @@
                     "resources": "Sensors List",
                     "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
                     "allow_external": "Create image for notification apps",
-                    "custom_img": "Use custom 'no image' image?"
+                    "custom_img": "Use custom 'no image' image?",
+                    "generate_grid": "Create image grid for LLM vision models"
                 },
                 "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
                 "title": "Mail and Packages (Step 2 of 2)"

@@ -24,6 +24,7 @@ from .const import (
     CONF_CUSTOM_IMG_FILE,
     CONF_DURATION,
     CONF_FOLDER,
+    CONF_GENERATE_GRID,
     CONF_GENERATE_MP4,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_SECURITY,
@@ -231,6 +232,9 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
                 CONF_DURATION, default=_get_default(CONF_DURATION)
             ): vol.Coerce(int),
             vol.Optional(
+                CONF_GENERATE_GRID, default=_get_default(CONF_GENERATE_GRID)
+            ): cv.boolean,
+            vol.Optional(
                 CONF_GENERATE_MP4, default=_get_default(CONF_GENERATE_MP4)
             ): cv.boolean,
             vol.Optional(
@@ -384,6 +388,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             CONF_DURATION: DEFAULT_GIF_DURATION,
             CONF_IMAGE_SECURITY: DEFAULT_IMAGE_SECURITY,
             CONF_IMAP_TIMEOUT: DEFAULT_IMAP_TIMEOUT,
+            CONF_GENERATE_GRID: False,
             CONF_GENERATE_MP4: False,
             CONF_ALLOW_EXTERNAL: DEFAULT_ALLOW_EXTERNAL,
             CONF_CUSTOM_IMG: DEFAULT_CUSTOM_IMG,

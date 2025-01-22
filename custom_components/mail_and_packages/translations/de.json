@@ -37,7 +37,8 @@
                     "imap_timeout": "Zeit in Sekunden bis zum Timeout der Verbindung (Sekunden, mindestens 10)",
                     "generate_mp4": "Erstellen Sie mp4 aus Bildern",
                     "allow_external": "Bild für Benachrichtigungs-Apps erstellen",
-                    "custom_img": "Benutzerdefiniertes Bild 'kein Bild' verwenden?"
+                    "custom_img": "Benutzerdefiniertes Bild 'kein Bild' verwenden?",
+                    "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle"
                 },
                 "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) auf GitHub.",
                 "title": "Briefe und Pakete (Schritt 2 von 2)"
@@ -81,7 +82,8 @@
                     "resources": "Sensoren Liste",
                     "imap_timeout": "Zeit in Sekunden bis zum Timeout der Verbindung (Sekunden, mindestens 10)",
                     "allow_external": "Bild für Benachrichtigungs-Apps erstellen",
-                    "custom_img": "Benutzerdefiniertes Bild 'kein Bild' verwenden?"
+                    "custom_img": "Benutzerdefiniertes Bild 'kein Bild' verwenden?",
+                    "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle"
                 },
                 "description": "Schließen Sie die Konfiguration ab, indem Sie das Folgende an Ihre E-Mail-Struktur und Home Assistant-Installation anpassen.\n\nWeitere Informationen zu den [Mail und Packages Integration](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) Optionen finden Sie im [Konfigurations-, Vorlagen- und Automatisierungsabschnitt](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) auf GitHub.\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse durch ein Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
                 "title": "Briefe und Pakete (Schritt 2 von 2)"

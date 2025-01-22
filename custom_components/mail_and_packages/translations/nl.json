@@ -37,7 +37,8 @@
                     "imap_timeout": "Tijd in seconden voordat de verbinding verloopt (seconden, minimaal 10)",
                     "generate_mp4": "Maak mp4 van afbeeldingen",
                     "allow_external": "Maak afbeelding voor meldingsapps",
-                    "custom_img": "Gebruik aangepaste 'geen afbeelding' afbeelding?"
+                    "custom_img": "Gebruik aangepaste 'geen afbeelding' afbeelding?",
+                    "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen"
                 },
                 "description": "Voltooi de configuratie door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie. \n\n Voor meer informatie over de [E-mail en pakketten integratie] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) opties bekijk de [configuratie, sjablonen , en automatisering sectie] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) op GitHub.",
                 "title": "Mail en pakketten (stap 2 van 2)"
@@ -81,7 +82,8 @@
                     "resources": "Lijst van sensoren",
                     "imap_timeout": "Tijd in seconden voordat de verbinding verloopt (seconden, minimaal 10)",
                     "allow_external": "Maak afbeelding voor meldingsapps",
-                    "custom_img": "Gebruik aangepaste 'geen afbeelding' afbeelding?"
+                    "custom_img": "Gebruik aangepaste 'geen afbeelding' afbeelding?",
+                    "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen"
                 },
                 "description": "Rond de configuratie af door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie.\n\nVoor details over de [Mail en Packages integratie](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) opties, bekijk de [configuratie, sjablonen en automatiseringen sectie](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) op GitHub.\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
                 "title": "Mail en pakketten (stap 2 van 2)"

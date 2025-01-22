@@ -37,7 +37,8 @@
                     "imap_timeout": "Temps en segons abans de l'expiració de la connexió (segons, mínim 10)",
                     "generate_mp4": "Crea mp4 a partir d’imatges",
                     "allow_external": "Crea una imatge per a aplicacions de notificacions",
-                    "custom_img": "Utilitza la imatge personalitzada 'no hi ha imatge'?"
+                    "custom_img": "Utilitza la imatge personalitzada 'no hi ha imatge'?",
+                    "generate_grid": "Crea una quadrícula d'imatges per a models de visió LLM"
                 },
                 "description": "Finalitzeu la configuració personalitzant la següent en funció de la vostra instal·lació de correu electrònic i la instal·lació d’assistència a casa. \n\n Per obtenir més informació sobre les opcions [Integració de paquets i correus] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), reviseu les opcions [configuració, plantilles , secció i automatitzacions] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) a GitHub.",
                 "title": "Correu i paquets (pas 2 de 2)"
@@ -81,7 +82,8 @@
                     "resources": "Llista de sensors",
                     "imap_timeout": "Temps en segons abans de l'expiració de la connexió (segons, mínim 10)",
                     "allow_external": "Crea una imatge per a aplicacions de notificacions",
-                    "custom_img": "Utilitza la imatge personalitzada 'no hi ha imatge'?"
+                    "custom_img": "Utilitza la imatge personalitzada 'no hi ha imatge'?",
+                    "generate_grid": "Crea una quadrícula d'imatges per a models de visió LLM"
                 },
                 "description": "Acabeu la configuració personalitzant el següent en funció de l'estructura del vostre correu electrònic i de la instal·lació de Home Assistant.\n\nPer obtenir més detalls sobre les opcions d'[integració de correu i paquets](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), consulteu la [secció de configuració, plantilles i automatitzacions](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) a GitHub.\n\nSi utilitzeu correus electrònics reenviats d'Amazon, separeu cada adreça amb una coma o introduïu (cap) per esborrar aquesta configuració.",
                 "title": "Correu i paquets (pas 2 de 2)"

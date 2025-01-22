@@ -37,7 +37,8 @@
                     "imap_timeout": "연결 시간 초과 전 시간(초, 최소 10)",
                     "generate_mp4": "이미지에서 mp4 만들기",
                     "allow_external": "알림 앱용 이미지 생성",
-                    "custom_img": "사용자 정의 '이미지 없음' 이미지를 사용하시겠습니까?"
+                    "custom_img": "사용자 정의 '이미지 없음' 이미지를 사용하시겠습니까?",
+                    "generate_grid": "LLM 비전 모델을 위한 이미지 그리드 생성"
                 },
                 "description": "이메일 구조 및 Home Assistant 설치에 따라 다음을 사용자 정의하여 구성을 완료하십시오. \n\n [메일 및 패키지 통합] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) 옵션에 대한 자세한 내용은 [구성, 템플릿 및 자동화 섹션] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-and-Packages\/wiki\/Configuration-and-Email-Settings#configuration)",
                 "title": "메일 및 패키지 (2\/2 단계)"
@@ -81,7 +82,8 @@
                     "resources": "센서 목록",
                     "imap_timeout": "연결 시간 초과 전 시간(초, 최소 10)",
                     "allow_external": "알림 앱용 이미지 생성",
-                    "custom_img": "사용자 정의 '이미지 없음' 이미지를 사용하시겠습니까?"
+                    "custom_img": "사용자 정의 '이미지 없음' 이미지를 사용하시겠습니까?",
+                    "generate_grid": "LLM 비전 모델을 위한 이미지 그리드 생성"
                 },
                 "description": "이메일 구조와 Home Assistant 설치에 따라 다음을 사용자 정의하여 구성을 완료하십시오.\n\n[Mail and Packages 통합](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) 옵션에 대한 자세한 내용은 GitHub의 [구성, 템플릿, 자동화 섹션](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration)을 참조하십시오.\n\nAmazon에서 전달된 이메일을 사용하는 경우 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 (none)을 입력하십시오.",
                 "title": "메일 및 패키지 (2\/2 단계)"

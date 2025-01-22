@@ -37,7 +37,8 @@
                     "imap_timeout": "Temps en secondes avant la fin de la connexion (secondes, minimum 10)",
                     "generate_mp4": "Créer mp4 à partir d'images",
                     "allow_external": "Créer une image pour les applications de notification",
-                    "custom_img": "Utiliser une image personnalisée 'pas d'image' ?"
+                    "custom_img": "Utiliser une image personnalisée 'pas d'image' ?",
+                    "generate_grid": "Créer une grille d'images pour les modèles de vision LLM"
                 },
                 "description": "Terminez la configuration en personnalisant les éléments suivants en fonction de votre structure de messagerie et de l'installation de Home Assistant. \n\n Pour plus de détails sur les [Intégration de messagerie et de packages] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), passez en revue les [configuration, modèles et section automatisations] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) sur GitHub.",
                 "title": "Courrier et colis (étape 2 sur 2)"
@@ -81,7 +82,8 @@
                     "resources": "Liste des capteurs",
                     "imap_timeout": "Temps en secondes avant la fin de la connexion (secondes, minimum 10)",
                     "allow_external": "Créer une image pour les applications de notification",
-                    "custom_img": "Utiliser une image personnalisée 'pas d'image' ?"
+                    "custom_img": "Utiliser une image personnalisée 'pas d'image' ?",
+                    "generate_grid": "Créer une grille d'images pour les modèles de vision LLM"
                 },
                 "description": "Terminez la configuration en personnalisant ce qui suit en fonction de la structure de votre courrier électronique et de l'installation de Home Assistant.\n\nPour plus de détails sur les options d'[intégration de courrier et de colis](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), consultez la [section configuration, modèles et automatisations](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) sur GitHub.\n\nSi vous utilisez des courriels transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.",
                 "title": "Courrier et colis (étape 2 sur 2)"

@@ -37,7 +37,8 @@
                     "imap_timeout": "A kapcsolat időtúllépése előtti idő másodpercben (másodperc, minimum 10)",
                     "generate_mp4": "Készítsen mp4-et a képekből",
                     "allow_external": "Kép létrehozása értesítési alkalmazásokhoz",
-                    "custom_img": "Használjon egyéni 'nincs kép' képet?"
+                    "custom_img": "Használjon egyéni 'nincs kép' képet?",
+                    "generate_grid": "Kép rács létrehozása LLM látásmodellekhez"
                 },
                 "description": "Végezze el a konfigurációt az alábbiak testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján. \n\n A [Levelek és csomagok integrációja] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) opciókkal kapcsolatban tekintse meg a [konfiguráció, sablonok , és az automatizálás szakasz] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) a GitHubon.",
                 "title": "Levél és csomagok (2. lépés a 2-ből)"
@@ -81,7 +82,8 @@
                     "resources": "Érzékelők listája",
                     "imap_timeout": "A kapcsolat időtúllépése előtti idő másodpercben (másodperc, minimum 10)",
                     "allow_external": "Kép létrehozása értesítési alkalmazásokhoz",
-                    "custom_img": "Használjon egyéni 'nincs kép' képet?"
+                    "custom_img": "Használjon egyéni 'nincs kép' képet?",
+                    "generate_grid": "Kép rács létrehozása LLM látásmodellekhez"
                 },
                 "description": "Fejezze be a konfigurációt a következők testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján.\n\nA [Mail and Packages integráció](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) lehetőségeinek részleteiről a GitHub-on található [konfiguráció, sablonok és automatizálások szekcióban](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) található információkat.\n\nHa Amazon továbbított e-maileket használ, kérjük, válassza el minden címet vesszővel, vagy írja be a (none) opciót, hogy törölje ezt a beállítást.",
                 "title": "Levél és csomagok (2. lépés a 2-ből)"

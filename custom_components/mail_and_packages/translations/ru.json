@@ -37,7 +37,8 @@
                     "imap_timeout": "Время в секундах до тайм-аута соединения (секунды, минимум 10)",
                     "generate_mp4": "Создать mp4 из изображений",
                     "allow_external": "Создать изображение для приложений уведомлений",
-                    "custom_img": "Использовать пользовательское изображение 'нет изображения'?"
+                    "custom_img": "Использовать пользовательское изображение 'нет изображения'?",
+                    "generate_grid": "Создать сетку изображений для моделей зрения LLM"
                 },
                 "description": "Завершите настройку, настроив следующие параметры в зависимости от структуры электронной почты и установки Home Assistant. \n\n Подробнее о параметрах [Интеграция с почтой и пакетами] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) см. В разделе [конфигурация, шаблоны и раздел автоматизации] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) на GitHub.",
                 "title": "Почта и пакеты (шаг 2 из 2)"
@@ -81,7 +82,8 @@
                     "resources": "Список датчиков",
                     "imap_timeout": "Время в секундах до тайм-аута соединения (секунды, минимум 10)",
                     "allow_external": "Создать изображение для приложений уведомлений",
-                    "custom_img": "Использовать пользовательское изображение 'нет изображения'?"
+                    "custom_img": "Использовать пользовательское изображение 'нет изображения'?",
+                    "generate_grid": "Создать сетку изображений для моделей зрения LLM"
                 },
                 "description": "Завершите настройку, настроив следующее в соответствии со структурой вашей электронной почты и установкой Home Assistant.\n\nДля получения подробной информации о вариантах [интеграции Почта и Пакеты](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) ознакомьтесь с [разделом конфигурации, шаблонов и автоматизации](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) на GitHub.\n\nЕсли вы используете переадресованные электронные письма Amazon, разделите каждый адрес запятой или введите (none), чтобы очистить эту настройку.",
                 "title": "Почта и пакеты (шаг 2 из 2)"

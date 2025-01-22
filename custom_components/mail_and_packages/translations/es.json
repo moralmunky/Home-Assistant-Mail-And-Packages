@@ -37,7 +37,8 @@
                     "imap_timeout": "Tiempo en segundos antes del tiempo de espera de la conexión (segundos, mínimo 10)",
                     "generate_mp4": "Crea mp4 a partir de imágenes",
                     "allow_external": "Crea imagen para aplicaciones de notificación",
-                    "custom_img": "¿Usar imagen personalizada para 'sin imagen'?"
+                    "custom_img": "¿Usar imagen personalizada para 'sin imagen'?",
+                    "generate_grid": "Crear cuadrícula de imágenes para modelos de visión LLM"
                 },
                 "description": "Termine la configuración personalizando lo siguiente según su estructura de correo electrónico y la instalación de Home Assistant. \n\n Para obtener detalles sobre las opciones [Integración de correo y paquetes] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) revise las [configuración, plantillas , y la sección de automatizaciones] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) en GitHub.",
                 "title": "Correo y paquetes (Paso 2 de 2)"
@@ -81,7 +82,8 @@
                     "resources": "Lista de Sensores",
                     "imap_timeout": "Tiempo en segundos antes del tiempo de espera de la conexión (segundos, mínimo 10)",
                     "allow_external": "Crea imagen para aplicaciones de notificación",
-                    "custom_img": "¿Usar imagen personalizada para 'sin imagen'?"
+                    "custom_img": "¿Usar imagen personalizada para 'sin imagen'?",
+                    "generate_grid": "Crear cuadrícula de imágenes para modelos de visión LLM"
                 },
                 "description": "Finalice la configuración personalizando lo siguiente en función de la estructura de su correo electrónico y la instalación de Home Assistant.\n\nPara obtener detalles sobre las opciones de [integración de correo y paquetes](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), revise la [sección de configuración, plantillas y automatizaciones](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) en GitHub.\n\nSi utiliza correos electrónicos reenviados de Amazon, separe cada dirección con una coma o ingrese (ninguno) para borrar esta configuración.",
                 "title": "Correo y paquetes (Paso 2 de 2)"

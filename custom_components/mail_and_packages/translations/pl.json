@@ -37,7 +37,8 @@
                     "imap_timeout": "Czas w sekundach przed wygaśnięciem połączenia (sekundy, minimum 10)",
                     "generate_mp4": "Utwórz mp4 z obrazów",
                     "allow_external": "Utwórz obraz dla aplikacji powiadomień",
-                    "custom_img": "Użyć niestandardowego obrazu 'brak obrazu'?"
+                    "custom_img": "Użyć niestandardowego obrazu 'brak obrazu'?",
+                    "generate_grid": "Utwórz siatkę obrazów dla modeli wizji LLM"
                 },
                 "description": "Zakończ konfigurację, dostosowując następujące elementy w oparciu o strukturę poczty e-mail i instalację Home Assistant. \n\n Aby uzyskać szczegółowe informacje na temat opcji [Integracja poczty i pakietów] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) sprawdź opcje [konfiguracja, szablony i sekcja automatyzacji] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) na GitHub.",
                 "title": "Poczta i paczki (krok 2 z 2)"
@@ -81,7 +82,8 @@
                     "resources": "Lista czujników",
                     "imap_timeout": "Czas w sekundach przed wygaśnięciem połączenia (sekundy, minimum 10)",
                     "allow_external": "Utwórz obraz dla aplikacji powiadomień",
-                    "custom_img": "Użyć niestandardowego obrazu 'brak obrazu'?"
+                    "custom_img": "Użyć niestandardowego obrazu 'brak obrazu'?",
+                    "generate_grid": "Utwórz siatkę obrazów dla modeli wizji LLM"
                 },
                 "description": "Zakończ konfigurację, dostosowując następujące elementy do struktury swojego e-maila i instalacji Home Assistant.\n\nAby uzyskać szczegółowe informacje na temat opcji [integracji Mail and Packages](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), zapoznaj się z [sekcją konfiguracji, szablonów i automatyzacji](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) na GitHubie.\n\nJeśli korzystasz z przekierowanych e-maili Amazon, oddziel każdy adres przecinkiem lub wprowadź (brak), aby wyczyścić to ustawienie.",
                 "title": "Poczta i paczki (krok 2 z 2)"

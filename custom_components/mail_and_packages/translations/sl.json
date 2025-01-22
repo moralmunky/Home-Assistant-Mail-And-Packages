@@ -37,7 +37,8 @@
                     "imap_timeout": "Čas v sekundah pred prekinitvijo povezave (sekunde, najmanj 10)",
                     "generate_mp4": "Ustvari mp4 iz slik",
                     "allow_external": "Ustvari sliko za aplikacije za obvestila",
-                    "custom_img": "Uporabite prilagojeno sliko 'brez slike'?"
+                    "custom_img": "Uporabite prilagojeno sliko 'brez slike'?",
+                    "generate_grid": "Ustvari mrežo slik za vizualne modele LLM"
                 },
                 "description": "Končajte konfiguracijo s prilagoditvijo naslednjih na podlagi strukture e-pošte in namestitve Home Assistant. \n\n Za podrobnosti o možnostih [Integracija pošte in paketov] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) preglejte [konfiguracijo, predloge in oddelku za avtomatizacije] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) na GitHubu.",
                 "title": "Pošta in paketi (2. korak od 2)"
@@ -81,7 +82,8 @@
                     "resources": "Seznam senzorjev",
                     "imap_timeout": "Čas v sekundah pred prekinitvijo povezave (sekunde, najmanj 10)",
                     "allow_external": "Ustvari sliko za aplikacije za obvestila",
-                    "custom_img": "Uporabite prilagojeno sliko 'brez slike'?"
+                    "custom_img": "Uporabite prilagojeno sliko 'brez slike'?",
+                    "generate_grid": "Ustvari mrežo slik za vizualne modele LLM"
                 },
                 "description": "Konfiguracijo dokončajte z prilagajanjem naslednjega glede na strukturo vašega e-poštnega sporočila in namestitev Home Assistant.\n\nZa podrobnosti o možnostih [integracije Mail and Packages](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) si oglejte [razdelek o konfiguraciji, predlogah in avtomatizacijah](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) na GitHubu.\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
                 "title": "Pošta in paketi (2. korak od 2)"

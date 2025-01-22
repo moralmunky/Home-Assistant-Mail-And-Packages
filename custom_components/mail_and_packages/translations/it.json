@@ -37,7 +37,8 @@
                     "imap_timeout": "Tempo in secondi prima del timeout di connessione (secondi, minimo 10)",
                     "generate_mp4": "Crea mp4 dalle immagini",
                     "allow_external": "Crea immagine per le app di notifica",
-                    "custom_img": "Usare l'immagine personalizzata 'nessuna immagine'?"
+                    "custom_img": "Usare l'immagine personalizzata 'nessuna immagine'?",
+                    "generate_grid": "Crea una griglia di immagini per i modelli di visione LLM"
                 },
                 "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua e-mail e all'installazione di Home Assistant. \n\n Per i dettagli sulle opzioni [Integrazione posta e pacchetti] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) rivedere le [configurazione, modelli e sezione automazioni] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) su GitHub.",
                 "title": "Posta e pacchi (passaggio 2 di 2)"
@@ -81,7 +82,8 @@
                     "resources": "Elenco dei sensori",
                     "imap_timeout": "Tempo in secondi prima del timeout di connessione (secondi, minimo 10)",
                     "allow_external": "Crea immagine per le app di notifica",
-                    "custom_img": "Usare l'immagine personalizzata 'nessuna immagine'?"
+                    "custom_img": "Usare l'immagine personalizzata 'nessuna immagine'?",
+                    "generate_grid": "Crea una griglia di immagini per i modelli di visione LLM"
                 },
                 "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua email e all'installazione di Home Assistant.\n\nPer i dettagli sulle opzioni di [integrazione Mail e Pacchetti](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) consulta la [sezione configurazione, modelli e automazioni](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) su GitHub.\n\nSe utilizzi email inoltrate da Amazon, separa ogni indirizzo con una virgola o inserisci (nessuno) per cancellare questa impostazione.",
                 "title": "Posta e pacchi (passaggio 2 di 2)"
