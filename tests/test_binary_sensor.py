@@ -36,11 +36,11 @@ async def test_binary_sensor_no_updates(
         entity_entry.entity_id, disabled_by=None
     )
     assert updated_entry != entity_entry
-    assert updated_entry.disabled is False      
+    assert updated_entry.disabled is False
 
     await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
     await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
-    await hass.async_block_till_done()    
+    await hass.async_block_till_done()
 
     state = hass.states.get("binary_sensor.usps_image_updated")
     assert state
@@ -56,11 +56,11 @@ async def test_binary_sensor_no_updates(
         entity_entry.entity_id, disabled_by=None
     )
     assert updated_entry != entity_entry
-    assert updated_entry.disabled is False 
+    assert updated_entry.disabled is False
 
     await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
     await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
-    await hass.async_block_till_done()    
+    await hass.async_block_till_done()
 
     state = hass.states.get("binary_sensor.amazon_image_updated")
     assert state
@@ -115,11 +115,11 @@ async def test_binary_sensor_mail_delivered(
         entity_entry.entity_id, disabled_by=None
     )
     assert updated_entry != entity_entry
-    assert updated_entry.disabled is False    
+    assert updated_entry.disabled is False
 
     await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
     await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
-    await hass.async_block_till_done()    
+    await hass.async_block_till_done()
 
     state = hass.states.get("binary_sensor.usps_image_updated")
     assert state
@@ -135,11 +135,11 @@ async def test_binary_sensor_mail_delivered(
         entity_entry.entity_id, disabled_by=None
     )
     assert updated_entry != entity_entry
-    assert updated_entry.disabled is False       
+    assert updated_entry.disabled is False
 
     await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
     await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
-    await hass.async_block_till_done()     
+    await hass.async_block_till_done()
 
     state = hass.states.get("binary_sensor.amazon_image_updated")
     assert state
