@@ -842,7 +842,7 @@ def get_mails(
         if gen_mp4:
             _generate_mp4(image_output_path, image_name)
         if gen_grid:
-            generate_grid_img(image_output_path, image_name)
+            generate_grid_img(image_output_path, image_name, image_count)
 
     return image_count
 
@@ -881,12 +881,17 @@ def _generate_mp4(path: str, image_file: str) -> None:
     )
 
 
-def generate_grid_img(path: str, image_file: str) -> None:
-    """Generate mp4 from gif.
+def generate_grid_img(path: str, image_file: str, count: int) -> None:
+    """Generate png grid from gif.
 
     use a subprocess so we don't lock up the thread
     comamnd: ffmpeg -f gif -i infile.gif outfile.mp4
     """
+    if count%2==0:
+        length = int(count/2)
+    else:
+        length = int(count/2) + count%2
+
     gif_image = os.path.join(path, image_file)
     png_file = os.path.join(path, image_file.replace(".gif", "_grid.png"))
     filecheck = os.path.isfile(png_file)
@@ -904,7 +909,7 @@ def generate_grid_img(path: str, image_file: str) -> None:
             "-r",
             "0.20",
             "-filter_complex",
-            "tile=2x6:padding=10:color=black",
+            f"tile=2x{length}:padding=10:color=black",
             png_file,
         ],
         stdout=subprocess.DEVNULL,

@@ -1253,10 +1253,8 @@ async def test_generate_grid_image(
     mock_osremove, mock_os_path_join2, mock_subprocess_call, mock_os_path_split
 ):
     with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
-        generate_grid_img("./", "testfile.gif")
-
+        generate_grid_img("./", "testfile.gif", 5)
         mock_os_path_join2.assert_called_with("./", "testfile_grid.png")
-        # mock_osremove.assert_called_with("./", "testfile.mp4")
         mock_subprocess_call.assert_called_with(
             [
                 "ffmpeg",
@@ -1265,9 +1263,39 @@ async def test_generate_grid_image(
                 "-r",
                 "0.20",
                 "-filter_complex",
-                "tile=2x6:padding=10:color=black",
+                "tile=2x3:padding=10:color=black",
                 "./testfile_grid.png",
             ],
             stdout=-3,
             stderr=-3,
         )
+        generate_grid_img("./", "testfile.gif", 8)
+        mock_subprocess_call.assert_called_with(
+            [
+                "ffmpeg",
+                "-i",
+                "./testfile_grid.png",
+                "-r",
+                "0.20",
+                "-filter_complex",
+                "tile=2x4:padding=10:color=black",
+                "./testfile_grid.png",
+            ],
+            stdout=-3,
+            stderr=-3,
+        )
+        generate_grid_img("./", "testfile.gif", 1)
+        mock_subprocess_call.assert_called_with(
+            [
+                "ffmpeg",
+                "-i",
+                "./testfile_grid.png",
+                "-r",
+                "0.20",
+                "-filter_complex",
+                "tile=2x1:padding=10:color=black",
+                "./testfile_grid.png",
+            ],
+            stdout=-3,
+            stderr=-3,
+        )        
