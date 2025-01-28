@@ -1309,4 +1309,5 @@ SHIPPERS = [
     "intelcom",
     "post_nl",
     "post_at",
+    "rewe_lieferservice",
 ]
