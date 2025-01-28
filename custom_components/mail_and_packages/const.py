@@ -695,6 +695,18 @@ SENSOR_DATA = {
     },
     "post_at_packages": {},
     "post_at_tracking": {"pattern": ["[0-9]{22}"]},
+    # Rewe Lieferservice
+    "rewe_lieferservice_delivering": {
+        "email": ["lieferservice@rewe.de"],
+        "subject": ["Lieferschein zu deiner Bestellung beim REWE Lieferservice"],
+        "body": ["Deine Lieferinformationen"],
+    },
+    "rewe_lieferservice_exception": {},
+    "rewe_lieferservice_delivered": {
+        "email": ["reweshop@mailing.rewe.de"],
+        "subject": ["Deine Rechnung zu"],
+        "body": ["Im Anhang dieser E-Mail kommt"],
+    },    
 }
 
 # Sensor definitions
@@ -1185,6 +1197,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="post_at_packages",
     ),
+    # Rewe Lieferservice
+    "rewe_lieferservice_delivering": SensorEntityDescription(
+        name="Rewe Lieferservice Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="rewe_lieferservice_delivering",
+    ),
+    "rewe_lieferservice_delivered": SensorEntityDescription(
+        name="Rewe Lieferservice Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="rewe_lieferservice_delivered",
+    ),
+    "rewe_lieferservice_packages": SensorEntityDescription(
+        name="Rewe Lieferservice Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="rewe_lieferservice_packages",
+    ),    
     ###
     # !!! Insert new sensors above these two !!!
     ###
