@@ -706,7 +706,7 @@ SENSOR_DATA = {
         "email": ["reweshop@mailing.rewe.de"],
         "subject": ["Deine Rechnung zu"],
         "body": ["Im Anhang dieser E-Mail kommt"],
-    },    
+    },
 }
 
 # Sensor definitions
@@ -1215,7 +1215,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="rewe_lieferservice_packages",
-    ),    
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
