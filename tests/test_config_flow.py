@@ -1925,11 +1925,15 @@ async def test_form_storage_error(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_3
         )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_4
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
-        )
+        with patch(
+            "custom_components.mail_and_packages.config_flow.path.exists",
+            return_value=False,
+        ):
+            assert result["type"] == "form"
+            assert result["step_id"] == step_id_4
+            result = await hass.config_entries.flow.async_configure(
+                result["flow_id"], input_4
+            )
 
     assert result["type"] == "form"
     assert result["step_id"] == step_id_4
