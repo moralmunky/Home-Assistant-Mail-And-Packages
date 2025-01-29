@@ -697,7 +697,7 @@ SENSOR_DATA = {
     "post_at_tracking": {"pattern": ["[0-9]{22}"]},
     # Rewe Lieferservice
     "rewe_lieferservice_delivering": {
-        "email": ["lieferservice@rewe.de"],
+        "email": ["reweshop@mailing.rewe.de"],
         "subject": ["Lieferschein zu deiner Bestellung beim REWE Lieferservice"],
         "body": ["Deine Lieferinformationen"],
     },
