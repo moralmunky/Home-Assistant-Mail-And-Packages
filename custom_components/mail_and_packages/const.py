@@ -609,6 +609,7 @@ SENSOR_DATA = {
             "Your package is on the way!",
             "Your package is on its way",
             "Votre colis est en chemin!",
+            "package is on its way",
         ],
     },
     "intelcom_packages": {
@@ -620,9 +621,10 @@ SENSOR_DATA = {
         "subject": [
             "Your package has been received!",
             "We've received your package",
+            "We've received your",
         ],
     },
-    "intelcom_tracking": {"pattern": ["INTLCMD[0-9]{9}"]},
+    "intelcom_tracking": {"pattern": ["NSPRSO[0-9]{10}"]},
     # Walmart
     "walmart_delivering": {
         "email": ["help@walmart.com"],
