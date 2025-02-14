@@ -590,7 +590,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Step 3 setup."""
         if self._data[CONF_AMAZON_FWDS] == []:
             self._data[CONF_AMAZON_FWDS] = "(none)"
-            
+
         return self.async_show_form(
             step_id="reconfig_amazon",
             data_schema=_get_schema_step_amazon(user_input, self._data),
