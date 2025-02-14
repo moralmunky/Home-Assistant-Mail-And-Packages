@@ -538,9 +538,6 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _show_reconfig_2(self, user_input):
         """Step 2 setup."""
-        if self._data[CONF_AMAZON_FWDS] == []:
-            self._data[CONF_AMAZON_FWDS] = "(none)"
-
         return self.async_show_form(
             step_id="reconfig_2",
             data_schema=_get_schema_step_2(self._data, user_input, self._data),
@@ -591,6 +588,9 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _show_reconfig_amazon(self, user_input):
         """Step 3 setup."""
+        if self._data[CONF_AMAZON_FWDS] == []:
+            self._data[CONF_AMAZON_FWDS] = "(none)"
+            
         return self.async_show_form(
             step_id="reconfig_amazon",
             data_schema=_get_schema_step_amazon(user_input, self._data),
