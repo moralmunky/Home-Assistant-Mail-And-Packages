@@ -22,6 +22,7 @@ from custom_components.mail_and_packages.const import (
 from tests.const import (
     FAKE_CONFIG_DATA,
     FAKE_CONFIG_DATA_AMAZON_FWD_STRING,
+    FAKE_CONFIG_DATA_CAPOST,
     FAKE_CONFIG_DATA_CUSTOM_IMG,
     FAKE_CONFIG_DATA_EXTERNAL,
     FAKE_CONFIG_DATA_MISSING_TIMEOUT,
@@ -156,6 +157,22 @@ async def integration_fixture_7(hass):
         title="imap.test.email",
         data=FAKE_CONFIG_DATA_V4_MIGRATE,
         version=4,
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    return entry
+
+
+@pytest.fixture(name="integration_capost")
+async def integration_fixture_8(hass):
+    """Set up the mail_and_packages integration."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_CAPOST,
+        version=CONFIG_VER,
     )
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
@@ -1739,4 +1756,31 @@ def mock_imap_amazon_otp():
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_capost_mail():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_capost_mail:
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
+        mock_imap_capost_mail.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/capost_mail.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+
         yield mock_conn

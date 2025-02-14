@@ -38,6 +38,7 @@ ATTR_IMAGE_NAME = "image_name"
 ATTR_EMAIL = "email"
 ATTR_SUBJECT = "subject"
 ATTR_BODY = "body"
+ATTR_BODY_COUNT = "body_count"
 ATTR_PATTERN = "pattern"
 ATTR_USPS_MAIL = "usps_mail"
 
@@ -290,6 +291,12 @@ SENSOR_DATA = {
     "capost_delivering": {},
     "capost_packages": {},
     "capost_tracking": {},
+    "capost_mail": {
+        "email": ["donotreply-nepasrepondre@communications.canadapost-postescanada.ca"],
+        "subject": ["You have mail on the way"],
+        "body": ["\\sYou have (\\d) pieces of mail\\s"],
+        "body_count": True,
+    },
     # DHL
     "dhl_delivered": {
         "email": [
@@ -837,6 +844,12 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:truck-delivery",
         key="capost_delivering",
+    ),
+    "capost_mail": SensorEntityDescription(
+        name="Mail Canada Post Mail",
+        native_unit_of_measurement="piece(s)",
+        icon="mdi:mailbox-up",
+        key="capost_mail",
     ),
     "capost_packages": SensorEntityDescription(
         name="Mail Canada Post Packages",

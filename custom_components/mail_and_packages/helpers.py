@@ -58,6 +58,7 @@ from .const import (
     AMAZON_TIME_PATTERN_END,
     ATTR_AMAZON_IMAGE,
     ATTR_BODY,
+    ATTR_BODY_COUNT,
     ATTR_CODE,
     ATTR_COUNT,
     ATTR_EMAIL,
@@ -1057,7 +1058,11 @@ def get_count(
         )
         if server_response == "OK" and data[0] is not None:
             if ATTR_BODY in SENSOR_DATA[sensor_type].keys():
-                count += find_text(data, account, SENSOR_DATA[sensor_type][ATTR_BODY])
+                body_count = SENSOR_DATA[sensor_type].get(ATTR_BODY_COUNT, False)
+                _LOGGER.debug("Check body for mail count? %s", body_count)
+                count += find_text(
+                    data, account, SENSOR_DATA[sensor_type][ATTR_BODY], body_count
+                )
             else:
                 count += len(data[0].split())
 
@@ -1151,7 +1156,9 @@ def get_tracking(
     return tracking
 
 
-def find_text(sdata: Any, account: Type[imaplib.IMAP4_SSL], search_terms: list) -> int:
+def find_text(
+    sdata: Any, account: Type[imaplib.IMAP4_SSL], search_terms: list, count: bool
+) -> int:
     """Filter for specific words in email.
 
     Return count of items found as integer
@@ -1175,7 +1182,18 @@ def find_text(sdata: Any, account: Type[imaplib.IMAP4_SSL], search_terms: list) 
                         email_msg = part.get_payload(decode=True)
                         email_msg = email_msg.decode("utf-8", "ignore")
                         pattern = re.compile(rf"{search}")
-                        if (found := pattern.findall(email_msg)) and len(found) > 0:
+                        if (
+                            count
+                            and (found := pattern.search(email_msg))
+                            and len(found.groups()) > 0
+                        ):
+                            _LOGGER.debug(
+                                "Found (%s) in email result: %s",
+                                search,
+                                str(found.groups()),
+                            )
+                            count = int(found.group(1))
+                        elif (found := pattern.findall(email_msg)) and len(found) > 0:
                             _LOGGER.debug(
                                 "Found (%s) in email %s times.", search, str(len(found))
                             )

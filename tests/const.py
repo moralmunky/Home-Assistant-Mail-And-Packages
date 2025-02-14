@@ -924,3 +924,28 @@ FAKE_CONFIG_DATA_USPS_DELIVERED = {
     "username": "user@fake.email",
     "verify_ssl": False,
 }
+
+FAKE_CONFIG_DATA_CAPOST = {
+    "allow_external": False,
+    "custom_img": False,
+    "folder": '"INBOX"',
+    "generate_mp4": False,
+    "gif_duration": 5,
+    "host": "imap.test.email",
+    "image_name": "mail_today.gif",
+    "image_path": "custom_components/mail_and_packages/images/",
+    "image_security": True,
+    "imap_security": "SSL",
+    "imap_timeout": 30,
+    "password": "suchfakemuchpassword",
+    "port": 993,
+    "resources": [
+        "zpackages_delivered",
+        "zpackages_transit",
+        "capost_mail",
+    ],
+    "scan_interval": 20,
+    "storage": ".storage/mail_and_packages/images/",
+    "username": "user@fake.email",
+    "verify_ssl": False,
+}

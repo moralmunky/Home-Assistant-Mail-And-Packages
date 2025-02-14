@@ -1182,6 +1182,7 @@ async def test_get_resourcs(hass):
         "buildinglink_delivered": "Mail BuildingLink Delivered",
         "capost_delivered": "Mail Canada Post Delivered",
         "capost_delivering": "Mail Canada Post Delivering",
+        "capost_mail": "Mail Canada Post Mail",
         "capost_packages": "Mail Canada Post Packages",
         "dhl_delivered": "Mail DHL Delivered",
         "dhl_delivering": "Mail DHL Delivering",
@@ -1318,3 +1319,30 @@ async def test_generate_grid_image(
             stdout=-3,
             stderr=-3,
         )
+
+
+@pytest.mark.asyncio
+async def test_capost_mail(
+    hass,
+    integration_capost,
+    mock_imap_capost_mail,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_os_path_splitext,
+    mock_image,
+    mock_resizeimage,
+    mock_copyfile,
+    caplog,
+):
+    hass.config.internal_url = "http://127.0.0.1:8123/"
+    entry = integration_capost
+    config = entry.data.copy()
+
+    state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
+    assert state is not None
+    assert "/testing_config/custom_components/mail_and_packages/images/" in state.state
+    state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
+    assert state.state == "unknown"
+    result = process_emails(hass, config)
+    assert result["capost_mail"] == 3
