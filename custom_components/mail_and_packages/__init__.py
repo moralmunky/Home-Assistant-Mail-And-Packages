@@ -59,6 +59,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # Sort the resources
     updated_config[CONF_RESOURCES] = sorted(updated_config[CONF_RESOURCES])
 
+    if CONF_PATH not in updated_config:
+        updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
+
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(config_entry, data=updated_config)
 

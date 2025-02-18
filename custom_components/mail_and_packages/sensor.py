@@ -191,7 +191,9 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
 
         grid_image = self.coordinator.data.get(ATTR_GRID_IMAGE_NAME)
 
-        path = self.coordinator.data.get(ATTR_IMAGE_PATH, self._config.data[CONF_PATH])
+        path = self.coordinator.data.get(
+            ATTR_IMAGE_PATH, self._config.data.get(CONF_PATH)
+        )
 
         if self.type == "usps_mail_image_system_path":
             _LOGGER.debug("Updating system image path to: %s", path)
