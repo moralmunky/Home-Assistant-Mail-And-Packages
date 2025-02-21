@@ -181,12 +181,13 @@ SENSOR_DATA = {
         ],
     },
     "fedex_delivering": {
-        "email": ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"],
+        "email": ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com", "noreply@fedex.com"],
         "subject": [
             "Delivery scheduled for today",
             "Your package is scheduled for delivery today",
             "Your package is now out for delivery",
             "out for delivery today",
+            "Your shipment is out for delivery today",
         ],
     },
     "fedex_packages": {},
