@@ -259,7 +259,11 @@ SENSOR_DATA = {
     "ups_tracking": {"pattern": ["1Z?[0-9A-Z]{16}"]},
     # FedEx
     "fedex_delivered": {
-        "email": ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"],
+        "email": [
+            "TrackingUpdates@fedex.com",
+            "fedexcanada@fedex.com",
+            "noreply@fedex.com",
+        ],
         "subject": [
             "Your package has been delivered",
             "Your packages have been delivered",
@@ -267,7 +271,11 @@ SENSOR_DATA = {
         ],
     },
     "fedex_delivering": {
-        "email": ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"],
+        "email": [
+            "TrackingUpdates@fedex.com",
+            "fedexcanada@fedex.com",
+            "noreply@fedex.com",
+        ],
         "subject": [
             "Delivery scheduled for today",
             "Your package is scheduled for delivery today",
