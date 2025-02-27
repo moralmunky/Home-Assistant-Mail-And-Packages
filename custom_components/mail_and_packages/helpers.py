@@ -56,6 +56,7 @@ from .const import (
     AMAZON_SHIPMENT_TRACKING,
     AMAZON_TIME_PATTERN,
     AMAZON_TIME_PATTERN_END,
+    AMAZON_TIME_PATTERN_REGEX,
     ATTR_AMAZON_IMAGE,
     ATTR_BODY,
     ATTR_BODY_COUNT,
@@ -1500,6 +1501,20 @@ def amazon_date_search(email_msg: str) -> int:
     return -1
 
 
+def amazon_date_regex(email_msg: str) -> str | None:
+    """Look for regex strings in email message and return them."""
+    for body_regex in AMAZON_TIME_PATTERN_REGEX:
+        pattern = re.compile(rf"{body_regex}")
+        search = pattern.search(email_msg)
+        if search is not None and len(search.groups() > 0):
+            _LOGGER.debug(
+                "Amazon Regex: %s Count: %s", body_regex, len(search.groups())
+            )
+            # return the first group match (first date from a date range)
+            return search.group(1)
+    return None
+
+
 def amazon_date_format(arrive_date: str, lang: str) -> tuple:
     """Return the date format."""
     if "de_" in lang:
@@ -1627,14 +1642,20 @@ def get_items(
                         if search not in email_msg:
                             continue
 
-                        start = email_msg.find(search) + len(search)
-                        end = amazon_date_search(email_msg)
+                        amazon_regex_result = amazon_date_regex(email_msg)
+                        if amazon_regex_result is not None:
+                            _LOGGER.debug("Found regex result: %s", amazon_regex_result)
+                            arrive_date = amazon_regex_result
 
-                        arrive_date = email_msg[start:end].replace(">", "").strip()
-                        _LOGGER.debug("First pass: %s", arrive_date)
-                        arrive_date = arrive_date.split(" ")
-                        arrive_date = arrive_date[0:3]
-                        arrive_date = " ".join(arrive_date).strip()
+                        else:
+                            start = email_msg.find(search) + len(search)
+                            end = amazon_date_search(email_msg)
+
+                            arrive_date = email_msg[start:end].replace(">", "").strip()
+                            _LOGGER.debug("First pass: %s", arrive_date)
+                            arrive_date = arrive_date.split(" ")
+                            arrive_date = arrive_date[0:3]
+                            arrive_date = " ".join(arrive_date).strip()
 
                         # Get the date object
                         dateobj = dateparser.parse(arrive_date)
