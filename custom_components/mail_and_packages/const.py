@@ -301,9 +301,16 @@ SENSOR_DATA = {
             "Delivery Notification",
         ],
     },
-    "capost_delivering": {},
+    "capost_delivering": {
+        "email": [
+            "donotreply-nepasrepondre@notifications.canadapost-postescanada.ca",
+        ],
+        "subject": [
+            "Your parcel is out for delivery",
+        ],
+    },
     "capost_packages": {},
-    "capost_tracking": {},
+    "capost_tracking": {"pattern": ["\\d{16}"]},
     "capost_mail": {
         "email": ["donotreply-nepasrepondre@communications.canadapost-postescanada.ca"],
         "subject": ["You have mail on the way"],
