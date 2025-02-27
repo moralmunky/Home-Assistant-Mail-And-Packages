@@ -168,8 +168,8 @@ AMAZON_TIME_PATTERN_END = [
     "Je pakket volgen",
 ]
 AMAZON_TIME_PATTERN_REGEX = [
-    "Arriving (\w+ \d+) - (\w+ \d+)",
-    "Arriving (\w+ \d+)",
+    "Arriving (\\w+ \\d+) - (\\w+ \\d+)",
+    "Arriving (\\w+ \\d+)",
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
