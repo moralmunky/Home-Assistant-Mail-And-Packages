@@ -1506,7 +1506,7 @@ def amazon_date_regex(email_msg: str) -> str | None:
     for body_regex in AMAZON_TIME_PATTERN_REGEX:
         pattern = re.compile(rf"{body_regex}")
         search = pattern.search(email_msg)
-        if search is not None and len(search.groups() > 0):
+        if search is not None and len(search.groups()) > 0:
             _LOGGER.debug(
                 "Amazon Regex: %s Count: %s", body_regex, len(search.groups())
             )
