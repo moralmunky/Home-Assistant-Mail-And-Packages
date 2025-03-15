@@ -4,4 +4,4 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-hass -c --config "${PWD}/config" --script check_config
+hass --config "${PWD}/config" --script check_config

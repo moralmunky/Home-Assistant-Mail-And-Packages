@@ -20,7 +20,7 @@
         {
             "label": "Upgrade Home Assistant to latest dev",
             "type": "shell",
-            "command": "scripts/upgrade-dev",
+            "command": "scripts/upgrade-latest",
             "problemMatcher": []
         },
         {
