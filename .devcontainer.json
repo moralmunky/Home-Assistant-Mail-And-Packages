@@ -1,13 +1,13 @@
 // See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
-	"image": "ludeeus/container:integration-debian",
+	"image": "mcr.microsoft.com/devcontainers/python:3.13",
 	"name": "Mail And Packages integration development",
 	"context": "..",
 	"appPort": [
 		"9123:8123",
 		"5678:5678"
 	],
-	"postCreateCommand": "container install",
+	"postCreateCommand": "scripts/install",
 	"extensions": [
 		"ms-python.python",
 		"github.vscode-pull-request-github",

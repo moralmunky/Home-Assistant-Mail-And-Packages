@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+hass --config "${PWD}/config" --script check_config
+
+echo "Done Checking Config"

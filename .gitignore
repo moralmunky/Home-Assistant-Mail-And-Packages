@@ -76,3 +76,7 @@ virtualization/vagrant/config
 # Typing
 .mypy_cache
 *.pyc
+
+# Home Assistant configuration
+config/*
+!config/configuration.yaml
