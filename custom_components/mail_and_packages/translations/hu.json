@@ -43,7 +43,7 @@
                 "description": "Végezze el a konfigurációt az alábbiak testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján. \n\n A [Levelek és csomagok integrációja] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) opciókkal kapcsolatban tekintse meg a [konfiguráció, sablonok , és az automatizálás szakasz] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) a GitHubon.",
                 "title": "Levél és csomagok (2. lépés a 2-ből)"
             },
-            "config_3": {
+            "config_custom_img": {
                 "data": {
                     "custom_img_file": "Egyéni kép elérési útja: (pl.: images\/my_custom_no_mail.jpg)"
                 },
@@ -88,7 +88,7 @@
                 "description": "Fejezze be a konfigurációt a következők testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján.\n\nA [Mail and Packages integráció](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) lehetőségeinek részleteiről a GitHub-on található [konfiguráció, sablonok és automatizálások szekcióban](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) található információkat.\n\nHa Amazon továbbított e-maileket használ, kérjük, válassza el minden címet vesszővel, vagy írja be a (none) opciót, hogy törölje ezt a beállítást.",
                 "title": "Levél és csomagok (2. lépés a 2-ből)"
             },
-            "reconfig_3": {
+            "reconfig_custom_img": {
                 "data": {
                     "custom_img_file": "Egyéni kép elérési útja: (pl.: images\/my_custom_no_mail.jpg)"
                 },

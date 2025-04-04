@@ -43,7 +43,7 @@
                 "description": "Termine la configuración personalizando lo siguiente según su estructura de correo electrónico y la instalación de Home Assistant. \n\n Para obtener detalles sobre las opciones [Integración de correo y paquetes] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) revise las [configuración, plantillas , y la sección de automatizaciones] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) en GitHub.",
                 "title": "Correo y paquetes (Paso 2 de 2)"
             },
-            "config_3": {
+            "config_custom_img": {
                 "data": {
                     "custom_img_file": "Ruta a la imagen personalizada: (es decir: images\/my_custom_no_mail.jpg)"
                 },
@@ -88,7 +88,7 @@
                 "description": "Finalice la configuración personalizando lo siguiente en función de la estructura de su correo electrónico y la instalación de Home Assistant.\n\nPara obtener detalles sobre las opciones de [integración de correo y paquetes](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), revise la [sección de configuración, plantillas y automatizaciones](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) en GitHub.\n\nSi utiliza correos electrónicos reenviados de Amazon, separe cada dirección con una coma o ingrese (ninguno) para borrar esta configuración.",
                 "title": "Correo y paquetes (Paso 2 de 2)"
             },
-            "reconfig_3": {
+            "reconfig_custom_img": {
                 "data": {
                     "custom_img_file": "Ruta a la imagen personalizada: (es decir: images\/my_custom_no_mail.jpg)"
                 },

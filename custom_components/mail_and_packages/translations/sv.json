@@ -43,7 +43,7 @@
                 "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) på GitHub.",
                 "title": "Mail och paket (steg 2 av 2)"
             },
-            "config_3": {
+            "config_custom_img": {
                 "data": {
                     "custom_img_file": "Sökväg till anpassad bild: (t.ex: bilder\/min_anpassade_ingen_mail.jpg)"
                 },
@@ -88,7 +88,7 @@
                 "description": "Slutför konfigurationen genom att anpassa följande baserat på din e-poststruktur och Home Assistant-installation.\n\nFör detaljer om [Mail and Packages integration](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) alternativen granska [konfiguration, mallar och automatiseringssektionen](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) på GitHub.\n\nOm du använder vidarebefordrade e-postmeddelanden från Amazon, separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
                 "title": "Mail och paket (steg 2 av 2)"
             },
-            "reconfig_3": {
+            "reconfig_custom_img": {
                 "data": {
                     "custom_img_file": "Sökväg till anpassad bild: (t.ex.: bilder\/min_anpassade_ingen_mail.jpg)"
                 },

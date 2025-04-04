@@ -43,7 +43,7 @@
                 "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) auf GitHub.",
                 "title": "Briefe und Pakete (Schritt 2 von 2)"
             },
-            "config_3": {
+            "config_custom_img": {
                 "data": {
                     "custom_img_file": "Pfad zum benutzerdefinierten Bild: (z. B.: images\/my_custom_no_mail.jpg)"
                 },
@@ -88,7 +88,7 @@
                 "description": "Schließen Sie die Konfiguration ab, indem Sie das Folgende an Ihre E-Mail-Struktur und Home Assistant-Installation anpassen.\n\nWeitere Informationen zu den [Mail und Packages Integration](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) Optionen finden Sie im [Konfigurations-, Vorlagen- und Automatisierungsabschnitt](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) auf GitHub.\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse durch ein Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
                 "title": "Briefe und Pakete (Schritt 2 von 2)"
             },
-            "reconfig_3": {
+            "reconfig_custom_img": {
                 "data": {
                     "custom_img_file": "Pfad zum benutzerdefinierten Bild: (z.B.: images\/my_custom_no_mail.jpg)"
                 },

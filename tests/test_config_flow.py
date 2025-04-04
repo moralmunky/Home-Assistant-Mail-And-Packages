@@ -81,7 +81,7 @@ _LOGGER = logging.getLogger(__name__)
                 "amazon_days": 3,
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email,amazon@example.com,fake@email%$^&@example.com,bogusemail@testamazon.com",
             },
-            "config_3",
+            "config_custom_img",
             {
                 "custom_img_file": "images/test.gif",
             },
@@ -273,7 +273,7 @@ async def test_form(
                 "amazon_days": 3,
                 "amazon_fwds": "(none)",
             },
-            "config_3",
+            "config_custom_img",
             {
                 "custom_img_file": "images/test.gif",
             },
@@ -464,7 +464,7 @@ async def test_form_no_fwds(
                 "amazon_days": 3,
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
             },
-            "config_3",
+            "config_custom_img",
             {
                 "custom_img_file": "images/test.gif",
             },
@@ -1997,7 +1997,7 @@ async def test_form_storage_error(
                 "amazon_days": 3,
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
             },
-            "reconfig_3",
+            "reconfig_custom_img",
             {
                 "custom_img_file": "images/test.gif",
             },
@@ -2191,7 +2191,7 @@ async def test_reconfigure(
                     "inpost_pl_packages",
                 ],
             },
-            "reconfig_3",
+            "reconfig_custom_img",
             {
                 "custom_img_file": "images/test.gif",
             },
