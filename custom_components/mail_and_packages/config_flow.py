@@ -558,7 +558,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return await self._show_reconfig_custom_img(user_input)
 
     async def _show_reconfig_custom_img(self, user_input):
-        """Custom image setup."""
+        """Set up custom image."""
         # Defaults
         defaults = {
             CONF_CUSTOM_IMG_FILE: DEFAULT_CUSTOM_IMG_FILE,
