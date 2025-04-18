@@ -1,0 +1,103 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Je dovolena pouze jedna configurace."
+        },
+        "error": {
+            "communication": "Nelze se připojit nebo přihlásit k poštovnímu serveru. Podrobnosti naleznete v logu.",
+            "invalid_path": "Prosím uložte obrázky do jiného adresáře.",
+            "ffmpeg_not_found": "Generování MP4 vyžaduje ffmpeg",
+            "amazon_domain": "Neplatná e-mailová adresa pro přeposílání.",
+            "file_not_found": "Soubor obrázku nebyl nalezen",
+            "scan_too_low": "Interval skenování je příliš nízký (minimum 5)",
+            "timeout_too_low": "IMAP timeout je příliš nízký (minimum 10)"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Host",
+                    "password": "Heslo",
+                    "port": "Port",
+                    "username": "Uživatelské jméno"
+                },
+                "description": "Zadejte prosím informace o připojení vašeho poštovního serveru.",
+                "title": "Mail and Packages (Krok 1 ze 3)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "Poštovní složka",
+                    "scan_interval": "Interval skenování (minuty)",
+                    "image_path": "Cesta obrázku",
+                    "gif_duration": "Trvání obrázku (sekund)",
+                    "image_security": "Jméno náhodného obrázku",
+                    "generate_mp4": "Vytvořit mp4 z obrázku",
+                    "resources": "Seznam senzorů",
+                    "imap_timeout": "Čas v sekundách před vypršením časového limitu připojení (sekund, minimum 10)",
+                    "amazon_fwds": "Amazon předal e-mailové adresy",
+                    "allow_external": "Vytvořte obrázek pro oznamovací aplikaci",
+                    "amazon_days": "Dny zpět ke kontrole e-mailů Amazon",
+                    "custom_img": "Použít vlastní obrázek „bez obrázku“?"
+                },
+                "description": "Dokončete konfiguraci přizpůsobením následujících položek na základě struktury e-mailu a instalace Home Assistant.\n\nPodrobnosti o [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) můžete zkontrolovat na [configurace, styly a automatizace](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
+                "title": "Mail and Packages (Krok 2 ze 3)"
+            },
+            "options_3": {
+                "data": {
+                    "custom_img_file": "Cesta k vlastnímu obrázku: (např.: images/my_custom_no_mail.jpg)"
+                },
+                "description": "Níže zadejte cestu a název souboru k vlastnímu obrázku bez pošty.\n\nPříklad: images/custom_nomail.gif",
+                "title": "Mail and Packages (Krok 3 ze 3)"
+            }
+        },
+        "title": "Mail and Packages"
+    },
+    "options": {
+        "error": {
+            "communication": "Nelze se připojit nebo přihlásit k poštovnímu serveru. Podrobnosti naleznete v logu.",
+            "invalid_path": "Prosím uložte obrázky do jiného adresáře.",
+            "ffmpeg_not_found": "Generování MP4 vyžaduje ffmpeg",
+            "amazon_domain": "Neplatná e-mailová adresa pro přeposílání.",
+            "file_not_found": "Soubor obrázku nebyl nalezen",
+            "scan_too_low": "Interval skenování je příliš nízký (minimum 5)",
+            "timeout_too_low": "IMAP timeout je příliš nízký (minimum 10)"
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Host",
+                    "password": "Heslo",
+                    "port": "Port",
+                    "username": "Uživatelské jméno"
+                },
+                "description": "Zadejte prosím informace o připojení vašeho poštovního serveru.",
+                "title": "Mail and Packages (Krok 1 ze 3)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "Poštovní složka",
+                    "scan_interval": "Interval skenování (minuty)",
+                    "image_path": "Cesta obrázku",
+                    "gif_duration": "Trvání obrázku (sekund)",
+                    "image_security": "Jméno náhodného obrázku",
+                    "generate_mp4": "Vytvořit mp4 z obrázku",
+                    "resources": "Seznam senzorů",
+                    "imap_timeout": "Čas v sekundách před vypršením časového limitu připojení (sekund, minimum 10)",
+                    "amazon_fwds": "Amazon předal e-mailové adresy",
+                    "allow_external": "Vytvořte obrázek pro oznamovací aplikaci",
+                    "amazon_days": "Dny zpět ke kontrole e-mailů Amazon",
+                    "custom_img": "Použít vlastní obrázek „bez obrázku“?"
+                },
+                "description": "Dokončete konfiguraci přizpůsobením následujících položek na základě struktury e-mailu a instalace Home Assistant.\n\nPodrobnosti o [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) můžete zkontrolovat na [configurace, styly a automatizace](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
+                "title": "Mail and Packages (Krok 2 ze 3)"
+            },
+            "options_3": {
+                "data": {
+                    "custom_img_file": "Cesta k vlastnímu obrázku: (např.: images/my_custom_no_mail.jpg)"
+                },
+                "description": "Níže zadejte cestu a název souboru k vlastnímu obrázku bez pošty.\n\nPříklad: images/custom_nomail.gif",
+                "title": "Mail and Packages (Krok 3 ze 3)"
+            }
+        }
+    },
+    "title": "Mail and Packages"
+}
