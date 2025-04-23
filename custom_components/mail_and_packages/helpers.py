@@ -136,19 +136,16 @@ async def _test_login(
     """
     # Catch invalid mail server / host names
     try:
+        ssl_context = (
+            ssl.create_client_context()
+            if verify
+            else ssl.create_no_verify_ssl_context()
+        )
         if security == "SSL":
-            if not verify:
-                context = ssl.client_context_no_verify()
-            else:
-                context = ssl.client_context()
-            account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
+            account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=ssl_context)
         elif security == "startTLS":
-            if not verify:
-                context = ssl.client_context_no_verify()
-            else:
-                context = ssl.client_context()
             account = imaplib.IMAP4(host=host, port=port)
-            account.starttls(context)
+            account.starttls(ssl_context)
         else:
             _LOGGER.warning(NO_SSL)
             account = imaplib.IMAP4(host=host, port=port)
@@ -168,7 +165,8 @@ async def _test_login(
 
 
 def default_image_path(
-    hass: HomeAssistant, config_entry: ConfigEntry  # pylint: disable=unused-argument
+    hass: HomeAssistant,  # pylint: disable=unused-argument
+    config_entry: ConfigEntry,
 ) -> str:
     """Return value of the default image path.
 
@@ -495,19 +493,16 @@ def login(
     Returns account object
     """
     try:
+        ssl_context = (
+            ssl.create_client_context()
+            if verify
+            else ssl.create_no_verify_ssl_context()
+        )
         if security == "SSL":
-            if not verify:
-                context = ssl.get_default_no_verify_context()
-            else:
-                context = ssl.get_default_context()
-            account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
+            account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=ssl_context)
         elif security == "startTLS":
-            if not verify:
-                context = ssl.get_default_no_verify_context()
-            else:
-                context = ssl.get_default_context()
             account = imaplib.IMAP4(host=host, port=port)
-            account.starttls(context)
+            account.starttls(ssl_context)
         else:
             account = imaplib.IMAP4(host=host, port=port)
 
@@ -1416,7 +1411,6 @@ def amazon_otp(account: Type[imaplib.IMAP4_SSL], fwds: Optional[list] = None) ->
     email_addresses.extend(_process_amazon_forwards(fwds))
 
     for address in email_addresses:
-
         (server_response, sdata) = email_search(
             account, address, tfmt, AMAZON_OTP_SUBJECT
         )
