@@ -21,17 +21,14 @@ jobs:
     steps:
       - name: 📥 Checkout the repository
         uses: actions/checkout@v4
-      - name: 🛠️ Set up Python
-        uses: actions/setup-python@v5
         with:
-          fetch-depth: 2      
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+          fetch-depth: 2
+      - name: 🛠️ Set up uv with python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: 📦 Install requirements
-        run: |
-          pip install tox tox-gh-actions          
+        run: uv tool install tox --with tox-uv --with tox-gh-actions
       - name: 🏃 Test with tox
         run: tox
       - name: 📤 Upload coverage to Codecov
