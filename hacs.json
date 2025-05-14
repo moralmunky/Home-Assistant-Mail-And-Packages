@@ -1,6 +1,6 @@
 {
     "name": "Mail and Packages",
-    "homeassistant": "2023.4.0",
+    "homeassistant": "2025.5.0",
     "zip_release": true,
     "filename": "mail_and_packages.zip",
     "render_readme": true
