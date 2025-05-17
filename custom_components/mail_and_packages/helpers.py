@@ -753,7 +753,7 @@ def get_mails(
                         elif part.get_content_type() == "image/jpeg":
                             _LOGGER.debug("Extracting image from email")
                             filename = part.get_filename()
-                            junkmail = ["mailer", "content"]
+                            junkmail = ["mailer", "content", "package"]
                             if any(junk in filename for junk in junkmail):
                                 _LOGGER.debug("Discarding junk mail.")
                                 continue
