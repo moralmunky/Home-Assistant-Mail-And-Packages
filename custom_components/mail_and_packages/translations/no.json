@@ -11,7 +11,8 @@
             "amazon_domain": "Ugyldig videresendings e-postadresse.",
             "file_not_found": "Bildefil ikke funnet",
             "invalid_email_format": "Ugyldig e-postadresseformat.",
-            "path_not_found": "Mappen ble ikke funnet"
+            "path_not_found": "Mappen ble ikke funnet",
+            "missing_forwarded_emails": "Mangler videresendte e -postadresser. Du kan legge inn '(ingen)' for å fjerne denne innstillingen."
         },
         "step": {
             "user": {
@@ -38,7 +39,8 @@
                     "generate_mp4": "Lag mp4 fra bilder",
                     "allow_external": "Lag bilde for varslingsapper",
                     "custom_img": "Bruk tilpasset 'ingen bilde' bilde?",
-                    "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller"
+                    "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller",
+                    "allow_forwarded_emails": "Tillat videresendte e-postmeldinger i tillegg til en tjenestes standard (f.eks. NO-Reply@usps.com)"
                 },
                 "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på e-poststrukturen og Home Assistant-installasjonen. \n\n For detaljer om alternativene [Mail and Packages] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), les gjennom [konfigurasjon, maler , og automatiseringsdel] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) på GitHub.",
                 "title": "E-post og pakker (trinn 2 av 2)"
@@ -47,7 +49,7 @@
                 "data": {
                     "custom_img_file": "Sti til tilpasset bilde: (f.eks: images\/my_custom_no_mail.jpg)"
                 },
-                "description": "Skriv inn stien og filnavnet til ditt tilpassede ingen post-bilde nedenfor.\n\nEksempel: bilder\/tilpasset_ingenpost.gif",
+                "description": "Skriv inn stien og filnavnet til ditt tilpassede ingen post-bilde nedenfor.\n\nEksempel: bilder/tilpasset_ingenpost.gif",
                 "title": "Post og pakker (Trinn 3 av 3)"
             },
             "config_amazon": {
@@ -83,7 +85,8 @@
                     "imap_timeout": "Tid i sekunder før tilkoblingen tidsavbrudd (sekunder, minimum 10)",
                     "allow_external": "Lag bilde for varslingsapper",
                     "custom_img": "Bruk tilpasset 'ingen bilde' bilde?",
-                    "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller"
+                    "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller",
+                    "allow_forwarded_emails": "Tillat videresendte e-postmeldinger i tillegg til en tjenestes standard (f.eks. NO-Reply@usps.com)"
                 },
                 "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på din e-poststruktur og Home Assistant-installasjon.\n\nFor detaljer om [Mail and Packages-integrasjonen](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) alternativene, se gjennom [konfigurasjon, maler og automatiseringsseksjonen](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) på GitHub.\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma eller skriv inn (ingen) for å tømme denne innstillingen.",
                 "title": "E-post og pakker (trinn 2 av 2)"
@@ -92,7 +95,7 @@
                 "data": {
                     "custom_img_file": "Sti til tilpasset bilde: (dvs.: images\/my_custom_no_mail.jpg)"
                 },
-                "description": "Skriv inn stien og filnavnet til ditt tilpassede ingen post-bilde nedenfor.\n\nEksempel: bilder\/tilpasset_ingenpost.gif",
+                "description": "Skriv inn stien og filnavnet til ditt tilpassede ingen post-bilde nedenfor.\n\nEksempel: bilder/tilpasset_ingenpost.gif",
                 "title": "Post og pakker (Trinn 3 av 3)"
             },
             "reconfig_amazon": {

@@ -11,7 +11,8 @@
             "amazon_domain": "Ongeldig doorstuur e-mailadres.",
             "file_not_found": "Afbeeldingsbestand niet gevonden",
             "invalid_email_format": "Ongeldig e-mailadres formaat.",
-            "path_not_found": "Map niet gevonden"
+            "path_not_found": "Map niet gevonden",
+            "missing_forwarded_emails": "Ik mis doorgestuurde e -mailadressen. U kunt '(geen)' invoeren om deze instelling te wissen."
         },
         "step": {
             "user": {
@@ -38,7 +39,8 @@
                     "generate_mp4": "Maak mp4 van afbeeldingen",
                     "allow_external": "Maak afbeelding voor meldingsapps",
                     "custom_img": "Gebruik aangepaste 'geen afbeelding' afbeelding?",
-                    "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen"
+                    "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen",
+                    "allow_forwarded_emails": "Stuur doorgestuurde e-mails toe naast de standaardinstelling van een service (bijv. No-reply@usps.com)"
                 },
                 "description": "Voltooi de configuratie door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie. \n\n Voor meer informatie over de [E-mail en pakketten integratie] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) opties bekijk de [configuratie, sjablonen , en automatisering sectie] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) op GitHub.",
                 "title": "Mail en pakketten (stap 2 van 2)"
@@ -83,7 +85,8 @@
                     "imap_timeout": "Tijd in seconden voordat de verbinding verloopt (seconden, minimaal 10)",
                     "allow_external": "Maak afbeelding voor meldingsapps",
                     "custom_img": "Gebruik aangepaste 'geen afbeelding' afbeelding?",
-                    "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen"
+                    "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen",
+                    "allow_forwarded_emails": "Stuur doorgestuurde e-mails toe naast de standaardinstelling van een service (bijv. No-reply@usps.com)"
                 },
                 "description": "Rond de configuratie af door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie.\n\nVoor details over de [Mail en Packages integratie](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) opties, bekijk de [configuratie, sjablonen en automatiseringen sectie](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) op GitHub.\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
                 "title": "Mail en pakketten (stap 2 van 2)"

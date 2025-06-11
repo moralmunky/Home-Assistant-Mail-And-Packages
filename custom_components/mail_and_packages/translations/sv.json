@@ -11,7 +11,8 @@
             "amazon_domain": "Ogiltig vidarebefordrings e-postadress.",
             "file_not_found": "Bildfilen hittades inte",
             "invalid_email_format": "Ogiltigt format för e-postadress.",
-            "path_not_found": "Katalogen hittades inte"
+            "path_not_found": "Katalogen hittades inte",
+            "missing_forwarded_emails": "Saknar vidarebefordrade e -postadresser. Du kan ange '(ingen)' för att rensa den här inställningen."
         },
         "step": {
             "user": {
@@ -38,16 +39,17 @@
                     "generate_mp4": "Skapa mp4 från bilder",
                     "allow_external": "Skapa bild för notifikationsappar",
                     "custom_img": "Använd anpassad 'ingen bild' bild?",
-                    "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller"
+                    "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller",
+                    "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänstens standard (t.ex. no-reply@usps.com)"
                 },
                 "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) på GitHub.",
                 "title": "Mail och paket (steg 2 av 2)"
             },
             "config_3": {
                 "data": {
-                    "custom_img_file": "Sökväg till anpassad bild: (t.ex: bilder\/min_anpassade_ingen_mail.jpg)"
+                    "custom_img_file": "Sökväg till anpassad bild: (t.ex: bilder/min_anpassade_ingen_mail.jpg)"
                 },
-                "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder\/anpassad_nomail.gif",
+                "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder/anpassad_nomail.gif",
                 "title": "Post och paket (Steg 3 av 3)"
             },
             "config_amazon": {
@@ -83,16 +85,17 @@
                     "imap_timeout": "Tid i sekunder innan anslutningen kopplas från (sekunder, minst 10)",
                     "allow_external": "Skapa bild för notifikationsappar",
                     "custom_img": "Använd anpassad 'ingen bild' bild?",
-                    "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller"
+                    "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller",
+                    "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänstens standard (t.ex. no-reply@usps.com)"
                 },
                 "description": "Slutför konfigurationen genom att anpassa följande baserat på din e-poststruktur och Home Assistant-installation.\n\nFör detaljer om [Mail and Packages integration](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) alternativen granska [konfiguration, mallar och automatiseringssektionen](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) på GitHub.\n\nOm du använder vidarebefordrade e-postmeddelanden från Amazon, separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
                 "title": "Mail och paket (steg 2 av 2)"
             },
             "reconfig_3": {
                 "data": {
-                    "custom_img_file": "Sökväg till anpassad bild: (t.ex.: bilder\/min_anpassade_ingen_mail.jpg)"
+                    "custom_img_file": "Sökväg till anpassad bild: (t.ex.: bilder/min_anpassade_ingen_mail.jpg)"
                 },
-                "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder\/anpassad_nomail.gif",
+                "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder/anpassad_nomail.gif",
                 "title": "Post och paket (Steg 3 av 3)"
             },
             "reconfig_amazon": {

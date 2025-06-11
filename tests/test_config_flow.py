@@ -39,6 +39,7 @@ _LOGGER = logging.getLogger(__name__)
             "config_2",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "custom_img": True,
                 "folder": '"INBOX"',
                 "generate_grid": False,
@@ -92,6 +93,7 @@ _LOGGER = logging.getLogger(__name__)
             "imap.test.email",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email,amazon@example.com,fake@email%$^&@example.com,bogusemail@testamazon.com",
@@ -231,6 +233,7 @@ async def test_form(
             "config_2",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "custom_img": True,
                 "folder": '"INBOX"',
                 "generate_grid": False,
@@ -284,6 +287,7 @@ async def test_form(
             "imap.test.email",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
@@ -405,6 +409,1508 @@ async def test_form_no_fwds(
     await hass.async_block_till_done()
     assert len(mock_setup.mock_calls) == 1
     assert len(mock_setup_entry.mock_calls) == 1
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,step_id_5,input_5,step_id_6,input_6,title,data",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "config_2",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "custom_img": True,
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+            },
+            "config_forwarded_emails",
+            {
+                "forwarded_emails": "user@example.com,testuser@example.com"
+            },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "(none)",
+            },
+            "config_3",
+            {
+                "custom_img_file": "images/test.gif",
+            },
+            "config_storage",
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+            "imap.test.email",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "forwarded_emails": "user@example.com,testuser@example.com",
+                "amazon_days": 3,
+                "amazon_domain": "amazon.com",
+                "amazon_fwds": [],
+                "custom_img": True,
+                "custom_img_file": "images/test.gif",
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_security": "SSL",
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "storage": "custom_components/mail_and_packages/images/",
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+                "verify_ssl": False,
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_form_allow_forwarded_emails(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    step_id_4,
+    input_4,
+    step_id_5,
+    input_5,
+    step_id_6,
+    input_6,
+    title,
+    data,
+    hass,
+    mock_imap,
+):
+    """Test we get the form."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.config_flow.path",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_1
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_5
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_5
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_6
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_6
+        )
+
+    assert result["type"] == "create_entry"
+    assert result["title"] == title
+    assert result["data"] == data
+
+    await hass.async_block_till_done()
+    assert len(mock_setup.mock_calls) == 1
+    assert len(mock_setup_entry.mock_calls) == 1
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,step_id_5,input_5,step_id_6,input_6,title,data",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "config_2",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "custom_img": True,
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+            },
+            "config_forwarded_emails",
+            {
+                "forwarded_emails": "(none)"
+            },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "(none)",
+            },
+            "config_3",
+            {
+                "custom_img_file": "images/test.gif",
+            },
+            "config_storage",
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+            "imap.test.email",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": False,
+                "amazon_days": 3,
+                "amazon_domain": "amazon.com",
+                "amazon_fwds": [],
+                "custom_img": True,
+                "custom_img_file": "images/test.gif",
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_security": "SSL",
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "storage": "custom_components/mail_and_packages/images/",
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+                "verify_ssl": False,
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_form_allowed_forwarded_emails_entered_none(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    step_id_4,
+    input_4,
+    step_id_5,
+    input_5,
+    step_id_6,
+    input_6,
+    title,
+    data,
+    hass,
+    mock_imap,
+):
+    """Test we get the form."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.config_flow.path",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_1
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_5
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_5
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_6
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_6
+        )
+
+    assert result["type"] == "create_entry"
+    assert result["title"] == title
+    assert result["data"] == data
+
+    await hass.async_block_till_done()
+    assert len(mock_setup.mock_calls) == 1
+    assert len(mock_setup_entry.mock_calls) == 1
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,title,data",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "config_2",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "custom_img": False,
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "resources": [
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+            },
+            "config_forwarded_emails",
+            {
+                "forwarded_emails": "user@example.com,testuser@example.com"
+            },
+            "config_storage",
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+            "imap.test.email",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "forwarded_emails": "user@example.com,testuser@example.com",
+                "custom_img": False,
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_security": "SSL",
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "storage": "custom_components/mail_and_packages/images/",
+                "resources": [
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+                "verify_ssl": False,
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    step_id_4,
+    input_4,
+    title,
+    data,
+    hass,
+    mock_imap,
+):
+    """Test we get the form."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.config_flow.path",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_1
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
+        )
+
+    assert result["type"] == "create_entry"
+    assert result["title"] == title
+    assert result["data"] == data
+
+    await hass.async_block_till_done()
+    assert len(mock_setup.mock_calls) == 1
+    assert len(mock_setup_entry.mock_calls) == 1
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,step_id_5,input_5,title,data",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "config_2",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "custom_img": False,
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+            },
+            "config_forwarded_emails",
+            {
+                "forwarded_emails": "user@example.com,testuser@example.com"
+            },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "(none)",
+            },
+            "config_storage",
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+            "imap.test.email",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "amazon_days": 3,
+                "amazon_domain": "amazon.com",
+                "amazon_fwds": [],
+                "forwarded_emails": "user@example.com,testuser@example.com",
+                "custom_img": False,
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_security": "SSL",
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "storage": "custom_components/mail_and_packages/images/",
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+                "verify_ssl": False,
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_form_allow_forwarded_emails_without_custom_img(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    step_id_4,
+    input_4,
+    step_id_5,
+    input_5,
+    title,
+    data,
+    hass,
+    mock_imap,
+):
+    """Test we get the form."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.config_flow.path",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_1
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_5
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_5
+        )
+
+    assert result["type"] == "create_entry"
+    assert result["title"] == title
+    assert result["data"] == data
+
+    await hass.async_block_till_done()
+    assert len(mock_setup.mock_calls) == 1
+    assert len(mock_setup_entry.mock_calls) == 1
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,step_id_5,input_5,title,data",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "config_2",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "custom_img": False,
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+            },
+            "config_forwarded_emails",
+            {
+                "forwarded_emails": "user@example.com,testuser@example.com"
+            },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "(none)",
+            },
+            "config_storage",
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+            "imap.test.email",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "amazon_days": 3,
+                "amazon_domain": "amazon.com",
+                "amazon_fwds": [],
+                "forwarded_emails": "user@example.com,testuser@example.com",
+                "custom_img": False,
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_security": "SSL",
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "storage": "custom_components/mail_and_packages/images/",
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+                "verify_ssl": False,
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    step_id_4,
+    input_4,
+    step_id_5,
+    input_5,
+    title,
+    data,
+    hass,
+    mock_imap,
+):
+    """Test we get the form."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.config_flow.path",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_1
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_5
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_5
+        )
+
+    assert result["type"] == "create_entry"
+    assert result["title"] == title
+    assert result["data"] == data
+
+    await hass.async_block_till_done()
+    assert len(mock_setup.mock_calls) == 1
+    assert len(mock_setup_entry.mock_calls) == 1
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,step_id_5,input_5,step_id_6,input_6,title,data",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "config_2",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "custom_img": True,
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+            },
+            "config_forwarded_emails",
+            {
+                "forwarded_emails": "(none)"
+            },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "(none)",
+            },
+            "config_3",
+            {
+                "custom_img_file": "images/test.gif",
+            },
+            "config_storage",
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+            "imap.test.email",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": False,
+                "forwarded_emails": "(none)",
+                "amazon_days": 3,
+                "amazon_domain": "amazon.com",
+                "amazon_fwds": [],
+                "custom_img": True,
+                "custom_img_file": "images/test.gif",
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_security": "SSL",
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "storage": "custom_components/mail_and_packages/images/",
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+                "verify_ssl": False,
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_form_allow_forwarded_emails_none_entered(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    step_id_4,
+    input_4,
+    step_id_5,
+    input_5,
+    step_id_6,
+    input_6,
+    title,
+    data,
+    hass,
+    mock_imap,
+):
+    """Test we get the form."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.config_flow.path",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_1
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_5
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_5
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_6
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_6
+        )
+
+    # this gets automatically removed when set to "(none)"
+    del data["forwarded_emails"]
+
+    assert result["type"] == "create_entry"
+    assert result["title"] == title
+    assert result["data"] == data
+
+    await hass.async_block_till_done()
+    assert len(mock_setup.mock_calls) == 1
+    assert len(mock_setup_entry.mock_calls) == 1
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "config_2",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "custom_img": True,
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+            },
+            "config_forwarded_emails",
+            {
+                "forwarded_emails": "",
+            },
+            "imap.test.email",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "amazon_days": 3,
+                "amazon_domain": "amazon.com",
+                "amazon_fwds": [],
+                "custom_img": True,
+                "custom_img_file": "images/test.gif",
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_security": "SSL",
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "storage": "custom_components/mail_and_packages/images/",
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+                "verify_ssl": False,
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_form_allowed_forwards_missing_email_addresses(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    title,
+    data,
+    hass,
+    mock_imap,
+):
+    """Test we get the form."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.config_flow.path",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_1
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == step_id_3
+    assert result["errors"] == {"forwarded_emails": "missing_forwarded_emails"}
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "config_2",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "custom_img": True,
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+            },
+            "config_forwarded_emails",
+            {
+                "forwarded_emails": "hello world",
+            },
+            "imap.test.email",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "amazon_days": 3,
+                "amazon_domain": "amazon.com",
+                "amazon_fwds": [],
+                "custom_img": True,
+                "custom_img_file": "images/test.gif",
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_security": "SSL",
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "storage": "custom_components/mail_and_packages/images/",
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+                "verify_ssl": False,
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_form_allowed_forwards_invalid_email_address_format(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    title,
+    data,
+    hass,
+    mock_imap,
+):
+    """Test we get the form."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.config_flow.path",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_1
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == step_id_3
+    assert result["errors"] == {"forwarded_emails": "invalid_email_format"}
 
 
 @pytest.mark.parametrize(
@@ -787,6 +2293,7 @@ async def test_form_invalid_ffmpeg(
             "config_2",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_grid": False,
@@ -836,6 +2343,7 @@ async def test_form_invalid_ffmpeg(
             "imap.test.email",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "custom_img": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -968,6 +2476,7 @@ async def test_form_index_error(
             "config_2",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_grid": False,
@@ -1017,6 +2526,7 @@ async def test_form_index_error(
             "imap.test.email",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
@@ -1148,6 +2658,7 @@ async def test_form_index_error_2(
             "config_2",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "folder": '"INBOX"',
                 "generate_grid": False,
                 "generate_mp4": False,
@@ -1196,6 +2707,7 @@ async def test_form_index_error_2(
             "imap.test.email",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "custom_img": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -1327,6 +2839,7 @@ async def test_form_mailbox_format2(
             "config_2",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "folder": '"INBOX"',
                 "generate_grid": False,
                 "generate_mp4": False,
@@ -1375,6 +2888,7 @@ async def test_form_mailbox_format2(
             "imap.test.email",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "custom_img": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -1955,6 +3469,7 @@ async def test_form_storage_error(
             "reconfig_2",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "custom_img": True,
                 "folder": '"INBOX"',
                 "generate_grid": False,
@@ -2008,6 +3523,7 @@ async def test_form_storage_error(
             "imap.test.email",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
@@ -2157,6 +3673,7 @@ async def test_reconfigure(
             "reconfig_2",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "custom_img": True,
                 "folder": '"INBOX"',
                 "generate_grid": False,
@@ -2202,6 +3719,7 @@ async def test_reconfigure(
             "imap.test.email",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
@@ -2341,6 +3859,7 @@ async def test_reconfigure_no_amazon(
             "reconfig_2",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_grid": False,
@@ -2382,6 +3901,7 @@ async def test_reconfigure_no_amazon(
             "imap.test.email",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
@@ -2513,6 +4033,7 @@ async def test_reconfigure_no_amazon_no_custom_image(
             "reconfig_2",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_grid": False,
@@ -2562,6 +4083,7 @@ async def test_reconfigure_no_amazon_no_custom_image(
             "imap.test.email",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
@@ -2702,6 +4224,7 @@ async def test_reconfig_no_cust_img(
             "reconfig_2",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_grid": False,
@@ -2823,6 +4346,7 @@ async def test_reconfig_amazon_error(
             "reconfig_2",
             {
                 "allow_external": False,
+                "allow_forwarded_emails": False,
                 "custom_img": False,
                 "folder": '"INBOX"',
                 "generate_grid": False,
@@ -2894,3 +4418,386 @@ async def test_reconfig_storage_error(
     assert result["type"] == "form"
     assert result["step_id"] == step_id_3
     assert result["errors"] == {CONF_STORAGE: "path_not_found"}
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,step_id_5,input_5,step_id_6,input_6,title,data",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "reconfig_2",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "custom_img": True,
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "resources": [
+                    "amazon_delivered",
+                    "amazon_packages",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                    "mail_updated",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                ],
+            },
+            "reconfig_forwarded_emails",
+            {
+                "forwarded_emails": "user@example.com,testuser@example.com"
+            },
+            "reconfig_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "(none)",
+            },
+            "reconfig_3",
+            {
+                "custom_img_file": "images/test.gif",
+            },
+            "reconfig_storage",
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+            "imap.test.email",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "forwarded_emails": "user@example.com,testuser@example.com",
+                "amazon_days": 3,
+                "amazon_domain": "amazon.com",
+                "amazon_fwds": [],
+                "custom_img": True,
+                "custom_img_file": "images/test.gif",
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "image_name": "mail_today.gif",
+                "image_path": "custom_components/mail_and_packages/images/",
+                "image_security": True,
+                "imap_security": "SSL",
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "storage": "custom_components/mail_and_packages/images/",
+                "resources": [
+                    "amazon_delivered",
+                    "amazon_packages",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                    "mail_updated",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                ],
+                "verify_ssl": False,
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_reconfigure_allow_forwarded_emails(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    step_id_4,
+    input_4,
+    step_id_5,
+    input_5,
+    step_id_6,
+    input_6,
+    title,
+    data,
+    hass: HomeAssistant,
+    integration,
+    mock_imap_no_email,
+) -> None:
+    """Test reconfigure flow."""
+    entry = integration
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.path",
+        return_value=True,
+    ):
+
+        reconfigure_result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={
+                "source": config_entries.SOURCE_RECONFIGURE,
+                "entry_id": entry.entry_id,
+            },
+        )
+        assert reconfigure_result["type"] is FlowResultType.FORM
+        assert reconfigure_result["step_id"] == "reconfigure"
+
+        result = await hass.config_entries.flow.async_configure(
+            reconfigure_result["flow_id"],
+            input_1,
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_5
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_5
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_6
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_6
+        )
+        # assert "errors" not in result
+
+        assert result["type"] is FlowResultType.ABORT
+        assert result["reason"] == "reconfigure_successful"
+        await hass.async_block_till_done()
+
+        _LOGGER.debug("Entries: %s", len(hass.config_entries.async_entries(DOMAIN)))
+        entry = hass.config_entries.async_entries(DOMAIN)[0]
+        assert entry.data.copy() == data
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,title,data",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "reconfig_2",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "custom_img": False,
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "resources": [
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                    "mail_updated",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                ],
+            },
+            "reconfig_forwarded_emails",
+            {
+                "forwarded_emails": "user@example.com,testuser@example.com"
+            },
+            "reconfig_storage",
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+            "imap.test.email",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "forwarded_emails": "user@example.com,testuser@example.com",
+                "custom_img": False,
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "image_name": "mail_today.gif",
+                "image_path": "custom_components/mail_and_packages/images/",
+                "image_security": True,
+                "imap_security": "SSL",
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "storage": "custom_components/mail_and_packages/images/",
+                "resources": [
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                    "mail_updated",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                ],
+                "verify_ssl": False,
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_reconfigure_allow_forwarded_emails_without_amazon_or_custom_img(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    step_id_4,
+    input_4,
+    title,
+    data,
+    hass: HomeAssistant,
+    integration_forwarded_emails_no_amazon,
+    mock_imap_no_email,
+) -> None:
+    """Test reconfigure flow."""
+    entry = integration_forwarded_emails_no_amazon
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.path",
+        return_value=True,
+    ):
+
+        reconfigure_result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={
+                "source": config_entries.SOURCE_RECONFIGURE,
+                "entry_id": entry.entry_id,
+            },
+        )
+        assert reconfigure_result["type"] is FlowResultType.FORM
+        assert reconfigure_result["step_id"] == "reconfigure"
+
+        result = await hass.config_entries.flow.async_configure(
+            reconfigure_result["flow_id"],
+            input_1,
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
+        )
+
+        # assert "errors" not in result
+
+        assert result["type"] is FlowResultType.ABORT
+        assert result["reason"] == "reconfigure_successful"
+        await hass.async_block_till_done()
+
+        _LOGGER.debug("Entries: %s", len(hass.config_entries.async_entries(DOMAIN)))
+        entry = hass.config_entries.async_entries(DOMAIN)[0]
+        assert entry.data.copy() == data

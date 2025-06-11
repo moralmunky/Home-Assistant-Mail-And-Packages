@@ -11,7 +11,8 @@
             "amazon_domain": "Neplatná adresa pre presmerovanie e-mailov.",
             "file_not_found": "Obrázokový súbor nebol nájdený",
             "invalid_email_format": "Neplatný formát e-mailovej adresy.",
-            "path_not_found": "Adresár nebol nájdený"
+            "path_not_found": "Adresár nebol nájdený",
+            "missing_forwarded_emails": "Chýbajúce preposielané e -mailové adresy. Na vyčistenie tohto nastavenia môžete zadať '(žiadne)'."
         },
         "step": {
             "user": {
@@ -38,7 +39,8 @@
                     "generate_mp4": "Vytvorte mp4 z obrázkov",
                     "allow_external": "Vytvorte obrázok pre aplikácie upozornení",
                     "custom_img": "Použiť vlastný obrázok 'bez obrázka'?",
-                    "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM"
+                    "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM",
+                    "allow_forwarded_emails": "Povoliť preposielané e-maily okrem predvolenej služby (napr. No-lisps.com)"
                 },
                 "description": "Dokončite konfiguráciu prispôsobením nasledujúcich položiek na základe štruktúry e-mailu a inštalácie Home Assistant.\n\nPodrobnosti nájdete na [Pošta a balíky integrácia](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) možnosti si pozrite v časti [konfigurácia, šablóny a automatizácie](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) na GitHube.",
                 "title": "Pošta a balíky (krok 2 z 2)"
@@ -83,7 +85,8 @@
                     "imap_timeout": "Čas v sekundách pred časovým limitom pripojenia (sekundy, minimálne 10)",
                     "allow_external": "Vytvorte obrázok pre aplikácie upozornení",
                     "custom_img": "Použiť vlastný obrázok 'bez obrázka'?",
-                    "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM"
+                    "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM",
+                    "allow_forwarded_emails": "Povoliť preposielané e-maily okrem predvolenej služby (napr. No-lisps.com)"
                 },
                 "description": "Dokončite konfiguráciu prispôsobením nasledujúceho na základe štruktúry vášho e-mailu a inštalácie Home Assistant.\n\nPre podrobnosti o možnostiach [integrácie Mail a Packages](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) si prečítajte [sekciu o konfigurácii, šablónach a automatizáciách](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) na GitHub.\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (none) na vymazanie tohto nastavenia.",
                 "title": "Pošta a balíky (krok 2 z 2)"

@@ -10,7 +10,8 @@
             "amazon_domain": "Neplatná e-mailová adresa pro přeposílání.",
             "file_not_found": "Soubor obrázku nebyl nalezen",
             "scan_too_low": "Interval skenování je příliš nízký (minimum 5)",
-            "timeout_too_low": "IMAP timeout je příliš nízký (minimum 10)"
+            "timeout_too_low": "IMAP timeout je příliš nízký (minimum 10)",
+            "missing_forwarded_emails": "Chybějící předávané e -mailové adresy. Můžete zadat '(žádné)', abyste toto nastavení vyčistili."
         },
         "step": {
             "user": {
@@ -36,16 +37,17 @@
                     "amazon_fwds": "Amazon předal e-mailové adresy",
                     "allow_external": "Vytvořte obrázek pro oznamovací aplikaci",
                     "amazon_days": "Dny zpět ke kontrole e-mailů Amazon",
-                    "custom_img": "Použít vlastní obrázek „bez obrázku“?"
+                    "custom_img": "Použít vlastní obrázek „bez obrázku“?",
+                    "allow_forwarded_emails": "Povolte přeposílené e-maily kromě výchozí hodnoty (např. No- reply@usps.com)"
                 },
-                "description": "Dokončete konfiguraci přizpůsobením následujících položek na základě struktury e-mailu a instalace Home Assistant.\n\nPodrobnosti o [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) můžete zkontrolovat na [configurace, styly a automatizace](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
+                "description": "Dokončete konfiguraci přizpůsobením následujících položek na základě struktury e-mailu a instalace Home Assistant.\n\nPodrobnosti o [Mail and Packages integration](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) můžete zkontrolovat na [configurace, styly a automatizace](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) na GitHubu.",
                 "title": "Mail and Packages (Krok 2 ze 3)"
             },
             "options_3": {
                 "data": {
-                    "custom_img_file": "Cesta k vlastnímu obrázku: (např.: images/my_custom_no_mail.jpg)"
+                    "custom_img_file": "Cesta k vlastnímu obrázku: (např.: images\/my_custom_no_mail.jpg)"
                 },
-                "description": "Níže zadejte cestu a název souboru k vlastnímu obrázku bez pošty.\n\nPříklad: images/custom_nomail.gif",
+                "description": "Níže zadejte cestu a název souboru k vlastnímu obrázku bez pošty.\n\nPříklad: images\/custom_nomail.gif",
                 "title": "Mail and Packages (Krok 3 ze 3)"
             }
         },
@@ -87,14 +89,14 @@
                     "amazon_days": "Dny zpět ke kontrole e-mailů Amazon",
                     "custom_img": "Použít vlastní obrázek „bez obrázku“?"
                 },
-                "description": "Dokončete konfiguraci přizpůsobením následujících položek na základě struktury e-mailu a instalace Home Assistant.\n\nPodrobnosti o [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) můžete zkontrolovat na [configurace, styly a automatizace](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
+                "description": "Dokončete konfiguraci přizpůsobením následujících položek na základě struktury e-mailu a instalace Home Assistant.\n\nPodrobnosti o [Mail and Packages integration](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) můžete zkontrolovat na [configurace, styly a automatizace](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) na GitHubu.",
                 "title": "Mail and Packages (Krok 2 ze 3)"
             },
             "options_3": {
                 "data": {
-                    "custom_img_file": "Cesta k vlastnímu obrázku: (např.: images/my_custom_no_mail.jpg)"
+                    "custom_img_file": "Cesta k vlastnímu obrázku: (např.: images\/my_custom_no_mail.jpg)"
                 },
-                "description": "Níže zadejte cestu a název souboru k vlastnímu obrázku bez pošty.\n\nPříklad: images/custom_nomail.gif",
+                "description": "Níže zadejte cestu a název souboru k vlastnímu obrázku bez pošty.\n\nPříklad: images\/custom_nomail.gif",
                 "title": "Mail and Packages (Krok 3 ze 3)"
             }
         }

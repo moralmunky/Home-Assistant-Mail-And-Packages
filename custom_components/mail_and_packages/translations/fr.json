@@ -11,7 +11,8 @@
             "amazon_domain": "Adresse e-mail de transfert invalide.",
             "file_not_found": "Fichier image non trouvé",
             "invalid_email_format": "Format d'adresse e-mail invalide.",
-            "path_not_found": "Répertoire non trouvé"
+            "path_not_found": "Répertoire non trouvé",
+            "missing_forwarded_emails": "Adresses e-mail transférées manquantes. Vous pouvez entrer «(Aucun)» pour effacer ce paramètre."
         },
         "step": {
             "user": {
@@ -38,14 +39,15 @@
                     "generate_mp4": "Créer mp4 à partir d'images",
                     "allow_external": "Créer une image pour les applications de notification",
                     "custom_img": "Utiliser une image personnalisée 'pas d'image' ?",
-                    "generate_grid": "Créer une grille d'images pour les modèles de vision LLM"
+                    "generate_grid": "Créer une grille d'images pour les modèles de vision LLM",
+                    "allow_forwarded_emails": "Autoriser les e-mails transmis en plus du défaut d'un service (par exemple non-reply@usps.com)"
                 },
                 "description": "Terminez la configuration en personnalisant les éléments suivants en fonction de votre structure de messagerie et de l'installation de Home Assistant. \n\n Pour plus de détails sur les [Intégration de messagerie et de packages] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), passez en revue les [configuration, modèles et section automatisations] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) sur GitHub.",
                 "title": "Courrier et colis (étape 2 sur 2)"
             },
             "config_3": {
                 "data": {
-                    "custom_img_file": "Chemin vers l'image personnalisée : (par exemple : images\/mon_image_personnalisée_pas_de_mail.jpg)"
+                    "custom_img_file": "Chemin vers l'image personnalisée : (par exemple : images/mon_image_personnalisée_pas_de_mail.jpg)"
                 },
                 "description": "Entrez le chemin et le nom de fichier de votre image personnalisée de non-réception de courrier ci-dessous.\n\nExemple : images\/custom_nomail.gif",
                 "title": "Courrier et colis (Étape 3 sur 3)"
@@ -83,7 +85,8 @@
                     "imap_timeout": "Temps en secondes avant la fin de la connexion (secondes, minimum 10)",
                     "allow_external": "Créer une image pour les applications de notification",
                     "custom_img": "Utiliser une image personnalisée 'pas d'image' ?",
-                    "generate_grid": "Créer une grille d'images pour les modèles de vision LLM"
+                    "generate_grid": "Créer une grille d'images pour les modèles de vision LLM",
+                    "allow_forwarded_emails": "Autoriser les e-mails transmis en plus du défaut d'un service (par exemple non-reply@usps.com)"
                 },
                 "description": "Terminez la configuration en personnalisant ce qui suit en fonction de la structure de votre courrier électronique et de l'installation de Home Assistant.\n\nPour plus de détails sur les options d'[intégration de courrier et de colis](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), consultez la [section configuration, modèles et automatisations](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) sur GitHub.\n\nSi vous utilisez des courriels transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.",
                 "title": "Courrier et colis (étape 2 sur 2)"

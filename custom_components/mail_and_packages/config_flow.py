@@ -17,6 +17,7 @@ from homeassistant.const import (
 
 from .const import (
     CONF_ALLOW_EXTERNAL,
+    CONF_ALLOW_FORWARDED_EMAILS,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
@@ -24,6 +25,7 @@ from .const import (
     CONF_CUSTOM_IMG_FILE,
     CONF_DURATION,
     CONF_FOLDER,
+    CONF_FORWARDED_EMAILS,
     CONF_GENERATE_GRID,
     CONF_GENERATE_MP4,
     CONF_IMAGE_SECURITY,
@@ -35,12 +37,14 @@ from .const import (
     CONF_VERIFY_SSL,
     CONFIG_VER,
     DEFAULT_ALLOW_EXTERNAL,
+    DEFAULT_ALLOW_FORWARDED_EMAILS,
     DEFAULT_AMAZON_DAYS,
     DEFAULT_AMAZON_DOMAIN,
     DEFAULT_AMAZON_FWDS,
     DEFAULT_CUSTOM_IMG,
     DEFAULT_CUSTOM_IMG_FILE,
     DEFAULT_FOLDER,
+    DEFAULT_FORWARDED_EMAILS,
     DEFAULT_GIF_DURATION,
     DEFAULT_IMAGE_SECURITY,
     DEFAULT_IMAP_TIMEOUT,
@@ -50,7 +54,14 @@ from .const import (
     DEFAULT_STORAGE,
     DOMAIN,
 )
-from .helpers import _check_ffmpeg, _test_login, get_resources, login
+from .helpers import (
+    _check_ffmpeg,
+    _test_login,
+    get_resources,
+    login,
+    generate_service_email_domains,
+    validate_email_address,
+)
 
 ERROR_MAILBOX_FAIL = "Problem getting mailbox listing using 'INBOX' message"
 IMAP_SECURITY = ["none", "startTLS", "SSL"]
@@ -58,6 +69,9 @@ AMAZON_SENSORS = ["amazon_packages", "amazon_delivered", "amazon_exception"]
 _LOGGER = logging.getLogger(__name__)
 AMAZON_EMAIL_ERROR = (
     "Amazon domain found in email: %s, this may cause errors when searching emails."
+)
+FORWARDED_EMAIL_ERROR = (
+    "A service domain was found in email: %s, this may cause errors when searching emails."
 )
 
 
@@ -95,6 +109,56 @@ async def _check_amazon_forwards(forwards: str, domain: str) -> tuple:
     return errors, forwards
 
 
+async def _check_forwarded_emails(forwarded_emails: str) -> list[str]:
+    """
+    Validate forwarded email addresses provided by the user.
+
+    Use Voluptuous to make sure that none of the forwarded email addresses use domains
+    that match any of the Mail service domains, as this was known to cause issues when
+    searching for Amazon emails.
+
+    Args:
+        forwarded_emails (str): A comma-separated list of email addresses to validate
+
+    Returns:
+        list[str]: A list of error codes (e.g. "missing_forwarded_emails") or "ok" if the
+                   email addresses are valid
+    """
+    _LOGGER.debug("checking forwarded emails: '%s'", forwarded_emails)
+
+    # No forwards
+    if not forwarded_emails:
+        _LOGGER.error(
+            "Allowed forwarded emails but no forwards or '(none)' were entered."
+        )
+        return ["missing_forwarded_emails"]
+    if forwarded_emails == "(none)":
+        return ["ok"]
+
+    errors = []
+
+    service_email_domains = generate_service_email_domains()
+
+    emails = [email.strip() for email in forwarded_emails.split(",")]
+    for email in emails:
+        _LOGGER.info("validating email address %s", email)
+        if not validate_email_address(email):
+            _LOGGER.error("%s does not look like a valid email address", email)
+            errors.append("invalid_email_format")
+            continue
+
+        domain = email.split("@")[1]
+        if domain in service_email_domains:
+            _LOGGER.error(
+                FORWARDED_EMAIL_ERROR,
+                email,
+            )
+    if len(errors) == 0:
+        return ["ok"]
+
+    return errors
+
+
 async def _validate_user_input(user_input: dict) -> tuple:
     """Valididate user input from config flow.
 
@@ -113,6 +177,17 @@ async def _validate_user_input(user_input: dict) -> tuple:
             else:
                 user_input[CONF_AMAZON_FWDS] = amazon_list
                 errors[CONF_AMAZON_FWDS] = status[0]
+
+    if CONF_FORWARDED_EMAILS in user_input:
+        if isinstance(user_input[CONF_FORWARDED_EMAILS], str):
+            status = await _check_forwarded_emails(user_input[CONF_FORWARDED_EMAILS])
+
+            if status[0] == "ok" and user_input[CONF_FORWARDED_EMAILS] == "(none)":
+                # the user changed their mind, remove the flag and config entry
+                user_input[CONF_ALLOW_FORWARDED_EMAILS] = False
+                del user_input[CONF_FORWARDED_EMAILS]
+            elif status[0] != "ok":
+                errors[CONF_FORWARDED_EMAILS] = status[0]
 
     # Check for ffmpeg if option enabled
     if user_input[CONF_GENERATE_MP4]:
@@ -232,6 +307,10 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
                 CONF_DURATION, default=_get_default(CONF_DURATION)
             ): vol.Coerce(int),
             vol.Optional(
+                CONF_ALLOW_FORWARDED_EMAILS,
+                default=_get_default(CONF_ALLOW_FORWARDED_EMAILS),
+            ): cv.boolean,
+            vol.Optional(
                 CONF_GENERATE_GRID, default=_get_default(CONF_GENERATE_GRID)
             ): cv.boolean,
             vol.Optional(
@@ -284,6 +363,26 @@ def _get_schema_step_amazon(user_input: list, default_dict: list) -> Any:
                 CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS)
             ): cv.string,
             vol.Optional(CONF_AMAZON_DAYS, default=_get_default(CONF_AMAZON_DAYS)): int,
+        }
+    )
+
+
+def _get_schema_step_forwarded_emails(
+    user_input: list, default_dict: list
+) -> vol.Schema:
+    """Get a schema using the default_dict as a backup."""
+    if user_input is None:
+        user_input = {}
+
+    def _get_default(key: str, fallback_default: Any = None) -> list:
+        """Get default value for key."""
+        return user_input.get(key, default_dict.get(key, fallback_default))
+
+    return vol.Schema(
+        {
+            vol.Required(
+                CONF_FORWARDED_EMAILS, default=_get_default(CONF_FORWARDED_EMAILS)
+            ): cv.string,
         }
     )
 
@@ -365,6 +464,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             _LOGGER.debug("RESOURCES: %s", self._data[CONF_RESOURCES])
             if len(self._errors) == 0:
+                if self._data[CONF_ALLOW_FORWARDED_EMAILS]:
+                    return await self.async_step_config_forwarded_emails()
                 if any(
                     sensor in self._data[CONF_RESOURCES] for sensor in AMAZON_SENSORS
                 ):
@@ -392,6 +493,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             CONF_GENERATE_MP4: False,
             CONF_ALLOW_EXTERNAL: DEFAULT_ALLOW_EXTERNAL,
             CONF_CUSTOM_IMG: DEFAULT_CUSTOM_IMG,
+            CONF_ALLOW_FORWARDED_EMAILS: DEFAULT_ALLOW_FORWARDED_EMAILS,
         }
 
         return self.async_show_form(
@@ -452,6 +554,39 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="config_amazon",
             data_schema=_get_schema_step_amazon(user_input, defaults),
+            errors=self._errors,
+        )
+
+    async def async_step_config_forwarded_emails(self, user_input=None):
+        """Configure form step forwarded emails."""
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            self._errors, user_input = await _validate_user_input(self._data)
+            if len(self._errors) == 0:
+                if any(
+                    sensor in self._data[CONF_RESOURCES] for sensor in AMAZON_SENSORS
+                ):
+                    return await self.async_step_config_amazon()
+                if self._data[CONF_CUSTOM_IMG]:
+                    return await self.async_step_config_3()
+
+                return await self.async_step_config_storage()
+
+            return await self._show_config_forwarded_emails(user_input)
+
+        return await self._show_config_forwarded_emails(user_input)
+
+    async def _show_config_forwarded_emails(self, user_input):
+        """Configure forwarded emails setup."""
+        # Defaults
+        defaults = {
+            CONF_FORWARDED_EMAILS: DEFAULT_FORWARDED_EMAILS,
+        }
+
+        return self.async_show_form(
+            step_id="config_forwarded_emails",
+            data_schema=_get_schema_step_forwarded_emails(user_input, defaults),
             errors=self._errors,
         )
 
@@ -523,6 +658,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(user_input)
             if len(self._errors) == 0:
+                if self._data[CONF_ALLOW_FORWARDED_EMAILS]:
+                    return await self.async_step_reconfig_forwarded_emails()
                 if any(
                     sensor in self._data[CONF_RESOURCES] for sensor in AMAZON_SENSORS
                 ):
@@ -594,6 +731,40 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="reconfig_amazon",
             data_schema=_get_schema_step_amazon(user_input, self._data),
+            errors=self._errors,
+        )
+
+    async def async_step_reconfig_forwarded_emails(
+        self, user_input: dict[str, Any] | None = None
+    ):
+        """Configure form step forwarded emails."""
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            self._errors, user_input = await _validate_user_input(self._data)
+            if len(self._errors) == 0:
+                if any(
+                    sensor in self._data[CONF_RESOURCES] for sensor in AMAZON_SENSORS
+                ):
+                    return await self.async_step_reconfig_amazon()
+                if self._data[CONF_CUSTOM_IMG]:
+                    return await self.async_step_reconfig_3()
+
+                return await self.async_step_reconfig_storage()
+
+            return await self._show_reconfig_forwarded_emails(user_input)
+
+        return await self._show_reconfig_forwarded_emails(user_input)
+
+    async def _show_reconfig_forwarded_emails(self, user_input=None):
+        """Step forwarded emails."""
+
+        if self._data.get(CONF_FORWARDED_EMAILS, []) == []:
+            self._data[CONF_FORWARDED_EMAILS] = "(none)"
+
+        return self.async_show_form(
+            step_id="reconfig_forwarded_emails",
+            data_schema=_get_schema_step_forwarded_emails(user_input, self._data),
             errors=self._errors,
         )
 
