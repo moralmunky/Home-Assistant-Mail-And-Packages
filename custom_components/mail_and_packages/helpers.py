@@ -403,7 +403,9 @@ def fetch(
     amazon_days = config.get(CONF_AMAZON_DAYS)
 
     # Combine the amazon forwarded emails with the configured forwarded emails (for now)
-    forwarded_emails = amazon_fwds + cv.ensure_list_csv(config.get(CONF_FORWARDED_EMAILS))
+    forwarded_emails = amazon_fwds + cv.ensure_list_csv(
+        config.get(CONF_FORWARDED_EMAILS)
+    )
 
     # Conditional variables
     nomail = (
@@ -459,11 +461,13 @@ def fetch(
     elif "_delivering" in sensor:
         prefix = sensor.replace("_delivering", "")
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
-        info = get_count(account,
-                         sensor,
-                         True,
-                         amazon_domain=amazon_domain,
-                         forwarded_emails=forwarded_emails)
+        info = get_count(
+            account,
+            sensor,
+            True,
+            amazon_domain=amazon_domain,
+            forwarded_emails=forwarded_emails,
+        )
         count[sensor] = max(0, info[ATTR_COUNT] - delivered)
         count[f"{prefix}_tracking"] = info[ATTR_TRACKING]
     elif sensor == "zpackages_delivered":
@@ -1053,7 +1057,12 @@ def get_count(
     # Return Amazon delivered info
     if sensor_type == AMAZON_DELIVERED:
         result[ATTR_COUNT] = amazon_search(
-            account, image_path, hass, amazon_image_name, amazon_domain, forwarded_emails
+            account,
+            image_path,
+            hass,
+            amazon_image_name,
+            amazon_domain,
+            forwarded_emails,
         )
         result[ATTR_TRACKING] = ""
         return result
@@ -1078,9 +1087,7 @@ def get_count(
             subject,
         )
 
-        (server_response, data) = email_search(
-            account, email_addresses, today, subject
-        )
+        (server_response, data) = email_search(account, email_addresses, today, subject)
         if server_response == "OK" and data[0] is not None:
             if ATTR_BODY in SENSOR_DATA[sensor_type].keys():
                 body_count = SENSOR_DATA[sensor_type].get(ATTR_BODY_COUNT, False)
