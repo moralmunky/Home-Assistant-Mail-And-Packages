@@ -98,6 +98,7 @@ AMAZON_DOMAINS = [
 ]
 AMAZON_DELIVERED_SUBJECT = [
     "Delivered: Your",
+    "Your Amazon order has arrived!",
     "Consegna effettuata:",
     "Dostarczono:",
     "Geliefert:",
