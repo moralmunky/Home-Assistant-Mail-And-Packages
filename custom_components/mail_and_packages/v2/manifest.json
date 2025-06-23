@@ -1,0 +1,19 @@
+{
+  "domain": "mail_and_packages_v2",
+  "name": "Mail and Packages V2",
+  "documentation": "https://github.com/moralmunky/Home-Assistant-Mail-And-Packages",
+  "issue_tracker": "https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/issues",
+  "dependencies": ["seventeentrack"],
+  "codeowners": [
+    "@moralmunky",
+    "@firstof9"
+  ],
+  "config_flow": true,
+  "requirements": [
+    "imageio>=2.9.0",
+    "python-resize-image>=1.1.19",
+    "beautifulsoup4>=4.9.3"
+  ],
+  "iot_class": "cloud_polling",
+  "version": "2.0.0-dev"
+}
