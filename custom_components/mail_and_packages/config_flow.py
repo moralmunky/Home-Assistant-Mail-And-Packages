@@ -107,7 +107,7 @@ async def _check_amazon_forwards(forwards: str, domain: str) -> tuple:
     return errors, forwards
 
 
-async def _check_forwarded_emails(forwarded_emails: str) -> list[str]:
+async def _check_forwarded_emails(user_input: dict[str, Any]) -> list[str]:
     """
     Validate forwarded email addresses provided by the user.
 
@@ -122,6 +122,8 @@ async def _check_forwarded_emails(forwarded_emails: str) -> list[str]:
         list[str]: A list of error codes (e.g. "missing_forwarded_emails") or "ok" if the
                    email addresses are valid
     """
+    forwarded_emails = user_input[CONF_FORWARDED_EMAILS]
+
     _LOGGER.debug("checking forwarded emails: '%s'", forwarded_emails)
 
     # No forwards
@@ -135,7 +137,9 @@ async def _check_forwarded_emails(forwarded_emails: str) -> list[str]:
 
     errors = []
 
-    service_email_domains = generate_service_email_domains()
+    service_email_domains = generate_service_email_domains(
+        user_input.get(CONF_AMAZON_FWDS, [])
+    )
 
     emails = [email.strip() for email in forwarded_emails.split(",")]
     for email in emails:
@@ -178,7 +182,7 @@ async def _validate_user_input(user_input: dict) -> tuple:
 
     if CONF_FORWARDED_EMAILS in user_input:
         if isinstance(user_input[CONF_FORWARDED_EMAILS], str):
-            status = await _check_forwarded_emails(user_input[CONF_FORWARDED_EMAILS])
+            status = await _check_forwarded_emails(user_input)
 
             if status[0] == "ok" and user_input[CONF_FORWARDED_EMAILS] == "(none)":
                 # the user changed their mind, remove the flag and config entry
@@ -756,7 +760,6 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _show_reconfig_forwarded_emails(self, user_input=None):
         """Step forwarded emails."""
-
         if self._data.get(CONF_FORWARDED_EMAILS, []) == []:
             self._data[CONF_FORWARDED_EMAILS] = "(none)"
 

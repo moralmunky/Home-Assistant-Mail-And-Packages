@@ -38,7 +38,6 @@ from voluptuous import Email, MultipleInvalid, Schema
 from .const import (
     AMAZON_DELIVERED,
     AMAZON_DELIVERED_SUBJECT,
-    AMAZON_DOMAINS,
     AMAZON_EXCEPTION,
     AMAZON_EXCEPTION_ORDER,
     AMAZON_EXCEPTION_SUBJECT,
@@ -1712,13 +1711,13 @@ def get_items(
     return value
 
 
-def generate_service_email_domains() -> set[str]:
-    """Generate a set of service email domains from AMAZON_DOMAINS and SENSOR_DATA.
+def generate_service_email_domains(amazon_fwds: list) -> set[str]:
+    """Generate a set of service email domains from amazon domains and SENSOR_DATA.
 
     Returns:
         set[str]: A set of unique email domains.
     """
-    domains = set(AMAZON_DOMAINS)
+    domains = {fwd.split("@")[1] for fwd in amazon_fwds if "@" in fwd}
     for sensor in SENSOR_DATA.values():
         for address in sensor.get("email", []):
             if "@" not in address:
