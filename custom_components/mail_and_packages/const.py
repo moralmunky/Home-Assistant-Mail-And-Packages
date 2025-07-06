@@ -101,7 +101,7 @@ AMAZON_DOMAINS = [
     "amazon.nl",
 ]
 AMAZON_DELIVERED_SUBJECT = [
-    "Delivered: Your",
+    "Delivered: ",
     "Your Amazon order has arrived!",
     "Consegna effettuata:",
     "Dostarczono:",
