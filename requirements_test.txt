@@ -12,4 +12,4 @@ pytest-homeassistant-custom-component
 homeassistant
 freezegun
 cython
-tox<4
+PyTurboJPEG

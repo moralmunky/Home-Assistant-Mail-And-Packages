@@ -101,7 +101,7 @@ AMAZON_DOMAINS = [
     "amazon.nl",
 ]
 AMAZON_DELIVERED_SUBJECT = [
-    "Delivered: Your",
+    "Delivered: ",
     "Your Amazon order has arrived!",
     "Consegna effettuata:",
     "Dostarczono:",
@@ -175,6 +175,7 @@ AMAZON_TIME_PATTERN_END = [
 AMAZON_TIME_PATTERN_REGEX = [
     "Arriving (\\w+ \\d+) - (\\w+ \\d+)",
     "Arriving (\\w+ \\d+)",
+    "Arriving (\\w+ ?\\d*)",
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
