@@ -462,9 +462,19 @@ def fetch(
     elif sensor == "zpackages_transit":
         total = 0
         for shipper in SHIPPERS:
+            # There is no delivering for amazon packages because they ship themselves or use other shippers
+            if shipper == "amazon":
+                continue
             delivering = f"{shipper}_delivering"
             if delivering in data and delivering != sensor:
                 total += fetch(hass, config, account, data, delivering)
+        # We are going to best guess for in transit as amazon doesn't reveal who the shipper is in email. 
+        # But we know if we are expecting packages from amazon, and in tranit is lower than the packages, we can best guess amazon is delivering the package.
+        # This will fail though if say there are 2 packages being delivered, 1 from amazon and another from another shipper. This would report 1 less in this example in transit.
+        if "amazon_packages" in data and "amazon_packages" != sensor:
+            amazon_packages = max(0, fetch(hass, config, account, data, "amazon_packages"))
+            if amazon_packages > total:
+                total = amazon_packages
         count[sensor] = max(0, total)
     elif sensor == "mail_updated":
         count[sensor] = update_time()
