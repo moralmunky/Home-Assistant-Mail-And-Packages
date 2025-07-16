@@ -29,9 +29,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install additional OS dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install \
+            ffmpeg \
+            libturbojpeg
       - name: 📦 Install requirements
         run: |
-          pip install tox tox-gh-actions && apt install libjpeg-turbo8          
+          pip install tox tox-gh-actions          
       - name: 🏃 Test with tox
         run: tox
       - name: 📤 Upload coverage to Codecov
