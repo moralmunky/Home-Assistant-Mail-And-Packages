@@ -40,6 +40,8 @@ from .const import (
     AMAZON_EXCEPTION,
     AMAZON_EXCEPTION_ORDER,
     AMAZON_EXCEPTION_SUBJECT,
+    AMAZON_ORDERED_SUBJECT,
+    AMAZON_SHIPMENT_SUBJECT,
     AMAZON_HUB,
     AMAZON_HUB_BODY,
     AMAZON_HUB_CODE,
@@ -1629,10 +1631,17 @@ def get_items(
                         email_subject = email_subject.decode("utf-8", "ignore")
 
                     _LOGGER.debug("Amazon Subject: %s", str(email_subject))
-
+                    
+                    # Skip ordered emails because the product hasn't shipped yet.
+                    if any(subj.lower() in email_subject.lower() for subj in AMAZON_ORDERED_SUBJECT):
+                        _LOGGER.debug("Ordered email found, skipping.")
+                        continue  # Skip processing this email
+                    
+                    # Order number pattern
+                    pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
+                    
                     # Skip delivered emails and record order numbers
                     if any(subj.lower() in email_subject.lower() for subj in AMAZON_DELIVERED_SUBJECT):
-                        pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
                         delivered_orders = pattern.findall(email_subject)
                         if delivered_orders:
                             for o in delivered_orders:
@@ -1644,9 +1653,9 @@ def get_items(
                         continue  # Skip processing this email
 
                     # Extract order number from subject
-                    pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
                     if (
                         (found := pattern.findall(email_subject))
+                        and len(found) > 0
                         and found[0] not in order_number
                     ):
                         order_number.append(found[0])
