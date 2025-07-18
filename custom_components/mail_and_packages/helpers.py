@@ -1677,6 +1677,7 @@ def get_items(
                     # Check message body for order number again
                     if (
                         (found := pattern.findall(email_msg))
+                        and len(found) > 0
                         and found[0] not in order_number
                     ):
                         order_number.append(found[0])
