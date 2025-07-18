@@ -119,6 +119,12 @@ AMAZON_SHIPMENT_TRACKING = [
     "verzending-volgen",
     "update-bestelling",
 ]
+AMAZON_SHIPMENT_SUBJECT = [
+    "Shipped:",
+]
+AMAZON_ORDERED_SUBJECT = [
+    "Ordered:",
+]
 AMAZON_EMAIL = ["order-update@", "update-bestelling@", "versandbestaetigung@"]
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
