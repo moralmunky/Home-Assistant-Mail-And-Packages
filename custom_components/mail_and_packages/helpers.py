@@ -467,7 +467,6 @@ def fetch(
                 count[sensor] += fetch(hass, config, account, data, delivered)
     elif sensor == "zpackages_transit":
         total = 0
-        total_delivered = 0
         for shipper in SHIPPERS:
             # There is no delivering for amazon packages because they ship themselves or use other shippers
             if shipper == "amazon":
@@ -475,9 +474,6 @@ def fetch(
             delivering = f"{shipper}_delivering"
             if delivering in data and delivering != sensor:
                 total += fetch(hass, config, account, data, delivering)
-            delivered = f"{shipper}_delivered"
-            if delivered in data and delivered != sensor:
-                total_delivered += fetch(hass, config, account, data, delivered)
 
         # We are going to best guess for in transit as amazon doesn't reveal who the shipper is in email. 
         if "amazon_packages" in data and "amazon_packages" != sensor:
