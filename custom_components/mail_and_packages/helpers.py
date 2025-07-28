@@ -35,6 +35,7 @@ from homeassistant.util import ssl
 from PIL import Image, ImageOps
 
 from .const import (
+    AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT,
     AMAZON_DELIVERED,
     AMAZON_DELIVERED_SUBJECT,
     AMAZON_EXCEPTION,
@@ -408,6 +409,9 @@ def fetch(
     )
 
     count = {}
+    
+    # Initialize shared variable ONCE
+    data.setdefault("amazon_delivered_by_others", 0)
 
     if sensor == "usps_mail":
         count[sensor] = get_mails(
@@ -452,7 +456,7 @@ def fetch(
     elif "_delivering" in sensor:
         prefix = sensor.replace("_delivering", "")
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
-        info = get_count(account, sensor, True, amazon_domain=amazon_domain)
+        info = get_count(account, sensor, True, amazon_domain=amazon_domain, data=data,)
         count[sensor] = max(0, info[ATTR_COUNT] - delivered)
         count[f"{prefix}_tracking"] = info[ATTR_TRACKING]
     elif sensor == "zpackages_delivered":
@@ -463,6 +467,7 @@ def fetch(
                 count[sensor] += fetch(hass, config, account, data, delivered)
     elif sensor == "zpackages_transit":
         total = 0
+        total_delivered = 0
         for shipper in SHIPPERS:
             # There is no delivering for amazon packages because they ship themselves or use other shippers
             if shipper == "amazon":
@@ -470,13 +475,24 @@ def fetch(
             delivering = f"{shipper}_delivering"
             if delivering in data and delivering != sensor:
                 total += fetch(hass, config, account, data, delivering)
+            delivered = f"{shipper}_delivered"
+            if delivered in data and delivered != sensor:
+                total_delivered += fetch(hass, config, account, data, delivered)
+
         # We are going to best guess for in transit as amazon doesn't reveal who the shipper is in email. 
-        # But we know if we are expecting packages from amazon, and in tranit is lower than the packages, we can best guess amazon is delivering the package.
-        # This will fail though if say there are 2 packages being delivered, 1 from amazon and another from another shipper. This would report 1 less in this example in transit.
         if "amazon_packages" in data and "amazon_packages" != sensor:
             amazon_packages = max(0, fetch(hass, config, account, data, "amazon_packages"))
+            
+            # We know if we are expecting packages from amazon, and in tranit is lower than the amazon package count, we can best guess amazon is delivering the package.
+            # This will fail though if say there are 2 packages being delivered, 1 from amazon and another from another shipper. This would report 1 less in this example in transit.
             if amazon_packages > total:
                 total = amazon_packages
+
+            # Now if a different shipper than amazon delivers the amazon package, the amazon package count will still be counted as in transit when it was delivered. 
+            # However, some shippers state they delivered the package on behalf of amazon. We use that to information to properly decrease in transit. But not all shippers tell us. 
+            # Subtract Amazon packages we believe were delivered by other shippers
+            total -= data.get("amazon_delivered_by_others", 0)
+                
         count[sensor] = max(0, total)
     elif sensor == "mail_updated":
         count[sensor] = update_time()
@@ -491,6 +507,7 @@ def fetch(
             amazon_image_name,
             amazon_domain,
             amazon_fwds,
+            data=data,
         )[ATTR_COUNT]
 
     data.update(count)
@@ -1027,6 +1044,7 @@ def get_count(
     amazon_image_name: Optional[str] = None,
     amazon_domain: Optional[str] = None,
     amazon_fwds: Optional[str] = None,
+    data: Optional[dict] = None, 
 ) -> dict:
     """Get Package Count.
 
@@ -1062,27 +1080,38 @@ def get_count(
             subject,
         )
 
-        (server_response, data) = email_search(
+        (server_response, email_data) = email_search(
             account, SENSOR_DATA[sensor_type][ATTR_EMAIL], today, subject
         )
-        if server_response == "OK" and data[0] is not None:
+        if server_response == "OK" and email_data[0] is not None:
             if ATTR_BODY in SENSOR_DATA[sensor_type].keys():
                 body_count = SENSOR_DATA[sensor_type].get(ATTR_BODY_COUNT, False)
                 _LOGGER.debug("Check body for mail count? %s", body_count)
                 count += find_text(
-                    data, account, SENSOR_DATA[sensor_type][ATTR_BODY], body_count
+                    email_data, account, SENSOR_DATA[sensor_type][ATTR_BODY], body_count
                 )
             else:
-                count += len(data[0].split())
+                count += len(email_data[0].split())
 
             _LOGGER.debug(
                 "Search for (%s) with subject (%s) results: %s count: %s",
                 SENSOR_DATA[sensor_type][ATTR_EMAIL],
                 subject,
-                data[0],
+                email_data[0],
                 count,
             )
-            found.append(data[0])
+            found.append(email_data[0])
+            
+            # If sensor ends with "_delivered", check email content for "AMAZON". UPS, USPS will say delivered for: "AMAZON" in their email. This is used to fix in transit.
+            if sensor_type.endswith("_delivered") and sensor_type != AMAZON_DELIVERED and data is not None:
+                amazon_mentions = find_text(email_data, account, AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT, False)
+                if amazon_mentions > 0:
+                    data["amazon_delivered_by_others"] = data.get("amazon_delivered_by_others", 0) + amazon_mentions
+                    _LOGGER.debug(
+                        "Sensor: %s — Found %s mention(s) of 'AMAZON' in delivered email.",
+                        sensor_type,
+                        amazon_mentions,
+                    )
 
     if (
         f"{'_'.join(sensor_type.split('_')[:-1])}_tracking" in SENSOR_DATA
