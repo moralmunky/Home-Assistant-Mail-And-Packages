@@ -12,7 +12,7 @@ from .entity import MailandPackagesBinarySensorEntityDescription
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.0.0-dev"
+VERSION = "0.4.3-b15"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -204,6 +204,10 @@ AMAZON_LANGS = [
 AMAZON_OTP = "amazon_otp"
 AMAZON_OTP_REGEX = "(\n)(\\d{6})(\n)"
 AMAZON_OTP_SUBJECT = "A one-time password is required for your Amazon delivery"
+
+AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT = [
+    "AMAZON"
+]
 
 # Sensor Data
 SENSOR_DATA = {
