@@ -1759,7 +1759,7 @@ def get_items(
                                 },
                             )
                             if dateobj is None:
-                                _LOGGER.debug(f"Parsed date is None for arrive_date='{arrive_date_clean}'")
+                                _LOGGER.debug(f"Parsed date is None for arrive_date='%s'", arrive_date_clean)
                                 continue
                             parsed_date_only = dateobj.date()
 
