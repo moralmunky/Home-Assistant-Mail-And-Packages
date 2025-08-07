@@ -482,8 +482,7 @@ def fetch(
 
             # We know if we are expecting packages from amazon, and in tranit is lower than the amazon package count, we can best guess amazon is delivering the package.
             # This will fail though if say there are 2 packages being delivered, 1 from amazon and another from another shipper. This would report 1 less in this example in transit.
-            if amazon_packages > total:
-                total = amazon_packages
+            total = max(total, amazon_packages)
 
             # Now if a different shipper than amazon delivers the amazon package, the amazon package count will still be counted as in transit when it was delivered.
             # However, some shippers state they delivered the package on behalf of amazon. We use that to information to properly decrease in transit. But not all shippers tell us.
@@ -1611,7 +1610,6 @@ def get_items(
 
     Returns list of order numbers or email count as integer
     """
-
     _LOGGER.debug("Attempting to find Amazon email with item list ...")
 
     # Limit to past X days
@@ -1781,7 +1779,8 @@ def get_items(
 
                             if arrive_date_obj < today_date:
                                 _LOGGER.debug(
-                                    "Skipping single-word arrive_date '%s' as arrival date %s is before today %s",
+                                    "Skipping single-word arrive_date '%s' as arrival "
+                                    "date %s is before today %s",
                                     arrive_date_clean,
                                     arrive_date_obj,
                                     today_date,
