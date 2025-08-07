@@ -1750,14 +1750,19 @@ def get_items(
 
                             parsed_date_only = arrive_date_obj
                         else:
-                            dateobj = dateparser.parse(
-                                arrive_date_clean,
-                                settings={
-                                    "PREFER_DATES_FROM": "future",
-                                    "RELATIVE_BASE": datetime.datetime.combine(email_date, datetime.time()),
-                                    "RETURN_AS_TIMEZONE_AWARE": False,
-                                },
-                            )
+                            dateobj = None
+                            # Some tests don't have a date on the email
+                            if email_date is None:
+                                dateobj = dateparser.parse(arrive_date_clean)
+                            else:
+                                dateobj = dateparser.parse(
+                                    arrive_date_clean,
+                                    settings={
+                                        "PREFER_DATES_FROM": "future",
+                                        "RELATIVE_BASE": datetime.datetime.combine(email_date, datetime.time()),
+                                        "RETURN_AS_TIMEZONE_AWARE": False,
+                                    },
+                                )
                             if dateobj is None:
                                 _LOGGER.debug(f"Parsed date is None for arrive_date='%s'", arrive_date_clean)
                                 continue
