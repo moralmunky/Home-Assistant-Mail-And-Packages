@@ -1766,7 +1766,7 @@ def get_items(
                         if parsed_date_only == today_date:
                             deliveries_today.append(found[0] if found else "Amazon Order")
                         else:
-                            _LOGGER.debug(f"Delivery date not today: {parsed_date_only}")
+                            _LOGGER.debug(f"Delivery date not today: %s", parsed_date_only)
 
     # Remove delivered orders from deliveries_today
     deliveries_today = [
