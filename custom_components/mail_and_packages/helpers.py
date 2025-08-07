@@ -1745,7 +1745,7 @@ def get_items(
                             arrive_date_obj = email_date + datetime.timedelta(days=days_ahead)
 
                             if arrive_date_obj < today_date:
-                                _LOGGER.debug(f"Skipping single-word arrive_date '{arrive_date_clean}' as arrival date {arrive_date_obj} is before today {today_date}")
+                                _LOGGER.debug(f"Skipping single-word arrive_date '%s' as arrival date %s is before today %s", arrive_date_clean, arrive_date_obj, today_date)
                                 continue
 
                             parsed_date_only = arrive_date_obj
