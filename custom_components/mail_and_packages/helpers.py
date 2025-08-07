@@ -1637,7 +1637,7 @@ def get_items(
                     # Skip 'arriving' emails that are not from today
                     if param and 'arriving' in param.lower():
                         if email_date != today_date:
-                            _LOGGER.debug(f"Skipping 'arriving' email from {email_date}, not today")
+                            _LOGGER.debug(f"Skipping 'arriving' email from %s, not today", email_date)
                             continue
 
                     _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
