@@ -467,25 +467,33 @@ def fetch(
     elif sensor == "zpackages_transit":
         total = 0
         for shipper in SHIPPERS:
-            # There is no delivering for amazon packages because they ship themselves or use other shippers
+            # There is no delivering for amazon packages because they ship themselves
+            # or use other shippers
             if shipper == "amazon":
                 continue
             delivering = f"{shipper}_delivering"
             if delivering in data and delivering != sensor:
                 total += fetch(hass, config, account, data, delivering)
 
-        # We are going to best guess for in transit as amazon doesn't reveal who the shipper is in email.
+        # We are going to best guess for in transit as amazon doesn't reveal who the
+        # shipper is in email.
         if "amazon_packages" in data and "amazon_packages" != sensor:
             amazon_packages = max(
                 0, fetch(hass, config, account, data, "amazon_packages")
             )
 
-            # We know if we are expecting packages from amazon, and in tranit is lower than the amazon package count, we can best guess amazon is delivering the package.
-            # This will fail though if say there are 2 packages being delivered, 1 from amazon and another from another shipper. This would report 1 less in this example in transit.
+            # We know if we are expecting packages from amazon, and in tranit is lower
+            # than the amazon package count, we can best guess amazon is delivering the
+            # package. This will fail though if say there are 2 packages being delivered,
+            # 1 from amazon and another from another shipper. This would report 1 less
+            # in this example in transit.
             total = max(total, amazon_packages)
 
-            # Now if a different shipper than amazon delivers the amazon package, the amazon package count will still be counted as in transit when it was delivered.
-            # However, some shippers state they delivered the package on behalf of amazon. We use that to information to properly decrease in transit. But not all shippers tell us.
+            # Now if a different shipper than amazon delivers the amazon package, the
+            # amazon package count will still be counted as in transit when it was
+            # delivered. However, some shippers state they delivered the package on
+            # behalf of amazon. We use that to information to properly decrease in
+            # transit. But not all shippers tell us.
             # Subtract Amazon packages we believe were delivered by other shippers
             total -= data.get("amazon_delivered_by_others", 0)
 
@@ -1098,7 +1106,9 @@ def get_count(
             )
             found.append(email_data[0])
 
-            # If sensor ends with "_delivered", check email content for "AMAZON". UPS, USPS will say delivered for: "AMAZON" in their email. This is used to fix in transit.
+            # If sensor ends with "_delivered", check email content for "AMAZON". UPS,
+            # USPS will say delivered for: "AMAZON" in their email. This is used to
+            # fix in transit.
             if (
                 sensor_type.endswith("_delivered")
                 and sensor_type != AMAZON_DELIVERED
