@@ -66,7 +66,7 @@ async def integration_fixture(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    return entry
+    yield entry
 
 
 @pytest.fixture(name="integration_no_path")
@@ -79,7 +79,7 @@ async def integration_fixture_2(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    return entry
+    yield entry
 
 
 @pytest.fixture(name="integration_no_timeout")
@@ -95,7 +95,7 @@ async def integration_fixture_3(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    return entry
+    yield entry
 
 
 @pytest.fixture(name="integration_fwd_string")
@@ -116,7 +116,7 @@ async def integration_fixture_4(hass, caplog):
 
     assert CONF_AMAZON_DOMAIN in entry.data
 
-    return entry
+    yield entry
 
 
 @pytest.fixture(name="integration_custom_img")
@@ -131,7 +131,7 @@ async def integration_fixture_5(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    return entry
+    yield entry
 
 
 @pytest.fixture(name="integration_fake_external")
@@ -146,7 +146,7 @@ async def integration_fixture_6(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    return entry
+    yield entry
 
 
 @pytest.fixture(name="integration_v4_migration")
@@ -162,7 +162,7 @@ async def integration_fixture_7(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    return entry
+    yield entry
 
 
 @pytest.fixture(name="integration_capost")
@@ -178,7 +178,7 @@ async def integration_fixture_8(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    return entry
+    yield entry
 
 
 @pytest.fixture()
@@ -1779,6 +1779,87 @@ def mock_imap_capost_mail():
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/capost_mail.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_ups_delivered():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_ups_delivered:
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
+        mock_imap_ups_delivered.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/ups_delivered.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_usps_delivered_individual():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_usps_delivered_individual:
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
+        mock_imap_usps_delivered_individual.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/usps_delivered.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_amazon_arriving_today():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_amazon_arriving_today:
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
+        mock_imap_amazon_arriving_today.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/amazon_out_for_delivery_today.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])

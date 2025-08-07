@@ -1,0 +1,44 @@
+From: UPS <mcinfo@ups.com>
+To: XXXX@gmail.com
+Subject: Your UPS Package was delivered
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary=----NextPart_1752095906717.0000462794
+Date: Wed, 9 Jul 2025 17:18:26 -0400 (EDT)
+
+------NextPart_1752095906717.0000462794
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>UPS</title>
+</head>
+<body>
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;" class="responsive-table">
+        <tbody>
+            <tr id="shipperAndArrivalRow">
+                <td bgcolor="#ffffff" align="center" class="padding-copy" style="padding-top:0px; padding-bottom:20px;">
+                    <table role="presentation"  border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;" class="responsive-table">
+                        <tbody>
+                            <tr>
+                                <td align="center" valign="top" style="padding-left:10px; padding-right:10px; font-family: 'Roboto', Tahoma, Arial, Helvetica, sans-serif; font-size:16px; font-weight: normal; color: #121212; line-height:1;">
+                                    <span id="shipperAndArrival" style="line-height:1;">From <strong>AMAZON.COM</strong> </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td align="center" valign="top" style="padding-left:10px; padding-right:10px; font-family: 'Roboto', Tahoma, Arial, Helvetica, sans-serif; font-size:16px; font-weight: normal; color: #121212; line-height:1;">
+                    <span>Tracking Number: 1Z2345YY0678901234</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+
+------NextPart_1752095906717.0000462794--

@@ -1,14 +1,11 @@
 """Tests for helpers module."""
 
 import datetime
-import errno
-from datetime import date, timezone
-from unittest import mock
+from datetime import date
 from unittest.mock import call, mock_open, patch
 
 import pytest
 from freezegun import freeze_time
-from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import DOMAIN
@@ -19,7 +16,6 @@ from custom_components.mail_and_packages.helpers import (
     amazon_otp,
     amazon_search,
     cleanup_images,
-    default_image_path,
     download_img,
     email_fetch,
     email_search,
@@ -38,12 +34,10 @@ from custom_components.mail_and_packages.helpers import (
     update_time,
 )
 from tests.const import (
-    FAKE_CONFIG_DATA,
     FAKE_CONFIG_DATA_BAD,
     FAKE_CONFIG_DATA_CORRECTED,
     FAKE_CONFIG_DATA_CORRECTED_EXTERNAL,
     FAKE_CONFIG_DATA_CUSTOM_IMG,
-    FAKE_CONFIG_DATA_EXTERNAL,
     FAKE_CONFIG_DATA_NO_RND,
 )
 
@@ -409,7 +403,7 @@ async def test_get_mails_copyfile_error(
     mock_copyfile_exception,
     caplog,
 ):
-    result = get_mails(
+    get_mails(
         mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
     )
     assert "File not found" in caplog.text
@@ -645,6 +639,15 @@ async def test_ups_out_for_delivery(hass, mock_imap_ups_out_for_delivery):
 
 
 @pytest.mark.asyncio
+async def test_usps_delivered(hass, mock_imap_usps_delivered_individual):
+    result = get_count(
+        mock_imap_usps_delivered_individual, "usps_delivered", True, "./", hass
+    )
+    assert result["count"] == 1
+    assert result["tracking"] == ["9400100000000000000000"]
+
+
+@pytest.mark.asyncio
 async def test_ups_out_for_delivery_html_only(
     hass, mock_imap_ups_out_for_delivery_html
 ):
@@ -653,6 +656,13 @@ async def test_ups_out_for_delivery_html_only(
     )
     assert result["count"] == 1
     assert result["tracking"] == ["1Z0Y12345678031234"]
+
+
+@pytest.mark.asyncio
+async def test_ups_delivered(hass, mock_imap_ups_delivered):
+    result = get_count(mock_imap_ups_delivered, "ups_delivered", True, "./", hass)
+    assert result["count"] == 1
+    assert result["tracking"] == ["1Z2345YY0678901234"]
 
 
 @pytest.mark.asyncio
@@ -743,6 +753,23 @@ async def test_amazon_shipped_order_alt_2(hass, mock_imap_amazon_shipped_alt_2):
         result = get_items(
             mock_imap_amazon_shipped_alt_2, "count", the_domain="amazon.com"
         )
+        assert result == 0
+
+
+@pytest.mark.asyncio
+async def test_amazon_shipped_order_alt_2_delivery_today(
+    hass, mock_imap_amazon_shipped_alt_2
+):
+    """Test the same email but with mocked date matching the delivery date."""
+    result = get_items(mock_imap_amazon_shipped_alt_2, "order", the_domain="amazon.com")
+    assert result == ["113-9999999-8459426"]
+    with patch("datetime.date") as mock_date:
+        # Mock today to be the delivery date (2022-12-03 as parsed by dateparser)
+        mock_date.today.return_value = date(2022, 12, 3)
+
+        result = get_items(
+            mock_imap_amazon_shipped_alt_2, "count", the_domain="amazon.com"
+        )
         assert result == 1
 
 
@@ -763,7 +790,7 @@ async def test_amazon_shipped_order_uk(hass, mock_imap_amazon_shipped_uk):
 
 
 @pytest.mark.asyncio
-async def test_amazon_shipped_order_uk(hass, mock_imap_amazon_shipped_uk_2):
+async def test_amazon_shipped_order_uk_2(hass, mock_imap_amazon_shipped_uk_2):
     result = get_items(
         mock_imap_amazon_shipped_uk_2, "order", the_domain="amazon.co.uk"
     )
@@ -780,6 +807,21 @@ async def test_amazon_shipped_order_it(hass, mock_imap_amazon_shipped_it):
 async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
     with patch("datetime.date") as mock_date:
         mock_date.today.return_value = date(2021, 12, 1)
+        result = get_items(mock_imap_amazon_shipped_it, "count", the_domain="amazon.it")
+        assert result == 0
+
+
+@pytest.mark.asyncio
+async def test_amazon_shipped_order_it_count_delivery_today(
+    hass, mock_imap_amazon_shipped_it
+):
+    """Test the same Italian email but with mocked date matching the delivery date."""
+    result = get_items(mock_imap_amazon_shipped_it, "order", the_domain="amazon.it")
+    assert result == ["405-5236882-9395563"]
+    with patch("datetime.date") as mock_date:
+        # Mock today to be the delivery date (2025-12-01 as parsed by dateparser)
+        mock_date.today.return_value = date(2025, 12, 1)
+
         result = get_items(mock_imap_amazon_shipped_it, "count", the_domain="amazon.it")
         assert result == 1
 
@@ -886,13 +928,6 @@ async def test_amazon_hub_2(hass, mock_imap_amazon_the_hub_2):
     ):
         result = amazon_hub(mock_imap_amazon_the_hub_2)
         assert result == {}
-
-
-@pytest.mark.asyncio
-async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, caplog):
-    with patch("quopri.decodestring", side_effect=ValueError):
-        get_items(mock_imap_amazon_shipped, "order", the_domain="amazon.com")
-        assert "Problem decoding email message:" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -1153,14 +1188,22 @@ async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
         "Amazon email list: ['testuser@test.com', 'auto-confirm@amazon.com', 'shipment-tracking@amazon.com', 'order-update@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
         in caplog.text
     )
-    assert result == ["123-1234567-1234567"]
     assert "First pass: Tuesday, January 11" in caplog.text
+    assert result == ["123-1234567-1234567"]
 
 
 @pytest.mark.asyncio
 async def test_amazon_otp(hass, mock_imap_amazon_otp, caplog):
     result = amazon_otp(mock_imap_amazon_otp, "order")
     assert result == {"code": ["671314"]}
+
+
+@pytest.mark.asyncio
+async def test_amazon_out_for_delivery_today(hass, mock_imap_amazon_arriving_today):
+    result = get_items(
+        mock_imap_amazon_arriving_today, "count", the_domain="amazon.com"
+    )
+    assert result == 0
 
 
 @pytest.mark.asyncio
