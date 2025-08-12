@@ -15,6 +15,7 @@ from .const import (
     ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
+    ATTR_UPS_IMAGE,
     CAMERA,
     CAMERA_DATA,
     CONF_CUSTOM_IMG,
@@ -163,6 +164,30 @@ class MailCam(Camera):
                 image = self._coordinator.data[ATTR_AMAZON_IMAGE]
                 path = f"{self._coordinator.data[ATTR_IMAGE_PATH]}amazon/"
                 file_path = f"{self.hass.config.path()}/{path}{image}"
+
+        elif self._type == "ups_camera":
+            # Update camera image for UPS deliveries
+            file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            s1 = set([ATTR_UPS_IMAGE, ATTR_IMAGE_PATH])
+            _LOGGER.debug("UPS camera - checking for attributes: %s", s1)
+            _LOGGER.debug(
+                "UPS camera - available data keys: %s",
+                (
+                    list(self._coordinator.data.keys())
+                    if self._coordinator.data
+                    else "None"
+                ),
+            )
+            if s1.issubset(self._coordinator.data.keys()):
+                image = self._coordinator.data[ATTR_UPS_IMAGE]
+                path = f"{self._coordinator.data[ATTR_IMAGE_PATH]}ups/"
+                file_path = f"{self.hass.config.path()}/{path}{image}"
+                _LOGGER.debug("UPS camera - using coordinator data: %s", file_path)
+            else:
+                _LOGGER.debug("UPS camera - using fallback: %s", file_path)
+                if self._no_mail:
+                    file_path = self._no_mail
+                    _LOGGER.debug("UPS camera - using custom no mail: %s", file_path)
 
         self.check_file_path_access(file_path)
         self._file_path = file_path

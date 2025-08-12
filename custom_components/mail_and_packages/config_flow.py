@@ -22,6 +22,10 @@ from .const import (
     CONF_AMAZON_FWDS,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
+    CONF_AMAZON_CUSTOM_IMG,
+    CONF_AMAZON_CUSTOM_IMG_FILE,
+    CONF_UPS_CUSTOM_IMG,
+    CONF_UPS_CUSTOM_IMG_FILE,
     CONF_DURATION,
     CONF_FOLDER,
     CONF_GENERATE_GRID,
@@ -40,6 +44,10 @@ from .const import (
     DEFAULT_AMAZON_FWDS,
     DEFAULT_CUSTOM_IMG,
     DEFAULT_CUSTOM_IMG_FILE,
+    DEFAULT_AMAZON_CUSTOM_IMG,
+    DEFAULT_AMAZON_CUSTOM_IMG_FILE,
+    DEFAULT_UPS_CUSTOM_IMG,
+    DEFAULT_UPS_CUSTOM_IMG_FILE,
     DEFAULT_FOLDER,
     DEFAULT_GIF_DURATION,
     DEFAULT_IMAGE_SECURITY,
@@ -131,6 +139,27 @@ async def _validate_user_input(user_input: dict) -> tuple:
 
     if not valid:
         errors[CONF_CUSTOM_IMG_FILE] = "file_not_found"
+
+    # validate amazon custom file exists
+    if (
+        user_input.get(CONF_AMAZON_CUSTOM_IMG)
+        and CONF_AMAZON_CUSTOM_IMG_FILE in user_input
+    ):
+        valid = path.isfile(user_input[CONF_AMAZON_CUSTOM_IMG_FILE])
+    else:
+        valid = True
+
+    if not valid:
+        errors[CONF_AMAZON_CUSTOM_IMG_FILE] = "file_not_found"
+
+    # validate ups custom file exists
+    if user_input.get(CONF_UPS_CUSTOM_IMG) and CONF_UPS_CUSTOM_IMG_FILE in user_input:
+        valid = path.isfile(user_input[CONF_UPS_CUSTOM_IMG_FILE])
+    else:
+        valid = True
+
+    if not valid:
+        errors[CONF_UPS_CUSTOM_IMG_FILE] = "file_not_found"
 
     # validate path exists
     if CONF_STORAGE in user_input:
@@ -243,6 +272,12 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
             vol.Optional(
                 CONF_CUSTOM_IMG, default=_get_default(CONF_CUSTOM_IMG)
             ): cv.boolean,
+            vol.Optional(
+                CONF_AMAZON_CUSTOM_IMG, default=_get_default(CONF_AMAZON_CUSTOM_IMG)
+            ): cv.boolean,
+            vol.Optional(
+                CONF_UPS_CUSTOM_IMG, default=_get_default(CONF_UPS_CUSTOM_IMG)
+            ): cv.boolean,
         }
     )
 
@@ -261,6 +296,18 @@ def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
             vol.Optional(
                 CONF_CUSTOM_IMG_FILE,
                 default=_get_default(CONF_CUSTOM_IMG_FILE, DEFAULT_CUSTOM_IMG_FILE),
+            ): cv.string,
+            vol.Optional(
+                CONF_AMAZON_CUSTOM_IMG_FILE,
+                default=_get_default(
+                    CONF_AMAZON_CUSTOM_IMG_FILE, DEFAULT_AMAZON_CUSTOM_IMG_FILE
+                ),
+            ): cv.string,
+            vol.Optional(
+                CONF_UPS_CUSTOM_IMG_FILE,
+                default=_get_default(
+                    CONF_UPS_CUSTOM_IMG_FILE, DEFAULT_UPS_CUSTOM_IMG_FILE
+                ),
             ): cv.string,
         }
     )

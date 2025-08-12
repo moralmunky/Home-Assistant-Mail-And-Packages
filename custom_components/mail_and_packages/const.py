@@ -41,12 +41,17 @@ ATTR_BODY = "body"
 ATTR_BODY_COUNT = "body_count"
 ATTR_PATTERN = "pattern"
 ATTR_USPS_MAIL = "usps_mail"
+ATTR_UPS_IMAGE = "ups_image"
 
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"
 CONF_CAMERA_NAME = "camera_name"
 CONF_CUSTOM_IMG = "custom_img"
 CONF_CUSTOM_IMG_FILE = "custom_img_file"
+CONF_AMAZON_CUSTOM_IMG = "amazon_custom_img"
+CONF_AMAZON_CUSTOM_IMG_FILE = "amazon_custom_img_file"
+CONF_UPS_CUSTOM_IMG = "ups_custom_img"
+CONF_UPS_CUSTOM_IMG_FILE = "ups_custom_img_file"
 CONF_STORAGE = "storage"
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
@@ -77,6 +82,14 @@ DEFAULT_AMAZON_FWDS = "(none)"
 DEFAULT_ALLOW_EXTERNAL = False
 DEFAULT_CUSTOM_IMG = False
 DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
+DEFAULT_AMAZON_CUSTOM_IMG = False
+DEFAULT_AMAZON_CUSTOM_IMG_FILE = (
+    "custom_components/mail_and_packages/images/no_deliveries.jpg"
+)
+DEFAULT_UPS_CUSTOM_IMG = False
+DEFAULT_UPS_CUSTOM_IMG_FILE = (
+    "custom_components/mail_and_packages/images/no_deliveries.jpg"
+)
 DEFAULT_AMAZON_DAYS = 3
 DEFAULT_AMAZON_DOMAIN = "amazon.com"
 DEFAULT_STORAGE = "custom_components/mail_and_packages/images/"
@@ -1326,6 +1339,7 @@ BINARY_SENSORS: Final[dict[str, MailandPackagesBinarySensorEntityDescription]] =
 # Name
 CAMERA_DATA = {
     "usps_camera": ["Mail USPS Camera"],
+    "ups_camera": ["Mail UPS Camera"],
     "amazon_camera": ["Mail Amazon Delivery Camera"],
 }
 

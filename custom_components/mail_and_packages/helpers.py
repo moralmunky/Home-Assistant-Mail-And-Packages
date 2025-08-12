@@ -72,6 +72,7 @@ from .const import (
     ATTR_PATTERN,
     ATTR_SUBJECT,
     ATTR_TRACKING,
+    ATTR_UPS_IMAGE,
     ATTR_USPS_MAIL,
     BINARY_SENSORS,
     CONF_ALLOW_EXTERNAL,
@@ -80,6 +81,10 @@ from .const import (
     CONF_AMAZON_FWDS,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
+    CONF_AMAZON_CUSTOM_IMG,
+    CONF_AMAZON_CUSTOM_IMG_FILE,
+    CONF_UPS_CUSTOM_IMG,
+    CONF_UPS_CUSTOM_IMG_FILE,
     CONF_DURATION,
     CONF_FOLDER,
     CONF_GENERATE_GRID,
@@ -190,6 +195,7 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
 
     Returns dict containing sensor data
     """
+    _LOGGER.debug("Starting process_emails function")
     host = config.get(CONF_HOST)
     port = config.get(CONF_PORT)
     user = config.get(CONF_USERNAME)
@@ -232,6 +238,37 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     _LOGGER.debug("Amazon Image Name: %s", image_name)
     _image[ATTR_AMAZON_IMAGE] = image_name
 
+    # UPS delivery image name
+    _LOGGER.debug("Generating UPS image name...")
+    ups_image_name = image_file_name(hass, config, ups=True)
+    _LOGGER.debug("UPS Image Name: %s", ups_image_name)
+    _image[ATTR_UPS_IMAGE] = ups_image_name
+    _LOGGER.debug("Set ATTR_UPS_IMAGE in coordinator data: %s", ups_image_name)
+
+    # Ensure UPS directory exists and has a default image
+    ups_path = f"{hass.config.path()}/{default_image_path(hass, config)}ups/"
+    if not os.path.isdir(ups_path):
+        try:
+            os.makedirs(ups_path)
+            _LOGGER.debug("Created UPS directory: %s", ups_path)
+        except Exception as err:
+            _LOGGER.error("Error creating UPS directory: %s", str(err))
+
+    # Check if UPS image file exists
+    ups_image_path = f"{ups_path}{ups_image_name}"
+    if not os.path.exists(ups_image_path):
+        _LOGGER.debug(
+            "UPS image file does not exist, creating default: %s", ups_image_path
+        )
+        try:
+            nomail = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            copyfile(nomail, ups_image_path)
+            _LOGGER.debug("Created default UPS image: %s", ups_image_path)
+        except Exception as err:
+            _LOGGER.error("Error creating default UPS image: %s", str(err))
+    else:
+        _LOGGER.debug("UPS image file exists: %s", ups_image_path)
+
     image_path = default_image_path(hass, config)
     _LOGGER.debug("Image path: %s", image_path)
     _image[ATTR_IMAGE_PATH] = image_path
@@ -260,6 +297,7 @@ def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
     # Setup paths list
     paths.append(dst)
     paths.append(dst + "amazon/")
+    paths.append(dst + "ups/")
 
     # Clean up the destination directory
     for path in paths:
@@ -286,19 +324,35 @@ def image_file_name(
     hass: HomeAssistant,
     config: ConfigEntry,
     amazon: bool = False,
+    ups: bool = False,
 ) -> str:
     """Determine if filename is to be changed or not.
 
     Returns filename
     """
+    _LOGGER.debug("image_file_name called - amazon: %s, ups: %s", amazon, ups)
     mail_none = None
     path = None
     image_name = None
 
     if amazon:
-        mail_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
-        image_name = "no_deliveries.jpg"
+        if config.get(CONF_AMAZON_CUSTOM_IMG):
+            mail_none = config.get(CONF_AMAZON_CUSTOM_IMG_FILE)
+        else:
+            mail_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+        image_name = os.path.split(mail_none)[1]
         path = f"{hass.config.path()}/{default_image_path(hass, config)}amazon"
+    elif ups:
+        _LOGGER.debug("Processing UPS image file name")
+        if config.get(CONF_UPS_CUSTOM_IMG):
+            mail_none = config.get(CONF_UPS_CUSTOM_IMG_FILE)
+            _LOGGER.debug("Using custom UPS image: %s", mail_none)
+        else:
+            mail_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            _LOGGER.debug("Using default UPS image: %s", mail_none)
+        image_name = os.path.split(mail_none)[1]
+        path = f"{hass.config.path()}/{default_image_path(hass, config)}ups"
+        _LOGGER.debug("UPS path: %s", path)
     else:
         path = f"{hass.config.path()}/{default_image_path(hass, config)}"
         if config.get(CONF_CUSTOM_IMG):
@@ -324,10 +378,10 @@ def image_file_name(
         return image_name
 
     ext = None
-    ext = ".jpg" if amazon else ".gif"
+    ext = ".jpg" if amazon or ups else ".gif"
 
     for file in os.listdir(path):
-        if file.endswith(".gif") or (file.endswith(".jpg") and amazon):
+        if file.endswith(".gif") or (file.endswith(".jpg") and (amazon or ups)):
             try:
                 created = datetime.datetime.fromtimestamp(
                     os.path.getctime(os.path.join(path, file))
@@ -352,9 +406,19 @@ def image_file_name(
     _LOGGER.debug("Image Name: %s", image_name)
 
     # Insert place holder image
-    _LOGGER.debug("Copying %s to %s", mail_none, os.path.join(path, image_name))
+    target_path = os.path.join(path, image_name)
+    _LOGGER.debug("Copying %s to %s", mail_none, target_path)
+    _LOGGER.debug("Source file exists: %s", os.path.exists(mail_none))
+    _LOGGER.debug("Target directory exists: %s", os.path.exists(path))
 
-    copyfile(mail_none, os.path.join(path, image_name))
+    try:
+        copyfile(mail_none, target_path)
+        _LOGGER.debug("Successfully copied image to %s", target_path)
+        _LOGGER.debug("Target file exists after copy: %s", os.path.exists(target_path))
+    except Exception as err:
+        _LOGGER.error("Error copying image: %s", str(err))
+        # Return a fallback filename if copy fails
+        return f"no_deliveries{ext}"
 
     return image_name
 
@@ -455,7 +519,9 @@ def fetch(
     elif "_delivering" in sensor:
         prefix = sensor.replace("_delivering", "")
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
-        info = get_count(account, sensor, True, amazon_domain=amazon_domain, data=data)
+        info = get_count(
+            account, sensor, True, amazon_domain=amazon_domain, data=data, config=config
+        )
         count[sensor] = max(0, info[ATTR_COUNT] - delivered)
         count[f"{prefix}_tracking"] = info[ATTR_TRACKING]
     elif sensor == "zpackages_delivered":
@@ -512,6 +578,7 @@ def fetch(
             amazon_domain,
             amazon_fwds,
             data=data,
+            config=config,
         )[ATTR_COUNT]
 
     data.update(count)
@@ -1049,6 +1116,7 @@ def get_count(
     amazon_domain: Optional[str] = None,
     amazon_fwds: Optional[str] = None,
     data: Optional[dict] = None,
+    config: Optional[ConfigEntry] = None,
 ) -> dict:
     """Get Package Count.
 
@@ -1064,7 +1132,24 @@ def get_count(
     # Return Amazon delivered info
     if sensor_type == AMAZON_DELIVERED:
         result[ATTR_COUNT] = amazon_search(
-            account, image_path, hass, amazon_image_name, amazon_domain, amazon_fwds
+            account,
+            image_path,
+            hass,
+            amazon_image_name,
+            amazon_domain,
+            amazon_fwds,
+            data,
+        )
+        result[ATTR_TRACKING] = ""
+        return result
+
+    # Return UPS delivered info
+    if sensor_type == "ups_delivered":
+        ups_image_name = (
+            data.get(ATTR_UPS_IMAGE, "ups_delivery.jpg") if data else "ups_delivery.jpg"
+        )
+        result[ATTR_COUNT] = ups_search(
+            account, image_path, hass, ups_image_name, config, data
         )
         result[ATTR_TRACKING] = ""
         return result
@@ -1257,6 +1342,101 @@ def find_text(
     return count
 
 
+def ups_search(
+    account: Type[imaplib.IMAP4_SSL],
+    image_path: str,
+    hass: HomeAssistant,
+    ups_image_name: str,
+    config: Optional[ConfigEntry] = None,
+    coordinator_data: Optional[dict] = None,
+) -> int:
+    """Search for UPS delivery emails and extract delivery photos."""
+    _LOGGER.debug("Searching for UPS delivery emails")
+    _LOGGER.debug("UPS image name: %s", ups_image_name)
+
+    today = get_formatted_date()
+    count = 0
+    new_image_saved = False
+
+    # Search for UPS delivered emails
+    (server_response, data) = email_search(
+        account,
+        SENSOR_DATA["ups_delivered"][ATTR_EMAIL],
+        today,
+        SENSOR_DATA["ups_delivered"][ATTR_SUBJECT][0],
+    )
+
+    _LOGGER.debug("UPS email search response: %s", server_response)
+    _LOGGER.debug("UPS email search data: %s", data)
+
+    if server_response != "OK" or data[0] is None or data[0] == b"":
+        _LOGGER.debug("No UPS delivery emails found")
+        # Still need to create no-delivery image and update coordinator data
+        if count == 0:
+            _LOGGER.debug("No UPS deliveries found.")
+            # Generate a new filename for the no-delivery image
+            if config:
+                no_delivery_filename = image_file_name(hass, config, ups=True)
+            else:
+                no_delivery_filename = f"{str(uuid.uuid4())}.jpg"
+            nomail = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            try:
+                copyfile(nomail, f"{image_path}ups/" + no_delivery_filename)
+                # Update coordinator data with the no-delivery filename
+                if coordinator_data is not None:
+                    coordinator_data[ATTR_UPS_IMAGE] = no_delivery_filename
+                    _LOGGER.debug(
+                        "Updated coordinator data with no-delivery UPS image: %s",
+                        no_delivery_filename,
+                    )
+            except Exception as err:
+                _LOGGER.error("Error attempting to copy image: %s", str(err))
+        return count
+
+    # Check if the path exists, if not make it
+    ups_path = f"{image_path}ups/"
+    if not os.path.isdir(ups_path):
+        try:
+            os.makedirs(ups_path)
+        except Exception as err:
+            _LOGGER.critical("Error creating directory: %s", str(err))
+            return count
+
+    # Clean up image directory
+    cleanup_images(ups_path)
+
+    for num in data[0].split():
+        _LOGGER.debug("Processing UPS email number: %s", num)
+        msg = email_fetch(account, num, "(RFC822)")[1]
+        for response_part in msg:
+            if isinstance(response_part, tuple):
+                sdata = response_part[1].decode("utf-8", "ignore")
+                _LOGGER.debug("Calling get_ups_image for email %s", num)
+                # Check if a UPS delivery photo was successfully saved
+                if get_ups_image(sdata, account, image_path, hass, ups_image_name):
+                    count += 1
+                    new_image_saved = True
+
+    # Note: No-delivery logic moved to early return case above
+
+    # If a new image was saved, update the coordinator data with the actual filename
+    if new_image_saved and coordinator_data is not None:
+        # Find the actual file that was created
+        for file in os.listdir(ups_path):
+            if file.endswith(".jpg"):
+                actual_filename = file
+                _LOGGER.debug("Found actual UPS image file: %s", actual_filename)
+                # Update the coordinator data with the actual filename
+                coordinator_data[ATTR_UPS_IMAGE] = actual_filename
+                _LOGGER.debug(
+                    "Updated coordinator data with UPS image: %s", actual_filename
+                )
+                break
+
+    _LOGGER.debug("UPS delivery photos extracted: %s", count)
+    return count
+
+
 def amazon_search(
     account: Type[imaplib.IMAP4_SSL],
     image_path: str,
@@ -1264,6 +1444,7 @@ def amazon_search(
     amazon_image_name: str,
     amazon_domain: str,
     fwds: str = None,
+    coordinator_data: Optional[dict] = None,
 ) -> int:
     """Find Amazon Delivered email.
 
@@ -1300,10 +1481,110 @@ def amazon_search(
         nomail = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
         try:
             copyfile(nomail, f"{image_path}amazon/" + amazon_image_name)
+            # Update coordinator data with the no-delivery filename
+            if coordinator_data is not None:
+                coordinator_data[ATTR_AMAZON_IMAGE] = amazon_image_name
+                _LOGGER.debug(
+                    "Updated coordinator data with no-delivery Amazon image: %s",
+                    amazon_image_name,
+                )
         except Exception as err:
             _LOGGER.error("Error attempting to copy image: %s", str(err))
 
     return count
+
+
+def get_ups_image(
+    sdata: Any,
+    account: Type[imaplib.IMAP4_SSL],  # pylint: disable=unused-argument
+    image_path: str,
+    hass: HomeAssistant,  # pylint: disable=unused-argument
+    image_name: str,  # pylint: disable=unused-argument
+) -> bool:
+    """Extract UPS delivery photo from email.
+
+    Returns True if a photo was successfully saved, False otherwise.
+    """
+    _LOGGER.debug("Attempting to extract UPS delivery photo")
+
+    msg = email.message_from_string(sdata)
+
+    ups_path = f"{image_path}ups/"
+
+    # First pass: look for CID embedded images
+    cid_images = {}
+    for part in msg.walk():
+        if part.get_content_type() == "image/jpeg":
+            content_id = part.get("Content-ID")
+            if content_id:
+                # Remove < > from Content-ID
+                cid = content_id.strip("<>")
+                _LOGGER.debug("Found CID embedded image: %s", cid)
+                cid_images[cid] = part.get_payload(decode=True)
+
+    # Second pass: look for HTML content with CID references
+    for part in msg.walk():
+        if part.get_content_type() == "text/html":
+            _LOGGER.debug("Processing HTML content for UPS delivery photo")
+            part_content = part.get_payload(decode=True)
+            part_content = part_content.decode("utf-8", "ignore")
+
+            # Look for delivery photo in HTML content
+            if "deliveryPhoto" in part_content:
+                _LOGGER.debug("Found delivery photo reference in HTML")
+
+                # Check if we have the corresponding CID image
+                if "deliveryPhoto" in cid_images:
+                    _LOGGER.debug("Found matching CID image for deliveryPhoto")
+                    try:
+                        with open(ups_path + image_name, "wb") as the_file:
+                            the_file.write(cid_images["deliveryPhoto"])
+                        _LOGGER.debug(
+                            "UPS delivery photo saved from CID: %s", image_name
+                        )
+                        return True
+                    except Exception as err:
+                        _LOGGER.error(
+                            "Error saving UPS delivery photo from CID: %s", str(err)
+                        )
+                        return False
+
+                # Fallback: look for base64 encoded images
+                base64_pattern = r"data:image/jpeg;base64,([A-Za-z0-9+/=]+)"
+                matches = re.findall(base64_pattern, part_content)
+
+                if matches:
+                    _LOGGER.debug("Found base64 encoded UPS delivery photo")
+                    try:
+                        with open(ups_path + image_name, "wb") as the_file:
+                            the_file.write(base64.b64decode(matches[0]))
+                        _LOGGER.debug(
+                            "UPS delivery photo saved from base64: %s", image_name
+                        )
+                        return True
+                    except Exception as err:
+                        _LOGGER.error(
+                            "Error saving UPS delivery photo from base64: %s", str(err)
+                        )
+                        return False
+
+    # Third pass: look for regular JPEG attachments
+    for part in msg.walk():
+        if part.get_content_type() == "image/jpeg":
+            filename = part.get_filename()
+            if filename:
+                _LOGGER.debug("Found UPS delivery photo attachment: %s", filename)
+                try:
+                    with open(ups_path + image_name, "wb") as the_file:
+                        the_file.write(part.get_payload(decode=True))
+                    _LOGGER.debug("UPS delivery photo saved: %s", image_name)
+                    return True
+                except Exception as err:
+                    _LOGGER.error("Error saving UPS delivery photo: %s", str(err))
+                    return False
+
+    _LOGGER.debug("No UPS delivery photo found in email")
+    return False
 
 
 def get_amazon_image(

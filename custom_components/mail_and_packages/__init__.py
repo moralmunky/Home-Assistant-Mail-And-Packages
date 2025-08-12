@@ -16,9 +16,14 @@ from .const import (
     ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
+    ATTR_UPS_IMAGE,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
+    CONF_AMAZON_CUSTOM_IMG,
+    CONF_AMAZON_CUSTOM_IMG_FILE,
+    CONF_UPS_CUSTOM_IMG,
+    CONF_UPS_CUSTOM_IMG_FILE,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_SECURITY,
     CONF_IMAP_TIMEOUT,
@@ -261,7 +266,10 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             image = self._data[ATTR_AMAZON_IMAGE]
             path = f"{default_image_path(self.hass, self.config)}/amazon/"
             amazon_image = f"{path}{image}"
-            amazon_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            if self.config.get(CONF_AMAZON_CUSTOM_IMG):
+                amazon_none = self.config.get(CONF_AMAZON_CUSTOM_IMG_FILE)
+            else:
+                amazon_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
             amazon_check = os.path.exists(amazon_image)
             _LOGGER.debug("Amazon Check: %s", amazon_check)
             if amazon_check:
@@ -279,3 +287,31 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                     self._data["amazon_update"] = True
                 else:
                     self._data["amazon_update"] = False
+        attributes = (ATTR_UPS_IMAGE, ATTR_IMAGE_PATH)
+        _LOGGER.debug("UPS attributes check: %s", attributes)
+        _LOGGER.debug("Available data keys: %s", list(self._data.keys()))
+        if set(attributes).issubset(self._data.keys()):
+            image = self._data[ATTR_UPS_IMAGE]
+            _LOGGER.debug("UPS image from coordinator data: %s", image)
+            path = f"{default_image_path(self.hass, self.config)}/ups/"
+            ups_image = f"{path}{image}"
+            _LOGGER.debug("Full UPS image path: %s", ups_image)
+            if self.config.get(CONF_UPS_CUSTOM_IMG):
+                ups_none = self.config.get(CONF_UPS_CUSTOM_IMG_FILE)
+            else:
+                ups_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            ups_check = os.path.exists(ups_image)
+            _LOGGER.debug("UPS Check: %s", ups_check)
+            if ups_check:
+                image_hash = await self.hass.async_add_executor_job(
+                    hash_file, ups_image
+                )
+                none_hash = await self.hass.async_add_executor_job(hash_file, ups_none)
+
+                _LOGGER.debug("UPS Image hash: %s", image_hash)
+                _LOGGER.debug("UPS None hash: %s", none_hash)
+
+                if image_hash != none_hash:
+                    self._data["ups_update"] = True
+                else:
+                    self._data["ups_update"] = False

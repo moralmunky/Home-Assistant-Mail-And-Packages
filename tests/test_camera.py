@@ -90,6 +90,51 @@ async def test_update_file_path(
     # TODO: Add process_mail and check camera file path
 
 
+async def test_ups_camera(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test UPS camera functionality."""
+    entry = integration
+
+    entries = hass.config_entries.async_entries(DOMAIN)
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ):
+        state = hass.states.get("camera.mail_ups_camera")
+        assert state.attributes.get("friendly_name") == "Mail UPS Camera"
+        assert (
+            "custom_components/mail_and_packages/no_deliveries.jpg"
+            in state.attributes.get("file_path")
+        )
+
+        service_data = {"entity_id": "camera.mail_ups_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+
+        assert (
+            "custom_components/mail_and_packages/no_deliveries.jpg"
+            in state.attributes.get("file_path")
+        )
+
+    # Unload the config
+    await hass.config_entries.async_unload(entries[0].entry_id)
+    await hass.async_block_till_done()
+    await hass.config_entries.async_remove(entries[0].entry_id)
+    await hass.async_block_till_done()
+
+
 # async def test_check_file_path_access(
 #     hass,
 #     integration,

@@ -38,16 +38,20 @@
                     "generate_grid": "Create image grid for LLM vision models",
                     "generate_mp4": "Create mp4 from images",
                     "allow_external": "Create image for notification apps",
-                    "custom_img": "Use custom 'no image' image?"
+                    "custom_img": "Use custom 'no image' image?",
+                    "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
+                    "ups_custom_img": "Use custom 'no UPS delivery' image?"
                 },
                 "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please separate each address with a comma.",
                 "title": "Mail and Packages (Step 2 of 2)"
             },
             "config_3": {
                 "data": {
-                    "custom_img_file": "Path to custom image: (ie: images\/my_custom_no_mail.jpg)"
+                    "custom_img_file": "Path to custom USPS image: (ie: images\/my_custom_no_mail.jpg)",
+                    "amazon_custom_img_file": "Path to custom Amazon image: (ie: images\/my_custom_no_amazon.jpg)",
+                    "ups_custom_img_file": "Path to custom UPS image: (ie: images\/my_custom_no_ups.jpg)"
                 },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images\/custom_nomail.gif",
+                "description": "Enter the path and file name to your custom no delivery images below.\n\nExample: images\/custom_nomail.gif",
                 "title": "Mail and Packages (Step 3 of 3)"
             },
             "config_amazon": {
@@ -83,16 +87,20 @@
                     "resources": "Sensors List",
                     "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
                     "allow_external": "Create image for notification apps",
-                    "custom_img": "Use custom 'no image' image?"
+                    "custom_img": "Use custom 'no image' image?",
+                    "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
+                    "ups_custom_img": "Use custom 'no UPS delivery' image?"
                 },
                 "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
                 "title": "Mail and Packages (Step 2 of 2)"
             },
             "reconfig_3": {
                 "data": {
-                    "custom_img_file": "Path to custom image: (i.e.: images\/my_custom_no_mail.jpg)"
+                    "custom_img_file": "Path to custom USPS image: (i.e.: images\/my_custom_no_mail.jpg)",
+                    "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images\/my_custom_no_amazon.jpg)",
+                    "ups_custom_img_file": "Path to custom UPS image: (i.e.: images\/my_custom_no_ups.jpg)"
                 },
-                "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images\/custom_nomail.gif",
+                "description": "Enter the path and file name to your custom no delivery images below.\n\nExample: images\/custom_nomail.gif",
                 "title": "Mail and Packages (Step 3 of 3)"
             },
             "reconfig_amazon": {

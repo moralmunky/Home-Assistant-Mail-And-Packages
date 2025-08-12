@@ -666,6 +666,229 @@ async def test_ups_delivered(hass, mock_imap_ups_delivered):
 
 
 @pytest.mark.asyncio
+async def test_ups_delivered_with_photo(hass, mock_imap_ups_delivered_with_photo):
+    """Test UPS delivered with delivery photo extraction."""
+    result = get_count(
+        mock_imap_ups_delivered_with_photo, "ups_delivered", True, "./", hass
+    )
+    assert result["count"] == 1
+    assert result["tracking"] == ["1Z2345YY0678901234"]
+
+
+@pytest.mark.asyncio
+async def test_get_ups_image_cid_extraction(hass, tmp_path):
+    """Test UPS image extraction from CID embedded images."""
+    from custom_components.mail_and_packages.helpers import get_ups_image
+
+    # Create a test email with CID image
+    test_email = """From: UPS <mcinfo@ups.com>
+To: nobody@gmail.com
+Subject: Your UPS Package was delivered
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary=----test_boundary
+
+------test_boundary
+Content-Type: text/html; charset=UTF-8
+
+<html><body><img src="cid:deliveryPhoto" alt="delivery photo"></body></html>
+
+------test_boundary
+Content-Type: image/jpeg
+Content-Transfer-Encoding: base64
+Content-ID: <deliveryPhoto>
+
+/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA==
+
+------test_boundary--
+"""
+
+    # Create UPS directory
+    ups_path = tmp_path / "ups"
+    ups_path.mkdir()
+
+    # Test image extraction
+    result = get_ups_image(
+        test_email,
+        None,  # account not needed for this test
+        str(tmp_path),
+        hass,
+        "test_ups_image.jpg",
+    )
+
+    # Verify extraction was successful
+    assert result is True
+
+    # Verify image file was created
+    image_file = ups_path / "test_ups_image.jpg"
+    assert image_file.exists()
+
+    # Verify it's a valid JPEG (should start with JPEG magic bytes)
+    with open(image_file, "rb") as f:
+        data = f.read()
+        assert data.startswith(b"\xff\xd8\xff")  # JPEG magic bytes
+
+
+@pytest.mark.asyncio
+async def test_get_ups_image_base64_extraction(hass, tmp_path):
+    """Test UPS image extraction from base64 encoded images."""
+    from custom_components.mail_and_packages.helpers import get_ups_image
+
+    # Create a test email with base64 image
+    test_email = """From: UPS <mcinfo@ups.com>
+To: nobody@gmail.com
+Subject: Your UPS Package was delivered
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary=----test_boundary
+
+------test_boundary
+Content-Type: text/html; charset=UTF-8
+
+<html><body><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA==" alt="delivery photo"></body></html>
+
+------test_boundary--
+"""
+
+    # Create UPS directory
+    ups_path = tmp_path / "ups"
+    ups_path.mkdir()
+
+    # Test image extraction
+    result = get_ups_image(
+        test_email,
+        None,  # account not needed for this test
+        str(tmp_path),
+        hass,
+        "test_ups_image.jpg",
+    )
+
+    # Verify extraction was successful
+    assert result is True
+
+    # Verify image file was created
+    image_file = ups_path / "test_ups_image.jpg"
+    assert image_file.exists()
+
+    # Verify it's a valid JPEG
+    with open(image_file, "rb") as f:
+        data = f.read()
+        assert data.startswith(b"\xff\xd8\xff")  # JPEG magic bytes
+
+
+@pytest.mark.asyncio
+async def test_get_ups_image_no_photo(hass, tmp_path):
+    """Test UPS image extraction when no photo is found."""
+    from custom_components.mail_and_packages.helpers import get_ups_image
+
+    # Create a test email without any images
+    test_email = """From: UPS <mcinfo@ups.com>
+To: nobody@gmail.com
+Subject: Your UPS Package was delivered
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+
+<html><body>No delivery photo available</body></html>
+"""
+
+    # Create UPS directory
+    ups_path = tmp_path / "ups"
+    ups_path.mkdir()
+
+    # Test image extraction
+    result = get_ups_image(
+        test_email,
+        None,  # account not needed for this test
+        str(tmp_path),
+        hass,
+        "test_ups_image.jpg",
+    )
+
+    # Verify extraction failed (no photo found)
+    assert result is False
+
+    # Verify no image file was created
+    image_file = ups_path / "test_ups_image.jpg"
+    assert not image_file.exists()
+
+
+@pytest.mark.asyncio
+async def test_ups_search_no_deliveries(
+    hass, mock_imap_no_email, mock_copyfile, caplog
+):
+    """Test UPS search when no deliveries are found."""
+    from custom_components.mail_and_packages.helpers import ups_search
+
+    with patch("os.path.isdir", return_value=True), patch(
+        "os.makedirs", return_value=True
+    ):
+        result = ups_search(mock_imap_no_email, "./", hass, "test_ups.jpg", config=None)
+        assert result == 0
+        assert "No UPS deliveries found." in caplog.text
+        # Should have copied the default no delivery image
+        assert len(mock_copyfile.mock_calls) > 0
+
+
+@pytest.mark.asyncio
+async def test_ups_search_with_photo(hass, tmp_path):
+    """Test UPS search with delivery photo extraction."""
+    from custom_components.mail_and_packages.helpers import ups_search
+
+    # Create a mock IMAP account that returns our test email
+    mock_account = mock.Mock()
+
+    # Mock the email search to return a message ID
+    mock_account.search.return_value = ("OK", [b"1"])
+
+    # Create test email content
+    test_email = """From: UPS <mcinfo@ups.com>
+To: nobody@gmail.com
+Subject: Your UPS Package was delivered
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary=----test_boundary
+
+------test_boundary
+Content-Type: text/html; charset=UTF-8
+
+<html><body><img src="cid:deliveryPhoto" alt="delivery photo"></body></html>
+
+------test_boundary
+Content-Type: image/jpeg
+Content-Transfer-Encoding: base64
+Content-ID: <deliveryPhoto>
+
+/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA==
+
+------test_boundary--
+"""
+
+    # Mock the fetch to return our test email
+    mock_account.fetch.return_value = ("OK", [(b"", test_email.encode("utf-8"))])
+
+    # Create UPS directory
+    ups_path = tmp_path / "ups"
+    ups_path.mkdir()
+
+    # Test the full UPS search workflow
+    with patch("os.path.isdir", return_value=True), patch(
+        "os.makedirs", return_value=True
+    ):
+        result = ups_search(
+            mock_account, str(tmp_path), hass, "test_ups_image.jpg", config=None
+        )
+
+    # Verify that one delivery was found and processed
+    assert result == 1
+
+    # Verify image file was created
+    image_file = ups_path / "test_ups_image.jpg"
+    assert image_file.exists()
+
+    # Verify it's a valid JPEG
+    with open(image_file, "rb") as f:
+        data = f.read()
+        assert data.startswith(b"\xff\xd8\xff")  # JPEG magic bytes
+
+
+@pytest.mark.asyncio
 async def test_usps_out_for_delivery(hass, mock_imap_usps_out_for_delivery):
     result = get_count(
         mock_imap_usps_out_for_delivery, "usps_delivering", True, "./", hass
@@ -1089,6 +1312,20 @@ async def test_image_file_name_amazon(
 
 
 @pytest.mark.asyncio
+async def test_image_file_name_ups(
+    hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, mock_copyfile, caplog
+):
+    config = FAKE_CONFIG_DATA_CORRECTED
+
+    with (
+        patch("os.path.exists", return_value=True),
+        patch("os.makedirs", return_value=True),
+    ):
+        result = image_file_name(hass, config, ups=True)
+        assert result == "testfile.jpg"
+
+
+@pytest.mark.asyncio
 async def test_image_file_name(
     hass, mock_listdir_nogif, mock_getctime_today, mock_hash_file, mock_copyfile, caplog
 ):
@@ -1109,6 +1346,18 @@ async def test_image_file_name(
         assert not result == "mail_none.gif"
         assert len(mock_copyfile.mock_calls) == 2
         assert "Copying images/test.gif to" in caplog.text
+
+        # Test custom Amazon image settings
+        result = image_file_name(hass, config, amazon=True)
+        assert ".jpg" in result
+        assert not result == "no_deliveries.jpg"
+        assert "Copying images/test_amazon.jpg to" in caplog.text
+
+        # Test custom UPS image settings
+        result = image_file_name(hass, config, ups=True)
+        assert ".jpg" in result
+        assert not result == "no_deliveries.jpg"
+        assert "Copying images/test_ups.jpg to" in caplog.text
 
 
 @pytest.mark.asyncio
