@@ -93,6 +93,9 @@ from .const import (
     CONF_STORAGE,
     CONF_VERIFY_SSL,
     DEFAULT_AMAZON_DAYS,
+    DEFAULT_AMAZON_CUSTOM_IMG_FILE,
+    DEFAULT_CUSTOM_IMG_FILE,
+    DEFAULT_UPS_CUSTOM_IMG_FILE,
     OVERLAY,
     SENSOR_DATA,
     SENSOR_TYPES,
@@ -337,7 +340,7 @@ def image_file_name(
 
     if amazon:
         if config.get(CONF_AMAZON_CUSTOM_IMG):
-            mail_none = config.get(CONF_AMAZON_CUSTOM_IMG_FILE)
+            mail_none = config.get(CONF_AMAZON_CUSTOM_IMG_FILE) or DEFAULT_AMAZON_CUSTOM_IMG_FILE
         else:
             mail_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
         image_name = os.path.split(mail_none)[1]
@@ -345,7 +348,7 @@ def image_file_name(
     elif ups:
         _LOGGER.debug("Processing UPS image file name")
         if config.get(CONF_UPS_CUSTOM_IMG):
-            mail_none = config.get(CONF_UPS_CUSTOM_IMG_FILE)
+            mail_none = config.get(CONF_UPS_CUSTOM_IMG_FILE) or DEFAULT_UPS_CUSTOM_IMG_FILE
             _LOGGER.debug("Using custom UPS image: %s", mail_none)
         else:
             mail_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
@@ -356,7 +359,7 @@ def image_file_name(
     else:
         path = f"{hass.config.path()}/{default_image_path(hass, config)}"
         if config.get(CONF_CUSTOM_IMG):
-            mail_none = config.get(CONF_CUSTOM_IMG_FILE)
+            mail_none = config.get(CONF_CUSTOM_IMG_FILE) or DEFAULT_CUSTOM_IMG_FILE
         else:
             mail_none = f"{os.path.dirname(__file__)}/mail_none.gif"
         image_name = os.path.split(mail_none)[1]
@@ -1131,6 +1134,7 @@ def get_count(
 
     # Return Amazon delivered info
     if sensor_type == AMAZON_DELIVERED:
+        _LOGGER.debug("=== PROCESSING AMAZON DELIVERED SENSOR ===")
         result[ATTR_COUNT] = amazon_search(
             account,
             image_path,
@@ -1152,6 +1156,7 @@ def get_count(
             account, image_path, hass, ups_image_name, config, data
         )
         result[ATTR_TRACKING] = ""
+        _LOGGER.debug("Amazon delivered sensor result: %s", result[ATTR_COUNT])
         return result
 
     # Bail out if unknown sensor type
@@ -1450,12 +1455,15 @@ def amazon_search(
 
     Returns email found count as integer
     """
+    _LOGGER.debug("=== AMAZON DELIVERED SEARCH START ===")
     _LOGGER.debug("Searching for Amazon delivered email(s)...")
 
     subjects = AMAZON_DELIVERED_SUBJECT
     today = get_formatted_date()
     count = 0
 
+    _LOGGER.debug("Today's date: %s", today)
+    _LOGGER.debug("Amazon delivered subjects to search: %s", subjects)
     _LOGGER.debug("Cleaning up amazon images...")
     cleanup_images(f"{image_path}amazon/")
 
@@ -1463,11 +1471,14 @@ def amazon_search(
     _LOGGER.debug("Amazon email list: %s", str(address_list))
 
     for subject in subjects:
+        _LOGGER.debug("Searching for Amazon delivered emails with subject: %s", subject)
         (server_response, data) = email_search(account, address_list, today, subject)
 
         if server_response == "OK" and data[0] is not None:
-            count += len(data[0].split())
-            _LOGGER.debug("Amazon delivered email(s) found: %s", count)
+            email_count = len(data[0].split())
+            count += email_count
+            _LOGGER.debug("Amazon delivered email(s) found for subject '%s': %s", subject, email_count)
+            _LOGGER.debug("Email IDs found: %s", data[0])
             get_amazon_image(
                 data[0],
                 account,
@@ -1475,6 +1486,8 @@ def amazon_search(
                 hass,
                 amazon_image_name,
             )
+        else:
+            _LOGGER.debug("No Amazon delivered emails found for subject '%s'", subject)
 
     if count == 0:
         _LOGGER.debug("No Amazon deliveries found.")
@@ -1491,6 +1504,8 @@ def amazon_search(
         except Exception as err:
             _LOGGER.error("Error attempting to copy image: %s", str(err))
 
+    _LOGGER.debug("=== AMAZON DELIVERED SEARCH END ===")
+    _LOGGER.debug("Final Amazon delivered count: %s", count)
     return count
 
 

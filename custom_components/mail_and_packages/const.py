@@ -84,11 +84,11 @@ DEFAULT_CUSTOM_IMG = False
 DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
 DEFAULT_AMAZON_CUSTOM_IMG = False
 DEFAULT_AMAZON_CUSTOM_IMG_FILE = (
-    "custom_components/mail_and_packages/images/no_deliveries.jpg"
+    "custom_components/mail_and_packages/no_deliveries.jpg"
 )
 DEFAULT_UPS_CUSTOM_IMG = False
 DEFAULT_UPS_CUSTOM_IMG_FILE = (
-    "custom_components/mail_and_packages/images/no_deliveries.jpg"
+    "custom_components/mail_and_packages/no_deliveries.jpg"
 )
 DEFAULT_AMAZON_DAYS = 3
 DEFAULT_AMAZON_DOMAIN = "amazon.com"
