@@ -20,6 +20,10 @@ from .const import (
     CAMERA_DATA,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
+    CONF_AMAZON_CUSTOM_IMG,
+    CONF_AMAZON_CUSTOM_IMG_FILE,
+    CONF_UPS_CUSTOM_IMG,
+    CONF_UPS_CUSTOM_IMG_FILE,
     COORDINATOR,
     DOMAIN,
     SENSOR_NAME,
@@ -37,13 +41,9 @@ async def async_setup_entry(hass, config, async_add_entities):
 
     coordinator = hass.data[DOMAIN][config.entry_id][COORDINATOR]
     camera = []
-    if not config.data.get(CONF_CUSTOM_IMG):
-        file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
-    else:
-        file_path = config.data.get(CONF_CUSTOM_IMG_FILE)
 
     for variable in CAMERA_DATA:
-        temp_cam = MailCam(hass, variable, config, coordinator, file_path)
+        temp_cam = MailCam(hass, variable, config, coordinator)
         camera.append(temp_cam)
         hass.data[DOMAIN][config.entry_id][CAMERA].append(temp_cam)
 
@@ -90,7 +90,6 @@ class MailCam(Camera):
         name: str,
         config: ConfigEntry,
         coordinator,
-        file_path: str,
     ) -> None:
         """Initialize Local File Camera component."""
         super().__init__()
@@ -98,16 +97,37 @@ class MailCam(Camera):
         self.hass = hass
         self._name = CAMERA_DATA[name][SENSOR_NAME]
         self._type = name
-        self.check_file_path_access(file_path)
-        self._file_path = file_path
         self._coordinator = coordinator
         self._host = config.data.get(CONF_HOST)
         self._unique_id = config.entry_id
-        self._no_mail = (
-            None
-            if not config.data.get(CONF_CUSTOM_IMG)
-            else config.data.get(CONF_CUSTOM_IMG_FILE)
-        )
+        # Set custom image paths for each camera type
+        self._no_mail = None
+        if self._type == "usps_camera":
+            if config.data.get(CONF_CUSTOM_IMG):
+                self._no_mail = config.data.get(CONF_CUSTOM_IMG_FILE)
+        elif self._type == "amazon_camera":
+            if config.data.get(CONF_AMAZON_CUSTOM_IMG):
+                self._no_mail = config.data.get(CONF_AMAZON_CUSTOM_IMG_FILE)
+        elif self._type == "ups_camera":
+            if config.data.get(CONF_UPS_CUSTOM_IMG):
+                self._no_mail = config.data.get(CONF_UPS_CUSTOM_IMG_FILE)
+
+        # Set initial file path based on camera type and custom settings
+        if self._type == "usps_camera":
+            if config.data.get(CONF_CUSTOM_IMG):
+                self._file_path = config.data.get(CONF_CUSTOM_IMG_FILE)
+            else:
+                self._file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
+        elif self._type == "amazon_camera":
+            if config.data.get(CONF_AMAZON_CUSTOM_IMG):
+                self._file_path = config.data.get(CONF_AMAZON_CUSTOM_IMG_FILE)
+            else:
+                self._file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+        elif self._type == "ups_camera":
+            if config.data.get(CONF_UPS_CUSTOM_IMG):
+                self._file_path = config.data.get(CONF_UPS_CUSTOM_IMG_FILE)
+            else:
+                self._file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
 
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
@@ -164,6 +184,9 @@ class MailCam(Camera):
                 image = self._coordinator.data[ATTR_AMAZON_IMAGE]
                 path = f"{self._coordinator.data[ATTR_IMAGE_PATH]}amazon/"
                 file_path = f"{self.hass.config.path()}/{path}{image}"
+            else:
+                if self._no_mail:
+                    file_path = self._no_mail
 
         elif self._type == "ups_camera":
             # Update camera image for UPS deliveries

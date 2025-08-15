@@ -340,7 +340,10 @@ def image_file_name(
 
     if amazon:
         if config.get(CONF_AMAZON_CUSTOM_IMG):
-            mail_none = config.get(CONF_AMAZON_CUSTOM_IMG_FILE) or DEFAULT_AMAZON_CUSTOM_IMG_FILE
+            mail_none = (
+                config.get(CONF_AMAZON_CUSTOM_IMG_FILE)
+                or DEFAULT_AMAZON_CUSTOM_IMG_FILE
+            )
         else:
             mail_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
         image_name = os.path.split(mail_none)[1]
@@ -348,7 +351,9 @@ def image_file_name(
     elif ups:
         _LOGGER.debug("Processing UPS image file name")
         if config.get(CONF_UPS_CUSTOM_IMG):
-            mail_none = config.get(CONF_UPS_CUSTOM_IMG_FILE) or DEFAULT_UPS_CUSTOM_IMG_FILE
+            mail_none = (
+                config.get(CONF_UPS_CUSTOM_IMG_FILE) or DEFAULT_UPS_CUSTOM_IMG_FILE
+            )
             _LOGGER.debug("Using custom UPS image: %s", mail_none)
         else:
             mail_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
@@ -1417,9 +1422,10 @@ def ups_search(
             if isinstance(response_part, tuple):
                 sdata = response_part[1].decode("utf-8", "ignore")
                 _LOGGER.debug("Calling get_ups_image for email %s", num)
+                # Count the delivery email (regardless of photo extraction)
+                count += 1
                 # Check if a UPS delivery photo was successfully saved
                 if get_ups_image(sdata, account, image_path, hass, ups_image_name):
-                    count += 1
                     new_image_saved = True
 
     # Note: No-delivery logic moved to early return case above
@@ -1477,7 +1483,11 @@ def amazon_search(
         if server_response == "OK" and data[0] is not None:
             email_count = len(data[0].split())
             count += email_count
-            _LOGGER.debug("Amazon delivered email(s) found for subject '%s': %s", subject, email_count)
+            _LOGGER.debug(
+                "Amazon delivered email(s) found for subject '%s': %s",
+                subject,
+                email_count,
+            )
             _LOGGER.debug("Email IDs found: %s", data[0])
             get_amazon_image(
                 data[0],
@@ -1509,7 +1519,7 @@ def amazon_search(
     return count
 
 
-def get_ups_image(
+def get_ups_image(  # pylint: disable=too-many-return-statements
     sdata: Any,
     account: Type[imaplib.IMAP4_SSL],  # pylint: disable=unused-argument
     image_path: str,

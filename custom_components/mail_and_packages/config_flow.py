@@ -292,38 +292,52 @@ def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
         return user_input.get(key, default_dict.get(key, fallback_default))
 
     schema = {}
-    
+
     _LOGGER.debug("_get_schema_step_3 - user_input: %s", user_input)
-    _LOGGER.debug("_get_schema_step_3 - CONF_CUSTOM_IMG: %s", user_input.get(CONF_CUSTOM_IMG))
-    _LOGGER.debug("_get_schema_step_3 - CONF_AMAZON_CUSTOM_IMG: %s", user_input.get(CONF_AMAZON_CUSTOM_IMG))
-    _LOGGER.debug("_get_schema_step_3 - CONF_UPS_CUSTOM_IMG: %s", user_input.get(CONF_UPS_CUSTOM_IMG))
-    
+    _LOGGER.debug(
+        "_get_schema_step_3 - CONF_CUSTOM_IMG: %s", user_input.get(CONF_CUSTOM_IMG)
+    )
+    _LOGGER.debug(
+        "_get_schema_step_3 - CONF_AMAZON_CUSTOM_IMG: %s",
+        user_input.get(CONF_AMAZON_CUSTOM_IMG),
+    )
+    _LOGGER.debug(
+        "_get_schema_step_3 - CONF_UPS_CUSTOM_IMG: %s",
+        user_input.get(CONF_UPS_CUSTOM_IMG),
+    )
+
     # Only show custom image file field if custom image is enabled
     if user_input.get(CONF_CUSTOM_IMG):
-        schema[vol.Optional(
-            CONF_CUSTOM_IMG_FILE,
-            default=_get_default(CONF_CUSTOM_IMG_FILE, DEFAULT_CUSTOM_IMG_FILE),
-        )] = cv.string
+        schema[
+            vol.Optional(
+                CONF_CUSTOM_IMG_FILE,
+                default=_get_default(CONF_CUSTOM_IMG_FILE, DEFAULT_CUSTOM_IMG_FILE),
+            )
+        ] = cv.string
         _LOGGER.debug("Added CONF_CUSTOM_IMG_FILE to schema")
-    
+
     # Only show Amazon custom image file field if Amazon custom image is enabled
     if user_input.get(CONF_AMAZON_CUSTOM_IMG):
-        schema[vol.Optional(
-            CONF_AMAZON_CUSTOM_IMG_FILE,
-            default=_get_default(
-                CONF_AMAZON_CUSTOM_IMG_FILE, DEFAULT_AMAZON_CUSTOM_IMG_FILE
-            ),
-        )] = cv.string
+        schema[
+            vol.Optional(
+                CONF_AMAZON_CUSTOM_IMG_FILE,
+                default=_get_default(
+                    CONF_AMAZON_CUSTOM_IMG_FILE, DEFAULT_AMAZON_CUSTOM_IMG_FILE
+                ),
+            )
+        ] = cv.string
         _LOGGER.debug("Added CONF_AMAZON_CUSTOM_IMG_FILE to schema")
-    
+
     # Only show UPS custom image file field if UPS custom image is enabled
     if user_input.get(CONF_UPS_CUSTOM_IMG):
-        schema[vol.Optional(
-            CONF_UPS_CUSTOM_IMG_FILE,
-            default=_get_default(
-                CONF_UPS_CUSTOM_IMG_FILE, DEFAULT_UPS_CUSTOM_IMG_FILE
-            ),
-        )] = cv.string
+        schema[
+            vol.Optional(
+                CONF_UPS_CUSTOM_IMG_FILE,
+                default=_get_default(
+                    CONF_UPS_CUSTOM_IMG_FILE, DEFAULT_UPS_CUSTOM_IMG_FILE
+                ),
+            )
+        ] = cv.string
         _LOGGER.debug("Added CONF_UPS_CUSTOM_IMG_FILE to schema")
 
     _LOGGER.debug("Final schema keys: %s", list(schema.keys()))
@@ -429,17 +443,27 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             _LOGGER.debug("RESOURCES: %s", self._data[CONF_RESOURCES])
             if len(self._errors) == 0:
-                _LOGGER.debug("Step 2 - CONF_CUSTOM_IMG: %s", self._data.get(CONF_CUSTOM_IMG))
-                _LOGGER.debug("Step 2 - CONF_AMAZON_CUSTOM_IMG: %s", self._data.get(CONF_AMAZON_CUSTOM_IMG))
-                _LOGGER.debug("Step 2 - CONF_UPS_CUSTOM_IMG: %s", self._data.get(CONF_UPS_CUSTOM_IMG))
-                
+                _LOGGER.debug(
+                    "Step 2 - CONF_CUSTOM_IMG: %s", self._data.get(CONF_CUSTOM_IMG)
+                )
+                _LOGGER.debug(
+                    "Step 2 - CONF_AMAZON_CUSTOM_IMG: %s",
+                    self._data.get(CONF_AMAZON_CUSTOM_IMG),
+                )
+                _LOGGER.debug(
+                    "Step 2 - CONF_UPS_CUSTOM_IMG: %s",
+                    self._data.get(CONF_UPS_CUSTOM_IMG),
+                )
+
                 if any(
                     sensor in self._data[CONF_RESOURCES] for sensor in AMAZON_SENSORS
                 ):
                     return await self.async_step_config_amazon()
-                if (self._data.get(CONF_CUSTOM_IMG) or 
-                    self._data.get(CONF_AMAZON_CUSTOM_IMG) or 
-                    self._data.get(CONF_UPS_CUSTOM_IMG)):
+                if (
+                    self._data.get(CONF_CUSTOM_IMG)
+                    or self._data.get(CONF_AMAZON_CUSTOM_IMG)
+                    or self._data.get(CONF_UPS_CUSTOM_IMG)
+                ):
                     _LOGGER.debug("Proceeding to step 3")
                     return await self.async_step_config_3()
                 return self.async_create_entry(
@@ -485,7 +509,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_3(user_input)
 
-    async def _show_config_3(self, user_input):
+    async def _show_config_3(self, user_input):  # pylint: disable=unused-argument
         """Step 3 setup."""
         # Defaults
         defaults = {
@@ -507,9 +531,11 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
-                if (self._data.get(CONF_CUSTOM_IMG) or 
-                    self._data.get(CONF_AMAZON_CUSTOM_IMG) or 
-                    self._data.get(CONF_UPS_CUSTOM_IMG)):
+                if (
+                    self._data.get(CONF_CUSTOM_IMG)
+                    or self._data.get(CONF_AMAZON_CUSTOM_IMG)
+                    or self._data.get(CONF_UPS_CUSTOM_IMG)
+                ):
                     return await self.async_step_config_3()
                 return await self.async_step_config_storage()
 
@@ -604,9 +630,11 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     sensor in self._data[CONF_RESOURCES] for sensor in AMAZON_SENSORS
                 ):
                     return await self.async_step_reconfig_amazon()
-                if (self._data.get(CONF_CUSTOM_IMG) or 
-                    self._data.get(CONF_AMAZON_CUSTOM_IMG) or 
-                    self._data.get(CONF_UPS_CUSTOM_IMG)):
+                if (
+                    self._data.get(CONF_CUSTOM_IMG)
+                    or self._data.get(CONF_AMAZON_CUSTOM_IMG)
+                    or self._data.get(CONF_UPS_CUSTOM_IMG)
+                ):
                     return await self.async_step_reconfig_3()
 
                 return await self.async_step_reconfig_storage()
@@ -636,7 +664,9 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_reconfig_3(user_input)
 
-    async def _show_reconfig_3(self, user_input=None):
+    async def _show_reconfig_3(
+        self, user_input=None
+    ):  # pylint: disable=unused-argument
         """Step 3 setup."""
         # Defaults
         defaults = {
@@ -658,9 +688,11 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
-                if (self._data.get(CONF_CUSTOM_IMG) or 
-                    self._data.get(CONF_AMAZON_CUSTOM_IMG) or 
-                    self._data.get(CONF_UPS_CUSTOM_IMG)):
+                if (
+                    self._data.get(CONF_CUSTOM_IMG)
+                    or self._data.get(CONF_AMAZON_CUSTOM_IMG)
+                    or self._data.get(CONF_UPS_CUSTOM_IMG)
+                ):
                     return await self.async_step_reconfig_3()
 
                 return await self.async_step_reconfig_storage()

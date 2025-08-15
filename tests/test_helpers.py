@@ -2,6 +2,7 @@
 
 import datetime
 from datetime import date
+from unittest import mock
 from unittest.mock import call, mock_open, patch
 
 import pytest
@@ -659,24 +660,23 @@ async def test_ups_out_for_delivery_html_only(
 
 
 @pytest.mark.asyncio
-async def test_ups_delivered(hass, mock_imap_ups_delivered):
-    result = get_count(mock_imap_ups_delivered, "ups_delivered", True, "./", hass)
+async def test_ups_delivered(integration, mock_imap_ups_delivered):
+    result = get_count(mock_imap_ups_delivered, "ups_delivered", True, "./", integration.hass)
     assert result["count"] == 1
     assert result["tracking"] == ["1Z2345YY0678901234"]
 
 
 @pytest.mark.asyncio
-async def test_ups_delivered_with_photo(hass, mock_imap_ups_delivered_with_photo):
+async def test_ups_delivered_with_photo(integration, mock_imap_ups_delivered_with_photo):
     """Test UPS delivered with delivery photo extraction."""
     result = get_count(
-        mock_imap_ups_delivered_with_photo, "ups_delivered", True, "./", hass
+        mock_imap_ups_delivered_with_photo, "ups_delivered", True, "./", integration.hass
     )
     assert result["count"] == 1
     assert result["tracking"] == ["1Z2345YY0678901234"]
 
 
-@pytest.mark.asyncio
-async def test_get_ups_image_cid_extraction(hass, tmp_path):
+def test_get_ups_image_cid_extraction(tmp_path):
     """Test UPS image extraction from CID embedded images."""
     from custom_components.mail_and_packages.helpers import get_ups_image
 
@@ -710,8 +710,8 @@ Content-ID: <deliveryPhoto>
     result = get_ups_image(
         test_email,
         None,  # account not needed for this test
-        str(tmp_path),
-        hass,
+        str(tmp_path) + "/",
+        None,  # hass not needed for this test
         "test_ups_image.jpg",
     )
 
@@ -728,8 +728,7 @@ Content-ID: <deliveryPhoto>
         assert data.startswith(b"\xff\xd8\xff")  # JPEG magic bytes
 
 
-@pytest.mark.asyncio
-async def test_get_ups_image_base64_extraction(hass, tmp_path):
+def test_get_ups_image_base64_extraction(tmp_path):
     """Test UPS image extraction from base64 encoded images."""
     from custom_components.mail_and_packages.helpers import get_ups_image
 
@@ -756,8 +755,8 @@ Content-Type: text/html; charset=UTF-8
     result = get_ups_image(
         test_email,
         None,  # account not needed for this test
-        str(tmp_path),
-        hass,
+        str(tmp_path) + "/",
+        None,  # hass not needed for this test
         "test_ups_image.jpg",
     )
 
@@ -828,12 +827,13 @@ async def test_ups_search_no_deliveries(
 
 
 @pytest.mark.asyncio
-async def test_ups_search_with_photo(hass, tmp_path):
+async def test_ups_search_with_photo(integration, tmp_path):
     """Test UPS search with delivery photo extraction."""
     from custom_components.mail_and_packages.helpers import ups_search
 
     # Create a mock IMAP account that returns our test email
     mock_account = mock.Mock()
+    mock_account.host = "imap.test.email"  # Add host attribute
 
     # Mock the email search to return a message ID
     mock_account.search.return_value = ("OK", [b"1"])
@@ -872,7 +872,7 @@ Content-ID: <deliveryPhoto>
         "os.makedirs", return_value=True
     ):
         result = ups_search(
-            mock_account, str(tmp_path), hass, "test_ups_image.jpg", config=None
+            mock_account, str(tmp_path), integration.hass, "test_ups_image.jpg", config=None
         )
 
     # Verify that one delivery was found and processed
