@@ -37,7 +37,7 @@ pytestmark = pytest.mark.asyncio
 
 
 @pytest.fixture(autouse=True)
-def auto_enable_custom_integrations():
+def auto_enable_custom_integrations(enable_custom_integrations):
     """Enable custom integration tests."""
     # This fixture is no longer needed in newer versions of pytest-homeassistant-custom-component
     # The plugin automatically enables custom integrations
