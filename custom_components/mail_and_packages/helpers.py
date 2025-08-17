@@ -1160,8 +1160,26 @@ def get_count(
         result[ATTR_COUNT] = ups_search(
             account, image_path, hass, ups_image_name, config, data
         )
-        result[ATTR_TRACKING] = ""
-        _LOGGER.debug("Amazon delivered sensor result: %s", result[ATTR_COUNT])
+
+        # Extract tracking numbers if requested
+        if get_tracking_num and result[ATTR_COUNT] > 0:
+            # Search for UPS tracking numbers in the emails
+            (server_response, email_data) = email_search(
+                account,
+                SENSOR_DATA[sensor_type][ATTR_EMAIL],
+                today,
+                SENSOR_DATA[sensor_type][ATTR_SUBJECT][0],
+            )
+            if server_response == "OK" and email_data[0] is not None:
+                track = SENSOR_DATA["ups_tracking"][ATTR_PATTERN][0]
+                tracking = get_tracking(email_data[0], account, track)
+                result[ATTR_TRACKING] = tracking
+            else:
+                result[ATTR_TRACKING] = []
+        else:
+            result[ATTR_TRACKING] = []
+
+        _LOGGER.debug("UPS delivered sensor result: %s", result[ATTR_COUNT])
         return result
 
     # Bail out if unknown sensor type
@@ -1279,25 +1297,300 @@ def get_tracking(
                             tracking.append(found[0])
                         continue
 
-                # Search in email body for tracking number
-                _LOGGER.debug("Checking message body using %s ...", the_format)
-                for part in msg.walk():
-                    _LOGGER.debug("Content type: %s", part.get_content_type())
-                    if part.get_content_type() not in ["text/html", "text/plain"]:
-                        continue
-                    email_msg = part.get_payload(decode=True)
-                    email_msg = email_msg.decode("utf-8", "ignore")
-                    if (found := pattern.findall(email_msg)) and len(found) > 0:
-                        # DHL is special
-                        if " " in the_format:
-                            found[0] = found[0].split(" ")[1]
+                        # Search in email body for tracking number
+                    _LOGGER.debug("Checking message body using %s ...", the_format)
+                    _LOGGER.debug("Message is multipart: %s", msg.is_multipart())
+                    _LOGGER.debug("Message content type: %s", msg.get_content_type())
 
+                    # Try to get the email content directly if it's not multipart
+                    if not msg.is_multipart():
+                        try:
+                            if (
+                                msg.get("Content-Transfer-Encoding")
+                                == "quoted-printable"
+                            ):
+                                email_msg = quopri.decodestring(str(msg.get_payload()))
+                            else:
+                                email_msg = msg.get_payload(decode=True)
+                            email_msg = email_msg.decode("utf-8", "ignore")
+
+                            if (found := pattern.findall(email_msg)) and len(found) > 0:
+                                # DHL is special
+                                if " " in the_format:
+                                    found[0] = found[0].split(" ")[1]
+
+                                _LOGGER.debug(
+                                    "Found tracking number in email body: %s", found[0]
+                                )
+                                if found[0] not in tracking:
+                                    tracking.append(found[0])
+                                continue
+                        except Exception as err:
+                            _LOGGER.debug(
+                                "Error decoding non-multipart email: %s", str(err)
+                            )
+
+                    # Walk through multipart email parts
+                    # Handle case where is_multipart() returns False but email is actually multipart
+                    parts_to_check = []
+                    if msg.is_multipart():
+                        parts_to_check = list(msg.walk())
+                    else:
+                        # If not multipart but has content-type multipart, try to get parts
+                        content_type = msg.get_content_type()
+                        if content_type and "multipart" in content_type:
+                            try:
+                                parts_to_check = list(msg.walk())
+                            except Exception as err:
+                                _LOGGER.debug(
+                                    "Error walking multipart message: %s", str(err)
+                                )
+                                # Try to get the payload directly for multipart/related
+                                try:
+                                    payload = msg.get_payload()
+                                    if isinstance(payload, list):
+                                        parts_to_check = payload
+                                    else:
+                                        parts_to_check = [msg]
+                                except Exception as payload_err:
+                                    _LOGGER.debug(
+                                        "Error getting payload: %s", str(payload_err)
+                                    )
+                                    parts_to_check = [msg]
+                        else:
+                            parts_to_check = [msg]
+
+                    # If we only have one part and it's multipart/related, try to get the
+                    # raw content
+                    if (  # pylint: disable=too-many-nested-blocks
+                        len(parts_to_check) == 1
+                        and parts_to_check[0].get_content_type()
+                        == "multipart/related"
+                    ):
                         _LOGGER.debug(
-                            "Found tracking number in email body: %s", found[0]
+                            "Processing multipart/related email with raw content"
                         )
-                        if found[0] not in tracking:
-                            tracking.append(found[0])
-                        continue
+                        try:
+                            # Try to get the payload and decode it
+                            payload = msg.get_payload()
+
+                            if isinstance(payload, list) and len(payload) > 0:
+                                # Get the first part which should be the HTML content
+                                html_part = payload[0]
+                                _LOGGER.debug(
+                                    "First part content type: %s",
+                                    html_part.get_content_type(),
+                                )
+                                if html_part.get_content_type() == "text/html":
+                                    if (
+                                        html_part.get("Content-Transfer-Encoding")
+                                        == "quoted-printable"
+                                    ):
+                                        email_msg = quopri.decodestring(
+                                            str(html_part.get_payload())
+                                        )
+                                    else:
+                                        email_msg = html_part.get_payload(decode=True)
+                                    email_msg = email_msg.decode("utf-8", "ignore")
+
+                                    if (found := pattern.findall(email_msg)) and len(
+                                        found
+                                    ) > 0:
+                                        # DHL is special
+                                        if " " in the_format:
+                                            found[0] = found[0].split(" ")[1]
+                                        _LOGGER.debug(
+                                            "Found tracking number in HTML part: %s",
+                                            found[0],
+                                        )
+                                        if found[0] not in tracking:
+                                            tracking.append(found[0])
+                                        continue
+                            else:
+                                # Payload is a string, try to find tracking number in it
+                                if isinstance(payload, str):
+                                    _LOGGER.debug(
+                                        "Payload string preview: %s",
+                                        (
+                                            payload[:200]
+                                            if len(payload) > 200
+                                            else payload
+                                        ),
+                                    )
+
+                                    # Try to extract HTML content from multipart payload
+                                    try:
+                                        # Look for the HTML content section
+                                        if "Content-Type: text/html" in payload:
+                                            # Find the start of HTML content
+                                            html_start = payload.find("<!DOCTYPE html")
+                                            if html_start == -1:
+                                                html_start = payload.find("<html")
+
+                                            if html_start != -1:
+                                                # Find the end of HTML content (before the boundary)
+                                                html_end = payload.find(
+                                                    "------NextPart_", html_start
+                                                )
+
+                                                if html_end == -1:
+                                                    html_content = payload[html_start:]
+                                                else:
+                                                    html_content = payload[
+                                                        html_start:html_end
+                                                    ]
+
+                                                _LOGGER.debug(
+                                                    "HTML content preview: %s",
+                                                    (
+                                                        html_content[:200]
+                                                        if len(html_content) > 200
+                                                        else html_content
+                                                    ),
+                                                )
+
+                                                # Try to decode quoted-printable if needed
+                                                if (
+                                                    "Content-Transfer-Encoding: "
+                                                    "quoted-printable" in payload
+                                                ):
+                                                    try:
+                                                        decoded_html = (
+                                                            quopri.decodestring(
+                                                                html_content
+                                                            )
+                                                        )
+                                                        decoded_html = (
+                                                            decoded_html.decode(
+                                                                "utf-8", "ignore"
+                                                            )
+                                                        )
+                                                        _LOGGER.debug(
+                                                            "Decoded HTML preview: %s",
+                                                            (
+                                                                decoded_html[:200]
+                                                                if len(decoded_html)
+                                                                > 200
+                                                                else decoded_html
+                                                            ),
+                                                        )
+
+                                                        if (
+                                                            found := pattern.findall(
+                                                                decoded_html
+                                                            )
+                                                        ) and len(found) > 0:
+                                                            # DHL is special
+                                                            if " " in the_format:
+                                                                found[0] = found[
+                                                                    0
+                                                                ].split(" ")[1]
+                                                            _LOGGER.debug(  # pylint: disable=line-too-long
+                                                                "Found tracking number in decoded HTML: "  # pylint: disable=line-too-long
+                                                                "%s",
+                                                                found[0],
+                                                            )
+                                                            if found[0] not in tracking:
+                                                                tracking.append(
+                                                                    found[0]
+                                                                )
+                                                            continue
+                                                    except Exception as decode_err:
+                                                        _LOGGER.debug(
+                                                            "Error decoding HTML: %s",
+                                                            str(decode_err),
+                                                        )
+
+                                                # Try original HTML content
+                                                if (
+                                                    found := pattern.findall(
+                                                        html_content
+                                                    )
+                                                ) and len(found) > 0:
+                                                    # DHL is special
+                                                    if " " in the_format:
+                                                        found[0] = found[0].split(" ")[
+                                                            1
+                                                        ]
+                                                    _LOGGER.debug(
+                                                        "Found tracking number in HTML content: %s",
+                                                        found[0],
+                                                    )
+                                                    if found[0] not in tracking:
+                                                        tracking.append(found[0])
+                                                    continue
+                                    except Exception as extract_err:
+                                        _LOGGER.debug(
+                                            "Error extracting HTML content: %s",
+                                            str(extract_err),
+                                        )
+
+                                    # Fallback to original payload
+                                    if (found := pattern.findall(payload)) and len(
+                                        found
+                                    ) > 0:
+                                        # DHL is special
+                                        if " " in the_format:
+                                            found[0] = found[0].split(" ")[1]
+                                        _LOGGER.debug(
+                                            "Found tracking number in payload string: "
+                                            "%s",
+                                            found[0],
+                                        )
+                                        if found[0] not in tracking:
+                                            tracking.append(found[0])
+                                        continue
+                                # Fallback to raw content
+                                raw_content = msg.as_string()
+                                if (found := pattern.findall(raw_content)) and len(
+                                    found
+                                ) > 0:
+                                    # DHL is special
+                                    if " " in the_format:
+                                        found[0] = found[0].split(" ")[1]
+                                    _LOGGER.debug(
+                                        "Found tracking number in raw content: %s",
+                                        found[0],
+                                    )
+                                    if found[0] not in tracking:
+                                        tracking.append(found[0])
+                                    continue
+                        except Exception as err:
+                            _LOGGER.debug(
+                                "Error parsing multipart/related content: %s", str(err)
+                            )
+
+                    for part in parts_to_check:
+                        _LOGGER.debug("Content type: %s", part.get_content_type())
+                        # For multipart/related, we need to process the text/html part
+                        if part.get_content_type() not in ["text/html", "text/plain"]:
+                            _LOGGER.debug(
+                                "Skipping non-text part: %s", part.get_content_type()
+                            )
+                            continue
+
+                        # Handle quoted-printable encoding
+                        try:
+                            if part.get("Content-Transfer-Encoding") == "quoted-printable":
+                                email_msg = quopri.decodestring(str(part.get_payload()))
+                            else:
+                                email_msg = part.get_payload(decode=True)
+                            email_msg = email_msg.decode("utf-8", "ignore")
+                        except Exception as err:
+                            _LOGGER.debug("Error decoding email part: %s", str(err))
+                            continue
+
+                        if (found := pattern.findall(email_msg)) and len(found) > 0:
+                            # DHL is special
+                            if " " in the_format:
+                                found[0] = found[0].split(" ")[1]
+
+                            _LOGGER.debug(
+                                "Found tracking number in email body: %s", found[0]
+                            )
+                            if found[0] not in tracking:
+                                tracking.append(found[0])
+                            continue
 
     if len(tracking) == 0:
         _LOGGER.debug("No tracking numbers found")

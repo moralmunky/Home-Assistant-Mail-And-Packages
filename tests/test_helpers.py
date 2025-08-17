@@ -660,17 +660,17 @@ async def test_ups_out_for_delivery_html_only(
 
 
 @pytest.mark.asyncio
-async def test_ups_delivered(integration, mock_imap_ups_delivered):
-    result = get_count(mock_imap_ups_delivered, "ups_delivered", True, "./", integration.hass)
+async def test_ups_delivered(hass, mock_imap_ups_delivered):
+    result = get_count(mock_imap_ups_delivered, "ups_delivered", True, "./", hass)
     assert result["count"] == 1
     assert result["tracking"] == ["1Z2345YY0678901234"]
 
 
 @pytest.mark.asyncio
-async def test_ups_delivered_with_photo(integration, mock_imap_ups_delivered_with_photo):
+async def test_ups_delivered_with_photo(hass, mock_imap_ups_delivered_with_photo):
     """Test UPS delivered with delivery photo extraction."""
     result = get_count(
-        mock_imap_ups_delivered_with_photo, "ups_delivered", True, "./", integration.hass
+        mock_imap_ups_delivered_with_photo, "ups_delivered", True, "./", hass
     )
     assert result["count"] == 1
     assert result["tracking"] == ["1Z2345YY0678901234"]
@@ -742,7 +742,8 @@ Content-Type: multipart/related; boundary=----test_boundary
 ------test_boundary
 Content-Type: text/html; charset=UTF-8
 
-<html><body><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA==" alt="delivery photo"></body></html>
+<html><body><img src="cid:deliveryPhoto" alt="delivery photo">
+<img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA==" alt="delivery photo"></body></html>
 
 ------test_boundary--
 """
@@ -827,7 +828,7 @@ async def test_ups_search_no_deliveries(
 
 
 @pytest.mark.asyncio
-async def test_ups_search_with_photo(integration, tmp_path):
+async def test_ups_search_with_photo(hass, tmp_path):
     """Test UPS search with delivery photo extraction."""
     from custom_components.mail_and_packages.helpers import ups_search
 
@@ -868,11 +869,11 @@ Content-ID: <deliveryPhoto>
     ups_path.mkdir()
 
     # Test the full UPS search workflow
-    with patch("os.path.isdir", return_value=True), patch(
+    with patch("os.path.isdir", side_effect=lambda path: str(path) == str(ups_path)), patch(
         "os.makedirs", return_value=True
-    ):
+    ), patch("os.listdir", return_value=[]):
         result = ups_search(
-            mock_account, str(tmp_path), integration.hass, "test_ups_image.jpg", config=None
+            mock_account, str(tmp_path) + "/", hass, "test_ups_image.jpg", config=None
         )
 
     # Verify that one delivery was found and processed
