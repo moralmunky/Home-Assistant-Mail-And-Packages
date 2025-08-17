@@ -193,6 +193,21 @@ async def async_migrate_entry(hass, config_entry):
         if CONF_STORAGE not in updated_config:
             updated_config[CONF_STORAGE] = "custom_components/mail_and_packages/images/"
 
+    if version < 11:
+        # Add default custom image configurations
+        if CONF_AMAZON_CUSTOM_IMG not in updated_config:
+            updated_config[CONF_AMAZON_CUSTOM_IMG] = False
+        if CONF_AMAZON_CUSTOM_IMG_FILE not in updated_config:
+            updated_config[CONF_AMAZON_CUSTOM_IMG_FILE] = (
+                "custom_components/mail_and_packages/images/no_deliveries.jpg"
+            )
+        if CONF_UPS_CUSTOM_IMG not in updated_config:
+            updated_config[CONF_UPS_CUSTOM_IMG] = False
+        if CONF_UPS_CUSTOM_IMG_FILE not in updated_config:
+            updated_config[CONF_UPS_CUSTOM_IMG_FILE] = (
+                "custom_components/mail_and_packages/images/no_deliveries.jpg"
+            )
+
     if CONF_PATH not in updated_config:
         updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
 

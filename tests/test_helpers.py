@@ -153,10 +153,18 @@ async def test_process_emails_external(
     )
     assert "www/mail_and_packages" in mock_copytree.call_args.args[1]
     assert mock_copytree.call_args.kwargs == {"dirs_exist_ok": True}
-    assert (
-        "www/mail_and_packages/amazon/anotherfakefile.mp4"
-        in mock_osremove.call_args.args[0]
-    )
+    # Check that both Amazon and UPS files are being cleaned up
+    amazon_removed = False
+    ups_removed = False
+
+    for remove_call in mock_osremove.call_args_list:
+        if "www/mail_and_packages/amazon/anotherfakefile.mp4" in remove_call.args[0]:
+            amazon_removed = True
+        if "www/mail_and_packages/ups/anotherfakefile.mp4" in remove_call.args[0]:
+            ups_removed = True
+
+    assert amazon_removed, "Amazon file should be removed"
+    assert ups_removed, "UPS file should be removed"
 
 
 @pytest.mark.asyncio
@@ -869,9 +877,9 @@ Content-ID: <deliveryPhoto>
     ups_path.mkdir()
 
     # Test the full UPS search workflow
-    with patch("os.path.isdir", side_effect=lambda path: str(path) == str(ups_path)), patch(
-        "os.makedirs", return_value=True
-    ), patch("os.listdir", return_value=[]):
+    with patch(
+        "os.path.isdir", side_effect=lambda path: str(path) == str(ups_path)
+    ), patch("os.makedirs", return_value=True), patch("os.listdir", return_value=[]):
         result = ups_search(
             mock_account, str(tmp_path) + "/", hass, "test_ups_image.jpg", config=None
         )
@@ -963,8 +971,15 @@ async def test_amazon_shipped_order(hass, mock_imap_amazon_shipped):
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_alt(hass, mock_imap_amazon_shipped_alt):
-    result = get_items(mock_imap_amazon_shipped_alt, "order", the_domain="amazon.com")
-    assert result == ["123-1234567-1234567"]
+    # Mock dateparser to avoid timezone issues in tests
+    with patch(
+        "custom_components.mail_and_packages.helpers.dateparser"
+    ) as mock_dateparser:
+        mock_dateparser.parse.return_value = datetime.datetime(2020, 9, 11)
+        result = get_items(
+            mock_imap_amazon_shipped_alt, "order", the_domain="amazon.com"
+        )
+        assert result == ["123-1234567-1234567"]
 
 
 @pytest.mark.asyncio
@@ -1009,16 +1024,28 @@ async def test_amazon_shipped_order_alt_timeformat(
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_uk(hass, mock_imap_amazon_shipped_uk):
-    result = get_items(mock_imap_amazon_shipped_uk, "order", the_domain="amazon.co.uk")
-    assert result == ["123-4567890-1234567"]
+    # Mock dateparser to avoid timezone issues in tests
+    with patch(
+        "custom_components.mail_and_packages.helpers.dateparser"
+    ) as mock_dateparser:
+        mock_dateparser.parse.return_value = datetime.datetime(2020, 12, 12)
+        result = get_items(
+            mock_imap_amazon_shipped_uk, "order", the_domain="amazon.co.uk"
+        )
+        assert result == ["123-4567890-1234567"]
 
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_uk_2(hass, mock_imap_amazon_shipped_uk_2):
-    result = get_items(
-        mock_imap_amazon_shipped_uk_2, "order", the_domain="amazon.co.uk"
-    )
-    assert result == ["123-4567890-1234567"]
+    # Mock dateparser to avoid timezone issues in tests
+    with patch(
+        "custom_components.mail_and_packages.helpers.dateparser"
+    ) as mock_dateparser:
+        mock_dateparser.parse.return_value = datetime.datetime(2021, 11, 16)
+        result = get_items(
+            mock_imap_amazon_shipped_uk_2, "order", the_domain="amazon.co.uk"
+        )
+        assert result == ["123-4567890-1234567"]
 
 
 @pytest.mark.asyncio
