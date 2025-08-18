@@ -1673,3 +1673,146 @@ async def test_capost_mail(
     assert state.state == "unknown"
     result = process_emails(hass, config)
     assert result["capost_mail"] == 3
+
+
+async def test_amazon_image_path_with_custom_image(hass, integration):
+    """Test Amazon image path when custom image is enabled."""
+    entry = integration
+    config = entry.data.copy()
+
+    # Test with custom image enabled
+    config["amazon_custom_img"] = True
+    config["amazon_custom_img_file"] = "images/test_amazon_custom.jpg"
+
+    # Mock the file existence
+    with patch("os.path.exists", return_value=True):
+        from custom_components.mail_and_packages.helpers import get_amazon_image_path
+
+        image_path = get_amazon_image_path(config, hass)
+        assert "images/test_amazon_custom.jpg" in image_path
+
+
+async def test_amazon_image_path_with_default_image(hass, integration):
+    """Test Amazon image path when using default image."""
+    entry = integration
+    config = entry.data.copy()
+
+    # Test with custom image disabled (should use default)
+    config["amazon_custom_img"] = False
+
+    from custom_components.mail_and_packages.helpers import get_amazon_image_path
+
+    image_path = get_amazon_image_path(config, hass)
+    assert "no_deliveries_amazon.jpg" in image_path
+
+
+async def test_ups_image_path_with_custom_image(hass, integration):
+    """Test UPS image path when custom image is enabled."""
+    entry = integration
+    config = entry.data.copy()
+
+    # Test with custom image enabled
+    config["ups_custom_img"] = True
+    config["ups_custom_img_file"] = "images/test_ups_custom.jpg"
+
+    # Mock the file existence
+    with patch("os.path.exists", return_value=True):
+        from custom_components.mail_and_packages.helpers import get_ups_image_path
+
+        image_path = get_ups_image_path(config, hass)
+        assert "images/test_ups_custom.jpg" in image_path
+
+
+async def test_ups_image_path_with_default_image(hass, integration):
+    """Test UPS image path when using default image."""
+    entry = integration
+    config = entry.data.copy()
+
+    # Test with custom image disabled (should use default)
+    config["ups_custom_img"] = False
+
+    from custom_components.mail_and_packages.helpers import get_ups_image_path
+
+    image_path = get_ups_image_path(config, hass)
+    assert "no_deliveries_ups.jpg" in image_path
+
+
+async def test_migration_adds_custom_image_fields(hass, integration):
+    """Test that migration adds custom image fields to old configs."""
+    entry = integration
+    config = entry.data.copy()
+
+    # Simulate an old config without custom image fields
+    old_config = config.copy()
+    if "amazon_custom_img" in old_config:
+        del old_config["amazon_custom_img"]
+    if "amazon_custom_img_file" in old_config:
+        del old_config["amazon_custom_img_file"]
+    if "ups_custom_img" in old_config:
+        del old_config["ups_custom_img"]
+    if "ups_custom_img_file" in old_config:
+        del old_config["ups_custom_img_file"]
+
+    # Test that the migration logic would add these fields
+    from custom_components.mail_and_packages.helpers import migrate_config
+
+    migrated_config = migrate_config(old_config, version=10)  # Simulate old version
+
+    assert "amazon_custom_img" in migrated_config
+    assert migrated_config["amazon_custom_img"] is False
+    assert "amazon_custom_img_file" in migrated_config
+    assert "no_deliveries_amazon.jpg" in migrated_config["amazon_custom_img_file"]
+    assert "ups_custom_img" in migrated_config
+    assert migrated_config["ups_custom_img"] is False
+    assert "ups_custom_img_file" in migrated_config
+    assert "no_deliveries_ups.jpg" in migrated_config["ups_custom_img_file"]
+
+
+async def test_custom_image_path_validation(hass, integration):
+    """Test validation of custom image file paths."""
+    entry = integration
+    config = entry.data.copy()
+
+    # Test with valid custom image paths
+    config["amazon_custom_img"] = True
+    config["amazon_custom_img_file"] = "images/valid_amazon.jpg"
+    config["ups_custom_img"] = True
+    config["ups_custom_img_file"] = "images/valid_ups.jpg"
+
+    with patch("os.path.exists", return_value=True):
+        from custom_components.mail_and_packages.helpers import (
+            validate_custom_image_paths,
+        )
+
+        result = validate_custom_image_paths(config)
+        assert result is True
+
+    # Test with invalid paths
+    with patch("os.path.exists", return_value=False):
+        result = validate_custom_image_paths(config)
+        assert result is False
+
+
+async def test_image_path_fallback_logic(hass, integration):
+    """Test fallback logic when custom images are not found."""
+    entry = integration
+    config = entry.data.copy()
+
+    # Enable custom images but mock them as not existing
+    config["amazon_custom_img"] = True
+    config["amazon_custom_img_file"] = "images/nonexistent_amazon.jpg"
+    config["ups_custom_img"] = True
+    config["ups_custom_img_file"] = "images/nonexistent_ups.jpg"
+
+    with patch("os.path.exists", side_effect=lambda path: "nonexistent" not in path):
+        from custom_components.mail_and_packages.helpers import (
+            get_amazon_image_path,
+            get_ups_image_path,
+        )
+
+        # Should fall back to default images when custom ones don't exist
+        amazon_path = get_amazon_image_path(config, hass)
+        assert "no_deliveries_amazon.jpg" in amazon_path
+
+        ups_path = get_ups_image_path(config, hass)
+        assert "no_deliveries_ups.jpg" in ups_path

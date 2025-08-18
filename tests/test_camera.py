@@ -406,3 +406,246 @@ async def test_amazon_camera_with_image_data(
 
         # Check that it's using the Amazon image path
         assert "test_amazon_image.jpg" in state.attributes.get("file_path")
+
+
+async def test_ups_camera_with_custom_image(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test UPS camera with custom image functionality."""
+    # Unload the default config
+    entries = hass.config_entries.async_entries(DOMAIN)
+    await hass.config_entries.async_unload(entries[0].entry_id)
+    await hass.async_block_till_done()
+    await hass.config_entries.async_remove(entries[0].entry_id)
+    await hass.async_block_till_done()
+
+    # Load config with custom UPS image settings
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
+    )
+
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ):
+        state = hass.states.get("camera.mail_ups_camera")
+        assert state.attributes.get("friendly_name") == "Mail UPS Camera"
+        assert "images/test_ups.jpg" in state.attributes.get("file_path")
+
+        service_data = {"entity_id": "camera.mail_ups_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+        assert "images/test_ups.jpg" in state.attributes.get("file_path")
+        assert "Custom No Mail: images/test_ups.jpg" in caplog.text
+
+
+async def test_amazon_camera_with_custom_image(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Amazon camera with custom image functionality."""
+    # Unload the default config
+    entries = hass.config_entries.async_entries(DOMAIN)
+    await hass.config_entries.async_unload(entries[0].entry_id)
+    await hass.async_block_till_done()
+    await hass.config_entries.async_remove(entries[0].entry_id)
+    await hass.async_block_till_done()
+
+    # Load config with custom Amazon image settings
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
+    )
+
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ):
+        state = hass.states.get("camera.mail_amazon_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Amazon Delivery Camera"
+        assert "images/test_amazon.jpg" in state.attributes.get("file_path")
+
+        service_data = {"entity_id": "camera.mail_amazon_delivery_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+        assert "images/test_amazon.jpg" in state.attributes.get("file_path")
+        assert "Custom No Mail: images/test_amazon.jpg" in caplog.text
+
+
+async def test_ups_camera_default_image_path(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test UPS camera uses correct default image path."""
+    entry = integration
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ):
+        state = hass.states.get("camera.mail_ups_camera")
+        assert state.attributes.get("friendly_name") == "Mail UPS Camera"
+        # Should use the new UPS-specific default image
+        assert (
+            "custom_components/mail_and_packages/no_deliveries_ups.jpg"
+            in state.attributes.get("file_path")
+        )
+
+        service_data = {"entity_id": "camera.mail_ups_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+
+        assert (
+            "custom_components/mail_and_packages/no_deliveries_ups.jpg"
+            in state.attributes.get("file_path")
+        )
+
+
+async def test_amazon_camera_default_image_path(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Amazon camera uses correct default image path."""
+    entry = integration
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ):
+        state = hass.states.get("camera.mail_amazon_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Amazon Delivery Camera"
+        # Should use the new Amazon-specific default image
+        assert (
+            "custom_components/mail_and_packages/no_deliveries_amazon.jpg"
+            in state.attributes.get("file_path")
+        )
+
+        service_data = {"entity_id": "camera.mail_amazon_delivery_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+
+        assert (
+            "custom_components/mail_and_packages/no_deliveries_amazon.jpg"
+            in state.attributes.get("file_path")
+        )
+
+
+async def test_camera_entity_creation(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test that all camera entities are created correctly."""
+    entry = integration
+
+    # Check that all expected camera entities exist
+    expected_cameras = [
+        "camera.mail_usps_camera",
+        "camera.mail_amazon_delivery_camera",
+        "camera.mail_ups_camera",
+    ]
+
+    for camera_entity in expected_cameras:
+        state = hass.states.get(camera_entity)
+        assert state is not None, f"Camera entity {camera_entity} should exist"
+        assert state.attributes.get("friendly_name") is not None
+        assert state.attributes.get("file_path") is not None
+
+
+async def test_camera_image_update_service(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test camera image update service works for all cameras."""
+    entry = integration
+
+    cameras_to_test = [
+        "camera.mail_usps_camera",
+        "camera.mail_amazon_delivery_camera",
+        "camera.mail_ups_camera",
+    ]
+
+    for camera_entity in cameras_to_test:
+        with patch("os.path.isfile", return_value=True), patch(
+            "os.access", return_value=True
+        ):
+            state_before = hass.states.get(camera_entity)
+            assert state_before is not None
+
+            service_data = {"entity_id": camera_entity}
+            await hass.services.async_call(DOMAIN, "update_image", service_data)
+            await hass.async_block_till_done()
+
+            state_after = hass.states.get(camera_entity)
+            assert state_after is not None
+            # The file path should remain the same after update
+            assert state_after.attributes.get(
+                "file_path"
+            ) == state_before.attributes.get("file_path")
