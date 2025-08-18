@@ -12,10 +12,10 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+
 from .const import COORDINATOR, DOMAIN, VERSION
 from .entity import MailandPackagesBinarySensorEntityDescription
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass
-from homeassistant.helpers.entity import EntityCategory
 
 _LOGGER = logging.getLogger(__name__)
 

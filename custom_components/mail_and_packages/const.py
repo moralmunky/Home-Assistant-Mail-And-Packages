@@ -4,11 +4,8 @@ from __future__ import annotations
 
 from typing import Final
 
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription
 from homeassistant.helpers.entity import EntityCategory
-
-from .entity import MailandPackagesBinarySensorEntityDescription
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
@@ -1308,8 +1305,6 @@ IMAGE_SENSORS: Final[dict[str, SensorEntityDescription]] = {
         entity_registry_enabled_default=False,
     ),
 }
-
-
 
 # Name
 CAMERA_DATA = {

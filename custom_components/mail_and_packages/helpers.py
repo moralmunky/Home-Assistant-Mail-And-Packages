@@ -117,9 +117,7 @@ def get_resources() -> dict:
     }
 
     # append binary sensors that have selectable set to true
-    additional_resources = {
-        "usps_mail_delivered": "USPS Mail Delivered"
-    }
+    additional_resources = {"usps_mail_delivered": "USPS Mail Delivered"}
 
     known_available_resources.update(additional_resources)
 
