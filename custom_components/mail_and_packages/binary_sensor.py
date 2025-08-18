@@ -12,10 +12,35 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
-from .const import BINARY_SENSORS, COORDINATOR, DOMAIN, VERSION
+from .const import COORDINATOR, DOMAIN, VERSION
 from .entity import MailandPackagesBinarySensorEntityDescription
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+from homeassistant.helpers.entity import EntityCategory
 
 _LOGGER = logging.getLogger(__name__)
+
+BINARY_SENSORS = {
+    "usps_update": MailandPackagesBinarySensorEntityDescription(
+        name="USPS Image Updated",
+        key="usps_update",
+        device_class=BinarySensorDeviceClass.UPDATE,
+        selectable=False,
+        entity_registry_enabled_default=False,
+    ),
+    "amazon_update": MailandPackagesBinarySensorEntityDescription(
+        name="Amazon Image Updated",
+        key="amazon_update",
+        device_class=BinarySensorDeviceClass.UPDATE,
+        selectable=False,
+        entity_registry_enabled_default=False,
+    ),
+    "usps_mail_delivered": MailandPackagesBinarySensorEntityDescription(
+        name="USPS Mail Delivered",
+        key="usps_mail_delivered",
+        entity_registry_enabled_default=False,
+        selectable=True,
+    ),
+}
 
 
 async def async_setup_entry(hass, entry, async_add_devices):

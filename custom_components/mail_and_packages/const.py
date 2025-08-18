@@ -1309,28 +1309,7 @@ IMAGE_SENSORS: Final[dict[str, SensorEntityDescription]] = {
     ),
 }
 
-BINARY_SENSORS: Final[dict[str, MailandPackagesBinarySensorEntityDescription]] = {
-    "usps_update": MailandPackagesBinarySensorEntityDescription(
-        name="USPS Image Updated",
-        key="usps_update",
-        device_class=BinarySensorDeviceClass.UPDATE,
-        selectable=False,
-        entity_registry_enabled_default=False,
-    ),
-    "amazon_update": MailandPackagesBinarySensorEntityDescription(
-        name="Amazon Image Updated",
-        key="amazon_update",
-        device_class=BinarySensorDeviceClass.UPDATE,
-        selectable=False,
-        entity_registry_enabled_default=False,
-    ),
-    "usps_mail_delivered": MailandPackagesBinarySensorEntityDescription(
-        name="USPS Mail Delivered",
-        key="usps_mail_delivered",
-        entity_registry_enabled_default=False,
-        selectable=True,
-    ),
-}
+
 
 # Name
 CAMERA_DATA = {

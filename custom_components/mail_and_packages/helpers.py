@@ -74,7 +74,6 @@ from .const import (
     ATTR_TRACKING,
     ATTR_UPS_IMAGE,
     ATTR_USPS_MAIL,
-    BINARY_SENSORS,
     CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
@@ -119,9 +118,7 @@ def get_resources() -> dict:
 
     # append binary sensors that have selectable set to true
     additional_resources = {
-        sensor_id: sensor.name
-        for sensor_id, sensor in BINARY_SENSORS.items()
-        if sensor.selectable
+        "usps_mail_delivered": "USPS Mail Delivered"
     }
 
     known_available_resources.update(additional_resources)
