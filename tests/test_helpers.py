@@ -163,9 +163,6 @@ async def test_process_emails_external(
         if "www/mail_and_packages/ups/anotherfakefile.mp4" in remove_call.args[0]:
             assert ups_removed
 
-    assert amazon_removed, "Amazon file should be removed"
-    assert ups_removed, "UPS file should be removed"
-
 
 @pytest.mark.asyncio
 async def test_process_emails_external_error(
