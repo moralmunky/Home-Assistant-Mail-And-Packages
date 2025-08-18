@@ -1,4 +1,4 @@
-""" Test Mail and Packages config flow """
+"""Test Mail and Packages config flow"""
 
 import logging
 from unittest.mock import patch
