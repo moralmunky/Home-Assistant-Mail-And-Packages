@@ -151,13 +151,11 @@ AMAZON_TIME_PATTERN = [
     "Arriverà:",
     "arriving:",
     "Dostawa:",
-    "Zustellung:",
     "Entrega:",
     "A chegar:",
     "Arrivée :",
     "Verwachte bezorgdatum:",
     "Votre date de livraison prévue est :",
-    "Arriving",
 ]
 AMAZON_TIME_PATTERN_END = [
     "Previously expected:",
@@ -178,6 +176,15 @@ AMAZON_TIME_PATTERN_REGEX = [
     "Arriving (\\w+ \\d+) - (\\w+ \\d+)",
     "Arriving (\\w+ \\d+)",
     "Arriving (\\w+ ?\\d*)",
+    "Zustellung (\\w+ \\d+) - (\\w+ \\d+)",
+    "Zustellung (\\w+ \\d+)",
+    "Zustellung (\\w+ \\d*)",
+    "Arriverà (\\w+ \\d+) - (\\w+ \\d+)",
+    "Arriverà (\\w+ \\d+)",
+    "Arriverà (\\w+ \\d*)",
+    "Arrivée (\\w+ \\d+) - (\\w+ \\d+)",
+    "Arrivée (\\w+ \\d+)",
+    "Arrivée (\\w+ \\d*)",        
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
