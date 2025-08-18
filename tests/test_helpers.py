@@ -159,9 +159,12 @@ async def test_process_emails_external(
 
     for remove_call in mock_osremove.call_args_list:
         if "www/mail_and_packages/amazon/anotherfakefile.mp4" in remove_call.args[0]:
-            assert amazon_removed
+            amazon_removed = True
         if "www/mail_and_packages/ups/anotherfakefile.mp4" in remove_call.args[0]:
-            assert ups_removed
+            ups_removed = True
+
+    assert amazon_removed
+    assert ups_removed
 
 
 @pytest.mark.asyncio
