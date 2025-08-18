@@ -159,7 +159,7 @@ async def test_process_emails_external(
 
     for remove_call in mock_osremove.call_args_list:
         if "www/mail_and_packages/amazon/anotherfakefile.mp4" in remove_call.args[0]:
-            amazon_removed = True
+            assert amazon_removed
         if "www/mail_and_packages/ups/anotherfakefile.mp4" in remove_call.args[0]:
             ups_removed = True
 
