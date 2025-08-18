@@ -161,7 +161,7 @@ async def test_process_emails_external(
         if "www/mail_and_packages/amazon/anotherfakefile.mp4" in remove_call.args[0]:
             assert amazon_removed
         if "www/mail_and_packages/ups/anotherfakefile.mp4" in remove_call.args[0]:
-            ups_removed = True
+            assert ups_removed
 
     assert amazon_removed, "Amazon file should be removed"
     assert ups_removed, "UPS file should be removed"
