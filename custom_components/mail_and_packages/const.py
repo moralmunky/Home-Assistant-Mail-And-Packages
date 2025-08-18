@@ -106,7 +106,7 @@ AMAZON_DELIVERED_SUBJECT = [
     "Entregado:",
     "Bezorgd:",
     "Livraison : Votre",
-    "Zugestellt: deine",
+    "Zugestellt:",
 ]
 AMAZON_SHIPMENT_TRACKING = [
     "auto-confirm",
