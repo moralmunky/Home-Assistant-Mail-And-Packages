@@ -1458,15 +1458,22 @@ async def test_email_search_none(mock_imap_search_error_none, caplog):
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
-    result = get_items(
-        mock_imap_amazon_fwd, "order", fwds="testuser@test.com", the_domain="amazon.com"
-    )
-    assert (
-        "Amazon email list: ['testuser@test.com', 'auto-confirm@amazon.com', 'shipment-tracking@amazon.com', 'order-update@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
-        in caplog.text
-    )
-    assert "First pass: Tuesday, January 11" in caplog.text
-    assert result == ["123-1234567-1234567"]
+    with patch(
+        "custom_components.mail_and_packages.helpers.dateparser.parse"
+    ) as mock_parse:
+        mock_parse.return_value = datetime.datetime(2022, 1, 11)
+        result = get_items(
+            mock_imap_amazon_fwd,
+            "order",
+            fwds="testuser@test.com",
+            the_domain="amazon.com",
+        )
+        assert (
+            "Amazon email list: ['testuser@test.com', 'auto-confirm@amazon.com', 'shipment-tracking@amazon.com', 'order-update@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
+            in caplog.text
+        )
+        assert "First pass: Tuesday, January 11" in caplog.text
+        assert result == ["123-1234567-1234567"]
 
 
 @pytest.mark.asyncio

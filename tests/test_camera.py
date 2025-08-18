@@ -115,7 +115,7 @@ async def test_ups_camera(
         state = hass.states.get("camera.mail_ups_camera")
         assert state.attributes.get("friendly_name") == "Mail UPS Camera"
         assert (
-            "custom_components/mail_and_packages/no_deliveries.jpg"
+            "custom_components/mail_and_packages/no_deliveries_ups.jpg"
             in state.attributes.get("file_path")
         )
 
@@ -124,7 +124,7 @@ async def test_ups_camera(
         await hass.async_block_till_done()
 
         assert (
-            "custom_components/mail_and_packages/no_deliveries.jpg"
+            "custom_components/mail_and_packages/no_deliveries_ups.jpg"
             in state.attributes.get("file_path")
         )
 
