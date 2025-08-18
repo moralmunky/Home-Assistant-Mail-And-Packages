@@ -2467,6 +2467,8 @@ async def test_reconfigure_no_amazon_no_custom_image(
     input_2,
     step_id_3,
     input_3,
+    step_id_4,
+    input_4,
     title,
     data,
     hass: HomeAssistant,
@@ -2515,6 +2517,13 @@ async def test_reconfigure_no_amazon_no_custom_image(
 
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_3
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
         )
 
         assert result["type"] is FlowResultType.ABORT
@@ -2846,6 +2855,10 @@ async def test_reconfig_amazon_error(
     input_2,
     step_id_3,
     input_3,
+    step_id_4,
+    input_4,
+    title,
+    data,
     hass: HomeAssistant,
     integration,
     mock_imap_no_email,
