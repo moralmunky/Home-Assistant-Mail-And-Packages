@@ -199,13 +199,13 @@ async def async_migrate_entry(hass, config_entry):
             updated_config[CONF_AMAZON_CUSTOM_IMG] = False
         if CONF_AMAZON_CUSTOM_IMG_FILE not in updated_config:
             updated_config[CONF_AMAZON_CUSTOM_IMG_FILE] = (
-                "custom_components/mail_and_packages/images/no_deliveries.jpg"
+                "custom_components/mail_and_packages/no_deliveries_amazon.jpg"
             )
         if CONF_UPS_CUSTOM_IMG not in updated_config:
             updated_config[CONF_UPS_CUSTOM_IMG] = False
         if CONF_UPS_CUSTOM_IMG_FILE not in updated_config:
             updated_config[CONF_UPS_CUSTOM_IMG_FILE] = (
-                "custom_components/mail_and_packages/images/no_deliveries.jpg"
+                "custom_components/mail_and_packages/no_deliveries_ups.jpg"
             )
 
     if CONF_PATH not in updated_config:
@@ -284,7 +284,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             if self.config.get(CONF_AMAZON_CUSTOM_IMG):
                 amazon_none = self.config.get(CONF_AMAZON_CUSTOM_IMG_FILE)
             else:
-                amazon_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+                amazon_none = f"{os.path.dirname(__file__)}/no_deliveries_amazon.jpg"
             amazon_check = os.path.exists(amazon_image)
             _LOGGER.debug("Amazon Check: %s", amazon_check)
             if amazon_check:
@@ -314,7 +314,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             if self.config.get(CONF_UPS_CUSTOM_IMG):
                 ups_none = self.config.get(CONF_UPS_CUSTOM_IMG_FILE)
             else:
-                ups_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+                ups_none = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
             ups_check = os.path.exists(ups_image)
             _LOGGER.debug("UPS Check: %s", ups_check)
             if ups_check:

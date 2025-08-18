@@ -259,7 +259,7 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
             "UPS image file does not exist, creating default: %s", ups_image_path
         )
         try:
-            nomail = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            nomail = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
             copyfile(nomail, ups_image_path)
             _LOGGER.debug("Created default UPS image: %s", ups_image_path)
         except Exception as err:
@@ -340,7 +340,7 @@ def image_file_name(
                 or DEFAULT_AMAZON_CUSTOM_IMG_FILE
             )
         else:
-            mail_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            mail_none = f"{os.path.dirname(__file__)}/no_deliveries_amazon.jpg"
         image_name = os.path.split(mail_none)[1]
         path = f"{hass.config.path()}/{default_image_path(hass, config)}amazon"
     elif ups:
@@ -351,7 +351,7 @@ def image_file_name(
             )
             _LOGGER.debug("Using custom UPS image: %s", mail_none)
         else:
-            mail_none = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            mail_none = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
             _LOGGER.debug("Using default UPS image: %s", mail_none)
         image_name = os.path.split(mail_none)[1]
         path = f"{hass.config.path()}/{default_image_path(hass, config)}ups"
@@ -1417,7 +1417,7 @@ def ups_search(
                 no_delivery_filename = image_file_name(hass, config, ups=True)
             else:
                 no_delivery_filename = f"{str(uuid.uuid4())}.jpg"
-            nomail = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            nomail = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
             try:
                 copyfile(nomail, f"{image_path}ups/" + no_delivery_filename)
                 # Update coordinator data with the no-delivery filename
@@ -1529,7 +1529,7 @@ def amazon_search(
 
     if count == 0:
         _LOGGER.debug("No Amazon deliveries found.")
-        nomail = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+        nomail = f"{os.path.dirname(__file__)}/no_deliveries_amazon.jpg"
         try:
             copyfile(nomail, f"{image_path}amazon/" + amazon_image_name)
             # Update coordinator data with the no-delivery filename

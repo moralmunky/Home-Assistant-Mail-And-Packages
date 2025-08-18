@@ -122,12 +122,14 @@ class MailCam(Camera):
             if config.data.get(CONF_AMAZON_CUSTOM_IMG):
                 self._file_path = config.data.get(CONF_AMAZON_CUSTOM_IMG_FILE)
             else:
-                self._file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+                self._file_path = (
+                    f"{os.path.dirname(__file__)}/no_deliveries_amazon.jpg"
+                )
         elif self._type == "ups_camera":
             if config.data.get(CONF_UPS_CUSTOM_IMG):
                 self._file_path = config.data.get(CONF_UPS_CUSTOM_IMG_FILE)
             else:
-                self._file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+                self._file_path = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
 
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
@@ -178,7 +180,7 @@ class MailCam(Camera):
 
         elif self._type == "amazon_camera":
             # Update camera image for Amazon deliveries
-            file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            file_path = f"{os.path.dirname(__file__)}/no_deliveries_amazon.jpg"
             s1 = set([ATTR_AMAZON_IMAGE, ATTR_IMAGE_PATH])
             if s1.issubset(self._coordinator.data.keys()):
                 image = self._coordinator.data[ATTR_AMAZON_IMAGE]
@@ -190,7 +192,7 @@ class MailCam(Camera):
 
         elif self._type == "ups_camera":
             # Update camera image for UPS deliveries
-            file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            file_path = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
             s1 = set([ATTR_UPS_IMAGE, ATTR_IMAGE_PATH])
             _LOGGER.debug("UPS camera - checking for attributes: %s", s1)
             _LOGGER.debug(
