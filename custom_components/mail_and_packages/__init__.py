@@ -148,7 +148,7 @@ async def async_migrate_entry(hass, config_entry):
         updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
 
         # Always on image security
-        if not config_entry.data[CONF_IMAGE_SECURITY]:
+        if not config_entry.data.get(CONF_IMAGE_SECURITY, False):
             updated_config[CONF_IMAGE_SECURITY] = True
 
         # Add default Amazon Days configuration
@@ -160,7 +160,7 @@ async def async_migrate_entry(hass, config_entry):
         updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
 
         # Always on image security
-        if not config_entry.data[CONF_IMAGE_SECURITY]:
+        if not config_entry.data.get(CONF_IMAGE_SECURITY, False):
             updated_config[CONF_IMAGE_SECURITY] = True
 
         # Add default Amazon Days configuration

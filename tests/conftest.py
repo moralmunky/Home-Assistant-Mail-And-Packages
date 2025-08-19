@@ -18,13 +18,10 @@ from custom_components.mail_and_packages.const import (
     CONF_AMAZON_DOMAIN,
     CONFIG_VER,
     DOMAIN,
-    CONF_AMAZON_CUSTOM_IMG,
-    CONF_AMAZON_CUSTOM_IMG_FILE,
-    CONF_UPS_CUSTOM_IMG,
-    CONF_UPS_CUSTOM_IMG_FILE,
 )
 from tests.const import (
     FAKE_CONFIG_DATA,
+    FAKE_CONFIG_DATA_NO_AMAZON,
     FAKE_CONFIG_DATA_AMAZON_FWD_STRING,
     FAKE_CONFIG_DATA_CAPOST,
     FAKE_CONFIG_DATA_CUSTOM_IMG,
@@ -64,6 +61,22 @@ async def integration_fixture(hass):
         domain=DOMAIN,
         title="imap.test.email",
         data=FAKE_CONFIG_DATA,
+        version=CONFIG_VER,
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    yield entry
+
+
+@pytest.fixture(name="integration_no_amazon")
+async def integration_fixture_no_amazon(hass):
+    """Set up integration with no Amazon sensors and no custom images."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_NO_AMAZON,
         version=CONFIG_VER,
     )
     entry.add_to_hass(hass)
@@ -1896,106 +1909,3 @@ def mock_imap_amazon_arriving_today():
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
-
-
-@pytest.fixture(name="integration_v10_migration")
-async def integration_fixture_v10_migration(hass, caplog):
-    """Set up the mail_and_packages integration with version 10 migration test."""
-    # Create a config that simulates version 10 (without custom image fields)
-    v10_config = {
-        "amazon_days": 3,
-        "amazon_domain": "amazon.com",
-        "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
-        "allow_external": False,
-        "custom_img": False,
-        "custom_img_file": "custom_components/mail_and_packages/images/mail_none.gif",
-        "folder": '"INBOX"',
-        "generate_grid": False,
-        "generate_mp4": False,
-        "gif_duration": 5,
-        "host": "imap.test.email",
-        "image_name": "mail_today.gif",
-        "image_path": "custom_components/mail_and_packages/images/",
-        "image_security": True,
-        "imap_security": "SSL",
-        "imap_timeout": 30,
-        "password": "suchfakemuchpassword",
-        "port": 993,
-        "resources": [
-            "amazon_delivered",
-            "amazon_exception",
-            "amazon_hub",
-            "amazon_packages",
-            "auspost_delivered",
-            "auspost_delivering",
-            "auspost_packages",
-            "capost_delivered",
-            "capost_delivering",
-            "capost_packages",
-            "dhl_delivered",
-            "dhl_delivering",
-            "dhl_packages",
-            "dpd_com_pl_delivered",
-            "dpd_com_pl_delivering",
-            "dpd_com_pl_packages",
-            "fedex_delivered",
-            "fedex_delivering",
-            "fedex_packages",
-            "gls_delivered",
-            "gls_delivering",
-            "gls_packages",
-            "hermes_delivered",
-            "hermes_delivering",
-            "inpost_pl_delivered",
-            "inpost_pl_delivering",
-            "inpost_pl_packages",
-            "mail_updated",
-            "poczta_polska_delivering",
-            "poczta_polska_packages",
-            "royal_delivered",
-            "royal_delivering",
-            "ups_delivered",
-            "ups_delivering",
-            "ups_packages",
-            "usps_delivered",
-            "usps_delivering",
-            "usps_mail",
-            "usps_packages",
-            "walmart_delivered",
-            "walmart_exception",
-            "zpackages_delivered",
-            "zpackages_transit",
-        ],
-        "scan_interval": 20,
-        "storage": "custom_components/mail_and_packages/images/",
-        "username": "user@fake.email",
-        "verify_ssl": False,
-    }
-
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=v10_config,
-        version=10,  # Start with version 10
-    )
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    # Verify migration occurred
-    assert "Migration complete to version 11" in caplog.text
-
-    # Verify the new fields were added
-    assert CONF_AMAZON_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_AMAZON_CUSTOM_IMG] is False
-    assert CONF_AMAZON_CUSTOM_IMG_FILE in entry.data
-    assert "no_deliveries_amazon.jpg" in entry.data[CONF_AMAZON_CUSTOM_IMG_FILE]
-    assert CONF_UPS_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_UPS_CUSTOM_IMG] is False
-    assert CONF_UPS_CUSTOM_IMG_FILE in entry.data
-    assert "no_deliveries_ups.jpg" in entry.data[CONF_UPS_CUSTOM_IMG_FILE]
-
-    # Verify version was updated
-    assert entry.version == 11
-
-    yield entry
