@@ -18,6 +18,7 @@ from custom_components.mail_and_packages.const import (
     CONF_AMAZON_CUSTOM_IMG_FILE,
     CONF_UPS_CUSTOM_IMG,
     CONF_UPS_CUSTOM_IMG_FILE,
+    CONF_GENERATE_MP4,
 )
 from custom_components.mail_and_packages.helpers import _check_ffmpeg, _test_login
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
@@ -764,7 +765,17 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
 )
 @pytest.mark.asyncio
 async def test_form_invalid_ffmpeg(
-    input_1, step_id_2, input_2, step_id_3, input_3, step_id_4, input_4, title, data, hass, mock_imap
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    step_id_4,
+    input_4,
+    title,
+    data,
+    hass,
+    mock_imap,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -2955,6 +2966,8 @@ async def test_reconfig_storage_error(
     assert result["type"] == "form"
     assert result["step_id"] == step_id_3
     assert result["errors"] == {CONF_STORAGE: "path_not_found"}
+
+
 @pytest.mark.asyncio
 async def test_reconfigure_with_custom_images(
     input_1,
@@ -4845,7 +4858,10 @@ async def test_reconfig_amazon_error(
 
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
-        context={"source": config_entries.SOURCE_RECONFIGURE, "entry_id": entry.entry_id},
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
     )
 
     with patch(
@@ -4856,17 +4872,13 @@ async def test_reconfig_amazon_error(
             result["flow_id"], input_1
         )
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], input_2
-    )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_2)
 
     assert result["type"] == "form"
     assert result["step_id"] == step_id_3
 
     # Test Amazon configuration error
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], input_3
-    )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_3)
 
     assert result["type"] == "form"
     assert result["step_id"] == "reconfig_amazon"
@@ -4938,7 +4950,10 @@ async def test_reconfig_storage_error(
 
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
-        context={"source": config_entries.SOURCE_RECONFIGURE, "entry_id": entry.entry_id},
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
     )
 
     with patch(
@@ -4949,25 +4964,16 @@ async def test_reconfig_storage_error(
             result["flow_id"], input_1
         )
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], input_2
-    )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_2)
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], input_3
-    )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_3)
 
     assert result["type"] == "form"
     assert result["step_id"] == step_id_4
 
     # Test storage configuration error
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], input_4
-    )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_4)
 
     assert result["type"] == "form"
     assert result["step_id"] == "reconfig_storage"
     assert result["errors"] == {"storage": "invalid_path"}
-
-
-

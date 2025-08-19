@@ -466,8 +466,18 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 ):
                     _LOGGER.debug("Proceeding to step 3")
                     return await self.async_step_config_3()
+                # Ensure all required fields are present with default values
+                final_data = self._data.copy()
+                final_data.setdefault(CONF_AMAZON_CUSTOM_IMG, DEFAULT_AMAZON_CUSTOM_IMG)
+                final_data.setdefault(
+                    CONF_AMAZON_CUSTOM_IMG_FILE, DEFAULT_AMAZON_CUSTOM_IMG_FILE
+                )
+                final_data.setdefault(CONF_UPS_CUSTOM_IMG, DEFAULT_UPS_CUSTOM_IMG)
+                final_data.setdefault(
+                    CONF_UPS_CUSTOM_IMG_FILE, DEFAULT_UPS_CUSTOM_IMG_FILE
+                )
                 return self.async_create_entry(
-                    title=self._data[CONF_HOST], data=self._data
+                    title=final_data[CONF_HOST], data=final_data
                 )
             return await self._show_config_2(user_input)
 
@@ -565,8 +575,18 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
+                # Ensure all required fields are present with default values
+                final_data = self._data.copy()
+                final_data.setdefault(CONF_AMAZON_CUSTOM_IMG, DEFAULT_AMAZON_CUSTOM_IMG)
+                final_data.setdefault(
+                    CONF_AMAZON_CUSTOM_IMG_FILE, DEFAULT_AMAZON_CUSTOM_IMG_FILE
+                )
+                final_data.setdefault(CONF_UPS_CUSTOM_IMG, DEFAULT_UPS_CUSTOM_IMG)
+                final_data.setdefault(
+                    CONF_UPS_CUSTOM_IMG_FILE, DEFAULT_UPS_CUSTOM_IMG_FILE
+                )
                 return self.async_create_entry(
-                    title=self._data[CONF_HOST], data=self._data
+                    title=final_data[CONF_HOST], data=final_data
                 )
             return await self._show_config_storage(user_input)
 
