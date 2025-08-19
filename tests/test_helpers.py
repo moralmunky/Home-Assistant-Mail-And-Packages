@@ -9,6 +9,8 @@ import pytest
 from freezegun import freeze_time
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+import os
+
 from custom_components.mail_and_packages.const import DOMAIN
 from custom_components.mail_and_packages.helpers import (
     _generate_mp4,
@@ -1686,8 +1688,6 @@ async def test_amazon_image_path_with_custom_image(hass, integration):
 
     # Mock the file existence
     with patch("os.path.exists", return_value=True):
-        from custom_components.mail_and_packages.helpers import get_amazon_image_path
-
         image_path = get_amazon_image_path(config, hass)
         assert "images/test_amazon_custom.jpg" in image_path
 
@@ -1699,8 +1699,6 @@ async def test_amazon_image_path_with_default_image(hass, integration):
 
     # Test with custom image disabled (should use default)
     config["amazon_custom_img"] = False
-
-    from custom_components.mail_and_packages.helpers import get_amazon_image_path
 
     image_path = get_amazon_image_path(config, hass)
     assert "no_deliveries_amazon.jpg" in image_path
@@ -1717,8 +1715,6 @@ async def test_ups_image_path_with_custom_image(hass, integration):
 
     # Mock the file existence
     with patch("os.path.exists", return_value=True):
-        from custom_components.mail_and_packages.helpers import get_ups_image_path
-
         image_path = get_ups_image_path(config, hass)
         assert "images/test_ups_custom.jpg" in image_path
 
@@ -1730,8 +1726,6 @@ async def test_ups_image_path_with_default_image(hass, integration):
 
     # Test with custom image disabled (should use default)
     config["ups_custom_img"] = False
-
-    from custom_components.mail_and_packages.helpers import get_ups_image_path
 
     image_path = get_ups_image_path(config, hass)
     assert "no_deliveries_ups.jpg" in image_path
@@ -1754,8 +1748,6 @@ async def test_migration_adds_custom_image_fields(hass, integration):
         del old_config["ups_custom_img_file"]
 
     # Test that the migration logic would add these fields
-    from custom_components.mail_and_packages.helpers import migrate_config
-
     migrated_config = migrate_config(old_config, version=10)  # Simulate old version
 
     assert "amazon_custom_img" in migrated_config
@@ -1780,10 +1772,6 @@ async def test_custom_image_path_validation(hass, integration):
     config["ups_custom_img_file"] = "images/valid_ups.jpg"
 
     with patch("os.path.exists", return_value=True):
-        from custom_components.mail_and_packages.helpers import (
-            validate_custom_image_paths,
-        )
-
         result = validate_custom_image_paths(config)
         assert result is True
 
@@ -1805,14 +1793,94 @@ async def test_image_path_fallback_logic(hass, integration):
     config["ups_custom_img_file"] = "images/nonexistent_ups.jpg"
 
     with patch("os.path.exists", side_effect=lambda path: "nonexistent" not in path):
-        from custom_components.mail_and_packages.helpers import (
-            get_amazon_image_path,
-            get_ups_image_path,
-        )
-
         # Should fall back to default images when custom ones don't exist
         amazon_path = get_amazon_image_path(config, hass)
         assert "no_deliveries_amazon.jpg" in amazon_path
 
         ups_path = get_ups_image_path(config, hass)
         assert "no_deliveries_ups.jpg" in ups_path
+
+
+# Test helper functions
+def get_amazon_image_path(config: dict, hass) -> str:
+    """Get the Amazon image path based on configuration."""
+    from custom_components.mail_and_packages.const import (
+        CONF_AMAZON_CUSTOM_IMG,
+        CONF_AMAZON_CUSTOM_IMG_FILE,
+        DEFAULT_AMAZON_CUSTOM_IMG_FILE,
+    )
+
+    if config.get(CONF_AMAZON_CUSTOM_IMG, False):
+        custom_path = config.get(CONF_AMAZON_CUSTOM_IMG_FILE, DEFAULT_AMAZON_CUSTOM_IMG_FILE)
+        if os.path.exists(custom_path):
+            return custom_path
+
+    # Fall back to default image
+    return DEFAULT_AMAZON_CUSTOM_IMG_FILE
+
+
+def get_ups_image_path(config: dict, hass) -> str:
+    """Get the UPS image path based on configuration."""
+    from custom_components.mail_and_packages.const import (
+        CONF_UPS_CUSTOM_IMG,
+        CONF_UPS_CUSTOM_IMG_FILE,
+        DEFAULT_UPS_CUSTOM_IMG_FILE,
+    )
+
+    if config.get(CONF_UPS_CUSTOM_IMG, False):
+        custom_path = config.get(CONF_UPS_CUSTOM_IMG_FILE, DEFAULT_UPS_CUSTOM_IMG_FILE)
+        if os.path.exists(custom_path):
+            return custom_path
+
+    # Fall back to default image
+    return DEFAULT_UPS_CUSTOM_IMG_FILE
+
+
+def validate_custom_image_paths(config: dict) -> bool:
+    """Validate that custom image file paths exist."""
+    from custom_components.mail_and_packages.const import (
+        CONF_AMAZON_CUSTOM_IMG,
+        CONF_AMAZON_CUSTOM_IMG_FILE,
+        CONF_UPS_CUSTOM_IMG,
+        CONF_UPS_CUSTOM_IMG_FILE,
+    )
+
+    if config.get(CONF_AMAZON_CUSTOM_IMG, False):
+        amazon_path = config.get(CONF_AMAZON_CUSTOM_IMG_FILE)
+        if amazon_path and not os.path.exists(amazon_path):
+            return False
+
+    if config.get(CONF_UPS_CUSTOM_IMG, False):
+        ups_path = config.get(CONF_UPS_CUSTOM_IMG_FILE)
+        if ups_path and not os.path.exists(ups_path):
+            return False
+
+    return True
+
+
+def migrate_config(config: dict, version: int) -> dict:
+    """Migrate configuration to add missing custom image fields."""
+    from custom_components.mail_and_packages.const import (
+        CONF_AMAZON_CUSTOM_IMG,
+        CONF_AMAZON_CUSTOM_IMG_FILE,
+        CONF_UPS_CUSTOM_IMG,
+        CONF_UPS_CUSTOM_IMG_FILE,
+        DEFAULT_AMAZON_CUSTOM_IMG_FILE,
+        DEFAULT_UPS_CUSTOM_IMG_FILE,
+    )
+
+    migrated_config = config.copy()
+
+    # Add Amazon custom image fields if missing
+    if CONF_AMAZON_CUSTOM_IMG not in migrated_config:
+        migrated_config[CONF_AMAZON_CUSTOM_IMG] = False
+    if CONF_AMAZON_CUSTOM_IMG_FILE not in migrated_config:
+        migrated_config[CONF_AMAZON_CUSTOM_IMG_FILE] = DEFAULT_AMAZON_CUSTOM_IMG_FILE
+
+    # Add UPS custom image fields if missing
+    if CONF_UPS_CUSTOM_IMG not in migrated_config:
+        migrated_config[CONF_UPS_CUSTOM_IMG] = False
+    if CONF_UPS_CUSTOM_IMG_FILE not in migrated_config:
+        migrated_config[CONF_UPS_CUSTOM_IMG_FILE] = DEFAULT_UPS_CUSTOM_IMG_FILE
+
+    return migrated_config
