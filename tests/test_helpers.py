@@ -1811,7 +1811,9 @@ def get_amazon_image_path(config: dict, hass) -> str:
     )
 
     if config.get(CONF_AMAZON_CUSTOM_IMG, False):
-        custom_path = config.get(CONF_AMAZON_CUSTOM_IMG_FILE, DEFAULT_AMAZON_CUSTOM_IMG_FILE)
+        custom_path = config.get(
+            CONF_AMAZON_CUSTOM_IMG_FILE, DEFAULT_AMAZON_CUSTOM_IMG_FILE
+        )
         if os.path.exists(custom_path):
             return custom_path
 
