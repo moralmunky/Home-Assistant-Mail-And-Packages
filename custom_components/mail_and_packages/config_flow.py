@@ -697,14 +697,12 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input=None
     ):  # pylint: disable=unused-argument
         """Step 3 setup."""
-        # Defaults - only add custom image file defaults if the corresponding flags are enabled
-        defaults = {}
-        if self._data.get(CONF_CUSTOM_IMG):
-            defaults[CONF_CUSTOM_IMG_FILE] = DEFAULT_CUSTOM_IMG_FILE
-        if self._data.get(CONF_AMAZON_CUSTOM_IMG):
-            defaults[CONF_AMAZON_CUSTOM_IMG_FILE] = DEFAULT_AMAZON_CUSTOM_IMG_FILE
-        if self._data.get(CONF_UPS_CUSTOM_IMG):
-            defaults[CONF_UPS_CUSTOM_IMG_FILE] = DEFAULT_UPS_CUSTOM_IMG_FILE
+        # Defaults - add custom image file defaults
+        defaults = {
+            CONF_CUSTOM_IMG_FILE: DEFAULT_CUSTOM_IMG_FILE,
+            CONF_AMAZON_CUSTOM_IMG_FILE: DEFAULT_AMAZON_CUSTOM_IMG_FILE,
+            CONF_UPS_CUSTOM_IMG_FILE: DEFAULT_UPS_CUSTOM_IMG_FILE,
+        }
 
         return self.async_show_form(
             step_id="reconfig_3",
@@ -751,16 +749,15 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
                 # Remove custom image file fields if the corresponding flags are False
-                final_data = self._data.copy()
-                if not final_data.get(CONF_AMAZON_CUSTOM_IMG):
-                    final_data.pop(CONF_AMAZON_CUSTOM_IMG_FILE, None)
-                if not final_data.get(CONF_UPS_CUSTOM_IMG):
-                    final_data.pop(CONF_UPS_CUSTOM_IMG_FILE, None)
-                if not final_data.get(CONF_CUSTOM_IMG):
-                    final_data.pop(CONF_CUSTOM_IMG_FILE, None)
+                if not self._data.get(CONF_AMAZON_CUSTOM_IMG):
+                    self._data.pop(CONF_AMAZON_CUSTOM_IMG_FILE, None)
+                if not self._data.get(CONF_UPS_CUSTOM_IMG):
+                    self._data.pop(CONF_UPS_CUSTOM_IMG_FILE, None)
+                if not self._data.get(CONF_CUSTOM_IMG):
+                    self._data.pop(CONF_CUSTOM_IMG_FILE, None)
 
                 self.hass.config_entries.async_update_entry(
-                    self._entry, data=final_data
+                    self._entry, data=self._data
                 )
                 await self.hass.config_entries.async_reload(self._entry.entry_id)
                 _LOGGER.debug("%s reconfigured.", DOMAIN)
