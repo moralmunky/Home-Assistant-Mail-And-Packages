@@ -1,123 +1,127 @@
 {
-    "config": {
-        "abort": {
-            "single_instance_allowed": "Dovoljena je samo ena konfiguracija pošte in paketov.",
-            "reconfigure_successful": "Prekonfiguracija uspešna"
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Dovoljena je samo ena konfiguracija pošte in paketov.",
+      "reconfigure_successful": "Prekonfiguracija uspešna"
+    },
+    "error": {
+      "communication": "Poštnega strežnika ni mogoče povezati ali prijaviti. Za podrobnosti preverite dnevnik.",
+      "invalid_path": "Shranite slike v drugem imeniku.",
+      "ffmpeg_not_found": "Ustvarjanje MP4 zahteva ffmpeg",
+      "amazon_domain": "Neveljaven naslov za preusmerjanje e-pošte.",
+      "file_not_found": "Slikovna datoteka ni najdena",
+      "invalid_email_format": "Neveljaven format e-poštnega naslova.",
+      "path_not_found": "Mapa ni najdena"
+    },
+    "step": {
+      "user": {
+        "description": "Prosimo, vnesite podatke o povezavi vašega poštnega strežnika.",
+        "data": {
+          "host": "Gostitelj",
+          "password": "Geslo",
+          "port": "Pristanišče",
+          "username": "Uporabniško ime",
+          "verify_ssl": "Preveri SSL certifikat",
+          "imap_security": "Varnost IMAP"
         },
-        "error": {
-            "communication": "Poštnega strežnika ni mogoče povezati ali prijaviti. Za podrobnosti preverite dnevnik.",
-            "invalid_path": "Shranite slike v drugem imeniku.",
-            "ffmpeg_not_found": "Ustvarjanje MP4 zahteva ffmpeg",
-            "amazon_domain": "Neveljaven naslov za preusmerjanje e-pošte.",
-            "file_not_found": "Slikovna datoteka ni najdena",
-            "invalid_email_format": "Neveljaven format e-poštnega naslova.",
-            "path_not_found": "Mapa ni najdena"
+        "title": "Pošta in paketi (1. korak od 2)"
+      },
+      "config_2": {
+        "data": {
+          "folder": "Mapa mape",
+          "resources": "Seznam senzorjev",
+          "scan_interval": "Interval optičnega branja (minute)",
+          "image_path": "Pot slike",
+          "gif_duration": "Trajanje slike (sekunde)",
+          "image_security": "Naključno ime datoteke",
+          "imap_timeout": "Čas v sekundah pred prekinitvijo povezave (sekunde, najmanj 10)",
+          "generate_mp4": "Ustvari mp4 iz slik",
+          "allow_external": "Ustvari sliko za aplikacije za obvestila",
+          "custom_img": "Uporabite prilagojeno sliko USPS 'brez pošte'?",
+          "amazon_custom_img": "Uporabite prilagojeno sliko Amazon 'brez dostave'?",
+          "ups_custom_img": "Uporabite prilagojeno sliko UPS 'brez dostave'?",
+          "generate_grid": "Ustvari mrežo slik za vizualne modele LLM"
         },
-        "step": {
-            "user": {
-                "description": "Prosimo, vnesite podatke o povezavi vašega poštnega strežnika.",
-                "data": {
-                    "host": "Gostitelj",
-                    "password": "Geslo",
-                    "port": "Pristanišče",
-                    "username": "Uporabniško ime",
-                    "verify_ssl": "Preveri SSL certifikat",
-                    "imap_security": "Varnost IMAP"
-                },
-                "title": "Pošta in paketi (1. korak od 2)"
-            },
-            "config_2": {
-                "data": {
-                    "folder": "Mapa mape",
-                    "resources": "Seznam senzorjev",
-                    "scan_interval": "Interval optičnega branja (minute)",
-                    "image_path": "Pot slike",
-                    "gif_duration": "Trajanje slike (sekunde)",
-                    "image_security": "Naključno ime datoteke",
-                    "imap_timeout": "Čas v sekundah pred prekinitvijo povezave (sekunde, najmanj 10)",
-                    "generate_mp4": "Ustvari mp4 iz slik",
-                    "allow_external": "Ustvari sliko za aplikacije za obvestila",
-                    "custom_img": "Uporabite prilagojeno sliko 'brez slike'?",
-                    "generate_grid": "Ustvari mrežo slik za vizualne modele LLM"
-                },
-                "description": "Končajte konfiguracijo s prilagoditvijo naslednjih na podlagi strukture e-pošte in namestitve Home Assistant. \n\n Za podrobnosti o možnostih [Integracija pošte in paketov] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) preglejte [konfiguracijo, predloge in oddelku za avtomatizacije] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) na GitHubu.",
-                "title": "Pošta in paketi (2. korak od 2)"
-            },
-            "config_3": {
-                "data": {
-                    "custom_img_file": "Pot do prilagojene slike: (npr.: images\/my_custom_no_mail.jpg)"
-                },
-                "description": "V spodnje polje vnesite pot in ime datoteke do vaše prilagojene slike brez pošte.\n\nPrimer: images\/custom_nomail.gif",
-                "title": "Pošta in paketi (Korak 3 od 3)"
-            },
-            "config_amazon": {
-                "data": {
-                    "amazon_domain": "Amazon domena",
-                    "amazon_fwds": "Amazon je posredoval e-poštne naslove",
-                    "amazon_days": "Dnevi nazaj za preverjanje Amazonovih e-poštnih sporočil"
-                },
-                "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
-                "title": "Nastavitve Amazon"
-            },
-            "reconfigure": {
-                "data": {
-                    "host": "Gostitelj",
-                    "password": "Geslo",
-                    "port": "Pristanišče",
-                    "username": "Uporabniško ime",
-                    "imap_security": "Varnost IMAP",
-                    "verify_ssl": "Preveri SSL certifikat"
-                },
-                "description": "Prosimo, vnesite podatke o povezavi vašega poštnega strežnika.",
-                "title": "Pošta in paketi (1. korak od 2)"
-            },
-            "reconfig_2": {
-                "data": {
-                    "folder": "Mapa mape",
-                    "scan_interval": "Interval optičnega branja (minute)",
-                    "image_path": "Pot slike",
-                    "gif_duration": "Trajanje slike (sekunde)",
-                    "image_security": "Naključno ime datoteke",
-                    "generate_mp4": "Ustvari mp4 iz slik",
-                    "resources": "Seznam senzorjev",
-                    "imap_timeout": "Čas v sekundah pred prekinitvijo povezave (sekunde, najmanj 10)",
-                    "allow_external": "Ustvari sliko za aplikacije za obvestila",
-                    "custom_img": "Uporabite prilagojeno sliko 'brez slike'?",
-                    "generate_grid": "Ustvari mrežo slik za vizualne modele LLM"
-                },
-                "description": "Konfiguracijo dokončajte z prilagajanjem naslednjega glede na strukturo vašega e-poštnega sporočila in namestitev Home Assistant.\n\nZa podrobnosti o možnostih [integracije Mail and Packages](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) si oglejte [razdelek o konfiguraciji, predlogah in avtomatizacijah](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) na GitHubu.\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
-                "title": "Pošta in paketi (2. korak od 2)"
-            },
-            "reconfig_3": {
-                "data": {
-                    "custom_img_file": "Pot do prilagojene slike: (npr.: images\/my_custom_no_mail.jpg)"
-                },
-                "description": "V spodnje polje vnesite pot in ime datoteke do vaše prilagojene slike brez pošte.\n\nPrimer: images\/custom_nomail.gif",
-                "title": "Pošta in paketi (korak 3 od 3)"
-            },
-            "reconfig_amazon": {
-                "data": {
-                    "amazon_domain": "Amazon domena",
-                    "amazon_fwds": "Amazon je posredoval e-poštne naslove",
-                    "amazon_days": "Dnevi nazaj za preverjanje Amazonovih e-poštnih sporočil"
-                },
-                "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
-                "title": "Nastavitve Amazon"
-            },
-            "config_storage": {
-                "data": {
-                    "storage": "Mapa za shranjevanje slik"
-                },
-                "description": "Prosimo, vnesite imenik, v katerem želite shraniti svoje slike.\nPrivzeto je samodejno izpolnjeno.",
-                "title": "Lokacija shranjevanja slik"
-            },
-            "reconfig_storage": {
-                "data": {
-                    "storage": "Mapa za shranjevanje slik"
-                },
-                "description": "Prosimo, vnesite imenik, v katerem želite shraniti svoje slike.\nPrivzeto je samodejno izpolnjeno.",
-                "title": "Lokacija shranjevanja slik"
-            }
-        }
+        "description": "Končajte konfiguracijo s prilagoditvijo naslednjih na podlagi strukture e-pošte in namestitve Home Assistant. \n\n Za podrobnosti o možnostih [Integracija pošte in paketov] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) preglejte [konfiguracijo, predloge in oddelku za avtomatizacije] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
+        "title": "Pošta in paketi (2. korak od 2)"
+      },
+      "config_3": {
+        "data": {
+          "custom_img_file": "Pot do prilagojene slike: (npr.: images/my_custom_no_mail.jpg)"
+        },
+        "description": "V spodnje polje vnesite pot in ime datoteke do vaše prilagojene slike brez pošte.\n\nPrimer: images/custom_nomail.gif",
+        "title": "Pošta in paketi (Korak 3 od 3)"
+      },
+      "config_amazon": {
+        "data": {
+          "amazon_domain": "Amazon domena",
+          "amazon_fwds": "Amazon je posredoval e-poštne naslove",
+          "amazon_days": "Dnevi nazaj za preverjanje Amazonovih e-poštnih sporočil"
+        },
+        "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
+        "title": "Nastavitve Amazon"
+      },
+      "reconfigure": {
+        "data": {
+          "host": "Gostitelj",
+          "password": "Geslo",
+          "port": "Pristanišče",
+          "username": "Uporabniško ime",
+          "imap_security": "Varnost IMAP",
+          "verify_ssl": "Preveri SSL certifikat"
+        },
+        "description": "Prosimo, vnesite podatke o povezavi vašega poštnega strežnika.",
+        "title": "Pošta in paketi (1. korak od 2)"
+      },
+      "reconfig_2": {
+        "data": {
+          "folder": "Mapa mape",
+          "scan_interval": "Interval optičnega branja (minute)",
+          "image_path": "Pot slike",
+          "gif_duration": "Trajanje slike (sekunde)",
+          "image_security": "Naključno ime datoteke",
+          "generate_mp4": "Ustvari mp4 iz slik",
+          "resources": "Seznam senzorjev",
+          "imap_timeout": "Čas v sekundah pred prekinitvijo povezave (sekunde, najmanj 10)",
+          "allow_external": "Ustvari sliko za aplikacije za obvestila",
+          "custom_img": "Uporabite prilagojeno sliko USPS 'brez pošte'?",
+          "amazon_custom_img": "Uporabite prilagojeno sliko Amazon 'brez dostave'?",
+          "ups_custom_img": "Uporabite prilagojeno sliko UPS 'brez dostave'?",
+          "generate_grid": "Ustvari mrežo slik za vizualne modele LLM"
+        },
+        "description": "Konfiguracijo dokončajte z prilagajanjem naslednjega glede na strukturo vašega e-poštnega sporočila in namestitev Home Assistant.\n\nZa podrobnosti o možnostih [integracije Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) si oglejte [razdelek o konfiguraciji, predlogah in avtomatizacijah](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
+        "title": "Pošta in paketi (2. korak od 2)"
+      },
+      "reconfig_3": {
+        "data": {
+          "custom_img_file": "Pot do prilagojene slike: (npr.: images/my_custom_no_mail.jpg)"
+        },
+        "description": "V spodnje polje vnesite pot in ime datoteke do vaše prilagojene slike brez pošte.\n\nPrimer: images/custom_nomail.gif",
+        "title": "Pošta in paketi (korak 3 od 3)"
+      },
+      "reconfig_amazon": {
+        "data": {
+          "amazon_domain": "Amazon domena",
+          "amazon_fwds": "Amazon je posredoval e-poštne naslove",
+          "amazon_days": "Dnevi nazaj za preverjanje Amazonovih e-poštnih sporočil"
+        },
+        "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
+        "title": "Nastavitve Amazon"
+      },
+      "config_storage": {
+        "data": {
+          "storage": "Mapa za shranjevanje slik"
+        },
+        "description": "Prosimo, vnesite imenik, v katerem želite shraniti svoje slike.\nPrivzeto je samodejno izpolnjeno.",
+        "title": "Lokacija shranjevanja slik"
+      },
+      "reconfig_storage": {
+        "data": {
+          "storage": "Mapa za shranjevanje slik"
+        },
+        "description": "Prosimo, vnesite imenik, v katerem želite shraniti svoje slike.\nPrivzeto je samodejno izpolnjeno.",
+        "title": "Lokacija shranjevanja slik"
+      }
     }
+  }
 }

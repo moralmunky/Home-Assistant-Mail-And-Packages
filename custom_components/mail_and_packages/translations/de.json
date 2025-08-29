@@ -1,123 +1,127 @@
 {
-    "config": {
-        "abort": {
-            "single_instance_allowed": "Es ist nur eine einzige Konfiguration von Mail und Paketen zulässig.",
-            "reconfigure_successful": "Neukonfiguration erfolgreich"
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Es ist nur eine einzige Konfiguration von Mail und Paketen zulässig.",
+      "reconfigure_successful": "Neukonfiguration erfolgreich"
+    },
+    "error": {
+      "communication": "Es kann keine Verbindung zum Mailserver hergestellt oder angemeldet werden. Bitte überprüfen Sie das Protokoll für Details.",
+      "invalid_path": "Bitte speichern Sie die Bilder in einem anderen Verzeichnis.",
+      "ffmpeg_not_found": "MP4 erstellen erfordert ffmpeg",
+      "amazon_domain": "Ungültige Weiterleitungs-E-Mail-Adresse.",
+      "file_not_found": "Bilddatei nicht gefunden",
+      "invalid_email_format": "Ungültiges E-Mail-Adressformat.",
+      "path_not_found": "Verzeichnis nicht gefunden"
+    },
+    "step": {
+      "user": {
+        "description": "Bitte geben Sie die Verbindungsinformationen Ihres Mail-Servers ein.",
+        "data": {
+          "host": "Host",
+          "password": "Passwort",
+          "port": "Port",
+          "username": "Nutzername",
+          "verify_ssl": "SSL-Zertifikat überprüfen",
+          "imap_security": "IMAP-Sicherheit"
         },
-        "error": {
-            "communication": "Es kann keine Verbindung zum Mailserver hergestellt oder angemeldet werden. Bitte überprüfen Sie das Protokoll für Details.",
-            "invalid_path": "Bitte speichern Sie die Bilder in einem anderen Verzeichnis.",
-            "ffmpeg_not_found": "MP4 erstellen erfordert ffmpeg",
-            "amazon_domain": "Ungültige Weiterleitungs-E-Mail-Adresse.",
-            "file_not_found": "Bilddatei nicht gefunden",
-            "invalid_email_format": "Ungültiges E-Mail-Adressformat.",
-            "path_not_found": "Verzeichnis nicht gefunden"
+        "title": "Briefe und Pakete (Schritt 1 von 2)"
+      },
+      "config_2": {
+        "data": {
+          "folder": "E-Mail-Ordner",
+          "resources": "Sensoren Liste",
+          "scan_interval": "Scanintervall (Minuten)",
+          "image_path": "Bildpfad",
+          "gif_duration": "Bilddauer (Sekunden)",
+          "image_security": "Zufälliger Bilddateiname",
+          "imap_timeout": "Zeit in Sekunden bis zum Timeout der Verbindung (Sekunden, mindestens 10)",
+          "generate_mp4": "Erstellen Sie mp4 aus Bildern",
+          "allow_external": "Bild für Benachrichtigungs-Apps erstellen",
+          "custom_img": "Benutzerdefiniertes USPS 'keine Post' Bild verwenden?",
+          "amazon_custom_img": "Benutzerdefiniertes Amazon 'keine Lieferung' Bild verwenden?",
+          "ups_custom_img": "Benutzerdefiniertes UPS 'keine Lieferung' Bild verwenden?",
+          "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle"
         },
-        "step": {
-            "user": {
-                "description": "Bitte geben Sie die Verbindungsinformationen Ihres Mail-Servers ein.",
-                "data": {
-                    "host": "Host",
-                    "password": "Passwort",
-                    "port": "Port",
-                    "username": "Nutzername",
-                    "verify_ssl": "SSL-Zertifikat überprüfen",
-                    "imap_security": "IMAP-Sicherheit"
-                },
-                "title": "Briefe und Pakete (Schritt 1 von 2)"
-            },
-            "config_2": {
-                "data": {
-                    "folder": "E-Mail-Ordner",
-                    "resources": "Sensoren Liste",
-                    "scan_interval": "Scanintervall (Minuten)",
-                    "image_path": "Bildpfad",
-                    "gif_duration": "Bilddauer (Sekunden)",
-                    "image_security": "Zufälliger Bilddateiname",
-                    "imap_timeout": "Zeit in Sekunden bis zum Timeout der Verbindung (Sekunden, mindestens 10)",
-                    "generate_mp4": "Erstellen Sie mp4 aus Bildern",
-                    "allow_external": "Bild für Benachrichtigungs-Apps erstellen",
-                    "custom_img": "Benutzerdefiniertes Bild 'kein Bild' verwenden?",
-                    "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle"
-                },
-                "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) auf GitHub.",
-                "title": "Briefe und Pakete (Schritt 2 von 2)"
-            },
-            "config_3": {
-                "data": {
-                    "custom_img_file": "Pfad zum benutzerdefinierten Bild: (z. B.: images\/my_custom_no_mail.jpg)"
-                },
-                "description": "Geben Sie unten den Pfad und den Dateinamen zu Ihrem benutzerdefinierten Keine-Mail-Bild ein.\n\nBeispiel: images\/custom_nomail.gif",
-                "title": "Post und Pakete (Schritt 3 von 3)"
-            },
-            "config_amazon": {
-                "data": {
-                    "amazon_domain": "Amazon-Domain",
-                    "amazon_fwds": "Amazon hat E-Mail-Adressen weitergeleitet",
-                    "amazon_days": "Tage zurück, um nach Amazon-E-Mails zu suchen"
-                },
-                "description": "Bitte geben Sie die Domain ein, von der Amazon E-Mails sendet (z.B.: amazon.com oder amazon.de)\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse mit einem Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
-                "title": "Amazon Einstellungen"
-            },
-            "reconfigure": {
-                "data": {
-                    "host": "Host",
-                    "password": "Passwort",
-                    "port": "Port",
-                    "username": "Nutzername",
-                    "imap_security": "IMAP-Sicherheit",
-                    "verify_ssl": "SSL-Zertifikat überprüfen"
-                },
-                "description": "Bitte geben Sie die Verbindungsinformationen Ihres Mail-Servers ein.",
-                "title": "Briefe und Pakete (Schritt 1 von 2)"
-            },
-            "reconfig_2": {
-                "data": {
-                    "folder": "E-Mail-Ordner",
-                    "scan_interval": "Scanintervall (Minuten)",
-                    "image_path": "Bildpfad",
-                    "gif_duration": "Bilddauer (Sekunden)",
-                    "image_security": "Zufälliger Bilddateiname",
-                    "generate_mp4": "Erstellen Sie mp4 aus Bildern",
-                    "resources": "Sensoren Liste",
-                    "imap_timeout": "Zeit in Sekunden bis zum Timeout der Verbindung (Sekunden, mindestens 10)",
-                    "allow_external": "Bild für Benachrichtigungs-Apps erstellen",
-                    "custom_img": "Benutzerdefiniertes Bild 'kein Bild' verwenden?",
-                    "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle"
-                },
-                "description": "Schließen Sie die Konfiguration ab, indem Sie das Folgende an Ihre E-Mail-Struktur und Home Assistant-Installation anpassen.\n\nWeitere Informationen zu den [Mail und Packages Integration](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) Optionen finden Sie im [Konfigurations-, Vorlagen- und Automatisierungsabschnitt](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) auf GitHub.\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse durch ein Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
-                "title": "Briefe und Pakete (Schritt 2 von 2)"
-            },
-            "reconfig_3": {
-                "data": {
-                    "custom_img_file": "Pfad zum benutzerdefinierten Bild: (z.B.: images\/my_custom_no_mail.jpg)"
-                },
-                "description": "Geben Sie unten den Pfad und den Dateinamen zu Ihrem benutzerdefinierten Keine-Mail-Bild ein.\n\nBeispiel: images\/custom_nomail.gif",
-                "title": "Post und Pakete (Schritt 3 von 3)"
-            },
-            "reconfig_amazon": {
-                "data": {
-                    "amazon_domain": "Amazon-Domain",
-                    "amazon_fwds": "Amazon hat E-Mail-Adressen weitergeleitet",
-                    "amazon_days": "Tage zurück, um nach Amazon-E-Mails zu suchen"
-                },
-                "description": "Bitte geben Sie die Domain ein, von der Amazon E-Mails sendet (z.B.: amazon.com oder amazon.de)\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse mit einem Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
-                "title": "Amazon Einstellungen"
-            },
-            "config_storage": {
-                "data": {
-                    "storage": "Verzeichnis zum Speichern von Bildern"
-                },
-                "description": "Bitte geben Sie das Verzeichnis ein, in dem Ihre Bilder gespeichert werden sollen.\nStandardmäßig ist es automatisch ausgefüllt.",
-                "title": "Speicherort für Bilder"
-            },
-            "reconfig_storage": {
-                "data": {
-                    "storage": "Verzeichnis zum Speichern von Bildern"
-                },
-                "description": "Bitte geben Sie das Verzeichnis ein, in dem Ihre Bilder gespeichert werden sollen.\nStandardmäßig ist es automatisch ausgefüllt.",
-                "title": "Speicherort für Bilder"
-            }
-        }
+        "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
+        "title": "Briefe und Pakete (Schritt 2 von 2)"
+      },
+      "config_3": {
+        "data": {
+          "custom_img_file": "Pfad zum benutzerdefinierten Bild: (z. B.: images/my_custom_no_mail.jpg)"
+        },
+        "description": "Geben Sie unten den Pfad und den Dateinamen zu Ihrem benutzerdefinierten Keine-Mail-Bild ein.\n\nBeispiel: images/custom_nomail.gif",
+        "title": "Post und Pakete (Schritt 3 von 3)"
+      },
+      "config_amazon": {
+        "data": {
+          "amazon_domain": "Amazon-Domain",
+          "amazon_fwds": "Amazon hat E-Mail-Adressen weitergeleitet",
+          "amazon_days": "Tage zurück, um nach Amazon-E-Mails zu suchen"
+        },
+        "description": "Bitte geben Sie die Domain ein, von der Amazon E-Mails sendet (z.B.: amazon.com oder amazon.de)\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse mit einem Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
+        "title": "Amazon Einstellungen"
+      },
+      "reconfigure": {
+        "data": {
+          "host": "Host",
+          "password": "Passwort",
+          "port": "Port",
+          "username": "Nutzername",
+          "imap_security": "IMAP-Sicherheit",
+          "verify_ssl": "SSL-Zertifikat überprüfen"
+        },
+        "description": "Bitte geben Sie die Verbindungsinformationen Ihres Mail-Servers ein.",
+        "title": "Briefe und Pakete (Schritt 1 von 2)"
+      },
+      "reconfig_2": {
+        "data": {
+          "folder": "E-Mail-Ordner",
+          "scan_interval": "Scanintervall (Minuten)",
+          "image_path": "Bildpfad",
+          "gif_duration": "Bilddauer (Sekunden)",
+          "image_security": "Zufälliger Bilddateiname",
+          "generate_mp4": "Erstellen Sie mp4 aus Bildern",
+          "resources": "Sensoren Liste",
+          "imap_timeout": "Zeit in Sekunden bis zum Timeout der Verbindung (Sekunden, mindestens 10)",
+          "allow_external": "Bild für Benachrichtigungs-Apps erstellen",
+          "custom_img": "Benutzerdefiniertes USPS 'keine Post' Bild verwenden?",
+          "amazon_custom_img": "Benutzerdefiniertes Amazon 'keine Lieferung' Bild verwenden?",
+          "ups_custom_img": "Benutzerdefiniertes UPS 'keine Lieferung' Bild verwenden?",
+          "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle"
+        },
+        "description": "Schließen Sie die Konfiguration ab, indem Sie das Folgende an Ihre E-Mail-Struktur und Home Assistant-Installation anpassen.\n\nWeitere Informationen zu den [Mail und Packages Integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) Optionen finden Sie im [Konfigurations-, Vorlagen- und Automatisierungsabschnitt](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse durch ein Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
+        "title": "Briefe und Pakete (Schritt 2 von 2)"
+      },
+      "reconfig_3": {
+        "data": {
+          "custom_img_file": "Pfad zum benutzerdefinierten Bild: (z.B.: images/my_custom_no_mail.jpg)"
+        },
+        "description": "Geben Sie unten den Pfad und den Dateinamen zu Ihrem benutzerdefinierten Keine-Mail-Bild ein.\n\nBeispiel: images/custom_nomail.gif",
+        "title": "Post und Pakete (Schritt 3 von 3)"
+      },
+      "reconfig_amazon": {
+        "data": {
+          "amazon_domain": "Amazon-Domain",
+          "amazon_fwds": "Amazon hat E-Mail-Adressen weitergeleitet",
+          "amazon_days": "Tage zurück, um nach Amazon-E-Mails zu suchen"
+        },
+        "description": "Bitte geben Sie die Domain ein, von der Amazon E-Mails sendet (z.B.: amazon.com oder amazon.de)\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse mit einem Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
+        "title": "Amazon Einstellungen"
+      },
+      "config_storage": {
+        "data": {
+          "storage": "Verzeichnis zum Speichern von Bildern"
+        },
+        "description": "Bitte geben Sie das Verzeichnis ein, in dem Ihre Bilder gespeichert werden sollen.\nStandardmäßig ist es automatisch ausgefüllt.",
+        "title": "Speicherort für Bilder"
+      },
+      "reconfig_storage": {
+        "data": {
+          "storage": "Verzeichnis zum Speichern von Bildern"
+        },
+        "description": "Bitte geben Sie das Verzeichnis ein, in dem Ihre Bilder gespeichert werden sollen.\nStandardmäßig ist es automatisch ausgefüllt.",
+        "title": "Speicherort für Bilder"
+      }
     }
+  }
 }

@@ -1,123 +1,127 @@
 {
-    "config": {
-        "abort": {
-            "single_instance_allowed": "Vain yksi posti- ja pakettien kokoonpano on sallittu.",
-            "reconfigure_successful": "Uudelleenmääritys onnistui"
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Vain yksi posti- ja pakettien kokoonpano on sallittu.",
+      "reconfigure_successful": "Uudelleenmääritys onnistui"
+    },
+    "error": {
+      "communication": "Ei voida muodostaa yhteyttä tai kirjautua sisään postipalvelimeen. Tarkista lokista yksityiskohdat.",
+      "invalid_path": "Tallenna kuvat toiseen hakemistoon.",
+      "ffmpeg_not_found": "MP4:n luominen vaatii ffmpeg:n",
+      "amazon_domain": "Virheellinen edelleenlähetettävä sähköpostiosoite.",
+      "file_not_found": "Kuvatiedostoa ei löydy",
+      "invalid_email_format": "Virheellinen sähköpostiosoitteen muoto.",
+      "path_not_found": "Hakemistoa ei löydy"
+    },
+    "step": {
+      "user": {
+        "description": "Anna postipalvelimesi yhteystiedot.",
+        "data": {
+          "host": "isäntä",
+          "password": "Salasana",
+          "port": "portti",
+          "username": "Käyttäjätunnus",
+          "verify_ssl": "Varmenna SSL-sertifikaatti",
+          "imap_security": "IMAP-tietoturva"
         },
-        "error": {
-            "communication": "Ei voida muodostaa yhteyttä tai kirjautua sisään postipalvelimeen. Tarkista lokista yksityiskohdat.",
-            "invalid_path": "Tallenna kuvat toiseen hakemistoon.",
-            "ffmpeg_not_found": "MP4:n luominen vaatii ffmpeg:n",
-            "amazon_domain": "Virheellinen edelleenlähetettävä sähköpostiosoite.",
-            "file_not_found": "Kuvatiedostoa ei löydy",
-            "invalid_email_format": "Virheellinen sähköpostiosoitteen muoto.",
-            "path_not_found": "Hakemistoa ei löydy"
+        "title": "Posti ja paketit (vaihe 1/2)"
+      },
+      "config_2": {
+        "data": {
+          "folder": "Mail-kansio",
+          "resources": "Anturiluettelo",
+          "scan_interval": "Skannausväli (minuutit)",
+          "image_path": "Kuvan polku",
+          "gif_duration": "Kuvan kesto (sekunteina)",
+          "image_security": "Satunnainen kuvatiedostonimi",
+          "imap_timeout": "Aika sekunneissa ennen yhteyden aikakatkaisua (sekuntia, vähintään 10)",
+          "generate_mp4": "Luo mp4 kuvista",
+          "allow_external": "Luo kuva ilmoitussovelluksille",
+          "custom_img": "Käytä mukautettua USPS 'ei postia' kuvaa?",
+          "amazon_custom_img": "Käytä mukautettua Amazon 'ei toimituksia' kuvaa?",
+          "ups_custom_img": "Käytä mukautettua UPS 'ei toimituksia' kuvaa?",
+          "generate_grid": "Luo kuvaverkko LLM-näkömalleille"
         },
-        "step": {
-            "user": {
-                "description": "Anna postipalvelimesi yhteystiedot.",
-                "data": {
-                    "host": "isäntä",
-                    "password": "Salasana",
-                    "port": "portti",
-                    "username": "Käyttäjätunnus",
-                    "verify_ssl": "Varmenna SSL-sertifikaatti",
-                    "imap_security": "IMAP-tietoturva"
-                },
-                "title": "Posti ja paketit (vaihe 1\/2)"
-            },
-            "config_2": {
-                "data": {
-                    "folder": "Mail-kansio",
-                    "resources": "Anturiluettelo",
-                    "scan_interval": "Skannausväli (minuutit)",
-                    "image_path": "Kuvan polku",
-                    "gif_duration": "Kuvan kesto (sekunteina)",
-                    "image_security": "Satunnainen kuvatiedostonimi",
-                    "imap_timeout": "Aika sekunneissa ennen yhteyden aikakatkaisua (sekuntia, vähintään 10)",
-                    "generate_mp4": "Luo mp4 kuvista",
-                    "allow_external": "Luo kuva ilmoitussovelluksille",
-                    "custom_img": "Käytä mukautettua 'ei kuvaa' kuvaa?",
-                    "generate_grid": "Luo kuvaverkko LLM-näkömalleille"
-                },
-                "description": "Viimeistele kokoonpano mukauttamalla seuraava sähköpostirakenteen ja Home Assistant -asennuksen perusteella. \n\n Lisätietoja [Posti ja paketit-integroinnista] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) -asetuksista on [kokoonpano, mallit , ja automaatiot-osio] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) GitHubissa.",
-                "title": "Posti ja paketit (vaihe 2\/2)"
-            },
-            "config_3": {
-                "data": {
-                    "custom_img_file": "Polku mukautettuun kuvaan: (esim: images\/my_custom_no_mail.jpg)"
-                },
-                "description": "Syötä alla olevaan kenttään polku ja tiedostonimi mukautetulle ei-postia -kuvallesi.\n\nEsimerkki: kuvat\/mukautettu_eipostia.gif",
-                "title": "Posti ja paketit (vaihe 3\/3)"
-            },
-            "config_amazon": {
-                "data": {
-                    "amazon_domain": "Amazonin verkkotunnus",
-                    "amazon_fwds": "Amazon välitti sähköpostiosoitteet",
-                    "amazon_days": "Päiviä, joiden aikana tarkistetaan Amazonin sähköpostit"
-                },
-                "description": "Anna domaini, josta Amazon lähettää sähköposteja (esim: amazon.com tai amazon.de)\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai kirjoita (none) tyhjentääksesi tämän asetuksen.",
-                "title": "Amazonin asetukset"
-            },
-            "reconfigure": {
-                "data": {
-                    "host": "isäntä",
-                    "password": "Salasana",
-                    "port": "portti",
-                    "username": "Käyttäjätunnus",
-                    "imap_security": "IMAP-tietoturva",
-                    "verify_ssl": "Varmenna SSL-sertifikaatti"
-                },
-                "description": "Anna postipalvelimesi yhteystiedot.",
-                "title": "Posti ja paketit (vaihe 1\/2)"
-            },
-            "reconfig_2": {
-                "data": {
-                    "folder": "Mail-kansio",
-                    "scan_interval": "Skannausväli (minuutit)",
-                    "image_path": "Kuvan polku",
-                    "gif_duration": "Kuvan kesto (sekunteina)",
-                    "image_security": "Satunnainen kuvatiedostonimi",
-                    "generate_mp4": "Luo mp4 kuvista",
-                    "resources": "Anturiluettelo",
-                    "imap_timeout": "Aika sekunneissa ennen yhteyden aikakatkaisua (sekuntia, vähintään 10)",
-                    "allow_external": "Luo kuva ilmoitussovelluksille",
-                    "custom_img": "Käytä mukautettua 'ei kuvaa' kuvaa?",
-                    "generate_grid": "Luo kuvaverkko LLM-näkömalleille"
-                },
-                "description": "Suorita määritys loppuun mukauttamalla seuraavat sähköpostirakenteeseesi ja Home Assistant -asennukseesi perustuen.\n\nLisätietoja [Mail and Packages -integraation](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) vaihtoehdoista löydät GitHubista [määritys-, mallit- ja automaatiot-osiossa](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration).\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai syötä (none) tyhjentääksesi tämän asetuksen.",
-                "title": "Posti ja paketit (vaihe 2\/2)"
-            },
-            "reconfig_3": {
-                "data": {
-                    "custom_img_file": "Polku mukautettuun kuvaan: (esim.: images\/my_custom_no_mail.jpg)"
-                },
-                "description": "Syötä alla olevaan kenttään polku ja tiedostonimi mukautetulle ei-postia -kuvallesi.\n\nEsimerkki: kuvat\/mukautettu_eipostia.gif",
-                "title": "Posti ja paketit (vaihe 3\/3)"
-            },
-            "reconfig_amazon": {
-                "data": {
-                    "amazon_domain": "Amazonin verkkotunnus",
-                    "amazon_fwds": "Amazon välitti sähköpostiosoitteet",
-                    "amazon_days": "Päiviä, joiden aikana tarkistetaan Amazonin sähköpostit"
-                },
-                "description": "Anna domaini, josta Amazon lähettää sähköposteja (esim: amazon.com tai amazon.de)\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai kirjoita (none) tyhjentääksesi tämän asetuksen.",
-                "title": "Amazonin asetukset"
-            },
-            "config_storage": {
-                "data": {
-                    "storage": "Hakemisto kuvien tallentamiseen"
-                },
-                "description": "Anna hakemisto, johon haluat kuviesi tallentuvan.\nOletusarvo täytetään automaattisesti.",
-                "title": "Kuvien tallennuspaikka"
-            },
-            "reconfig_storage": {
-                "data": {
-                    "storage": "Hakemisto kuvien tallentamiseen"
-                },
-                "description": "Anna hakemisto, johon haluat kuviesi tallentuvan.\nOletusarvo täytetään automaattisesti.",
-                "title": "Kuvien tallennuspaikka"
-            }
-        }
+        "description": "Viimeistele kokoonpano mukauttamalla seuraava sähköpostirakenteen ja Home Assistant -asennuksen perusteella. \n\n Lisätietoja [Posti ja paketit-integroinnista] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) -asetuksista on [kokoonpano, mallit , ja automaatiot-osio] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHubissa.",
+        "title": "Posti ja paketit (vaihe 2/2)"
+      },
+      "config_3": {
+        "data": {
+          "custom_img_file": "Polku mukautettuun kuvaan: (esim: images/my_custom_no_mail.jpg)"
+        },
+        "description": "Syötä alla olevaan kenttään polku ja tiedostonimi mukautetulle ei-postia -kuvallesi.\n\nEsimerkki: kuvat/mukautettu_eipostia.gif",
+        "title": "Posti ja paketit (vaihe 3/3)"
+      },
+      "config_amazon": {
+        "data": {
+          "amazon_domain": "Amazonin verkkotunnus",
+          "amazon_fwds": "Amazon välitti sähköpostiosoitteet",
+          "amazon_days": "Päiviä, joiden aikana tarkistetaan Amazonin sähköpostit"
+        },
+        "description": "Anna domaini, josta Amazon lähettää sähköposteja (esim: amazon.com tai amazon.de)\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai kirjoita (none) tyhjentääksesi tämän asetuksen.",
+        "title": "Amazonin asetukset"
+      },
+      "reconfigure": {
+        "data": {
+          "host": "isäntä",
+          "password": "Salasana",
+          "port": "portti",
+          "username": "Käyttäjätunnus",
+          "imap_security": "IMAP-tietoturva",
+          "verify_ssl": "Varmenna SSL-sertifikaatti"
+        },
+        "description": "Anna postipalvelimesi yhteystiedot.",
+        "title": "Posti ja paketit (vaihe 1/2)"
+      },
+      "reconfig_2": {
+        "data": {
+          "folder": "Mail-kansio",
+          "scan_interval": "Skannausväli (minuutit)",
+          "image_path": "Kuvan polku",
+          "gif_duration": "Kuvan kesto (sekunteina)",
+          "image_security": "Satunnainen kuvatiedostonimi",
+          "generate_mp4": "Luo mp4 kuvista",
+          "resources": "Anturiluettelo",
+          "imap_timeout": "Aika sekunneissa ennen yhteyden aikakatkaisua (sekuntia, vähintään 10)",
+          "allow_external": "Luo kuva ilmoitussovelluksille",
+          "custom_img": "Käytä mukautettua USPS 'ei postia' kuvaa?",
+          "amazon_custom_img": "Käytä mukautettua Amazon 'ei toimituksia' kuvaa?",
+          "ups_custom_img": "Käytä mukautettua UPS 'ei toimituksia' kuvaa?",
+          "generate_grid": "Luo kuvaverkko LLM-näkömalleille"
+        },
+        "description": "Suorita määritys loppuun mukauttamalla seuraavat sähköpostirakenteeseesi ja Home Assistant -asennukseesi perustuen.\n\nLisätietoja [Mail and Packages -integraation](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) vaihtoehdoista löydät GitHubista [määritys-, mallit- ja automaatiot-osiossa](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration).\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai syötä (none) tyhjentääksesi tämän asetuksen.",
+        "title": "Posti ja paketit (vaihe 2/2)"
+      },
+      "reconfig_3": {
+        "data": {
+          "custom_img_file": "Polku mukautettuun kuvaan: (esim.: images/my_custom_no_mail.jpg)"
+        },
+        "description": "Syötä alla olevaan kenttään polku ja tiedostonimi mukautetulle ei-postia -kuvallesi.\n\nEsimerkki: kuvat/mukautettu_eipostia.gif",
+        "title": "Posti ja paketit (vaihe 3/3)"
+      },
+      "reconfig_amazon": {
+        "data": {
+          "amazon_domain": "Amazonin verkkotunnus",
+          "amazon_fwds": "Amazon välitti sähköpostiosoitteet",
+          "amazon_days": "Päiviä, joiden aikana tarkistetaan Amazonin sähköpostit"
+        },
+        "description": "Anna domaini, josta Amazon lähettää sähköposteja (esim: amazon.com tai amazon.de)\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai kirjoita (none) tyhjentääksesi tämän asetuksen.",
+        "title": "Amazonin asetukset"
+      },
+      "config_storage": {
+        "data": {
+          "storage": "Hakemisto kuvien tallentamiseen"
+        },
+        "description": "Anna hakemisto, johon haluat kuviesi tallentuvan.\nOletusarvo täytetään automaattisesti.",
+        "title": "Kuvien tallennuspaikka"
+      },
+      "reconfig_storage": {
+        "data": {
+          "storage": "Hakemisto kuvien tallentamiseen"
+        },
+        "description": "Anna hakemisto, johon haluat kuviesi tallentuvan.\nOletusarvo täytetään automaattisesti.",
+        "title": "Kuvien tallennuspaikka"
+      }
     }
+  }
 }

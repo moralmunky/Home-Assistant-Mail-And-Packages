@@ -1,123 +1,127 @@
 {
-    "config": {
-        "abort": {
-            "single_instance_allowed": "Bare en enkelt konfigurasjon av e-post og pakker er tillatt.",
-            "reconfigure_successful": "Omkonfigurering vellykket"
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Bare en enkelt konfigurasjon av e-post og pakker er tillatt.",
+      "reconfigure_successful": "Omkonfigurering vellykket"
+    },
+    "error": {
+      "communication": "Kan ikke koble til eller logge inn på postserveren. Vennligst sjekk loggen for detaljer.",
+      "invalid_path": "Lagre bildene i en annen katalog.",
+      "ffmpeg_not_found": "Generer MP4 krever ffmpeg",
+      "amazon_domain": "Ugyldig videresendings e-postadresse.",
+      "file_not_found": "Bildefil ikke funnet",
+      "invalid_email_format": "Ugyldig e-postadresseformat.",
+      "path_not_found": "Mappen ble ikke funnet"
+    },
+    "step": {
+      "user": {
+        "description": "Vennligst oppgi tilkoblingsinformasjonen til din e-postserver.",
+        "data": {
+          "host": "Vert",
+          "password": "Passord",
+          "port": "Havn",
+          "username": "Brukernavn",
+          "verify_ssl": "Bekreft SSL-sertifikat",
+          "imap_security": "IMAP-sikkerhet"
         },
-        "error": {
-            "communication": "Kan ikke koble til eller logge inn på postserveren. Vennligst sjekk loggen for detaljer.",
-            "invalid_path": "Lagre bildene i en annen katalog.",
-            "ffmpeg_not_found": "Generer MP4 krever ffmpeg",
-            "amazon_domain": "Ugyldig videresendings e-postadresse.",
-            "file_not_found": "Bildefil ikke funnet",
-            "invalid_email_format": "Ugyldig e-postadresseformat.",
-            "path_not_found": "Mappen ble ikke funnet"
+        "title": "E-post og pakker (trinn 1 av 2)"
+      },
+      "config_2": {
+        "data": {
+          "folder": "E-postmappe",
+          "resources": "Sensorliste",
+          "scan_interval": "Skanneintervall (minutter)",
+          "image_path": "Bildevei",
+          "gif_duration": "Bildets varighet (sekunder)",
+          "image_security": "Tilfeldig bilde filnavn",
+          "imap_timeout": "Tid i sekunder før tilkoblingen tidsavbrudd (sekunder, minimum 10)",
+          "generate_mp4": "Lag mp4 fra bilder",
+          "allow_external": "Lag bilde for varslingsapper",
+          "custom_img": "Bruk tilpasset USPS 'ingen post' bilde?",
+          "amazon_custom_img": "Bruk tilpasset Amazon 'ingen levering' bilde?",
+          "ups_custom_img": "Bruk tilpasset UPS 'ingen levering' bilde?",
+          "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller"
         },
-        "step": {
-            "user": {
-                "description": "Vennligst oppgi tilkoblingsinformasjonen til din e-postserver.",
-                "data": {
-                    "host": "Vert",
-                    "password": "Passord",
-                    "port": "Havn",
-                    "username": "Brukernavn",
-                    "verify_ssl": "Bekreft SSL-sertifikat",
-                    "imap_security": "IMAP-sikkerhet"
-                },
-                "title": "E-post og pakker (trinn 1 av 2)"
-            },
-            "config_2": {
-                "data": {
-                    "folder": "E-postmappe",
-                    "resources": "Sensorliste",
-                    "scan_interval": "Skanneintervall (minutter)",
-                    "image_path": "Bildevei",
-                    "gif_duration": "Bildets varighet (sekunder)",
-                    "image_security": "Tilfeldig bilde filnavn",
-                    "imap_timeout": "Tid i sekunder før tilkoblingen tidsavbrudd (sekunder, minimum 10)",
-                    "generate_mp4": "Lag mp4 fra bilder",
-                    "allow_external": "Lag bilde for varslingsapper",
-                    "custom_img": "Bruk tilpasset 'ingen bilde' bilde?",
-                    "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller"
-                },
-                "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på e-poststrukturen og Home Assistant-installasjonen. \n\n For detaljer om alternativene [Mail and Packages] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), les gjennom [konfigurasjon, maler , og automatiseringsdel] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) på GitHub.",
-                "title": "E-post og pakker (trinn 2 av 2)"
-            },
-            "config_3": {
-                "data": {
-                    "custom_img_file": "Sti til tilpasset bilde: (f.eks: images\/my_custom_no_mail.jpg)"
-                },
-                "description": "Skriv inn stien og filnavnet til ditt tilpassede ingen post-bilde nedenfor.\n\nEksempel: bilder\/tilpasset_ingenpost.gif",
-                "title": "Post og pakker (Trinn 3 av 3)"
-            },
-            "config_amazon": {
-                "data": {
-                    "amazon_domain": "Amazon-domene",
-                    "amazon_fwds": "Amazon videresendte e-postadresser",
-                    "amazon_days": "Dager tilbake for å sjekke Amazon-e-poster"
-                },
-                "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (ingen) for å tømme denne innstillingen.",
-                "title": "Amazon-innstillinger"
-            },
-            "reconfigure": {
-                "data": {
-                    "host": "Vert",
-                    "password": "Passord",
-                    "port": "Havn",
-                    "username": "Brukernavn",
-                    "imap_security": "IMAP-sikkerhet",
-                    "verify_ssl": "Bekreft SSL-sertifikat"
-                },
-                "description": "Vennligst oppgi tilkoblingsinformasjonen til din e-postserver.",
-                "title": "E-post og pakker (trinn 1 av 2)"
-            },
-            "reconfig_2": {
-                "data": {
-                    "folder": "E-postmappe",
-                    "scan_interval": "Skanneintervall (minutter)",
-                    "image_path": "Bildevei",
-                    "gif_duration": "Bildets varighet (sekunder)",
-                    "image_security": "Tilfeldig bilde filnavn",
-                    "generate_mp4": "Lag mp4 fra bilder",
-                    "resources": "Sensorliste",
-                    "imap_timeout": "Tid i sekunder før tilkoblingen tidsavbrudd (sekunder, minimum 10)",
-                    "allow_external": "Lag bilde for varslingsapper",
-                    "custom_img": "Bruk tilpasset 'ingen bilde' bilde?",
-                    "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller"
-                },
-                "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på din e-poststruktur og Home Assistant-installasjon.\n\nFor detaljer om [Mail and Packages-integrasjonen](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) alternativene, se gjennom [konfigurasjon, maler og automatiseringsseksjonen](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) på GitHub.\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma eller skriv inn (ingen) for å tømme denne innstillingen.",
-                "title": "E-post og pakker (trinn 2 av 2)"
-            },
-            "reconfig_3": {
-                "data": {
-                    "custom_img_file": "Sti til tilpasset bilde: (dvs.: images\/my_custom_no_mail.jpg)"
-                },
-                "description": "Skriv inn stien og filnavnet til ditt tilpassede ingen post-bilde nedenfor.\n\nEksempel: bilder\/tilpasset_ingenpost.gif",
-                "title": "Post og pakker (Trinn 3 av 3)"
-            },
-            "reconfig_amazon": {
-                "data": {
-                    "amazon_domain": "Amazon-domene",
-                    "amazon_fwds": "Amazon videresendte e-postadresser",
-                    "amazon_days": "Dager tilbake for å sjekke Amazon-e-poster"
-                },
-                "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (ingen) for å tømme denne innstillingen.",
-                "title": "Amazon-innstillinger"
-            },
-            "config_storage": {
-                "data": {
-                    "storage": "Katalog for å lagre bilder"
-                },
-                "description": "Vennligst oppgi mappen du vil at bildene dine skal lagres i.\nStandard er automatisk fylt ut.",
-                "title": "Bildelagringssted"
-            },
-            "reconfig_storage": {
-                "data": {
-                    "storage": "Katalog for å lagre bilder"
-                },
-                "description": "Vennligst oppgi mappen du vil at bildene dine skal lagres i.\nStandard er automatisk fylt ut.",
-                "title": "Bildelagringssted"
-            }
-        }
+        "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på e-poststrukturen og Home Assistant-installasjonen. \n\n For detaljer om alternativene [Mail and Packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), les gjennom [konfigurasjon, maler , og automatiseringsdel] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
+        "title": "E-post og pakker (trinn 2 av 2)"
+      },
+      "config_3": {
+        "data": {
+          "custom_img_file": "Sti til tilpasset bilde: (f.eks: images/my_custom_no_mail.jpg)"
+        },
+        "description": "Skriv inn stien og filnavnet til ditt tilpassede ingen post-bilde nedenfor.\n\nEksempel: bilder/tilpasset_ingenpost.gif",
+        "title": "Post og pakker (Trinn 3 av 3)"
+      },
+      "config_amazon": {
+        "data": {
+          "amazon_domain": "Amazon-domene",
+          "amazon_fwds": "Amazon videresendte e-postadresser",
+          "amazon_days": "Dager tilbake for å sjekke Amazon-e-poster"
+        },
+        "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (ingen) for å tømme denne innstillingen.",
+        "title": "Amazon-innstillinger"
+      },
+      "reconfigure": {
+        "data": {
+          "host": "Vert",
+          "password": "Passord",
+          "port": "Havn",
+          "username": "Brukernavn",
+          "imap_security": "IMAP-sikkerhet",
+          "verify_ssl": "Bekreft SSL-sertifikat"
+        },
+        "description": "Vennligst oppgi tilkoblingsinformasjonen til din e-postserver.",
+        "title": "E-post og pakker (trinn 1 av 2)"
+      },
+      "reconfig_2": {
+        "data": {
+          "folder": "E-postmappe",
+          "scan_interval": "Skanneintervall (minutter)",
+          "image_path": "Bildevei",
+          "gif_duration": "Bildets varighet (sekunder)",
+          "image_security": "Tilfeldig bilde filnavn",
+          "generate_mp4": "Lag mp4 fra bilder",
+          "resources": "Sensorliste",
+          "imap_timeout": "Tid i sekunder før tilkoblingen tidsavbrudd (sekunder, minimum 10)",
+          "allow_external": "Lag bilde for varslingsapper",
+          "custom_img": "Bruk tilpasset USPS 'ingen post' bilde?",
+          "amazon_custom_img": "Bruk tilpasset Amazon 'ingen levering' bilde?",
+          "ups_custom_img": "Bruk tilpasset UPS 'ingen levering' bilde?",
+          "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller"
+        },
+        "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på din e-poststruktur og Home Assistant-installasjon.\n\nFor detaljer om [Mail and Packages-integrasjonen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) alternativene, se gjennom [konfigurasjon, maler og automatiseringsseksjonen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma eller skriv inn (ingen) for å tømme denne innstillingen.",
+        "title": "E-post og pakker (trinn 2 av 2)"
+      },
+      "reconfig_3": {
+        "data": {
+          "custom_img_file": "Sti til tilpasset bilde: (dvs.: images/my_custom_no_mail.jpg)"
+        },
+        "description": "Skriv inn stien og filnavnet til ditt tilpassede ingen post-bilde nedenfor.\n\nEksempel: bilder/tilpasset_ingenpost.gif",
+        "title": "Post og pakker (Trinn 3 av 3)"
+      },
+      "reconfig_amazon": {
+        "data": {
+          "amazon_domain": "Amazon-domene",
+          "amazon_fwds": "Amazon videresendte e-postadresser",
+          "amazon_days": "Dager tilbake for å sjekke Amazon-e-poster"
+        },
+        "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (ingen) for å tømme denne innstillingen.",
+        "title": "Amazon-innstillinger"
+      },
+      "config_storage": {
+        "data": {
+          "storage": "Katalog for å lagre bilder"
+        },
+        "description": "Vennligst oppgi mappen du vil at bildene dine skal lagres i.\nStandard er automatisk fylt ut.",
+        "title": "Bildelagringssted"
+      },
+      "reconfig_storage": {
+        "data": {
+          "storage": "Katalog for å lagre bilder"
+        },
+        "description": "Vennligst oppgi mappen du vil at bildene dine skal lagres i.\nStandard er automatisk fylt ut.",
+        "title": "Bildelagringssted"
+      }
     }
+  }
 }

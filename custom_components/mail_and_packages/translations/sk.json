@@ -1,123 +1,127 @@
 {
-    "config": {
-        "abort": {
-            "single_instance_allowed": "Je povolená iba jedna konfigurácia pošty a balíkov.",
-            "reconfigure_successful": "Rekonfigurácia úspešná"
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Je povolená iba jedna konfigurácia pošty a balíkov.",
+      "reconfigure_successful": "Rekonfigurácia úspešná"
+    },
+    "error": {
+      "communication": "Nedá sa pripojiť alebo prihlásiť na poštový server. Podrobnosti nájdete v protokole.",
+      "invalid_path": "Uložte obrázky do iného adresára.",
+      "ffmpeg_not_found": "Vytvorenie MP4 vyžaduje ffmpeg",
+      "amazon_domain": "Neplatná adresa pre presmerovanie e-mailov.",
+      "file_not_found": "Obrázokový súbor nebol nájdený",
+      "invalid_email_format": "Neplatný formát e-mailovej adresy.",
+      "path_not_found": "Adresár nebol nájdený"
+    },
+    "step": {
+      "user": {
+        "description": "Prosím, zadajte informácie o pripojení k vášmu mailovému serveru.",
+        "data": {
+          "host": "Host",
+          "password": "Heslo",
+          "port": "Port",
+          "username": "Užívateľské meno",
+          "verify_ssl": "Overiť SSL certifikát",
+          "imap_security": "Bezpečnosť IMAP"
         },
-        "error": {
-            "communication": "Nedá sa pripojiť alebo prihlásiť na poštový server. Podrobnosti nájdete v protokole.",
-            "invalid_path": "Uložte obrázky do iného adresára.",
-            "ffmpeg_not_found": "Vytvorenie MP4 vyžaduje ffmpeg",
-            "amazon_domain": "Neplatná adresa pre presmerovanie e-mailov.",
-            "file_not_found": "Obrázokový súbor nebol nájdený",
-            "invalid_email_format": "Neplatný formát e-mailovej adresy.",
-            "path_not_found": "Adresár nebol nájdený"
+        "title": "Pošta a balíky (1. krok z 2)"
+      },
+      "config_2": {
+        "data": {
+          "folder": "Priečinok pošty",
+          "resources": "Zoznam senzorov",
+          "scan_interval": "Interval skenovania (minúty)",
+          "image_path": "Cesta obrázka",
+          "gif_duration": "Trvanie obrázka (sekundy)",
+          "image_security": "Náhodný názov súboru obrázka",
+          "imap_timeout": "Čas v sekundách pred časovým limitom pripojenia (sekundy, minimálne 10)",
+          "generate_mp4": "Vytvorte mp4 z obrázkov",
+          "allow_external": "Vytvorte obrázok pre aplikácie upozornení",
+          "custom_img": "Použiť vlastný obrázok USPS 'bez pošty'?",
+          "amazon_custom_img": "Použiť vlastný obrázok Amazon 'bez dodávky'?",
+          "ups_custom_img": "Použiť vlastný obrázok UPS 'bez dodávky'?",
+          "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM"
         },
-        "step": {
-            "user": {
-                "description": "Prosím, zadajte informácie o pripojení k vášmu mailovému serveru.",
-                "data": {
-                    "host": "Host",
-                    "password": "Heslo",
-                    "port": "Port",
-                    "username": "Užívateľské meno",
-                    "verify_ssl": "Overiť SSL certifikát",
-                    "imap_security": "Bezpečnosť IMAP"
-                },
-                "title": "Pošta a balíky (1. krok z 2)"
-            },
-            "config_2": {
-                "data": {
-                    "folder": "Priečinok pošty",
-                    "resources": "Zoznam senzorov",
-                    "scan_interval": "Interval skenovania (minúty)",
-                    "image_path": "Cesta obrázka",
-                    "gif_duration": "Trvanie obrázka (sekundy)",
-                    "image_security": "Náhodný názov súboru obrázka",
-                    "imap_timeout": "Čas v sekundách pred časovým limitom pripojenia (sekundy, minimálne 10)",
-                    "generate_mp4": "Vytvorte mp4 z obrázkov",
-                    "allow_external": "Vytvorte obrázok pre aplikácie upozornení",
-                    "custom_img": "Použiť vlastný obrázok 'bez obrázka'?",
-                    "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM"
-                },
-                "description": "Dokončite konfiguráciu prispôsobením nasledujúcich položiek na základe štruktúry e-mailu a inštalácie Home Assistant.\n\nPodrobnosti nájdete na [Pošta a balíky integrácia](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) možnosti si pozrite v časti [konfigurácia, šablóny a automatizácie](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) na GitHube.",
-                "title": "Pošta a balíky (krok 2 z 2)"
-            },
-            "config_3": {
-                "data": {
-                    "custom_img_file": "Cesta k vlastnému obrázku: (napr.: images\/my_custom_no_mail.jpg)"
-                },
-                "description": "Zadajte cestu a názov súboru k vášmu vlastnému obrázku bez pošty nižšie.\n\nPríklad: images\/custom_nomail.gif",
-                "title": "Pošta a balíky (Krok 3 z 3)"
-            },
-            "config_amazon": {
-                "data": {
-                    "amazon_domain": "Doména Amazon",
-                    "amazon_fwds": "Amazon preposlal emailové adresy",
-                    "amazon_days": "Dni späť na kontrolu e-mailov od Amazonu"
-                },
-                "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (žiadne) na vymazanie tohto nastavenia.",
-                "title": "Nastavenia Amazon"
-            },
-            "reconfigure": {
-                "data": {
-                    "host": "Host",
-                    "password": "Heslo",
-                    "port": "Port",
-                    "username": "Užívateľské meno",
-                    "imap_security": "Bezpečnosť IMAP",
-                    "verify_ssl": "Overiť SSL certifikát"
-                },
-                "description": "Prosím, zadajte informácie o pripojení k vášmu mailovému serveru.",
-                "title": "Pošta a balíky (1. krok z 2)"
-            },
-            "reconfig_2": {
-                "data": {
-                    "folder": "Priečinok pošty",
-                    "scan_interval": "Interval skenovania (minúty)",
-                    "image_path": "Cesta obrázka",
-                    "gif_duration": "Trvanie obrázka (sekundy)",
-                    "image_security": "Náhodný názov súboru obrázka",
-                    "generate_mp4": "Vytvorte mp4 z obrázkov",
-                    "resources": "Zoznam senzorov",
-                    "imap_timeout": "Čas v sekundách pred časovým limitom pripojenia (sekundy, minimálne 10)",
-                    "allow_external": "Vytvorte obrázok pre aplikácie upozornení",
-                    "custom_img": "Použiť vlastný obrázok 'bez obrázka'?",
-                    "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM"
-                },
-                "description": "Dokončite konfiguráciu prispôsobením nasledujúceho na základe štruktúry vášho e-mailu a inštalácie Home Assistant.\n\nPre podrobnosti o možnostiach [integrácie Mail a Packages](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) si prečítajte [sekciu o konfigurácii, šablónach a automatizáciách](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) na GitHub.\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (none) na vymazanie tohto nastavenia.",
-                "title": "Pošta a balíky (krok 2 z 2)"
-            },
-            "reconfig_3": {
-                "data": {
-                    "custom_img_file": "Cesta k vlastnému obrázku: (napr.: images\/my_custom_no_mail.jpg)"
-                },
-                "description": "Zadajte cestu a názov súboru k vášmu vlastnému obrázku bez pošty nižšie.\n\nPríklad: images\/custom_nomail.gif",
-                "title": "Pošta a balíky (Krok 3 z 3)"
-            },
-            "reconfig_amazon": {
-                "data": {
-                    "amazon_domain": "Doména Amazon",
-                    "amazon_fwds": "Amazon preposlal emailové adresy",
-                    "amazon_days": "Dni späť na kontrolu e-mailov od Amazonu"
-                },
-                "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (žiadne) na vymazanie tohto nastavenia.",
-                "title": "Nastavenia Amazon"
-            },
-            "config_storage": {
-                "data": {
-                    "storage": "Adresár na ukladanie obrázkov"
-                },
-                "description": "Prosím, zadajte adresár, v ktorom chcete ukladať svoje obrázky.\nPredvolená hodnota je automaticky vyplnená.",
-                "title": "Miesto ukladania obrázkov"
-            },
-            "reconfig_storage": {
-                "data": {
-                    "storage": "Adresár na ukladanie obrázkov"
-                },
-                "description": "Prosím, zadajte adresár, v ktorom chcete ukladať svoje obrázky.\nPredvolená hodnota je automaticky vyplnená.",
-                "title": "Miesto ukladania obrázkov"
-            }
-        }
+        "description": "Dokončite konfiguráciu prispôsobením nasledujúcich položiek na základe štruktúry e-mailu a inštalácie Home Assistant.\n\nPodrobnosti nájdete na [Pošta a balíky integrácia](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) možnosti si pozrite v časti [konfigurácia, šablóny a automatizácie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHube.",
+        "title": "Pošta a balíky (krok 2 z 2)"
+      },
+      "config_3": {
+        "data": {
+          "custom_img_file": "Cesta k vlastnému obrázku: (napr.: images/my_custom_no_mail.jpg)"
+        },
+        "description": "Zadajte cestu a názov súboru k vášmu vlastnému obrázku bez pošty nižšie.\n\nPríklad: images/custom_nomail.gif",
+        "title": "Pošta a balíky (Krok 3 z 3)"
+      },
+      "config_amazon": {
+        "data": {
+          "amazon_domain": "Doména Amazon",
+          "amazon_fwds": "Amazon preposlal emailové adresy",
+          "amazon_days": "Dni späť na kontrolu e-mailov od Amazonu"
+        },
+        "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (žiadne) na vymazanie tohto nastavenia.",
+        "title": "Nastavenia Amazon"
+      },
+      "reconfigure": {
+        "data": {
+          "host": "Host",
+          "password": "Heslo",
+          "port": "Port",
+          "username": "Užívateľské meno",
+          "imap_security": "Bezpečnosť IMAP",
+          "verify_ssl": "Overiť SSL certifikát"
+        },
+        "description": "Prosím, zadajte informácie o pripojení k vášmu mailovému serveru.",
+        "title": "Pošta a balíky (1. krok z 2)"
+      },
+      "reconfig_2": {
+        "data": {
+          "folder": "Priečinok pošty",
+          "scan_interval": "Interval skenovania (minúty)",
+          "image_path": "Cesta obrázka",
+          "gif_duration": "Trvanie obrázka (sekundy)",
+          "image_security": "Náhodný názov súboru obrázka",
+          "generate_mp4": "Vytvorte mp4 z obrázkov",
+          "resources": "Zoznam senzorov",
+          "imap_timeout": "Čas v sekundách pred časovým limitom pripojenia (sekundy, minimálne 10)",
+          "allow_external": "Vytvorte obrázok pre aplikácie upozornení",
+          "custom_img": "Použiť vlastný obrázok USPS 'bez pošty'?",
+          "amazon_custom_img": "Použiť vlastný obrázok Amazon 'bez dodávky'?",
+          "ups_custom_img": "Použiť vlastný obrázok UPS 'bez dodávky'?",
+          "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM"
+        },
+        "description": "Dokončite konfiguráciu prispôsobením nasledujúceho na základe štruktúry vášho e-mailu a inštalácie Home Assistant.\n\nPre podrobnosti o možnostiach [integrácie Mail a Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) si prečítajte [sekciu o konfigurácii, šablónach a automatizáciách](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHub.\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (none) na vymazanie tohto nastavenia.",
+        "title": "Pošta a balíky (krok 2 z 2)"
+      },
+      "reconfig_3": {
+        "data": {
+          "custom_img_file": "Cesta k vlastnému obrázku: (napr.: images/my_custom_no_mail.jpg)"
+        },
+        "description": "Zadajte cestu a názov súboru k vášmu vlastnému obrázku bez pošty nižšie.\n\nPríklad: images/custom_nomail.gif",
+        "title": "Pošta a balíky (Krok 3 z 3)"
+      },
+      "reconfig_amazon": {
+        "data": {
+          "amazon_domain": "Doména Amazon",
+          "amazon_fwds": "Amazon preposlal emailové adresy",
+          "amazon_days": "Dni späť na kontrolu e-mailov od Amazonu"
+        },
+        "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (žiadne) na vymazanie tohto nastavenia.",
+        "title": "Nastavenia Amazon"
+      },
+      "config_storage": {
+        "data": {
+          "storage": "Adresár na ukladanie obrázkov"
+        },
+        "description": "Prosím, zadajte adresár, v ktorom chcete ukladať svoje obrázky.\nPredvolená hodnota je automaticky vyplnená.",
+        "title": "Miesto ukladania obrázkov"
+      },
+      "reconfig_storage": {
+        "data": {
+          "storage": "Adresár na ukladanie obrázkov"
+        },
+        "description": "Prosím, zadajte adresár, v ktorom chcete ukladať svoje obrázky.\nPredvolená hodnota je automaticky vyplnená.",
+        "title": "Miesto ukladania obrázkov"
+      }
     }
+  }
 }

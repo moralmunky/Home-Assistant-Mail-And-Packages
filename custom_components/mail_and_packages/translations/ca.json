@@ -1,123 +1,127 @@
 {
-    "config": {
-        "abort": {
-            "single_instance_allowed": "Només es permet una configuració única de correu i paquets.",
-            "reconfigure_successful": "Reconfiguració exitosa"
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Només es permet una única configuració de correu i paquets.",
+      "reconfigure_successful": "Reconfiguració exitosa"
+    },
+    "error": {
+      "communication": "No es pot connectar o iniciar sessió al servidor de correu. Consulteu el registre per obtenir més detalls.",
+      "invalid_path": "Deseu les imatges en un altre directori.",
+      "ffmpeg_not_found": "Generar MP4 requereix ffmpeg",
+      "amazon_domain": "Adreça de correu electrònic de reenviament no vàlida.",
+      "file_not_found": "No s'ha trobat el fitxer d'imatge",
+      "invalid_email_format": "Format d'adreça de correu electrònic no vàlid.",
+      "path_not_found": "Directori no trobat"
+    },
+    "step": {
+      "user": {
+        "description": "Introduïu la informació de connexió del vostre servidor de correu.",
+        "data": {
+          "host": "Amfitrió",
+          "password": "Contrasenya",
+          "port": "Port",
+          "username": "Nom d'usuari",
+          "verify_ssl": "Verifica el certificat SSL",
+          "imap_security": "Seguretat IMAP"
         },
-        "error": {
-            "communication": "No es pot connectar o iniciar la sessió al servidor de correu. Consulteu el registre per obtenir més detalls.",
-            "invalid_path": "Guardeu les imatges en un altre directori.",
-            "ffmpeg_not_found": "Generar MP4 requereix ffmpeg",
-            "amazon_domain": "Adreça de correu electrònic de reenviament no vàlida.",
-            "file_not_found": "No s'ha trobat el fitxer d'imatge",
-            "invalid_email_format": "Format d'adreça de correu electrònic no vàlid.",
-            "path_not_found": "Directori no trobat"
+        "title": "Correu i paquets (pas 1 de 2)"
+      },
+      "config_2": {
+        "data": {
+          "folder": "Carpeta de correu",
+          "resources": "Llista de sensors",
+          "scan_interval": "Interval d'exploració (minuts)",
+          "image_path": "Camí de la imatge",
+          "gif_duration": "Durada de la imatge (segons)",
+          "image_security": "Nom del fitxer d'imatge aleatòria",
+          "imap_timeout": "Temps en segons abans de l'expiració de la connexió (segons, mínim 10)",
+          "generate_mp4": "Crea mp4 a partir d'imatges",
+          "allow_external": "Crea una imatge per a aplicacions de notificacions",
+          "custom_img": "Utilitza la imatge personalitzada USPS 'no hi ha correu'?",
+          "amazon_custom_img": "Utilitza la imatge personalitzada Amazon 'no hi ha lliurament'?",
+          "ups_custom_img": "Utilitza la imatge personalitzada UPS 'no hi ha lliurament'?",
+          "generate_grid": "Crea una quadrícula d'imatges per a models de visió LLM"
         },
-        "step": {
-            "user": {
-                "description": "Introduïu la informació de connexió del vostre servidor de correu.",
-                "data": {
-                    "host": "Amfitrió",
-                    "password": "Contrasenya",
-                    "port": "Port",
-                    "username": "Nom d'usuari",
-                    "verify_ssl": "Verifica el certificat SSL",
-                    "imap_security": "Seguretat IMAP"
-                },
-                "title": "Correu i paquets (pas 1 de 2)"
-            },
-            "config_2": {
-                "data": {
-                    "folder": "Carpeta de correu",
-                    "resources": "Llista de sensors",
-                    "scan_interval": "Interval d'exploració (minuts)",
-                    "image_path": "Camí de la imatge",
-                    "gif_duration": "Durada de la imatge (segons)",
-                    "image_security": "Nom del fitxer d’imatge aleatòria",
-                    "imap_timeout": "Temps en segons abans de l'expiració de la connexió (segons, mínim 10)",
-                    "generate_mp4": "Crea mp4 a partir d’imatges",
-                    "allow_external": "Crea una imatge per a aplicacions de notificacions",
-                    "custom_img": "Utilitza la imatge personalitzada 'no hi ha imatge'?",
-                    "generate_grid": "Crea una quadrícula d'imatges per a models de visió LLM"
-                },
-                "description": "Finalitzeu la configuració personalitzant la següent en funció de la vostra instal·lació de correu electrònic i la instal·lació d’assistència a casa. \n\n Per obtenir més informació sobre les opcions [Integració de paquets i correus] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), reviseu les opcions [configuració, plantilles , secció i automatitzacions] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) a GitHub.",
-                "title": "Correu i paquets (pas 2 de 2)"
-            },
-            "config_3": {
-                "data": {
-                    "custom_img_file": "Camí a la imatge personalitzada: (és a dir: images\/my_custom_no_mail.jpg)"
-                },
-                "description": "Introduïu el camí i el nom del fitxer de la vostra imatge personalitzada de no correu a continuació.\n\nExemple: imatges\/custom_nomail.gif",
-                "title": "Correu i paquets (Pas 3 de 3)"
-            },
-            "config_amazon": {
-                "data": {
-                    "amazon_domain": "Domini d'Amazon",
-                    "amazon_fwds": "Amazon ha reenviat les adreces de correu electrònic",
-                    "amazon_days": "Dies per comprovar els correus electrònics d'Amazon"
-                },
-                "description": "Introduïu el domini des d'on Amazon envia correus electrònics (és a dir: amazon.com o amazon.de)\n\nSi utilitzeu correus electrònics reenviats d'Amazon, separeu cada adreça amb una coma o introduïu (cap) per esborrar aquesta configuració.",
-                "title": "Configuració d'Amazon"
-            },
-            "reconfigure": {
-                "data": {
-                    "host": "Amfitrió",
-                    "password": "Contrasenya",
-                    "port": "Port",
-                    "username": "Nom d'usuari",
-                    "imap_security": "Seguretat IMAP",
-                    "verify_ssl": "Verifica el certificat SSL"
-                },
-                "description": "Introduïu la informació de connexió del vostre servidor de correu.",
-                "title": "Correu i paquets (pas 1 de 2)"
-            },
-            "reconfig_2": {
-                "data": {
-                    "folder": "Carpeta de correu",
-                    "scan_interval": "Interval d'exploració (minuts)",
-                    "image_path": "Camí de la imatge",
-                    "gif_duration": "Durada de la imatge (segons)",
-                    "image_security": "Nom del fitxer d’imatge aleatòria",
-                    "generate_mp4": "Crea mp4 a partir d’imatges",
-                    "resources": "Llista de sensors",
-                    "imap_timeout": "Temps en segons abans de l'expiració de la connexió (segons, mínim 10)",
-                    "allow_external": "Crea una imatge per a aplicacions de notificacions",
-                    "custom_img": "Utilitza la imatge personalitzada 'no hi ha imatge'?",
-                    "generate_grid": "Crea una quadrícula d'imatges per a models de visió LLM"
-                },
-                "description": "Acabeu la configuració personalitzant el següent en funció de l'estructura del vostre correu electrònic i de la instal·lació de Home Assistant.\n\nPer obtenir més detalls sobre les opcions d'[integració de correu i paquets](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration), consulteu la [secció de configuració, plantilles i automatitzacions](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) a GitHub.\n\nSi utilitzeu correus electrònics reenviats d'Amazon, separeu cada adreça amb una coma o introduïu (cap) per esborrar aquesta configuració.",
-                "title": "Correu i paquets (pas 2 de 2)"
-            },
-            "reconfig_3": {
-                "data": {
-                    "custom_img_file": "Camí a la imatge personalitzada: (p. ex.: imatges\/my_custom_no_mail.jpg)"
-                },
-                "description": "Introduïu el camí i el nom del fitxer de la vostra imatge personalitzada de no correu a continuació.\n\nExemple: imatges\/custom_nomail.gif",
-                "title": "Correu i paquets (Pas 3 de 3)"
-            },
-            "reconfig_amazon": {
-                "data": {
-                    "amazon_domain": "Domini d'Amazon",
-                    "amazon_fwds": "Amazon ha reenviat les adreces de correu electrònic",
-                    "amazon_days": "Dies per comprovar els correus electrònics d'Amazon"
-                },
-                "description": "Introduïu el domini des d'on Amazon envia correus electrònics (és a dir: amazon.com o amazon.de)\n\nSi utilitzeu correus electrònics reenviats d'Amazon, separeu cada adreça amb una coma o introduïu (cap) per esborrar aquesta configuració.",
-                "title": "Configuració d'Amazon"
-            },
-            "config_storage": {
-                "data": {
-                    "storage": "Directori per emmagatzemar imatges"
-                },
-                "description": "Introduïu el directori on voleu que es desin les vostres imatges.\nPer defecte, es completa automàticament.",
-                "title": "Ubicació de l'emmagatzematge d'imatges"
-            },
-            "reconfig_storage": {
-                "data": {
-                    "storage": "Directori per emmagatzemar imatges"
-                },
-                "description": "Introduïu el directori on voleu que es desin les vostres imatges.\nPer defecte, es completa automàticament.",
-                "title": "Ubicació de l'emmagatzematge d'imatges"
-            }
-        }
+        "description": "Finalitzeu la configuració personalitzant la següent en funció de la vostra instal·lació de correu electrònic i la instal·lació d'assistència a casa. \n\n Per obtenir més informació sobre les opcions [Integració de paquets i correus] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), reviseu les opcions [configuració, plantilles , secció i automatitzacions] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHub.",
+        "title": "Correu i paquets (pas 2 de 2)"
+      },
+      "config_3": {
+        "data": {
+          "custom_img_file": "Camí a la imatge personalitzada: (és a dir: images/my_custom_no_mail.jpg)"
+        },
+        "description": "Introduïu el camí i el nom del fitxer de la vostra imatge personalitzada de no correu a continuació.\n\nExemple: imatges/custom_nomail.gif",
+        "title": "Correu i paquets (Pas 3 de 3)"
+      },
+      "config_amazon": {
+        "data": {
+          "amazon_domain": "Domini d'Amazon",
+          "amazon_fwds": "Amazon ha reenviat les adreces de correu electrònic",
+          "amazon_days": "Dies per comprovar els correus electrònics d'Amazon"
+        },
+        "description": "Introduïu el domini des d'on Amazon envia correus electrònics (és a dir: amazon.com o amazon.de)\n\nSi utilitzeu correus electrònics reenviats d'Amazon, separeu cada adreça amb una coma o introduïu (cap) per esborrar aquesta configuració.",
+        "title": "Configuració d'Amazon"
+      },
+      "reconfigure": {
+        "data": {
+          "host": "Amfitrió",
+          "password": "Contrasenya",
+          "port": "Port",
+          "username": "Nom d'usuari",
+          "imap_security": "Seguretat IMAP",
+          "verify_ssl": "Verifica el certificat SSL"
+        },
+        "description": "Introduïu la informació de connexió del vostre servidor de correu.",
+        "title": "Correu i paquets (pas 1 de 2)"
+      },
+      "reconfig_2": {
+        "data": {
+          "folder": "Carpeta de correu",
+          "scan_interval": "Interval d'exploració (minuts)",
+          "image_path": "Camí de la imatge",
+          "gif_duration": "Durada de la imatge (segons)",
+          "image_security": "Nom del fitxer d'imatge aleatòria",
+          "generate_mp4": "Crea mp4 a partir d'imatges",
+          "resources": "Llista de sensors",
+          "imap_timeout": "Temps en segons abans de l'expiració de la connexió (segons, mínim 10)",
+          "allow_external": "Crea una imatge per a aplicacions de notificacions",
+          "custom_img": "Utilitza la imatge personalitzada USPS 'no hi ha correu'?",
+          "amazon_custom_img": "Utilitza la imatge personalitzada Amazon 'no hi ha lliurament'?",
+          "ups_custom_img": "Utilitza la imatge personalitzada UPS 'no hi ha lliurament'?",
+          "generate_grid": "Crea una quadrícula d'imatges per a models de visió LLM"
+        },
+        "description": "Acabeu la configuració personalitzant el següent en funció de l'estructura del vostre correu electrònic i de la instal·lació de Home Assistant.\n\nPer obtenir més detalls sobre les opcions d'[integració de correu i paquets](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), consulteu la [secció de configuració, plantilles i automatitzacions](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHub.\n\nSi utilitzeu correus electrònics reenviats d'Amazon, separeu cada adreça amb una coma o introduïu (cap) per esborrar aquesta configuració.",
+        "title": "Correu i paquets (pas 2 de 2)"
+      },
+      "reconfig_3": {
+        "data": {
+          "custom_img_file": "Camí a la imatge personalitzada: (p. ex.: imatges/my_custom_no_mail.jpg)"
+        },
+        "description": "Introduïu el camí i el nom del fitxer de la vostra imatge personalitzada de no correu a continuació.\n\nExemple: imatges/custom_nomail.gif",
+        "title": "Correu i paquets (Pas 3 de 3)"
+      },
+      "reconfig_amazon": {
+        "data": {
+          "amazon_domain": "Domini d'Amazon",
+          "amazon_fwds": "Amazon ha reenviat les adreces de correu electrònic",
+          "amazon_days": "Dies per comprovar els correus electrònics d'Amazon"
+        },
+        "description": "Introduïu el domini des d'on Amazon envia correus electrònics (és a dir: amazon.com o amazon.de)\n\nSi utilitzeu correus electrònics reenviats d'Amazon, separeu cada adreça amb una coma o introduïu (cap) per esborrar aquesta configuració.",
+        "title": "Configuració d'Amazon"
+      },
+      "config_storage": {
+        "data": {
+          "storage": "Directori per emmagatzemar imatges"
+        },
+        "description": "Introduïu el directori on voleu que es desin les vostres imatges.\nPer defecte, es completa automàticament.",
+        "title": "Ubicació de l'emmagatzematge d'imatges"
+      },
+      "reconfig_storage": {
+        "data": {
+          "storage": "Directori per emmagatzemar imatges"
+        },
+        "description": "Introduïu el directori on voleu que es desin les vostres imatges.\nPer defecte, es completa automàticament.",
+        "title": "Ubicació de l'emmagatzematge d'imatges"
+      }
     }
+  }
 }

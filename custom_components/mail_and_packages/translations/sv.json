@@ -1,123 +1,127 @@
 {
-    "config": {
-        "abort": {
-            "single_instance_allowed": "Endast en enda konfiguration av post och paket är tillåten.",
-            "reconfigure_successful": "Omkonfigurering lyckades"
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Endast en enda konfiguration av post och paket är tillåten.",
+      "reconfigure_successful": "Omkonfigurering lyckades"
+    },
+    "error": {
+      "communication": "Det går inte att ansluta eller logga in på e-postservern. Kontrollera loggen för mer information.",
+      "invalid_path": "Förvara bilderna i en annan katalog.",
+      "ffmpeg_not_found": "Generera MP4 kräver ffmpeg",
+      "amazon_domain": "Ogiltig vidarebefordrings e-postadress.",
+      "file_not_found": "Bildfilen hittades inte",
+      "invalid_email_format": "Ogiltigt format för e-postadress.",
+      "path_not_found": "Katalogen hittades inte"
+    },
+    "step": {
+      "user": {
+        "description": "Vänligen ange anslutningsinformationen för din e-postserver.",
+        "data": {
+          "host": "Värd",
+          "password": "Lösenord",
+          "port": "Hamn",
+          "username": "Användarnamn",
+          "verify_ssl": "Verifiera SSL-certifikat",
+          "imap_security": "IMAP-säkerhet"
         },
-        "error": {
-            "communication": "Det går inte att ansluta eller logga in på e-postservern. Kontrollera loggen för mer information.",
-            "invalid_path": "Förvara bilderna i en annan katalog.",
-            "ffmpeg_not_found": "Generera MP4 kräver ffmpeg",
-            "amazon_domain": "Ogiltig vidarebefordrings e-postadress.",
-            "file_not_found": "Bildfilen hittades inte",
-            "invalid_email_format": "Ogiltigt format för e-postadress.",
-            "path_not_found": "Katalogen hittades inte"
+        "title": "Mail och paket (steg 1 av 2)"
+      },
+      "config_2": {
+        "data": {
+          "folder": "E-postmapp",
+          "resources": "Sensorlista",
+          "scan_interval": "Skanningsintervall (minuter)",
+          "image_path": "Bildväg",
+          "gif_duration": "Bildens längd (sekunder)",
+          "image_security": "Slumpmässig bildfilnamn",
+          "imap_timeout": "Tid i sekunder innan anslutningen kopplas från (sekunder, minst 10)",
+          "generate_mp4": "Skapa mp4 från bilder",
+          "allow_external": "Skapa bild för notifikationsappar",
+          "custom_img": "Använd anpassad USPS 'inget post' bild?",
+          "amazon_custom_img": "Använd anpassad Amazon 'ingen leverans' bild?",
+          "ups_custom_img": "Använd anpassad UPS 'ingen leverans' bild?",
+          "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller"
         },
-        "step": {
-            "user": {
-                "description": "Vänligen ange anslutningsinformationen för din e-postserver.",
-                "data": {
-                    "host": "Värd",
-                    "password": "Lösenord",
-                    "port": "Hamn",
-                    "username": "Användarnamn",
-                    "verify_ssl": "Verifiera SSL-certifikat",
-                    "imap_security": "IMAP-säkerhet"
-                },
-                "title": "Mail och paket (steg 1 av 2)"
-            },
-            "config_2": {
-                "data": {
-                    "folder": "E-postmapp",
-                    "resources": "Sensorlista",
-                    "scan_interval": "Skanningsintervall (minuter)",
-                    "image_path": "Bildväg",
-                    "gif_duration": "Bildens längd (sekunder)",
-                    "image_security": "Slumpmässig bildfilnamn",
-                    "imap_timeout": "Tid i sekunder innan anslutningen kopplas från (sekunder, minst 10)",
-                    "generate_mp4": "Skapa mp4 från bilder",
-                    "allow_external": "Skapa bild för notifikationsappar",
-                    "custom_img": "Använd anpassad 'ingen bild' bild?",
-                    "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller"
-                },
-                "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt] (https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) på GitHub.",
-                "title": "Mail och paket (steg 2 av 2)"
-            },
-            "config_3": {
-                "data": {
-                    "custom_img_file": "Sökväg till anpassad bild: (t.ex: bilder\/min_anpassade_ingen_mail.jpg)"
-                },
-                "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder\/anpassad_nomail.gif",
-                "title": "Post och paket (Steg 3 av 3)"
-            },
-            "config_amazon": {
-                "data": {
-                    "amazon_domain": "Amazon domän",
-                    "amazon_fwds": "Amazon vidarebefordrade e-postadresser",
-                    "amazon_days": "Dagar tillbaka för att kontrollera Amazon-e-postmeddelanden"
-                },
-                "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
-                "title": "Amazon-inställningar"
-            },
-            "reconfigure": {
-                "data": {
-                    "host": "Värd",
-                    "password": "Lösenord",
-                    "port": "Hamn",
-                    "username": "Användarnamn",
-                    "imap_security": "IMAP-säkerhet",
-                    "verify_ssl": "Verifiera SSL-certifikat"
-                },
-                "description": "Vänligen ange anslutningsinformationen för din e-postserver.",
-                "title": "Mail och paket (steg 1 av 2)"
-            },
-            "reconfig_2": {
-                "data": {
-                    "folder": "E-postmapp",
-                    "scan_interval": "Skanningsintervall (minuter)",
-                    "image_path": "Bildväg",
-                    "gif_duration": "Bildens längd (sekunder)",
-                    "image_security": "Slumpmässig bildfilnamn",
-                    "generate_mp4": "Skapa mp4 från bilder",
-                    "resources": "Sensorlista",
-                    "imap_timeout": "Tid i sekunder innan anslutningen kopplas från (sekunder, minst 10)",
-                    "allow_external": "Skapa bild för notifikationsappar",
-                    "custom_img": "Använd anpassad 'ingen bild' bild?",
-                    "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller"
-                },
-                "description": "Slutför konfigurationen genom att anpassa följande baserat på din e-poststruktur och Home Assistant-installation.\n\nFör detaljer om [Mail and Packages integration](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) alternativen granska [konfiguration, mallar och automatiseringssektionen](https:\/\/github.com\/moralmunky\/Home-Assistant-Mail-And-Packages\/wiki\/Configuration-and-Email-Settings#configuration) på GitHub.\n\nOm du använder vidarebefordrade e-postmeddelanden från Amazon, separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
-                "title": "Mail och paket (steg 2 av 2)"
-            },
-            "reconfig_3": {
-                "data": {
-                    "custom_img_file": "Sökväg till anpassad bild: (t.ex.: bilder\/min_anpassade_ingen_mail.jpg)"
-                },
-                "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder\/anpassad_nomail.gif",
-                "title": "Post och paket (Steg 3 av 3)"
-            },
-            "reconfig_amazon": {
-                "data": {
-                    "amazon_domain": "Amazon domän",
-                    "amazon_fwds": "Amazon vidarebefordrade e-postadresser",
-                    "amazon_days": "Dagar tillbaka för att kontrollera Amazon-e-postmeddelanden"
-                },
-                "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
-                "title": "Amazon-inställningar"
-            },
-            "config_storage": {
-                "data": {
-                    "storage": "Katalog för att lagra bilder"
-                },
-                "description": "Vänligen ange den katalog du vill att dina bilder ska lagras i.\nStandardinställningen är automatiskt ifylld.",
-                "title": "Bildlagringsplats"
-            },
-            "reconfig_storage": {
-                "data": {
-                    "storage": "Katalog för att lagra bilder"
-                },
-                "description": "Vänligen ange den katalog du vill att dina bilder ska lagras i.\nStandardinställningen är automatiskt ifylld.",
-                "title": "Bildlagringsplats"
-            }
-        }
+        "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
+        "title": "Mail och paket (steg 2 av 2)"
+      },
+      "config_3": {
+        "data": {
+          "custom_img_file": "Sökväg till anpassad bild: (t.ex: bilder/min_anpassade_ingen_mail.jpg)"
+        },
+        "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder/anpassad_nomail.gif",
+        "title": "Post och paket (Steg 3 av 3)"
+      },
+      "config_amazon": {
+        "data": {
+          "amazon_domain": "Amazon domän",
+          "amazon_fwds": "Amazon vidarebefordrade e-postadresser",
+          "amazon_days": "Dagar tillbaka för att kontrollera Amazon-e-postmeddelanden"
+        },
+        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
+        "title": "Amazon-inställningar"
+      },
+      "reconfigure": {
+        "data": {
+          "host": "Värd",
+          "password": "Lösenord",
+          "port": "Hamn",
+          "username": "Användarnamn",
+          "imap_security": "IMAP-säkerhet",
+          "verify_ssl": "Verifiera SSL-certifikat"
+        },
+        "description": "Vänligen ange anslutningsinformationen för din e-postserver.",
+        "title": "Mail och paket (steg 1 av 2)"
+      },
+      "reconfig_2": {
+        "data": {
+          "folder": "E-postmapp",
+          "scan_interval": "Skanningsintervall (minuter)",
+          "image_path": "Bildväg",
+          "gif_duration": "Bildens längd (sekunder)",
+          "image_security": "Slumpmässig bildfilnamn",
+          "generate_mp4": "Skapa mp4 från bilder",
+          "resources": "Sensorlista",
+          "imap_timeout": "Tid i sekunder innan anslutningen kopplas från (sekunder, minst 10)",
+          "allow_external": "Skapa bild för notifikationsappar",
+          "custom_img": "Använd anpassad USPS 'inget post' bild?",
+          "amazon_custom_img": "Använd anpassad Amazon 'ingen leverans' bild?",
+          "ups_custom_img": "Använd anpassad UPS 'ingen leverans' bild?",
+          "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller"
+        },
+        "description": "Slutför konfigurationen genom att anpassa följande baserat på din e-poststruktur och Home Assistant-installation.\n\nFör detaljer om [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) alternativen granska [konfiguration, mallar och automatiseringssektionen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.\n\nOm du använder vidarebefordrade e-postmeddelanden från Amazon, separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
+        "title": "Mail och paket (steg 2 av 2)"
+      },
+      "reconfig_3": {
+        "data": {
+          "custom_img_file": "Sökväg till anpassad bild: (t.ex.: bilder/min_anpassade_ingen_mail.jpg)"
+        },
+        "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder/anpassad_nomail.gif",
+        "title": "Post och paket (Steg 3 av 3)"
+      },
+      "reconfig_amazon": {
+        "data": {
+          "amazon_domain": "Amazon domän",
+          "amazon_fwds": "Amazon vidarebefordrade e-postadresser",
+          "amazon_days": "Dagar tillbaka för att kontrollera Amazon-e-postmeddelanden"
+        },
+        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
+        "title": "Amazon-inställningar"
+      },
+      "config_storage": {
+        "data": {
+          "storage": "Katalog för att lagra bilder"
+        },
+        "description": "Vänligen ange den katalog du vill att dina bilder ska lagras i.\nStandardinställningen är automatiskt ifylld.",
+        "title": "Bildlagringsplats"
+      },
+      "reconfig_storage": {
+        "data": {
+          "storage": "Katalog för att lagra bilder"
+        },
+        "description": "Vänligen ange den katalog du vill att dina bilder ska lagras i.\nStandardinställningen är automatiskt ifylld.",
+        "title": "Bildlagringsplats"
+      }
     }
+  }
 }
