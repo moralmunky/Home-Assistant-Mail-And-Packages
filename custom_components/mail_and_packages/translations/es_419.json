@@ -85,6 +85,8 @@
           "imap_timeout": "Tiempo en segundos antes del tiempo de espera de la conexión (segundos, mínimo 10)",
           "allow_external": "Crea imagen para aplicaciones de notificación",
           "custom_img": "¿Usar imagen personalizada de USPS 'sin correo'?",
+          "amazon_custom_img": "¿Usar imagen personalizada de Amazon 'sin entrega'?",
+          "ups_custom_img": "¿Usar imagen personalizada de UPS 'sin entrega'?",
           "generate_grid": "Crear cuadrícula de imágenes para modelos de visión LLM"
         },
         "description": "Finalice la configuración personalizando lo siguiente en función de la estructura de su correo electrónico y la instalación de Home Assistant.\n\nPara obtener detalles sobre las opciones de [integración de correo y paquetes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), revise la [sección de configuración, plantillas y automatizaciones](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) en GitHub.\n\nSi utiliza correos electrónicos reenviados de Amazon, separe cada dirección con una coma o ingrese (ninguno) para borrar esta configuración.",
