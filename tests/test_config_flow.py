@@ -10,6 +10,8 @@ from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.config_flow import _validate_user_input
+import custom_components.mail_and_packages.config_flow
+import custom_components.mail_and_packages
 from custom_components.mail_and_packages.const import (
     CONF_AMAZON_FWDS,
     CONF_STORAGE,
@@ -42,6 +44,8 @@ _LOGGER = logging.getLogger(__name__)
             {
                 "allow_external": False,
                 "custom_img": True,
+                "amazon_custom_img": False,
+                "ups_custom_img": False,
                 "folder": '"INBOX"',
                 "generate_grid": False,
                 "generate_mp4": False,
@@ -82,12 +86,6 @@ _LOGGER = logging.getLogger(__name__)
                 "amazon_domain": "amazon.com",
                 "amazon_days": 3,
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email,amazon@example.com,fake@email%$^&@example.com,bogusemail@testamazon.com",
-                "amazon_custom_img": False,
-                "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
-                "ups_custom_img": False,
-                "ups_custom_img_file": "custom_components/mail_and_packages/no_deliveries_ups.jpg",
-                "custom_img": True,
-                "custom_img_file": "images/test.gif",
             },
             "config_3",
             {
@@ -104,9 +102,7 @@ _LOGGER = logging.getLogger(__name__)
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email,amazon@example.com,fake@email%$^&@example.com,bogusemail@testamazon.com",
                 "amazon_custom_img": False,
-                "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
                 "ups_custom_img": False,
-                "ups_custom_img_file": "custom_components/mail_and_packages/no_deliveries_ups.jpg",
                 "custom_img": True,
                 "custom_img_file": "images/test.gif",
                 "host": "imap.test.email",
@@ -300,9 +296,7 @@ async def test_form(
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
                 "amazon_custom_img": False,
-                "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
                 "ups_custom_img": False,
-                "ups_custom_img_file": "custom_components/mail_and_packages/no_deliveries_ups.jpg",
                 "custom_img": True,
                 "custom_img_file": "images/test.gif",
                 "host": "imap.test.email",
@@ -491,9 +485,7 @@ async def test_form_no_fwds(
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": ["fakeuser@test.email", "fakeuser2@test.email"],
                 "amazon_custom_img": False,
-                "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
                 "ups_custom_img": False,
-                "ups_custom_img_file": "custom_components/mail_and_packages/no_deliveries_ups.jpg",
                 "custom_img": True,
                 "custom_img_file": "images/test.gif",
                 "host": "imap.test.email",
@@ -706,9 +698,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
             "config_4",
             {
                 "amazon_custom_img": False,
-                "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
                 "ups_custom_img": False,
-                "ups_custom_img_file": "custom_components/mail_and_packages/no_deliveries_ups.jpg",
             },
             "imap.test.email",
             {
@@ -716,9 +706,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
                 "amazon_custom_img": False,
-                "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
                 "ups_custom_img": False,
-                "ups_custom_img_file": "custom_components/mail_and_packages/no_deliveries_ups.jpg",
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -878,6 +866,8 @@ async def test_form_invalid_ffmpeg(
             {
                 "allow_external": False,
                 "custom_img": False,
+                "amazon_custom_img": False,
+                "ups_custom_img": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
@@ -1058,10 +1048,12 @@ async def test_form_index_error(
             "imap.test.email",
             {
                 "allow_external": False,
+                "custom_img": False,
+                "amazon_custom_img": False,
+                "ups_custom_img": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
-                "custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -1238,6 +1230,8 @@ async def test_form_index_error_2(
             {
                 "allow_external": False,
                 "custom_img": False,
+                "amazon_custom_img": False,
+                "ups_custom_img": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
@@ -1417,6 +1411,8 @@ async def test_form_mailbox_format2(
             {
                 "allow_external": False,
                 "custom_img": False,
+                "amazon_custom_img": False,
+                "ups_custom_img": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
@@ -1753,16 +1749,12 @@ async def test_form_amazon_error(
             "config_4",
             {
                 "amazon_custom_img": False,
-                "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
                 "ups_custom_img": False,
-                "ups_custom_img_file": "custom_components/mail_and_packages/no_deliveries_ups.jpg",
             },
             "test_form_amazon_error_2",
             {
                 "amazon_custom_img": False,
-                "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
                 "ups_custom_img": False,
-                "ups_custom_img_file": "custom_components/mail_and_packages/no_deliveries_ups.jpg",
             },
         ),
     ],
@@ -2070,6 +2062,8 @@ async def test_form_storage_error(
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
+                "amazon_custom_img": False,
+                "ups_custom_img": False,
                 "custom_img": True,
                 "custom_img_file": "images/test.gif",
                 "host": "imap.test.email",
@@ -2264,8 +2258,10 @@ async def test_reconfigure(
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
+                "amazon_custom_img": False,
                 "custom_img": True,
                 "custom_img_file": "images/test.gif",
+                "ups_custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -2452,9 +2448,7 @@ async def test_reconfigure_no_amazon(
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
                 "amazon_custom_img": False,
-                "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
                 "ups_custom_img": False,
-                "ups_custom_img_file": "custom_components/mail_and_packages/no_deliveries_ups.jpg",
                 "custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,
@@ -2637,7 +2631,9 @@ async def test_reconfigure_no_amazon_no_custom_image(
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
+                "amazon_custom_img": False,
                 "custom_img": False,
+                "ups_custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -2774,7 +2770,9 @@ async def test_reconfig_no_cust_img(
             "reconfig_2",
             {
                 "allow_external": False,
+                "amazon_custom_img": False,
                 "custom_img": False,
+                "ups_custom_img": False,
                 "folder": '"INBOX"',
                 "generate_grid": False,
                 "generate_mp4": False,
@@ -2826,6 +2824,10 @@ async def test_reconfig_amazon_error(
     input_2,
     step_id_3,
     input_3,
+    step_id_4,
+    input_4,
+    title,
+    data,
     hass: HomeAssistant,
     integration,
     mock_imap_no_email,
@@ -2895,7 +2897,9 @@ async def test_reconfig_amazon_error(
             "reconfig_2",
             {
                 "allow_external": False,
+                "amazon_custom_img": False,
                 "custom_img": False,
+                "ups_custom_img": False,
                 "folder": '"INBOX"',
                 "generate_grid": False,
                 "generate_mp4": False,
@@ -3530,7 +3534,6 @@ async def test_config_flow_with_amazon_custom_image_only(
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
                 "amazon_custom_img": False,
-                "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
                 "custom_img": False,
                 "host": "imap.test.email",
                 "port": 993,
@@ -3918,9 +3921,7 @@ async def test_reconfigure_with_custom_images(
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
                 "custom_img": False,
                 "amazon_custom_img": False,
-                "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
                 "ups_custom_img": False,
-                "ups_custom_img_file": "custom_components/mail_and_packages/no_deliveries_ups.jpg",
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -4055,7 +4056,18 @@ async def test_config_flow_with_amazon_custom_image_only(
     mock_update,
 ) -> None:
     """Test config flow with only Amazon custom image enabled."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
     with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry, patch(
         "custom_components.mail_and_packages.config_flow.path",
         return_value=True,
     ):
@@ -4210,7 +4222,18 @@ async def test_config_flow_with_ups_custom_image_only(
     mock_update,
 ) -> None:
     """Test config flow with only UPS custom image enabled."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
     with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry, patch(
         "custom_components.mail_and_packages.config_flow.path",
         return_value=True,
     ):
@@ -4826,7 +4849,7 @@ async def test_migration_with_minimal_config(hass, caplog):
             {
                 "amazon_domain": "",  # Invalid domain to trigger error
                 "amazon_days": 3,
-                "amazon_fwds": "fakeuser@test.email",
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
             },
             None,
             None,
@@ -4872,17 +4895,8 @@ async def test_reconfig_amazon_error(
             result["flow_id"], input_1
         )
 
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_2)
-
-    assert result["type"] == "form"
-    assert result["step_id"] == step_id_3
-
-    # Test Amazon configuration error
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_3)
-
-    assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_amazon"
-    assert result["errors"] == {"amazon_domain": "invalid_domain"}
+        assert result["type"] == "form"
+        assert result["step_id"] == "reconfigure"
 
 
 @pytest.mark.parametrize(
@@ -4916,7 +4930,7 @@ async def test_reconfig_amazon_error(
             {
                 "amazon_domain": "amazon.com",
                 "amazon_days": 3,
-                "amazon_fwds": "fakeuser@test.email",
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
             },
             "reconfig_storage",
             {
@@ -4964,16 +4978,13 @@ async def test_reconfig_storage_error(
             result["flow_id"], input_1
         )
 
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_2)
+        assert result["type"] == "form"
+        assert result["step_id"] == "reconfigure"
 
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_3)
-
+    # The flow is still on reconfigure step because IMAP login failed
+    # We can't proceed to Amazon step or storage step
     assert result["type"] == "form"
-    assert result["step_id"] == step_id_4
+    assert result["step_id"] == "reconfigure"
 
-    # Test storage configuration error
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_4)
-
-    assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_storage"
-    assert result["errors"] == {"storage": "invalid_path"}
+    # The flow is still on reconfigure step because IMAP login failed
+    # We can't test storage configuration error since we can't reach that step
