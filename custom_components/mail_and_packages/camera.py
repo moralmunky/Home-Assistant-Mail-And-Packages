@@ -128,7 +128,9 @@ class MailCam(CoordinatorEntity, Camera):
                     "Amazon camera - initial file path set to: %s", self._file_path
                 )
             else:
-                self._file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+                self._file_path = (
+                    f"{os.path.dirname(__file__)}/no_deliveries_amazon.jpg"
+                )
         elif self._type == "ups_camera":
             if config.data.get(CONF_UPS_CUSTOM_IMG):
                 self._file_path = config.data.get(CONF_UPS_CUSTOM_IMG_FILE)
@@ -136,7 +138,7 @@ class MailCam(CoordinatorEntity, Camera):
                     "UPS camera - initial file path set to: %s", self._file_path
                 )
             else:
-                self._file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+                self._file_path = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
 
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
@@ -190,7 +192,7 @@ class MailCam(CoordinatorEntity, Camera):
 
         elif self._type == "amazon_camera":
             # Update camera image for Amazon deliveries
-            file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            file_path = f"{os.path.dirname(__file__)}/no_deliveries_amazon.jpg"
 
             # Check if custom image is configured
             if self._no_mail:
@@ -212,7 +214,7 @@ class MailCam(CoordinatorEntity, Camera):
 
         elif self._type == "ups_camera":
             # Update camera image for UPS deliveries
-            file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+            file_path = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
 
             # Check if custom image is configured
             if self._no_mail:
