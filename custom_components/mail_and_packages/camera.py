@@ -10,6 +10,7 @@ from homeassistant.components.camera import Camera
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, CONF_HOST
 from homeassistant.core import ServiceCall
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     ATTR_AMAZON_IMAGE,
@@ -81,7 +82,7 @@ async def async_setup_entry(hass, config, async_add_entities):
     async_add_entities(camera)
 
 
-class MailCam(Camera):
+class MailCam(CoordinatorEntity, Camera):
     """Representation of a local file camera."""
 
     def __init__(
@@ -92,12 +93,12 @@ class MailCam(Camera):
         coordinator,
     ) -> None:
         """Initialize Local File Camera component."""
-        super().__init__()
+        CoordinatorEntity.__init__(self, coordinator)
+        Camera.__init__(self)
 
         self.hass = hass
         self._name = CAMERA_DATA[name][SENSOR_NAME]
         self._type = name
-        self._coordinator = coordinator
         self._host = config.data.get(CONF_HOST)
         self._unique_id = config.entry_id
         # Set custom image paths for each camera type
@@ -108,9 +109,11 @@ class MailCam(Camera):
         elif self._type == "amazon_camera":
             if config.data.get(CONF_AMAZON_CUSTOM_IMG):
                 self._no_mail = config.data.get(CONF_AMAZON_CUSTOM_IMG_FILE)
+                _LOGGER.debug("Amazon camera - custom image enabled: %s", self._no_mail)
         elif self._type == "ups_camera":
             if config.data.get(CONF_UPS_CUSTOM_IMG):
                 self._no_mail = config.data.get(CONF_UPS_CUSTOM_IMG_FILE)
+                _LOGGER.debug("UPS camera - custom image enabled: %s", self._no_mail)
 
         # Set initial file path based on camera type and custom settings
         if self._type == "usps_camera":
@@ -121,20 +124,27 @@ class MailCam(Camera):
         elif self._type == "amazon_camera":
             if config.data.get(CONF_AMAZON_CUSTOM_IMG):
                 self._file_path = config.data.get(CONF_AMAZON_CUSTOM_IMG_FILE)
-            else:
-                self._file_path = (
-                    f"{os.path.dirname(__file__)}/no_deliveries_amazon.jpg"
+                _LOGGER.debug(
+                    "Amazon camera - initial file path set to: %s", self._file_path
                 )
+            else:
+                self._file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
         elif self._type == "ups_camera":
             if config.data.get(CONF_UPS_CUSTOM_IMG):
                 self._file_path = config.data.get(CONF_UPS_CUSTOM_IMG_FILE)
+                _LOGGER.debug(
+                    "UPS camera - initial file path set to: %s", self._file_path
+                )
             else:
-                self._file_path = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
+                self._file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
 
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return image response."""
+        _LOGGER.debug(
+            "Camera %s attempting to read image from: %s", self._name, self._file_path
+        )
         try:
             file = await self.hass.async_add_executor_job(open, self._file_path, "rb")
             return file.read()
@@ -158,11 +168,11 @@ class MailCam(Camera):
         _LOGGER.debug("Custom No Mail: %s", self._no_mail)
         file_path = None
 
-        if not self._coordinator.last_update_success:
+        if not self.coordinator.last_update_success:
             _LOGGER.debug("Update to update camera image. Unavailable.")
             return
 
-        if self._coordinator.data is None:
+        if self.coordinator.data is None:
             _LOGGER.debug("Unable to update camera image, no data.")
             return
 
@@ -170,9 +180,9 @@ class MailCam(Camera):
             # Update camera image for USPS informed delivery images
             file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
             s1 = set([ATTR_IMAGE_NAME, ATTR_IMAGE_PATH])
-            if s1.issubset(self._coordinator.data.keys()):
-                image = self._coordinator.data[ATTR_IMAGE_NAME]
-                path = self._coordinator.data[ATTR_IMAGE_PATH]
+            if s1.issubset(self.coordinator.data.keys()):
+                image = self.coordinator.data[ATTR_IMAGE_NAME]
+                path = self.coordinator.data[ATTR_IMAGE_PATH]
                 file_path = f"{self.hass.config.path()}/{path}{image}"
             else:
                 if self._no_mail:
@@ -180,39 +190,43 @@ class MailCam(Camera):
 
         elif self._type == "amazon_camera":
             # Update camera image for Amazon deliveries
-            file_path = f"{os.path.dirname(__file__)}/no_deliveries_amazon.jpg"
-            s1 = set([ATTR_AMAZON_IMAGE, ATTR_IMAGE_PATH])
-            if s1.issubset(self._coordinator.data.keys()):
-                image = self._coordinator.data[ATTR_AMAZON_IMAGE]
-                path = f"{self._coordinator.data[ATTR_IMAGE_PATH]}amazon/"
-                file_path = f"{self.hass.config.path()}/{path}{image}"
+            file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+
+            # Check if custom image is configured
+            if self._no_mail:
+                # Use custom image (takes priority over everything)
+                file_path = self._no_mail
+                _LOGGER.debug(
+                    "Amazon camera - using custom no mail image: %s", file_path
+                )
             else:
-                if self._no_mail:
-                    file_path = self._no_mail
+                # Use coordinator data (actual deliveries or generated "no delivery" images)
+                s1 = set([ATTR_AMAZON_IMAGE, ATTR_IMAGE_PATH])
+                if s1.issubset(self.coordinator.data.keys()):
+                    image = self.coordinator.data[ATTR_AMAZON_IMAGE]
+                    path = f"{self.coordinator.data[ATTR_IMAGE_PATH]}amazon/"
+                    file_path = f"{self.hass.config.path()}/{path}{image}"
+                    _LOGGER.debug(
+                        "Amazon camera - using coordinator data: %s", file_path
+                    )
 
         elif self._type == "ups_camera":
             # Update camera image for UPS deliveries
-            file_path = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
-            s1 = set([ATTR_UPS_IMAGE, ATTR_IMAGE_PATH])
-            _LOGGER.debug("UPS camera - checking for attributes: %s", s1)
-            _LOGGER.debug(
-                "UPS camera - available data keys: %s",
-                (
-                    list(self._coordinator.data.keys())
-                    if self._coordinator.data
-                    else "None"
-                ),
-            )
-            if s1.issubset(self._coordinator.data.keys()):
-                image = self._coordinator.data[ATTR_UPS_IMAGE]
-                path = f"{self._coordinator.data[ATTR_IMAGE_PATH]}ups/"
-                file_path = f"{self.hass.config.path()}/{path}{image}"
-                _LOGGER.debug("UPS camera - using coordinator data: %s", file_path)
+            file_path = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+
+            # Check if custom image is configured
+            if self._no_mail:
+                # Use custom image (takes priority over everything)
+                file_path = self._no_mail
+                _LOGGER.debug("UPS camera - using custom no mail: %s", file_path)
             else:
-                _LOGGER.debug("UPS camera - using fallback: %s", file_path)
-                if self._no_mail:
-                    file_path = self._no_mail
-                    _LOGGER.debug("UPS camera - using custom no mail: %s", file_path)
+                # Use coordinator data (actual deliveries or generated "no delivery" images)
+                s1 = set([ATTR_UPS_IMAGE, ATTR_IMAGE_PATH])
+                if s1.issubset(self.coordinator.data.keys()):
+                    image = self.coordinator.data[ATTR_UPS_IMAGE]
+                    path = f"{self.coordinator.data[ATTR_IMAGE_PATH]}ups/"
+                    file_path = f"{self.hass.config.path()}/{path}{image}"
+                    _LOGGER.debug("UPS camera - using coordinator data: %s", file_path)
 
         self.check_file_path_access(file_path)
         self._file_path = file_path
