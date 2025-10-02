@@ -70,7 +70,7 @@ _LOGGER = logging.getLogger(__name__)
 AMAZON_EMAIL_ERROR = (
     "Amazon domain found in email: %s, this may cause errors when searching emails."
 )
-FORWARDED_EMAIL_ERROR = "A service domain was found in email: %s, this may cause errors when searching emails."
+FORWARDED_EMAIL_ERROR = "A service domain was found in email: %s, this may cause errors when searching emails."  # pylint: disable=line-too-long
 
 
 async def _check_amazon_forwards(forwards: str, domain: str) -> tuple:
