@@ -26,6 +26,7 @@ from tests.const import (
     FAKE_CONFIG_DATA_CAPOST,
     FAKE_CONFIG_DATA_CUSTOM_IMG,
     FAKE_CONFIG_DATA_EXTERNAL,
+    FAKE_CONFIG_DATA_FORWARDED_EMAILS_NO_AMAZON,
     FAKE_CONFIG_DATA_MISSING_TIMEOUT,
     FAKE_CONFIG_DATA_NO_PATH,
     FAKE_CONFIG_DATA_V4_MIGRATE,
@@ -189,6 +190,22 @@ async def integration_fixture_8(hass):
         domain=DOMAIN,
         title="imap.test.email",
         data=FAKE_CONFIG_DATA_CAPOST,
+        version=CONFIG_VER,
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    yield entry
+
+
+@pytest.fixture(name="integration_forwarded_emails_no_amazon")
+async def integration_fixture_9(hass):
+    """Set up the mail_and_packages integration."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_FORWARDED_EMAILS_NO_AMAZON,
         version=CONFIG_VER,
     )
     entry.add_to_hass(hass)
@@ -1904,6 +1921,32 @@ def mock_imap_amazon_arriving_today():
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_out_for_delivery_today.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+
+        yield mock_conn
+
+@pytest.fixture()
+def mock_imap_informed_delivery_forwarded_email():
+    """Mock imap class values."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_informed_delivery_forwarded_email:
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
+        mock_imap_informed_delivery_forwarded_email.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/informed_delivery_forwarded_email.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])

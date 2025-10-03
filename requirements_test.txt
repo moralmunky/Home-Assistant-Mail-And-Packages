@@ -13,3 +13,4 @@ homeassistant
 freezegun
 cython
 PyTurboJPEG
+tox<4
