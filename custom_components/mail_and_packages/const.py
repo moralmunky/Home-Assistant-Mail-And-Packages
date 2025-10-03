@@ -63,6 +63,8 @@ CONF_AMAZON_DAYS = "amazon_days"
 CONF_VERIFY_SSL = "verify_ssl"
 CONF_IMAP_SECURITY = "imap_security"
 CONF_AMAZON_DOMAIN = "amazon_domain"
+CONF_ALLOW_FORWARDED_EMAILS = "allow_forwarded_emails"
+CONF_FORWARDED_EMAILS = "forwarded_emails"
 
 # Defaults
 DEFAULT_CAMERA_NAME = "Mail USPS Camera"
@@ -90,6 +92,8 @@ DEFAULT_UPS_CUSTOM_IMG_FILE = (
 DEFAULT_AMAZON_DAYS = 3
 DEFAULT_AMAZON_DOMAIN = "amazon.com"
 DEFAULT_STORAGE = "custom_components/mail_and_packages/images/"
+DEFAULT_ALLOW_FORWARDED_EMAILS = False
+DEFAULT_FORWARDED_EMAILS = "(none)"
 
 # Amazon
 AMAZON_DOMAINS = [

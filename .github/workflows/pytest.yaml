@@ -24,7 +24,7 @@ jobs:
       - name: 🛠️ Set up Python
         uses: actions/setup-python@v5
         with:
-          fetch-depth: 2      
+          fetch-depth: 2
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -37,7 +37,7 @@ jobs:
             libturbojpeg
       - name: 📦 Install requirements
         run: |
-          pip install tox tox-gh-actions          
+          pip install tox tox-gh-actions
       - name: 🏃 Test with tox
         run: tox
       - name: 📤 Upload coverage to Codecov

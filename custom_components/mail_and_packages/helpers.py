@@ -33,6 +33,8 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.util import ssl
 from PIL import Image, ImageOps
+from voluptuous import Email, MultipleInvalid, Schema
+
 
 from .const import (
     AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT,
@@ -86,6 +88,7 @@ from .const import (
     CONF_UPS_CUSTOM_IMG_FILE,
     CONF_DURATION,
     CONF_FOLDER,
+    CONF_FORWARDED_EMAILS,
     CONF_GENERATE_GRID,
     CONF_GENERATE_MP4,
     CONF_IMAP_SECURITY,
@@ -466,6 +469,11 @@ def fetch(
     amazon_image_name = data[ATTR_AMAZON_IMAGE]
     amazon_days = config.get(CONF_AMAZON_DAYS)
 
+    # Combine the amazon forwarded emails with the configured forwarded emails (for now)
+    forwarded_emails = amazon_fwds + cv.ensure_list_csv(
+        config.get(CONF_FORWARDED_EMAILS)
+    )
+
     # Conditional variables
     nomail = (
         config.get(CONF_CUSTOM_IMG_FILE) if config.get(CONF_CUSTOM_IMG_FILE) else None
@@ -488,32 +496,33 @@ def fetch(
             generate_mp4,
             nomail,
             generate_grid,
+            forwarded_emails,
         )
     elif sensor == AMAZON_PACKAGES:
         count[sensor] = get_items(
             account,
             ATTR_COUNT,
-            amazon_fwds,
+            forwarded_emails,
             amazon_days,
             amazon_domain,
         )
         count[AMAZON_ORDER] = get_items(
             account,
             ATTR_ORDER,
-            amazon_fwds,
+            forwarded_emails,
             amazon_days,
             amazon_domain,
         )
     elif sensor == AMAZON_HUB:
-        value = amazon_hub(account, amazon_fwds)
+        value = amazon_hub(account, forwarded_emails)
         count[sensor] = value[ATTR_COUNT]
         count[AMAZON_HUB_CODE] = value[ATTR_CODE]
     elif sensor == AMAZON_EXCEPTION:
-        info = amazon_exception(account, amazon_fwds, amazon_domain)
+        info = amazon_exception(account, forwarded_emails, amazon_domain)
         count[sensor] = info[ATTR_COUNT]
         count[AMAZON_EXCEPTION_ORDER] = info[ATTR_ORDER]
     elif sensor == AMAZON_OTP:
-        count[sensor] = amazon_otp(account, amazon_fwds)
+        count[sensor] = amazon_otp(account, forwarded_emails)
     elif "_packages" in sensor:
         prefix = sensor.replace("_packages", "")
         delivering = fetch(hass, config, account, data, f"{prefix}_delivering")
@@ -523,7 +532,13 @@ def fetch(
         prefix = sensor.replace("_delivering", "")
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
         info = get_count(
-            account, sensor, True, amazon_domain=amazon_domain, data=data, config=config
+            account,
+            sensor,
+            True,
+            amazon_domain=amazon_domain,
+            data=data,
+            config=config,
+            forwarded_emails=forwarded_emails,
         )
         count[sensor] = max(0, info[ATTR_COUNT] - delivered)
         count[f"{prefix}_tracking"] = info[ATTR_TRACKING]
@@ -579,7 +594,7 @@ def fetch(
             hass,
             amazon_image_name,
             amazon_domain,
-            amazon_fwds,
+            forwarded_emails,
             data=data,
             config=config,
         )[ATTR_COUNT]
@@ -775,6 +790,7 @@ def get_mails(
     gen_mp4: bool = False,
     custom_img: str = None,
     gen_grid: bool = False,
+    forwarded_emails: list[str] = None,
 ) -> int:
     """Create GIF image based on the attachments in the inbox."""
     image_count = 0
@@ -785,9 +801,14 @@ def get_mails(
     _LOGGER.debug("Attempting to find Informed Delivery mail")
     _LOGGER.debug("Informed delivery search date: %s", get_formatted_date())
 
+    if forwarded_emails:
+        email_addresses = forwarded_emails + SENSOR_DATA[ATTR_USPS_MAIL][ATTR_EMAIL]
+    else:
+        email_addresses = SENSOR_DATA[ATTR_USPS_MAIL][ATTR_EMAIL]
+
     (server_response, data) = email_search(
         account,
-        SENSOR_DATA[ATTR_USPS_MAIL][ATTR_EMAIL],
+        email_addresses,
         get_formatted_date(),
         SENSOR_DATA[ATTR_USPS_MAIL][ATTR_SUBJECT][0],
     )
@@ -1117,7 +1138,7 @@ def get_count(
     hass: Optional[HomeAssistant] = None,
     amazon_image_name: Optional[str] = None,
     amazon_domain: Optional[str] = None,
-    amazon_fwds: Optional[str] = None,
+    forwarded_emails: list[str] = None,
     data: Optional[dict] = None,
     config: Optional[ConfigEntry] = None,
 ) -> dict:
@@ -1141,7 +1162,7 @@ def get_count(
             hass,
             amazon_image_name,
             amazon_domain,
-            amazon_fwds,
+            forwarded_emails,
             data,
         )
         result[ATTR_TRACKING] = ""
@@ -1153,7 +1174,7 @@ def get_count(
             data.get(ATTR_UPS_IMAGE, "ups_delivery.jpg") if data else "ups_delivery.jpg"
         )
         result[ATTR_COUNT] = ups_search(
-            account, image_path, hass, ups_image_name, config, data
+            account, image_path, hass, ups_image_name, config, data, forwarded_emails
         )
 
         # Extract tracking number if requested
@@ -1183,16 +1204,21 @@ def get_count(
         result[ATTR_TRACKING] = ""
         return result
 
+    if forwarded_emails:
+        email_addresses = forwarded_emails + SENSOR_DATA[sensor_type][ATTR_EMAIL]
+    else:
+        email_addresses = SENSOR_DATA[sensor_type][ATTR_EMAIL]
+
     subjects = SENSOR_DATA[sensor_type][ATTR_SUBJECT]
     for subject in subjects:
         _LOGGER.debug(
             "Attempting to find mail from (%s) with subject (%s)",
-            SENSOR_DATA[sensor_type][ATTR_EMAIL],
+            email_addresses,
             subject,
         )
 
         (server_response, email_data) = email_search(
-            account, SENSOR_DATA[sensor_type][ATTR_EMAIL], today, subject
+            account, email_addresses, today, subject
         )
         if server_response == "OK" and email_data[0] is not None:
             if ATTR_BODY in SENSOR_DATA[sensor_type].keys():
@@ -1206,7 +1232,7 @@ def get_count(
 
             _LOGGER.debug(
                 "Search for (%s) with subject (%s) results: %s count: %s",
-                SENSOR_DATA[sensor_type][ATTR_EMAIL],
+                email_addresses,
                 subject,
                 email_data[0],
                 count,
@@ -1387,6 +1413,7 @@ def ups_search(
     ups_image_name: str,
     config: Optional[ConfigEntry] = None,
     coordinator_data: Optional[dict] = None,
+    forwarded_emails: Optional[dict] = None,
 ) -> int:
     """Search for UPS delivery emails and extract delivery photos."""
     _LOGGER.debug("Searching for UPS delivery emails")
@@ -1396,10 +1423,15 @@ def ups_search(
     count = 0
     new_image_saved = False
 
+    if forwarded_emails:
+        email_addresses = forwarded_emails + SENSOR_DATA["ups_delivered"][ATTR_EMAIL]
+    else:
+        email_addresses = SENSOR_DATA["ups_delivered"][ATTR_EMAIL]
+
     # Search for UPS delivered emails
     (server_response, data) = email_search(
         account,
-        SENSOR_DATA["ups_delivered"][ATTR_EMAIL],
+        email_addresses,
         today,
         SENSOR_DATA["ups_delivered"][ATTR_SUBJECT][0],
     )
@@ -1722,7 +1754,7 @@ def _process_amazon_forwards(email_list: str | list | None) -> list:
     return result
 
 
-def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> dict:
+def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: list[str] = None) -> dict:
     """Find Amazon Hub info emails.
 
     Returns dict of sensor data
@@ -2185,3 +2217,39 @@ def get_items(
 
     _LOGGER.debug("Amazon value: %s", str(value))
     return value
+
+
+def generate_service_email_domains(amazon_fwds: list) -> set[str]:
+    """Generate a set of service email domains from amazon domains and SENSOR_DATA.
+
+    Returns:
+        set[str]: A set of unique email domains.
+    """
+    domains = {fwd.split("@")[1] for fwd in amazon_fwds if "@" in fwd}
+    for sensor in SENSOR_DATA.values():
+        for address in sensor.get("email", []):
+            if "@" not in address:
+                continue
+            domains.add(address.split("@")[1])
+    return domains
+
+
+def validate_email_address(email_address: str) -> bool:
+    """
+    Validate the format of an email address.
+
+    Args:
+        email_address (str): The email address to validate.
+
+    Returns:
+        bool: `True` if the email address is valid, `False` otherwise.
+    """
+    try:
+        schema = Schema(Email())  # pylint: disable=no-value-for-parameter
+        schema(email_address)
+    except MultipleInvalid:
+        _LOGGER.error("'%s' does not look like a valid email address", email_address)
+        return False
+
+    _LOGGER.info("%s is a valid email address", email_address)
+    return True

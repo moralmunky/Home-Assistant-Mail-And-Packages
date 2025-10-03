@@ -11,6 +11,7 @@
       "amazon_domain": "Invalid forwarding email address.",
       "file_not_found": "Image file not found",
       "invalid_email_format": "Invalid email address format.",
+      "missing_forwarded_emails": "Missing forwarded email addresses. You may enter '(none)' to clear this setting.",
       "path_not_found": "Directory not found"
     },
     "step": {
@@ -40,7 +41,8 @@
           "allow_external": "Create image for notification apps",
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
-          "ups_custom_img": "Use custom 'no UPS delivery' image?"
+          "ups_custom_img": "Use custom 'no UPS delivery' image?",
+          "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
         },
         "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please separate each address with a comma.",
         "title": "Mail and Packages (Step 2 of 2)"
@@ -62,6 +64,13 @@
         },
         "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please seperate each address with a comma or enter (none) to clear this setting.",
         "title": "Amazon Settings"
+      },
+      "config_forwarded_emails": {
+        "data": {
+          "forwarded_emails": "Forwarded Email Addresses"
+        },
+        "description": "By default, the Mail and Packages integration only searches for messages matching a service's address.\n\nIf you want to use forwarded emails, please separate each address messages will be coming from with a comma or enter '(none)' to clear this setting.",
+        "title": "Forwarded Email Addresses"
       },
       "reconfigure": {
         "data": {
@@ -89,7 +98,8 @@
           "allow_external": "Create image for notification apps",
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
-          "ups_custom_img": "Use custom 'no UPS delivery' image?"
+          "ups_custom_img": "Use custom 'no UPS delivery' image?",
+          "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
         },
         "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
         "title": "Mail and Packages (Step 2 of 2)"
@@ -125,6 +135,13 @@
         },
         "description": "Please enter the directory you'd like your images to be stored in.\nThe default is auto populated.",
         "title": "Image storage location"
+      },
+      "reconfig_forwarded_emails": {
+          "data": {
+          "forwarded_emails": "Forwarded Email Addresses"
+        },
+        "description": "By default, the Mail and Packages integration only searches for messages matching a service's address.\n\nIf you want to use forwarded emails, please separate each address messages will be coming from with a comma or enter '(none)' to clear this setting.",
+        "title": "Forwarded Email Addresses"
       }
     }
   }
