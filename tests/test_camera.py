@@ -1,6 +1,6 @@
 """Tests for camera component."""
 
-from unittest.mock import mock_open, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -600,6 +600,8 @@ async def test_camera_entity_creation(
         "camera.mail_usps_camera",
         "camera.mail_amazon_delivery_camera",
         "camera.mail_ups_camera",
+        "camera.mail_walmart_delivery_camera",
+        "camera.mail_generic_delivery_camera",
     ]
 
     for camera_entity in expected_cameras:
@@ -630,6 +632,8 @@ async def test_camera_image_update_service(
         "camera.mail_usps_camera",
         "camera.mail_amazon_delivery_camera",
         "camera.mail_ups_camera",
+        "camera.mail_walmart_delivery_camera",
+        "camera.mail_generic_delivery_camera",
     ]
 
     for camera_entity in cameras_to_test:
@@ -649,3 +653,826 @@ async def test_camera_image_update_service(
             assert state_after.attributes.get(
                 "file_path"
             ) == state_before.attributes.get("file_path")
+
+
+async def test_generic_camera(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Generic camera functionality."""
+    entry = integration
+
+    entries = hass.config_entries.async_entries(DOMAIN)
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ):
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
+        assert (
+            "custom_components/mail_and_packages/no_deliveries_generic.jpg"
+            in state.attributes.get("file_path")
+        )
+
+        service_data = {"entity_id": "camera.mail_generic_delivery_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+
+        assert (
+            "custom_components/mail_and_packages/no_deliveries_generic.jpg"
+            in state.attributes.get("file_path")
+        )
+
+    # Unload the config
+    await hass.config_entries.async_unload(entries[0].entry_id)
+    await hass.async_block_till_done()
+    await hass.config_entries.async_remove(entries[0].entry_id)
+    await hass.async_block_till_done()
+
+    # Load new config with custom img settings
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
+    )
+
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ):
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
+        assert "images/test_generic.jpg" in state.attributes.get("file_path")
+
+        service_data = {"entity_id": "camera.mail_generic_delivery_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+        assert "images/test_generic.jpg" in state.attributes.get("file_path")
+        assert "Custom No Mail: images/test_generic.jpg" in caplog.text
+
+
+async def test_generic_camera_with_delivery_images(
+    hass,
+    integration,
+    mock_imap_amazon_delivered,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Generic camera with delivery images from other cameras."""
+    entry = integration
+
+    # Mock coordinator data with Amazon delivery image
+    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator.data = {
+        "amazon_image": "test_amazon_delivery.jpg",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ), patch("os.path.exists", return_value=True):
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
+
+        # Update the camera to use the new data
+        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        generic_camera = None
+        for camera in cameras:
+            if camera._type == "generic_camera":
+                generic_camera = camera
+                break
+
+        generic_camera.update_file_path()
+        await hass.async_block_till_done()
+
+        # Get the updated state after the file path update
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+
+        # Check that it's using the Amazon delivery image
+        assert "test_amazon_delivery.jpg" in state.attributes.get("file_path")
+
+
+async def test_generic_camera_with_ups_delivery_images(
+    hass,
+    integration,
+    mock_imap_ups_delivered_with_photo,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Generic camera with UPS delivery images."""
+    entry = integration
+
+    # Mock coordinator data with UPS delivery image
+    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator.data = {
+        "ups_image": "test_ups_delivery.jpg",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ), patch("os.path.exists", return_value=True):
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
+
+        # Update the camera to use the new data
+        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        generic_camera = None
+        for camera in cameras:
+            if camera._type == "generic_camera":
+                generic_camera = camera
+                break
+
+        generic_camera.update_file_path()
+        await hass.async_block_till_done()
+
+        # Get the updated state after the file path update
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+
+        # Check that it's using the UPS delivery image
+        assert "test_ups_delivery.jpg" in state.attributes.get("file_path")
+
+
+async def test_generic_camera_with_walmart_delivery_images(
+    hass,
+    integration,
+    mock_imap_walmart_delivered_with_photo,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Generic camera with Walmart delivery images."""
+    entry = integration
+
+    # Mock coordinator data with Walmart delivery image
+    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator.data = {
+        "walmart_image": "test_walmart_delivery.jpg",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ), patch("os.path.exists", return_value=True):
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
+
+        # Update the camera to use the new data
+        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        generic_camera = None
+        for camera in cameras:
+            if camera._type == "generic_camera":
+                generic_camera = camera
+                break
+
+        generic_camera.update_file_path()
+        await hass.async_block_till_done()
+
+        # Get the updated state after the file path update
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+
+        # Check that it's using the Walmart delivery image
+        assert "test_walmart_delivery.jpg" in state.attributes.get("file_path")
+
+
+async def test_generic_camera_with_usps_delivery_images_manual(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Generic camera with USPS delivery images using manual coordinator data."""
+    entry = integration
+
+    # Mock coordinator data with USPS delivery image
+    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator.data = {
+        "image_name": "test_usps_delivery.gif",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ), patch("os.path.exists", return_value=True):
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
+
+        # Update the camera to use the new data
+        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        generic_camera = None
+        for camera in cameras:
+            if camera._type == "generic_camera":
+                generic_camera = camera
+                break
+
+        generic_camera.update_file_path()
+        await hass.async_block_till_done()
+
+        # Get the updated state after the file path update
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+
+        # Check that it's using the USPS delivery image
+        assert "test_usps_delivery.gif" in state.attributes.get("file_path")
+
+
+async def test_generic_camera_with_all_delivery_types(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Generic camera with all delivery types (Amazon, UPS, USPS, Walmart) to create animated GIF."""
+    entry = integration
+
+    # Mock coordinator data with all delivery types
+    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator.data = {
+        # Amazon delivery
+        "amazon_image": "test_amazon_delivery.jpg",
+        # UPS delivery  
+        "ups_image": "test_ups_delivery.jpg",
+        # USPS delivery
+        "image_name": "test_usps_delivery.gif",
+        # Walmart delivery
+        "walmart_image": "test_walmart_delivery.jpg",
+        # Common path
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ), patch("os.path.exists", return_value=True), patch("PIL.Image.open") as mock_pil_open, patch("PIL.Image.save") as mock_pil_save:
+        # Mock PIL Image objects
+        mock_image = MagicMock()
+        mock_pil_open.return_value = mock_image
+        
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
+
+        # Update the camera to use the new data
+        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        generic_camera = None
+        for camera in cameras:
+            if camera._type == "generic_camera":
+                generic_camera = camera
+                break
+
+        generic_camera.update_file_path()
+        await hass.async_block_till_done()
+
+        # Get the updated state after the file path update
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+
+        # Should create animated GIF with all 4 delivery images
+        assert "generic_deliveries.gif" in state.attributes.get("file_path")
+        assert "Generic camera - created animated GIF with 4 delivery images" in caplog.text
+        
+        # Verify PIL was called to create animated GIF
+        mock_pil_save.assert_called_once()
+
+
+async def test_generic_camera_filters_no_mail_images(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Generic camera properly filters out 'no mail' images."""
+    entry = integration
+
+    # Mock coordinator data with mix of delivery and "no mail" images
+    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator.data = {
+        # Amazon - actual delivery
+        "amazon_image": "test_amazon_delivery.jpg",
+        # UPS - no mail image (should be filtered out)
+        "ups_image": "no_deliveries_ups.jpg",
+        # USPS - no mail image (should be filtered out)
+        "image_name": "mail_none.gif",
+        # Walmart - actual delivery
+        "walmart_image": "test_walmart_delivery.jpg",
+        # Common path
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ), patch("os.path.exists", return_value=True), patch("PIL.Image.open") as mock_pil_open, patch("PIL.Image.save") as mock_pil_save:
+        # Mock PIL Image objects
+        mock_image = MagicMock()
+        mock_pil_open.return_value = mock_image
+        
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
+
+        # Update the camera to use the new data
+        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        generic_camera = None
+        for camera in cameras:
+            if camera._type == "generic_camera":
+                generic_camera = camera
+                break
+
+        generic_camera.update_file_path()
+        await hass.async_block_till_done()
+
+        # Get the updated state after the file path update
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+
+        # Should create animated GIF with only 2 actual delivery images (Amazon and Walmart)
+        assert "generic_deliveries.gif" in state.attributes.get("file_path")
+        assert "Generic camera - created animated GIF with 2 delivery images" in caplog.text
+        
+        # Verify PIL was called to create animated GIF
+        mock_pil_save.assert_called_once()
+
+
+async def test_generic_camera_respects_enabled_sensors(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Generic camera only includes cameras whose sensors are enabled in config."""
+    entry = integration
+
+    # Mock coordinator data with all delivery types
+    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator.data = {
+        # Amazon delivery
+        "amazon_image": "test_amazon_delivery.jpg",
+        # UPS delivery  
+        "ups_image": "test_ups_delivery.jpg",
+        # USPS delivery
+        "image_name": "test_usps_delivery.gif",
+        # Walmart delivery
+        "walmart_image": "test_walmart_delivery.jpg",
+        # Common path
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    # Mock config to only enable Amazon and Walmart sensors
+    entry.data = entry.data.copy()
+    entry.data["resources"] = ["amazon_delivered", "walmart_delivered"]  # Only Amazon and Walmart enabled
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ), patch("os.path.exists", return_value=True), patch("PIL.Image.open") as mock_pil_open, patch("PIL.Image.save") as mock_pil_save:
+        # Mock PIL Image objects
+        mock_image = MagicMock()
+        mock_pil_open.return_value = mock_image
+        
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
+
+        # Update the camera to use the new data
+        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        generic_camera = None
+        for camera in cameras:
+            if camera._type == "generic_camera":
+                generic_camera = camera
+                break
+
+        generic_camera.update_file_path()
+        await hass.async_block_till_done()
+
+        # Get the updated state after the file path update
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+
+        # Should create animated GIF with only 2 delivery images (Amazon and Walmart)
+        # UPS and USPS should be skipped because their sensors are not enabled
+        assert "generic_deliveries.gif" in state.attributes.get("file_path")
+        assert "Generic camera - created animated GIF with 2 delivery images" in caplog.text
+        assert "Generic camera - skipping ups (sensor ups_delivered not enabled)" in caplog.text
+        assert "Generic camera - skipping usps (sensor usps_mail not enabled)" in caplog.text
+        
+        # Verify PIL was called to create animated GIF
+        mock_pil_save.assert_called_once()
+
+
+async def test_generic_camera_with_custom_image(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Generic camera with custom image functionality."""
+    # Unload the default config
+    entries = hass.config_entries.async_entries(DOMAIN)
+    await hass.config_entries.async_unload(entries[0].entry_id)
+    await hass.async_block_till_done()
+    await hass.config_entries.async_remove(entries[0].entry_id)
+    await hass.async_block_till_done()
+
+    # Load config with custom Generic image settings
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
+    )
+
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ):
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
+        assert "images/test_generic.jpg" in state.attributes.get("file_path")
+
+        service_data = {"entity_id": "camera.mail_generic_delivery_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+        assert "images/test_generic.jpg" in state.attributes.get("file_path")
+        assert "Custom No Mail: images/test_generic.jpg" in caplog.text
+
+
+async def test_generic_camera_default_image_path(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Generic camera uses correct default image path."""
+    entry = integration
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ):
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
+        # Should use the new Generic-specific default image
+        assert (
+            "custom_components/mail_and_packages/no_deliveries_generic.jpg"
+            in state.attributes.get("file_path")
+        )
+
+        service_data = {"entity_id": "camera.mail_generic_delivery_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+
+        assert (
+            "custom_components/mail_and_packages/no_deliveries_generic.jpg"
+            in state.attributes.get("file_path")
+        )
+
+
+async def test_generic_camera_with_usps_delivery_images(
+    hass,
+    integration,
+    mock_imap_usps_delivered,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Generic camera with USPS delivery images."""
+    entry = integration
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ), patch("os.path.exists", return_value=True):
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
+        
+        # Should use USPS delivery image since it's the only delivery found
+        assert "images/test_usps.gif" in state.attributes.get("file_path")
+
+        service_data = {"entity_id": "camera.mail_generic_delivery_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+        
+        assert "images/test_usps.gif" in state.attributes.get("file_path")
+        assert "Generic camera - found USPS delivery" in caplog.text
+
+
+async def test_generic_camera_with_multiple_delivery_images(
+    hass,
+    integration,
+    mock_imap_amazon_delivered,
+    mock_imap_ups_delivered_with_photo,
+    mock_imap_usps_delivered,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Generic camera with multiple delivery images (Amazon, UPS, USPS)."""
+    entry = integration
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ), patch("os.path.exists", return_value=True), patch("PIL.Image.open") as mock_pil_open, patch("PIL.Image.save") as mock_pil_save:
+        # Mock PIL Image objects
+        mock_image = MagicMock()
+        mock_pil_open.return_value = mock_image
+        
+        state = hass.states.get("camera.mail_generic_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
+
+        service_data = {"entity_id": "camera.mail_generic_delivery_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+        
+        # Should create animated GIF with multiple delivery images
+        assert "generic_deliveries.gif" in state.attributes.get("file_path")
+        assert "Generic camera - created animated GIF with" in caplog.text
+        assert "3 delivery images" in caplog.text
+        
+        # Verify PIL was called to create animated GIF
+        mock_pil_save.assert_called_once()
+
+
+async def test_walmart_camera(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Walmart camera functionality."""
+    entry = integration
+
+    entries = hass.config_entries.async_entries(DOMAIN)
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ):
+        state = hass.states.get("camera.mail_walmart_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Walmart Delivery Camera"
+        assert (
+            "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
+            in state.attributes.get("file_path")
+        )
+
+        service_data = {"entity_id": "camera.mail_walmart_delivery_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+
+        assert (
+            "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
+            in state.attributes.get("file_path")
+        )
+
+    # Unload the config
+    await hass.config_entries.async_unload(entries[0].entry_id)
+    await hass.async_block_till_done()
+    await hass.config_entries.async_remove(entries[0].entry_id)
+    await hass.async_block_till_done()
+
+    # Load new config with custom img settings
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
+    )
+
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ):
+        state = hass.states.get("camera.mail_walmart_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Walmart Delivery Camera"
+        assert "images/test_walmart.jpg" in state.attributes.get("file_path")
+
+        service_data = {"entity_id": "camera.mail_walmart_delivery_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+        assert "images/test_walmart.jpg" in state.attributes.get("file_path")
+        assert "Custom No Mail: images/test_walmart.jpg" in caplog.text
+
+
+async def test_walmart_camera_with_image_data(
+    hass,
+    integration,
+    mock_imap_walmart_delivered_with_photo,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Walmart camera with image data."""
+    entry = integration
+
+    # Mock coordinator data with Walmart image
+    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator.data = {
+        "walmart_image": "test_walmart_image.jpg",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ):
+        state = hass.states.get("camera.mail_walmart_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Walmart Delivery Camera"
+
+        # Update the camera to use the new data
+        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        walmart_camera = None
+        for camera in cameras:
+            if camera._type == "walmart_camera":
+                walmart_camera = camera
+                break
+
+        walmart_camera.update_file_path()
+        await hass.async_block_till_done()
+
+        # Get the updated state after the file path update
+        state = hass.states.get("camera.mail_walmart_delivery_camera")
+
+        # Check that it's using the Walmart image path
+        assert "test_walmart_image.jpg" in state.attributes.get("file_path")
+
+
+async def test_walmart_camera_with_custom_image(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Walmart camera with custom image functionality."""
+    # Unload the default config
+    entries = hass.config_entries.async_entries(DOMAIN)
+    await hass.config_entries.async_unload(entries[0].entry_id)
+    await hass.async_block_till_done()
+    await hass.config_entries.async_remove(entries[0].entry_id)
+    await hass.async_block_till_done()
+
+    # Load config with custom Walmart image settings
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
+    )
+
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ):
+        state = hass.states.get("camera.mail_walmart_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Walmart Delivery Camera"
+        assert "images/test_walmart.jpg" in state.attributes.get("file_path")
+
+        service_data = {"entity_id": "camera.mail_walmart_delivery_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+        assert "images/test_walmart.jpg" in state.attributes.get("file_path")
+        assert "Custom No Mail: images/test_walmart.jpg" in caplog.text
+
+
+async def test_walmart_camera_default_image_path(
+    hass,
+    integration,
+    mock_imap_no_email,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_copyfile,
+    caplog,
+):
+    """Test Walmart camera uses correct default image path."""
+    entry = integration
+
+    with patch("os.path.isfile", return_value=True), patch(
+        "os.access", return_value=True
+    ):
+        state = hass.states.get("camera.mail_walmart_delivery_camera")
+        assert state.attributes.get("friendly_name") == "Mail Walmart Delivery Camera"
+        # Should use the new Walmart-specific default image
+        assert (
+            "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
+            in state.attributes.get("file_path")
+        )
+
+        service_data = {"entity_id": "camera.mail_walmart_delivery_camera"}
+        await hass.services.async_call(DOMAIN, "update_image", service_data)
+        await hass.async_block_till_done()
+
+        assert (
+            "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
+            in state.attributes.get("file_path")
+        )

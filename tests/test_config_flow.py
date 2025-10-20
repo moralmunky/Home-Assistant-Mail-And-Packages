@@ -18,6 +18,10 @@ from custom_components.mail_and_packages.const import (
     CONF_AMAZON_CUSTOM_IMG_FILE,
     CONF_UPS_CUSTOM_IMG,
     CONF_UPS_CUSTOM_IMG_FILE,
+    CONF_WALMART_CUSTOM_IMG,
+    CONF_WALMART_CUSTOM_IMG_FILE,
+    CONF_GENERIC_CUSTOM_IMG,
+    CONF_GENERIC_CUSTOM_IMG_FILE,
     CONF_GENERATE_MP4,
 )
 from custom_components.mail_and_packages.helpers import _check_ffmpeg, _test_login
@@ -4469,9 +4473,13 @@ async def integration_fixture_v10_migration(hass, caplog):
     assert entry.data[CONF_UPS_CUSTOM_IMG] is False
     assert CONF_UPS_CUSTOM_IMG_FILE in entry.data
     assert "no_deliveries_ups.jpg" in entry.data[CONF_UPS_CUSTOM_IMG_FILE]
+    assert CONF_WALMART_CUSTOM_IMG in entry.data
+    assert entry.data[CONF_WALMART_CUSTOM_IMG] is False
+    assert CONF_WALMART_CUSTOM_IMG_FILE in entry.data
+    assert "no_deliveries_walmart.jpg" in entry.data[CONF_WALMART_CUSTOM_IMG_FILE]
 
     # Verify version was updated
-    assert entry.version == 11
+    assert entry.version == 12
 
     yield entry
 
@@ -4546,9 +4554,16 @@ async def test_migration_from_version_10_to_11(hass, caplog):
         entry.data[CONF_UPS_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_ups.jpg"
     )
+    assert CONF_WALMART_CUSTOM_IMG in entry.data
+    assert entry.data[CONF_WALMART_CUSTOM_IMG] is False
+    assert CONF_WALMART_CUSTOM_IMG_FILE in entry.data
+    assert (
+        entry.data[CONF_WALMART_CUSTOM_IMG_FILE]
+        == "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
+    )
 
     # Verify version was updated
-    assert entry.version == 11
+    assert entry.version == 12
 
     # Verify existing fields were preserved
     assert entry.data["amazon_days"] == 3
@@ -4623,9 +4638,16 @@ async def test_migration_from_version_9_to_11(hass, caplog):
         entry.data[CONF_UPS_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_ups.jpg"
     )
+    assert CONF_WALMART_CUSTOM_IMG in entry.data
+    assert entry.data[CONF_WALMART_CUSTOM_IMG] is False
+    assert CONF_WALMART_CUSTOM_IMG_FILE in entry.data
+    assert (
+        entry.data[CONF_WALMART_CUSTOM_IMG_FILE]
+        == "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
+    )
 
     # Verify version was updated
-    assert entry.version == 11
+    assert entry.version == 12
 
 
 async def test_migration_from_version_11_no_changes(hass, caplog):
@@ -4697,9 +4719,16 @@ async def test_migration_from_version_11_no_changes(hass, caplog):
         entry.data[CONF_UPS_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_ups.jpg"
     )
+    assert CONF_WALMART_CUSTOM_IMG in entry.data
+    assert entry.data[CONF_WALMART_CUSTOM_IMG] is False
+    assert CONF_WALMART_CUSTOM_IMG_FILE in entry.data
+    assert (
+        entry.data[CONF_WALMART_CUSTOM_IMG_FILE]
+        == "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
+    )
 
-    # Verify version remains 11
-    assert entry.version == 11
+    # Verify version remains 12
+    assert entry.version == 12
 
 
 async def test_migration_preserves_existing_custom_image_settings(hass, caplog):
@@ -4771,7 +4800,7 @@ async def test_migration_preserves_existing_custom_image_settings(hass, caplog):
     )  # Default
 
     # Verify version was updated
-    assert entry.version == 11
+    assert entry.version == 12
 
 
 async def test_migration_with_minimal_config(hass, caplog):
@@ -4811,9 +4840,11 @@ async def test_migration_with_minimal_config(hass, caplog):
     assert CONF_AMAZON_CUSTOM_IMG_FILE in entry.data
     assert CONF_UPS_CUSTOM_IMG in entry.data
     assert CONF_UPS_CUSTOM_IMG_FILE in entry.data
+    assert CONF_WALMART_CUSTOM_IMG in entry.data
+    assert CONF_WALMART_CUSTOM_IMG_FILE in entry.data
 
     # Verify version was updated
-    assert entry.version == 11
+    assert entry.version == 12
 
 
 @pytest.mark.parametrize(
@@ -4986,3 +5017,337 @@ async def test_reconfig_storage_error(
 
     # The flow is still on reconfigure step because IMAP login failed
     # We can't test storage configuration error since we can't reach that step
+
+
+async def test_walmart_custom_image_validation():
+    """Test Walmart custom image file validation."""
+    import tempfile
+    import os
+    
+    # Test 1: Valid Walmart custom image file
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+        temp_file_path = temp_file.name
+        temp_file.write(b"fake image data")
+    
+    try:
+        user_input = {
+            CONF_WALMART_CUSTOM_IMG: True,
+            CONF_WALMART_CUSTOM_IMG_FILE: temp_file_path,
+        }
+        
+        errors, validated_input = await _validate_user_input(user_input)
+        
+        # Should not have file_not_found error for Walmart custom image
+        assert CONF_WALMART_CUSTOM_IMG_FILE not in errors
+        assert validated_input[CONF_WALMART_CUSTOM_IMG] is True
+        assert validated_input[CONF_WALMART_CUSTOM_IMG_FILE] == temp_file_path
+    
+    finally:
+        # Clean up temp file
+        if os.path.exists(temp_file_path):
+            os.unlink(temp_file_path)
+    
+    # Test 2: Invalid Walmart custom image file (doesn't exist)
+    user_input = {
+        CONF_WALMART_CUSTOM_IMG: True,
+        CONF_WALMART_CUSTOM_IMG_FILE: "/nonexistent/path/walmart_custom.jpg",
+    }
+    
+    errors, validated_input = await _validate_user_input(user_input)
+    
+    # Should have file_not_found error for Walmart custom image
+    assert CONF_WALMART_CUSTOM_IMG_FILE in errors
+    assert errors[CONF_WALMART_CUSTOM_IMG_FILE] == "file_not_found"
+    
+    # Test 3: Walmart custom image disabled (should not validate file)
+    user_input = {
+        CONF_WALMART_CUSTOM_IMG: False,
+        CONF_WALMART_CUSTOM_IMG_FILE: "/nonexistent/path/walmart_custom.jpg",
+    }
+    
+    errors, validated_input = await _validate_user_input(user_input)
+    
+    # Should not have file_not_found error when Walmart custom image is disabled
+    assert CONF_WALMART_CUSTOM_IMG_FILE not in errors
+
+
+async def test_walmart_custom_image_in_config_flow(hass):
+    """Test that Walmart custom image options are properly handled in config flow."""
+    import tempfile
+    import os
+    
+    # Test that Walmart custom image is included in the flow when enabled
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    
+    # Complete step 1
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            "host": "imap.test.email",
+            "port": "993",
+            "username": "test@test.email",
+            "password": "notarealpassword",
+            "imap_security": "SSL",
+            "verify_ssl": False,
+        },
+    )
+    
+    with patch(
+        "custom_components.mail_and_packages.helpers._test_login",
+        return_value=True,
+    ):
+        # Complete step 2 with Walmart custom image enabled
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "allow_external": False,
+                "custom_img": False,
+                "amazon_custom_img": False,
+                "ups_custom_img": False,
+                "walmart_custom_img": True,  # Enable Walmart custom image
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "resources": ["walmart_delivered"],
+                "scan_interval": 20,
+            },
+        )
+    
+    # Should proceed to step 3 for custom image file configuration
+    assert result["type"] == "form"
+    assert result["step_id"] == "config_3"
+    
+    # Complete step 3 with Walmart custom image file
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+        temp_file_path = temp_file.name
+        temp_file.write(b"fake walmart image data")
+    
+    try:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_WALMART_CUSTOM_IMG_FILE: temp_file_path,
+            },
+        )
+        
+        # Should proceed to storage step
+        assert result["type"] == "form"
+        assert result["step_id"] == "config_storage"
+        
+        # Complete storage step
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+        )
+        
+        # Should create entry successfully
+        assert result["type"] == "create_entry"
+        assert result["title"] == "imap.test.email"
+        
+        # Verify Walmart custom image settings are saved
+        entry = result["result"]
+        assert entry.data[CONF_WALMART_CUSTOM_IMG] is True
+        assert entry.data[CONF_WALMART_CUSTOM_IMG_FILE] == temp_file_path
+    
+    finally:
+        # Clean up temp file
+        if os.path.exists(temp_file_path):
+            os.unlink(temp_file_path)
+
+
+async def test_generic_custom_image_validation(hass: HomeAssistant):
+    """Test validation of generic custom image file."""
+    import tempfile
+    import os
+    
+    # Test with non-existent file
+    user_input = {
+        "host": "imap.test.email",
+        "port": "993",
+        "username": "test@test.email",
+        "password": "notarealpassword",
+        "imap_security": "SSL",
+        "verify_ssl": False,
+        "allow_external": False,
+        "custom_img": False,
+        "amazon_custom_img": False,
+        "ups_custom_img": False,
+        "walmart_custom_img": False,
+        "generic_custom_img": True,
+        "generic_custom_img_file": "/nonexistent/path/image.jpg",
+        "folder": '"INBOX"',
+        "generate_grid": False,
+        "generate_mp4": False,
+        "resources": ["usps_mail"],
+    }
+    
+    with patch("custom_components.mail_and_packages.helpers._test_login", return_value=True):
+        errors, validated_input = await _validate_user_input(user_input)
+        
+        # Should have validation error for non-existent file
+        assert "generic_custom_img_file" in errors
+        assert "does not exist" in errors["generic_custom_img_file"]
+    
+    # Test with existing file
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
+        temp_file_path = temp_file.name
+        temp_file.write(b"fake image data")
+    
+    try:
+        user_input["generic_custom_img_file"] = temp_file_path
+        
+        with patch("custom_components.mail_and_packages.helpers._test_login", return_value=True):
+            errors, validated_input = await _validate_user_input(user_input)
+            
+            # Should not have validation error for existing file
+            assert "generic_custom_img_file" not in errors
+            assert validated_input[CONF_GENERIC_CUSTOM_IMG_FILE] == temp_file_path
+    
+    finally:
+        # Clean up temp file
+        if os.path.exists(temp_file_path):
+            os.unlink(temp_file_path)
+
+
+async def test_generic_custom_image_in_config_flow(hass: HomeAssistant):
+    """Test generic custom image configuration in full config flow."""
+    import tempfile
+    import os
+    
+    # Create a temporary image file
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
+        temp_file_path = temp_file.name
+        temp_file.write(b"fake image data")
+    
+    try:
+        with patch("custom_components.mail_and_packages.helpers._test_login", return_value=True):
+            # Start the config flow
+            result = await hass.config_entries.flow.async_init(
+                DOMAIN, context={"source": config_entries.SOURCE_USER}
+            )
+            assert result["type"] == FlowResultType.FORM
+            assert result["step_id"] == "user"
+            
+            # Step 1: Basic IMAP settings
+            result = await hass.config_entries.flow.async_configure(
+                result["flow_id"],
+                {
+                    "host": "imap.test.email",
+                    "port": "993",
+                    "username": "test@test.email",
+                    "password": "notarealpassword",
+                    "imap_security": "SSL",
+                    "verify_ssl": False,
+                },
+            )
+            assert result["type"] == FlowResultType.FORM
+            assert result["step_id"] == "config_2"
+            
+            # Step 2: Enable generic custom image
+            result = await hass.config_entries.flow.async_configure(
+                result["flow_id"],
+                {
+                    "allow_external": False,
+                    "custom_img": False,
+                    "amazon_custom_img": False,
+                    "ups_custom_img": False,
+                    "walmart_custom_img": False,
+                    "generic_custom_img": True,
+                    "folder": '"INBOX"',
+                    "generate_grid": False,
+                    "generate_mp4": False,
+                    "resources": ["usps_mail"],
+                },
+            )
+            assert result["type"] == FlowResultType.FORM
+            assert result["step_id"] == "config_3"
+            
+            # Step 3: Set generic custom image file
+            result = await hass.config_entries.flow.async_configure(
+                result["flow_id"],
+                {
+                    "custom_img_file": "custom_components/mail_and_packages/no_deliveries_ups.jpg",
+                    "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
+                    "ups_custom_img_file": "custom_components/mail_and_packages/no_deliveries_ups.jpg",
+                    "walmart_custom_img_file": "custom_components/mail_and_packages/no_deliveries_walmart.jpg",
+                    "generic_custom_img_file": temp_file_path,
+                },
+            )
+            assert result["type"] == FlowResultType.FORM
+            assert result["step_id"] == "config_4"
+            
+            # Step 4: Storage settings
+            result = await hass.config_entries.flow.async_configure(
+                result["flow_id"],
+                {
+                    "storage": "custom_components/mail_and_packages/images/",
+                },
+            )
+            assert result["type"] == FlowResultType.CREATE_ENTRY
+            assert result["title"] == "imap.test.email"
+            
+            # Verify generic custom image settings are saved
+            entry = result["result"]
+            assert entry.data[CONF_GENERIC_CUSTOM_IMG] is True
+            assert entry.data[CONF_GENERIC_CUSTOM_IMG_FILE] == temp_file_path
+            assert entry.version == 12
+    
+    finally:
+        # Clean up temp file
+        if os.path.exists(temp_file_path):
+            os.unlink(temp_file_path)
+
+
+async def test_migration_to_version_12(hass: HomeAssistant):
+    """Test migration to version 12 adds new generic camera fields."""
+    # Create a mock config entry with version 11
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data={
+            "host": "imap.test.email",
+            "port": "993",
+            "username": "test@test.email",
+            "password": "notarealpassword",
+            "imap_security": "SSL",
+            "verify_ssl": False,
+            "allow_external": False,
+            "custom_img": False,
+            "amazon_custom_img": False,
+            "ups_custom_img": False,
+            "walmart_custom_img": False,
+            "folder": '"INBOX"',
+            "generate_grid": False,
+            "generate_mp4": False,
+            "resources": ["usps_mail"],
+            "storage": "custom_components/mail_and_packages/images/",
+        },
+        version=11,
+    )
+    
+    entry.add_to_hass(hass)
+    
+    # Set up the integration (this will trigger migration)
+    with patch("custom_components.mail_and_packages.helpers._test_login", return_value=True):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    
+    # Verify version was updated to 12
+    assert entry.version == 12
+    
+    # Verify new generic camera fields were added with defaults
+    assert CONF_GENERIC_CUSTOM_IMG in entry.data
+    assert entry.data[CONF_GENERIC_CUSTOM_IMG] is False
+    assert CONF_GENERIC_CUSTOM_IMG_FILE in entry.data
+    assert entry.data[CONF_GENERIC_CUSTOM_IMG_FILE] == "custom_components/mail_and_packages/no_deliveries_generic.jpg"
+    
+    # Verify existing fields were preserved
+    assert entry.data["host"] == "imap.test.email"
+    assert entry.data["amazon_custom_img"] is False
+    assert entry.data["walmart_custom_img"] is False

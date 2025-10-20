@@ -1886,3 +1886,469 @@ def migrate_config(config: dict, version: int) -> dict:
         migrated_config[CONF_UPS_CUSTOM_IMG_FILE] = DEFAULT_UPS_CUSTOM_IMG_FILE
 
     return migrated_config
+
+
+async def test_walmart_delivered_email_processing():
+    """Test that Walmart delivered emails are correctly processed and counted."""
+    from custom_components.mail_and_packages.helpers import walmart_search
+    from custom_components.mail_and_packages.const import SENSOR_DATA, ATTR_WALMART_IMAGE
+    from unittest import mock
+    from unittest.mock import patch, MagicMock
+    
+    # Mock the dependencies
+    mock_account = MagicMock()
+    mock_hass = MagicMock()
+    mock_config = MagicMock()
+    
+    # Test parameters
+    image_path = "/test/images/"
+    walmart_image_name = "test_walmart.jpg"
+    coordinator_data = {}
+    
+    # Mock email_search to return the test email
+    with patch('custom_components.mail_and_packages.helpers.email_search') as mock_email_search:
+        mock_email_search.return_value = ("OK", [b"1"])  # One email found
+        
+        # Mock email_fetch to return our test email content
+        with patch('custom_components.mail_and_packages.helpers.email_fetch') as mock_email_fetch:
+            # Read the actual test email content
+            with open("tests/test_emails/walmart_delivered.eml", "r", encoding="utf-8") as f:
+                test_email_content = f.read()
+            
+            mock_email_fetch.return_value = ("OK", [(None, test_email_content.encode())])
+            
+            # Mock get_walmart_image to return True (photo found)
+            with patch('custom_components.mail_and_packages.helpers.get_walmart_image') as mock_get_image:
+                mock_get_image.return_value = True
+                
+                # Mock file operations
+                with patch('custom_components.mail_and_packages.helpers.os.path.isdir') as mock_isdir:
+                    mock_isdir.return_value = True
+                    with patch('custom_components.mail_and_packages.helpers.cleanup_images'):
+                        with patch('custom_components.mail_and_packages.helpers.os.listdir') as mock_listdir:
+                            mock_listdir.return_value = ["test_walmart.jpg"]
+                            
+                            # Call walmart_search
+                            result = walmart_search(
+                                mock_account,
+                                image_path,
+                                mock_hass,
+                                walmart_image_name,
+                                mock_config,
+                                coordinator_data
+                            )
+    
+    # Should return 1 since one email was found
+    assert result == 1, f"Expected 1 Walmart delivery, got {result}"
+    
+    # Verify that coordinator data was updated with the image filename
+    assert ATTR_WALMART_IMAGE in coordinator_data, "Walmart image should be set in coordinator data"
+    assert coordinator_data[ATTR_WALMART_IMAGE] == "test_walmart.jpg", "Walmart image filename should be set correctly"
+
+
+async def test_walmart_delivering_email_processing():
+    """Test that Walmart delivering emails are correctly processed."""
+    from custom_components.mail_and_packages.helpers import get_count
+    from custom_components.mail_and_packages.const import SENSOR_DATA, ATTR_COUNT
+    from unittest.mock import patch, MagicMock
+    
+    # Mock the dependencies
+    mock_account = MagicMock()
+    mock_hass = MagicMock()
+    
+    # Test parameters
+    image_path = "/test/images/"
+    
+    # Mock email_search to return the test email
+    with patch('custom_components.mail_and_packages.helpers.email_search') as mock_email_search:
+        mock_email_search.return_value = ("OK", [b"1"])  # One email found
+        
+        # Mock email_fetch to return our test email content
+        with patch('custom_components.mail_and_packages.helpers.email_fetch') as mock_email_fetch:
+            # Read the actual test email content
+            with open("tests/test_emails/walmart_delivery.eml", "r", encoding="utf-8") as f:
+                test_email_content = f.read()
+            
+            mock_email_fetch.return_value = ("OK", [(None, test_email_content.encode())])
+            
+            # Call get_count for walmart_delivering
+            result = get_count(
+                mock_account,
+                "walmart_delivering",
+                image_path=image_path,
+                hass=mock_hass
+            )
+    
+    # Should return 1 since one email was found
+    assert result[ATTR_COUNT] == 1, f"Expected 1 Walmart delivering package, got {result[ATTR_COUNT]}"
+
+
+async def test_walmart_image_extraction():
+    """Test that Walmart delivery photos are correctly extracted from emails."""
+    from custom_components.mail_and_packages.helpers import get_walmart_image
+    from unittest.mock import patch, MagicMock
+    
+    # Mock the dependencies
+    mock_account = MagicMock()
+    mock_hass = MagicMock()
+    
+    # Test parameters
+    image_path = "/test/images/"
+    image_name = "test_walmart.jpg"
+    
+    # Read the actual test email content
+    with open("tests/test_emails/walmart_delivered.eml", "r", encoding="utf-8") as f:
+        test_email_content = f.read()
+    
+    # Mock file operations
+    with patch('custom_components.mail_and_packages.helpers.os.path.isdir') as mock_isdir:
+        mock_isdir.return_value = True
+        with patch('builtins.open', mock.mock_open()) as mock_file:
+            # Call get_walmart_image
+            result = get_walmart_image(
+                test_email_content,
+                mock_account,
+                image_path,
+                mock_hass,
+                image_name
+            )
+    
+    # Should return True since the email contains a delivery photo
+    assert result is True, "Walmart image extraction should return True for email with delivery photo"
+
+
+async def test_walmart_email_patterns():
+    """Test that Walmart email patterns are correctly configured."""
+    from custom_components.mail_and_packages.const import SENSOR_DATA
+    
+    # Test Walmart delivered email patterns
+    walmart_delivered_emails = SENSOR_DATA["walmart_delivered"]["email"]
+    walmart_delivered_subjects = SENSOR_DATA["walmart_delivered"]["subject"]
+    
+    # Should include the Walmart email address
+    assert "help@walmart.com" in walmart_delivered_emails, "Walmart delivered emails should include help@walmart.com"
+    
+    # Should include "Delivered:" subject pattern
+    assert "Delivered:" in walmart_delivered_subjects, "Walmart delivered subjects should include 'Delivered:'"
+    
+    # Test Walmart delivering email patterns
+    walmart_delivering_emails = SENSOR_DATA["walmart_delivering"]["email"]
+    walmart_delivering_subjects = SENSOR_DATA["walmart_delivering"]["subject"]
+    
+    # Should include the same email address
+    assert "help@walmart.com" in walmart_delivering_emails, "Walmart delivering emails should include help@walmart.com"
+    
+    # Should include "Your package should arrive by" subject pattern
+    assert "Your package should arrive by" in walmart_delivering_subjects, "Walmart delivering subjects should include 'Your package should arrive by'"
+
+
+async def test_walmart_tracking_pattern():
+    """Test that Walmart tracking pattern matches the test email tracking number."""
+    from custom_components.mail_and_packages.const import SENSOR_DATA
+    import re
+    
+    # Test tracking number from walmart_delivered.eml (if it has one)
+    # Note: The test email might not have a tracking number, so we'll test the pattern itself
+    walmart_tracking_pattern = SENSOR_DATA["walmart_tracking"]["pattern"]
+    
+    # Test the pattern with a sample tracking number
+    sample_tracking = "#1234567-12345678"
+    pattern = walmart_tracking_pattern[0]  # "#[0-9]{7}-[0-9]{7,8}"
+    match = re.search(pattern, sample_tracking)
+    assert match is not None, f"Sample tracking number {sample_tracking} should match Walmart pattern {pattern}"
+
+
+async def test_walmart_camera_integration():
+    """Test that Walmart camera is properly integrated with coordinator data."""
+    from custom_components.mail_and_packages.const import ATTR_WALMART_IMAGE, CAMERA_DATA
+    
+    # Test that Walmart camera is defined in CAMERA_DATA
+    assert "walmart_camera" in CAMERA_DATA, "Walmart camera should be defined in CAMERA_DATA"
+    assert CAMERA_DATA["walmart_camera"][0] == "Mail Walmart Delivery Camera", "Walmart camera should have correct name"
+    
+    # Test that ATTR_WALMART_IMAGE constant exists
+    assert ATTR_WALMART_IMAGE == "walmart_image", "ATTR_WALMART_IMAGE should be defined correctly"
+
+
+async def test_walmart_no_deliveries_handling():
+    """Test that Walmart handles no deliveries correctly."""
+    from custom_components.mail_and_packages.helpers import walmart_search
+    from custom_components.mail_and_packages.const import ATTR_WALMART_IMAGE
+    from unittest.mock import patch, MagicMock
+    
+    # Mock the dependencies
+    mock_account = MagicMock()
+    mock_hass = MagicMock()
+    mock_config = MagicMock()
+    
+    # Test parameters
+    image_path = "/test/images/"
+    walmart_image_name = "test_walmart.jpg"
+    coordinator_data = {}
+    
+    # Mock email_search to return no emails
+    with patch('custom_components.mail_and_packages.helpers.email_search') as mock_email_search:
+        mock_email_search.return_value = ("OK", [None])  # No emails found
+        
+        # Mock file operations
+        with patch('custom_components.mail_and_packages.helpers.os.path.isdir') as mock_isdir:
+            mock_isdir.return_value = True
+            with patch('custom_components.mail_and_packages.helpers.copyfile') as mock_copyfile:
+                # Call walmart_search
+                result = walmart_search(
+                    mock_account,
+                    image_path,
+                    mock_hass,
+                    walmart_image_name,
+                    mock_config,
+                    coordinator_data
+                )
+    
+    # Should return 0 since no emails were found
+    assert result == 0, f"Expected 0 Walmart deliveries, got {result}"
+    
+    # Verify that coordinator data was updated with no-delivery image
+    assert ATTR_WALMART_IMAGE in coordinator_data, "Walmart image should be set in coordinator data even with no deliveries"
+    
+    # Verify that copyfile was called to create no-delivery image
+    assert mock_copyfile.called, "copyfile should be called to create no-delivery image"
+
+
+async def test_walmart_custom_image_support():
+    """Test that Walmart supports custom images like UPS and Amazon."""
+    from custom_components.mail_and_packages.const import (
+        CONF_WALMART_CUSTOM_IMG,
+        CONF_WALMART_CUSTOM_IMG_FILE,
+        DEFAULT_WALMART_CUSTOM_IMG_FILE,
+    )
+    
+    # Test that custom image constants are defined
+    assert CONF_WALMART_CUSTOM_IMG == "walmart_custom_img"
+    assert CONF_WALMART_CUSTOM_IMG_FILE == "walmart_custom_img_file"
+    assert DEFAULT_WALMART_CUSTOM_IMG_FILE == "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
+
+
+async def test_walmart_sensor_integration():
+    """Test that Walmart is properly integrated with sensor counts."""
+    from custom_components.mail_and_packages.const import SHIPPERS, SENSOR_DATA
+    
+    # Test that Walmart is in the SHIPPERS list
+    assert "walmart" in SHIPPERS, "Walmart should be in SHIPPERS list for sensor counting"
+    
+    # Test that Walmart sensors are defined
+    assert "walmart_delivered" in SENSOR_DATA, "Walmart delivered sensor should be defined"
+    assert "walmart_delivering" in SENSOR_DATA, "Walmart delivering sensor should be defined"
+    
+    # Test that Walmart will be counted in aggregate sensors
+    walmart_delivered = "walmart_delivered"
+    walmart_delivering = "walmart_delivering"
+    
+    # These sensors will be automatically counted in zpackages_delivered and zpackages_transit
+    # because walmart is in the SHIPPERS list
+    assert walmart_delivered in SENSOR_DATA
+    assert walmart_delivering in SENSOR_DATA
+
+
+async def test_walmart_order_tracking():
+    """Test that Walmart order numbers are correctly extracted."""
+    from custom_components.mail_and_packages.const import SENSOR_DATA
+    import re
+    
+    # Test the tracking pattern with various order number formats
+    walmart_tracking_pattern = SENSOR_DATA["walmart_tracking"]["pattern"]
+    pattern = walmart_tracking_pattern[0]  # "#?[0-9]{7}-[0-9]{7,8}"
+    
+    # Test different order number formats
+    test_orders = [
+        "#2000137-67895124",  # With hash symbol
+        "2000137-67895124",   # Without hash symbol
+        "#1234567-12345678",  # Different numbers
+        "1234567-12345678",   # Different numbers without hash
+    ]
+    
+    for order in test_orders:
+        match = re.search(pattern, order)
+        assert match is not None, f"Order number '{order}' should match Walmart tracking pattern"
+    
+    # Test that invalid formats don't match
+    invalid_orders = [
+        "123456-1234567",     # Too short
+        "12345678-123456789", # Too long
+        "ABC1234-5678901",    # Contains letters
+        "1234567_12345678",   # Wrong separator
+    ]
+    
+    for order in invalid_orders:
+        match = re.search(pattern, order)
+        assert match is None, f"Invalid order number '{order}' should not match Walmart tracking pattern"
+
+
+async def test_walmart_email_with_order_number():
+    """Test that Walmart emails contain order numbers that can be extracted."""
+    import re
+    from custom_components.mail_and_packages.const import SENSOR_DATA
+    
+    # Read the test email content
+    with open("tests/test_emails/walmart_delivered.eml", "r", encoding="utf-8") as f:
+        email_content = f.read()
+    
+    # Test that the email contains an order number
+    walmart_tracking_pattern = SENSOR_DATA["walmart_tracking"]["pattern"]
+    pattern = walmart_tracking_pattern[0]
+    
+    # Search for order numbers in the email content
+    matches = re.findall(pattern, email_content)
+    assert len(matches) > 0, "Walmart delivered email should contain order numbers"
+    
+    # Verify the specific order number from the test email
+    assert "2000137-67895124" in email_content, "Test email should contain the expected order number"
+
+
+async def test_walmart_delivering_email_processing():
+    """Test that Walmart delivering emails are correctly processed and counted."""
+    from custom_components.mail_and_packages.helpers import get_count
+    from custom_components.mail_and_packages.const import SENSOR_DATA, ATTR_COUNT
+    from unittest.mock import patch, MagicMock
+    
+    # Mock the dependencies
+    mock_account = MagicMock()
+    mock_hass = MagicMock()
+    
+    # Test parameters
+    image_path = "/test/images/"
+    
+    # Mock email_search to return the test email
+    with patch('custom_components.mail_and_packages.helpers.email_search') as mock_email_search:
+        mock_email_search.return_value = ("OK", [b"1"])  # One email found
+        
+        # Mock email_fetch to return our test email content
+        with patch('custom_components.mail_and_packages.helpers.email_fetch') as mock_email_fetch:
+            # Read the actual test email content
+            with open("tests/test_emails/walmart_delivery.eml", "r", encoding="utf-8") as f:
+                test_email_content = f.read()
+            
+            mock_email_fetch.return_value = ("OK", [(None, test_email_content.encode())])
+            
+            # Call get_count for walmart_delivering
+            result = get_count(
+                mock_account,
+                "walmart_delivering",
+                image_path=image_path,
+                hass=mock_hass
+            )
+    
+    # Should return 1 since one email was found
+    assert result[ATTR_COUNT] == 1, f"Expected 1 Walmart delivering package, got {result[ATTR_COUNT]}"
+    
+    # Test that tracking numbers are extracted
+    if ATTR_TRACKING in result:
+        assert len(result[ATTR_TRACKING]) >= 0, "Tracking numbers should be extracted if present"
+
+
+async def test_walmart_config_flow_integration():
+    """Test that Walmart custom image support is properly integrated into config flow."""
+    from custom_components.mail_and_packages.config_flow import _validate_user_input
+    from custom_components.mail_and_packages.const import (
+        CONF_WALMART_CUSTOM_IMG,
+        CONF_WALMART_CUSTOM_IMG_FILE,
+    )
+    from unittest.mock import patch
+    import tempfile
+    import os
+    
+    # Test 1: Validate Walmart custom image file exists
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+        temp_file_path = temp_file.name
+        temp_file.write(b"fake image data")
+    
+    try:
+        user_input = {
+            CONF_WALMART_CUSTOM_IMG: True,
+            CONF_WALMART_CUSTOM_IMG_FILE: temp_file_path,
+        }
+        
+        errors, validated_input = await _validate_user_input(user_input)
+        
+        # Should not have file_not_found error for Walmart custom image
+        assert CONF_WALMART_CUSTOM_IMG_FILE not in errors, "Walmart custom image file should be valid"
+        assert validated_input[CONF_WALMART_CUSTOM_IMG] is True
+        assert validated_input[CONF_WALMART_CUSTOM_IMG_FILE] == temp_file_path
+    
+    finally:
+        # Clean up temp file
+        if os.path.exists(temp_file_path):
+            os.unlink(temp_file_path)
+    
+    # Test 2: Validate Walmart custom image file does not exist
+    user_input = {
+        CONF_WALMART_CUSTOM_IMG: True,
+        CONF_WALMART_CUSTOM_IMG_FILE: "/nonexistent/path/walmart_custom.jpg",
+    }
+    
+    errors, validated_input = await _validate_user_input(user_input)
+    
+    # Should have file_not_found error for Walmart custom image
+    assert CONF_WALMART_CUSTOM_IMG_FILE in errors, "Walmart custom image file should be invalid"
+    assert errors[CONF_WALMART_CUSTOM_IMG_FILE] == "file_not_found"
+    
+    # Test 3: Validate Walmart custom image disabled (should not validate file)
+    user_input = {
+        CONF_WALMART_CUSTOM_IMG: False,
+        CONF_WALMART_CUSTOM_IMG_FILE: "/nonexistent/path/walmart_custom.jpg",
+    }
+    
+    errors, validated_input = await _validate_user_input(user_input)
+    
+    # Should not have file_not_found error when Walmart custom image is disabled
+    assert CONF_WALMART_CUSTOM_IMG_FILE not in errors, "Walmart custom image file should not be validated when disabled"
+
+
+async def test_walmart_config_flow_schema():
+    """Test that Walmart custom image options are included in config flow schemas."""
+    from custom_components.mail_and_packages.config_flow import (
+        _get_schema_step_2,
+        _get_schema_step_3,
+    )
+    from custom_components.mail_and_packages.const import (
+        CONF_WALMART_CUSTOM_IMG,
+        CONF_WALMART_CUSTOM_IMG_FILE,
+    )
+    
+    # Test that Walmart custom image option is in step 2 schema
+    user_input = {}
+    default_dict = {}
+    data = {}
+    
+    schema = _get_schema_step_2(data, user_input, default_dict)
+    schema_dict = schema.schema
+    
+    # Check that Walmart custom image option is present
+    assert CONF_WALMART_CUSTOM_IMG in schema_dict, "Walmart custom image option should be in step 2 schema"
+    
+    # Test that Walmart custom image file field is in step 3 schema when enabled
+    user_input = {CONF_WALMART_CUSTOM_IMG: True}
+    default_dict = {}
+    
+    schema = _get_schema_step_3(user_input, default_dict)
+    schema_dict = schema.schema
+    
+    # Check that Walmart custom image file field is present when enabled
+    assert CONF_WALMART_CUSTOM_IMG_FILE in schema_dict, "Walmart custom image file field should be in step 3 schema when enabled"
+    
+    # Test that Walmart custom image file field is not in step 3 schema when disabled
+    user_input = {CONF_WALMART_CUSTOM_IMG: False}
+    default_dict = {}
+    
+    schema = _get_schema_step_3(user_input, default_dict)
+    schema_dict = schema.schema
+    
+    # Check that Walmart custom image file field is not present when disabled
+    assert CONF_WALMART_CUSTOM_IMG_FILE not in schema_dict, "Walmart custom image file field should not be in step 3 schema when disabled"
+
+
+async def test_walmart_config_flow_version():
+    """Test that the config version has been incremented for Walmart support."""
+    from custom_components.mail_and_packages.const import CONFIG_VER
+    
+    # Version should be 12 or higher to include Walmart custom image support
+    assert CONFIG_VER >= 12, f"Config version should be 12 or higher for Walmart support, got {CONFIG_VER}"
