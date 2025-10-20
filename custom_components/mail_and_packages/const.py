@@ -358,6 +358,11 @@ SENSOR_DATA = {
             "Powiadomienie o przesyłce",
             "wurde zugestellt",
             "DHL Shipment Notification",
+            "Ihre Sendung liegt im Briefkasten",
+            "Zustellung an Ablageort",
+            "Sendung zugestellt",
+            "Paket wurde zugestellt",
+            "Ihre AliExpress Sendung liegt im Briefkasten",
         ],
         "body": [
             "has been delivered",
@@ -365,6 +370,10 @@ SENSOR_DATA = {
             "ist angekommen",
             'Notification for shipment event group "Delivered',
             " - Delivered - ",
+            "liegt im Briefkasten",
+            "zugestellt",
+            "Zustellung",
+            "wurde zugestellt",
         ],
     },
     "dhl_delivering": {
@@ -394,7 +403,9 @@ SENSOR_DATA = {
         ],
     },
     "dhl_packages": {},
-    "dhl_tracking": {"pattern": ["\\d{10,11}"]},
+    "dhl_tracking": {
+        "pattern": ["\\d{10,11}", "DE[0-9]{10,}", "[0-9]{20}"]
+    },
     # Hermes.co.uk
     "hermes_delivered": {
         "email": ["donotreply@myhermes.co.uk"],
@@ -763,6 +774,60 @@ SENSOR_DATA = {
         "subject": ["Deine Rechnung zu"],
         "body": ["Im Anhang dieser E-Mail kommt"],
     },
+    "rewe_lieferservice_packages": {},
+    # AliExpress
+    "aliexpress_delivered": {
+        "email": [
+            "promotion@aliexpress.com",
+            "transaction@notice.aliexpress.com",
+            "ChocieService@aliexpress.com",
+            "AEBuyersServices@aliexpress.com",
+        ],
+        "subject": [
+            "Ihre Retoure ist unterwegs",
+            "Rücksendung wurde bearbeitet",
+            "Sendung zugestellt",
+            "Package delivered",
+            "Your package has been delivered",
+        ],
+        "body": [
+            "zugestellt",
+            "delivered",
+            "unterwegs",
+            "bearbeitet",
+            "wurde bearbeitet",
+        ],
+    },
+    "aliexpress_delivering": {
+        "email": [
+            "promotion@aliexpress.com",
+            "transaction@notice.aliexpress.com",
+            "ChocieService@aliexpress.com",
+        ],
+        "subject": [
+            "Ihre Sendung ist unterwegs",
+            "Package is on the way",
+            "Sendung wird versandt",
+        ],
+        "body": [
+            "unterwegs",
+            "on the way",
+            "versandt",
+            "wird versandt",
+        ],
+    },
+    "aliexpress_packages": {},
+    "aliexpress_tracking": {
+        "pattern": [
+            "[A-Z]{2}[0-9]{9}[A-Z]{2}",
+            "[0-9]{13}",
+            "[0-9]{20}",
+        ]
+    },
+    # Totals
+    "total_packages": {},
+    "total_delivered": {},
+    "total_delivering": {},
 }
 
 # Sensor definitions
@@ -878,6 +943,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         name="Mail Amazon OTP Code",
         icon="mdi:counter",
         key="amazon_otp",
+    ),
+    # AliExpress
+    "aliexpress_delivered": SensorEntityDescription(
+        name="Mail AliExpress Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="aliexpress_delivered",
+    ),
+    "aliexpress_delivering": SensorEntityDescription(
+        name="Mail AliExpress Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="aliexpress_delivering",
+    ),
+    "aliexpress_packages": SensorEntityDescription(
+        name="Mail AliExpress Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="aliexpress_packages",
     ),
     # Canada Post
     "capost_delivered": SensorEntityDescription(
@@ -1278,6 +1362,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="rewe_lieferservice_packages",
     ),
+    # Totals
+    "total_packages": SensorEntityDescription(
+        name="Mail Total Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="total_packages",
+    ),
+    "total_delivered": SensorEntityDescription(
+        name="Mail Total Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="total_delivered",
+    ),
+    "total_delivering": SensorEntityDescription(
+        name="Mail Total Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="total_delivering",
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -1351,4 +1454,5 @@ SHIPPERS = [
     "post_nl",
     "post_at",
     "rewe_lieferservice",
+    "aliexpress",
 ]
