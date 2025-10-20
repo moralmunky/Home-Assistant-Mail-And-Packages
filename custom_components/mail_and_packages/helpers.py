@@ -279,6 +279,8 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
         except Exception as err:
             _LOGGER.error("Error updating sensor: %s reason: %s", sensor, err)
 
+    _calculate_total_sensors(data, resources)
+
     # Copy image file to www directory if enabled
     if config.get(CONF_ALLOW_EXTERNAL):
         copy_images(hass, config)
@@ -1278,7 +1280,7 @@ def get_tracking(
                 _LOGGER.debug("Checking message subject...")
 
                 # Search subject for a tracking number
-                email_subject = msg["subject"]
+                email_subject = decode_subject_line(msg["subject"])
                 if email_subject:
                     email_subject = str(email_subject)
                     if (found := pattern.findall(email_subject)) and len(found) > 0:
@@ -1761,7 +1763,7 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
                     msg = email.message_from_bytes(response_part[1])
 
                     # Get combo number from subject line
-                    email_subject = msg["subject"]
+                    email_subject = decode_subject_line(msg["subject"])
                     pattern = re.compile(rf"{subject_regex}")
                     search = pattern.search(email_subject)
                     if search is not None:
@@ -2005,11 +2007,9 @@ def get_items(
                     # Get and decode subject line
                     encoding = decode_header(msg["subject"])[0][1]
                     if encoding is not None:
-                        email_subject = decode_header(msg["subject"])[0][0].decode(
-                            encoding, "ignore"
-                        )
+                        email_subject = decode_subject_line(msg["subject"])
                     else:
-                        email_subject = decode_header(msg["subject"])[0][0]
+                        email_subject = decode_subject_line(msg["subject"])
 
                     if not isinstance(email_subject, str):
                         email_subject = email_subject.decode("utf-8", "ignore")
@@ -2185,3 +2185,89 @@ def get_items(
 
     _LOGGER.debug("Amazon value: %s", str(value))
     return value
+
+
+def decode_subject_line(subject: str) -> str:
+    """Decode UTF-8 encoded subject lines with German umlauts and emojis."""
+    if not subject:
+        return ""
+
+    try:
+        if subject.startswith("=?UTF-8?Q?") or subject.startswith("=?utf-8?q?"):
+            decoded_parts = decode_header(subject)
+            decoded_subject = ""
+            for part, encoding in decoded_parts:
+                if isinstance(part, bytes):
+                    if encoding:
+                        decoded_subject += part.decode(encoding)
+                    else:
+                        decoded_subject += part.decode("utf-8", errors="ignore")
+                else:
+                    decoded_subject += part
+            return decoded_subject
+        return subject
+    except Exception:
+        return subject
+
+
+def _calculate_total_sensors(data: dict, resources: list) -> None:
+    """Calculate total package sensors by summing all carrier-specific sensors."""
+    if not any(sensor in ["total_packages", "total_delivered", "total_delivering"] for sensor in resources):
+        return
+
+    package_sensors = [
+        "usps_packages", "ups_packages", "fedex_packages", "amazon_packages",
+        "dhl_packages", "aliexpress_packages", "hermes_packages", "royal_packages",
+        "auspost_packages", "poczta_polska_packages", "inpost_pl_packages",
+        "dpd_com_pl_packages", "dpd_packages", "gls_packages", "evri_packages",
+        "dhl_parcel_nl_packages", "bonshaw_distribution_network_packages",
+        "purolator_packages", "capost_packages", "rewe_lieferservice_packages"
+    ]
+
+    delivered_sensors = [
+        "usps_delivered", "ups_delivered", "fedex_delivered", "amazon_delivered",
+        "dhl_delivered", "aliexpress_delivered", "hermes_delivered", "royal_delivered",
+        "auspost_delivered", "poczta_polska_delivered", "inpost_pl_delivered",
+        "dpd_com_pl_delivered", "dpd_delivered", "gls_delivered", "evri_delivered",
+        "dhl_parcel_nl_delivered", "bonshaw_distribution_network_delivered",
+        "purolator_delivered", "capost_delivered", "rewe_lieferservice_delivered"
+    ]
+
+    delivering_sensors = [
+        "usps_delivering", "ups_delivering", "fedex_delivering", "amazon_delivering",
+        "dhl_delivering", "aliexpress_delivering", "hermes_delivering", "royal_delivering",
+        "auspost_delivering", "poczta_polska_delivering", "inpost_pl_delivering",
+        "dpd_com_pl_delivering", "dpd_delivering", "gls_delivering", "evri_delivering",
+        "dhl_parcel_nl_delivering", "bonshaw_distribution_network_delivering",
+        "purolator_delivering", "capost_delivering", "rewe_lieferservice_delivering"
+    ]
+
+    if "total_packages" in resources:
+        total_packages = 0
+        for sensor in package_sensors:
+            if sensor in data:
+                try:
+                    total_packages += int(data[sensor])
+                except (ValueError, TypeError):
+                    pass
+        data["total_packages"] = total_packages
+
+    if "total_delivered" in resources:
+        total_delivered = 0
+        for sensor in delivered_sensors:
+            if sensor in data:
+                try:
+                    total_delivered += int(data[sensor])
+                except (ValueError, TypeError):
+                    pass
+        data["total_delivered"] = total_delivered
+
+    if "total_delivering" in resources:
+        total_delivering = 0
+        for sensor in delivering_sensors:
+            if sensor in data:
+                try:
+                    total_delivering += int(data[sensor])
+                except (ValueError, TypeError):
+                    pass
+        data["total_delivering"] = total_delivering
