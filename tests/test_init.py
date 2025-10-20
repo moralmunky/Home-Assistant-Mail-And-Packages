@@ -140,7 +140,7 @@ async def test_custom_img(
     """Test settting up entities."""
     entry = integration_custom_img
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 43
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 45
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 

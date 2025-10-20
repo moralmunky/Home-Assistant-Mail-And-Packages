@@ -711,7 +711,7 @@ SENSOR_DATA = {
         "email": ["help@walmart.com"],
         "subject": ["delivery is delayed"],
     },
-    "walmart_tracking": {"pattern": ["#[0-9]{7}-[0-9]{7,8}"]},
+    "walmart_tracking": {"pattern": [r"\b#?[0-9]{7}-[0-9]{7,8}\b"]},
     # BuildingLink
     "buildinglink_delivered": {
         "email": ["notify@buildinglink.com"],

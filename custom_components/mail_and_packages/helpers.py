@@ -291,7 +291,8 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     walmart_image_path = f"{walmart_path}{walmart_image_name}"
     if not os.path.exists(walmart_image_path):
         _LOGGER.debug(
-            "Walmart image file does not exist, creating default: %s", walmart_image_path
+            "Walmart image file does not exist, creating default: %s",
+            walmart_image_path,
         )
         try:
             nomail = f"{os.path.dirname(__file__)}/no_deliveries_walmart.jpg"
@@ -364,7 +365,12 @@ def image_file_name(
 
     Returns filename
     """
-    _LOGGER.debug("image_file_name called - amazon: %s, ups: %s, walmart: %s", amazon, ups, walmart)
+    _LOGGER.debug(
+        "image_file_name called - amazon: %s, ups: %s, walmart: %s",
+        amazon,
+        ups,
+        walmart,
+    )
     mail_none = None
     path = None
     image_name = None
@@ -396,7 +402,8 @@ def image_file_name(
         _LOGGER.debug("Processing Walmart image file name")
         if config.get(CONF_WALMART_CUSTOM_IMG):
             mail_none = (
-                config.get(CONF_WALMART_CUSTOM_IMG_FILE) or DEFAULT_WALMART_CUSTOM_IMG_FILE
+                config.get(CONF_WALMART_CUSTOM_IMG_FILE)
+                or DEFAULT_WALMART_CUSTOM_IMG_FILE
             )
             _LOGGER.debug("Using custom Walmart image: %s", mail_none)
         else:
@@ -1228,7 +1235,9 @@ def get_count(
     # Return Walmart delivered info
     if sensor_type == "walmart_delivered":
         walmart_image_name = (
-            data.get(ATTR_WALMART_IMAGE, "walmart_delivery.jpg") if data else "walmart_delivery.jpg"
+            data.get(ATTR_WALMART_IMAGE, "walmart_delivery.jpg")
+            if data
+            else "walmart_delivery.jpg"
         )
         result[ATTR_COUNT] = walmart_search(
             account, image_path, hass, walmart_image_name, config, data
@@ -1245,7 +1254,9 @@ def get_count(
             )
             if server_response == "OK" and email_data[0] is not None:
                 tracking = get_tracking(
-                    email_data[0], account, SENSOR_DATA["walmart_tracking"][ATTR_PATTERN][0]
+                    email_data[0],
+                    account,
+                    SENSOR_DATA["walmart_tracking"][ATTR_PATTERN][0],
                 )
                 result[ATTR_TRACKING] = tracking
             else:
@@ -1627,7 +1638,9 @@ def walmart_search(
                 # Count the delivery email (regardless of photo extraction)
                 count += 1
                 # Check if a Walmart delivery photo was successfully saved
-                if get_walmart_image(sdata, account, image_path, hass, walmart_image_name):
+                if get_walmart_image(
+                    sdata, account, image_path, hass, walmart_image_name
+                ):
                     new_image_saved = True
 
     # If a new image was saved, update the coordinator data with the actual filename
@@ -1882,7 +1895,8 @@ def get_walmart_image(  # pylint: disable=too-many-return-statements
                         return True
                     except Exception as err:
                         _LOGGER.error(
-                            "Error saving Walmart delivery photo from base64: %s", str(err)
+                            "Error saving Walmart delivery photo from base64: %s",
+                            str(err),
                         )
                         return False
 
