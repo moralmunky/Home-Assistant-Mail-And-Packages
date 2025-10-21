@@ -40,6 +40,8 @@
           "custom_img": "Använd anpassad USPS 'inget post' bild?",
           "amazon_custom_img": "Använd anpassad Amazon 'ingen leverans' bild?",
           "ups_custom_img": "Använd anpassad UPS 'ingen leverans' bild?",
+          "walmart_custom_img": "Använd anpassad Walmart 'ingen leverans' bild?",
+          "generic_custom_img": "Använd anpassad generisk 'ingen leverans' bild?",
           "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller"
         },
         "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
@@ -87,6 +89,8 @@
           "custom_img": "Använd anpassad USPS 'inget post' bild?",
           "amazon_custom_img": "Använd anpassad Amazon 'ingen leverans' bild?",
           "ups_custom_img": "Använd anpassad UPS 'ingen leverans' bild?",
+          "walmart_custom_img": "Använd anpassad Walmart 'ingen leverans' bild?",
+          "generic_custom_img": "Använd anpassad generisk 'ingen leverans' bild?",
           "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller"
         },
         "description": "Slutför konfigurationen genom att anpassa följande baserat på din e-poststruktur och Home Assistant-installation.\n\nFör detaljer om [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) alternativen granska [konfiguration, mallar och automatiseringssektionen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.\n\nOm du använder vidarebefordrade e-postmeddelanden från Amazon, separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",

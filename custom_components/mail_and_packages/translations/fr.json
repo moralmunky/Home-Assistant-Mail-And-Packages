@@ -40,6 +40,8 @@
           "custom_img": "Utiliser une image personnalisée USPS 'pas de courrier' ?",
           "amazon_custom_img": "Utiliser une image personnalisée Amazon 'pas de livraison' ?",
           "ups_custom_img": "Utiliser une image personnalisée UPS 'pas de livraison' ?",
+          "walmart_custom_img": "Utiliser une image personnalisée Walmart 'pas de livraison' ?",
+          "generic_custom_img": "Utiliser une image personnalisée générique 'pas de livraison' ?",
           "generate_grid": "Créer une grille d'images pour les modèles de vision LLM"
         },
         "description": "Terminez la configuration en personnalisant les éléments suivants en fonction de votre structure de messagerie et de l'installation de Home Assistant. \n\n Pour plus de détails sur les [Intégration de messagerie et de packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), passez en revue les [configuration, modèles et section automatisations] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sur GitHub.",
@@ -87,6 +89,8 @@
           "custom_img": "Utiliser une image personnalisée USPS 'pas de courrier' ?",
           "amazon_custom_img": "Utiliser une image personnalisée Amazon 'pas de livraison' ?",
           "ups_custom_img": "Utiliser une image personnalisée UPS 'pas de livraison' ?",
+          "walmart_custom_img": "Utiliser une image personnalisée Walmart 'pas de livraison' ?",
+          "generic_custom_img": "Utiliser une image personnalisée générique 'pas de livraison' ?",
           "generate_grid": "Créer une grille d'images pour les modèles de vision LLM"
         },
         "description": "Terminez la configuration en personnalisant ce qui suit en fonction de la structure de votre courrier électronique et de l'installation de Home Assistant.\n\nPour plus de détails sur les options d'[intégration de courrier et de colis](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), consultez la [section configuration, modèles et automatisations](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sur GitHub.\n\nSi vous utilisez des courriels transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.",

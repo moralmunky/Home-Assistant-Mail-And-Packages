@@ -40,6 +40,8 @@
           "custom_img": "Bruk tilpasset USPS 'ingen post' bilde?",
           "amazon_custom_img": "Bruk tilpasset Amazon 'ingen levering' bilde?",
           "ups_custom_img": "Bruk tilpasset UPS 'ingen levering' bilde?",
+          "walmart_custom_img": "Bruk tilpasset Walmart 'ingen levering' bilde?",
+          "generic_custom_img": "Bruk tilpasset generisk 'ingen levering' bilde?",
           "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller"
         },
         "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på e-poststrukturen og Home Assistant-installasjonen. \n\n For detaljer om alternativene [Mail and Packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), les gjennom [konfigurasjon, maler , og automatiseringsdel] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
@@ -87,6 +89,8 @@
           "custom_img": "Bruk tilpasset USPS 'ingen post' bilde?",
           "amazon_custom_img": "Bruk tilpasset Amazon 'ingen levering' bilde?",
           "ups_custom_img": "Bruk tilpasset UPS 'ingen levering' bilde?",
+          "walmart_custom_img": "Bruk tilpasset Walmart 'ingen levering' bilde?",
+          "generic_custom_img": "Bruk tilpasset generisk 'ingen levering' bilde?",
           "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller"
         },
         "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på din e-poststruktur og Home Assistant-installasjon.\n\nFor detaljer om [Mail and Packages-integrasjonen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) alternativene, se gjennom [konfigurasjon, maler og automatiseringsseksjonen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma eller skriv inn (ingen) for å tømme denne innstillingen.",

@@ -40,6 +40,8 @@
           "custom_img": "Benutzerdefiniertes USPS 'keine Post' Bild verwenden?",
           "amazon_custom_img": "Benutzerdefiniertes Amazon 'keine Lieferung' Bild verwenden?",
           "ups_custom_img": "Benutzerdefiniertes UPS 'keine Lieferung' Bild verwenden?",
+          "walmart_custom_img": "Benutzerdefiniertes Walmart 'keine Lieferung' Bild verwenden?",
+          "generic_custom_img": "Benutzerdefiniertes generisches 'keine Lieferung' Bild verwenden?",
           "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle"
         },
         "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
@@ -87,6 +89,8 @@
           "custom_img": "Benutzerdefiniertes USPS 'keine Post' Bild verwenden?",
           "amazon_custom_img": "Benutzerdefiniertes Amazon 'keine Lieferung' Bild verwenden?",
           "ups_custom_img": "Benutzerdefiniertes UPS 'keine Lieferung' Bild verwenden?",
+          "walmart_custom_img": "Benutzerdefiniertes Walmart 'keine Lieferung' Bild verwenden?",
+          "generic_custom_img": "Benutzerdefiniertes generisches 'keine Lieferung' Bild verwenden?",
           "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle"
         },
         "description": "Schließen Sie die Konfiguration ab, indem Sie das Folgende an Ihre E-Mail-Struktur und Home Assistant-Installation anpassen.\n\nWeitere Informationen zu den [Mail und Packages Integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) Optionen finden Sie im [Konfigurations-, Vorlagen- und Automatisierungsabschnitt](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse durch ein Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
