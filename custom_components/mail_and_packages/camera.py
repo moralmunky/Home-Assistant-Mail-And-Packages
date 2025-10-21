@@ -486,7 +486,7 @@ class MailCam(CoordinatorEntity, Camera):
             The corresponding sensor name, or None if no mapping exists
         """
         # Extract base name from camera type (e.g., "amazon_camera" -> "amazon")
-        base_name = camera_type.replace("_camera", "")
+        base_name = camera_type.split("_")[0]
 
         # Special case for USPS (uses usps_mail instead of usps_delivered)
         if base_name == "usps":
