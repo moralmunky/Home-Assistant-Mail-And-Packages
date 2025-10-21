@@ -2134,7 +2134,7 @@ async def test_walmart_camera_integration():
         "walmart_camera" in CAMERA_DATA
     ), "Walmart camera should be defined in CAMERA_DATA"
     assert (
-        CAMERA_DATA["walmart_camera"][0] == "Mail Walmart Delivery Camera"
+        CAMERA_DATA["walmart_camera"][0] == "Mail Walmart Camera"
     ), "Walmart camera should have correct name"
 
     # Test that ATTR_WALMART_IMAGE constant exists

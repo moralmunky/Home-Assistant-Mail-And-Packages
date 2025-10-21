@@ -1336,7 +1336,7 @@ CAMERA_DATA = {
     "usps_camera": ["Mail USPS Camera"],
     "ups_camera": ["Mail UPS Camera"],
     "amazon_camera": ["Mail Amazon Delivery Camera"],
-    "walmart_camera": ["Mail Walmart Delivery Camera"],
+    "walmart_camera": ["Mail Walmart Camera"],
     "generic_camera": ["Mail Generic Delivery Camera"],
 }
 
