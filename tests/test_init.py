@@ -1,20 +1,19 @@
 """Tests for init."""
 
-import logging
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from custom_components.mail_and_packages.const import DOMAIN
-from tests.const import (
-    FAKE_CONFIG_DATA,
-    FAKE_CONFIG_DATA_AMAZON_FWD_STRING,
-    FAKE_CONFIG_DATA_CUSTOM_IMG,
-    FAKE_CONFIG_DATA_MISSING_TIMEOUT,
-    FAKE_CONFIG_DATA_NO_PATH,
+from custom_components.mail_and_packages import (
+    MailDataUpdateCoordinator,
+    async_migrate_entry,
+    async_remove_config_entry_device,
+    async_setup_entry,
 )
+from custom_components.mail_and_packages.const import DOMAIN
 
 
 @pytest.mark.asyncio
@@ -169,8 +168,6 @@ async def test_v4_migration(
 
 async def test_migration_from_version_1_to_4():
     """Test migration from version 1 to 4."""
-    from custom_components.mail_and_packages import async_migrate_entry
-    from unittest.mock import MagicMock
 
     # Mock config entry with version 1
     mock_config_entry = MagicMock()
@@ -188,14 +185,13 @@ async def test_migration_from_version_1_to_4():
     result = await async_migrate_entry(mock_hass, mock_config_entry)
     assert result is True
 
-    # The migration function creates a copy and updates the entry, so we just verify it completes successfully
+    # The migration function creates a copy and updates the entry, so we just verify it completes
+    # successfully
     # The actual data modification happens in the migration function internally
 
 
 async def test_migration_from_version_11_to_12():
     """Test migration from version 11 to 12."""
-    from custom_components.mail_and_packages import async_migrate_entry
-    from unittest.mock import MagicMock
 
     # Mock config entry with version 11
     mock_config_entry = MagicMock()
@@ -216,9 +212,6 @@ async def test_migration_from_version_11_to_12():
 
 async def test_setup_entry_coordinator_failure():
     """Test setup_entry when coordinator fails to update."""
-    from custom_components.mail_and_packages import async_setup_entry
-    from homeassistant.exceptions import ConfigEntryNotReady
-    from unittest.mock import MagicMock, patch, AsyncMock
 
     mock_hass = MagicMock()
     mock_config_entry = MagicMock()
@@ -250,8 +243,6 @@ async def test_setup_entry_coordinator_failure():
 
 async def test_async_remove_config_entry_device():
     """Test async_remove_config_entry_device function."""
-    from custom_components.mail_and_packages import async_remove_config_entry_device
-    from unittest.mock import MagicMock
 
     mock_hass = MagicMock()
     mock_config_entry = MagicMock()
@@ -276,9 +267,6 @@ async def test_async_remove_config_entry_device():
 
 async def test_coordinator_async_refresh_error():
     """Test coordinator async_refresh error handling."""
-    from custom_components.mail_and_packages import MailDataUpdateCoordinator
-    from homeassistant.helpers.update_coordinator import UpdateFailed
-    from unittest.mock import MagicMock, patch
 
     mock_hass = MagicMock()
     mock_config = MagicMock()
@@ -301,8 +289,6 @@ async def test_coordinator_async_refresh_error():
 
 async def test_coordinator_binary_sensor_update_usps_hash_comparison():
     """Test coordinator binary sensor update for USPS hash comparison."""
-    from custom_components.mail_and_packages import MailDataUpdateCoordinator
-    from unittest.mock import MagicMock, patch, AsyncMock
 
     mock_hass = MagicMock()
     mock_config = MagicMock()
@@ -333,8 +319,6 @@ async def test_coordinator_binary_sensor_update_usps_hash_comparison():
 
 async def test_coordinator_binary_sensor_update_amazon_hash_comparison():
     """Test coordinator binary sensor update for Amazon hash comparison."""
-    from custom_components.mail_and_packages import MailDataUpdateCoordinator
-    from unittest.mock import MagicMock, patch, AsyncMock
 
     mock_hass = MagicMock()
     mock_config = MagicMock()
@@ -365,8 +349,6 @@ async def test_coordinator_binary_sensor_update_amazon_hash_comparison():
 
 async def test_coordinator_binary_sensor_update_ups_hash_comparison():
     """Test coordinator binary sensor update for UPS hash comparison."""
-    from custom_components.mail_and_packages import MailDataUpdateCoordinator
-    from unittest.mock import MagicMock, patch, AsyncMock
 
     mock_hass = MagicMock()
     mock_config = MagicMock()
@@ -397,8 +379,6 @@ async def test_coordinator_binary_sensor_update_ups_hash_comparison():
 
 async def test_coordinator_binary_sensor_update_same_hashes():
     """Test coordinator binary sensor update when hashes are the same."""
-    from custom_components.mail_and_packages import MailDataUpdateCoordinator
-    from unittest.mock import MagicMock, patch, AsyncMock
 
     mock_hass = MagicMock()
     mock_config = MagicMock()
@@ -429,8 +409,6 @@ async def test_coordinator_binary_sensor_update_same_hashes():
 
 async def test_coordinator_binary_sensor_update_amazon_same_hashes():
     """Test coordinator binary sensor update for Amazon when hashes are the same."""
-    from custom_components.mail_and_packages import MailDataUpdateCoordinator
-    from unittest.mock import MagicMock, patch, AsyncMock
 
     mock_hass = MagicMock()
     mock_config = MagicMock()
@@ -461,8 +439,6 @@ async def test_coordinator_binary_sensor_update_amazon_same_hashes():
 
 async def test_coordinator_binary_sensor_update_ups_same_hashes():
     """Test coordinator binary sensor update for UPS when hashes are the same."""
-    from custom_components.mail_and_packages import MailDataUpdateCoordinator
-    from unittest.mock import MagicMock, patch, AsyncMock
 
     mock_hass = MagicMock()
     mock_config = MagicMock()

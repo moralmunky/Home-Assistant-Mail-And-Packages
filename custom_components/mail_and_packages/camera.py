@@ -6,12 +6,14 @@ import logging
 import os
 
 import voluptuous as vol
+from PIL import Image
 from homeassistant.components.camera import Camera
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, CONF_HOST
 from homeassistant.core import ServiceCall
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from . import const
 from .const import (
     ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_NAME,
@@ -326,7 +328,6 @@ class MailCam(CoordinatorEntity, Camera):
 
                     # Set image attributes (UPS, Amazon, Walmart all use the same pattern)
                     image_attr_name = f"ATTR_{base_name.upper()}_IMAGE"
-                    from . import const
 
                     image_attr = getattr(const, image_attr_name, None)
                     path_suffix = f"{base_name}/"  # All cameras have subdirectory
@@ -407,8 +408,6 @@ class MailCam(CoordinatorEntity, Camera):
                 # Create animated GIF if we have multiple delivery images
                 if len(delivery_images) > 1:
                     try:
-                        from PIL import Image
-
                         # Create animated GIF cycling through delivery images
                         gif_path = f"{os.path.dirname(__file__)}/generic_deliveries.gif"
 
@@ -476,8 +475,6 @@ class MailCam(CoordinatorEntity, Camera):
             # Handle other cameras (Amazon, UPS, Walmart)
             custom_img_key = f"CONF_{base_name.upper()}_CUSTOM_IMG"
             custom_img_file_key = f"CONF_{base_name.upper()}_CUSTOM_IMG_FILE"
-
-        from . import const
 
         custom_img_conf = getattr(const, custom_img_key, None)
         custom_img_file_conf = getattr(const, custom_img_file_key, None)
