@@ -1249,7 +1249,7 @@ async def test_generic_camera_with_usps_delivery_images(
     mock_copyfile,
     caplog,
 ):
-    """Test Generic camera with USPS delivery images."""
+    """Test Generic camera without USPS (USPS removed from generic camera)."""
     entry = integration
 
     # Mock coordinator data with USPS delivery
@@ -1279,11 +1279,11 @@ async def test_generic_camera_with_usps_delivery_images(
         state = hass.states.get("camera.mail_generic_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
 
-        # Should use USPS delivery image since it's the only delivery found
+        # Should use default no deliveries image since USPS is removed from generic camera
         file_path = state.attributes.get("file_path")
         assert file_path is not None
-        # The file path should contain the USPS delivery image
-        assert "test_usps" in file_path or "usps" in file_path.lower()
+        # The file path should contain the default no deliveries image
+        assert "no_deliveries_generic.jpg" in file_path
 
         service_data = {"entity_id": "camera.mail_generic_delivery_camera"}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
@@ -1291,9 +1291,9 @@ async def test_generic_camera_with_usps_delivery_images(
 
         file_path = state.attributes.get("file_path")
         assert file_path is not None
-        # The file path should contain the USPS delivery image
-        assert "test_usps" in file_path or "usps" in file_path.lower()
-        assert "Generic camera - found usps delivery" in caplog.text
+        # The file path should contain the default no deliveries image
+        assert "no_deliveries_generic.jpg" in file_path
+        assert "Generic camera - no deliveries found, using default" in caplog.text
 
 
 async def test_generic_camera_with_multiple_delivery_images(

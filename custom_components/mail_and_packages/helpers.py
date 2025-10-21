@@ -1610,7 +1610,9 @@ def walmart_search(
                     emails_found.append(email_id)
             _LOGGER.debug("Found Walmart emails with subject '%s': %s", subject, data)
 
-    if not emails_found or all(email_id == b"" or email_id is None for email_id in emails_found):
+    if not emails_found or all(
+        email_id == b"" or email_id is None for email_id in emails_found
+    ):
         _LOGGER.debug("No Walmart delivery emails found")
         # Still need to create no-delivery image and update coordinator data
         if count == 0:
