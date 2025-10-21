@@ -892,6 +892,7 @@ async def test_generic_camera_with_usps_delivery_images_manual(
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
     coordinator.data = {
         "image_name": "test_usps_delivery.gif",
+        "usps_delivered": 1,  # Even if USPS is delivered, generic camera should ignore it
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
@@ -1086,12 +1087,16 @@ async def test_generic_camera_respects_enabled_sensors(
     coordinator.data = {
         # Amazon delivery
         "amazon_image": "test_amazon_delivery.jpg",
+        "amazon_delivered": 1,  # Need delivery count > 0 for generic camera to include it
         # UPS delivery
         "ups_image": "test_ups_delivery.jpg",
+        "ups_delivered": 1,  # UPS has deliveries but sensor will be disabled
         # USPS delivery
         "image_name": "test_usps_delivery.gif",
+        "usps_delivered": 1,  # USPS has deliveries but sensor will be disabled
         # Walmart delivery
         "walmart_image": "test_walmart_delivery.jpg",
+        "walmart_delivered": 1,  # Need delivery count > 0 for generic camera to include it
         # Common path
         "image_path": "custom_components/mail_and_packages/images/",
     }
@@ -1261,6 +1266,7 @@ async def test_generic_camera_with_usps_delivery_images(
     coordinator.data = {
         # USPS delivery
         "image_name": "test_usps_delivery.gif",
+        "usps_delivered": 1,  # Even if USPS is delivered, generic camera should ignore it
         # Common path
         "image_path": "custom_components/mail_and_packages/images/",
     }
@@ -1324,10 +1330,13 @@ async def test_generic_camera_with_multiple_delivery_images(
     coordinator.data = {
         # Amazon delivery
         "amazon_image": "test_amazon_delivery.jpg",
+        "amazon_delivered": 1,  # Need delivery count > 0 for generic camera to include it
         # UPS delivery
         "ups_image": "test_ups_delivery.jpg",
+        "ups_delivered": 1,  # Need delivery count > 0 for generic camera to include it
         # USPS delivery
         "image_name": "test_usps_delivery.gif",
+        "usps_delivered": 1,  # Even if USPS is delivered, generic camera should ignore it
         # Common path
         "image_path": "custom_components/mail_and_packages/images/",
     }
