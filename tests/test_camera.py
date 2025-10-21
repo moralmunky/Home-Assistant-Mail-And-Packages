@@ -1149,10 +1149,7 @@ async def test_generic_camera_respects_enabled_sensors(
             "Generic camera - skipping ups (sensor ups_delivered not enabled)"
             in caplog.text
         )
-        assert (
-            "Generic camera - skipping usps (sensor usps_mail not enabled)"
-            in caplog.text
-        )
+        # Note: USPS is now skipped entirely in generic camera, not just when sensor is disabled
 
         # Verify PIL was called to create animated GIF
         mock_pil_open.assert_called()
