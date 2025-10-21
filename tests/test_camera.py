@@ -1012,12 +1012,16 @@ async def test_generic_camera_filters_no_mail_images(
     coordinator.data = {
         # Amazon - actual delivery
         "amazon_image": "test_amazon_delivery.jpg",
+        "amazon_delivered": 1,  # Need delivery count > 0 for generic camera to include it
         # UPS - no mail image (should be filtered out)
         "ups_image": "no_deliveries_ups.jpg",
+        "ups_delivered": 0,  # No deliveries, should be filtered out
         # USPS - no mail image (should be filtered out)
         "image_name": "mail_none.gif",
+        "usps_delivered": 0,  # No deliveries, should be filtered out
         # Walmart - actual delivery
         "walmart_image": "test_walmart_delivery.jpg",
+        "walmart_delivered": 1,  # Need delivery count > 0 for generic camera to include it
         # Common path
         "image_path": "custom_components/mail_and_packages/images/",
     }
