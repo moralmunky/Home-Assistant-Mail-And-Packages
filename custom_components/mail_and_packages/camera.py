@@ -406,7 +406,7 @@ class MailCam(CoordinatorEntity, Camera):
                                 )
 
                 # Create animated GIF if we have multiple delivery images
-                if len(delivery_images) > 1:
+                if len(delivery_images) > 0:
                     gif_path = f"{os.path.dirname(__file__)}/generic_deliveries.gif"
 
                     # Generate animated GIF using helper function
