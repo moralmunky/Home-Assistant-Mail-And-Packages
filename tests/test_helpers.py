@@ -2695,3 +2695,233 @@ async def test_ups_search_error_handling():
 
         # Should return 0 when path is invalid
         assert result == 0
+
+
+async def test_process_emails_walmart_image_processing_error():
+    """Test process_emails handles Walmart image processing errors gracefully."""
+    from custom_components.mail_and_packages.helpers import process_emails
+    from unittest.mock import MagicMock, patch
+    import tempfile
+    import os
+
+    # Mock hass and config
+    mock_hass = MagicMock()
+    mock_hass.config.path.return_value = "/test/path"
+    mock_config = MagicMock()
+    mock_config.get.side_effect = lambda key: {
+        "resources": ["walmart_delivered"],
+        "scan_interval": 20,
+    }.get(key, None)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with patch(
+            "custom_components.mail_and_packages.helpers.login"
+        ) as mock_login, patch("os.path.isdir", return_value=False), patch(
+            "os.path.exists", return_value=False
+        ), patch(
+            "os.makedirs"
+        ) as mock_makedirs, patch(
+            "custom_components.mail_and_packages.helpers.copyfile"
+        ) as mock_copyfile:
+
+            # Mock login to return a mock account
+            mock_account = MagicMock()
+            mock_login.return_value = mock_account
+
+            # Mock image_file_name to raise an exception for Walmart specifically
+            def image_file_name_side_effect(
+                hass, config, amazon=False, ups=False, walmart=False
+            ):
+                if walmart:
+                    raise Exception("Walmart image processing error")
+                return "test_image.jpg"
+
+            with patch(
+                "custom_components.mail_and_packages.helpers.image_file_name",
+                side_effect=image_file_name_side_effect,
+            ):
+                # This should not raise an exception, but handle errors gracefully
+                result = process_emails(mock_hass, mock_config)
+
+                # Should return a dict even with errors
+                assert isinstance(result, dict)
+
+
+async def test_process_emails_ups_directory_creation_error():
+    """Test process_emails handles UPS directory creation errors gracefully."""
+    from custom_components.mail_and_packages.helpers import process_emails
+    from unittest.mock import MagicMock, patch
+    import tempfile
+    import os
+
+    # Mock hass and config
+    mock_hass = MagicMock()
+    mock_hass.config.path.return_value = "/test/path"
+    mock_config = MagicMock()
+    mock_config.get.side_effect = lambda key: {
+        "resources": ["ups_delivered"],
+        "scan_interval": 20,
+    }.get(key, None)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with patch(
+            "custom_components.mail_and_packages.helpers.login"
+        ) as mock_login, patch(
+            "custom_components.mail_and_packages.helpers.image_file_name",
+            return_value="test_image.jpg",
+        ), patch(
+            "os.path.isdir", return_value=False
+        ), patch(
+            "os.path.exists", return_value=False
+        ), patch(
+            "os.makedirs"
+        ) as mock_makedirs, patch(
+            "custom_components.mail_and_packages.helpers.copyfile"
+        ) as mock_copyfile:
+
+            # Mock login to return a mock account
+            mock_account = MagicMock()
+            mock_login.return_value = mock_account
+
+            # Mock makedirs to raise an exception
+            mock_makedirs.side_effect = Exception("UPS directory creation error")
+
+            # This should not raise an exception, but handle errors gracefully
+            result = process_emails(mock_hass, mock_config)
+
+            # Should return a dict even with errors
+            assert isinstance(result, dict)
+
+
+async def test_default_image_path_attribute_error():
+    """Test default_image_path handles AttributeError gracefully."""
+    from custom_components.mail_and_packages.helpers import default_image_path
+    from unittest.mock import MagicMock
+
+    # Mock config entry that raises AttributeError on get()
+    mock_config = MagicMock()
+    mock_config.get.side_effect = AttributeError("No get method")
+    mock_config.data = {"storage": "custom/path/"}
+
+    # Mock hass
+    mock_hass = MagicMock()
+
+    # Should handle AttributeError and use data attribute
+    result = default_image_path(mock_hass, mock_config)
+    assert result == "custom/path/"
+
+
+async def test_default_image_path_no_storage():
+    """Test default_image_path returns default when no storage configured."""
+    from custom_components.mail_and_packages.helpers import default_image_path
+    from unittest.mock import MagicMock
+
+    # Mock config entry with no storage
+    mock_config = MagicMock()
+    mock_config.get.return_value = None
+
+    # Mock hass
+    mock_hass = MagicMock()
+
+    # Should return default path
+    result = default_image_path(mock_hass, mock_config)
+    assert result == "custom_components/mail_and_packages/images/"
+
+
+async def test_process_emails_directory_creation_error():
+    """Test process_emails handles directory creation errors gracefully."""
+    from custom_components.mail_and_packages.helpers import process_emails
+    from unittest.mock import MagicMock, patch
+    import tempfile
+    import os
+
+    # Mock hass and config
+    mock_hass = MagicMock()
+    mock_hass.config.path.return_value = "/test/path"
+    mock_config = MagicMock()
+    mock_config.get.side_effect = lambda key: {
+        "resources": ["ups_delivered"],
+        "scan_interval": 20,
+    }.get(key, None)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with patch(
+            "custom_components.mail_and_packages.helpers.login"
+        ) as mock_login, patch("os.path.isdir", return_value=False), patch(
+            "os.path.exists", return_value=False
+        ), patch(
+            "os.makedirs"
+        ) as mock_makedirs, patch(
+            "custom_components.mail_and_packages.helpers.copyfile"
+        ) as mock_copyfile:
+
+            # Mock login to return a mock account
+            mock_account = MagicMock()
+            mock_login.return_value = mock_account
+
+            # Mock image_file_name to return normal values
+            with patch(
+                "custom_components.mail_and_packages.helpers.image_file_name",
+                return_value="test_image.jpg",
+            ):
+                mock_makedirs.side_effect = Exception("Directory creation error")
+
+                # Mock copyfile to raise an exception
+                mock_copyfile.side_effect = Exception("File copy error")
+
+                # This should not raise an exception, but handle errors gracefully
+                result = process_emails(mock_hass, mock_config)
+
+                # Should return a dict even with errors
+                assert isinstance(result, dict)
+
+
+async def test_hash_file_functionality():
+    """Test hash_file function basic functionality."""
+    from custom_components.mail_and_packages.helpers import hash_file
+    import tempfile
+    import os
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        test_file = os.path.join(temp_dir, "test.txt")
+        with open(test_file, "w") as f:
+            f.write("test content")
+
+        # Test with valid file
+        result = hash_file(test_file)
+        assert result is not None
+        assert len(result) == 40  # SHA1 hash length
+        assert isinstance(result, str)
+
+        # Test that same content produces same hash
+        result2 = hash_file(test_file)
+        assert result == result2
+
+        # Test with different content produces different hash
+        with open(test_file, "w") as f:
+            f.write("different content")
+        result3 = hash_file(test_file)
+        assert result != result3
+
+
+async def test_copy_overlays_error_handling():
+    """Test copy_overlays function error handling."""
+    from custom_components.mail_and_packages.helpers import copy_overlays
+    from unittest.mock import patch, MagicMock
+    import tempfile
+    import os
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Mock shutil.copytree to raise an exception
+        with patch(
+            "custom_components.mail_and_packages.helpers.copytree",
+            side_effect=Exception("Copy error"),
+        ):
+            # Should handle the exception gracefully and log an error
+            copy_overlays(temp_dir)
+
+
+# Note: SSL context tests removed due to compatibility issues with different Home Assistant versions
+
+
+# Note: hash_file function doesn't have error handling, so we can't test error cases

@@ -5586,3 +5586,135 @@ async def test_walmart_config_flow_version():
     assert (
         CONFIG_VER >= 12
     ), f"Config version should be 12 or higher for Walmart support, got {CONFIG_VER}"
+
+
+async def test_get_mailboxes_non_ok_status():
+    """Test _get_mailboxes handles non-OK status gracefully."""
+    from custom_components.mail_and_packages.config_flow import _get_mailboxes
+    from unittest.mock import MagicMock, patch
+
+    # Mock login to return an account that returns non-OK status
+    with patch("custom_components.mail_and_packages.config_flow.login") as mock_login:
+        mock_account = MagicMock()
+        mock_account.list.return_value = ("ERROR", [])  # Non-OK status
+        mock_login.return_value = mock_account
+
+        result = _get_mailboxes("test.host", 993, "user", "pass", "SSL", True)
+
+        # Should return default folder when status is not OK
+        assert result == ['"INBOX"']
+
+
+async def test_get_schema_step_3_none_input():
+    """Test _get_schema_step_3 with None user_input."""
+    from custom_components.mail_and_packages.config_flow import _get_schema_step_3
+
+    result = _get_schema_step_3(None, {})
+
+    # Should handle None input gracefully
+    assert result is not None
+
+
+async def test_config_flow_step_amazon_empty_fwds():
+    """Test config flow step amazon with empty amazon_fwds."""
+    from custom_components.mail_and_packages.config_flow import (
+        MailAndPackagesFlowHandler,
+    )
+    from unittest.mock import MagicMock, patch
+
+    flow = MailAndPackagesFlowHandler()
+    flow._data = {"amazon_fwds": []}
+
+    # Mock the async_show_form method
+    with patch.object(flow, "async_show_form") as mock_show_form:
+        result = await flow._show_reconfig_amazon({})
+
+        # Should set amazon_fwds to "(none)" when empty
+        assert flow._data["amazon_fwds"] == "(none)"
+        mock_show_form.assert_called_once()
+
+
+async def test_config_flow_reconfig_storage_validation_error():
+    """Test reconfig storage step with validation errors."""
+    from custom_components.mail_and_packages.config_flow import (
+        MailAndPackagesFlowHandler,
+    )
+    from unittest.mock import MagicMock, patch
+
+    flow = MailAndPackagesFlowHandler()
+    flow._data = {}
+    flow._errors = {"test_error": "validation_failed"}
+
+    # Mock the async_show_form method
+    with patch.object(flow, "async_show_form") as mock_show_form:
+        result = await flow._show_reconfig_storage({"test": "data"})
+
+        # Should show form with errors
+        mock_show_form.assert_called_once()
+
+
+async def test_config_flow_reconfig_amazon_validation_error():
+    """Test reconfig amazon step with validation errors."""
+    from custom_components.mail_and_packages.config_flow import (
+        MailAndPackagesFlowHandler,
+    )
+    from unittest.mock import MagicMock, patch
+
+    flow = MailAndPackagesFlowHandler()
+    flow._data = {"amazon_fwds": ["test@example.com"]}
+    flow._errors = {"test_error": "validation_failed"}
+
+    # Mock the async_show_form method
+    with patch.object(flow, "async_show_form") as mock_show_form:
+        result = await flow._show_reconfig_amazon({"test": "data"})
+
+        # Should show form with errors
+        mock_show_form.assert_called_once()
+
+
+async def test_config_flow_reconfig_3_validation_error():
+    """Test reconfig step 3 with validation errors."""
+    from custom_components.mail_and_packages.config_flow import (
+        MailAndPackagesFlowHandler,
+    )
+    from unittest.mock import MagicMock, patch
+
+    flow = MailAndPackagesFlowHandler()
+    flow._data = {}
+    flow._errors = {"test_error": "validation_failed"}
+
+    # Mock the async_show_form method
+    with patch.object(flow, "async_show_form") as mock_show_form:
+        result = await flow._show_reconfig_3({"test": "data"})
+
+        # Should show form with errors
+        mock_show_form.assert_called_once()
+
+
+async def test_config_flow_reconfig_2_validation_error():
+    """Test reconfig step 2 with validation errors."""
+    from custom_components.mail_and_packages.config_flow import (
+        MailAndPackagesFlowHandler,
+    )
+    from unittest.mock import MagicMock, patch
+
+    flow = MailAndPackagesFlowHandler()
+    flow._data = {
+        "host": "imap.test.com",
+        "port": 993,
+        "username": "test@test.com",
+        "password": "password",
+        "imap_security": "SSL",
+        "verify_ssl": True,
+    }
+    flow._errors = {"test_error": "validation_failed"}
+
+    # Mock the _get_mailboxes function and async_show_form method
+    with patch(
+        "custom_components.mail_and_packages.config_flow._get_mailboxes",
+        return_value=['"INBOX"'],
+    ), patch.object(flow, "async_show_form") as mock_show_form:
+        result = await flow._show_reconfig_2({"test": "data"})
+
+        # Should show form with errors
+        mock_show_form.assert_called_once()

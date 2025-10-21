@@ -248,6 +248,7 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     _LOGGER.debug("Set ATTR_UPS_IMAGE in coordinator data: %s", ups_image_name)
 
     # Walmart delivery image name
+    walmart_image_name = None  # Initialize to avoid UnboundLocalError
     try:
         _LOGGER.debug("=== WALMART IMAGE PROCESSING START ===")
         _LOGGER.debug("Generating Walmart image name...")
@@ -263,6 +264,8 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
         _LOGGER.debug("=== WALMART IMAGE PROCESSING END ===")
     except Exception as e:
         _LOGGER.error("Exception in Walmart image processing: %s", e)
+        # Set a default value if image_file_name fails
+        walmart_image_name = f"{str(uuid.uuid4())}.jpg"
 
     # Ensure UPS directory exists and has a default image
     ups_path = f"{hass.config.path()}/{default_image_path(hass, config)}ups/"

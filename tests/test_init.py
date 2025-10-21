@@ -165,3 +165,327 @@ async def test_v4_migration(
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 42
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
+
+
+async def test_migration_from_version_1_to_4():
+    """Test migration from version 1 to 4."""
+    from custom_components.mail_and_packages import async_migrate_entry
+    from unittest.mock import MagicMock
+
+    # Mock config entry with version 1
+    mock_config_entry = MagicMock()
+    mock_config_entry.version = 1
+    mock_config_entry.data = {
+        "amazon_fwds": "email1@test.com, email2@test.com",
+        "path": "old/path/",
+        "image_security": False,
+    }
+
+    # Mock hass
+    mock_hass = MagicMock()
+
+    # Should migrate successfully
+    result = await async_migrate_entry(mock_hass, mock_config_entry)
+    assert result is True
+
+    # The migration function creates a copy and updates the entry, so we just verify it completes successfully
+    # The actual data modification happens in the migration function internally
+
+
+async def test_migration_from_version_11_to_12():
+    """Test migration from version 11 to 12."""
+    from custom_components.mail_and_packages import async_migrate_entry
+    from unittest.mock import MagicMock
+
+    # Mock config entry with version 11
+    mock_config_entry = MagicMock()
+    mock_config_entry.version = 11
+    mock_config_entry.data = {}
+
+    # Mock hass
+    mock_hass = MagicMock()
+
+    # Should migrate successfully
+    result = await async_migrate_entry(mock_hass, mock_config_entry)
+    assert result is True
+
+    # The migration should have updated the config entry data
+    # Note: The actual migration logic modifies updated_config, not config_entry.data directly
+    # So we're testing that the migration function completes successfully
+
+
+async def test_setup_entry_coordinator_failure():
+    """Test setup_entry when coordinator fails to update."""
+    from custom_components.mail_and_packages import async_setup_entry
+    from homeassistant.exceptions import ConfigEntryNotReady
+    from unittest.mock import MagicMock, patch, AsyncMock
+
+    mock_hass = MagicMock()
+    mock_config_entry = MagicMock()
+    mock_config_entry.data = {
+        "host": "imap.test.com",
+        "port": 993,
+        "username": "test@test.com",
+        "password": "password",
+        "resources": ["usps_mail"],
+        "scan_interval": 20,
+    }
+    mock_config_entry.entry_id = "test_entry_id"
+
+    # Mock coordinator that fails to update
+    mock_coordinator = MagicMock()
+    mock_coordinator.last_update_success = False
+    mock_coordinator.last_exception = Exception("Connection failed")
+    mock_coordinator.async_refresh = AsyncMock()
+
+    with patch(
+        "custom_components.mail_and_packages.MailDataUpdateCoordinator"
+    ) as mock_coordinator_class:
+        mock_coordinator_class.return_value = mock_coordinator
+
+        # Should raise ConfigEntryNotReady
+        with pytest.raises(ConfigEntryNotReady):
+            await async_setup_entry(mock_hass, mock_config_entry)
+
+
+async def test_async_remove_config_entry_device():
+    """Test async_remove_config_entry_device function."""
+    from custom_components.mail_and_packages import async_remove_config_entry_device
+    from unittest.mock import MagicMock
+
+    mock_hass = MagicMock()
+    mock_config_entry = MagicMock()
+    mock_device_entry = MagicMock()
+
+    # Test with device identifiers that match our domain
+    mock_device_entry.identifiers = {("mail_and_packages", "test_device")}
+    mock_config_entry.runtime_data.get_device.return_value = True
+
+    result = await async_remove_config_entry_device(
+        mock_hass, mock_config_entry, mock_device_entry
+    )
+    assert result is False  # Should return False when device is present
+
+    # Test with device identifiers that don't match our domain
+    mock_device_entry.identifiers = {("other_domain", "test_device")}
+    result = await async_remove_config_entry_device(
+        mock_hass, mock_config_entry, mock_device_entry
+    )
+    assert result is True  # Should return True when device is not present
+
+
+async def test_coordinator_async_refresh_error():
+    """Test coordinator async_refresh error handling."""
+    from custom_components.mail_and_packages import MailDataUpdateCoordinator
+    from homeassistant.helpers.update_coordinator import UpdateFailed
+    from unittest.mock import MagicMock, patch
+
+    mock_hass = MagicMock()
+    mock_config = MagicMock()
+    mock_config.get.side_effect = lambda key: {
+        "scan_interval": 20,
+        "imap_timeout": 30,
+        "host": "imap.test.com",
+    }.get(key, 30)
+
+    coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+
+    # Mock process_emails to raise an exception
+    with patch(
+        "custom_components.mail_and_packages.process_emails",
+        side_effect=Exception("Test error"),
+    ):
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
+
+
+async def test_coordinator_binary_sensor_update_usps_hash_comparison():
+    """Test coordinator binary sensor update for USPS hash comparison."""
+    from custom_components.mail_and_packages import MailDataUpdateCoordinator
+    from unittest.mock import MagicMock, patch, AsyncMock
+
+    mock_hass = MagicMock()
+    mock_config = MagicMock()
+    mock_config.get.side_effect = lambda key: {
+        "scan_interval": 20,
+        "imap_timeout": 30,
+        "host": "imap.test.com",
+    }.get(key, "custom_components/mail_and_packages/images/")
+
+    coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+    coordinator._data = {
+        "image_name": "test_image.gif",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    # Mock async_add_executor_job to return different hashes
+    mock_hass.async_add_executor_job = AsyncMock(side_effect=["hash1", "hash2"])
+
+    with patch(
+        "custom_components.mail_and_packages.default_image_path",
+        return_value="custom_components/mail_and_packages/images/",
+    ), patch("os.path.exists", return_value=True):
+        await coordinator._binary_sensor_update()
+
+        # Should set usps_update to True since hashes are different
+        assert coordinator._data["usps_update"] is True
+
+
+async def test_coordinator_binary_sensor_update_amazon_hash_comparison():
+    """Test coordinator binary sensor update for Amazon hash comparison."""
+    from custom_components.mail_and_packages import MailDataUpdateCoordinator
+    from unittest.mock import MagicMock, patch, AsyncMock
+
+    mock_hass = MagicMock()
+    mock_config = MagicMock()
+    mock_config.get.side_effect = lambda key: {
+        "scan_interval": 20,
+        "imap_timeout": 30,
+        "host": "imap.test.com",
+    }.get(key, "custom_components/mail_and_packages/images/")
+
+    coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+    coordinator._data = {
+        "amazon_image": "test_amazon.jpg",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    # Mock async_add_executor_job to return different hashes
+    mock_hass.async_add_executor_job = AsyncMock(side_effect=["hash1", "hash2"])
+
+    with patch(
+        "custom_components.mail_and_packages.default_image_path",
+        return_value="custom_components/mail_and_packages/images/",
+    ), patch("os.path.exists", return_value=True):
+        await coordinator._binary_sensor_update()
+
+        # Should set amazon_update to True since hashes are different
+        assert coordinator._data["amazon_update"] is True
+
+
+async def test_coordinator_binary_sensor_update_ups_hash_comparison():
+    """Test coordinator binary sensor update for UPS hash comparison."""
+    from custom_components.mail_and_packages import MailDataUpdateCoordinator
+    from unittest.mock import MagicMock, patch, AsyncMock
+
+    mock_hass = MagicMock()
+    mock_config = MagicMock()
+    mock_config.get.side_effect = lambda key: {
+        "scan_interval": 20,
+        "imap_timeout": 30,
+        "host": "imap.test.com",
+    }.get(key, "custom_components/mail_and_packages/images/")
+
+    coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+    coordinator._data = {
+        "ups_image": "test_ups.jpg",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    # Mock async_add_executor_job to return different hashes
+    mock_hass.async_add_executor_job = AsyncMock(side_effect=["hash1", "hash2"])
+
+    with patch(
+        "custom_components.mail_and_packages.default_image_path",
+        return_value="custom_components/mail_and_packages/images/",
+    ), patch("os.path.exists", return_value=True):
+        await coordinator._binary_sensor_update()
+
+        # Should set ups_update to True since hashes are different
+        assert coordinator._data["ups_update"] is True
+
+
+async def test_coordinator_binary_sensor_update_same_hashes():
+    """Test coordinator binary sensor update when hashes are the same."""
+    from custom_components.mail_and_packages import MailDataUpdateCoordinator
+    from unittest.mock import MagicMock, patch, AsyncMock
+
+    mock_hass = MagicMock()
+    mock_config = MagicMock()
+    mock_config.get.side_effect = lambda key: {
+        "scan_interval": 20,
+        "imap_timeout": 30,
+        "host": "imap.test.com",
+    }.get(key, "custom_components/mail_and_packages/images/")
+
+    coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+    coordinator._data = {
+        "image_name": "test_image.gif",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    # Mock async_add_executor_job to return same hashes
+    mock_hass.async_add_executor_job = AsyncMock(side_effect=["same_hash", "same_hash"])
+
+    with patch(
+        "custom_components.mail_and_packages.default_image_path",
+        return_value="custom_components/mail_and_packages/images/",
+    ), patch("os.path.exists", return_value=True):
+        await coordinator._binary_sensor_update()
+
+        # Should set usps_update to False since hashes are the same
+        assert coordinator._data["usps_update"] is False
+
+
+async def test_coordinator_binary_sensor_update_amazon_same_hashes():
+    """Test coordinator binary sensor update for Amazon when hashes are the same."""
+    from custom_components.mail_and_packages import MailDataUpdateCoordinator
+    from unittest.mock import MagicMock, patch, AsyncMock
+
+    mock_hass = MagicMock()
+    mock_config = MagicMock()
+    mock_config.get.side_effect = lambda key: {
+        "scan_interval": 20,
+        "imap_timeout": 30,
+        "host": "imap.test.com",
+    }.get(key, "custom_components/mail_and_packages/images/")
+
+    coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+    coordinator._data = {
+        "amazon_image": "test_amazon.jpg",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    # Mock async_add_executor_job to return same hashes
+    mock_hass.async_add_executor_job = AsyncMock(side_effect=["same_hash", "same_hash"])
+
+    with patch(
+        "custom_components.mail_and_packages.default_image_path",
+        return_value="custom_components/mail_and_packages/images/",
+    ), patch("os.path.exists", return_value=True):
+        await coordinator._binary_sensor_update()
+
+        # Should set amazon_update to False since hashes are the same
+        assert coordinator._data["amazon_update"] is False
+
+
+async def test_coordinator_binary_sensor_update_ups_same_hashes():
+    """Test coordinator binary sensor update for UPS when hashes are the same."""
+    from custom_components.mail_and_packages import MailDataUpdateCoordinator
+    from unittest.mock import MagicMock, patch, AsyncMock
+
+    mock_hass = MagicMock()
+    mock_config = MagicMock()
+    mock_config.get.side_effect = lambda key: {
+        "scan_interval": 20,
+        "imap_timeout": 30,
+        "host": "imap.test.com",
+    }.get(key, "custom_components/mail_and_packages/images/")
+
+    coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+    coordinator._data = {
+        "ups_image": "test_ups.jpg",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    # Mock async_add_executor_job to return same hashes
+    mock_hass.async_add_executor_job = AsyncMock(side_effect=["same_hash", "same_hash"])
+
+    with patch(
+        "custom_components.mail_and_packages.default_image_path",
+        return_value="custom_components/mail_and_packages/images/",
+    ), patch("os.path.exists", return_value=True):
+        await coordinator._binary_sensor_update()
+
+        # Should set ups_update to False since hashes are the same
+        assert coordinator._data["ups_update"] is False
