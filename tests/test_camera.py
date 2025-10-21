@@ -350,7 +350,7 @@ async def test_ups_camera_with_image_data(
                 ups_camera = camera
                 break
 
-        ups_camera.update_file_path()
+        await ups_camera.update_file_path()
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
@@ -398,7 +398,7 @@ async def test_amazon_camera_with_image_data(
                 amazon_camera = camera
                 break
 
-        amazon_camera.update_file_path()
+        await amazon_camera.update_file_path()
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
@@ -763,7 +763,7 @@ async def test_generic_camera_with_delivery_images(
                 generic_camera = camera
                 break
 
-        generic_camera.update_file_path()
+        await generic_camera.update_file_path()
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
@@ -812,7 +812,7 @@ async def test_generic_camera_with_ups_delivery_images(
                 generic_camera = camera
                 break
 
-        generic_camera.update_file_path()
+        await generic_camera.update_file_path()
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
@@ -861,7 +861,7 @@ async def test_generic_camera_with_walmart_delivery_images(
                 generic_camera = camera
                 break
 
-        generic_camera.update_file_path()
+        await generic_camera.update_file_path()
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
@@ -910,7 +910,7 @@ async def test_generic_camera_with_usps_delivery_images_manual(
                 generic_camera = camera
                 break
 
-        generic_camera.update_file_path()
+        await generic_camera.update_file_path()
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
@@ -973,7 +973,7 @@ async def test_generic_camera_with_all_delivery_types(
                 generic_camera = camera
                 break
 
-        generic_camera.update_file_path()
+        await generic_camera.update_file_path()
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
@@ -1047,7 +1047,7 @@ async def test_generic_camera_filters_no_mail_images(
                 generic_camera = camera
                 break
 
-        generic_camera.update_file_path()
+        await generic_camera.update_file_path()
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
@@ -1132,7 +1132,7 @@ async def test_generic_camera_respects_enabled_sensors(
                 generic_camera = camera
                 break
 
-        generic_camera.update_file_path()
+        await generic_camera.update_file_path()
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
@@ -1280,7 +1280,7 @@ async def test_generic_camera_with_usps_delivery_images(
                 break
 
         if generic_camera:
-            generic_camera.update_file_path()
+            await generic_camera.update_file_path()
             await hass.async_block_till_done()
 
         state = hass.states.get("camera.mail_generic_delivery_camera")
@@ -1475,7 +1475,7 @@ async def test_walmart_camera_with_image_data(
                 walmart_camera = camera
                 break
 
-        walmart_camera.update_file_path()
+        await walmart_camera.update_file_path()
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update

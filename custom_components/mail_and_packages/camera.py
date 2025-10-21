@@ -6,7 +6,6 @@ import logging
 import os
 
 import voluptuous as vol
-from PIL import Image
 from homeassistant.components.camera import Camera
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, CONF_HOST
@@ -14,6 +13,7 @@ from homeassistant.core import ServiceCall
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import const
+from .helpers import generate_delivery_gif
 from .const import (
     ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_NAME,
@@ -67,12 +67,12 @@ async def async_setup_entry(hass, config, async_add_entities):
         # Update all cameras if no entity_id
         if entity_id is None:
             for cam in cameras:
-                cam.update_file_path()
+                await cam.update_file_path()
 
         else:
             for cam in cameras:
                 if cam.entity_id in entity_id:
-                    cam.update_file_path()
+                    await cam.update_file_path()
         return True
 
     hass.services.async_register(
@@ -204,7 +204,7 @@ class MailCam(CoordinatorEntity, Camera):
                 "Could not read camera %s image from file: %s", self._name, file_path
             )
 
-    def update_file_path(self) -> None:
+    async def update_file_path(self) -> None:
         """Update the file_path."""
         _LOGGER.debug("Camera Update: %s", self._type)
         _LOGGER.debug("Custom No Mail: %s", self._no_mail)
@@ -407,37 +407,22 @@ class MailCam(CoordinatorEntity, Camera):
 
                 # Create animated GIF if we have multiple delivery images
                 if len(delivery_images) > 1:
-                    try:
-                        # Create animated GIF cycling through delivery images
-                        gif_path = f"{os.path.dirname(__file__)}/generic_deliveries.gif"
+                    gif_path = f"{os.path.dirname(__file__)}/generic_deliveries.gif"
 
-                        # Open all images
-                        images = [Image.open(img_path) for img_path in delivery_images]
+                    # Generate animated GIF using helper function
+                    gif_created = await generate_delivery_gif(delivery_images, gif_path)
 
-                        # Create animated GIF (3 seconds per image)
-                        images[0].save(
-                            gif_path,
-                            format="GIF",
-                            append_images=images[1:],
-                            save_all=True,
-                            duration=3000,  # 3 seconds per image
-                            loop=0,  # Infinite loop
-                        )
-
+                    if gif_created:
                         file_path = gif_path
                         _LOGGER.debug(
                             "Generic camera - created animated GIF with %d delivery images",
                             len(delivery_images),
                         )
-
-                    except ImportError:
+                    else:
                         _LOGGER.warning(
-                            "PIL not available, using first delivery image instead of animated GIF"
+                            "Failed to create animated GIF, using first delivery image"
                         )
                         file_path = delivery_images[0]
-                    except Exception as err:
-                        _LOGGER.error("Error creating animated GIF: %s", str(err))
-                        file_path = delivery_images[0] if delivery_images else file_path
 
                 elif len(delivery_images) == 1:
                     # Single delivery image
@@ -549,4 +534,4 @@ class MailCam(CoordinatorEntity, Camera):
 
     async def async_update(self):
         """Update camera entity and refresh attributes."""
-        self.update_file_path()
+        await self.update_file_path()

@@ -22,6 +22,8 @@ import aiohttp
 import dateparser
 import homeassistant.helpers.config_validation as cv
 from bs4 import BeautifulSoup
+
+from PIL import Image, ImageOps
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
@@ -32,7 +34,6 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.util import ssl
-from PIL import Image, ImageOps
 
 from .const import (
     AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT,
@@ -2490,3 +2491,39 @@ def get_items(
 
     _LOGGER.debug("Amazon value: %s", str(value))
     return value
+
+
+async def generate_delivery_gif(delivery_images: list, gif_path: str) -> bool:
+    """Generate an animated GIF from delivery images.
+
+    Args:
+        delivery_images: List of image file paths
+        gif_path: Path where the GIF should be saved
+
+    Returns:
+        bool: True if GIF was created successfully, False otherwise
+    """
+    try:
+        # Open all images
+        images = [Image.open(img_path) for img_path in delivery_images]
+
+        # Create animated GIF (3 seconds per image)
+        images[0].save(
+            gif_path,
+            format="GIF",
+            append_images=images[1:],
+            save_all=True,
+            duration=3000,  # 3 seconds per image
+            loop=0,  # Infinite loop
+        )
+
+        _LOGGER.debug(
+            "Generated animated GIF with %d delivery images at %s",
+            len(delivery_images),
+            gif_path,
+        )
+        return True
+
+    except Exception as e:
+        _LOGGER.error("Error creating animated GIF: %s", e)
+        return False
