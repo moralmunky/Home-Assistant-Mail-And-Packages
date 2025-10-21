@@ -1319,7 +1319,7 @@ async def test_generic_camera_with_multiple_delivery_images(
     mock_copyfile,
     caplog,
 ):
-    """Test Generic camera with multiple delivery images (Amazon, UPS, USPS)."""
+    """Test Generic camera with multiple delivery images (Amazon, UPS). USPS is excluded."""
     entry = integration
 
     # Mock coordinator data with multiple delivery types
@@ -1361,7 +1361,7 @@ async def test_generic_camera_with_multiple_delivery_images(
         assert file_path is not None
         assert "generic_deliveries.gif" in file_path
         assert "Generic camera - created animated GIF with" in caplog.text
-        assert "3 delivery images" in caplog.text
+        assert "2 delivery images" in caplog.text
 
         # Verify PIL was called to create animated GIF
         mock_pil_open.assert_called()
