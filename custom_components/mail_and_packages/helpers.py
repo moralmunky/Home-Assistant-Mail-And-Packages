@@ -248,11 +248,21 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     _LOGGER.debug("Set ATTR_UPS_IMAGE in coordinator data: %s", ups_image_name)
 
     # Walmart delivery image name
-    _LOGGER.debug("Generating Walmart image name...")
-    walmart_image_name = image_file_name(hass, config, walmart=True)
-    _LOGGER.debug("Walmart Image Name: %s", walmart_image_name)
-    _image[ATTR_WALMART_IMAGE] = walmart_image_name
-    _LOGGER.debug("Set ATTR_WALMART_IMAGE in coordinator data: %s", walmart_image_name)
+    try:
+        _LOGGER.debug("=== WALMART IMAGE PROCESSING START ===")
+        _LOGGER.debug("Generating Walmart image name...")
+        walmart_image_name = image_file_name(hass, config, walmart=True)
+        _LOGGER.debug("Walmart Image Name: %s", walmart_image_name)
+        _image[ATTR_WALMART_IMAGE] = walmart_image_name
+        _LOGGER.debug(
+            "Set ATTR_WALMART_IMAGE in coordinator data: %s", walmart_image_name
+        )
+        _LOGGER.debug(
+            "Walmart coordinator data after setting: %s", _image.get(ATTR_WALMART_IMAGE)
+        )
+        _LOGGER.debug("=== WALMART IMAGE PROCESSING END ===")
+    except Exception as e:
+        _LOGGER.error("Exception in Walmart image processing: %s", e)
 
     # Ensure UPS directory exists and has a default image
     ups_path = f"{hass.config.path()}/{default_image_path(hass, config)}ups/"
@@ -451,7 +461,6 @@ def image_file_name(
                 )
                 return image_name
             today = get_formatted_date()
-            _LOGGER.debug("Created: %s, Today: %s", created, today)
             # If image isn't mail_none and not created today,
             # return a new filename
             if sha1 != hash_file(os.path.join(path, file)) and today != created:
@@ -1581,18 +1590,27 @@ def walmart_search(
     count = 0
     new_image_saved = False
 
-    # Search for Walmart delivered emails
-    (server_response, data) = email_search(
-        account,
-        SENSOR_DATA["walmart_delivered"][ATTR_EMAIL],
-        today,
-        SENSOR_DATA["walmart_delivered"][ATTR_SUBJECT][0],
-    )
+    # Search for Walmart delivered emails - try all subjects
+    emails_found = []
+    for subject in SENSOR_DATA["walmart_delivered"][ATTR_SUBJECT]:
+        _LOGGER.debug("Searching for Walmart emails with subject: %s", subject)
+        (server_response, data) = email_search(
+            account,
+            SENSOR_DATA["walmart_delivered"][ATTR_EMAIL],
+            today,
+            subject,
+        )
+        _LOGGER.debug("Walmart email search response: %s", server_response)
+        _LOGGER.debug("Walmart email search data: %s", data)
 
-    _LOGGER.debug("Walmart email search response: %s", server_response)
-    _LOGGER.debug("Walmart email search data: %s", data)
+        if server_response == "OK" and data[0] is not None and data[0] != b"":
+            # Only add emails we haven't seen before (deduplicate)
+            for email_id in data:
+                if email_id not in emails_found:
+                    emails_found.append(email_id)
+            _LOGGER.debug("Found Walmart emails with subject '%s': %s", subject, data)
 
-    if server_response != "OK" or data[0] is None or data[0] == b"":
+    if not emails_found or all(email_id == b"" or email_id is None for email_id in emails_found):
         _LOGGER.debug("No Walmart delivery emails found")
         # Still need to create no-delivery image and update coordinator data
         if count == 0:
@@ -1628,20 +1646,23 @@ def walmart_search(
     # Clean up image directory
     cleanup_images(walmart_path)
 
-    for num in data[0].split():
-        _LOGGER.debug("Processing Walmart email number: %s", num)
-        msg = email_fetch(account, num, "(RFC822)")[1]
-        for response_part in msg:
-            if isinstance(response_part, tuple):
-                sdata = response_part[1].decode("utf-8", "ignore")
-                _LOGGER.debug("Calling get_walmart_image for email %s", num)
-                # Count the delivery email (regardless of photo extraction)
-                count += 1
-                # Check if a Walmart delivery photo was successfully saved
-                if get_walmart_image(
-                    sdata, account, image_path, hass, walmart_image_name
-                ):
-                    new_image_saved = True
+    # Process all found emails
+    for email_data in emails_found:
+        if email_data and email_data != b"":
+            for num in email_data.split():
+                _LOGGER.debug("Processing Walmart email number: %s", num)
+                msg = email_fetch(account, num, "(RFC822)")[1]
+                for response_part in msg:
+                    if isinstance(response_part, tuple):
+                        sdata = response_part[1].decode("utf-8", "ignore")
+                        _LOGGER.debug("Calling get_walmart_image for email %s", num)
+                        # Count the delivery email (regardless of photo extraction)
+                        count += 1
+                        # Check if a Walmart delivery photo was successfully saved
+                        if get_walmart_image(
+                            sdata, account, image_path, hass, walmart_image_name
+                        ):
+                            new_image_saved = True
 
     # If a new image was saved, update the coordinator data with the actual filename
     if new_image_saved and coordinator_data is not None:

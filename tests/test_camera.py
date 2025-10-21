@@ -746,6 +746,7 @@ async def test_generic_camera_with_delivery_images(
     coordinator.data = {
         "amazon_image": "test_amazon_delivery.jpg",
         "image_path": "custom_components/mail_and_packages/images/",
+        "amazon_delivered": 1,  # Need delivery count > 0 for generic camera to include it
     }
 
     with patch("os.path.isfile", return_value=True), patch(
@@ -794,6 +795,7 @@ async def test_generic_camera_with_ups_delivery_images(
     coordinator.data = {
         "ups_image": "test_ups_delivery.jpg",
         "image_path": "custom_components/mail_and_packages/images/",
+        "ups_delivered": 1,  # Need delivery count > 0 for generic camera to include it
     }
 
     with patch("os.path.isfile", return_value=True), patch(
@@ -842,6 +844,7 @@ async def test_generic_camera_with_walmart_delivery_images(
     coordinator.data = {
         "walmart_image": "test_walmart_delivery.jpg",
         "image_path": "custom_components/mail_and_packages/images/",
+        "walmart_delivered": 1,  # Need delivery count > 0 for generic camera to include it
     }
 
     with patch("os.path.isfile", return_value=True), patch(
@@ -882,7 +885,7 @@ async def test_generic_camera_with_usps_delivery_images_manual(
     mock_copyfile,
     caplog,
 ):
-    """Test Generic camera with USPS delivery images using manual coordinator data."""
+    """Test Generic camera without USPS (USPS removed from generic camera)."""
     entry = integration
 
     # Mock coordinator data with USPS delivery image
@@ -912,8 +915,8 @@ async def test_generic_camera_with_usps_delivery_images_manual(
         # Get the updated state after the file path update
         state = hass.states.get("camera.mail_generic_delivery_camera")
 
-        # Check that it's using the USPS delivery image
-        assert "test_usps_delivery.gif" in state.attributes.get("file_path")
+        # Check that it's using the default no deliveries image (USPS removed from generic camera)
+        assert "no_deliveries_generic.jpg" in state.attributes.get("file_path")
 
 
 async def test_generic_camera_with_all_delivery_types(
@@ -930,20 +933,21 @@ async def test_generic_camera_with_all_delivery_types(
     mock_copyfile,
     caplog,
 ):
-    """Test Generic camera with all delivery types (Amazon, UPS, USPS, Walmart) to create animated GIF."""
+    """Test Generic camera with all delivery types (Amazon, UPS, Walmart) to create animated GIF."""
     entry = integration
 
-    # Mock coordinator data with all delivery types
+    # Mock coordinator data with all delivery types (excluding USPS)
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
     coordinator.data = {
         # Amazon delivery
         "amazon_image": "test_amazon_delivery.jpg",
+        "amazon_delivered": 1,
         # UPS delivery
         "ups_image": "test_ups_delivery.jpg",
-        # USPS delivery
-        "image_name": "test_usps_delivery.gif",
+        "ups_delivered": 1,
         # Walmart delivery
         "walmart_image": "test_walmart_delivery.jpg",
+        "walmart_delivered": 1,
         # Common path
         "image_path": "custom_components/mail_and_packages/images/",
     }
@@ -974,10 +978,10 @@ async def test_generic_camera_with_all_delivery_types(
         # Get the updated state after the file path update
         state = hass.states.get("camera.mail_generic_delivery_camera")
 
-        # Should create animated GIF with all 4 delivery images
+        # Should create animated GIF with all 3 delivery images (excluding USPS)
         assert "generic_deliveries.gif" in state.attributes.get("file_path")
         assert (
-            "Generic camera - created animated GIF with 4 delivery images"
+            "Generic camera - created animated GIF with 3 delivery images"
             in caplog.text
         )
 

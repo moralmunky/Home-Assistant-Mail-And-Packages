@@ -280,6 +280,7 @@ class MailCam(CoordinatorEntity, Camera):
             else:
                 # Use coordinator data (actual deliveries or generated "no delivery" images)
                 s1 = set([ATTR_WALMART_IMAGE, ATTR_IMAGE_PATH])
+                _LOGGER.debug("Walmart camera - checking for keys: %s", s1)
                 if s1.issubset(self.coordinator.data.keys()):
                     image = self.coordinator.data[ATTR_WALMART_IMAGE]
                     path = f"{self.coordinator.data[ATTR_IMAGE_PATH]}walmart/"
@@ -304,10 +305,10 @@ class MailCam(CoordinatorEntity, Camera):
                 # Get enabled resources from config
                 enabled_resources = self.config.data.get("resources", [])
 
-                # Loop through all cameras in CAMERA_DATA, skipping only generic
+                # Loop through all cameras in CAMERA_DATA, skipping generic and USPS
                 for camera_type in CAMERA_DATA:
-                    # Skip generic camera (we're the generic camera)
-                    if camera_type == "generic_camera":
+                    # Skip generic camera (we're the generic camera) and USPS camera
+                    if camera_type in ("generic_camera", "usps_camera"):
                         continue
 
                     # Extract the base name from camera_type (e.g., "amazon_camera" -> "amazon")
@@ -323,20 +324,13 @@ class MailCam(CoordinatorEntity, Camera):
                         )
                         continue
 
-                    # Set image attributes based on camera type
-                    if camera_type == "usps_camera":
-                        # USPS uses ATTR_IMAGE_NAME and ATTR_IMAGE_PATH directly
-                        image_attr = ATTR_IMAGE_NAME
-                        path_suffix = ""  # USPS path doesn't have subdirectory
-                        no_mail_check = "mail_none.gif"  # USPS default no mail
-                    else:
-                        # Other cameras use ATTR_<NAME>_IMAGE and subdirectory path
-                        image_attr_name = f"ATTR_{base_name.upper()}_IMAGE"
-                        from . import const
+                    # Set image attributes (UPS, Amazon, Walmart all use the same pattern)
+                    image_attr_name = f"ATTR_{base_name.upper()}_IMAGE"
+                    from . import const
 
-                        image_attr = getattr(const, image_attr_name, None)
-                        path_suffix = f"{base_name}/"  # Other cameras have subdirectory
-                        no_mail_check = "no_deliveries"  # Other cameras default no mail
+                    image_attr = getattr(const, image_attr_name, None)
+                    path_suffix = f"{base_name}/"  # All cameras have subdirectory
+                    no_mail_check = "no_deliveries"  # All cameras default no mail
 
                     if image_attr is not None:
                         # Check if this camera's image data is available
@@ -350,28 +344,64 @@ class MailCam(CoordinatorEntity, Camera):
                                 f"{self.hass.config.path()}/{path}{image}"
                             )
 
-                            # Check if not a "no mail" image (default or custom)
-                            # and file exists
-                            is_no_mail = (
-                                (
-                                    camera_type == "usps_camera"
-                                    and image == no_mail_check
-                                )  # USPS specific check
-                                or (
-                                    camera_type != "usps_camera"
-                                    and image.startswith(no_mail_check)
-                                )  # Other cameras
-                                or self._is_custom_no_mail_image(
-                                    base_name, delivery_file_path
-                                )  # Custom no mail images
+                            _LOGGER.debug(
+                                "Generic camera - processing %s: image='%s', "
+                                "no_mail_check='%s', camera_type='%s'",
+                                base_name,
+                                image,
+                                no_mail_check,
+                                camera_type,
                             )
 
-                            if not is_no_mail and os.path.exists(delivery_file_path):
+                            # Check if not a "no mail" image (default or custom)
+                            # and file exists
+                            is_no_mail = image.startswith(
+                                no_mail_check
+                            ) or self._is_custom_no_mail_image(  # Default no mail images
+                                base_name, delivery_file_path
+                            )  # Custom no mail images
+
+                            # Check if there are actual current deliveries for this carrier
+                            delivery_count_key = f"{base_name}_delivered"
+                            has_current_deliveries = (
+                                delivery_count_key in self.coordinator.data
+                                and self.coordinator.data[delivery_count_key] > 0
+                            )
+
+                            _LOGGER.debug(
+                                "Generic camera - %s: is_no_mail=%s, file_exists=%s, "
+                                "has_current_deliveries=%s (count=%s)",
+                                base_name,
+                                is_no_mail,
+                                os.path.exists(delivery_file_path),
+                                has_current_deliveries,
+                                self.coordinator.data.get(delivery_count_key, 0),
+                            )
+
+                            if (
+                                not is_no_mail
+                                and os.path.exists(delivery_file_path)
+                                and has_current_deliveries
+                            ):
                                 delivery_images.append(delivery_file_path)
                                 _LOGGER.debug(
                                     "Generic camera - found %s delivery: %s",
                                     base_name,
                                     delivery_file_path,
+                                )
+                            elif is_no_mail:
+                                _LOGGER.debug(
+                                    "Generic camera - filtered out %s no-mail image: %s",
+                                    base_name,
+                                    image,
+                                )
+                            elif not has_current_deliveries:
+                                _LOGGER.debug(
+                                    "Generic camera - filtered out %s "
+                                    "(no current deliveries, count=%s): %s",
+                                    base_name,
+                                    self.coordinator.data.get(delivery_count_key, 0),
+                                    image,
                                 )
 
                 # Create animated GIF if we have multiple delivery images
