@@ -11,7 +11,8 @@
       "amazon_domain": "Ogiltig vidarebefordrings e-postadress.",
       "file_not_found": "Bildfilen hittades inte",
       "invalid_email_format": "Ogiltigt format för e-postadress.",
-      "path_not_found": "Katalogen hittades inte"
+      "path_not_found": "Katalogen hittades inte",
+      "missing_forwarded_emails": "Vidarebefordrade e-postadresser saknas. Du kan ange '(ingen)' för att rensa den här inställningen."
     },
     "step": {
       "user": {
@@ -40,7 +41,8 @@
           "custom_img": "Använd anpassad USPS 'inget post' bild?",
           "amazon_custom_img": "Använd anpassad Amazon 'ingen leverans' bild?",
           "ups_custom_img": "Använd anpassad UPS 'ingen leverans' bild?",
-          "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller"
+          "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller",
+          "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänsts standardvärde (t.ex. no-reply@usps.com)"
         },
         "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
         "title": "Mail och paket (steg 2 av 2)"
@@ -87,7 +89,8 @@
           "custom_img": "Använd anpassad USPS 'inget post' bild?",
           "amazon_custom_img": "Använd anpassad Amazon 'ingen leverans' bild?",
           "ups_custom_img": "Använd anpassad UPS 'ingen leverans' bild?",
-          "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller"
+          "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller",
+          "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänsts standardvärde (t.ex. no-reply@usps.com)"
         },
         "description": "Slutför konfigurationen genom att anpassa följande baserat på din e-poststruktur och Home Assistant-installation.\n\nFör detaljer om [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) alternativen granska [konfiguration, mallar och automatiseringssektionen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.\n\nOm du använder vidarebefordrade e-postmeddelanden från Amazon, separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
         "title": "Mail och paket (steg 2 av 2)"
@@ -121,6 +124,20 @@
         },
         "description": "Vänligen ange den katalog du vill att dina bilder ska lagras i.\nStandardinställningen är automatiskt ifylld.",
         "title": "Bildlagringsplats"
+      },
+      "config_forwarded_emails": {
+        "data": {
+          "forwarded_emails": "Vidarebefordrade e-postadresser"
+        },
+        "description": "Som standard söker integreringen av Mail och Packages endast efter meddelanden som matchar en tjänsts adress.\n\nOm du vill använda vidarebefordrade e-postmeddelanden, separera varje adress meddelanden kommer ifrån med ett kommatecken eller ange \"(ingen)\" för att rensa den här inställningen.",
+        "title": "Vidarebefordrade e-postadresser"
+      },
+      "reconfig_forwarded_emails": {
+        "data": {
+          "forwarded_emails": "Vidarebefordrade e-postadresser"
+        },
+        "description": "Som standard söker integreringen av Mail och Packages endast efter meddelanden som matchar en tjänsts adress.\n\nOm du vill använda vidarebefordrade e-postmeddelanden, separera varje adress meddelanden kommer ifrån med ett kommatecken eller ange \"(ingen)\" för att rensa den här inställningen.",
+        "title": "Vidarebefordrade e-postadresser"
       }
     }
   }

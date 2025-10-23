@@ -11,7 +11,8 @@
       "amazon_domain": "無效的轉發電郵地址。",
       "file_not_found": "找不到圖像檔案",
       "invalid_email_format": "無效的電郵地址格式。",
-      "path_not_found": "找不到目錄"
+      "path_not_found": "找不到目錄",
+      "missing_forwarded_emails": "丟失的轉發電子郵件地址。 你可以輸入 '(none)' 來清除這個設置。"
     },
     "step": {
       "user": {
@@ -40,7 +41,8 @@
           "custom_img": "使用自訂的 USPS「無郵件」圖像？",
           "amazon_custom_img": "使用自訂的 Amazon「無送貨」圖像？",
           "ups_custom_img": "使用自訂的 UPS「無送貨」圖像？",
-          "generate_grid": "為LLM視覺模型創建圖像網格"
+          "generate_grid": "為LLM視覺模型創建圖像網格",
+          "allow_forwarded_emails": "允許轉發電子郵件除瞭服務的默認（例如 no-reply@usps.com）"
         },
         "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成]（https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration）選項的詳細信息，請查看[配置，模板和自動化部分]（GitHub上的https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration）。",
         "title": "郵件和包裹（第2步，共2步）"
@@ -87,7 +89,8 @@
           "custom_img": "使用自訂的 USPS「無郵件」圖像？",
           "amazon_custom_img": "使用自訂的 Amazon「無送貨」圖像？",
           "ups_custom_img": "使用自訂的 UPS「無送貨」圖像？",
-          "generate_grid": "為LLM視覺模型創建圖像網格"
+          "generate_grid": "為LLM視覺模型創建圖像網格",
+          "allow_forwarded_emails": "允許轉發電子郵件除瞭服務的默認（例如 no-reply@usps.com）"
         },
         "description": "根據您的電郵結構和Home Assistant安裝來完成配置。\n\n有關[郵件和包裹整合](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)選項的詳情，請查閱GitHub上的[配置、模板和自動化部分](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)。\n\n如果使用Amazon轉發的電郵，請用逗號分隔每個地址，或輸入(none)以清除此設定。",
         "title": "郵件和包裹（第2步，共2步）"
@@ -121,6 +124,20 @@
         },
         "description": "請輸入您希望存儲圖像的目錄。\n預設值會自動填充。",
         "title": "圖像儲存位置"
+      },
+      "config_forwarded_emails": {
+        "data": {
+          "forwarded_emails": "轉發電子郵件地址"
+        },
+        "description": "默認情況下，郵件和包集成隻搜索與服務地址匹配的消息。 如果您想使用轉發的電子郵件，請將每個地址消息從逗號中分離齣來，或輸入'（none）'以清除此設置",
+        "title": "轉發電子郵件地址"
+      },
+      "reconfig_forwarded_emails": {
+        "data": {
+          "forwarded_emails": "轉發電子郵件地址"
+        },
+        "description": "默認情況下，郵件和包集成隻搜索與服務地址匹配的消息。 如果您想使用轉發的電子郵件，請將每個地址消息從逗號中分離齣來，或輸入'（none）'以清除此設置",
+        "title": "轉發電子郵件地址"
       }
     }
   }

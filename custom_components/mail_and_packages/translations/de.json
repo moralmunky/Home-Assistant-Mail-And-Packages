@@ -11,7 +11,8 @@
       "amazon_domain": "Ungültige Weiterleitungs-E-Mail-Adresse.",
       "file_not_found": "Bilddatei nicht gefunden",
       "invalid_email_format": "Ungültiges E-Mail-Adressformat.",
-      "path_not_found": "Verzeichnis nicht gefunden"
+      "path_not_found": "Verzeichnis nicht gefunden",
+      "missing_forwarded_emails": "Fehlende weitergeleitete E-Mail-Adressen. Sie können „(keine)“ eingeben, um diese Einstellung zu löschen."
     },
     "step": {
       "user": {
@@ -40,7 +41,8 @@
           "custom_img": "Benutzerdefiniertes USPS 'keine Post' Bild verwenden?",
           "amazon_custom_img": "Benutzerdefiniertes Amazon 'keine Lieferung' Bild verwenden?",
           "ups_custom_img": "Benutzerdefiniertes UPS 'keine Lieferung' Bild verwenden?",
-          "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle"
+          "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle",
+          "allow_forwarded_emails": "Weitergeleitete E-Mails zusätzlich zum Standard eines Dienstes zulassen (z. B. no-reply@usps.com)"
         },
         "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
         "title": "Briefe und Pakete (Schritt 2 von 2)"
@@ -87,7 +89,8 @@
           "custom_img": "Benutzerdefiniertes USPS 'keine Post' Bild verwenden?",
           "amazon_custom_img": "Benutzerdefiniertes Amazon 'keine Lieferung' Bild verwenden?",
           "ups_custom_img": "Benutzerdefiniertes UPS 'keine Lieferung' Bild verwenden?",
-          "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle"
+          "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle",
+          "allow_forwarded_emails": "Weitergeleitete E-Mails zusätzlich zum Standard eines Dienstes zulassen (z. B. no-reply@usps.com)"
         },
         "description": "Schließen Sie die Konfiguration ab, indem Sie das Folgende an Ihre E-Mail-Struktur und Home Assistant-Installation anpassen.\n\nWeitere Informationen zu den [Mail und Packages Integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) Optionen finden Sie im [Konfigurations-, Vorlagen- und Automatisierungsabschnitt](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse durch ein Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
         "title": "Briefe und Pakete (Schritt 2 von 2)"
@@ -121,6 +124,20 @@
         },
         "description": "Bitte geben Sie das Verzeichnis ein, in dem Ihre Bilder gespeichert werden sollen.\nStandardmäßig ist es automatisch ausgefüllt.",
         "title": "Speicherort für Bilder"
+      },
+      "config_forwarded_emails": {
+        "data": {
+          "forwarded_emails": "Weitergeleitete E-Mail-Adressen"
+        },
+        "description": "Standardmäßig sucht die Mail- und Pakete-Integration nur nach Nachrichten, die mit der Adresse eines Dienstes übereinstimmen.\n\nWenn Sie weitergeleitete E-Mails verwenden möchten, trennen Sie bitte jede Adresse, von der Nachrichten kommen, durch ein Komma oder geben Sie „(keine)“ ein, um diese Einstellung zu löschen.",
+        "title": "Weitergeleitete E-Mail-Adressen"
+      },
+      "reconfig_forwarded_emails": {
+        "data": {
+          "forwarded_emails": "Weitergeleitete E-Mail-Adressen"
+        },
+        "description": "Standardmäßig sucht die Mail- und Pakete-Integration nur nach Nachrichten, die mit der Adresse eines Dienstes übereinstimmen.\n\nWenn Sie weitergeleitete E-Mails verwenden möchten, trennen Sie bitte jede Adresse, von der Nachrichten kommen, durch ein Komma oder geben Sie „(keine)“ ein, um diese Einstellung zu löschen.",
+        "title": "Weitergeleitete E-Mail-Adressen"
       }
     }
   }
