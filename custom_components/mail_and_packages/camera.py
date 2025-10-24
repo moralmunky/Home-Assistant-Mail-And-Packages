@@ -423,14 +423,6 @@ class MailCam(CoordinatorEntity, Camera):
                             "Failed to create animated GIF, using first delivery image"
                         )
                         file_path = delivery_images[0]
-
-                elif len(delivery_images) == 1:
-                    # Single delivery image
-                    file_path = delivery_images[0]
-                    _LOGGER.debug(
-                        "Generic camera - using single delivery image: %s", file_path
-                    )
-
                 else:
                     # No deliveries found, use default generic no mail image
                     _LOGGER.debug(
