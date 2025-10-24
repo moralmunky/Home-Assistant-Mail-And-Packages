@@ -1568,3 +1568,96 @@ async def test_walmart_camera_default_image_path(
             "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
             in state.attributes.get("file_path")
         )
+
+
+async def test_camera_update_no_data():
+    """Test camera update when coordinator has no data."""
+    from custom_components.mail_and_packages.camera import MailCam
+    from unittest.mock import MagicMock, patch
+
+    # Create a mock coordinator with no data
+    mock_coordinator = MagicMock()
+    mock_coordinator.last_update_success = True
+    mock_coordinator.data = None
+
+    # Create camera
+    camera = MailCam(
+        hass=MagicMock(),
+        name="usps_camera",
+        config=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+
+    # Mock the update_file_path method
+    with patch.object(camera, "update_file_path") as mock_update:
+        await camera.async_update()
+
+        # Should call update_file_path but it should return early when data is None
+        mock_update.assert_called_once()
+
+
+async def test_camera_update_coordinator_failure():
+    """Test camera update when coordinator update failed."""
+    from custom_components.mail_and_packages.camera import MailCam
+    from unittest.mock import MagicMock, patch
+
+    # Create a mock coordinator with failed update
+    mock_coordinator = MagicMock()
+    mock_coordinator.last_update_success = False
+
+    # Create camera
+    camera = MailCam(
+        hass=MagicMock(),
+        name="usps_camera",
+        config=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+
+    # Mock the update_file_path method
+    with patch.object(camera, "update_file_path") as mock_update:
+        await camera.async_update()
+
+        # Should call update_file_path but it should return early when data is None
+        mock_update.assert_called_once()
+
+
+async def test_camera_custom_no_mail_image():
+    """Test camera with custom no-mail image configuration."""
+    from custom_components.mail_and_packages.camera import MailCam
+    from unittest.mock import MagicMock, patch
+    import tempfile
+    import os
+
+    # Create a mock coordinator with data
+    mock_coordinator = MagicMock()
+    mock_coordinator.last_update_success = True
+    mock_coordinator.data = {"usps_delivered": 0}
+
+    # Create mock config with custom image
+    mock_config = MagicMock()
+    mock_config.data = {
+        "custom_img": True,
+        "custom_img_file": "/custom/path/no_mail.gif",
+    }
+
+    # Create camera
+    camera = MailCam(
+        hass=MagicMock(),
+        name="usps_camera",
+        config=mock_config,
+        coordinator=mock_coordinator,
+    )
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create test file
+        test_file = os.path.join(temp_dir, "no_mail.gif")
+        with open(test_file, "w") as f:
+            f.write("test")
+
+        # Mock os.path.exists to return True for the custom file
+        with patch("os.path.exists", return_value=True):
+            # Test the _is_custom_no_mail_image method
+            result = camera._is_custom_no_mail_image("usps", "/custom/path/no_mail.gif")
+
+            # Should return True for custom no-mail image
+            assert result is True

@@ -2872,7 +2872,119 @@ async def test_copy_overlays_error_handling():
             copy_overlays(temp_dir)
 
 
-# Note: SSL context tests removed due to compatibility issues with different Home Assistant versions
+async def test_image_file_name_copy_error():
+    """Test image_file_name handles copy errors gracefully."""
+    from custom_components.mail_and_packages.helpers import image_file_name
+    from unittest.mock import MagicMock, patch
+    import tempfile
+    import os
+
+    # Mock hass and config
+    mock_hass = MagicMock()
+    mock_hass.config.path.return_value = "/test/path"
+    mock_config = MagicMock()
+    mock_config.get.return_value = None
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Mock the path to use our temp directory
+        with patch("os.path.exists", return_value=True), patch(
+            "os.path.isdir", return_value=True
+        ), patch("os.listdir", return_value=[]), patch(
+            "custom_components.mail_and_packages.helpers.copyfile"
+        ) as mock_copyfile:
+            # Make copyfile raise an exception
+            mock_copyfile.side_effect = Exception("Copy error")
+
+            # This should return a fallback filename
+            result = image_file_name(mock_hass, mock_config, amazon=True)
+
+            # Should return fallback filename
+            assert result == "no_deliveries.jpg"
 
 
-# Note: hash_file function doesn't have error handling, so we can't test error cases
+async def test_copy_overlays_error_handling():
+    """Test copy_overlays handles errors gracefully."""
+    from custom_components.mail_and_packages.helpers import copy_overlays
+    from unittest.mock import patch
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Mock copytree to raise an exception
+        with patch(
+            "custom_components.mail_and_packages.helpers.copytree"
+        ) as mock_copytree:
+            mock_copytree.side_effect = Exception("Copy error")
+
+            # This should handle the exception gracefully
+            copy_overlays(temp_dir)
+
+
+async def test_login_starttls_security():
+    """Test login with startTLS security."""
+    from custom_components.mail_and_packages.helpers import login
+    from unittest.mock import patch, MagicMock
+
+    # Mock the IMAP4 class and its methods
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib.IMAP4"
+    ) as mock_imap4:
+        mock_account = MagicMock()
+        mock_imap4.return_value = mock_account
+
+        # Test startTLS security
+        result = login("imap.test.com", 993, "user", "pass", "startTLS", True)
+
+        # Should return the mock account
+        assert result == mock_account
+        mock_account.starttls.assert_called_once()
+
+
+async def test_login_no_ssl_security():
+    """Test login with no SSL security."""
+    from custom_components.mail_and_packages.helpers import login
+    from unittest.mock import patch, MagicMock
+
+    # Mock the IMAP4 class and its methods
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib.IMAP4"
+    ) as mock_imap4:
+        mock_account = MagicMock()
+        mock_imap4.return_value = mock_account
+
+        # Test no SSL security
+        result = login("imap.test.com", 993, "user", "pass", "none", True)
+
+        # Should return the mock account
+        assert result == mock_account
+
+
+async def test_default_image_path_storage():
+    """Test default_image_path with storage configuration."""
+    from custom_components.mail_and_packages.helpers import default_image_path
+    from unittest.mock import MagicMock
+
+    # Mock hass and config
+    mock_hass = MagicMock()
+    mock_config = MagicMock()
+    mock_config.get.return_value = "custom_storage_path/"
+
+    result = default_image_path(mock_hass, mock_config)
+
+    # Should return the storage path
+    assert result == "custom_storage_path/"
+
+
+async def test_default_image_path_no_storage():
+    """Test default_image_path without storage configuration."""
+    from custom_components.mail_and_packages.helpers import default_image_path
+    from unittest.mock import MagicMock
+
+    # Mock hass and config
+    mock_hass = MagicMock()
+    mock_config = MagicMock()
+    mock_config.get.return_value = None
+
+    result = default_image_path(mock_hass, mock_config)
+
+    # Should return the default path
+    assert result == "custom_components/mail_and_packages/images/"
