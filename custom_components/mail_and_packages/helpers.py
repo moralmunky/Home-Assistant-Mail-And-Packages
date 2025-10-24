@@ -249,24 +249,11 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     _LOGGER.debug("Set ATTR_UPS_IMAGE in coordinator data: %s", ups_image_name)
 
     # Walmart delivery image name
-    walmart_image_name = None  # Initialize to avoid UnboundLocalError
-    try:
-        _LOGGER.debug("=== WALMART IMAGE PROCESSING START ===")
-        _LOGGER.debug("Generating Walmart image name...")
-        walmart_image_name = image_file_name(hass, config, walmart=True)
-        _LOGGER.debug("Walmart Image Name: %s", walmart_image_name)
-        _image[ATTR_WALMART_IMAGE] = walmart_image_name
-        _LOGGER.debug(
-            "Set ATTR_WALMART_IMAGE in coordinator data: %s", walmart_image_name
-        )
-        _LOGGER.debug(
-            "Walmart coordinator data after setting: %s", _image.get(ATTR_WALMART_IMAGE)
-        )
-        _LOGGER.debug("=== WALMART IMAGE PROCESSING END ===")
-    except Exception as e:
-        _LOGGER.error("Exception in Walmart image processing: %s", e)
-        # Set a default value if image_file_name fails
-        walmart_image_name = f"{str(uuid.uuid4())}.jpg"
+    _LOGGER.debug("Generating Walmart image name...")
+    walmart_image_name = image_file_name(hass, config, walmart=True)
+    _LOGGER.debug("Walmart Image Name: %s", walmart_image_name)
+    _image[ATTR_WALMART_IMAGE] = walmart_image_name
+    _LOGGER.debug("Set ATTR_WALMART_IMAGE in coordinator data: %s", walmart_image_name)
 
     # Ensure UPS directory exists and has a default image
     ups_path = f"{hass.config.path()}/{default_image_path(hass, config)}ups/"
@@ -591,9 +578,7 @@ def fetch(
     elif "_delivering" in sensor:
         prefix = sensor.replace("_delivering", "")
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
-        info = get_count(
-            account, sensor, True, amazon_domain=amazon_domain, data=data, config=config
-        )
+        info = get_count(account, sensor, True, amazon_domain=amazon_domain, data=data)
         count[sensor] = max(0, info[ATTR_COUNT] - delivered)
         count[f"{prefix}_tracking"] = info[ATTR_TRACKING]
     elif sensor == "zpackages_delivered":
@@ -650,7 +635,6 @@ def fetch(
             amazon_domain,
             amazon_fwds,
             data=data,
-            config=config,
         )[ATTR_COUNT]
 
     data.update(count)
@@ -1188,7 +1172,6 @@ def get_count(
     amazon_domain: Optional[str] = None,
     amazon_fwds: Optional[str] = None,
     data: Optional[dict] = None,
-    config: Optional[ConfigEntry] = None,
 ) -> dict:
     """Get Package Count.
 
@@ -1221,9 +1204,7 @@ def get_count(
         ups_image_name = (
             data.get(ATTR_UPS_IMAGE, "ups_delivery.jpg") if data else "ups_delivery.jpg"
         )
-        result[ATTR_COUNT] = ups_search(
-            account, image_path, hass, ups_image_name, config, data
-        )
+        result[ATTR_COUNT] = ups_search(account, image_path, hass, ups_image_name, data)
 
         # Extract tracking number if requested
         if get_tracking_num:
@@ -1253,7 +1234,7 @@ def get_count(
             else "walmart_delivery.jpg"
         )
         result[ATTR_COUNT] = walmart_search(
-            account, image_path, hass, walmart_image_name, config, data
+            account, image_path, hass, walmart_image_name, data
         )
 
         # Extract tracking number if requested
@@ -1487,7 +1468,6 @@ def ups_search(
     image_path: str,
     hass: HomeAssistant,
     ups_image_name: str,
-    config: Optional[ConfigEntry] = None,
     coordinator_data: Optional[dict] = None,
 ) -> int:
     """Search for UPS delivery emails and extract delivery photos."""
@@ -1514,20 +1494,16 @@ def ups_search(
         # Still need to create no-delivery image and update coordinator data
         if count == 0:
             _LOGGER.debug("No UPS deliveries found.")
-            # Generate a new filename for the no-delivery image
-            if config:
-                no_delivery_filename = image_file_name(hass, config, ups=True)
-            else:
-                no_delivery_filename = f"{str(uuid.uuid4())}.jpg"
+            # Use the provided ups_image_name for the no-delivery image
             nomail = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
             try:
-                copyfile(nomail, f"{image_path}ups/" + no_delivery_filename)
+                copyfile(nomail, f"{image_path}ups/" + ups_image_name)
                 # Update coordinator data with the no-delivery filename
                 if coordinator_data is not None:
-                    coordinator_data[ATTR_UPS_IMAGE] = no_delivery_filename
+                    coordinator_data[ATTR_UPS_IMAGE] = ups_image_name
                     _LOGGER.debug(
                         "Updated coordinator data with no-delivery UPS image: %s",
-                        no_delivery_filename,
+                        ups_image_name,
                     )
             except Exception as err:
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
@@ -1583,7 +1559,6 @@ def walmart_search(
     image_path: str,
     hass: HomeAssistant,
     walmart_image_name: str,
-    config: Optional[ConfigEntry] = None,
     coordinator_data: Optional[dict] = None,
 ) -> int:
     """Search for Walmart delivery emails and extract delivery photos."""
@@ -1621,20 +1596,15 @@ def walmart_search(
         # Still need to create no-delivery image and update coordinator data
         if count == 0:
             _LOGGER.debug("No Walmart deliveries found.")
-            # Generate a new filename for the no-delivery image
-            if config:
-                no_delivery_filename = image_file_name(hass, config, walmart=True)
-            else:
-                no_delivery_filename = f"{str(uuid.uuid4())}.jpg"
             nomail = f"{os.path.dirname(__file__)}/no_deliveries_walmart.jpg"
             try:
-                copyfile(nomail, f"{image_path}walmart/" + no_delivery_filename)
+                copyfile(nomail, f"{image_path}walmart/" + walmart_image_name)
                 # Update coordinator data with the no-delivery filename
                 if coordinator_data is not None:
-                    coordinator_data[ATTR_WALMART_IMAGE] = no_delivery_filename
+                    coordinator_data[ATTR_WALMART_IMAGE] = walmart_image_name
                     _LOGGER.debug(
                         "Updated coordinator data with no-delivery Walmart image: %s",
-                        no_delivery_filename,
+                        walmart_image_name,
                     )
             except Exception as err:
                 _LOGGER.error("Error attempting to copy image: %s", str(err))

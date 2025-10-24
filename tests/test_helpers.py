@@ -830,7 +830,7 @@ async def test_ups_search_no_deliveries(
     with patch("os.path.isdir", return_value=True), patch(
         "os.makedirs", return_value=True
     ):
-        result = ups_search(mock_imap_no_email, "./", hass, "test_ups.jpg", config=None)
+        result = ups_search(mock_imap_no_email, "./", hass, "test_ups.jpg")
         assert result == 0
         assert "No UPS deliveries found." in caplog.text
         # Should have copied the default no delivery image
@@ -883,7 +883,7 @@ Content-ID: <deliveryPhoto>
         "os.path.isdir", side_effect=lambda path: str(path) == str(ups_path)
     ), patch("os.makedirs", return_value=True), patch("os.listdir", return_value=[]):
         result = ups_search(
-            mock_account, str(tmp_path) + "/", hass, "test_ups_image.jpg", config=None
+            mock_account, str(tmp_path) + "/", hass, "test_ups_image.jpg"
         )
 
     # Verify that one delivery was found and processed
@@ -1966,16 +1966,20 @@ async def test_walmart_delivered_email_processing():
                             "custom_components.mail_and_packages.helpers.os.listdir"
                         ) as mock_listdir:
                             mock_listdir.return_value = ["test_walmart.jpg"]
-
-                            # Call walmart_search
-                            result = walmart_search(
-                                mock_account,
-                                image_path,
-                                mock_hass,
-                                walmart_image_name,
-                                mock_config,
-                                coordinator_data,
-                            )
+                            with patch(
+                                "custom_components.mail_and_packages.helpers.os.makedirs"
+                            ) as mock_makedirs:
+                                with patch(
+                                    "custom_components.mail_and_packages.helpers.copyfile"
+                                ) as mock_copyfile:
+                                    # Call walmart_search
+                                    result = walmart_search(
+                                        mock_account,
+                                        image_path,
+                                        mock_hass,
+                                        walmart_image_name,
+                                        coordinator_data,
+                                    )
 
     # Should return 1 since one email was found
     assert result == 1, f"Expected 1 Walmart delivery, got {result}"
@@ -2179,7 +2183,6 @@ async def test_walmart_no_deliveries_handling():
                     image_path,
                     mock_hass,
                     walmart_image_name,
-                    mock_config,
                     coordinator_data,
                 )
 
@@ -2661,12 +2664,11 @@ async def test_walmart_search_error_handling():
             "/invalid/path/",  # Invalid path
             mock_hass,
             "test_image.jpg",
-            mock_config,
             {},
         )
 
-        # Should return 0 when path is invalid
-        assert result == 0
+    # Should return 0 when path is invalid
+    assert result == 0
 
 
 async def test_ups_search_error_handling():
@@ -2689,62 +2691,11 @@ async def test_ups_search_error_handling():
             "/invalid/path/",  # Invalid path
             mock_hass,
             "test_image.jpg",
-            mock_config,
             {},
         )
 
         # Should return 0 when path is invalid
         assert result == 0
-
-
-async def test_process_emails_walmart_image_processing_error():
-    """Test process_emails handles Walmart image processing errors gracefully."""
-    from custom_components.mail_and_packages.helpers import process_emails
-    from unittest.mock import MagicMock, patch
-    import tempfile
-    import os
-
-    # Mock hass and config
-    mock_hass = MagicMock()
-    mock_hass.config.path.return_value = "/test/path"
-    mock_config = MagicMock()
-    mock_config.get.side_effect = lambda key: {
-        "resources": ["walmart_delivered"],
-        "scan_interval": 20,
-    }.get(key, None)
-
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with patch(
-            "custom_components.mail_and_packages.helpers.login"
-        ) as mock_login, patch("os.path.isdir", return_value=False), patch(
-            "os.path.exists", return_value=False
-        ), patch(
-            "os.makedirs"
-        ) as mock_makedirs, patch(
-            "custom_components.mail_and_packages.helpers.copyfile"
-        ) as mock_copyfile:
-
-            # Mock login to return a mock account
-            mock_account = MagicMock()
-            mock_login.return_value = mock_account
-
-            # Mock image_file_name to raise an exception for Walmart specifically
-            def image_file_name_side_effect(
-                hass, config, amazon=False, ups=False, walmart=False
-            ):
-                if walmart:
-                    raise Exception("Walmart image processing error")
-                return "test_image.jpg"
-
-            with patch(
-                "custom_components.mail_and_packages.helpers.image_file_name",
-                side_effect=image_file_name_side_effect,
-            ):
-                # This should not raise an exception, but handle errors gracefully
-                result = process_emails(mock_hass, mock_config)
-
-                # Should return a dict even with errors
-                assert isinstance(result, dict)
 
 
 async def test_process_emails_ups_directory_creation_error():
