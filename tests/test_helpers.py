@@ -2702,46 +2702,41 @@ async def test_process_emails_ups_directory_creation_error():
     """Test process_emails handles UPS directory creation errors gracefully."""
     from custom_components.mail_and_packages.helpers import process_emails
     from unittest.mock import MagicMock, patch
-    import tempfile
-    import os
+    from tests.const import FAKE_CONFIG_DATA
 
     # Mock hass and config
     mock_hass = MagicMock()
     mock_hass.config.path.return_value = "/test/path"
-    mock_config = MagicMock()
-    mock_config.get.side_effect = lambda key: {
-        "resources": ["ups_delivered"],
-        "scan_interval": 20,
-    }.get(key, None)
+    config = FAKE_CONFIG_DATA.copy()
+    config["resources"] = ["ups_delivered"]
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with patch(
-            "custom_components.mail_and_packages.helpers.login"
-        ) as mock_login, patch(
-            "custom_components.mail_and_packages.helpers.image_file_name",
-            return_value="test_image.jpg",
-        ), patch(
-            "os.path.isdir", return_value=False
-        ), patch(
-            "os.path.exists", return_value=False
-        ), patch(
-            "os.makedirs"
-        ) as mock_makedirs, patch(
-            "custom_components.mail_and_packages.helpers.copyfile"
-        ) as mock_copyfile:
+    with patch(
+        "custom_components.mail_and_packages.helpers.login"
+    ) as mock_login, patch(
+        "custom_components.mail_and_packages.helpers.image_file_name",
+        return_value="test_image.jpg",
+    ), patch(
+        "os.path.isdir", return_value=False
+    ), patch(
+        "os.path.exists", return_value=False
+    ), patch(
+        "os.makedirs"
+    ) as mock_makedirs, patch(
+        "custom_components.mail_and_packages.helpers.copyfile"
+    ) as mock_copyfile:
 
-            # Mock login to return a mock account
-            mock_account = MagicMock()
-            mock_login.return_value = mock_account
+        # Mock login to return a mock account
+        mock_account = MagicMock()
+        mock_login.return_value = mock_account
 
-            # Mock makedirs to raise an exception
-            mock_makedirs.side_effect = Exception("UPS directory creation error")
+        # Mock makedirs to raise an exception
+        mock_makedirs.side_effect = Exception("UPS directory creation error")
 
-            # This should not raise an exception, but handle errors gracefully
-            result = process_emails(mock_hass, mock_config)
+        # This should not raise an exception, but handle errors gracefully
+        result = process_emails(mock_hass, config)
 
-            # Should return a dict even with errors
-            assert isinstance(result, dict)
+        # Should return a dict even with errors
+        assert isinstance(result, dict)
 
 
 async def test_default_image_path_attribute_error():
@@ -2783,48 +2778,43 @@ async def test_process_emails_directory_creation_error():
     """Test process_emails handles directory creation errors gracefully."""
     from custom_components.mail_and_packages.helpers import process_emails
     from unittest.mock import MagicMock, patch
-    import tempfile
-    import os
+    from tests.const import FAKE_CONFIG_DATA
 
     # Mock hass and config
     mock_hass = MagicMock()
     mock_hass.config.path.return_value = "/test/path"
-    mock_config = MagicMock()
-    mock_config.get.side_effect = lambda key: {
-        "resources": ["ups_delivered"],
-        "scan_interval": 20,
-    }.get(key, None)
+    config = FAKE_CONFIG_DATA.copy()
+    config["resources"] = ["ups_delivered"]
 
-    with tempfile.TemporaryDirectory() as temp_dir:
+    with patch(
+        "custom_components.mail_and_packages.helpers.login"
+    ) as mock_login, patch("os.path.isdir", return_value=False), patch(
+        "os.path.exists", return_value=False
+    ), patch(
+        "os.makedirs"
+    ) as mock_makedirs, patch(
+        "custom_components.mail_and_packages.helpers.copyfile"
+    ) as mock_copyfile:
+
+        # Mock login to return a mock account
+        mock_account = MagicMock()
+        mock_login.return_value = mock_account
+
+        # Mock image_file_name to return normal values
         with patch(
-            "custom_components.mail_and_packages.helpers.login"
-        ) as mock_login, patch("os.path.isdir", return_value=False), patch(
-            "os.path.exists", return_value=False
-        ), patch(
-            "os.makedirs"
-        ) as mock_makedirs, patch(
-            "custom_components.mail_and_packages.helpers.copyfile"
-        ) as mock_copyfile:
+            "custom_components.mail_and_packages.helpers.image_file_name",
+            return_value="test_image.jpg",
+        ):
+            mock_makedirs.side_effect = Exception("Directory creation error")
 
-            # Mock login to return a mock account
-            mock_account = MagicMock()
-            mock_login.return_value = mock_account
+            # Mock copyfile to raise an exception
+            mock_copyfile.side_effect = Exception("File copy error")
 
-            # Mock image_file_name to return normal values
-            with patch(
-                "custom_components.mail_and_packages.helpers.image_file_name",
-                return_value="test_image.jpg",
-            ):
-                mock_makedirs.side_effect = Exception("Directory creation error")
+            # This should not raise an exception, but handle errors gracefully
+            result = process_emails(mock_hass, config)
 
-                # Mock copyfile to raise an exception
-                mock_copyfile.side_effect = Exception("File copy error")
-
-                # This should not raise an exception, but handle errors gracefully
-                result = process_emails(mock_hass, mock_config)
-
-                # Should return a dict even with errors
-                assert isinstance(result, dict)
+            # Should return a dict even with errors
+            assert isinstance(result, dict)
 
 
 async def test_hash_file_functionality():
@@ -2876,30 +2866,26 @@ async def test_image_file_name_copy_error():
     """Test image_file_name handles copy errors gracefully."""
     from custom_components.mail_and_packages.helpers import image_file_name
     from unittest.mock import MagicMock, patch
-    import tempfile
-    import os
+    from tests.const import FAKE_CONFIG_DATA
 
     # Mock hass and config
     mock_hass = MagicMock()
     mock_hass.config.path.return_value = "/test/path"
-    mock_config = MagicMock()
-    mock_config.get.return_value = None
+    mock_config = FAKE_CONFIG_DATA.copy()
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # Mock the path to use our temp directory
-        with patch("os.path.exists", return_value=True), patch(
-            "os.path.isdir", return_value=True
-        ), patch("os.listdir", return_value=[]), patch(
-            "custom_components.mail_and_packages.helpers.copyfile"
-        ) as mock_copyfile:
-            # Make copyfile raise an exception
-            mock_copyfile.side_effect = Exception("Copy error")
+    with patch("os.path.exists", return_value=True), patch(
+        "os.path.isdir", return_value=True
+    ), patch("os.listdir", return_value=[]), patch(
+        "custom_components.mail_and_packages.helpers.copyfile"
+    ) as mock_copyfile:
+        # Make copyfile raise an exception
+        mock_copyfile.side_effect = Exception("Copy error")
 
-            # This should return a fallback filename
-            result = image_file_name(mock_hass, mock_config, amazon=True)
+        # This should return a fallback filename
+        result = image_file_name(mock_hass, mock_config, amazon=True)
 
-            # Should return fallback filename
-            assert result == "no_deliveries.jpg"
+        # Should return fallback filename
+        assert result == "no_deliveries.jpg"
 
 
 async def test_copy_overlays_error_handling():
@@ -2962,29 +2948,31 @@ async def test_default_image_path_storage():
     """Test default_image_path with storage configuration."""
     from custom_components.mail_and_packages.helpers import default_image_path
     from unittest.mock import MagicMock
+    from tests.const import FAKE_CONFIG_DATA
 
     # Mock hass and config
     mock_hass = MagicMock()
-    mock_config = MagicMock()
-    mock_config.get.return_value = "custom_storage_path/"
+    mock_hass.config.path.return_value = "/test/path"
+    config = FAKE_CONFIG_DATA.copy()
 
-    result = default_image_path(mock_hass, mock_config)
+    result = default_image_path(mock_hass, config)
 
     # Should return the storage path
-    assert result == "custom_storage_path/"
+    assert result == ".storage/mail_and_packages/images"
 
 
 async def test_default_image_path_no_storage():
     """Test default_image_path without storage configuration."""
     from custom_components.mail_and_packages.helpers import default_image_path
     from unittest.mock import MagicMock
+    from tests.const import FAKE_CONFIG_DATA_NO_PATH
 
     # Mock hass and config
     mock_hass = MagicMock()
-    mock_config = MagicMock()
-    mock_config.get.return_value = None
+    mock_hass.config.path.return_value = "/test/path"
+    config = FAKE_CONFIG_DATA_NO_PATH.copy()
 
-    result = default_image_path(mock_hass, mock_config)
+    result = default_image_path(mock_hass, config)
 
     # Should return the default path
     assert result == "custom_components/mail_and_packages/images/"
