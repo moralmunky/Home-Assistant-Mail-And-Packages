@@ -1625,6 +1625,7 @@ async def test_camera_custom_no_mail_image():
     """Test camera with custom no-mail image configuration."""
     from custom_components.mail_and_packages.camera import MailCam
     from unittest.mock import MagicMock, patch
+    from tests.const import FAKE_CONFIG_DATA_CUSTOM_IMG
     import tempfile
     import os
 
@@ -1633,12 +1634,9 @@ async def test_camera_custom_no_mail_image():
     mock_coordinator.last_update_success = True
     mock_coordinator.data = {"usps_delivered": 0}
 
-    # Create mock config with custom image
+    # Create mock config with custom image from existing test data
     mock_config = MagicMock()
-    mock_config.data = {
-        "custom_img": True,
-        "custom_img_file": "/custom/path/no_mail.gif",
-    }
+    mock_config.data = FAKE_CONFIG_DATA_CUSTOM_IMG.copy()
 
     # Create camera
     camera = MailCam(
@@ -1657,7 +1655,7 @@ async def test_camera_custom_no_mail_image():
         # Mock os.path.exists to return True for the custom file
         with patch("os.path.exists", return_value=True):
             # Test the _is_custom_no_mail_image method
-            result = camera._is_custom_no_mail_image("usps", "/custom/path/no_mail.gif")
+            result = camera._is_custom_no_mail_image("usps", "images/test.gif")
 
             # Should return True for custom no-mail image
             assert result is True

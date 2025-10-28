@@ -212,17 +212,12 @@ async def test_migration_from_version_11_to_12():
 
 async def test_setup_entry_coordinator_failure():
     """Test setup_entry when coordinator fails to update."""
+    from tests.const import FAKE_CONFIG_DATA
 
     mock_hass = MagicMock()
     mock_config_entry = MagicMock()
-    mock_config_entry.data = {
-        "host": "imap.test.com",
-        "port": 993,
-        "username": "test@test.com",
-        "password": "password",
-        "resources": ["usps_mail"],
-        "scan_interval": 20,
-    }
+    mock_config_entry.data = FAKE_CONFIG_DATA.copy()
+    mock_config_entry.data["resources"] = ["usps_mail"]  # Override for this test
     mock_config_entry.entry_id = "test_entry_id"
 
     # Mock coordinator that fails to update
@@ -267,14 +262,10 @@ async def test_async_remove_config_entry_device():
 
 async def test_coordinator_async_refresh_error():
     """Test coordinator async_refresh error handling."""
+    from tests.const import FAKE_CONFIG_DATA
 
     mock_hass = MagicMock()
-    mock_config = MagicMock()
-    mock_config.get.side_effect = lambda key: {
-        "scan_interval": 20,
-        "imap_timeout": 30,
-        "host": "imap.test.com",
-    }.get(key, 30)
+    mock_config = FAKE_CONFIG_DATA.copy()
 
     coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
 
@@ -289,14 +280,10 @@ async def test_coordinator_async_refresh_error():
 
 async def test_coordinator_binary_sensor_update_usps_hash_comparison():
     """Test coordinator binary sensor update for USPS hash comparison."""
+    from tests.const import FAKE_CONFIG_DATA
 
     mock_hass = MagicMock()
-    mock_config = MagicMock()
-    mock_config.get.side_effect = lambda key: {
-        "scan_interval": 20,
-        "imap_timeout": 30,
-        "host": "imap.test.com",
-    }.get(key, "custom_components/mail_and_packages/images/")
+    mock_config = FAKE_CONFIG_DATA.copy()
 
     coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
     coordinator._data = {
@@ -319,14 +306,10 @@ async def test_coordinator_binary_sensor_update_usps_hash_comparison():
 
 async def test_coordinator_binary_sensor_update_amazon_hash_comparison():
     """Test coordinator binary sensor update for Amazon hash comparison."""
+    from tests.const import FAKE_CONFIG_DATA
 
     mock_hass = MagicMock()
-    mock_config = MagicMock()
-    mock_config.get.side_effect = lambda key: {
-        "scan_interval": 20,
-        "imap_timeout": 30,
-        "host": "imap.test.com",
-    }.get(key, "custom_components/mail_and_packages/images/")
+    mock_config = FAKE_CONFIG_DATA.copy()
 
     coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
     coordinator._data = {
@@ -349,14 +332,10 @@ async def test_coordinator_binary_sensor_update_amazon_hash_comparison():
 
 async def test_coordinator_binary_sensor_update_ups_hash_comparison():
     """Test coordinator binary sensor update for UPS hash comparison."""
+    from tests.const import FAKE_CONFIG_DATA
 
     mock_hass = MagicMock()
-    mock_config = MagicMock()
-    mock_config.get.side_effect = lambda key: {
-        "scan_interval": 20,
-        "imap_timeout": 30,
-        "host": "imap.test.com",
-    }.get(key, "custom_components/mail_and_packages/images/")
+    mock_config = FAKE_CONFIG_DATA.copy()
 
     coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
     coordinator._data = {
@@ -379,14 +358,10 @@ async def test_coordinator_binary_sensor_update_ups_hash_comparison():
 
 async def test_coordinator_binary_sensor_update_same_hashes():
     """Test coordinator binary sensor update when hashes are the same."""
+    from tests.const import FAKE_CONFIG_DATA
 
     mock_hass = MagicMock()
-    mock_config = MagicMock()
-    mock_config.get.side_effect = lambda key: {
-        "scan_interval": 20,
-        "imap_timeout": 30,
-        "host": "imap.test.com",
-    }.get(key, "custom_components/mail_and_packages/images/")
+    mock_config = FAKE_CONFIG_DATA.copy()
 
     coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
     coordinator._data = {
@@ -409,14 +384,10 @@ async def test_coordinator_binary_sensor_update_same_hashes():
 
 async def test_coordinator_binary_sensor_update_amazon_same_hashes():
     """Test coordinator binary sensor update for Amazon when hashes are the same."""
+    from tests.const import FAKE_CONFIG_DATA
 
     mock_hass = MagicMock()
-    mock_config = MagicMock()
-    mock_config.get.side_effect = lambda key: {
-        "scan_interval": 20,
-        "imap_timeout": 30,
-        "host": "imap.test.com",
-    }.get(key, "custom_components/mail_and_packages/images/")
+    mock_config = FAKE_CONFIG_DATA.copy()
 
     coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
     coordinator._data = {
@@ -439,14 +410,10 @@ async def test_coordinator_binary_sensor_update_amazon_same_hashes():
 
 async def test_coordinator_binary_sensor_update_ups_same_hashes():
     """Test coordinator binary sensor update for UPS when hashes are the same."""
+    from tests.const import FAKE_CONFIG_DATA
 
     mock_hass = MagicMock()
-    mock_config = MagicMock()
-    mock_config.get.side_effect = lambda key: {
-        "scan_interval": 20,
-        "imap_timeout": 30,
-        "host": "imap.test.com",
-    }.get(key, "custom_components/mail_and_packages/images/")
+    mock_config = FAKE_CONFIG_DATA.copy()
 
     coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
     coordinator._data = {
