@@ -2565,8 +2565,7 @@ def get_items(
 
     # Calculate in-transit packages by subtracting delivered from shipped
     in_transit_packages = 0
-    for order_id in shipped_packages:
-        shipped_count = shipped_packages[order_id]
+    for order_id, shipped_count in shipped_packages.items():
         delivered_count = delivered_packages.get(order_id, 0)
         in_transit_count = max(0, shipped_count - delivered_count)
         in_transit_packages += in_transit_count
