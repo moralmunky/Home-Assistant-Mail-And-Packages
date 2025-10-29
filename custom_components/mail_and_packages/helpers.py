@@ -813,8 +813,13 @@ def email_fetch(
     if account.host == "imap.mail.me.com":
         parts = "BODY[]"
 
+    if isinstance(num, bytes):
+        num_str = num.decode()
+    else:
+        num_str = str(num)
+
     try:
-        value = account.fetch(num, parts)
+        value = account.fetch(num_str, parts)
     except Exception as err:
         _LOGGER.error("Error fetching emails: %s", str(err))
         value = "BAD", err.args[0]
@@ -2349,8 +2354,8 @@ def get_items(
         (server_response, sdata) = email_search(account, address_list, tfmt, subject)
         if server_response == "OK" and sdata[0] is not None:
             email_ids = sdata[0].split()
-            all_emails.extend(email_ids)
             _LOGGER.debug("Found %s emails for subject '%s'", len(email_ids), subject)
+            all_emails.extend(email_ids)
 
     # Remove duplicates while preserving order
     unique_emails = []
@@ -2360,8 +2365,16 @@ def get_items(
 
     _LOGGER.debug("Total unique Amazon emails found: %s", len(unique_emails))
 
+    # Ensure all email IDs are byte strings for proper joining
+    unique_emails_bytes = []
+    for email_id in unique_emails:
+        if isinstance(email_id, bytes):
+            unique_emails_bytes.append(email_id)
+        else:
+            unique_emails_bytes.append(str(email_id).encode("utf-8"))
+
     # Simulate the original sdata format
-    sdata = ("OK", [b" ".join(unique_emails)])
+    sdata = ("OK", [b" ".join(unique_emails_bytes)])
 
     if server_response == "OK":
         mail_ids = sdata[1][0]
@@ -2445,7 +2458,31 @@ def get_items(
                         subj.lower() in email_subject.lower()
                         for subj in AMAZON_DELIVERED_SUBJECT
                     ):
+                        # First try to find order number in subject
                         delivered_orders = pattern.findall(email_subject)
+
+                        # If not found in subject, try to find in email body
+                        if not delivered_orders:
+                            try:
+                                if msg.is_multipart():
+                                    email_msg = quopri.decodestring(
+                                        str(msg.get_payload(0))
+                                    )
+                                else:
+                                    email_msg = quopri.decodestring(
+                                        str(msg.get_payload())
+                                    )
+                                email_msg = email_msg.decode("utf-8", "ignore")
+                                delivered_orders = pattern.findall(email_msg)
+                                _LOGGER.debug(
+                                    "Found order numbers in delivered email body: %s",
+                                    delivered_orders,
+                                )
+                            except Exception as err:
+                                _LOGGER.debug(
+                                    "Error parsing delivered email body: %s", str(err)
+                                )
+
                         if delivered_orders:
                             for o in delivered_orders:
                                 # Count delivered packages per order
@@ -2460,7 +2497,7 @@ def get_items(
                                     amazon_delivered.append(o)
                         else:
                             _LOGGER.debug(
-                                "Delivered email found, but no order number matched."
+                                "Delivered email found, but no order number found."
                             )
                         continue  # Skip processing this email
 

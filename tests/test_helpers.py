@@ -3012,3 +3012,194 @@ async def test_amazon_delivered_orders_excluded_from_transit():
     assert (
         in_transit_packages == 1
     ), f"Expected 1 (only 1 package in transit), got {in_transit_packages}"
+
+
+@pytest.mark.asyncio
+async def test_amazon_delivered_with_order_in_body():
+    """Test Amazon delivered emails with order numbers in the body (not subject)."""
+    # Mock account
+    mock_account = MagicMock()
+    mock_account.host = "imap.gmail.com"
+
+    # Mock email search to return delivered emails
+    mock_account.search.return_value = ("OK", [b"1 2"])
+
+    # Mock email fetch to return delivered emails with order numbers in body
+    def mock_fetch(email_id, parts):
+        if email_id == "1":
+            # Delivered email with order number in body
+            email_content = b"""From: auto-confirm@amazon.com
+Subject: Delivered: "Test Product 1"
+Date: Wed, 29 Oct 2025 19:30:00 +0000
+
+Your order 111-1111111-1111111 has been delivered.
+Thank you for your purchase!
+"""
+            return ("OK", [(b"1 (RFC822 {1000}", email_content)])
+        elif email_id == "2":
+            # Another delivered email with order number in body
+            email_content = b"""From: auto-confirm@amazon.com
+Subject: Delivered: "Test Product 2"
+Date: Wed, 29 Oct 2025 19:30:00 +0000
+
+Your order 111-1111111-1111111 has been delivered.
+Thank you for your purchase!
+"""
+            return ("OK", [(b"2 (RFC822 {1000}", email_content)])
+        return ("OK", [])
+
+    mock_account.fetch.side_effect = mock_fetch
+
+    # Test the function
+    result = get_items(mock_account, "count", "amazon.com", 7, "gmail.com")
+
+    # Should return 0 because both delivered emails are for the same order
+    # and there are no shipped emails to subtract from
+    assert result == 0, f"Expected 0 (no in-transit packages), got {result}"
+
+
+@pytest.mark.asyncio
+async def test_amazon_mixed_delivered_subject_and_body():
+    """Test Amazon delivered emails with order numbers in both subject and body."""
+    # Mock account
+    mock_account = MagicMock()
+    mock_account.host = "imap.gmail.com"
+
+    # Mock email search to return delivered emails
+    mock_account.search.return_value = ("OK", [b"1 2"])
+
+    # Mock email fetch to return mixed delivered emails
+    def mock_fetch(email_id, parts):
+        if email_id == "1":
+            # Delivered email with order number in subject
+            email_content = b"""From: auto-confirm@amazon.com
+Subject: Delivered: "Test Product 1" - Order 111-1111111-1111111
+Date: Wed, 29 Oct 2025 19:30:00 +0000
+
+Your order has been delivered.
+Thank you for your purchase!
+"""
+            return ("OK", [(b"1 (RFC822 {1000}", email_content)])
+        elif email_id == "2":
+            # Delivered email with order number in body
+            email_content = b"""From: auto-confirm@amazon.com
+Subject: Delivered: "Test Product 2"
+Date: Wed, 29 Oct 2025 19:30:00 +0000
+
+Your order 222-2222222-2222222 has been delivered.
+Thank you for your purchase!
+"""
+            return ("OK", [(b"2 (RFC822 {1000}", email_content)])
+        return ("OK", [])
+
+    mock_account.fetch.side_effect = mock_fetch
+
+    # Test the function
+    result = get_items(mock_account, "count", "amazon.com", 7, "gmail.com")
+
+    # Should return 0 because both delivered emails are counted
+    # and there are no shipped emails to subtract from
+    assert result == 0, f"Expected 0 (no in-transit packages), got {result}"
+
+
+@pytest.mark.asyncio
+async def test_amazon_shipped_minus_delivered_with_body_orders():
+    """Test Amazon package counting with shipped emails minus delivered emails (order numbers in body)."""
+    # Mock account
+    mock_account = MagicMock()
+    mock_account.host = "imap.gmail.com"
+
+    # Mock email search to return both shipped and delivered emails
+    def mock_search(criteria):
+        if "Shipped:" in criteria:
+            return ("OK", [b"1 2"])  # 2 shipped emails
+        elif "Delivered:" in criteria:
+            return ("OK", [b"3 4"])  # 2 delivered emails
+        return ("OK", [b""])
+
+    mock_account.search.side_effect = mock_search
+
+    # Mock email fetch to return mixed emails
+    def mock_fetch(email_id, parts):
+        if email_id == "1":
+            # Shipped email arriving today
+            email_content = b"""From: auto-confirm@amazon.com
+Subject: Shipped: "Test Product 1"
+Date: Wed, 29 Oct 2025 19:30:00 +0000
+
+Your order 111-1111111-1111111 has shipped.
+Arriving today
+"""
+            return ("OK", [(b"1 (RFC822 {1000}", email_content)])
+        elif email_id == "2":
+            # Another shipped email arriving today
+            email_content = b"""From: auto-confirm@amazon.com
+Subject: Shipped: "Test Product 2"
+Date: Wed, 29 Oct 2025 19:30:00 +0000
+
+Your order 111-1111111-1111111 has shipped.
+Arriving today
+"""
+            return ("OK", [(b"2 (RFC822 {1000}", email_content)])
+        elif email_id == "3":
+            # Delivered email with order number in body
+            email_content = b"""From: auto-confirm@amazon.com
+Subject: Delivered: "Test Product 1"
+Date: Wed, 29 Oct 2025 19:30:00 +0000
+
+Your order 111-1111111-1111111 has been delivered.
+Thank you for your purchase!
+"""
+            return ("OK", [(b"3 (RFC822 {1000}", email_content)])
+        elif email_id == "4":
+            # Another delivered email with order number in body
+            email_content = b"""From: auto-confirm@amazon.com
+Subject: Delivered: "Test Product 2"
+Date: Wed, 29 Oct 2025 19:30:00 +0000
+
+Your order 111-1111111-1111111 has been delivered.
+Thank you for your purchase!
+"""
+            return ("OK", [(b"4 (RFC822 {1000}", email_content)])
+        return ("OK", [])
+
+    mock_account.fetch.side_effect = mock_fetch
+
+    # Test the function
+    result = get_items(mock_account, "count", "amazon.com", 7, "gmail.com")
+
+    # Should return 0 because 2 shipped - 2 delivered = 0 in transit
+    assert result == 0, f"Expected 0 (2 shipped - 2 delivered = 0), got {result}"
+
+
+@pytest.mark.asyncio
+async def test_amazon_delivered_no_order_number():
+    """Test Amazon delivered emails with no order numbers found."""
+    # Mock account
+    mock_account = MagicMock()
+    mock_account.host = "imap.gmail.com"
+
+    # Mock email search to return delivered emails
+    mock_account.search.return_value = ("OK", [b"1"])
+
+    # Mock email fetch to return delivered email without order number
+    def mock_fetch(email_id, parts):
+        if email_id == "1":
+            # Delivered email without order number
+            email_content = b"""From: auto-confirm@amazon.com
+Subject: Delivered: "Test Product"
+Date: Wed, 29 Oct 2025 19:30:00 +0000
+
+Your order has been delivered.
+Thank you for your purchase!
+"""
+            return ("OK", [(b"1 (RFC822 {1000}", email_content)])
+        return ("OK", [])
+
+    mock_account.fetch.side_effect = mock_fetch
+
+    # Test the function
+    result = get_items(mock_account, "count", "amazon.com", 7, "gmail.com")
+
+    # Should return 0 because no order number was found to count
+    assert result == 0, f"Expected 0 (no order number found), got {result}"
