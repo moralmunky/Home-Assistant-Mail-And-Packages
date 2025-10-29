@@ -302,6 +302,67 @@ def mock_imap_no_email():
 
 
 @pytest.fixture()
+def mock_imap_amazon_duplicate_orders():
+    """Mock imap class for Amazon duplicate order emails."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap:
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
+        mock_imap.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1 2"])  # Two emails found
+        mock_conn.uid.return_value = ("OK", [b"1 2"])
+        mock_conn.select.return_value = ("OK", [])
+        mock_conn.enable.return_value = ("OK", [])
+
+        # Mock fetch to return our test emails
+        def fetch_side_effect(email_id, parts):
+            if email_id == "1":
+                content = """From: auto-confirm@amazon.com
+To: test@example.com
+Subject: Delivered: Your Amazon.com order #113-4567890-1234567
+Date: Tue, 29 Oct 2025 10:00:00 -0700
+Message-ID: <test1@amazon.com>
+Content-Type: text/html; charset=UTF-8
+
+<html>
+<body>
+<p>Your package has been delivered.</p>
+<p>Order #113-4567890-1234567</p>
+</body>
+</html>"""
+                return ("OK", [(b"", content.encode())])
+            elif email_id == "2":
+                content = """From: auto-confirm@amazon.com
+To: test@example.com
+Subject: Delivered: Your Amazon.com order #113-4567890-1234567
+Date: Tue, 29 Oct 2025 10:30:00 -0700
+Message-ID: <test2@amazon.com>
+Content-Type: text/html; charset=UTF-8
+
+<html>
+<body>
+<p>Your package has been delivered (duplicate email).</p>
+<p>Order #113-4567890-1234567</p>
+</body>
+</html>"""
+                return ("OK", [(b"", content.encode())])
+            return ("OK", [None])
+
+        mock_conn.fetch.side_effect = fetch_side_effect
+
+        yield mock_conn
+
+
+@pytest.fixture()
 def mock_imap_search_error():
     """Mock imap class values."""
     with patch(

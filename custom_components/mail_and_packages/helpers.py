@@ -1679,6 +1679,8 @@ def amazon_search(
     subjects = AMAZON_DELIVERED_SUBJECT
     today = get_formatted_date()
     count = 0
+    unique_order_ids = set()  # Track unique order IDs to avoid double counting
+    processed_email_ids = set()  # Track processed email IDs to avoid double processing
 
     _LOGGER.debug("Today's date: %s", today)
     _LOGGER.debug("Amazon delivered subjects to search: %s", subjects)
@@ -1693,14 +1695,60 @@ def amazon_search(
         (server_response, data) = email_search(account, address_list, today, subject)
 
         if server_response == "OK" and data[0] is not None:
-            email_count = len(data[0].split())
-            count += email_count
+            email_ids = data[0].split()
             _LOGGER.debug(
                 "Amazon delivered email(s) found for subject '%s': %s",
                 subject,
-                email_count,
+                len(email_ids),
             )
             _LOGGER.debug("Email IDs found: %s", data[0])
+
+            # Extract order IDs from each email to deduplicate
+            for email_id in email_ids:
+                # Skip if we've already processed this email ID
+                if email_id in processed_email_ids:
+                    _LOGGER.debug("Skipping already processed email ID: %s", email_id)
+                    continue
+
+                processed_email_ids.add(email_id)
+                try:
+                    email_data = email_fetch(account, email_id, "(RFC822)")[1]
+                    for response_part in email_data:
+                        if isinstance(response_part, tuple):
+                            msg = email.message_from_bytes(response_part[1])
+                            email_subject = msg["subject"]
+
+                            # Extract order ID from subject using the same pattern as get_items
+                            pattern = re.compile(AMAZON_PATTERN)
+                            order_matches = pattern.findall(email_subject)
+
+                            if order_matches:
+                                order_id = order_matches[0]
+                                if order_id not in unique_order_ids:
+                                    unique_order_ids.add(order_id)
+                                    count += 1
+                                    _LOGGER.debug(
+                                        "Found new unique order ID: %s (total unique: %s)",
+                                        order_id,
+                                        len(unique_order_ids),
+                                    )
+                                else:
+                                    _LOGGER.debug(
+                                        "Skipping duplicate order ID: %s",
+                                        order_id,
+                                    )
+                            else:
+                                # If no order ID found, count the email anyway (fallback)
+                                count += 1
+                                _LOGGER.debug(
+                                    "No order ID found in email %s, counting anyway",
+                                    email_id,
+                                )
+                except Exception as err:
+                    _LOGGER.debug("Error processing email %s: %s", email_id, err)
+                    # If we can't process the email, count it anyway (fallback)
+                    count += 1
+
             get_amazon_image(
                 data[0],
                 account,
@@ -2497,6 +2545,9 @@ def get_items(
         item for item in deliveries_today if item not in amazon_delivered
     ]
 
+    # Remove delivered orders from order_number (shipped orders)
+    order_number = [item for item in order_number if item not in amazon_delivered]
+
     # Return delivery count or list of order numbers
     value = None
     if param == "count":
@@ -2504,7 +2555,9 @@ def get_items(
             "Amazon Delivery Count (today, not delivered): %s",
             str(len(deliveries_today)),
         )
-        _LOGGER.debug("Amazon Order Count: %s", str(len(order_number)))
+        _LOGGER.debug(
+            "Amazon Order Count (shipped, not delivered): %s", str(len(order_number))
+        )
         value = min(len(deliveries_today), len(order_number))
     else:
         _LOGGER.debug("Amazon order: %s", str(order_number))

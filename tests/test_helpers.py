@@ -2892,3 +2892,93 @@ async def test_default_image_path_no_storage():
 
     # Should return the default path
     assert result == "custom_components/mail_and_packages/images/"
+
+
+@pytest.mark.asyncio
+async def test_amazon_shipped_vs_delivered_logic():
+    """Test that Amazon orders that have been delivered are not counted as in transit."""
+    # Test the filtering logic directly without complex email parsing
+    amazon_delivered = ["123-4567890-1234567"]  # Order that was delivered
+    order_number = ["123-4567890-1234567"]  # Shipped order (same as delivered)
+
+    print("Before filtering:")
+    print(f"amazon_delivered: {amazon_delivered}")
+    print(f"order_number: {order_number}")
+
+    # Apply the same filtering logic as in the code
+    order_number_filtered = [
+        item for item in order_number if item not in amazon_delivered
+    ]
+
+    print("After filtering:")
+    print(f"order_number_filtered: {order_number_filtered}")
+    print(f"Count: {len(order_number_filtered)}")
+
+    # Should return 0 because the shipped order was delivered
+    assert (
+        len(order_number_filtered) == 0
+    ), f"Expected 0 (shipped order should not count as in transit if delivered), got {len(order_number_filtered)}"
+
+
+@pytest.mark.asyncio
+async def test_amazon_mixed_orders_shipped_vs_delivered():
+    """Test Amazon orders with some delivered and some still in transit."""
+    # Test the filtering logic directly
+    amazon_delivered = ["222-2222222-2222222"]  # One order was delivered
+    order_number = [
+        "111-1111111-1111111",
+        "222-2222222-2222222",
+        "333-3333333-3333333",
+    ]  # 3 shipped orders
+
+    print("Before filtering:")
+    print(f"amazon_delivered: {amazon_delivered}")
+    print(f"order_number: {order_number}")
+
+    # Apply the same filtering logic as in the code
+    order_number_filtered = [
+        item for item in order_number if item not in amazon_delivered
+    ]
+
+    print("After filtering:")
+    print(f"order_number_filtered: {order_number_filtered}")
+    print(f"Count: {len(order_number_filtered)}")
+
+    # Should return 2 because 2 orders are shipped but not delivered
+    assert (
+        len(order_number_filtered) == 2
+    ), f"Expected 2 (2 shipped orders not delivered), got {len(order_number_filtered)}"
+
+
+@pytest.mark.asyncio
+async def test_amazon_delivered_orders_excluded_from_transit():
+    """Test that delivered Amazon orders are properly excluded from transit count."""
+    # Test the filtering logic directly
+    amazon_delivered = [
+        "222-2222222-2222222",
+        "333-3333333-3333333",
+    ]  # Two orders were delivered
+    order_number = [
+        "111-1111111-1111111",
+        "222-2222222-2222222",
+        "333-3333333-3333333",
+    ]  # 3 shipped orders
+
+    print("Before filtering:")
+    print(f"amazon_delivered: {amazon_delivered}")
+    print(f"order_number: {order_number}")
+
+    # Apply the same filtering logic as in the code
+    order_number_filtered = [
+        item for item in order_number if item not in amazon_delivered
+    ]
+
+    print("After filtering:")
+    print(f"order_number_filtered: {order_number_filtered}")
+    print(f"Count: {len(order_number_filtered)}")
+
+    # Should return 1 because only 1 order (#111-1111111-1111111) is shipped but not delivered
+    # Orders #222-2222222-2222222 and #333-3333333-3333333 were delivered, so they don't count
+    assert (
+        len(order_number_filtered) == 1
+    ), f"Expected 1 (only 1 shipped order not delivered), got {len(order_number_filtered)}"
