@@ -1728,7 +1728,15 @@ def amazon_search(
 
                 processed_email_ids.add(email_id)
                 try:
-                    email_data = email_fetch(account, email_id, "(RFC822)")[1]
+                    email_data = email_fetch(
+                        account,
+                        (
+                            int(email_id.decode())
+                            if isinstance(email_id, bytes)
+                            else int(email_id)
+                        ),
+                        "(RFC822)",
+                    )[1]
                     for response_part in email_data:
                         if isinstance(response_part, tuple):
                             msg = email.message_from_bytes(response_part[1])
@@ -2360,7 +2368,9 @@ def get_items(
         id_list = mail_ids.split()
         _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
         for i in id_list:
-            data = email_fetch(account, int(i.decode()), "(RFC822)")[1]
+            data = email_fetch(
+                account, int(i.decode()) if isinstance(i, bytes) else int(i), "(RFC822)"
+            )[1]
             for response_part in data:
                 if isinstance(response_part, tuple):
                     msg = email.message_from_bytes(response_part[1])
