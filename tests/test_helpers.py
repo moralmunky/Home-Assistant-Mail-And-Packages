@@ -2897,88 +2897,104 @@ async def test_default_image_path_no_storage():
 @pytest.mark.asyncio
 async def test_amazon_shipped_vs_delivered_logic():
     """Test that Amazon orders that have been delivered are not counted as in transit."""
-    # Test the filtering logic directly without complex email parsing
-    amazon_delivered = ["123-4567890-1234567"]  # Order that was delivered
-    order_number = ["123-4567890-1234567"]  # Shipped order (same as delivered)
+    # Test the package counting logic directly
+    shipped_packages = {"123-4567890-1234567": 2}  # 2 packages shipped for this order
+    delivered_packages = {
+        "123-4567890-1234567": 2
+    }  # 2 packages delivered for this order
 
-    print("Before filtering:")
-    print(f"amazon_delivered: {amazon_delivered}")
-    print(f"order_number: {order_number}")
+    print("Package counts:")
+    print(f"shipped_packages: {shipped_packages}")
+    print(f"delivered_packages: {delivered_packages}")
 
-    # Apply the same filtering logic as in the code
-    order_number_filtered = [
-        item for item in order_number if item not in amazon_delivered
-    ]
+    # Calculate in-transit packages by subtracting delivered from shipped
+    in_transit_packages = 0
+    for order_id in shipped_packages:
+        shipped_count = shipped_packages[order_id]
+        delivered_count = delivered_packages.get(order_id, 0)
+        in_transit_count = max(0, shipped_count - delivered_count)
+        in_transit_packages += in_transit_count
+        print(
+            f"Order {order_id}: {shipped_count} shipped, {delivered_count} delivered, {in_transit_count} in transit"
+        )
 
-    print("After filtering:")
-    print(f"order_number_filtered: {order_number_filtered}")
-    print(f"Count: {len(order_number_filtered)}")
+    print(f"Total in-transit packages: {in_transit_packages}")
 
-    # Should return 0 because the shipped order was delivered
+    # Should return 0 because all shipped packages were delivered
     assert (
-        len(order_number_filtered) == 0
-    ), f"Expected 0 (shipped order should not count as in transit if delivered), got {len(order_number_filtered)}"
+        in_transit_packages == 0
+    ), f"Expected 0 (all shipped packages were delivered), got {in_transit_packages}"
 
 
 @pytest.mark.asyncio
 async def test_amazon_mixed_orders_shipped_vs_delivered():
     """Test Amazon orders with some delivered and some still in transit."""
-    # Test the filtering logic directly
-    amazon_delivered = ["222-2222222-2222222"]  # One order was delivered
-    order_number = [
-        "111-1111111-1111111",
-        "222-2222222-2222222",
-        "333-3333333-3333333",
-    ]  # 3 shipped orders
+    # Test the package counting logic directly
+    shipped_packages = {
+        "111-1111111-1111111": 1,  # 1 package shipped, not delivered
+        "222-2222222-2222222": 2,  # 2 packages shipped, 1 delivered
+        "333-3333333-3333333": 1,  # 1 package shipped, not delivered
+    }
+    delivered_packages = {
+        "222-2222222-2222222": 1,  # 1 package delivered
+    }
 
-    print("Before filtering:")
-    print(f"amazon_delivered: {amazon_delivered}")
-    print(f"order_number: {order_number}")
+    print("Package counts:")
+    print(f"shipped_packages: {shipped_packages}")
+    print(f"delivered_packages: {delivered_packages}")
 
-    # Apply the same filtering logic as in the code
-    order_number_filtered = [
-        item for item in order_number if item not in amazon_delivered
-    ]
+    # Calculate in-transit packages by subtracting delivered from shipped
+    in_transit_packages = 0
+    for order_id in shipped_packages:
+        shipped_count = shipped_packages[order_id]
+        delivered_count = delivered_packages.get(order_id, 0)
+        in_transit_count = max(0, shipped_count - delivered_count)
+        in_transit_packages += in_transit_count
+        print(
+            f"Order {order_id}: {shipped_count} shipped, {delivered_count} delivered, {in_transit_count} in transit"
+        )
 
-    print("After filtering:")
-    print(f"order_number_filtered: {order_number_filtered}")
-    print(f"Count: {len(order_number_filtered)}")
+    print(f"Total in-transit packages: {in_transit_packages}")
 
-    # Should return 2 because 2 orders are shipped but not delivered
+    # Should return 3 because: 1 + (2-1) + 1 = 3 packages in transit
     assert (
-        len(order_number_filtered) == 2
-    ), f"Expected 2 (2 shipped orders not delivered), got {len(order_number_filtered)}"
+        in_transit_packages == 3
+    ), f"Expected 3 (3 packages in transit), got {in_transit_packages}"
 
 
 @pytest.mark.asyncio
 async def test_amazon_delivered_orders_excluded_from_transit():
     """Test that delivered Amazon orders are properly excluded from transit count."""
-    # Test the filtering logic directly
-    amazon_delivered = [
-        "222-2222222-2222222",
-        "333-3333333-3333333",
-    ]  # Two orders were delivered
-    order_number = [
-        "111-1111111-1111111",
-        "222-2222222-2222222",
-        "333-3333333-3333333",
-    ]  # 3 shipped orders
+    # Test the package counting logic directly
+    shipped_packages = {
+        "111-1111111-1111111": 1,  # 1 package shipped, not delivered
+        "222-2222222-2222222": 2,  # 2 packages shipped, 2 delivered
+        "333-3333333-3333333": 1,  # 1 package shipped, 1 delivered
+    }
+    delivered_packages = {
+        "222-2222222-2222222": 2,  # 2 packages delivered
+        "333-3333333-3333333": 1,  # 1 package delivered
+    }
 
-    print("Before filtering:")
-    print(f"amazon_delivered: {amazon_delivered}")
-    print(f"order_number: {order_number}")
+    print("Package counts:")
+    print(f"shipped_packages: {shipped_packages}")
+    print(f"delivered_packages: {delivered_packages}")
 
-    # Apply the same filtering logic as in the code
-    order_number_filtered = [
-        item for item in order_number if item not in amazon_delivered
-    ]
+    # Calculate in-transit packages by subtracting delivered from shipped
+    in_transit_packages = 0
+    for order_id in shipped_packages:
+        shipped_count = shipped_packages[order_id]
+        delivered_count = delivered_packages.get(order_id, 0)
+        in_transit_count = max(0, shipped_count - delivered_count)
+        in_transit_packages += in_transit_count
+        print(
+            f"Order {order_id}: {shipped_count} shipped, {delivered_count} delivered, {in_transit_count} in transit"
+        )
 
-    print("After filtering:")
-    print(f"order_number_filtered: {order_number_filtered}")
-    print(f"Count: {len(order_number_filtered)}")
+    print(f"Total in-transit packages: {in_transit_packages}")
 
-    # Should return 1 because only 1 order (#111-1111111-1111111) is shipped but not delivered
-    # Orders #222-2222222-2222222 and #333-3333333-3333333 were delivered, so they don't count
+    # Should return 1 because only 1 package (#111-1111111-1111111) is in transit
+    # Orders #222-2222222-2222222 and #333-3333333-3333333 were fully delivered
     assert (
-        len(order_number_filtered) == 1
-    ), f"Expected 1 (only 1 shipped order not delivered), got {len(order_number_filtered)}"
+        in_transit_packages == 1
+    ), f"Expected 1 (only 1 package in transit), got {in_transit_packages}"
