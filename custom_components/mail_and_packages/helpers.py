@@ -2258,9 +2258,25 @@ def get_items(
                     email_date_str = msg.get("Date")
                     email_date = None
                     if email_date_str:
-                        email_date = email.utils.parsedate_to_datetime(
-                            email_date_str
-                        ).date()
+                        try:
+                            email_date = email.utils.parsedate_to_datetime(
+                                email_date_str
+                            ).date()
+                        except (ValueError, TypeError) as err:
+                            _LOGGER.debug(
+                                "Failed to parse email date '%s': %s",
+                                email_date_str,
+                                err,
+                            )
+                            # Try using dateparser as fallback
+                            parsed_date = dateparser.parse(email_date_str)
+                            if parsed_date:
+                                email_date = parsed_date.date()
+                            else:
+                                _LOGGER.debug(
+                                    "dateparser also failed to parse email date: %s",
+                                    email_date_str,
+                                )
                     _LOGGER.debug("Email from date: %s", str(email_date))
 
                     today_date = datetime.date.today()

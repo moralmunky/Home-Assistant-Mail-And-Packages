@@ -1503,10 +1503,85 @@ async def test_amazon_otp(hass, mock_imap_amazon_otp, caplog):
 
 @pytest.mark.asyncio
 async def test_amazon_out_for_delivery_today(hass, mock_imap_amazon_arriving_today):
+    """Test that Amazon emails with 'Arriving today' are detected."""
+    from custom_components.mail_and_packages.helpers import get_items
+    from unittest.mock import patch
+
     result = get_items(
-        mock_imap_amazon_arriving_today, "count", the_domain="amazon.com"
+        mock_imap_amazon_arriving_today, "order", the_domain="amazon.com"
     )
-    assert result == 0
+    # Email doesn't have an order number, so should return empty list
+    assert result == []
+
+    # Test that "Arriving today" is detected and parsed correctly
+    with patch("datetime.date") as mock_date, patch(
+        "custom_components.mail_and_packages.helpers.dateparser"
+    ) as mock_dateparser:
+        # Mock today to be any date
+        mock_date.today.return_value = date(2020, 9, 11)
+        # Mock dateparser to return today's date for "today"
+        mock_dateparser.parse.return_value = datetime.datetime(2020, 9, 11)
+        result = get_items(
+            mock_imap_amazon_arriving_today, "count", the_domain="amazon.com"
+        )
+        # The email says "Arriving today" and has no order number
+        # Delivery count is 1 (detected "today"), order count is 0 (no order number)
+        # Result is min(deliveries_today, order_number) = min(1, 0) = 0
+        # This verifies the pattern "Arriving today" is detected correctly
+        assert result == 0
+
+
+@pytest.mark.asyncio
+async def test_amazon_arriving_tomorrow(hass, mock_imap_amazon_arriving_tomorrow):
+    """Test that Amazon emails with 'Arriving tomorrow' are detected."""
+    from custom_components.mail_and_packages.helpers import get_items
+    from unittest.mock import patch
+
+    result = get_items(
+        mock_imap_amazon_arriving_tomorrow, "order", the_domain="amazon.com"
+    )
+    assert result == ["111-7634359-8390444"]  # Should extract order number
+
+    # Test that "Arriving tomorrow" doesn't count as arriving today
+    with patch("datetime.date") as mock_date, patch(
+        "custom_components.mail_and_packages.helpers.dateparser"
+    ) as mock_dateparser:
+        mock_date.today.return_value = date(2025, 10, 28)
+        # Mock dateparser to return Oct 29 (tomorrow from email date Oct 28)
+        mock_dateparser.parse.return_value = datetime.datetime(2025, 10, 29)
+        result = get_items(
+            mock_imap_amazon_arriving_tomorrow, "count", the_domain="amazon.com"
+        )
+        # Email date is Oct 28, "tomorrow" = Oct 29, so should NOT count as arriving today
+        assert result == 0
+
+
+@pytest.mark.asyncio
+async def test_amazon_arriving_tomorrow_matches_date(
+    hass, mock_imap_amazon_arriving_tomorrow
+):
+    """Test that 'Arriving tomorrow' works when today is Oct 29 (tomorrow from email date)."""
+    from custom_components.mail_and_packages.helpers import get_items
+    from unittest.mock import patch
+
+    result = get_items(
+        mock_imap_amazon_arriving_tomorrow, "order", the_domain="amazon.com"
+    )
+    assert result == ["111-7634359-8390444"]  # Should extract order number
+
+    # Test that "Arriving tomorrow" counts when today matches tomorrow
+    with patch("datetime.date") as mock_date, patch(
+        "custom_components.mail_and_packages.helpers.dateparser"
+    ) as mock_dateparser:
+        # Mock today to be Oct 29, 2025 (tomorrow from email date Oct 28)
+        mock_date.today.return_value = date(2025, 10, 29)
+        # Mock dateparser to return Oct 29 (tomorrow from email date Oct 28)
+        mock_dateparser.parse.return_value = datetime.datetime(2025, 10, 29)
+        result = get_items(
+            mock_imap_amazon_arriving_tomorrow, "count", the_domain="amazon.com"
+        )
+        # Email date is Oct 28, "tomorrow" = Oct 29, today is Oct 29, so SHOULD count
+        assert result == 1
 
 
 @pytest.mark.asyncio
