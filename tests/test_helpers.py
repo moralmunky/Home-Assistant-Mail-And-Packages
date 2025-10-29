@@ -1527,9 +1527,6 @@ async def test_amazon_out_for_delivery_today(hass, mock_imap_amazon_arriving_tod
         # The email says "Arriving today" and email date matches today
         # Delivery count should be 1 (detected "today")
         # Result is min(deliveries_today, len(order_number))
-        # If order number exists: min(1, 1+) = 1
-        # If order number missing: min(1, 0) = 0 (but we want it to count as 1)
-        # Actually, the code should return 1 if "Arriving today" is detected and date matches
         assert (
             result == 1
         ), "Count should be 1 when 'Arriving today' and email date matches today"
