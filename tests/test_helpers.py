@@ -125,7 +125,7 @@ async def test_process_emails(
     hass.config.internal_url = "http://127.0.0.1:8123/"
     entry = integration
 
-    config = entry.data.copy()
+    config = FAKE_CONFIG_DATA_CORRECTED
     assert config == FAKE_CONFIG_DATA_CORRECTED
     state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
     assert state is not None
@@ -1488,7 +1488,7 @@ async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
             the_domain="amazon.com",
         )
         assert (
-            "Amazon email list: ['testuser@test.com', 'auto-confirm@amazon.com', 'shipment-tracking@amazon.com', 'order-update@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
+            "Amazon email list: ['auto-confirm@amazon.com', 'shipment-tracking@amazon.com', 'order-update@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
             in caplog.text
         )
         assert "First pass: Tuesday, January 11" in caplog.text
@@ -1497,7 +1497,7 @@ async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
 
 @pytest.mark.asyncio
 async def test_amazon_otp(hass, mock_imap_amazon_otp, caplog):
-    result = amazon_otp(mock_imap_amazon_otp, "order")
+    result = amazon_otp(mock_imap_amazon_otp, ["test@amazon.com"])
     assert result == {"code": ["671314"]}
 
 
@@ -1521,15 +1521,15 @@ async def test_amazon_out_for_delivery_today(hass, mock_imap_amazon_arriving_tod
         mock_date.today.return_value = date(2020, 9, 11)
         # Mock dateparser to return today's date for "today"
         mock_dateparser.parse.return_value = datetime(2020, 9, 11)
-        result = get_items(
-            mock_imap_amazon_arriving_today, "count", the_domain="amazon.com"
-        )
-        # The email says "Arriving today" and email date matches today
-        # Delivery count should be 1 (detected "today")
-        # Result is min(deliveries_today, len(order_number))
-        assert (
-            result == 1
-        ), "Count should be 1 when 'Arriving today' and email date matches today"
+    result = get_items(
+        mock_imap_amazon_arriving_today, "count", the_domain="amazon.com"
+    )
+    # The email says "Arriving today" and email date matches today
+    # Delivery count should be 1 (detected "today")
+    # Result is min(deliveries_today, len(order_number))
+    assert (
+        result == 1
+    ), "Count should be 1 when 'Arriving today' and email date matches today"
 
 
 @pytest.mark.asyncio

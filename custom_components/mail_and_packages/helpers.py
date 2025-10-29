@@ -39,6 +39,7 @@ from .const import (
     AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT,
     AMAZON_DELIVERED,
     AMAZON_DELIVERED_SUBJECT,
+    AMAZON_DOMAINS,
     AMAZON_EXCEPTION,
     AMAZON_EXCEPTION_ORDER,
     AMAZON_EXCEPTION_SUBJECT,
@@ -56,6 +57,7 @@ from .const import (
     AMAZON_OTP_SUBJECT,
     AMAZON_PACKAGES,
     AMAZON_PATTERN,
+    AMAZON_SHIPMENT_SUBJECT,
     AMAZON_SHIPMENT_TRACKING,
     AMAZON_TIME_PATTERN,
     AMAZON_TIME_PATTERN_END,
@@ -1984,7 +1986,8 @@ async def download_img(
 def _process_amazon_forwards(email_list: str | list | None) -> list:
     """Process amazon forward emails.
 
-    Returns list of email addresses
+    Returns list of email addresses that are actually Amazon domains.
+    This filters out non-Amazon forwarded addresses to prevent false matches.
     """
     result = []
     if email_list is not None:
@@ -1992,7 +1995,14 @@ def _process_amazon_forwards(email_list: str | list | None) -> list:
             email_list = email_list.split()
         for fwd in email_list:
             if fwd and fwd != '""' and fwd not in result:
-                result.append(fwd)
+                # Only include forwarded addresses if they are actual Amazon domains
+                if any(
+                    amazon_domain in fwd.lower() for amazon_domain in AMAZON_DOMAINS
+                ):
+                    result.append(fwd)
+                    _LOGGER.debug("Including Amazon forwarded address: %s", fwd)
+                else:
+                    _LOGGER.debug("Filtering out non-Amazon forwarded address: %s", fwd)
 
     _LOGGER.debug("Processed forwards: %s", result)
     return result
@@ -2243,6 +2253,31 @@ def get_items(
     _LOGGER.debug("Amazon email list: %s", str(address_list))
 
     (server_response, sdata) = email_search(account, address_list, tfmt)
+
+    # Search for Amazon emails with relevant subjects to avoid false matches
+    amazon_subjects = (
+        AMAZON_DELIVERED_SUBJECT + AMAZON_SHIPMENT_SUBJECT + AMAZON_ORDERED_SUBJECT
+    )
+    all_emails = []
+
+    for subject in amazon_subjects:
+        _LOGGER.debug("Searching for Amazon emails with subject: %s", subject)
+        (server_response, sdata) = email_search(account, address_list, tfmt, subject)
+        if server_response == "OK" and sdata[0] is not None:
+            email_ids = sdata[0].split()
+            all_emails.extend(email_ids)
+            _LOGGER.debug("Found %s emails for subject '%s'", len(email_ids), subject)
+
+    # Remove duplicates while preserving order
+    unique_emails = []
+    for email_id in all_emails:
+        if email_id not in unique_emails:
+            unique_emails.append(email_id)
+
+    _LOGGER.debug("Total unique Amazon emails found: %s", len(unique_emails))
+
+    # Simulate the original sdata format
+    sdata = ("OK", [b" ".join(unique_emails)])
 
     if server_response == "OK":
         mail_ids = sdata[0]
