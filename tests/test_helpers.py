@@ -4,7 +4,7 @@ import datetime
 import os
 import re
 import tempfile
-from datetime import date
+from datetime import date, datetime
 from unittest import mock
 from unittest.mock import MagicMock, call, mock_open, patch
 
@@ -77,12 +77,12 @@ MAIL_IMAGE_SYSTEM_PATH = "sensor.mail_image_system_path"
 
 @pytest.mark.asyncio
 async def test_get_formatted_date():
-    assert get_formatted_date() == datetime.datetime.today().strftime("%d-%b-%Y")
+    assert get_formatted_date() == date.today().strftime("%d-%b-%Y")
 
 
 @pytest.mark.asyncio
 async def test_update_time():
-    assert isinstance(update_time(), datetime.datetime)
+    assert isinstance(update_time(), datetime)
 
 
 @pytest.mark.asyncio
@@ -133,7 +133,7 @@ async def test_process_emails(
     state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
     assert state.state == "unknown"
     result = process_emails(hass, config)
-    assert isinstance(result["mail_updated"], datetime.datetime)
+    assert isinstance(result["mail_updated"], datetime)
     assert result["zpackages_delivered"] == 0
     assert result["zpackages_transit"] == 0
     assert result["amazon_delivered"] == 0
@@ -169,7 +169,7 @@ async def test_process_emails_external(
     state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
     assert state.state == "unknown"
     result = process_emails(hass, config)
-    assert isinstance(result["mail_updated"], datetime.datetime)
+    assert isinstance(result["mail_updated"], datetime)
     assert result["zpackages_delivered"] == 0
     assert result["zpackages_transit"] == 0
     assert result["amazon_delivered"] == 0
@@ -994,7 +994,7 @@ async def test_amazon_shipped_order_alt(hass, mock_imap_amazon_shipped_alt):
     with patch(
         "custom_components.mail_and_packages.helpers.dateparser"
     ) as mock_dateparser:
-        mock_dateparser.parse.return_value = datetime.datetime(2020, 9, 11)
+        mock_dateparser.parse.return_value = datetime(2020, 9, 11)
         result = get_items(
             mock_imap_amazon_shipped_alt, "order", the_domain="amazon.com"
         )
@@ -1047,7 +1047,7 @@ async def test_amazon_shipped_order_uk(hass, mock_imap_amazon_shipped_uk):
     with patch(
         "custom_components.mail_and_packages.helpers.dateparser"
     ) as mock_dateparser:
-        mock_dateparser.parse.return_value = datetime.datetime(2020, 12, 12)
+        mock_dateparser.parse.return_value = datetime(2020, 12, 12)
         result = get_items(
             mock_imap_amazon_shipped_uk, "order", the_domain="amazon.co.uk"
         )
@@ -1060,7 +1060,7 @@ async def test_amazon_shipped_order_uk_2(hass, mock_imap_amazon_shipped_uk_2):
     with patch(
         "custom_components.mail_and_packages.helpers.dateparser"
     ) as mock_dateparser:
-        mock_dateparser.parse.return_value = datetime.datetime(2021, 11, 16)
+        mock_dateparser.parse.return_value = datetime(2021, 11, 16)
         result = get_items(
             mock_imap_amazon_shipped_uk_2, "order", the_domain="amazon.co.uk"
         )
@@ -1480,7 +1480,7 @@ async def test_amazon_shipped_fwd(hass, mock_imap_amazon_fwd, caplog):
     with patch(
         "custom_components.mail_and_packages.helpers.dateparser.parse"
     ) as mock_parse:
-        mock_parse.return_value = datetime.datetime(2022, 1, 11)
+        mock_parse.return_value = datetime(2022, 1, 11)
         result = get_items(
             mock_imap_amazon_fwd,
             "order",
