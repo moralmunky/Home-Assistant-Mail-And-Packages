@@ -1,10 +1,13 @@
 """Tests for camera component."""
 
+import os
+import tempfile
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.mail_and_packages.camera import MailCam
 from custom_components.mail_and_packages.const import CAMERA, COORDINATOR, DOMAIN
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_CUSTOM_IMG
 
@@ -1572,9 +1575,6 @@ async def test_walmart_camera_default_image_path(
 
 async def test_camera_update_no_data():
     """Test camera update when coordinator has no data."""
-    from custom_components.mail_and_packages.camera import MailCam
-    from unittest.mock import MagicMock, patch
-
     # Create a mock coordinator with no data
     mock_coordinator = MagicMock()
     mock_coordinator.last_update_success = True
@@ -1598,9 +1598,6 @@ async def test_camera_update_no_data():
 
 async def test_camera_update_coordinator_failure():
     """Test camera update when coordinator update failed."""
-    from custom_components.mail_and_packages.camera import MailCam
-    from unittest.mock import MagicMock, patch
-
     # Create a mock coordinator with failed update
     mock_coordinator = MagicMock()
     mock_coordinator.last_update_success = False
@@ -1623,12 +1620,6 @@ async def test_camera_update_coordinator_failure():
 
 async def test_camera_custom_no_mail_image():
     """Test camera with custom no-mail image configuration."""
-    from custom_components.mail_and_packages.camera import MailCam
-    from unittest.mock import MagicMock, patch
-    from tests.const import FAKE_CONFIG_DATA_CUSTOM_IMG
-    import tempfile
-    import os
-
     # Create a mock coordinator with data
     mock_coordinator = MagicMock()
     mock_coordinator.last_update_success = True

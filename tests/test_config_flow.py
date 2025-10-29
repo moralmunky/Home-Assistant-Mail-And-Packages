@@ -1,6 +1,8 @@
 """Test Mail and Packages config flow"""
 
 import logging
+import os
+import tempfile
 from unittest.mock import patch, MagicMock
 
 import pytest
@@ -9,21 +11,27 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.mail_and_packages.config_flow import _validate_user_input
+from custom_components.mail_and_packages.config_flow import (
+    MailAndPackagesFlowHandler,
+    _get_mailboxes,
+    _get_schema_step_3,
+    _validate_user_input,
+)
 from custom_components.mail_and_packages.const import (
     CONF_AMAZON_FWDS,
-    CONF_STORAGE,
-    DOMAIN,
-    CONF_CUSTOM_IMG,
     CONF_AMAZON_CUSTOM_IMG,
     CONF_AMAZON_CUSTOM_IMG_FILE,
+    CONF_CUSTOM_IMG,
+    CONF_GENERATE_MP4,
+    CONF_GENERIC_CUSTOM_IMG,
+    CONF_GENERIC_CUSTOM_IMG_FILE,
+    CONF_STORAGE,
     CONF_UPS_CUSTOM_IMG,
     CONF_UPS_CUSTOM_IMG_FILE,
     CONF_WALMART_CUSTOM_IMG,
     CONF_WALMART_CUSTOM_IMG_FILE,
-    CONF_GENERIC_CUSTOM_IMG,
-    CONF_GENERIC_CUSTOM_IMG_FILE,
-    CONF_GENERATE_MP4,
+    CONFIG_VER,
+    DOMAIN,
 )
 from custom_components.mail_and_packages.helpers import _check_ffmpeg, _test_login
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
@@ -5502,14 +5510,6 @@ async def test_migration_to_version_12(hass: HomeAssistant):
 
 async def test_walmart_config_flow_integration():
     """Test that Walmart custom image support is properly integrated into config flow."""
-    from custom_components.mail_and_packages.config_flow import _validate_user_input
-    from custom_components.mail_and_packages.const import (
-        CONF_WALMART_CUSTOM_IMG,
-        CONF_WALMART_CUSTOM_IMG_FILE,
-    )
-    import tempfile
-    import os
-
     # Test 1: Validate Walmart custom image file exists
     with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
         temp_file_path = temp_file.name
@@ -5580,8 +5580,6 @@ async def test_walmart_config_flow_integration():
 
 async def test_walmart_config_flow_version():
     """Test that the config version has been incremented for Walmart support."""
-    from custom_components.mail_and_packages.const import CONFIG_VER
-
     # Version should be 12 or higher to include Walmart custom image support
     assert (
         CONFIG_VER >= 12
@@ -5590,9 +5588,6 @@ async def test_walmart_config_flow_version():
 
 async def test_get_mailboxes_non_ok_status():
     """Test _get_mailboxes handles non-OK status gracefully."""
-    from custom_components.mail_and_packages.config_flow import _get_mailboxes
-    from unittest.mock import MagicMock, patch
-
     # Mock login to return an account that returns non-OK status
     with patch("custom_components.mail_and_packages.config_flow.login") as mock_login:
         mock_account = MagicMock()
@@ -5607,8 +5602,6 @@ async def test_get_mailboxes_non_ok_status():
 
 async def test_get_schema_step_3_none_input():
     """Test _get_schema_step_3 with None user_input."""
-    from custom_components.mail_and_packages.config_flow import _get_schema_step_3
-
     result = _get_schema_step_3(None, {})
 
     # Should handle None input gracefully
@@ -5617,11 +5610,6 @@ async def test_get_schema_step_3_none_input():
 
 async def test_config_flow_step_amazon_empty_fwds():
     """Test config flow step amazon with empty amazon_fwds."""
-    from custom_components.mail_and_packages.config_flow import (
-        MailAndPackagesFlowHandler,
-    )
-    from unittest.mock import MagicMock, patch
-
     flow = MailAndPackagesFlowHandler()
     flow._data = {"amazon_fwds": []}
 
@@ -5636,11 +5624,6 @@ async def test_config_flow_step_amazon_empty_fwds():
 
 async def test_config_flow_reconfig_storage_validation_error():
     """Test reconfig storage step with validation errors."""
-    from custom_components.mail_and_packages.config_flow import (
-        MailAndPackagesFlowHandler,
-    )
-    from unittest.mock import MagicMock, patch
-
     flow = MailAndPackagesFlowHandler()
     flow._data = {}
     flow._errors = {"test_error": "validation_failed"}
@@ -5655,11 +5638,6 @@ async def test_config_flow_reconfig_storage_validation_error():
 
 async def test_config_flow_reconfig_amazon_validation_error():
     """Test reconfig amazon step with validation errors."""
-    from custom_components.mail_and_packages.config_flow import (
-        MailAndPackagesFlowHandler,
-    )
-    from unittest.mock import MagicMock, patch
-
     flow = MailAndPackagesFlowHandler()
     flow._data = {"amazon_fwds": ["test@example.com"]}
     flow._errors = {"test_error": "validation_failed"}
@@ -5674,11 +5652,6 @@ async def test_config_flow_reconfig_amazon_validation_error():
 
 async def test_config_flow_reconfig_3_validation_error():
     """Test reconfig step 3 with validation errors."""
-    from custom_components.mail_and_packages.config_flow import (
-        MailAndPackagesFlowHandler,
-    )
-    from unittest.mock import MagicMock, patch
-
     flow = MailAndPackagesFlowHandler()
     flow._data = {}
     flow._errors = {"test_error": "validation_failed"}
@@ -5693,11 +5666,6 @@ async def test_config_flow_reconfig_3_validation_error():
 
 async def test_config_flow_reconfig_2_validation_error():
     """Test reconfig step 2 with validation errors."""
-    from custom_components.mail_and_packages.config_flow import (
-        MailAndPackagesFlowHandler,
-    )
-    from unittest.mock import MagicMock, patch
-
     flow = MailAndPackagesFlowHandler()
     flow._data = {
         "host": "imap.test.com",

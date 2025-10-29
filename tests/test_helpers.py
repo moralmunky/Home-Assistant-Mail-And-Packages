@@ -1,17 +1,35 @@
 """Tests for helpers module."""
 
 import datetime
+import os
+import re
+import tempfile
 from datetime import date
 from unittest import mock
-from unittest.mock import call, mock_open, patch
+from unittest.mock import MagicMock, call, mock_open, patch
 
 import pytest
 from freezegun import freeze_time
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-import os
-
-from custom_components.mail_and_packages.const import DOMAIN
+from custom_components.mail_and_packages.const import (
+    ATTR_COUNT,
+    ATTR_TRACKING,
+    ATTR_WALMART_IMAGE,
+    CAMERA_DATA,
+    CONF_AMAZON_CUSTOM_IMG,
+    CONF_AMAZON_CUSTOM_IMG_FILE,
+    CONF_UPS_CUSTOM_IMG,
+    CONF_UPS_CUSTOM_IMG_FILE,
+    CONF_WALMART_CUSTOM_IMG,
+    CONF_WALMART_CUSTOM_IMG_FILE,
+    DEFAULT_AMAZON_CUSTOM_IMG_FILE,
+    DEFAULT_UPS_CUSTOM_IMG_FILE,
+    DEFAULT_WALMART_CUSTOM_IMG_FILE,
+    DOMAIN,
+    SENSOR_DATA,
+    SHIPPERS,
+)
 from custom_components.mail_and_packages.helpers import (
     _generate_mp4,
     amazon_exception,
@@ -19,6 +37,8 @@ from custom_components.mail_and_packages.helpers import (
     amazon_otp,
     amazon_search,
     cleanup_images,
+    copy_overlays,
+    default_image_path,
     download_img,
     email_fetch,
     email_search,
@@ -28,6 +48,9 @@ from custom_components.mail_and_packages.helpers import (
     get_items,
     get_mails,
     get_resources,
+    get_tracking,
+    get_ups_image,
+    get_walmart_image,
     hash_file,
     image_file_name,
     login,
@@ -35,12 +58,16 @@ from custom_components.mail_and_packages.helpers import (
     resize_images,
     selectfolder,
     update_time,
+    ups_search,
+    walmart_search,
 )
 from tests.const import (
+    FAKE_CONFIG_DATA,
     FAKE_CONFIG_DATA_BAD,
     FAKE_CONFIG_DATA_CORRECTED,
     FAKE_CONFIG_DATA_CORRECTED_EXTERNAL,
     FAKE_CONFIG_DATA_CUSTOM_IMG,
+    FAKE_CONFIG_DATA_NO_PATH,
     FAKE_CONFIG_DATA_NO_RND,
 )
 
@@ -688,8 +715,6 @@ async def test_ups_delivered_with_photo(hass, mock_imap_ups_delivered_with_photo
 
 def test_get_ups_image_cid_extraction(tmp_path):
     """Test UPS image extraction from CID embedded images."""
-    from custom_components.mail_and_packages.helpers import get_ups_image
-
     # Create a test email with CID image
     test_email = """From: UPS <mcinfo@ups.com>
 To: nobody@gmail.com
@@ -740,8 +765,6 @@ Content-ID: <deliveryPhoto>
 
 def test_get_ups_image_base64_extraction(tmp_path):
     """Test UPS image extraction from base64 encoded images."""
-    from custom_components.mail_and_packages.helpers import get_ups_image
-
     # Create a test email with base64 image
     test_email = """From: UPS <mcinfo@ups.com>
 To: nobody@gmail.com
@@ -787,8 +810,6 @@ Content-Type: text/html; charset=UTF-8
 @pytest.mark.asyncio
 async def test_get_ups_image_no_photo(hass, tmp_path):
     """Test UPS image extraction when no photo is found."""
-    from custom_components.mail_and_packages.helpers import get_ups_image
-
     # Create a test email without any images
     test_email = """From: UPS <mcinfo@ups.com>
 To: nobody@gmail.com
@@ -825,8 +846,6 @@ async def test_ups_search_no_deliveries(
     hass, mock_imap_no_email, mock_copyfile, caplog
 ):
     """Test UPS search when no deliveries are found."""
-    from custom_components.mail_and_packages.helpers import ups_search
-
     with patch("os.path.isdir", return_value=True), patch(
         "os.makedirs", return_value=True
     ):
@@ -840,8 +859,6 @@ async def test_ups_search_no_deliveries(
 @pytest.mark.asyncio
 async def test_ups_search_with_photo(hass, tmp_path):
     """Test UPS search with delivery photo extraction."""
-    from custom_components.mail_and_packages.helpers import ups_search
-
     # Create a mock IMAP account that returns our test email
     mock_account = mock.Mock()
     mock_account.host = "imap.test.email"  # Add host attribute
@@ -1804,12 +1821,6 @@ async def test_image_path_fallback_logic(hass, integration):
 # Test helper functions
 def get_amazon_image_path(config: dict, hass) -> str:
     """Get the Amazon image path based on configuration."""
-    from custom_components.mail_and_packages.const import (
-        CONF_AMAZON_CUSTOM_IMG,
-        CONF_AMAZON_CUSTOM_IMG_FILE,
-        DEFAULT_AMAZON_CUSTOM_IMG_FILE,
-    )
-
     if config.get(CONF_AMAZON_CUSTOM_IMG, False):
         custom_path = config.get(
             CONF_AMAZON_CUSTOM_IMG_FILE, DEFAULT_AMAZON_CUSTOM_IMG_FILE
@@ -1823,12 +1834,6 @@ def get_amazon_image_path(config: dict, hass) -> str:
 
 def get_ups_image_path(config: dict, hass) -> str:
     """Get the UPS image path based on configuration."""
-    from custom_components.mail_and_packages.const import (
-        CONF_UPS_CUSTOM_IMG,
-        CONF_UPS_CUSTOM_IMG_FILE,
-        DEFAULT_UPS_CUSTOM_IMG_FILE,
-    )
-
     if config.get(CONF_UPS_CUSTOM_IMG, False):
         custom_path = config.get(CONF_UPS_CUSTOM_IMG_FILE, DEFAULT_UPS_CUSTOM_IMG_FILE)
         if os.path.exists(custom_path):
@@ -1840,12 +1845,6 @@ def get_ups_image_path(config: dict, hass) -> str:
 
 def get_walmart_image_path(config: dict, hass) -> str:
     """Get the Walmart image path based on configuration."""
-    from custom_components.mail_and_packages.const import (
-        CONF_WALMART_CUSTOM_IMG,
-        CONF_WALMART_CUSTOM_IMG_FILE,
-        DEFAULT_WALMART_CUSTOM_IMG_FILE,
-    )
-
     if config.get(CONF_WALMART_CUSTOM_IMG, False):
         custom_path = config.get(
             CONF_WALMART_CUSTOM_IMG_FILE, DEFAULT_WALMART_CUSTOM_IMG_FILE
@@ -1859,13 +1858,6 @@ def get_walmart_image_path(config: dict, hass) -> str:
 
 def validate_custom_image_paths(config: dict) -> bool:
     """Validate that custom image file paths exist."""
-    from custom_components.mail_and_packages.const import (
-        CONF_AMAZON_CUSTOM_IMG,
-        CONF_AMAZON_CUSTOM_IMG_FILE,
-        CONF_UPS_CUSTOM_IMG,
-        CONF_UPS_CUSTOM_IMG_FILE,
-    )
-
     if config.get(CONF_AMAZON_CUSTOM_IMG, False):
         amazon_path = config.get(CONF_AMAZON_CUSTOM_IMG_FILE)
         if amazon_path and not os.path.exists(amazon_path):
@@ -1881,15 +1873,6 @@ def validate_custom_image_paths(config: dict) -> bool:
 
 def migrate_config(config: dict, version: int) -> dict:
     """Migrate configuration to add missing custom image fields."""
-    from custom_components.mail_and_packages.const import (
-        CONF_AMAZON_CUSTOM_IMG,
-        CONF_AMAZON_CUSTOM_IMG_FILE,
-        CONF_UPS_CUSTOM_IMG,
-        CONF_UPS_CUSTOM_IMG_FILE,
-        DEFAULT_AMAZON_CUSTOM_IMG_FILE,
-        DEFAULT_UPS_CUSTOM_IMG_FILE,
-    )
-
     migrated_config = config.copy()
 
     # Add Amazon custom image fields if missing
@@ -1909,14 +1892,6 @@ def migrate_config(config: dict, version: int) -> dict:
 
 async def test_walmart_delivered_email_processing():
     """Test that Walmart delivered emails are correctly processed and counted."""
-    from custom_components.mail_and_packages.helpers import walmart_search
-    from custom_components.mail_and_packages.const import (
-        SENSOR_DATA,
-        ATTR_WALMART_IMAGE,
-    )
-    from unittest import mock
-    from unittest.mock import patch, MagicMock
-
     # Mock the dependencies
     mock_account = MagicMock()
     mock_hass = MagicMock()
@@ -1995,10 +1970,6 @@ async def test_walmart_delivered_email_processing():
 
 async def test_walmart_delivering_email_processing():
     """Test that Walmart delivering emails are correctly processed."""
-    from custom_components.mail_and_packages.helpers import get_count
-    from custom_components.mail_and_packages.const import SENSOR_DATA, ATTR_COUNT
-    from unittest.mock import patch, MagicMock
-
     # Mock the dependencies
     mock_account = MagicMock()
     mock_hass = MagicMock()
@@ -2043,9 +2014,6 @@ async def test_walmart_delivering_email_processing():
 
 async def test_walmart_image_extraction():
     """Test that Walmart delivery photos are correctly extracted from emails."""
-    from custom_components.mail_and_packages.helpers import get_walmart_image
-    from unittest.mock import patch, MagicMock
-
     # Mock the dependencies
     mock_account = MagicMock()
     mock_hass = MagicMock()
@@ -2077,8 +2045,6 @@ async def test_walmart_image_extraction():
 
 async def test_walmart_email_patterns():
     """Test that Walmart email patterns are correctly configured."""
-    from custom_components.mail_and_packages.const import SENSOR_DATA
-
     # Test Walmart delivered email patterns
     walmart_delivered_emails = SENSOR_DATA["walmart_delivered"]["email"]
     walmart_delivered_subjects = SENSOR_DATA["walmart_delivered"]["subject"]
@@ -2110,9 +2076,6 @@ async def test_walmart_email_patterns():
 
 async def test_walmart_tracking_pattern():
     """Test that Walmart tracking pattern matches the test email tracking number."""
-    from custom_components.mail_and_packages.const import SENSOR_DATA
-    import re
-
     # Test tracking number from walmart_delivered.eml (if it has one)
     # Note: The test email might not have a tracking number, so we'll test the pattern itself
     walmart_tracking_pattern = SENSOR_DATA["walmart_tracking"]["pattern"]
@@ -2128,11 +2091,6 @@ async def test_walmart_tracking_pattern():
 
 async def test_walmart_camera_integration():
     """Test that Walmart camera is properly integrated with coordinator data."""
-    from custom_components.mail_and_packages.const import (
-        ATTR_WALMART_IMAGE,
-        CAMERA_DATA,
-    )
-
     # Test that Walmart camera is defined in CAMERA_DATA
     assert (
         "walmart_camera" in CAMERA_DATA
@@ -2149,10 +2107,6 @@ async def test_walmart_camera_integration():
 
 async def test_walmart_no_deliveries_handling():
     """Test that Walmart handles no deliveries correctly."""
-    from custom_components.mail_and_packages.helpers import walmart_search
-    from custom_components.mail_and_packages.const import ATTR_WALMART_IMAGE
-    from unittest.mock import patch, MagicMock
-
     # Mock the dependencies
     mock_account = MagicMock()
     mock_hass = MagicMock()
@@ -2200,12 +2154,6 @@ async def test_walmart_no_deliveries_handling():
 
 async def test_walmart_custom_image_support():
     """Test that Walmart supports custom images like UPS and Amazon."""
-    from custom_components.mail_and_packages.const import (
-        CONF_WALMART_CUSTOM_IMG,
-        CONF_WALMART_CUSTOM_IMG_FILE,
-        DEFAULT_WALMART_CUSTOM_IMG_FILE,
-    )
-
     # Test that custom image constants are defined
     assert CONF_WALMART_CUSTOM_IMG == "walmart_custom_img"
     assert CONF_WALMART_CUSTOM_IMG_FILE == "walmart_custom_img_file"
@@ -2217,8 +2165,6 @@ async def test_walmart_custom_image_support():
 
 async def test_walmart_sensor_integration():
     """Test that Walmart is properly integrated with sensor counts."""
-    from custom_components.mail_and_packages.const import SHIPPERS, SENSOR_DATA
-
     # Test that Walmart is in the SHIPPERS list
     assert (
         "walmart" in SHIPPERS
@@ -2244,9 +2190,6 @@ async def test_walmart_sensor_integration():
 
 async def test_walmart_order_tracking():
     """Test that Walmart order numbers are correctly extracted."""
-    from custom_components.mail_and_packages.const import SENSOR_DATA
-    import re
-
     # Test the tracking pattern with various order number formats
     walmart_tracking_pattern = SENSOR_DATA["walmart_tracking"]["pattern"]
     pattern = walmart_tracking_pattern[0]  # "#?[0-9]{7}-[0-9]{7,8}"
@@ -2282,11 +2225,6 @@ async def test_walmart_order_tracking():
 
 async def test_get_walmart_image_with_real_email():
     """Test get_walmart_image function with real Walmart delivery email."""
-    from custom_components.mail_and_packages.helpers import get_walmart_image
-    import tempfile
-    import os
-    from unittest.mock import MagicMock
-
     # Read the actual Walmart delivery email
     with open("tests/test_emails/walmart_delivery.eml", "r", encoding="utf-8") as f:
         test_email = f.read()
@@ -2311,11 +2249,6 @@ async def test_get_walmart_image_with_real_email():
 
 async def test_get_walmart_image_base64():
     """Test get_walmart_image function with base64 encoded images."""
-    from custom_components.mail_and_packages.helpers import get_walmart_image
-    import tempfile
-    import os
-    from unittest.mock import MagicMock
-
     # Create a test email with base64 encoded image
     test_email = """From: help@walmart.com
 To: test@example.com
@@ -2356,11 +2289,6 @@ Content-Type: text/html; charset=utf-8
 
 async def test_get_walmart_image_attachment():
     """Test get_walmart_image function with PNG attachments."""
-    from custom_components.mail_and_packages.helpers import get_walmart_image
-    import tempfile
-    import os
-    from unittest.mock import MagicMock
-
     # Create a test email with PNG attachment
     test_email = """From: help@walmart.com
 To: test@example.com
@@ -2401,11 +2329,6 @@ iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAA
 
 async def test_get_walmart_image_no_image():
     """Test get_walmart_image function when no image is found."""
-    from custom_components.mail_and_packages.helpers import get_walmart_image
-    import tempfile
-    import os
-    from unittest.mock import MagicMock
-
     # Create a test email without any images
     test_email = """From: help@walmart.com
 To: test@example.com
@@ -2435,11 +2358,6 @@ Your package has been delivered!
 
 async def test_get_walmart_image_file_error():
     """Test get_walmart_image function with file write error."""
-    from custom_components.mail_and_packages.helpers import get_walmart_image
-    import tempfile
-    import os
-    from unittest.mock import MagicMock, patch
-
     # Create a test email with CID embedded image
     test_email = """From: help@walmart.com
 To: test@example.com
@@ -2485,10 +2403,6 @@ iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAA
 
 async def test_walmart_email_with_order_number():
     """Test that Walmart emails contain order numbers that can be extracted."""
-    from custom_components.mail_and_packages.helpers import get_tracking
-    from custom_components.mail_and_packages.const import SENSOR_DATA
-    import re
-
     # Read the actual Walmart delivery email
     with open("tests/test_emails/walmart_delivery.eml", "r", encoding="utf-8") as f:
         test_email = f.read()
@@ -2516,11 +2430,6 @@ async def test_walmart_email_with_order_number():
 
 async def test_walmart_delivered_email_with_real_data():
     """Test Walmart delivered email processing with real email data."""
-    from custom_components.mail_and_packages.helpers import get_walmart_image
-    import tempfile
-    import os
-    from unittest.mock import MagicMock
-
     # Read the actual Walmart delivered email
     with open("tests/test_emails/walmart_delivered.eml", "r", encoding="utf-8") as f:
         test_email = f.read()
@@ -2552,14 +2461,6 @@ async def test_walmart_delivered_email_with_real_data():
 
 async def test_walmart_delivering_email_processing():
     """Test that Walmart delivering emails are correctly processed and counted."""
-    from custom_components.mail_and_packages.helpers import get_count
-    from custom_components.mail_and_packages.const import (
-        SENSOR_DATA,
-        ATTR_COUNT,
-        ATTR_TRACKING,
-    )
-    from unittest.mock import patch, MagicMock
-
     # Mock the dependencies
     mock_account = MagicMock()
     mock_hass = MagicMock()
@@ -2646,11 +2547,6 @@ async def test_walmart_image_path_with_default_image(hass, integration):
 
 async def test_walmart_search_error_handling():
     """Test walmart_search function error handling paths."""
-    from custom_components.mail_and_packages.helpers import walmart_search
-    from unittest.mock import MagicMock, patch
-    import tempfile
-    import os
-
     # Mock account and dependencies
     mock_account = MagicMock()
     mock_account.search.return_value = ("OK", [b""])  # Return proper tuple format
@@ -2673,11 +2569,6 @@ async def test_walmart_search_error_handling():
 
 async def test_ups_search_error_handling():
     """Test ups_search function error handling paths."""
-    from custom_components.mail_and_packages.helpers import ups_search
-    from unittest.mock import MagicMock, patch
-    import tempfile
-    import os
-
     # Mock account and dependencies
     mock_account = MagicMock()
     mock_account.search.return_value = ("OK", [b""])  # Return proper tuple format
@@ -2700,10 +2591,6 @@ async def test_ups_search_error_handling():
 
 async def test_process_emails_ups_directory_creation_error():
     """Test process_emails handles UPS directory creation errors gracefully."""
-    from custom_components.mail_and_packages.helpers import process_emails
-    from unittest.mock import MagicMock, patch
-    from tests.const import FAKE_CONFIG_DATA
-
     # Mock hass and config
     mock_hass = MagicMock()
     mock_hass.config.path.return_value = "/test/path"
@@ -2741,9 +2628,6 @@ async def test_process_emails_ups_directory_creation_error():
 
 async def test_default_image_path_attribute_error():
     """Test default_image_path handles AttributeError gracefully."""
-    from custom_components.mail_and_packages.helpers import default_image_path
-    from unittest.mock import MagicMock
-
     # Mock config entry that raises AttributeError on get()
     mock_config = MagicMock()
     mock_config.get.side_effect = AttributeError("No get method")
@@ -2759,9 +2643,6 @@ async def test_default_image_path_attribute_error():
 
 async def test_default_image_path_no_storage():
     """Test default_image_path returns default when no storage configured."""
-    from custom_components.mail_and_packages.helpers import default_image_path
-    from unittest.mock import MagicMock
-
     # Mock config entry with no storage
     mock_config = MagicMock()
     mock_config.get.return_value = None
@@ -2776,10 +2657,6 @@ async def test_default_image_path_no_storage():
 
 async def test_process_emails_directory_creation_error():
     """Test process_emails handles directory creation errors gracefully."""
-    from custom_components.mail_and_packages.helpers import process_emails
-    from unittest.mock import MagicMock, patch
-    from tests.const import FAKE_CONFIG_DATA
-
     # Mock hass and config
     mock_hass = MagicMock()
     mock_hass.config.path.return_value = "/test/path"
@@ -2819,10 +2696,6 @@ async def test_process_emails_directory_creation_error():
 
 async def test_hash_file_functionality():
     """Test hash_file function basic functionality."""
-    from custom_components.mail_and_packages.helpers import hash_file
-    import tempfile
-    import os
-
     with tempfile.TemporaryDirectory() as temp_dir:
         test_file = os.path.join(temp_dir, "test.txt")
         with open(test_file, "w") as f:
@@ -2847,11 +2720,6 @@ async def test_hash_file_functionality():
 
 async def test_copy_overlays_error_handling():
     """Test copy_overlays function error handling."""
-    from custom_components.mail_and_packages.helpers import copy_overlays
-    from unittest.mock import patch, MagicMock
-    import tempfile
-    import os
-
     with tempfile.TemporaryDirectory() as temp_dir:
         # Mock shutil.copytree to raise an exception
         with patch(
@@ -2864,10 +2732,6 @@ async def test_copy_overlays_error_handling():
 
 async def test_image_file_name_copy_error():
     """Test image_file_name handles copy errors gracefully."""
-    from custom_components.mail_and_packages.helpers import image_file_name
-    from unittest.mock import MagicMock, patch
-    from tests.const import FAKE_CONFIG_DATA
-
     # Mock hass and config
     mock_hass = MagicMock()
     mock_hass.config.path.return_value = "/test/path"
@@ -2890,10 +2754,6 @@ async def test_image_file_name_copy_error():
 
 async def test_copy_overlays_error_handling():
     """Test copy_overlays handles errors gracefully."""
-    from custom_components.mail_and_packages.helpers import copy_overlays
-    from unittest.mock import patch
-    import tempfile
-
     with tempfile.TemporaryDirectory() as temp_dir:
         # Mock copytree to raise an exception
         with patch(
@@ -2907,9 +2767,6 @@ async def test_copy_overlays_error_handling():
 
 async def test_login_starttls_security():
     """Test login with startTLS security."""
-    from custom_components.mail_and_packages.helpers import login
-    from unittest.mock import patch, MagicMock
-
     # Mock the IMAP4 class and its methods
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib.IMAP4"
@@ -2927,9 +2784,6 @@ async def test_login_starttls_security():
 
 async def test_login_no_ssl_security():
     """Test login with no SSL security."""
-    from custom_components.mail_and_packages.helpers import login
-    from unittest.mock import patch, MagicMock
-
     # Mock the IMAP4 class and its methods
     with patch(
         "custom_components.mail_and_packages.helpers.imaplib.IMAP4"
@@ -2946,10 +2800,6 @@ async def test_login_no_ssl_security():
 
 async def test_default_image_path_storage():
     """Test default_image_path with storage configuration."""
-    from custom_components.mail_and_packages.helpers import default_image_path
-    from unittest.mock import MagicMock
-    from tests.const import FAKE_CONFIG_DATA
-
     # Mock hass and config
     mock_hass = MagicMock()
     mock_hass.config.path.return_value = "/test/path"
@@ -2963,10 +2813,6 @@ async def test_default_image_path_storage():
 
 async def test_default_image_path_no_storage():
     """Test default_image_path without storage configuration."""
-    from custom_components.mail_and_packages.helpers import default_image_path
-    from unittest.mock import MagicMock
-    from tests.const import FAKE_CONFIG_DATA_NO_PATH
-
     # Mock hass and config
     mock_hass = MagicMock()
     mock_hass.config.path.return_value = "/test/path"
