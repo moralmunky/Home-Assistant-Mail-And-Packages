@@ -522,7 +522,7 @@ def fetch(
     amazon_fwds = cv.ensure_list_csv(config.get(CONF_AMAZON_FWDS))
     image_name = data[ATTR_IMAGE_NAME]
     amazon_image_name = data[ATTR_AMAZON_IMAGE]
-    amazon_days = config.get(CONF_AMAZON_DAYS)
+    amazon_days = int(config.get(CONF_AMAZON_DAYS, DEFAULT_AMAZON_DAYS))
 
     # Conditional variables
     nomail = (
@@ -2294,12 +2294,12 @@ def get_items(
     past_date = datetime.date.today() - datetime.timedelta(days=days)
     tfmt = past_date.strftime("%d-%b-%Y")
     deliveries_today = []
-    order_number = []
     amazon_delivered = []
 
-    # Track package counts per order number
-    shipped_packages = {}  # {order_id: count}
+    # Track packages that are arriving today
+    packages_arriving_today = {}  # {order_id: count}
     delivered_packages = {}  # {order_id: count}
+    all_shipped_orders = set()  # Track all shipped order numbers
 
     address_list = amazon_email_addresses(fwds, the_domain)
     _LOGGER.debug("Amazon email list: %s", str(address_list))
@@ -2332,11 +2332,11 @@ def get_items(
     sdata = ("OK", [b" ".join(unique_emails)])
 
     if server_response == "OK":
-        mail_ids = sdata[0]
+        mail_ids = sdata[1][0]
         id_list = mail_ids.split()
         _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
         for i in id_list:
-            data = email_fetch(account, i, "(RFC822)")[1]
+            data = email_fetch(account, int(i), "(RFC822)")[1]
             for response_part in data:
                 if isinstance(response_part, tuple):
                     msg = email.message_from_bytes(response_part[1])
@@ -2430,21 +2430,12 @@ def get_items(
                             )
                         continue  # Skip processing this email
 
-                    # Count shipped packages per order number
+                    # Extract order number from subject (for shipped emails)
+                    order_id = None
                     if (found := pattern.findall(email_subject)) and len(found) > 0:
                         order_id = found[0]
-                        # Count shipped packages per order
-                        shipped_packages[order_id] = (
-                            shipped_packages.get(order_id, 0) + 1
-                        )
-                        _LOGGER.debug(
-                            "Shipped package found for order %s (total shipped: %s)",
-                            order_id,
-                            shipped_packages[order_id],
-                        )
-                        # Keep backward compatibility
-                        if order_id not in order_number:
-                            order_number.append(order_id)
+                        all_shipped_orders.add(order_id)  # Track all shipped orders
+                        _LOGGER.debug("Found order ID in subject: %s", order_id)
 
                     # Try decoding email body
                     try:
@@ -2459,21 +2450,15 @@ def get_items(
 
                     email_msg = email_msg.decode("utf-8", "ignore")
 
-                    # Check message body for order number again and count packages
-                    if (found := pattern.findall(email_msg)) and len(found) > 0:
+                    # Check message body for order number again (for additional order detection)
+                    if (
+                        not order_id
+                        and (found := pattern.findall(email_msg))
+                        and len(found) > 0
+                    ):
                         order_id = found[0]
-                        # Count shipped packages per order (from body)
-                        shipped_packages[order_id] = (
-                            shipped_packages.get(order_id, 0) + 1
-                        )
-                        _LOGGER.debug(
-                            "Shipped package found in body for order %s (total shipped: %s)",
-                            order_id,
-                            shipped_packages[order_id],
-                        )
-                        # Keep backward compatibility
-                        if order_id not in order_number:
-                            order_number.append(order_id)
+                        all_shipped_orders.add(order_id)  # Track all shipped orders
+                        _LOGGER.debug("Found order ID in body: %s", order_id)
 
                     # Check for arrival date
                     for search in AMAZON_TIME_PATTERN:
@@ -2547,12 +2532,25 @@ def get_items(
                                     arrive_date_clean,
                                 )
                                 continue
-                            parsed_date_only = dateobj.date()
+                            if hasattr(dateobj, "date"):
+                                parsed_date_only = dateobj.date()
+                            else:
+                                parsed_date_only = dateobj
 
                         if parsed_date_only == today_date:
-                            deliveries_today.append(
-                                found[0] if found else "Amazon Order"
-                            )
+                            # Count packages arriving today
+                            if order_id:
+                                packages_arriving_today[order_id] = (
+                                    packages_arriving_today.get(order_id, 0) + 1
+                                )
+                                _LOGGER.debug(
+                                    "Package arriving today for order %s (total: %s)",
+                                    order_id,
+                                    packages_arriving_today[order_id],
+                                )
+                            else:
+                                # Fallback for emails without order number
+                                deliveries_today.append("Amazon Order")
                         else:
                             _LOGGER.debug(
                                 "Delivery date not today: %s", parsed_date_only
@@ -2563,36 +2561,40 @@ def get_items(
         item for item in deliveries_today if item not in amazon_delivered
     ]
 
-    # Calculate in-transit packages by subtracting delivered from shipped
-    in_transit_packages = 0
-    for order_id, shipped_count in shipped_packages.items():
+    # Calculate packages arriving today minus delivered packages
+    final_count = 0
+    for order_id, arriving_count in packages_arriving_today.items():
         delivered_count = delivered_packages.get(order_id, 0)
-        in_transit_count = max(0, shipped_count - delivered_count)
-        in_transit_packages += in_transit_count
+        in_transit_count = max(0, arriving_count - delivered_count)
+        final_count += in_transit_count
         _LOGGER.debug(
-            "Order %s: %s shipped, %s delivered, %s in transit",
+            "Order %s: %s arriving today, %s delivered, %s in transit",
             order_id,
-            shipped_count,
+            arriving_count,
             delivered_count,
             in_transit_count,
         )
 
-    # Keep backward compatibility - remove delivered orders from order_number
-    order_number = [item for item in order_number if item not in amazon_delivered]
+    # Add fallback for emails without order numbers
+    final_count += len(deliveries_today)
+
+    _LOGGER.debug(
+        "Amazon packages arriving today: %s", str(sum(packages_arriving_today.values()))
+    )
+    _LOGGER.debug(
+        "Amazon packages delivered: %s", str(sum(delivered_packages.values()))
+    )
+    _LOGGER.debug("Amazon final count: %s", str(final_count))
 
     # Return delivery count or list of order numbers
     value = None
     if param == "count":
-        _LOGGER.debug(
-            "Amazon Delivery Count (today, not delivered): %s",
-            str(len(deliveries_today)),
-        )
-        _LOGGER.debug("Amazon In-Transit Packages Count: %s", str(in_transit_packages))
-        # Use the minimum of deliveries_today and in_transit_packages
-        value = min(len(deliveries_today), in_transit_packages)
+        value = final_count
     else:
-        _LOGGER.debug("Amazon order: %s", str(order_number))
-        value = order_number
+        # Return list of all shipped order numbers
+        order_numbers = list(all_shipped_orders)
+        _LOGGER.debug("Amazon order: %s", str(order_numbers))
+        value = order_numbers
 
     _LOGGER.debug("Amazon value: %s", str(value))
     return value

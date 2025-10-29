@@ -1110,16 +1110,30 @@ async def test_amazon_search(hass, mock_imap_no_email):
 
 
 @pytest.mark.asyncio
-async def test_amazon_search_results(hass, mock_imap_amazon_shipped):
+async def test_amazon_search_results(
+    hass, mock_imap_amazon_shipped, mock_imap_amazon_delivered
+):
+    """Test Amazon search functionality for both shipped and delivered emails."""
     with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
-        result = amazon_search(
-            mock_imap_amazon_shipped,
+        # Test shipped emails (should return 0 since email is not arriving today)
+        shipped_result = get_items(
+            mock_imap_amazon_shipped, "count", the_domain="amazon.com"
+        )
+        assert (
+            shipped_result == 0
+        ), f"Expected 0 shipped emails arriving today, got {shipped_result}"
+
+        # Test delivered emails
+        delivered_result = amazon_search(
+            mock_imap_amazon_delivered,
             "test/path/amazon/",
             hass,
             "testfilename.jpg",
             "amazon.com",
         )
-        assert result == 10
+        assert (
+            delivered_result == 1
+        ), f"Expected 1 delivered email, got {delivered_result}"
 
 
 @pytest.mark.asyncio
@@ -1139,7 +1153,7 @@ async def test_amazon_search_delivered(
             "Amazon email search addresses: ['auto-confirm@amazon.com', 'shipment-tracking@amazon.com', 'order-update@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
             in caplog.text
         )
-        assert result == 10
+        assert result == 1
         assert mock_download_img.called
 
 
@@ -1155,7 +1169,7 @@ async def test_amazon_search_delivered_it(
             "testfilename.jpg",
             "amazon.it",
         )
-        assert result == 10
+        assert result == 1
 
 
 @pytest.mark.asyncio
