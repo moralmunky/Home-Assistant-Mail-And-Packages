@@ -877,11 +877,7 @@ def get_mails(
     if server_response == "OK":
         _LOGGER.debug("Informed Delivery email found processing...")
         for num in data[0].split():
-            msg = email_fetch(
-                account,
-                num,
-                "(RFC822)",
-            )[1]
+            msg = email_fetch(account, num, "(RFC822)")[1]
             for response_part in msg:
                 if isinstance(response_part, tuple):
                     msg = email.message_from_bytes(response_part[1])
@@ -1537,11 +1533,7 @@ def ups_search(
 
     for num in data[0].split():
         _LOGGER.debug("Processing UPS email number: %s", num)
-        msg = email_fetch(
-            account,
-            num,
-            "(RFC822)",
-        )[1]
+        msg = email_fetch(account, num, "(RFC822)")[1]
         for response_part in msg:
             if isinstance(response_part, tuple):
                 sdata = response_part[1].decode("utf-8", "ignore")
@@ -1645,11 +1637,7 @@ def walmart_search(
         if email_data and email_data != b"":
             for num in email_data.split():
                 _LOGGER.debug("Processing Walmart email number: %s", num)
-                msg = email_fetch(
-                    account,
-                    num,
-                    "(RFC822)",
-                )[1]
+                msg = email_fetch(account, num, "(RFC822)")[1]
                 for response_part in msg:
                     if isinstance(response_part, tuple):
                         sdata = response_part[1].decode("utf-8", "ignore")
