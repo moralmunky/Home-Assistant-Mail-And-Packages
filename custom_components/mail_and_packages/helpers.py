@@ -1701,16 +1701,14 @@ def amazon_search(
         (server_response, data) = email_search(account, address_list, today, subject)
 
         if server_response == "OK" and data[0] is not None:
-            email_ids = data[0].split()
+            email_count = len(data[0].split())
+            count += email_count
             _LOGGER.debug(
                 "Amazon delivered email(s) found for subject '%s': %s",
                 subject,
-                len(email_ids),
+                email_count,
             )
             _LOGGER.debug("Email IDs found: %s", data[0])
-
-            # Count all delivered emails (deduplication is handled by the main package counting system)
-            count += len(email_ids)
 
             get_amazon_image(
                 data[0],
