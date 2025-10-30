@@ -730,14 +730,11 @@ def build_search(address: list, date: str, subject: str = None) -> tuple:
     prefix_list = None
     email_list = None
 
-    if isinstance(address, list):
-        if len(address) == 1:
-            email_list = address[0]
-        else:
-            email_list = '" FROM "'.join(address)
-            prefix_list = " ".join(["OR"] * (len(address) - 1))
+    if len(address) == 1:
+        email_list = address[0]
     else:
-        email_list = address
+        email_list = '" FROM "'.join(address)
+        prefix_list = " ".join(["OR"] * (len(address) - 1))
 
     _LOGGER.debug("DEBUG subject: %s", subject)
 
@@ -803,9 +800,14 @@ def email_search(
 
 
 def email_fetch(
-    account: Type[imaplib.IMAP4_SSL], num: int, parts: str = "(RFC822)"
+    account: Type[imaplib.IMAP4_SSL], num, parts: str = "(RFC822)"
 ) -> tuple:
     """Download specified email for parsing.
+
+    Args:
+        account: IMAP account instance
+        num: Email message ID (int, str, or bytes)
+        parts: Message parts to fetch
 
     Returns tuple
     """
@@ -813,6 +815,7 @@ def email_fetch(
     if account.host == "imap.mail.me.com":
         parts = "BODY[]"
 
+    # Convert num to string for imaplib
     if isinstance(num, bytes):
         num_str = num.decode()
     else:
@@ -876,7 +879,7 @@ def get_mails(
         for num in data[0].split():
             msg = email_fetch(
                 account,
-                int(num.decode()) if isinstance(num, bytes) else int(num),
+                num,
                 "(RFC822)",
             )[1]
             for response_part in msg:
@@ -1365,9 +1368,7 @@ def get_tracking(
     _LOGGER.debug("Searching for tracking numbers in %s messages...", len(mail_list))
 
     for i in mail_list:
-        data = email_fetch(
-            account, int(i.decode()) if isinstance(i, bytes) else int(i), "(RFC822)"
-        )[1]
+        data = email_fetch(account, i, "(RFC822)")[1]
         for response_part in data:
             if isinstance(response_part, tuple):
                 msg = email.message_from_bytes(response_part[1])
@@ -1442,9 +1443,7 @@ def find_text(
     found = None
 
     for i in mail_list:
-        data = email_fetch(
-            account, int(i.decode()) if isinstance(i, bytes) else int(i), "(RFC822)"
-        )[1]
+        data = email_fetch(account, i, "(RFC822)")[1]
         for response_part in data:
             if isinstance(response_part, tuple):
                 msg = email.message_from_bytes(response_part[1])
@@ -1540,7 +1539,7 @@ def ups_search(
         _LOGGER.debug("Processing UPS email number: %s", num)
         msg = email_fetch(
             account,
-            int(num.decode()) if isinstance(num, bytes) else int(num),
+            num,
             "(RFC822)",
         )[1]
         for response_part in msg:
@@ -1648,7 +1647,7 @@ def walmart_search(
                 _LOGGER.debug("Processing Walmart email number: %s", num)
                 msg = email_fetch(
                     account,
-                    int(num.decode()) if isinstance(num, bytes) else int(num),
+                    num,
                     "(RFC822)",
                 )[1]
                 for response_part in msg:
@@ -1735,11 +1734,7 @@ def amazon_search(
                 try:
                     email_data = email_fetch(
                         account,
-                        (
-                            int(email_id.decode())
-                            if isinstance(email_id, bytes)
-                            else int(email_id)
-                        ),
+                        email_id,
                         "(RFC822)",
                     )[1]
                     for response_part in email_data:
@@ -2010,9 +2005,7 @@ def get_amazon_image(
     _LOGGER.debug("HTML Amazon emails found: %s", len(mail_list))
 
     for i in mail_list:
-        data = email_fetch(
-            account, int(i.decode()) if isinstance(i, bytes) else int(i), "(RFC822)"
-        )[1]
+        data = email_fetch(account, i, "(RFC822)")[1]
         for response_part in data:
             if isinstance(response_part, tuple):
                 msg = email.message_from_bytes(response_part[1])
@@ -2120,9 +2113,7 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
         id_list = sdata[0].split()
         _LOGGER.debug("Amazon hub emails found: %s", str(len(id_list)))
         for i in id_list:
-            data = email_fetch(
-                account, int(i.decode()) if isinstance(i, bytes) else int(i), "(RFC822)"
-            )[1]
+            data = email_fetch(account, i, "(RFC822)")[1]
             for response_part in data:
                 if isinstance(response_part, tuple):
                     msg = email.message_from_bytes(response_part[1])
@@ -2181,7 +2172,7 @@ def amazon_otp(account: Type[imaplib.IMAP4_SSL], fwds: Optional[list] = None) ->
             for i in id_list:
                 data = email_fetch(
                     account,
-                    int(i.decode()) if isinstance(i, bytes) else int(i),
+                    i,
                     "(RFC822)",
                 )[1]
                 for response_part in data:
@@ -2381,9 +2372,7 @@ def get_items(
         id_list = mail_ids.split()
         _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
         for i in id_list:
-            data = email_fetch(
-                account, int(i.decode()) if isinstance(i, bytes) else int(i), "(RFC822)"
-            )[1]
+            data = email_fetch(account, i, "(RFC822)")[1]
             for response_part in data:
                 if isinstance(response_part, tuple):
                     msg = email.message_from_bytes(response_part[1])

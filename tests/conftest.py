@@ -304,9 +304,7 @@ def mock_imap_no_email():
 @pytest.fixture()
 def mock_imap_amazon_duplicate_orders():
     """Mock imap class for Amazon duplicate order emails."""
-    with patch(
-        "custom_components.mail_and_packages.helpers.imaplib"
-    ) as mock_imap:
+    with patch("custom_components.mail_and_packages.helpers.imaplib") as mock_imap:
         mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap.IMAP4_SSL.return_value = mock_conn
 
