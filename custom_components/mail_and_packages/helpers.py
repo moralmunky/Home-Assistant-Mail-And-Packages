@@ -1687,8 +1687,6 @@ def amazon_search(
     subjects = AMAZON_DELIVERED_SUBJECT
     today = get_formatted_date()
     count = 0
-    unique_order_ids = set()  # Track unique order IDs to avoid double counting
-    processed_email_ids = set()  # Track processed email IDs to avoid double processing
 
     _LOGGER.debug("Today's date: %s", today)
     _LOGGER.debug("Amazon delivered subjects to search: %s", subjects)
@@ -1711,55 +1709,8 @@ def amazon_search(
             )
             _LOGGER.debug("Email IDs found: %s", data[0])
 
-            # Extract order IDs from each email to deduplicate
-            for email_id in email_ids:
-                # Skip if we've already processed this email ID
-                if email_id in processed_email_ids:
-                    _LOGGER.debug("Skipping already processed email ID: %s", email_id)
-                    continue
-
-                processed_email_ids.add(email_id)
-                try:
-                    email_data = email_fetch(
-                        account,
-                        email_id,
-                        "(RFC822)",
-                    )[1]
-                    for response_part in email_data:
-                        if isinstance(response_part, tuple):
-                            msg = email.message_from_bytes(response_part[1])
-                            email_subject = msg["subject"]
-
-                            # Extract order ID from subject using the same pattern as get_items
-                            pattern = re.compile(AMAZON_PATTERN)
-                            order_matches = pattern.findall(email_subject)
-
-                            if order_matches:
-                                order_id = order_matches[0]
-                                if order_id not in unique_order_ids:
-                                    unique_order_ids.add(order_id)
-                                    count += 1
-                                    _LOGGER.debug(
-                                        "Found new unique order ID: %s (total unique: %s)",
-                                        order_id,
-                                        len(unique_order_ids),
-                                    )
-                                else:
-                                    _LOGGER.debug(
-                                        "Skipping duplicate order ID: %s",
-                                        order_id,
-                                    )
-                            else:
-                                # If no order ID found, count the email anyway (fallback)
-                                count += 1
-                                _LOGGER.debug(
-                                    "No order ID found in email %s, counting anyway",
-                                    email_id,
-                                )
-                except Exception as err:
-                    _LOGGER.debug("Error processing email %s: %s", email_id, err)
-                    # If we can't process the email, count it anyway (fallback)
-                    count += 1
+            # Count all delivered emails (deduplication is handled by the main package counting system)
+            count += len(email_ids)
 
             get_amazon_image(
                 data[0],
@@ -2158,11 +2109,7 @@ def amazon_otp(account: Type[imaplib.IMAP4_SSL], fwds: Optional[list] = None) ->
             _LOGGER.debug("Found Amazon OTP email(s): %s", str(len(id_list)))
             found = []
             for i in id_list:
-                data = email_fetch(
-                    account,
-                    i,
-                    "(RFC822)",
-                )[1]
+                data = email_fetch(account, i, "(RFC822)")[1]
                 for response_part in data:
                     if isinstance(response_part, tuple):
                         msg = email.message_from_bytes(response_part[1])

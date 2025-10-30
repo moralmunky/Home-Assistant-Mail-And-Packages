@@ -1132,8 +1132,8 @@ async def test_amazon_search_results(
             "amazon.com",
         )
         assert (
-            delivered_result == 1
-        ), f"Expected 1 delivered email, got {delivered_result}"
+            delivered_result == 10
+        ), f"Expected 10 delivered emails (no deduplication), got {delivered_result}"
 
 
 @pytest.mark.asyncio
@@ -1153,7 +1153,7 @@ async def test_amazon_search_delivered(
             "Amazon email search addresses: ['auto-confirm@amazon.com', 'shipment-tracking@amazon.com', 'order-update@amazon.com', 'conferma-spedizione@amazon.com', 'confirmar-envio@amazon.com', 'versandbestaetigung@amazon.com', 'confirmation-commande@amazon.com', 'verzending-volgen@amazon.com', 'update-bestelling@amazon.com']"
             in caplog.text
         )
-        assert result == 1
+        assert result == 10  # Now counts all delivered emails (no deduplication)
         assert mock_download_img.called
 
 
@@ -1169,7 +1169,7 @@ async def test_amazon_search_delivered_it(
             "testfilename.jpg",
             "amazon.it",
         )
-        assert result == 1
+        assert result == 10  # Now counts all delivered emails (no deduplication)
 
 
 @pytest.mark.asyncio
