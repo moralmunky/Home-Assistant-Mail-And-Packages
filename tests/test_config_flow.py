@@ -6774,9 +6774,6 @@ async def test_reconfigure_allow_forwarded_emails(
         assert result["reason"] == "reconfigure_successful"
         await hass.async_block_till_done()
 
-        _LOGGER.debug("Entries: %s", len(hass.config_entries.async_entries(DOMAIN)))
         entry = hass.config_entries.async_entries(DOMAIN)[0]
 
-        diffs = get_dict_differences(entry.data.copy(), data)
-        _LOGGER.warning(diffs['changed'])
         assert entry.data.copy() == data
