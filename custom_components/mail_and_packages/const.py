@@ -355,7 +355,7 @@ SENSOR_DATA = {
     "capost_mail": {
         "email": ["donotreply-nepasrepondre@communications.canadapost-postescanada.ca"],
         "subject": ["You have mail on the way"],
-        "body": ["\\sYou have (\\d) pieces of mail\\s"],
+        "body": ["\\sYou have (\\d) piece|pieces of mail\\s"],
         "body_count": True,
     },
     # DHL
