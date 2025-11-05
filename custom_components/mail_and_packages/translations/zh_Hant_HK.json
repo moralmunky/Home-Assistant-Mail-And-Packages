@@ -40,6 +40,8 @@
           "custom_img": "使用自訂的 USPS「無郵件」圖像？",
           "amazon_custom_img": "使用自訂的 Amazon「無送貨」圖像？",
           "ups_custom_img": "使用自訂的 UPS「無送貨」圖像？",
+          "walmart_custom_img": "使用自訂的 Walmart「無送貨」圖像？",
+          "generic_custom_img": "使用自訂的通用「無送貨」圖像？",
           "generate_grid": "為LLM視覺模型創建圖像網格"
         },
         "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成]（https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration）選項的詳細信息，請查看[配置，模板和自動化部分]（GitHub上的https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration）。",
@@ -87,6 +89,8 @@
           "custom_img": "使用自訂的 USPS「無郵件」圖像？",
           "amazon_custom_img": "使用自訂的 Amazon「無送貨」圖像？",
           "ups_custom_img": "使用自訂的 UPS「無送貨」圖像？",
+          "walmart_custom_img": "使用自訂的 Walmart「無送貨」圖像？",
+          "generic_custom_img": "使用自訂的通用「無送貨」圖像？",
           "generate_grid": "為LLM視覺模型創建圖像網格"
         },
         "description": "根據您的電郵結構和Home Assistant安裝來完成配置。\n\n有關[郵件和包裹整合](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)選項的詳情，請查閱GitHub上的[配置、模板和自動化部分](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)。\n\n如果使用Amazon轉發的電郵，請用逗號分隔每個地址，或輸入(none)以清除此設定。",

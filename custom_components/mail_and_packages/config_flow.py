@@ -26,6 +26,10 @@ from .const import (
     CONF_AMAZON_CUSTOM_IMG_FILE,
     CONF_UPS_CUSTOM_IMG,
     CONF_UPS_CUSTOM_IMG_FILE,
+    CONF_WALMART_CUSTOM_IMG,
+    CONF_WALMART_CUSTOM_IMG_FILE,
+    CONF_GENERIC_CUSTOM_IMG,
+    CONF_GENERIC_CUSTOM_IMG_FILE,
     CONF_DURATION,
     CONF_FOLDER,
     CONF_GENERATE_GRID,
@@ -48,6 +52,10 @@ from .const import (
     DEFAULT_AMAZON_CUSTOM_IMG_FILE,
     DEFAULT_UPS_CUSTOM_IMG,
     DEFAULT_UPS_CUSTOM_IMG_FILE,
+    DEFAULT_WALMART_CUSTOM_IMG,
+    DEFAULT_WALMART_CUSTOM_IMG_FILE,
+    DEFAULT_GENERIC_CUSTOM_IMG,
+    DEFAULT_GENERIC_CUSTOM_IMG_FILE,
     DEFAULT_FOLDER,
     DEFAULT_GIF_DURATION,
     DEFAULT_IMAGE_SECURITY,
@@ -161,6 +169,30 @@ async def _validate_user_input(user_input: dict) -> tuple:
     if not valid:
         errors[CONF_UPS_CUSTOM_IMG_FILE] = "file_not_found"
 
+    # validate walmart custom file exists
+    if (
+        user_input.get(CONF_WALMART_CUSTOM_IMG)
+        and CONF_WALMART_CUSTOM_IMG_FILE in user_input
+    ):
+        valid = path.isfile(user_input[CONF_WALMART_CUSTOM_IMG_FILE])
+    else:
+        valid = True
+
+    if not valid:
+        errors[CONF_WALMART_CUSTOM_IMG_FILE] = "file_not_found"
+
+    # validate generic custom file exists
+    if (
+        user_input.get(CONF_GENERIC_CUSTOM_IMG)
+        and CONF_GENERIC_CUSTOM_IMG_FILE in user_input
+    ):
+        valid = path.isfile(user_input[CONF_GENERIC_CUSTOM_IMG_FILE])
+    else:
+        valid = True
+
+    if not valid:
+        errors[CONF_GENERIC_CUSTOM_IMG_FILE] = "file_not_found"
+
     # validate path exists
     if CONF_STORAGE in user_input:
         valid = path.exists(user_input[CONF_STORAGE])
@@ -236,55 +268,56 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
         """Get default value for key."""
         return user_input.get(key, default_dict.get(key, fallback_default))
 
-    schema = {
-        vol.Required(CONF_FOLDER, default=_get_default(CONF_FOLDER)): vol.In(
-            _get_mailboxes(
-                data[CONF_HOST],
-                data[CONF_PORT],
-                data[CONF_USERNAME],
-                data[CONF_PASSWORD],
-                data[CONF_IMAP_SECURITY],
-                data[CONF_VERIFY_SSL],
-            )
-        ),
-        vol.Required(
-            CONF_RESOURCES, default=_get_default(CONF_RESOURCES)
-        ): cv.multi_select(get_resources()),
-        vol.Optional(
-            CONF_SCAN_INTERVAL, default=_get_default(CONF_SCAN_INTERVAL)
-        ): vol.All(vol.Coerce(int), vol.Range(min=5)),
-        vol.Optional(
-            CONF_IMAP_TIMEOUT, default=_get_default(CONF_IMAP_TIMEOUT)
-        ): vol.All(vol.Coerce(int), vol.Range(min=10)),
-        vol.Optional(CONF_DURATION, default=_get_default(CONF_DURATION)): vol.Coerce(
-            int
-        ),
-        vol.Optional(
-            CONF_GENERATE_GRID, default=_get_default(CONF_GENERATE_GRID)
-        ): cv.boolean,
-        vol.Optional(
-            CONF_GENERATE_MP4, default=_get_default(CONF_GENERATE_MP4)
-        ): cv.boolean,
-        vol.Optional(
-            CONF_ALLOW_EXTERNAL, default=_get_default(CONF_ALLOW_EXTERNAL)
-        ): cv.boolean,
-        vol.Optional(
-            CONF_CUSTOM_IMG, default=_get_default(CONF_CUSTOM_IMG)
-        ): cv.boolean,
-    }
-
-    # Include custom image fields by default
-    schema[
-        vol.Optional(
-            CONF_AMAZON_CUSTOM_IMG, default=_get_default(CONF_AMAZON_CUSTOM_IMG)
-        )
-    ] = cv.boolean
-
-    schema[
-        vol.Optional(CONF_UPS_CUSTOM_IMG, default=_get_default(CONF_UPS_CUSTOM_IMG))
-    ] = cv.boolean
-
-    return vol.Schema(schema)
+    return vol.Schema(
+        {
+            vol.Required(CONF_FOLDER, default=_get_default(CONF_FOLDER)): vol.In(
+                _get_mailboxes(
+                    data[CONF_HOST],
+                    data[CONF_PORT],
+                    data[CONF_USERNAME],
+                    data[CONF_PASSWORD],
+                    data[CONF_IMAP_SECURITY],
+                    data[CONF_VERIFY_SSL],
+                )
+            ),
+            vol.Required(
+                CONF_RESOURCES, default=_get_default(CONF_RESOURCES)
+            ): cv.multi_select(get_resources()),
+            vol.Optional(
+                CONF_SCAN_INTERVAL, default=_get_default(CONF_SCAN_INTERVAL)
+            ): vol.All(vol.Coerce(int), vol.Range(min=5)),
+            vol.Optional(
+                CONF_IMAP_TIMEOUT, default=_get_default(CONF_IMAP_TIMEOUT)
+            ): vol.All(vol.Coerce(int), vol.Range(min=10)),
+            vol.Optional(
+                CONF_DURATION, default=_get_default(CONF_DURATION)
+            ): vol.Coerce(int),
+            vol.Optional(
+                CONF_GENERATE_GRID, default=_get_default(CONF_GENERATE_GRID)
+            ): cv.boolean,
+            vol.Optional(
+                CONF_GENERATE_MP4, default=_get_default(CONF_GENERATE_MP4)
+            ): cv.boolean,
+            vol.Optional(
+                CONF_ALLOW_EXTERNAL, default=_get_default(CONF_ALLOW_EXTERNAL)
+            ): cv.boolean,
+            vol.Optional(
+                CONF_CUSTOM_IMG, default=_get_default(CONF_CUSTOM_IMG)
+            ): cv.boolean,
+            vol.Optional(
+                CONF_AMAZON_CUSTOM_IMG, default=_get_default(CONF_AMAZON_CUSTOM_IMG)
+            ): cv.boolean,
+            vol.Optional(
+                CONF_UPS_CUSTOM_IMG, default=_get_default(CONF_UPS_CUSTOM_IMG)
+            ): cv.boolean,
+            vol.Optional(
+                CONF_WALMART_CUSTOM_IMG, default=_get_default(CONF_WALMART_CUSTOM_IMG)
+            ): cv.boolean,
+            vol.Optional(
+                CONF_GENERIC_CUSTOM_IMG, default=_get_default(CONF_GENERIC_CUSTOM_IMG)
+            ): cv.boolean,
+        }
+    )
 
 
 def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
@@ -298,19 +331,6 @@ def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
 
     schema = {}
 
-    _LOGGER.debug("_get_schema_step_3 - user_input: %s", user_input)
-    _LOGGER.debug(
-        "_get_schema_step_3 - CONF_CUSTOM_IMG: %s", user_input.get(CONF_CUSTOM_IMG)
-    )
-    _LOGGER.debug(
-        "_get_schema_step_3 - CONF_AMAZON_CUSTOM_IMG: %s",
-        user_input.get(CONF_AMAZON_CUSTOM_IMG),
-    )
-    _LOGGER.debug(
-        "_get_schema_step_3 - CONF_UPS_CUSTOM_IMG: %s",
-        user_input.get(CONF_UPS_CUSTOM_IMG),
-    )
-
     # Only show custom image file field if custom image is enabled
     if user_input.get(CONF_CUSTOM_IMG):
         schema[
@@ -319,7 +339,6 @@ def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
                 default=_get_default(CONF_CUSTOM_IMG_FILE, DEFAULT_CUSTOM_IMG_FILE),
             )
         ] = cv.string
-        _LOGGER.debug("Added CONF_CUSTOM_IMG_FILE to schema")
 
     # Only show Amazon custom image file field if Amazon custom image is enabled
     if user_input.get(CONF_AMAZON_CUSTOM_IMG):
@@ -331,7 +350,6 @@ def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
                 ),
             )
         ] = cv.string
-        _LOGGER.debug("Added CONF_AMAZON_CUSTOM_IMG_FILE to schema")
 
     # Only show UPS custom image file field if UPS custom image is enabled
     if user_input.get(CONF_UPS_CUSTOM_IMG):
@@ -343,9 +361,29 @@ def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
                 ),
             )
         ] = cv.string
-        _LOGGER.debug("Added CONF_UPS_CUSTOM_IMG_FILE to schema")
 
-    _LOGGER.debug("Final schema keys: %s", list(schema.keys()))
+    # Only show Walmart custom image file field if Walmart custom image is enabled
+    if user_input.get(CONF_WALMART_CUSTOM_IMG):
+        schema[
+            vol.Optional(
+                CONF_WALMART_CUSTOM_IMG_FILE,
+                default=_get_default(
+                    CONF_WALMART_CUSTOM_IMG_FILE, DEFAULT_WALMART_CUSTOM_IMG_FILE
+                ),
+            )
+        ] = cv.string
+
+    # Only show Generic custom image file field if Generic custom image is enabled
+    if user_input.get(CONF_GENERIC_CUSTOM_IMG):
+        schema[
+            vol.Optional(
+                CONF_GENERIC_CUSTOM_IMG_FILE,
+                default=_get_default(
+                    CONF_GENERIC_CUSTOM_IMG_FILE, DEFAULT_GENERIC_CUSTOM_IMG_FILE
+                ),
+            )
+        ] = cv.string
+
     return vol.Schema(schema)
 
 
@@ -448,18 +486,6 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             _LOGGER.debug("RESOURCES: %s", self._data[CONF_RESOURCES])
             if len(self._errors) == 0:
-                _LOGGER.debug(
-                    "Step 2 - CONF_CUSTOM_IMG: %s", self._data.get(CONF_CUSTOM_IMG)
-                )
-                _LOGGER.debug(
-                    "Step 2 - CONF_AMAZON_CUSTOM_IMG: %s",
-                    self._data.get(CONF_AMAZON_CUSTOM_IMG),
-                )
-                _LOGGER.debug(
-                    "Step 2 - CONF_UPS_CUSTOM_IMG: %s",
-                    self._data.get(CONF_UPS_CUSTOM_IMG),
-                )
-
                 if any(
                     sensor in self._data[CONF_RESOURCES] for sensor in AMAZON_SENSORS
                 ):
@@ -468,24 +494,12 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     self._data.get(CONF_CUSTOM_IMG)
                     or self._data.get(CONF_AMAZON_CUSTOM_IMG)
                     or self._data.get(CONF_UPS_CUSTOM_IMG)
+                    or self._data.get(CONF_WALMART_CUSTOM_IMG)
+                    or self._data.get(CONF_GENERIC_CUSTOM_IMG)
                 ):
-                    _LOGGER.debug("Proceeding to step 3")
                     return await self.async_step_config_3()
-                # Ensure all required fields are present with default values
-                final_data = self._data.copy()
-                final_data.setdefault(CONF_AMAZON_CUSTOM_IMG, DEFAULT_AMAZON_CUSTOM_IMG)
-                final_data.setdefault(CONF_UPS_CUSTOM_IMG, DEFAULT_UPS_CUSTOM_IMG)
-                # Only add custom image file fields if the corresponding flags are enabled
-                if final_data.get(CONF_AMAZON_CUSTOM_IMG):
-                    final_data.setdefault(
-                        CONF_AMAZON_CUSTOM_IMG_FILE, DEFAULT_AMAZON_CUSTOM_IMG_FILE
-                    )
-                if final_data.get(CONF_UPS_CUSTOM_IMG):
-                    final_data.setdefault(
-                        CONF_UPS_CUSTOM_IMG_FILE, DEFAULT_UPS_CUSTOM_IMG_FILE
-                    )
                 return self.async_create_entry(
-                    title=final_data[CONF_HOST], data=final_data
+                    title=self._data[CONF_HOST], data=self._data
                 )
             return await self._show_config_2(user_input)
 
@@ -507,6 +521,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             CONF_CUSTOM_IMG: DEFAULT_CUSTOM_IMG,
             CONF_AMAZON_CUSTOM_IMG: DEFAULT_AMAZON_CUSTOM_IMG,
             CONF_UPS_CUSTOM_IMG: DEFAULT_UPS_CUSTOM_IMG,
+            CONF_WALMART_CUSTOM_IMG: DEFAULT_WALMART_CUSTOM_IMG,
+            CONF_GENERIC_CUSTOM_IMG: DEFAULT_GENERIC_CUSTOM_IMG,
         }
 
         return self.async_show_form(
@@ -527,16 +543,16 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_3(user_input)
 
-    async def _show_config_3(self, user_input):  # pylint: disable=unused-argument
+    async def _show_config_3(self, user_input=None):  # pylint: disable=unused-argument
         """Step 3 setup."""
-        # Defaults - only add custom image file defaults if the corresponding flags are enabled
-        defaults = {}
-        if self._data.get(CONF_CUSTOM_IMG):
-            defaults[CONF_CUSTOM_IMG_FILE] = DEFAULT_CUSTOM_IMG_FILE
-        if self._data.get(CONF_AMAZON_CUSTOM_IMG):
-            defaults[CONF_AMAZON_CUSTOM_IMG_FILE] = DEFAULT_AMAZON_CUSTOM_IMG_FILE
-        if self._data.get(CONF_UPS_CUSTOM_IMG):
-            defaults[CONF_UPS_CUSTOM_IMG_FILE] = DEFAULT_UPS_CUSTOM_IMG_FILE
+        # Defaults
+        defaults = {
+            CONF_CUSTOM_IMG_FILE: DEFAULT_CUSTOM_IMG_FILE,
+            CONF_AMAZON_CUSTOM_IMG_FILE: DEFAULT_AMAZON_CUSTOM_IMG_FILE,
+            CONF_UPS_CUSTOM_IMG_FILE: DEFAULT_UPS_CUSTOM_IMG_FILE,
+            CONF_WALMART_CUSTOM_IMG_FILE: DEFAULT_WALMART_CUSTOM_IMG_FILE,
+            CONF_GENERIC_CUSTOM_IMG_FILE: DEFAULT_GENERIC_CUSTOM_IMG_FILE,
+        }
 
         return self.async_show_form(
             step_id="config_3",
@@ -555,6 +571,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     self._data.get(CONF_CUSTOM_IMG)
                     or self._data.get(CONF_AMAZON_CUSTOM_IMG)
                     or self._data.get(CONF_UPS_CUSTOM_IMG)
+                    or self._data.get(CONF_WALMART_CUSTOM_IMG)
+                    or self._data.get(CONF_GENERIC_CUSTOM_IMG)
                 ):
                     return await self.async_step_config_3()
                 return await self.async_step_config_storage()
@@ -585,12 +603,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
-                # Ensure all required fields are present with default values
-                final_data = self._data.copy()
-                # Only add custom image fields if they're not already present
-                # These fields are added by the step 2 schema, so we don't need to add them here
                 return self.async_create_entry(
-                    title=final_data[CONF_HOST], data=final_data
+                    title=self._data[CONF_HOST], data=self._data
                 )
             return await self._show_config_storage(user_input)
 
@@ -658,6 +672,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     self._data.get(CONF_CUSTOM_IMG)
                     or self._data.get(CONF_AMAZON_CUSTOM_IMG)
                     or self._data.get(CONF_UPS_CUSTOM_IMG)
+                    or self._data.get(CONF_WALMART_CUSTOM_IMG)
+                    or self._data.get(CONF_GENERIC_CUSTOM_IMG)
                 ):
                     return await self.async_step_reconfig_3()
 
@@ -669,14 +685,9 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _show_reconfig_2(self, user_input):
         """Step 2 setup."""
-        # Use existing data as defaults, but ensure custom image fields have default values
-        defaults = self._data.copy()
-        defaults.setdefault(CONF_AMAZON_CUSTOM_IMG, DEFAULT_AMAZON_CUSTOM_IMG)
-        defaults.setdefault(CONF_UPS_CUSTOM_IMG, DEFAULT_UPS_CUSTOM_IMG)
-
         return self.async_show_form(
             step_id="reconfig_2",
-            data_schema=_get_schema_step_2(self._data, user_input, defaults),
+            data_schema=_get_schema_step_2(self._data, user_input, self._data),
             errors=self._errors,
         )
 
@@ -697,11 +708,13 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input=None
     ):  # pylint: disable=unused-argument
         """Step 3 setup."""
-        # Defaults - add custom image file defaults
+        # Defaults
         defaults = {
             CONF_CUSTOM_IMG_FILE: DEFAULT_CUSTOM_IMG_FILE,
             CONF_AMAZON_CUSTOM_IMG_FILE: DEFAULT_AMAZON_CUSTOM_IMG_FILE,
             CONF_UPS_CUSTOM_IMG_FILE: DEFAULT_UPS_CUSTOM_IMG_FILE,
+            CONF_WALMART_CUSTOM_IMG_FILE: DEFAULT_WALMART_CUSTOM_IMG_FILE,
+            CONF_GENERIC_CUSTOM_IMG_FILE: DEFAULT_GENERIC_CUSTOM_IMG_FILE,
         }
 
         return self.async_show_form(
@@ -721,6 +734,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     self._data.get(CONF_CUSTOM_IMG)
                     or self._data.get(CONF_AMAZON_CUSTOM_IMG)
                     or self._data.get(CONF_UPS_CUSTOM_IMG)
+                    or self._data.get(CONF_WALMART_CUSTOM_IMG)
+                    or self._data.get(CONF_GENERIC_CUSTOM_IMG)
                 ):
                     return await self.async_step_reconfig_3()
 
@@ -748,14 +763,6 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
-                # Remove custom image file fields if the corresponding flags are False
-                if not self._data.get(CONF_AMAZON_CUSTOM_IMG):
-                    self._data.pop(CONF_AMAZON_CUSTOM_IMG_FILE, None)
-                if not self._data.get(CONF_UPS_CUSTOM_IMG):
-                    self._data.pop(CONF_UPS_CUSTOM_IMG_FILE, None)
-                if not self._data.get(CONF_CUSTOM_IMG):
-                    self._data.pop(CONF_CUSTOM_IMG_FILE, None)
-
                 self.hass.config_entries.async_update_entry(
                     self._entry, data=self._data
                 )

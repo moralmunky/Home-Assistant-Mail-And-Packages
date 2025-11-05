@@ -40,6 +40,8 @@
           "custom_img": "Použiť vlastný obrázok USPS 'bez pošty'?",
           "amazon_custom_img": "Použiť vlastný obrázok Amazon 'bez dodávky'?",
           "ups_custom_img": "Použiť vlastný obrázok UPS 'bez dodávky'?",
+          "walmart_custom_img": "Použiť vlastný obrázok Walmart 'bez dodávky'?",
+          "generic_custom_img": "Použiť vlastný obrázok všeobecný 'bez dodávky'?",
           "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM"
         },
         "description": "Dokončite konfiguráciu prispôsobením nasledujúcich položiek na základe štruktúry e-mailu a inštalácie Home Assistant.\n\nPodrobnosti nájdete na [Pošta a balíky integrácia](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) možnosti si pozrite v časti [konfigurácia, šablóny a automatizácie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHube.",
@@ -87,6 +89,8 @@
           "custom_img": "Použiť vlastný obrázok USPS 'bez pošty'?",
           "amazon_custom_img": "Použiť vlastný obrázok Amazon 'bez dodávky'?",
           "ups_custom_img": "Použiť vlastný obrázok UPS 'bez dodávky'?",
+          "walmart_custom_img": "Použiť vlastný obrázok Walmart 'bez dodávky'?",
+          "generic_custom_img": "Použiť vlastný obrázok všeobecný 'bez dodávky'?",
           "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM"
         },
         "description": "Dokončite konfiguráciu prispôsobením nasledujúceho na základe štruktúry vášho e-mailu a inštalácie Home Assistant.\n\nPre podrobnosti o možnostiach [integrácie Mail a Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) si prečítajte [sekciu o konfigurácii, šablónach a automatizáciách](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHub.\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (none) na vymazanie tohto nastavenia.",

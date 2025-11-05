@@ -129,7 +129,7 @@ async def integration_fixture_4(hass, caplog):
     await hass.async_block_till_done()
 
     assert "Migrating from version 3" in caplog.text
-    assert "Migration complete to version 11" in caplog.text
+    assert "Migration complete to version 12" in caplog.text
 
     assert CONF_AMAZON_DOMAIN in entry.data
 
@@ -1904,6 +1904,60 @@ def mock_imap_amazon_arriving_today():
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_out_for_delivery_today.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_walmart_delivered_with_photo():
+    """Mock imap class values for Walmart delivered with photo."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_walmart_delivered_with_photo:
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
+        mock_imap_walmart_delivered_with_photo.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/walmart_delivered.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_walmart_delivering():
+    """Mock imap class values for Walmart delivering."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_walmart_delivering:
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
+        mock_imap_walmart_delivering.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/walmart_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])

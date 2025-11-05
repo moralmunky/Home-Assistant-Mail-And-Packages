@@ -40,6 +40,8 @@
           "custom_img": "Usare l'immagine personalizzata USPS 'nessuna posta'?",
           "amazon_custom_img": "Usare l'immagine personalizzata Amazon 'nessuna consegna'?",
           "ups_custom_img": "Usare l'immagine personalizzata UPS 'nessuna consegna'?",
+          "walmart_custom_img": "Usare l'immagine personalizzata Walmart 'nessuna consegna'?",
+          "generic_custom_img": "Usare l'immagine personalizzata generica 'nessuna consegna'?",
           "generate_grid": "Crea una griglia di immagini per i modelli di visione LLM"
         },
         "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua e-mail e all'installazione di Home Assistant. \n\n Per i dettagli sulle opzioni [Integrazione posta e pacchetti] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) rivedere le [configurazione, modelli e sezione automazioni] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) su GitHub.",
@@ -87,6 +89,8 @@
           "custom_img": "Usare l'immagine personalizzata USPS 'nessuna posta'?",
           "amazon_custom_img": "Usare l'immagine personalizzata Amazon 'nessuna consegna'?",
           "ups_custom_img": "Usare l'immagine personalizzata UPS 'nessuna consegna'?",
+          "walmart_custom_img": "Usare l'immagine personalizzata Walmart 'nessuna consegna'?",
+          "generic_custom_img": "Usare l'immagine personalizzata generica 'nessuna consegna'?",
           "generate_grid": "Crea una griglia di immagini per i modelli di visione LLM"
         },
         "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua email e all'installazione di Home Assistant.\n\nPer i dettagli sulle opzioni di [integrazione Mail e Pacchetti](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) consulta la [sezione configurazione, modelli e automazioni](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) su GitHub.\n\nSe utilizzi email inoltrate da Amazon, separa ogni indirizzo con una virgola o inserisci (nessuno) per cancellare questa impostazione.",

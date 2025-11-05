@@ -39,7 +39,9 @@
           "amazon_days": "Dny zpět ke kontrole e-mailů Amazon",
           "custom_img": "Použít vlastní obrázek USPS 'bez pošty'?",
           "amazon_custom_img": "Použít vlastní obrázek Amazon 'bez dodání'?",
-          "ups_custom_img": "Použít vlastní obrázek UPS 'bez dodání'?"
+          "ups_custom_img": "Použít vlastní obrázek UPS 'bez dodání'?",
+          "walmart_custom_img": "Použít vlastní obrázek Walmart 'bez dodání'?",
+          "generic_custom_img": "Použít vlastní obrázek obecný 'bez dodání'?"
         },
         "description": "Dokončete konfiguraci přizpůsobením následujících položek na základě struktury e-mailu a instalace Home Assistant.\n\nPodrobnosti o [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) můžete zkontrolovat na [configurace, styly a automatizace](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
         "title": "Mail and Packages (Krok 2 ze 3)"
@@ -90,7 +92,9 @@
           "amazon_days": "Dny zpět ke kontrole e-mailů Amazon",
           "custom_img": "Použít vlastní obrázek USPS 'bez pošty'?",
           "amazon_custom_img": "Použít vlastní obrázek Amazon 'bez dodání'?",
-          "ups_custom_img": "Použít vlastní obrázek UPS 'bez dodání'?"
+          "ups_custom_img": "Použít vlastní obrázek UPS 'bez dodání'?",
+          "walmart_custom_img": "Použít vlastní obrázek Walmart 'bez dodání'?",
+          "generic_custom_img": "Použít vlastní obrázek obecný 'bez dodání'?"
         },
         "description": "Dokončete konfiguraci přizpůsobením následujících položek na základě struktury e-mailu a instalace Home Assistant.\n\nPodrobnosti o [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) můžete zkontrolovat na [configurace, styly a automatizace](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
         "title": "Mail and Packages (Krok 2 ze 3)"

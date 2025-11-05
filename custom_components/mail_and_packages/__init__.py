@@ -24,6 +24,10 @@ from .const import (
     CONF_AMAZON_CUSTOM_IMG_FILE,
     CONF_UPS_CUSTOM_IMG,
     CONF_UPS_CUSTOM_IMG_FILE,
+    CONF_WALMART_CUSTOM_IMG,
+    CONF_WALMART_CUSTOM_IMG_FILE,
+    CONF_GENERIC_CUSTOM_IMG,
+    CONF_GENERIC_CUSTOM_IMG_FILE,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_SECURITY,
     CONF_IMAP_TIMEOUT,
@@ -206,6 +210,21 @@ async def async_migrate_entry(hass, config_entry):
         if CONF_UPS_CUSTOM_IMG_FILE not in updated_config:
             updated_config[CONF_UPS_CUSTOM_IMG_FILE] = (
                 "custom_components/mail_and_packages/no_deliveries_ups.jpg"
+            )
+
+    if version < 12:
+        # Add default Walmart and Generic custom image configurations
+        if CONF_WALMART_CUSTOM_IMG not in updated_config:
+            updated_config[CONF_WALMART_CUSTOM_IMG] = False
+        if CONF_WALMART_CUSTOM_IMG_FILE not in updated_config:
+            updated_config[CONF_WALMART_CUSTOM_IMG_FILE] = (
+                "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
+            )
+        if CONF_GENERIC_CUSTOM_IMG not in updated_config:
+            updated_config[CONF_GENERIC_CUSTOM_IMG] = False
+        if CONF_GENERIC_CUSTOM_IMG_FILE not in updated_config:
+            updated_config[CONF_GENERIC_CUSTOM_IMG_FILE] = (
+                "custom_components/mail_and_packages/no_deliveries_generic.jpg"
             )
 
     if CONF_PATH not in updated_config:

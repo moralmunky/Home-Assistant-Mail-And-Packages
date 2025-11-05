@@ -22,6 +22,8 @@ import aiohttp
 import dateparser
 import homeassistant.helpers.config_validation as cv
 from bs4 import BeautifulSoup
+
+from PIL import Image, ImageOps
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
@@ -32,7 +34,6 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.util import ssl
-from PIL import Image, ImageOps
 
 from .const import (
     AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT,
@@ -73,6 +74,7 @@ from .const import (
     ATTR_SUBJECT,
     ATTR_TRACKING,
     ATTR_UPS_IMAGE,
+    ATTR_WALMART_IMAGE,
     ATTR_USPS_MAIL,
     CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_DAYS,
@@ -84,6 +86,8 @@ from .const import (
     CONF_AMAZON_CUSTOM_IMG_FILE,
     CONF_UPS_CUSTOM_IMG,
     CONF_UPS_CUSTOM_IMG_FILE,
+    CONF_WALMART_CUSTOM_IMG,
+    CONF_WALMART_CUSTOM_IMG_FILE,
     CONF_DURATION,
     CONF_FOLDER,
     CONF_GENERATE_GRID,
@@ -95,6 +99,7 @@ from .const import (
     DEFAULT_AMAZON_CUSTOM_IMG_FILE,
     DEFAULT_CUSTOM_IMG_FILE,
     DEFAULT_UPS_CUSTOM_IMG_FILE,
+    DEFAULT_WALMART_CUSTOM_IMG_FILE,
     OVERLAY,
     SENSOR_DATA,
     SENSOR_TYPES,
@@ -243,6 +248,13 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     _image[ATTR_UPS_IMAGE] = ups_image_name
     _LOGGER.debug("Set ATTR_UPS_IMAGE in coordinator data: %s", ups_image_name)
 
+    # Walmart delivery image name
+    _LOGGER.debug("Generating Walmart image name...")
+    walmart_image_name = image_file_name(hass, config, walmart=True)
+    _LOGGER.debug("Walmart Image Name: %s", walmart_image_name)
+    _image[ATTR_WALMART_IMAGE] = walmart_image_name
+    _LOGGER.debug("Set ATTR_WALMART_IMAGE in coordinator data: %s", walmart_image_name)
+
     # Ensure UPS directory exists and has a default image
     ups_path = f"{hass.config.path()}/{default_image_path(hass, config)}ups/"
     if not os.path.isdir(ups_path):
@@ -251,6 +263,15 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
             _LOGGER.debug("Created UPS directory: %s", ups_path)
         except Exception as err:
             _LOGGER.error("Error creating UPS directory: %s", str(err))
+
+    # Ensure Walmart directory exists and has a default image
+    walmart_path = f"{hass.config.path()}/{default_image_path(hass, config)}walmart/"
+    if not os.path.isdir(walmart_path):
+        try:
+            os.makedirs(walmart_path)
+            _LOGGER.debug("Created Walmart directory: %s", walmart_path)
+        except Exception as err:
+            _LOGGER.error("Error creating Walmart directory: %s", str(err))
 
     # Check if UPS image file exists
     ups_image_path = f"{ups_path}{ups_image_name}"
@@ -266,6 +287,22 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
             _LOGGER.error("Error creating default UPS image: %s", str(err))
     else:
         _LOGGER.debug("UPS image file exists: %s", ups_image_path)
+
+    # Check if Walmart image file exists
+    walmart_image_path = f"{walmart_path}{walmart_image_name}"
+    if not os.path.exists(walmart_image_path):
+        _LOGGER.debug(
+            "Walmart image file does not exist, creating default: %s",
+            walmart_image_path,
+        )
+        try:
+            nomail = f"{os.path.dirname(__file__)}/no_deliveries_walmart.jpg"
+            copyfile(nomail, walmart_image_path)
+            _LOGGER.debug("Created default Walmart image: %s", walmart_image_path)
+        except Exception as err:
+            _LOGGER.error("Error creating default Walmart image: %s", str(err))
+    else:
+        _LOGGER.debug("Walmart image file exists: %s", walmart_image_path)
 
     image_path = default_image_path(hass, config)
     _LOGGER.debug("Image path: %s", image_path)
@@ -323,12 +360,18 @@ def image_file_name(
     config: ConfigEntry,
     amazon: bool = False,
     ups: bool = False,
+    walmart: bool = False,
 ) -> str:
     """Determine if filename is to be changed or not.
 
     Returns filename
     """
-    _LOGGER.debug("image_file_name called - amazon: %s, ups: %s", amazon, ups)
+    _LOGGER.debug(
+        "image_file_name called - amazon: %s, ups: %s, walmart: %s",
+        amazon,
+        ups,
+        walmart,
+    )
     mail_none = None
     path = None
     image_name = None
@@ -356,6 +399,20 @@ def image_file_name(
         image_name = os.path.split(mail_none)[1]
         path = f"{hass.config.path()}/{default_image_path(hass, config)}ups"
         _LOGGER.debug("UPS path: %s", path)
+    elif walmart:
+        _LOGGER.debug("Processing Walmart image file name")
+        if config.get(CONF_WALMART_CUSTOM_IMG):
+            mail_none = (
+                config.get(CONF_WALMART_CUSTOM_IMG_FILE)
+                or DEFAULT_WALMART_CUSTOM_IMG_FILE
+            )
+            _LOGGER.debug("Using custom Walmart image: %s", mail_none)
+        else:
+            mail_none = f"{os.path.dirname(__file__)}/no_deliveries_walmart.jpg"
+            _LOGGER.debug("Using default Walmart image: %s", mail_none)
+        image_name = os.path.split(mail_none)[1]
+        path = f"{hass.config.path()}/{default_image_path(hass, config)}walmart"
+        _LOGGER.debug("Walmart path: %s", path)
     else:
         path = f"{hass.config.path()}/{default_image_path(hass, config)}"
         if config.get(CONF_CUSTOM_IMG):
@@ -395,7 +452,6 @@ def image_file_name(
                 )
                 return image_name
             today = get_formatted_date()
-            _LOGGER.debug("Created: %s, Today: %s", created, today)
             # If image isn't mail_none and not created today,
             # return a new filename
             if sha1 != hash_file(os.path.join(path, file)) and today != created:
@@ -522,9 +578,7 @@ def fetch(
     elif "_delivering" in sensor:
         prefix = sensor.replace("_delivering", "")
         delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
-        info = get_count(
-            account, sensor, True, amazon_domain=amazon_domain, data=data, config=config
-        )
+        info = get_count(account, sensor, True, amazon_domain=amazon_domain, data=data)
         count[sensor] = max(0, info[ATTR_COUNT] - delivered)
         count[f"{prefix}_tracking"] = info[ATTR_TRACKING]
     elif sensor == "zpackages_delivered":
@@ -581,7 +635,6 @@ def fetch(
             amazon_domain,
             amazon_fwds,
             data=data,
-            config=config,
         )[ATTR_COUNT]
 
     data.update(count)
@@ -1119,7 +1172,6 @@ def get_count(
     amazon_domain: Optional[str] = None,
     amazon_fwds: Optional[str] = None,
     data: Optional[dict] = None,
-    config: Optional[ConfigEntry] = None,
 ) -> dict:
     """Get Package Count.
 
@@ -1152,9 +1204,7 @@ def get_count(
         ups_image_name = (
             data.get(ATTR_UPS_IMAGE, "ups_delivery.jpg") if data else "ups_delivery.jpg"
         )
-        result[ATTR_COUNT] = ups_search(
-            account, image_path, hass, ups_image_name, config, data
-        )
+        result[ATTR_COUNT] = ups_search(account, image_path, hass, ups_image_name, data)
 
         # Extract tracking number if requested
         if get_tracking_num:
@@ -1168,6 +1218,39 @@ def get_count(
             if server_response == "OK" and email_data[0] is not None:
                 tracking = get_tracking(
                     email_data[0], account, SENSOR_DATA["ups_tracking"][ATTR_PATTERN][0]
+                )
+                result[ATTR_TRACKING] = tracking
+            else:
+                result[ATTR_TRACKING] = []
+        else:
+            result[ATTR_TRACKING] = ""
+        return result
+
+    # Return Walmart delivered info
+    if sensor_type == "walmart_delivered":
+        walmart_image_name = (
+            data.get(ATTR_WALMART_IMAGE, "walmart_delivery.jpg")
+            if data
+            else "walmart_delivery.jpg"
+        )
+        result[ATTR_COUNT] = walmart_search(
+            account, image_path, hass, walmart_image_name, data
+        )
+
+        # Extract tracking number if requested
+        if get_tracking_num:
+            # Search for Walmart delivered emails to extract tracking numbers
+            (server_response, email_data) = email_search(
+                account,
+                SENSOR_DATA["walmart_delivered"][ATTR_EMAIL],
+                today,
+                SENSOR_DATA["walmart_delivered"][ATTR_SUBJECT][0],
+            )
+            if server_response == "OK" and email_data[0] is not None:
+                tracking = get_tracking(
+                    email_data[0],
+                    account,
+                    SENSOR_DATA["walmart_tracking"][ATTR_PATTERN][0],
                 )
                 result[ATTR_TRACKING] = tracking
             else:
@@ -1385,7 +1468,6 @@ def ups_search(
     image_path: str,
     hass: HomeAssistant,
     ups_image_name: str,
-    config: Optional[ConfigEntry] = None,
     coordinator_data: Optional[dict] = None,
 ) -> int:
     """Search for UPS delivery emails and extract delivery photos."""
@@ -1412,20 +1494,16 @@ def ups_search(
         # Still need to create no-delivery image and update coordinator data
         if count == 0:
             _LOGGER.debug("No UPS deliveries found.")
-            # Generate a new filename for the no-delivery image
-            if config:
-                no_delivery_filename = image_file_name(hass, config, ups=True)
-            else:
-                no_delivery_filename = f"{str(uuid.uuid4())}.jpg"
+            # Use the provided ups_image_name for the no-delivery image
             nomail = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
             try:
-                copyfile(nomail, f"{image_path}ups/" + no_delivery_filename)
+                copyfile(nomail, f"{image_path}ups/" + ups_image_name)
                 # Update coordinator data with the no-delivery filename
                 if coordinator_data is not None:
-                    coordinator_data[ATTR_UPS_IMAGE] = no_delivery_filename
+                    coordinator_data[ATTR_UPS_IMAGE] = ups_image_name
                     _LOGGER.debug(
                         "Updated coordinator data with no-delivery UPS image: %s",
-                        no_delivery_filename,
+                        ups_image_name,
                     )
             except Exception as err:
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
@@ -1473,6 +1551,110 @@ def ups_search(
                 break
 
     _LOGGER.debug("UPS delivery photos extracted: %s", count)
+    return count
+
+
+def walmart_search(
+    account: Type[imaplib.IMAP4_SSL],
+    image_path: str,
+    hass: HomeAssistant,
+    walmart_image_name: str,
+    coordinator_data: Optional[dict] = None,
+) -> int:
+    """Search for Walmart delivery emails and extract delivery photos."""
+    _LOGGER.debug("Searching for Walmart delivery emails")
+    _LOGGER.debug("Walmart image name: %s", walmart_image_name)
+
+    today = get_formatted_date()
+    count = 0
+    new_image_saved = False
+
+    # Search for Walmart delivered emails - try all subjects
+    emails_found = []
+    for subject in SENSOR_DATA["walmart_delivered"][ATTR_SUBJECT]:
+        _LOGGER.debug("Searching for Walmart emails with subject: %s", subject)
+        (server_response, data) = email_search(
+            account,
+            SENSOR_DATA["walmart_delivered"][ATTR_EMAIL],
+            today,
+            subject,
+        )
+        _LOGGER.debug("Walmart email search response: %s", server_response)
+        _LOGGER.debug("Walmart email search data: %s", data)
+
+        if server_response == "OK" and data[0] is not None and data[0] != b"":
+            # Only add emails we haven't seen before (deduplicate)
+            for email_id in data:
+                if email_id not in emails_found:
+                    emails_found.append(email_id)
+            _LOGGER.debug("Found Walmart emails with subject '%s': %s", subject, data)
+
+    if not emails_found or all(
+        email_id == b"" or email_id is None for email_id in emails_found
+    ):
+        _LOGGER.debug("No Walmart delivery emails found")
+        # Still need to create no-delivery image and update coordinator data
+        if count == 0:
+            _LOGGER.debug("No Walmart deliveries found.")
+            nomail = f"{os.path.dirname(__file__)}/no_deliveries_walmart.jpg"
+            try:
+                copyfile(nomail, f"{image_path}walmart/" + walmart_image_name)
+                # Update coordinator data with the no-delivery filename
+                if coordinator_data is not None:
+                    coordinator_data[ATTR_WALMART_IMAGE] = walmart_image_name
+                    _LOGGER.debug(
+                        "Updated coordinator data with no-delivery Walmart image: %s",
+                        walmart_image_name,
+                    )
+            except Exception as err:
+                _LOGGER.error("Error attempting to copy image: %s", str(err))
+        return count
+
+    # Check if the path exists, if not make it
+    walmart_path = f"{image_path}walmart/"
+    if not os.path.isdir(walmart_path):
+        try:
+            os.makedirs(walmart_path)
+        except Exception as err:
+            _LOGGER.critical("Error creating directory: %s", str(err))
+            return count
+
+    # Clean up image directory
+    cleanup_images(walmart_path)
+
+    # Process all found emails
+    for email_data in emails_found:
+        if email_data and email_data != b"":
+            for num in email_data.split():
+                _LOGGER.debug("Processing Walmart email number: %s", num)
+                msg = email_fetch(account, num, "(RFC822)")[1]
+                for response_part in msg:
+                    if isinstance(response_part, tuple):
+                        sdata = response_part[1].decode("utf-8", "ignore")
+                        _LOGGER.debug("Calling get_walmart_image for email %s", num)
+                        # Count the delivery email (regardless of photo extraction)
+                        count += 1
+                        # Check if a Walmart delivery photo was successfully saved
+                        if get_walmart_image(
+                            sdata, account, image_path, hass, walmart_image_name
+                        ):
+                            new_image_saved = True
+
+    # If a new image was saved, update the coordinator data with the actual filename
+    if new_image_saved and coordinator_data is not None:
+        # Find the actual file that was created
+        for file in os.listdir(walmart_path):
+            if file.endswith(".jpg"):
+                actual_filename = file
+                _LOGGER.debug("Found actual Walmart image file: %s", actual_filename)
+                # Update the coordinator data with the actual filename
+                coordinator_data[ATTR_WALMART_IMAGE] = actual_filename
+                _LOGGER.debug(
+                    "Updated coordinator data with Walmart image: %s", actual_filename
+                )
+                break
+
+    _LOGGER.debug("Walmart delivery photos extracted: %s", count)
     return count
 
 
@@ -1637,6 +1819,100 @@ def get_ups_image(  # pylint: disable=too-many-return-statements
                     return False
 
     _LOGGER.debug("No UPS delivery photo found in email")
+    return False
+
+
+def get_walmart_image(  # pylint: disable=too-many-return-statements
+    sdata: Any,
+    account: Type[imaplib.IMAP4_SSL],  # pylint: disable=unused-argument
+    image_path: str,
+    hass: HomeAssistant,  # pylint: disable=unused-argument
+    image_name: str,  # pylint: disable=unused-argument
+) -> bool:
+    """Extract Walmart delivery photo from email.
+
+    Returns True if a photo was successfully saved, False otherwise.
+    """
+    _LOGGER.debug("Attempting to extract Walmart delivery photo")
+
+    msg = email.message_from_string(sdata)
+
+    walmart_path = f"{image_path}walmart/"
+
+    # First pass: look for CID embedded images
+    cid_images = {}
+    for part in msg.walk():
+        if part.get_content_type() == "image/png":
+            content_id = part.get("Content-ID")
+            if content_id:
+                # Remove < > from Content-ID
+                cid = content_id.strip("<>")
+                _LOGGER.debug("Found CID embedded image: %s", cid)
+                cid_images[cid] = part.get_payload(decode=True)
+
+    # Second pass: look for HTML content with CID references
+    for part in msg.walk():
+        if part.get_content_type() == "text/html":
+            _LOGGER.debug("Processing HTML content for Walmart delivery photo")
+            part_content = part.get_payload(decode=True)
+            part_content = part_content.decode("utf-8", "ignore")
+
+            # Look for delivery proof in HTML content
+            if "deliveryProofLabel" in part_content:
+                _LOGGER.debug("Found delivery proof reference in HTML")
+
+                # Check if we have the corresponding CID image
+                if "deliveryProofLabel" in cid_images:
+                    _LOGGER.debug("Found matching CID image for deliveryProofLabel")
+                    try:
+                        with open(walmart_path + image_name, "wb") as the_file:
+                            the_file.write(cid_images["deliveryProofLabel"])
+                        _LOGGER.debug(
+                            "Walmart delivery photo saved from CID: %s", image_name
+                        )
+                        return True
+                    except Exception as err:
+                        _LOGGER.error(
+                            "Error saving Walmart delivery photo from CID: %s", str(err)
+                        )
+                        return False
+
+                # Fallback: look for base64 encoded images
+                base64_pattern = r"data:image/png;base64,([A-Za-z0-9+/=]+)"
+                matches = re.findall(base64_pattern, part_content)
+
+                if matches:
+                    _LOGGER.debug("Found base64 encoded Walmart delivery photo")
+                    try:
+                        with open(walmart_path + image_name, "wb") as the_file:
+                            the_file.write(base64.b64decode(matches[0]))
+                        _LOGGER.debug(
+                            "Walmart delivery photo saved from base64: %s", image_name
+                        )
+                        return True
+                    except Exception as err:
+                        _LOGGER.error(
+                            "Error saving Walmart delivery photo from base64: %s",
+                            str(err),
+                        )
+                        return False
+
+    # Third pass: look for regular PNG attachments
+    for part in msg.walk():
+        if part.get_content_type() == "image/png":
+            filename = part.get_filename()
+            if filename:
+                _LOGGER.debug("Found Walmart delivery photo attachment: %s", filename)
+                try:
+                    with open(walmart_path + image_name, "wb") as the_file:
+                        the_file.write(part.get_payload(decode=True))
+                    _LOGGER.debug("Walmart delivery photo saved: %s", image_name)
+                    return True
+                except Exception as err:
+                    _LOGGER.error("Error saving Walmart delivery photo: %s", str(err))
+                    return False
+
+    _LOGGER.debug("No Walmart delivery photo found in email")
     return False
 
 
@@ -2185,3 +2461,39 @@ def get_items(
 
     _LOGGER.debug("Amazon value: %s", str(value))
     return value
+
+
+async def generate_delivery_gif(delivery_images: list, gif_path: str) -> bool:
+    """Generate an animated GIF from delivery images.
+
+    Args:
+        delivery_images: List of image file paths
+        gif_path: Path where the GIF should be saved
+
+    Returns:
+        bool: True if GIF was created successfully, False otherwise
+    """
+    try:
+        # Open all images
+        images = [Image.open(img_path) for img_path in delivery_images]
+
+        # Create animated GIF (3 seconds per image)
+        images[0].save(
+            gif_path,
+            format="GIF",
+            append_images=images[1:],
+            save_all=True,
+            duration=3000,  # 3 seconds per image
+            loop=0,  # Infinite loop
+        )
+
+        _LOGGER.debug(
+            "Generated animated GIF with %d delivery images at %s",
+            len(delivery_images),
+            gif_path,
+        )
+        return True
+
+    except Exception as e:
+        _LOGGER.error("Error creating animated GIF: %s", e)
+        return False
