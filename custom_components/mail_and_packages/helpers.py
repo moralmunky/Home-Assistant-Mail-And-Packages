@@ -522,7 +522,7 @@ def fetch(
     amazon_fwds = cv.ensure_list_csv(config.get(CONF_AMAZON_FWDS))
     image_name = data[ATTR_IMAGE_NAME]
     amazon_image_name = data[ATTR_AMAZON_IMAGE]
-    amazon_days = int(config.get(CONF_AMAZON_DAYS, DEFAULT_AMAZON_DAYS))
+    amazon_days = config.get(CONF_AMAZON_DAYS, DEFAULT_AMAZON_DAYS)
 
     # Conditional variables
     nomail = (
