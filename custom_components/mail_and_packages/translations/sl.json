@@ -41,6 +41,8 @@
           "custom_img": "Uporabite prilagojeno sliko USPS 'brez pošte'?",
           "amazon_custom_img": "Uporabite prilagojeno sliko Amazon 'brez dostave'?",
           "ups_custom_img": "Uporabite prilagojeno sliko UPS 'brez dostave'?",
+          "walmart_custom_img": "Uporabite prilagojeno sliko Walmart 'brez dostave'?",
+          "generic_custom_img": "Uporabite prilagojeno splošno sliko 'brez dostave'?",
           "generate_grid": "Ustvari mrežo slik za vizualne modele LLM",
           "allow_forwarded_emails": "Dovoli posredovana e-poštna sporočila poleg privzetih nastavitev storitve (npr. no-reply@usps.com)"
         },
@@ -89,6 +91,8 @@
           "custom_img": "Uporabite prilagojeno sliko USPS 'brez pošte'?",
           "amazon_custom_img": "Uporabite prilagojeno sliko Amazon 'brez dostave'?",
           "ups_custom_img": "Uporabite prilagojeno sliko UPS 'brez dostave'?",
+          "walmart_custom_img": "Uporabite prilagojeno sliko Walmart 'brez dostave'?",
+          "generic_custom_img": "Uporabite prilagojeno splošno sliko 'brez dostave'?",
           "generate_grid": "Ustvari mrežo slik za vizualne modele LLM",
           "allow_forwarded_emails": "Dovoli posredovana e-poštna sporočila poleg privzetih nastavitev storitve (npr. no-reply@usps.com)"
         },

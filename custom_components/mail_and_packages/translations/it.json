@@ -41,6 +41,8 @@
           "custom_img": "Usare l'immagine personalizzata USPS 'nessuna posta'?",
           "amazon_custom_img": "Usare l'immagine personalizzata Amazon 'nessuna consegna'?",
           "ups_custom_img": "Usare l'immagine personalizzata UPS 'nessuna consegna'?",
+          "walmart_custom_img": "Usare l'immagine personalizzata Walmart 'nessuna consegna'?",
+          "generic_custom_img": "Usare l'immagine personalizzata generica 'nessuna consegna'?",
           "generate_grid": "Crea una griglia di immagini per i modelli di visione LLM",
           "allow_forwarded_emails": "Consenti email inoltrate in aggiunta a quelle predefinite di un servizio (ad esempio no-reply@usps.com)"
         },
@@ -89,6 +91,8 @@
           "custom_img": "Usare l'immagine personalizzata USPS 'nessuna posta'?",
           "amazon_custom_img": "Usare l'immagine personalizzata Amazon 'nessuna consegna'?",
           "ups_custom_img": "Usare l'immagine personalizzata UPS 'nessuna consegna'?",
+          "walmart_custom_img": "Usare l'immagine personalizzata Walmart 'nessuna consegna'?",
+          "generic_custom_img": "Usare l'immagine personalizzata generica 'nessuna consegna'?",
           "generate_grid": "Crea una griglia di immagini per i modelli di visione LLM",
           "allow_forwarded_emails": "Consenti email inoltrate in aggiunta a quelle predefinite di un servizio (ad esempio no-reply@usps.com)"
         },

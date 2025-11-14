@@ -41,6 +41,8 @@
           "custom_img": "Použiť vlastný obrázok USPS 'bez pošty'?",
           "amazon_custom_img": "Použiť vlastný obrázok Amazon 'bez dodávky'?",
           "ups_custom_img": "Použiť vlastný obrázok UPS 'bez dodávky'?",
+          "walmart_custom_img": "Použiť vlastný obrázok Walmart 'bez dodávky'?",
+          "generic_custom_img": "Použiť vlastný obrázok všeobecný 'bez dodávky'?",
           "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM",
           "allow_forwarded_emails": "Povoliť preposielané e-maily okrem predvoleného nastavenia služby (napr. no-reply@usps.com)"
         },
@@ -89,6 +91,8 @@
           "custom_img": "Použiť vlastný obrázok USPS 'bez pošty'?",
           "amazon_custom_img": "Použiť vlastný obrázok Amazon 'bez dodávky'?",
           "ups_custom_img": "Použiť vlastný obrázok UPS 'bez dodávky'?",
+          "walmart_custom_img": "Použiť vlastný obrázok Walmart 'bez dodávky'?",
+          "generic_custom_img": "Použiť vlastný obrázok všeobecný 'bez dodávky'?",
           "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM",
           "allow_forwarded_emails": "Povoliť preposielané e-maily okrem predvoleného nastavenia služby (napr. no-reply@usps.com)"
         },

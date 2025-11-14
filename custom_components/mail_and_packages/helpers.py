@@ -22,6 +22,9 @@ import aiohttp
 import dateparser
 import homeassistant.helpers.config_validation as cv
 from bs4 import BeautifulSoup
+from PIL import Image, ImageOps
+from voluptuous import Email, MultipleInvalid, Schema
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
@@ -32,14 +35,13 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.util import ssl
-from PIL import Image, ImageOps
-from voluptuous import Email, MultipleInvalid, Schema
 
 
 from .const import (
     AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT,
     AMAZON_DELIVERED,
     AMAZON_DELIVERED_SUBJECT,
+    AMAZON_DOMAINS,
     AMAZON_EXCEPTION,
     AMAZON_EXCEPTION_ORDER,
     AMAZON_EXCEPTION_SUBJECT,
@@ -57,6 +59,7 @@ from .const import (
     AMAZON_OTP_SUBJECT,
     AMAZON_PACKAGES,
     AMAZON_PATTERN,
+    AMAZON_SHIPMENT_SUBJECT,
     AMAZON_SHIPMENT_TRACKING,
     AMAZON_TIME_PATTERN,
     AMAZON_TIME_PATTERN_END,
@@ -75,6 +78,7 @@ from .const import (
     ATTR_SUBJECT,
     ATTR_TRACKING,
     ATTR_UPS_IMAGE,
+    ATTR_WALMART_IMAGE,
     ATTR_USPS_MAIL,
     CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_DAYS,
@@ -86,6 +90,8 @@ from .const import (
     CONF_AMAZON_CUSTOM_IMG_FILE,
     CONF_UPS_CUSTOM_IMG,
     CONF_UPS_CUSTOM_IMG_FILE,
+    CONF_WALMART_CUSTOM_IMG,
+    CONF_WALMART_CUSTOM_IMG_FILE,
     CONF_DURATION,
     CONF_FOLDER,
     CONF_FORWARDED_EMAILS,
@@ -98,6 +104,7 @@ from .const import (
     DEFAULT_AMAZON_CUSTOM_IMG_FILE,
     DEFAULT_CUSTOM_IMG_FILE,
     DEFAULT_UPS_CUSTOM_IMG_FILE,
+    DEFAULT_WALMART_CUSTOM_IMG_FILE,
     OVERLAY,
     SENSOR_DATA,
     SENSOR_TYPES,
@@ -246,6 +253,13 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     _image[ATTR_UPS_IMAGE] = ups_image_name
     _LOGGER.debug("Set ATTR_UPS_IMAGE in coordinator data: %s", ups_image_name)
 
+    # Walmart delivery image name
+    _LOGGER.debug("Generating Walmart image name...")
+    walmart_image_name = image_file_name(hass, config, walmart=True)
+    _LOGGER.debug("Walmart Image Name: %s", walmart_image_name)
+    _image[ATTR_WALMART_IMAGE] = walmart_image_name
+    _LOGGER.debug("Set ATTR_WALMART_IMAGE in coordinator data: %s", walmart_image_name)
+
     # Ensure UPS directory exists and has a default image
     ups_path = f"{hass.config.path()}/{default_image_path(hass, config)}ups/"
     if not os.path.isdir(ups_path):
@@ -254,6 +268,15 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
             _LOGGER.debug("Created UPS directory: %s", ups_path)
         except Exception as err:
             _LOGGER.error("Error creating UPS directory: %s", str(err))
+
+    # Ensure Walmart directory exists and has a default image
+    walmart_path = f"{hass.config.path()}/{default_image_path(hass, config)}walmart/"
+    if not os.path.isdir(walmart_path):
+        try:
+            os.makedirs(walmart_path)
+            _LOGGER.debug("Created Walmart directory: %s", walmart_path)
+        except Exception as err:
+            _LOGGER.error("Error creating Walmart directory: %s", str(err))
 
     # Check if UPS image file exists
     ups_image_path = f"{ups_path}{ups_image_name}"
@@ -269,6 +292,22 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
             _LOGGER.error("Error creating default UPS image: %s", str(err))
     else:
         _LOGGER.debug("UPS image file exists: %s", ups_image_path)
+
+    # Check if Walmart image file exists
+    walmart_image_path = f"{walmart_path}{walmart_image_name}"
+    if not os.path.exists(walmart_image_path):
+        _LOGGER.debug(
+            "Walmart image file does not exist, creating default: %s",
+            walmart_image_path,
+        )
+        try:
+            nomail = f"{os.path.dirname(__file__)}/no_deliveries_walmart.jpg"
+            copyfile(nomail, walmart_image_path)
+            _LOGGER.debug("Created default Walmart image: %s", walmart_image_path)
+        except Exception as err:
+            _LOGGER.error("Error creating default Walmart image: %s", str(err))
+    else:
+        _LOGGER.debug("Walmart image file exists: %s", walmart_image_path)
 
     image_path = default_image_path(hass, config)
     _LOGGER.debug("Image path: %s", image_path)
@@ -326,12 +365,18 @@ def image_file_name(
     config: ConfigEntry,
     amazon: bool = False,
     ups: bool = False,
+    walmart: bool = False,
 ) -> str:
     """Determine if filename is to be changed or not.
 
     Returns filename
     """
-    _LOGGER.debug("image_file_name called - amazon: %s, ups: %s", amazon, ups)
+    _LOGGER.debug(
+        "image_file_name called - amazon: %s, ups: %s, walmart: %s",
+        amazon,
+        ups,
+        walmart,
+    )
     mail_none = None
     path = None
     image_name = None
@@ -359,6 +404,20 @@ def image_file_name(
         image_name = os.path.split(mail_none)[1]
         path = f"{hass.config.path()}/{default_image_path(hass, config)}ups"
         _LOGGER.debug("UPS path: %s", path)
+    elif walmart:
+        _LOGGER.debug("Processing Walmart image file name")
+        if config.get(CONF_WALMART_CUSTOM_IMG):
+            mail_none = (
+                config.get(CONF_WALMART_CUSTOM_IMG_FILE)
+                or DEFAULT_WALMART_CUSTOM_IMG_FILE
+            )
+            _LOGGER.debug("Using custom Walmart image: %s", mail_none)
+        else:
+            mail_none = f"{os.path.dirname(__file__)}/no_deliveries_walmart.jpg"
+            _LOGGER.debug("Using default Walmart image: %s", mail_none)
+        image_name = os.path.split(mail_none)[1]
+        path = f"{hass.config.path()}/{default_image_path(hass, config)}walmart"
+        _LOGGER.debug("Walmart path: %s", path)
     else:
         path = f"{hass.config.path()}/{default_image_path(hass, config)}"
         if config.get(CONF_CUSTOM_IMG):
@@ -398,7 +457,6 @@ def image_file_name(
                 )
                 return image_name
             today = get_formatted_date()
-            _LOGGER.debug("Created: %s, Today: %s", created, today)
             # If image isn't mail_none and not created today,
             # return a new filename
             if sha1 != hash_file(os.path.join(path, file)) and today != created:
@@ -467,7 +525,7 @@ def fetch(
     amazon_fwds = cv.ensure_list_csv(config.get(CONF_AMAZON_FWDS))
     image_name = data[ATTR_IMAGE_NAME]
     amazon_image_name = data[ATTR_AMAZON_IMAGE]
-    amazon_days = config.get(CONF_AMAZON_DAYS)
+    amazon_days = config.get(CONF_AMAZON_DAYS, DEFAULT_AMAZON_DAYS)
 
     # Combine the amazon forwarded emails with the configured forwarded emails (for now)
     forwarded_emails = amazon_fwds + cv.ensure_list_csv(
@@ -537,7 +595,6 @@ def fetch(
             True,
             amazon_domain=amazon_domain,
             data=data,
-            config=config,
             forwarded_emails=forwarded_emails,
         )
         count[sensor] = max(0, info[ATTR_COUNT] - delivered)
@@ -596,7 +653,6 @@ def fetch(
             amazon_domain,
             forwarded_emails,
             data=data,
-            config=config,
         )[ATTR_COUNT]
 
     data.update(count)
@@ -690,14 +746,11 @@ def build_search(address: list, date: str, subject: str = None) -> tuple:
     prefix_list = None
     email_list = None
 
-    if isinstance(address, list):
-        if len(address) == 1:
-            email_list = address[0]
-        else:
-            email_list = '" FROM "'.join(address)
-            prefix_list = " ".join(["OR"] * (len(address) - 1))
+    if len(address) == 1:
+        email_list = address[0]
     else:
-        email_list = address
+        email_list = '" FROM "'.join(address)
+        prefix_list = " ".join(["OR"] * (len(address) - 1))
 
     _LOGGER.debug("DEBUG subject: %s", subject)
 
@@ -763,9 +816,14 @@ def email_search(
 
 
 def email_fetch(
-    account: Type[imaplib.IMAP4_SSL], num: int, parts: str = "(RFC822)"
+    account: Type[imaplib.IMAP4_SSL], num, parts: str = "(RFC822)"
 ) -> tuple:
     """Download specified email for parsing.
+
+    Args:
+        account: IMAP account instance
+        num: Email message ID (int, str, or bytes)
+        parts: Message parts to fetch
 
     Returns tuple
     """
@@ -773,8 +831,14 @@ def email_fetch(
     if account.host == "imap.mail.me.com":
         parts = "BODY[]"
 
+    # Convert num to string for imaplib
+    if isinstance(num, bytes):
+        num_str = num.decode()
+    else:
+        num_str = str(num)
+
     try:
-        value = account.fetch(num, parts)
+        value = account.fetch(num_str, parts)
     except Exception as err:
         _LOGGER.error("Error fetching emails: %s", str(err))
         value = "BAD", err.args[0]
@@ -1140,7 +1204,6 @@ def get_count(
     amazon_domain: Optional[str] = None,
     forwarded_emails: list[str] = None,
     data: Optional[dict] = None,
-    config: Optional[ConfigEntry] = None,
 ) -> dict:
     """Get Package Count.
 
@@ -1174,7 +1237,7 @@ def get_count(
             data.get(ATTR_UPS_IMAGE, "ups_delivery.jpg") if data else "ups_delivery.jpg"
         )
         result[ATTR_COUNT] = ups_search(
-            account, image_path, hass, ups_image_name, config, data, forwarded_emails
+            account, image_path, hass, ups_image_name, data, forwarded_emails
         )
 
         # Extract tracking number if requested
@@ -1189,6 +1252,39 @@ def get_count(
             if server_response == "OK" and email_data[0] is not None:
                 tracking = get_tracking(
                     email_data[0], account, SENSOR_DATA["ups_tracking"][ATTR_PATTERN][0]
+                )
+                result[ATTR_TRACKING] = tracking
+            else:
+                result[ATTR_TRACKING] = []
+        else:
+            result[ATTR_TRACKING] = ""
+        return result
+
+    # Return Walmart delivered info
+    if sensor_type == "walmart_delivered":
+        walmart_image_name = (
+            data.get(ATTR_WALMART_IMAGE, "walmart_delivery.jpg")
+            if data
+            else "walmart_delivery.jpg"
+        )
+        result[ATTR_COUNT] = walmart_search(
+            account, image_path, hass, walmart_image_name, data
+        )
+
+        # Extract tracking number if requested
+        if get_tracking_num:
+            # Search for Walmart delivered emails to extract tracking numbers
+            (server_response, email_data) = email_search(
+                account,
+                SENSOR_DATA["walmart_delivered"][ATTR_EMAIL],
+                today,
+                SENSOR_DATA["walmart_delivered"][ATTR_SUBJECT][0],
+            )
+            if server_response == "OK" and email_data[0] is not None:
+                tracking = get_tracking(
+                    email_data[0],
+                    account,
+                    SENSOR_DATA["walmart_tracking"][ATTR_PATTERN][0],
                 )
                 result[ATTR_TRACKING] = tracking
             else:
@@ -1411,7 +1507,6 @@ def ups_search(
     image_path: str,
     hass: HomeAssistant,
     ups_image_name: str,
-    config: Optional[ConfigEntry] = None,
     coordinator_data: Optional[dict] = None,
     forwarded_emails: Optional[dict] = None,
 ) -> int:
@@ -1444,20 +1539,16 @@ def ups_search(
         # Still need to create no-delivery image and update coordinator data
         if count == 0:
             _LOGGER.debug("No UPS deliveries found.")
-            # Generate a new filename for the no-delivery image
-            if config:
-                no_delivery_filename = image_file_name(hass, config, ups=True)
-            else:
-                no_delivery_filename = f"{str(uuid.uuid4())}.jpg"
+            # Use the provided ups_image_name for the no-delivery image
             nomail = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
             try:
-                copyfile(nomail, f"{image_path}ups/" + no_delivery_filename)
+                copyfile(nomail, f"{image_path}ups/" + ups_image_name)
                 # Update coordinator data with the no-delivery filename
                 if coordinator_data is not None:
-                    coordinator_data[ATTR_UPS_IMAGE] = no_delivery_filename
+                    coordinator_data[ATTR_UPS_IMAGE] = ups_image_name
                     _LOGGER.debug(
                         "Updated coordinator data with no-delivery UPS image: %s",
-                        no_delivery_filename,
+                        ups_image_name,
                     )
             except Exception as err:
                 _LOGGER.error("Error attempting to copy image: %s", str(err))
@@ -1508,6 +1599,110 @@ def ups_search(
     return count
 
 
+def walmart_search(
+    account: Type[imaplib.IMAP4_SSL],
+    image_path: str,
+    hass: HomeAssistant,
+    walmart_image_name: str,
+    coordinator_data: Optional[dict] = None,
+) -> int:
+    """Search for Walmart delivery emails and extract delivery photos."""
+    _LOGGER.debug("Searching for Walmart delivery emails")
+    _LOGGER.debug("Walmart image name: %s", walmart_image_name)
+
+    today = get_formatted_date()
+    count = 0
+    new_image_saved = False
+
+    # Search for Walmart delivered emails - try all subjects
+    emails_found = []
+    for subject in SENSOR_DATA["walmart_delivered"][ATTR_SUBJECT]:
+        _LOGGER.debug("Searching for Walmart emails with subject: %s", subject)
+        (server_response, data) = email_search(
+            account,
+            SENSOR_DATA["walmart_delivered"][ATTR_EMAIL],
+            today,
+            subject,
+        )
+        _LOGGER.debug("Walmart email search response: %s", server_response)
+        _LOGGER.debug("Walmart email search data: %s", data)
+
+        if server_response == "OK" and data[0] is not None and data[0] != b"":
+            # Only add emails we haven't seen before (deduplicate)
+            for email_id in data:
+                if email_id not in emails_found:
+                    emails_found.append(email_id)
+            _LOGGER.debug("Found Walmart emails with subject '%s': %s", subject, data)
+
+    if not emails_found or all(
+        email_id == b"" or email_id is None for email_id in emails_found
+    ):
+        _LOGGER.debug("No Walmart delivery emails found")
+        # Still need to create no-delivery image and update coordinator data
+        if count == 0:
+            _LOGGER.debug("No Walmart deliveries found.")
+            nomail = f"{os.path.dirname(__file__)}/no_deliveries_walmart.jpg"
+            try:
+                copyfile(nomail, f"{image_path}walmart/" + walmart_image_name)
+                # Update coordinator data with the no-delivery filename
+                if coordinator_data is not None:
+                    coordinator_data[ATTR_WALMART_IMAGE] = walmart_image_name
+                    _LOGGER.debug(
+                        "Updated coordinator data with no-delivery Walmart image: %s",
+                        walmart_image_name,
+                    )
+            except Exception as err:
+                _LOGGER.error("Error attempting to copy image: %s", str(err))
+        return count
+
+    # Check if the path exists, if not make it
+    walmart_path = f"{image_path}walmart/"
+    if not os.path.isdir(walmart_path):
+        try:
+            os.makedirs(walmart_path)
+        except Exception as err:
+            _LOGGER.critical("Error creating directory: %s", str(err))
+            return count
+
+    # Clean up image directory
+    cleanup_images(walmart_path)
+
+    # Process all found emails
+    for email_data in emails_found:
+        if email_data and email_data != b"":
+            for num in email_data.split():
+                _LOGGER.debug("Processing Walmart email number: %s", num)
+                msg = email_fetch(account, num, "(RFC822)")[1]
+                for response_part in msg:
+                    if isinstance(response_part, tuple):
+                        sdata = response_part[1].decode("utf-8", "ignore")
+                        _LOGGER.debug("Calling get_walmart_image for email %s", num)
+                        # Count the delivery email (regardless of photo extraction)
+                        count += 1
+                        # Check if a Walmart delivery photo was successfully saved
+                        if get_walmart_image(
+                            sdata, account, image_path, hass, walmart_image_name
+                        ):
+                            new_image_saved = True
+
+    # If a new image was saved, update the coordinator data with the actual filename
+    if new_image_saved and coordinator_data is not None:
+        # Find the actual file that was created
+        for file in os.listdir(walmart_path):
+            if file.endswith(".jpg"):
+                actual_filename = file
+                _LOGGER.debug("Found actual Walmart image file: %s", actual_filename)
+                # Update the coordinator data with the actual filename
+                coordinator_data[ATTR_WALMART_IMAGE] = actual_filename
+                _LOGGER.debug(
+                    "Updated coordinator data with Walmart image: %s", actual_filename
+                )
+                break
+
+    _LOGGER.debug("Walmart delivery photos extracted: %s", count)
+    return count
+
+
 def amazon_search(
     account: Type[imaplib.IMAP4_SSL],
     image_path: str,
@@ -1549,6 +1744,7 @@ def amazon_search(
                 email_count,
             )
             _LOGGER.debug("Email IDs found: %s", data[0])
+
             get_amazon_image(
                 data[0],
                 account,
@@ -1672,6 +1868,100 @@ def get_ups_image(  # pylint: disable=too-many-return-statements
     return False
 
 
+def get_walmart_image(  # pylint: disable=too-many-return-statements
+    sdata: Any,
+    account: Type[imaplib.IMAP4_SSL],  # pylint: disable=unused-argument
+    image_path: str,
+    hass: HomeAssistant,  # pylint: disable=unused-argument
+    image_name: str,  # pylint: disable=unused-argument
+) -> bool:
+    """Extract Walmart delivery photo from email.
+
+    Returns True if a photo was successfully saved, False otherwise.
+    """
+    _LOGGER.debug("Attempting to extract Walmart delivery photo")
+
+    msg = email.message_from_string(sdata)
+
+    walmart_path = f"{image_path}walmart/"
+
+    # First pass: look for CID embedded images
+    cid_images = {}
+    for part in msg.walk():
+        if part.get_content_type() == "image/png":
+            content_id = part.get("Content-ID")
+            if content_id:
+                # Remove < > from Content-ID
+                cid = content_id.strip("<>")
+                _LOGGER.debug("Found CID embedded image: %s", cid)
+                cid_images[cid] = part.get_payload(decode=True)
+
+    # Second pass: look for HTML content with CID references
+    for part in msg.walk():
+        if part.get_content_type() == "text/html":
+            _LOGGER.debug("Processing HTML content for Walmart delivery photo")
+            part_content = part.get_payload(decode=True)
+            part_content = part_content.decode("utf-8", "ignore")
+
+            # Look for delivery proof in HTML content
+            if "deliveryProofLabel" in part_content:
+                _LOGGER.debug("Found delivery proof reference in HTML")
+
+                # Check if we have the corresponding CID image
+                if "deliveryProofLabel" in cid_images:
+                    _LOGGER.debug("Found matching CID image for deliveryProofLabel")
+                    try:
+                        with open(walmart_path + image_name, "wb") as the_file:
+                            the_file.write(cid_images["deliveryProofLabel"])
+                        _LOGGER.debug(
+                            "Walmart delivery photo saved from CID: %s", image_name
+                        )
+                        return True
+                    except Exception as err:
+                        _LOGGER.error(
+                            "Error saving Walmart delivery photo from CID: %s", str(err)
+                        )
+                        return False
+
+                # Fallback: look for base64 encoded images
+                base64_pattern = r"data:image/png;base64,([A-Za-z0-9+/=]+)"
+                matches = re.findall(base64_pattern, part_content)
+
+                if matches:
+                    _LOGGER.debug("Found base64 encoded Walmart delivery photo")
+                    try:
+                        with open(walmart_path + image_name, "wb") as the_file:
+                            the_file.write(base64.b64decode(matches[0]))
+                        _LOGGER.debug(
+                            "Walmart delivery photo saved from base64: %s", image_name
+                        )
+                        return True
+                    except Exception as err:
+                        _LOGGER.error(
+                            "Error saving Walmart delivery photo from base64: %s",
+                            str(err),
+                        )
+                        return False
+
+    # Third pass: look for regular PNG attachments
+    for part in msg.walk():
+        if part.get_content_type() == "image/png":
+            filename = part.get_filename()
+            if filename:
+                _LOGGER.debug("Found Walmart delivery photo attachment: %s", filename)
+                try:
+                    with open(walmart_path + image_name, "wb") as the_file:
+                        the_file.write(part.get_payload(decode=True))
+                    _LOGGER.debug("Walmart delivery photo saved: %s", image_name)
+                    return True
+                except Exception as err:
+                    _LOGGER.error("Error saving Walmart delivery photo: %s", str(err))
+                    return False
+
+    _LOGGER.debug("No Walmart delivery photo found in email")
+    return False
+
+
 def get_amazon_image(
     sdata: Any,
     account: Type[imaplib.IMAP4_SSL],
@@ -1740,7 +2030,8 @@ async def download_img(
 def _process_amazon_forwards(email_list: str | list | None) -> list:
     """Process amazon forward emails.
 
-    Returns list of email addresses
+    Returns list of email addresses that are actually Amazon domains.
+    This filters out non-Amazon forwarded addresses to prevent false matches.
     """
     result = []
     if email_list is not None:
@@ -1748,7 +2039,14 @@ def _process_amazon_forwards(email_list: str | list | None) -> list:
             email_list = email_list.split()
         for fwd in email_list:
             if fwd and fwd != '""' and fwd not in result:
-                result.append(fwd)
+                # Only include forwarded addresses if they are actual Amazon domains
+                if any(
+                    amazon_domain in fwd.lower() for amazon_domain in AMAZON_DOMAINS
+                ):
+                    result.append(fwd)
+                    _LOGGER.debug("Including Amazon forwarded address: %s", fwd)
+                else:
+                    _LOGGER.debug("Filtering out non-Amazon forwarded address: %s", fwd)
 
     _LOGGER.debug("Processed forwards: %s", result)
     return result
@@ -1992,16 +2290,53 @@ def get_items(
     past_date = datetime.date.today() - datetime.timedelta(days=days)
     tfmt = past_date.strftime("%d-%b-%Y")
     deliveries_today = []
-    order_number = []
     amazon_delivered = []
+
+    # Track packages that are arriving today
+    packages_arriving_today = {}  # {order_id: count}
+    delivered_packages = {}  # {order_id: count}
+    all_shipped_orders = set()  # Track all shipped order numbers
 
     address_list = amazon_email_addresses(fwds, the_domain)
     _LOGGER.debug("Amazon email list: %s", str(address_list))
 
     (server_response, sdata) = email_search(account, address_list, tfmt)
 
+    # Search for Amazon emails with relevant subjects to avoid false matches
+    amazon_subjects = (
+        AMAZON_DELIVERED_SUBJECT + AMAZON_SHIPMENT_SUBJECT + AMAZON_ORDERED_SUBJECT
+    )
+    all_emails = []
+
+    for subject in amazon_subjects:
+        _LOGGER.debug("Searching for Amazon emails with subject: %s", subject)
+        (server_response, sdata) = email_search(account, address_list, tfmt, subject)
+        if server_response == "OK" and sdata[0] is not None:
+            email_ids = sdata[0].split()
+            _LOGGER.debug("Found %s emails for subject '%s'", len(email_ids), subject)
+            all_emails.extend(email_ids)
+
+    # Remove duplicates while preserving order
+    unique_emails = []
+    for email_id in all_emails:
+        if email_id not in unique_emails:
+            unique_emails.append(email_id)
+
+    _LOGGER.debug("Total unique Amazon emails found: %s", len(unique_emails))
+
+    # Ensure all email IDs are byte strings for proper joining
+    unique_emails_bytes = []
+    for email_id in unique_emails:
+        if isinstance(email_id, bytes):
+            unique_emails_bytes.append(email_id)
+        else:
+            unique_emails_bytes.append(str(email_id).encode("utf-8"))
+
+    # Simulate the original sdata format
+    sdata = ("OK", [b" ".join(unique_emails_bytes)])
+
     if server_response == "OK":
-        mail_ids = sdata[0]
+        mail_ids = sdata[1][0]
         id_list = mail_ids.split()
         _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
         for i in id_list:
@@ -2014,9 +2349,25 @@ def get_items(
                     email_date_str = msg.get("Date")
                     email_date = None
                     if email_date_str:
-                        email_date = email.utils.parsedate_to_datetime(
-                            email_date_str
-                        ).date()
+                        try:
+                            email_date = email.utils.parsedate_to_datetime(
+                                email_date_str
+                            ).date()
+                        except (ValueError, TypeError) as err:
+                            _LOGGER.debug(
+                                "Failed to parse email date '%s': %s",
+                                email_date_str,
+                                err,
+                            )
+                            # Try using dateparser as fallback
+                            parsed_date = dateparser.parse(email_date_str)
+                            if parsed_date:
+                                email_date = parsed_date.date()
+                            else:
+                                _LOGGER.debug(
+                                    "dateparser also failed to parse email date: %s",
+                                    email_date_str,
+                                )
                     _LOGGER.debug("Email from date: %s", str(email_date))
 
                     today_date = datetime.date.today()
@@ -2059,35 +2410,60 @@ def get_items(
                     # Order number pattern
                     pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
 
-                    # Skip delivered emails and record order numbers
+                    # Count delivered packages per order number
                     if any(
                         subj.lower() in email_subject.lower()
                         for subj in AMAZON_DELIVERED_SUBJECT
                     ):
+                        # First try to find order number in subject
                         delivered_orders = pattern.findall(email_subject)
+
+                        # If not found in subject, try to find in email body
+                        if not delivered_orders:
+                            try:
+                                if msg.is_multipart():
+                                    email_msg = quopri.decodestring(
+                                        str(msg.get_payload(0))
+                                    )
+                                else:
+                                    email_msg = quopri.decodestring(
+                                        str(msg.get_payload())
+                                    )
+                                email_msg = email_msg.decode("utf-8", "ignore")
+                                delivered_orders = pattern.findall(email_msg)
+                                _LOGGER.debug(
+                                    "Found order numbers in delivered email body: %s",
+                                    delivered_orders,
+                                )
+                            except Exception as err:
+                                _LOGGER.debug(
+                                    "Error parsing delivered email body: %s", str(err)
+                                )
+
                         if delivered_orders:
                             for o in delivered_orders:
+                                # Count delivered packages per order
+                                delivered_packages[o] = delivered_packages.get(o, 0) + 1
+                                _LOGGER.debug(
+                                    "Delivered package found for order %s (total delivered: %s)",
+                                    o,
+                                    delivered_packages[o],
+                                )
+                                # Keep backward compatibility
                                 if o not in amazon_delivered:
                                     amazon_delivered.append(o)
-                                    _LOGGER.debug(
-                                        "Delivered order found and stored: %s", o
-                                    )
                         else:
                             _LOGGER.debug(
-                                "Delivered email found, but no order number matched."
+                                "Delivered email found, but no order number found."
                             )
                         continue  # Skip processing this email
 
-                    # Extract order number from subject
-                    if (
-                        (found := pattern.findall(email_subject))
-                        and len(found) > 0
-                        and found[0] not in order_number
-                    ):
-                        order_number.append(found[0])
-                        _LOGGER.debug(
-                            "Amazon order number found and appended: %s", str(found[0])
-                        )
+                    # Extract order number from subject (for shipped emails)
+                    order_id = None
+                    if (found := pattern.findall(email_subject)) and len(found) > 0:
+                        order_id = found[0]
+                        all_shipped_orders.add(order_id)  # Track all shipped orders
+                        _LOGGER.debug("Found order ID in subject: %s", order_id)
 
                     # Try decoding email body
                     try:
@@ -2102,17 +2478,15 @@ def get_items(
 
                     email_msg = email_msg.decode("utf-8", "ignore")
 
-                    # Check message body for order number again
+                    # Check message body for order number again (for additional order detection)
                     if (
-                        (found := pattern.findall(email_msg))
+                        not order_id
+                        and (found := pattern.findall(email_msg))
                         and len(found) > 0
-                        and found[0] not in order_number
                     ):
-                        order_number.append(found[0])
-                        _LOGGER.debug(
-                            "Amazon order number found and appended again: %s",
-                            str(found[0]),
-                        )
+                        order_id = found[0]
+                        all_shipped_orders.add(order_id)  # Track all shipped orders
+                        _LOGGER.debug("Found order ID in body: %s", order_id)
 
                     # Check for arrival date
                     for search in AMAZON_TIME_PATTERN:
@@ -2186,12 +2560,25 @@ def get_items(
                                     arrive_date_clean,
                                 )
                                 continue
-                            parsed_date_only = dateobj.date()
+                            if hasattr(dateobj, "date"):
+                                parsed_date_only = dateobj.date()
+                            else:
+                                parsed_date_only = dateobj
 
                         if parsed_date_only == today_date:
-                            deliveries_today.append(
-                                found[0] if found else "Amazon Order"
-                            )
+                            # Count packages arriving today
+                            if order_id:
+                                packages_arriving_today[order_id] = (
+                                    packages_arriving_today.get(order_id, 0) + 1
+                                )
+                                _LOGGER.debug(
+                                    "Package arriving today for order %s (total: %s)",
+                                    order_id,
+                                    packages_arriving_today[order_id],
+                                )
+                            else:
+                                # Fallback for emails without order number
+                                deliveries_today.append("Amazon Order")
                         else:
                             _LOGGER.debug(
                                 "Delivery date not today: %s", parsed_date_only
@@ -2202,21 +2589,79 @@ def get_items(
         item for item in deliveries_today if item not in amazon_delivered
     ]
 
+    # Calculate packages arriving today minus delivered packages
+    final_count = 0
+    for order_id, arriving_count in packages_arriving_today.items():
+        delivered_count = delivered_packages.get(order_id, 0)
+        in_transit_count = max(0, arriving_count - delivered_count)
+        final_count += in_transit_count
+        _LOGGER.debug(
+            "Order %s: %s arriving today, %s delivered, %s in transit",
+            order_id,
+            arriving_count,
+            delivered_count,
+            in_transit_count,
+        )
+
+    # Add fallback for emails without order numbers
+    final_count += len(deliveries_today)
+
+    _LOGGER.debug(
+        "Amazon packages arriving today: %s", str(sum(packages_arriving_today.values()))
+    )
+    _LOGGER.debug(
+        "Amazon packages delivered: %s", str(sum(delivered_packages.values()))
+    )
+    _LOGGER.debug("Amazon final count: %s", str(final_count))
+
     # Return delivery count or list of order numbers
     value = None
     if param == "count":
-        _LOGGER.debug(
-            "Amazon Delivery Count (today, not delivered): %s",
-            str(len(deliveries_today)),
-        )
-        _LOGGER.debug("Amazon Order Count: %s", str(len(order_number)))
-        value = min(len(deliveries_today), len(order_number))
+        value = final_count
     else:
-        _LOGGER.debug("Amazon order: %s", str(order_number))
-        value = order_number
+        # Return list of all shipped order numbers
+        order_numbers = list(all_shipped_orders)
+        _LOGGER.debug("Amazon order: %s", str(order_numbers))
+        value = order_numbers
 
     _LOGGER.debug("Amazon value: %s", str(value))
     return value
+
+
+async def generate_delivery_gif(delivery_images: list, gif_path: str) -> bool:
+    """Generate an animated GIF from delivery images.
+
+    Args:
+        delivery_images: List of image file paths
+        gif_path: Path where the GIF should be saved
+
+    Returns:
+        bool: True if GIF was created successfully, False otherwise
+    """
+    try:
+        # Open all images
+        images = [Image.open(img_path) for img_path in delivery_images]
+
+        # Create animated GIF (3 seconds per image)
+        images[0].save(
+            gif_path,
+            format="GIF",
+            append_images=images[1:],
+            save_all=True,
+            duration=3000,  # 3 seconds per image
+            loop=0,  # Infinite loop
+        )
+
+        _LOGGER.debug(
+            "Generated animated GIF with %d delivery images at %s",
+            len(delivery_images),
+            gif_path,
+        )
+        return True
+
+    except Exception as e:
+        _LOGGER.error("Error creating animated GIF: %s", e)
+        return False
 
 
 def generate_service_email_domains(amazon_fwds: list) -> set[str]:
@@ -2251,5 +2696,6 @@ def validate_email_address(email_address: str) -> bool:
         _LOGGER.error("'%s' does not look like a valid email address", email_address)
         return False
 
-    _LOGGER.info("%s is a valid email address", email_address)
+    _LOGGER.debug("%s is a valid email address", email_address)
+
     return True

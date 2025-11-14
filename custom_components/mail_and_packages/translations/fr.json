@@ -41,6 +41,8 @@
           "custom_img": "Utiliser une image personnalisée USPS 'pas de courrier' ?",
           "amazon_custom_img": "Utiliser une image personnalisée Amazon 'pas de livraison' ?",
           "ups_custom_img": "Utiliser une image personnalisée UPS 'pas de livraison' ?",
+          "walmart_custom_img": "Utiliser une image personnalisée Walmart 'pas de livraison' ?",
+          "generic_custom_img": "Utiliser une image personnalisée générique 'pas de livraison' ?",
           "generate_grid": "Créer une grille d'images pour les modèles de vision LLM",
           "allow_forwarded_emails": "Autoriser les e-mails transférés en plus de la valeur par défaut d'un service (par exemple no-reply@usps.com)"
         },
@@ -89,6 +91,8 @@
           "custom_img": "Utiliser une image personnalisée USPS 'pas de courrier' ?",
           "amazon_custom_img": "Utiliser une image personnalisée Amazon 'pas de livraison' ?",
           "ups_custom_img": "Utiliser une image personnalisée UPS 'pas de livraison' ?",
+          "walmart_custom_img": "Utiliser une image personnalisée Walmart 'pas de livraison' ?",
+          "generic_custom_img": "Utiliser une image personnalisée générique 'pas de livraison' ?",
           "generate_grid": "Créer une grille d'images pour les modèles de vision LLM",
           "allow_forwarded_emails": "Autoriser les e-mails transférés en plus de la valeur par défaut d'un service (par exemple no-reply@usps.com)"
         },

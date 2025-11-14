@@ -41,6 +41,8 @@
           "custom_img": "Használjon egyéni USPS 'nincs posta' képet?",
           "amazon_custom_img": "Használjon egyéni Amazon 'nincs szállítás' képet?",
           "ups_custom_img": "Használjon egyéni UPS 'nincs szállítás' képet?",
+          "walmart_custom_img": "Használjon egyéni Walmart 'nincs szállítás' képet?",
+          "generic_custom_img": "Használjon egyéni általános 'nincs szállítás' képet?",
           "generate_grid": "Kép rács létrehozása LLM látásmodellekhez",
           "allow_forwarded_emails": "Továbbított e-mailek engedélyezése a szolgáltatás alapértelmezett értékei mellett (pl. no-reply@usps.com)"
         },
@@ -89,6 +91,8 @@
           "custom_img": "Használjon egyéni USPS 'nincs posta' képet?",
           "amazon_custom_img": "Használjon egyéni Amazon 'nincs szállítás' képet?",
           "ups_custom_img": "Használjon egyéni UPS 'nincs szállítás' képet?",
+          "walmart_custom_img": "Használjon egyéni Walmart 'nincs szállítás' képet?",
+          "generic_custom_img": "Használjon egyéni általános 'nincs szállítás' képet?",
           "generate_grid": "Kép rács létrehozása LLM látásmodellekhez",
           "allow_forwarded_emails": "Továbbított e-mailek engedélyezése a szolgáltatás alapértelmezett értékei mellett (pl. no-reply@usps.com)"
         },

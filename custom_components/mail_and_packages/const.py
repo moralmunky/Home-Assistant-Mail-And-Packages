@@ -18,7 +18,7 @@ COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
 SERVICE_UPDATE_FILE_PATH = "update_file_path"
 CAMERA = "cameras"
-CONFIG_VER = 11
+CONFIG_VER = 12
 
 # Attributes
 ATTR_AMAZON_IMAGE = "amazon_image"
@@ -39,6 +39,8 @@ ATTR_BODY_COUNT = "body_count"
 ATTR_PATTERN = "pattern"
 ATTR_USPS_MAIL = "usps_mail"
 ATTR_UPS_IMAGE = "ups_image"
+ATTR_WALMART_IMAGE = "walmart_image"
+ATTR_GENERIC_IMAGE = "generic_image"
 
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"
@@ -49,6 +51,10 @@ CONF_AMAZON_CUSTOM_IMG = "amazon_custom_img"
 CONF_AMAZON_CUSTOM_IMG_FILE = "amazon_custom_img_file"
 CONF_UPS_CUSTOM_IMG = "ups_custom_img"
 CONF_UPS_CUSTOM_IMG_FILE = "ups_custom_img_file"
+CONF_WALMART_CUSTOM_IMG = "walmart_custom_img"
+CONF_WALMART_CUSTOM_IMG_FILE = "walmart_custom_img_file"
+CONF_GENERIC_CUSTOM_IMG = "generic_custom_img"
+CONF_GENERIC_CUSTOM_IMG_FILE = "generic_custom_img_file"
 CONF_STORAGE = "storage"
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
@@ -88,6 +94,14 @@ DEFAULT_AMAZON_CUSTOM_IMG_FILE = (
 DEFAULT_UPS_CUSTOM_IMG = False
 DEFAULT_UPS_CUSTOM_IMG_FILE = (
     "custom_components/mail_and_packages/no_deliveries_ups.jpg"
+)
+DEFAULT_WALMART_CUSTOM_IMG = False
+DEFAULT_WALMART_CUSTOM_IMG_FILE = (
+    "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
+)
+DEFAULT_GENERIC_CUSTOM_IMG = False
+DEFAULT_GENERIC_CUSTOM_IMG_FILE = (
+    "custom_components/mail_and_packages/no_deliveries_generic.jpg"
 )
 DEFAULT_AMAZON_DAYS = 3
 DEFAULT_AMAZON_DOMAIN = "amazon.com"
@@ -164,6 +178,7 @@ AMAZON_TIME_PATTERN = [
     "Arriving:",
     "Arriverà:",
     "arriving:",
+    "Arriving ",
     "Dostawa:",
     "Entrega:",
     "A chegar:",
@@ -190,6 +205,7 @@ AMAZON_TIME_PATTERN_REGEX = [
     "Arriving (\\w+ \\d+) - (\\w+ \\d+)",
     "Arriving (\\w+ \\d+)",
     "Arriving (\\w+ ?\\d*)",
+    "Arriving (\\w+)",
     "Zustellung (\\w+ \\d+) - (\\w+ \\d+)",
     "Zustellung (\\w+ \\d+)",
     "Zustellung (\\w+ \\d*)",
@@ -345,7 +361,7 @@ SENSOR_DATA = {
     "capost_mail": {
         "email": ["donotreply-nepasrepondre@communications.canadapost-postescanada.ca"],
         "subject": ["You have mail on the way"],
-        "body": ["\\sYou have (\\d) pieces of mail\\s"],
+        "body": ["\\sYou have (\\d) piece|pieces of mail\\s"],
         "body_count": True,
     },
     # DHL
@@ -686,7 +702,7 @@ SENSOR_DATA = {
     # Walmart
     "walmart_delivering": {
         "email": ["help@walmart.com"],
-        "subject": ["Out for delivery"],
+        "subject": ["Out for delivery", "Your package should arrive by"],
     },
     "walmart_delivered": {
         "email": ["help@walmart.com"],
@@ -701,7 +717,7 @@ SENSOR_DATA = {
         "email": ["help@walmart.com"],
         "subject": ["delivery is delayed"],
     },
-    "walmart_tracking": {"pattern": ["#[0-9]{7}-[0-9]{7,8}"]},
+    "walmart_tracking": {"pattern": [r"\b#?[0-9]{7}-[0-9]{7,8}\b"]},
     # BuildingLink
     "buildinglink_delivered": {
         "email": ["notify@buildinglink.com"],
@@ -1326,6 +1342,8 @@ CAMERA_DATA = {
     "usps_camera": ["Mail USPS Camera"],
     "ups_camera": ["Mail UPS Camera"],
     "amazon_camera": ["Mail Amazon Delivery Camera"],
+    "walmart_camera": ["Mail Walmart Camera"],
+    "generic_camera": ["Mail Generic Delivery Camera"],
 }
 
 # Sensor Index
@@ -1341,6 +1359,7 @@ SHIPPERS = [
     "fedex",
     "ups",
     "usps",
+    "walmart",
     "hermes",
     "royal",
     "auspost",

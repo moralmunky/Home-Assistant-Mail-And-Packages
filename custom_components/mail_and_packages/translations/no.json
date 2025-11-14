@@ -41,6 +41,8 @@
           "custom_img": "Bruk tilpasset USPS 'ingen post' bilde?",
           "amazon_custom_img": "Bruk tilpasset Amazon 'ingen levering' bilde?",
           "ups_custom_img": "Bruk tilpasset UPS 'ingen levering' bilde?",
+          "walmart_custom_img": "Bruk tilpasset Walmart 'ingen levering' bilde?",
+          "generic_custom_img": "Bruk tilpasset generisk 'ingen levering' bilde?",
           "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller",
           "allow_forwarded_emails": "Tillat videresendte e-poster i tillegg til en tjenestes standard (f.eks. no-reply@usps.com)"
         },
@@ -89,6 +91,8 @@
           "custom_img": "Bruk tilpasset USPS 'ingen post' bilde?",
           "amazon_custom_img": "Bruk tilpasset Amazon 'ingen levering' bilde?",
           "ups_custom_img": "Bruk tilpasset UPS 'ingen levering' bilde?",
+          "walmart_custom_img": "Bruk tilpasset Walmart 'ingen levering' bilde?",
+          "generic_custom_img": "Bruk tilpasset generisk 'ingen levering' bilde?",
           "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller",
           "allow_forwarded_emails": "Tillat videresendte e-poster i tillegg til en tjenestes standard (f.eks. no-reply@usps.com)"
         },

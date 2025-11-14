@@ -41,6 +41,8 @@
           "custom_img": "사용자 정의 USPS '우편 없음' 이미지를 사용하시겠습니까?",
           "amazon_custom_img": "사용자 정의 Amazon '배송 없음' 이미지를 사용하시겠습니까?",
           "ups_custom_img": "사용자 정의 UPS '배송 없음' 이미지를 사용하시겠습니까?",
+          "walmart_custom_img": "사용자 정의 Walmart '배송 없음' 이미지를 사용하시겠습니까?",
+          "generic_custom_img": "사용자 정의 일반 '배송 없음' 이미지를 사용하시겠습니까?",
           "generate_grid": "LLM 비전 모델을 위한 이미지 그리드 생성",
           "allow_forwarded_emails": "서비스 기본값 외에 전달된 이메일을 허용합니다(예: no-reply@usps.com)."
         },
@@ -89,6 +91,8 @@
           "custom_img": "사용자 정의 USPS '우편 없음' 이미지를 사용하시겠습니까?",
           "amazon_custom_img": "사용자 정의 Amazon '배송 없음' 이미지를 사용하시겠습니까?",
           "ups_custom_img": "사용자 정의 UPS '배송 없음' 이미지를 사용하시겠습니까?",
+          "walmart_custom_img": "사용자 정의 Walmart '배송 없음' 이미지를 사용하시겠습니까?",
+          "generic_custom_img": "사용자 정의 일반 '배송 없음' 이미지를 사용하시겠습니까?",
           "generate_grid": "LLM 비전 모델을 위한 이미지 그리드 생성",
           "allow_forwarded_emails": "서비스 기본값 외에 전달된 이메일을 허용합니다(예: no-reply@usps.com)."
         },

@@ -41,6 +41,8 @@
           "custom_img": "Gebruik aangepaste USPS 'geen post' afbeelding?",
           "amazon_custom_img": "Gebruik aangepaste Amazon 'geen levering' afbeelding?",
           "ups_custom_img": "Gebruik aangepaste UPS 'geen levering' afbeelding?",
+          "walmart_custom_img": "Gebruik aangepaste Walmart 'geen levering' afbeelding?",
+          "generic_custom_img": "Gebruik aangepaste generieke 'geen levering' afbeelding?",
           "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen",
           "allow_forwarded_emails": "Doorgestuurde e-mails toestaan ​​als aanvulling op de standaardservice (bijvoorbeeld no-reply@usps.com)"
         },
@@ -89,6 +91,8 @@
           "custom_img": "Gebruik aangepaste USPS 'geen post' afbeelding?",
           "amazon_custom_img": "Gebruik aangepaste Amazon 'geen levering' afbeelding?",
           "ups_custom_img": "Gebruik aangepaste UPS 'geen levering' afbeelding?",
+          "walmart_custom_img": "Gebruik aangepaste Walmart 'geen levering' afbeelding?",
+          "generic_custom_img": "Gebruik aangepaste generieke 'geen levering' afbeelding?",
           "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen",
           "allow_forwarded_emails": "Doorgestuurde e-mails toestaan ​​als aanvulling op de standaardservice (bijvoorbeeld no-reply@usps.com)"
         },

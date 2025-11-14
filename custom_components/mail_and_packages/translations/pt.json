@@ -41,6 +41,8 @@
           "custom_img": "Usar imagem personalizada USPS 'sem correio'?",
           "amazon_custom_img": "Usar imagem personalizada Amazon 'sem entrega'?",
           "ups_custom_img": "Usar imagem personalizada UPS 'sem entrega'?",
+          "walmart_custom_img": "Usar imagem personalizada Walmart 'sem entrega'?",
+          "generic_custom_img": "Usar imagem personalizada genérica 'sem entrega'?",
           "generate_grid": "Criar grade de imagens para modelos de visão LLM",
           "allow_forwarded_emails": "Permitir e-mails encaminhados além do padrão de um serviço (por exemplo, no-reply@usps.com)"
         },
@@ -89,6 +91,8 @@
           "custom_img": "Usar imagem personalizada USPS 'sem correio'?",
           "amazon_custom_img": "Usar imagem personalizada Amazon 'sem entrega'?",
           "ups_custom_img": "Usar imagem personalizada UPS 'sem entrega'?",
+          "walmart_custom_img": "Usar imagem personalizada Walmart 'sem entrega'?",
+          "generic_custom_img": "Usar imagem personalizada genérica 'sem entrega'?",
           "generate_grid": "Criar grade de imagens para modelos de visão LLM",
           "allow_forwarded_emails": "Permitir e-mails encaminhados além do padrão de um serviço (por exemplo, no-reply@usps.com)"
         },

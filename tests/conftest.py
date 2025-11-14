@@ -130,7 +130,7 @@ async def integration_fixture_4(hass, caplog):
     await hass.async_block_till_done()
 
     assert "Migrating from version 3" in caplog.text
-    assert "Migration complete to version 11" in caplog.text
+    assert "Migration complete to version 12" in caplog.text
 
     assert CONF_AMAZON_DOMAIN in entry.data
 
@@ -314,6 +314,65 @@ def mock_imap_no_email():
         mock_conn.uid.return_value = ("OK", [b""])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.enable.return_value = ("OK", [])
+
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_amazon_duplicate_orders():
+    """Mock imap class for Amazon duplicate order emails."""
+    with patch("custom_components.mail_and_packages.helpers.imaplib") as mock_imap:
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
+        mock_imap.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1 2"])  # Two emails found
+        mock_conn.uid.return_value = ("OK", [b"1 2"])
+        mock_conn.select.return_value = ("OK", [])
+        mock_conn.enable.return_value = ("OK", [])
+
+        # Mock fetch to return our test emails
+        def fetch_side_effect(email_id, parts):
+            if email_id == "1":
+                content = """From: auto-confirm@amazon.com
+To: test@example.com
+Subject: Delivered: Your Amazon.com order #113-4567890-1234567
+Date: Tue, 29 Oct 2025 10:00:00 -0700
+Message-ID: <test1@amazon.com>
+Content-Type: text/html; charset=UTF-8
+
+<html>
+<body>
+<p>Your package has been delivered.</p>
+<p>Order #113-4567890-1234567</p>
+</body>
+</html>"""
+                return ("OK", [(b"", content.encode())])
+            elif email_id == "2":
+                content = """From: auto-confirm@amazon.com
+To: test@example.com
+Subject: Delivered: Your Amazon.com order #113-4567890-1234567
+Date: Tue, 29 Oct 2025 10:30:00 -0700
+Message-ID: <test2@amazon.com>
+Content-Type: text/html; charset=UTF-8
+
+<html>
+<body>
+<p>Your package has been delivered (duplicate email).</p>
+<p>Order #113-4567890-1234567</p>
+</body>
+</html>"""
+                return ("OK", [(b"", content.encode())])
+            return ("OK", [None])
+
+        mock_conn.fetch.side_effect = fetch_side_effect
 
         yield mock_conn
 
@@ -1921,6 +1980,87 @@ def mock_imap_amazon_arriving_today():
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
         f = open("tests/test_emails/amazon_out_for_delivery_today.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_amazon_arriving_tomorrow():
+    """Mock imap class values for Amazon arriving tomorrow email."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_amazon_arriving_tomorrow:
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
+        mock_imap_amazon_arriving_tomorrow.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/amazon_arriving_today2.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_walmart_delivered_with_photo():
+    """Mock imap class values for Walmart delivered with photo."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_walmart_delivered_with_photo:
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
+        mock_imap_walmart_delivered_with_photo.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/walmart_delivered.eml", "r")
+        email_file = f.read()
+        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
+        mock_conn.select.return_value = ("OK", [])
+
+        yield mock_conn
+
+
+@pytest.fixture()
+def mock_imap_walmart_delivering():
+    """Mock imap class values for Walmart delivering."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib"
+    ) as mock_imap_walmart_delivering:
+        mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
+        mock_imap_walmart_delivering.IMAP4_SSL.return_value = mock_conn
+
+        mock_conn.login.return_value = (
+            "OK",
+            [b"user@fake.email authenticated (Success)"],
+        )
+        mock_conn.list.return_value = (
+            "OK",
+            [b'(\\HasNoChildren) "/" "INBOX"'],
+        )
+        mock_conn.search.return_value = ("OK", [b"1"])
+        mock_conn.uid.return_value = ("OK", [b"1"])
+        f = open("tests/test_emails/walmart_delivery.eml", "r")
         email_file = f.read()
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])

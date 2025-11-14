@@ -41,6 +41,8 @@
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
           "ups_custom_img": "Use custom 'no UPS delivery' image?",
+          "walmart_custom_img": "Use custom 'no Walmart delivery' image?",
+          "generic_custom_img": "Use custom 'no Generic delivery' image?",
           "generate_grid": "Create image grid for LLM vision models",
           "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
         },
@@ -89,6 +91,8 @@
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
           "ups_custom_img": "Use custom 'no UPS delivery' image?",
+          "walmart_custom_img": "Use custom 'no Walmart delivery' image?",
+          "generic_custom_img": "Use custom 'no Generic delivery' image?",
           "generate_grid": "Create image grid for LLM vision models",
           "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
         },
