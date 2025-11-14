@@ -34,7 +34,7 @@ from custom_components.mail_and_packages.const import (
     CONFIG_VER,
     DOMAIN,
 )
-from custom_components.mail_and_packages.helpers import _check_ffmpeg, _test_login
+from custom_components.mail_and_packages.helpers import _check_ffmpeg, _test_login, NO_SSL
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
 
 _LOGGER = logging.getLogger(__name__)
@@ -1595,6 +1595,23 @@ async def test_imap_login(mock_imap):
         "127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword", "SSL", False
     )
     assert result
+
+
+@pytest.mark.asyncio
+async def test_imap_login_with_starttls(mock_imap):
+    result = await _test_login(
+        "127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword", "startTLS", False
+    )
+    assert result
+
+
+@pytest.mark.asyncio
+async def test_imap_login_without_ssl(mock_imap, caplog):
+    result = await _test_login(
+        "127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword", "", False
+    )
+    assert result
+    assert NO_SSL in caplog.text
 
 
 @pytest.mark.asyncio
@@ -5728,6 +5745,7 @@ async def test_config_flow_reconfig_2_validation_error():
         # Should show form with errors
         mock_show_form.assert_called_once()
 
+
 @pytest.mark.parametrize(
     "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,step_id_5,input_5,step_id_6,input_6,title,data",
     [
@@ -7244,6 +7262,7 @@ async def test_form_allowed_forwards_invalid_email_address_format(
     data,
     hass,
     mock_imap,
+    caplog
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -7286,6 +7305,7 @@ async def test_form_allowed_forwards_invalid_email_address_format(
     assert result["type"] == "form"
     assert result["step_id"] == step_id_3
     assert result["errors"] == {"forwarded_emails": "invalid_email_format"}
+
 
 @pytest.mark.parametrize(
     "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,step_id_5,input_5,step_id_6,input_6,title,data",
@@ -7513,3 +7533,221 @@ async def test_reconfigure_allow_forwarded_emails(
         entry = hass.config_entries.async_entries(DOMAIN)[0]
 
         assert entry.data.copy() == data
+
+
+@pytest.mark.parametrize(
+    "input_1,step_id_2,input_2,step_id_3,input_3,step_id_4,input_4,step_id_5,input_5,step_id_6,input_6,title,data",
+    [
+        (
+            {
+                "host": "imap.test.email",
+                "port": "993",
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+            "config_2",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "custom_img": True,
+                "amazon_custom_img": False,
+                "ups_custom_img": False,
+                "walmart_custom_img": False,
+                "generic_custom_img": False,
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+            },
+            "config_forwarded_emails",
+            {
+                "forwarded_emails": "no-reply@usps.com"
+            },
+            "config_amazon",
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_days": 3,
+                "amazon_fwds": "(none)",
+            },
+            "config_3",
+            {
+                "custom_img_file": "images/test.gif",
+            },
+            "config_storage",
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+            "imap.test.email",
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "forwarded_emails": "no-reply@usps.com",
+                "amazon_days": 3,
+                "amazon_domain": "amazon.com",
+                "amazon_fwds": [],
+                "custom_img": True,
+                "amazon_custom_img": False,
+                "ups_custom_img": False,
+                "walmart_custom_img": False,
+                "generic_custom_img": False,
+                "amazon_custom_img": False,
+                "ups_custom_img": False,
+                "custom_img_file": "images/test.gif",
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "folder": '"INBOX"',
+                "generate_grid": False,
+                "generate_mp4": False,
+                "gif_duration": 5,
+                "imap_security": "SSL",
+                "imap_timeout": 30,
+                "scan_interval": 20,
+                "storage": "custom_components/mail_and_packages/images/",
+                "resources": [
+                    "amazon_packages",
+                    "fedex_delivered",
+                    "fedex_delivering",
+                    "fedex_packages",
+                    "mail_updated",
+                    "ups_delivered",
+                    "ups_delivering",
+                    "ups_packages",
+                    "usps_delivered",
+                    "usps_delivering",
+                    "usps_mail",
+                    "usps_packages",
+                    "zpackages_delivered",
+                    "zpackages_transit",
+                    "dhl_delivered",
+                    "dhl_delivering",
+                    "dhl_packages",
+                    "amazon_delivered",
+                    "auspost_delivered",
+                    "auspost_delivering",
+                    "auspost_packages",
+                    "poczta_polska_delivering",
+                    "poczta_polska_packages",
+                    "inpost_pl_delivered",
+                    "inpost_pl_delivering",
+                    "inpost_pl_packages",
+                ],
+                "verify_ssl": False,
+            },
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_form_allow_forwarded_emails_using_service_address(
+    input_1,
+    step_id_2,
+    input_2,
+    step_id_3,
+    input_3,
+    step_id_4,
+    input_4,
+    step_id_5,
+    input_5,
+    step_id_6,
+    input_6,
+    title,
+    data,
+    hass,
+    mock_imap,
+    caplog
+):
+    """Test we get the form."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.config_flow.path",
+        return_value=True,
+    ), patch(
+        "custom_components.mail_and_packages.async_setup", return_value=True
+    ) as mock_setup, patch(
+        "custom_components.mail_and_packages.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_1
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_2
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_3
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_3
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_4
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_4
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_5
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_5
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == step_id_6
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_6
+        )
+
+    assert result["type"] == "create_entry"
+    assert result["title"] == title
+    assert result["data"] == data
+
+    await hass.async_block_till_done()
+    assert len(mock_setup.mock_calls) == 1
+    assert len(mock_setup_entry.mock_calls) == 1
+
+    assert "A service domain was found in email" in caplog.text

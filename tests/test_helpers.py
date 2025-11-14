@@ -73,6 +73,7 @@ from tests.const import (
 
 MAIL_IMAGE_URL_ENTITY = "sensor.mail_image_url"
 MAIL_IMAGE_SYSTEM_PATH = "sensor.mail_image_system_path"
+MAIL_IMAGE_GRID_IMAGE_PATH = "sensor.mail_grid_image_path"
 
 
 @pytest.mark.asyncio
@@ -510,6 +511,7 @@ async def test_informed_delivery_forwarded_emails(
         assert "USPSInformeddelivery@informeddelivery.usps.com" in caplog.text
         assert "USPSInformeddelivery@email.informeddelivery.usps.com" in caplog.text
         assert "USPS Informed Delivery" in caplog.text
+
 
 @pytest.mark.asyncio
 async def test_new_informed_delivery_emails(
