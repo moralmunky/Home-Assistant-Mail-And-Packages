@@ -37,7 +37,7 @@ BINARY_SENSORS = {
     "usps_mail_delivered": MailandPackagesBinarySensorEntityDescription(
         name="USPS Mail Delivered",
         key="usps_mail_delivered",
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
         selectable=True,
     ),
 }

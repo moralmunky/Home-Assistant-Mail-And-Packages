@@ -321,6 +321,17 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
         except Exception as err:
             _LOGGER.error("Error updating sensor: %s reason: %s", sensor, err)
 
+    # Always update binary sensors (they need data even if not in resources)
+    # Import here to avoid circular dependency
+    from .binary_sensor import BINARY_SENSORS
+
+    for sensor_key in BINARY_SENSORS:
+        if sensor_key in SENSOR_DATA:
+            try:
+                fetch(hass, config, account, data, sensor_key)
+            except Exception as err:
+                _LOGGER.error("Error updating binary sensor: %s reason: %s", sensor_key, err)
+
     # Copy image file to www directory if enabled
     if config.get(CONF_ALLOW_EXTERNAL):
         copy_images(hass, config)
