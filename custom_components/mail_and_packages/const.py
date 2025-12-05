@@ -151,10 +151,7 @@ AMAZON_SHIPMENT_SUBJECT = [
     "Shipped:",
     "Enviado:",
 ]
-AMAZON_ORDERED_SUBJECT = [
-    "Ordered:",
-    "Pedido efetuado:"
-]
+AMAZON_ORDERED_SUBJECT = ["Ordered:", "Pedido efetuado:"]
 AMAZON_EMAIL = ["order-update@", "update-bestelling@", "versandbestaetigung@"]
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
