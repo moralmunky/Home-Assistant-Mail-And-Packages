@@ -1344,6 +1344,13 @@ def mock_subprocess_call():
 
 
 @pytest.fixture
+def mock_subprocess_run():
+    """Fixture to mock subprocess."""
+    with patch("subprocess.run") as mock_subprocess_run:
+        yield mock_subprocess_run
+
+
+@pytest.fixture
 def mock_copy_overlays():
     """Fixture to mock copy_overlays."""
     with patch(
@@ -2066,6 +2073,7 @@ def mock_imap_walmart_delivering():
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
+
 
 @pytest.fixture()
 def mock_imap_informed_delivery_forwarded_email():

@@ -1061,19 +1061,21 @@ def _generate_mp4(path: str, image_file: str) -> None:
         cleanup_images(os.path.split(mp4_file))
         _LOGGER.debug("Removing old mp4: %s", mp4_file)
 
-    # TODO: find a way to call ffmpeg the right way from HA
-    subprocess.call(
-        [
-            "ffmpeg",
-            "-i",
-            gif_image,
-            "-pix_fmt",
-            "yuv420p",
+    try:
+        cmd = [
+            "ffmpeg", "-y",
+            "-i", gif_image,
+            "-pix_fmt", "yuv420p",
             mp4_file,
-        ],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+        ]
+        subprocess.run(
+            cmd, 
+            stdout=subprocess.DEVNULL, 
+            stderr=subprocess.DEVNULL, 
+            check=True
+        )
+    except subprocess.CalledProcessError as err:
+        _LOGGER.error("FFmpeg failed to generate MP4: %s", err)        
 
 
 def generate_grid_img(path: str, image_file: str, count: int) -> None:
@@ -1456,7 +1458,7 @@ def get_tracking(
 
 
 def find_text(
-    sdata: Any, account: Type[imaplib.IMAP4_SSL], search_terms: list, count: bool
+    sdata: Any, account: Type[imaplib.IMAP4_SSL], search_terms: list, body_count: bool
 ) -> int:
     """Filter for specific words in email.
 
@@ -1482,7 +1484,7 @@ def find_text(
                         email_msg = email_msg.decode("utf-8", "ignore")
                         pattern = re.compile(rf"{search}")
                         if (
-                            count
+                            body_count
                             and (found := pattern.search(email_msg))
                             and len(found.groups()) > 0
                         ):

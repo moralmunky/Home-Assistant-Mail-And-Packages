@@ -72,6 +72,11 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         self._host = config.data[CONF_HOST]
         self._unique_id = self._config.entry_id
         self.data = self.coordinator.data
+        parts = self.type.split('_')
+        if len(parts) > 1:
+            self._tracking_key = f"{'_'.join(parts[:-1])}_tracking"
+        else:
+            self._tracking_key = f"{self.type}_tracking"        
 
     @property
     def device_info(self) -> dict:
@@ -115,8 +120,12 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
     def extra_state_attributes(self) -> Optional[str]:
         """Return device specific state attributes."""
         attr = {}
-        tracking = f"{'_'.join(self.type.split('_')[:-1])}_tracking"
         data = self.coordinator.data
+        if (
+            any(sensor in self.type for sensor in ["_delivering", "_delivered"])
+            and self._tracking_key in data.keys()
+        ):
+            attr[ATTR_TRACKING_NUM] = data[self._tracking_key]        
 
         # Catch no data entries
         if self.data is None:
@@ -133,9 +142,9 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
             attr[ATTR_IMAGE] = data[ATTR_IMAGE_NAME]
         elif (
             any(sensor in self.type for sensor in ["_delivering", "_delivered"])
-            and tracking in data.keys()
+            and self._tracking_key in data.keys()
         ):
-            attr[ATTR_TRACKING_NUM] = data[tracking]
+            attr[ATTR_TRACKING_NUM] = data[self._tracking_key]
             # TODO: Add Tracking URL when applicable
         return attr
 

@@ -4,6 +4,7 @@ import datetime
 import os
 import re
 import tempfile
+import subprocess
 from datetime import date, datetime
 from unittest import mock
 from unittest.mock import MagicMock, call, mock_open, patch
@@ -504,7 +505,12 @@ async def test_informed_delivery_forwarded_emails(
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
         result = get_mails(
-            mock_imap_informed_delivery_forwarded_email, "./", "5", "mail_today.gif", False, forwarded_emails=["forwarduser@fake.email"]
+            mock_imap_informed_delivery_forwarded_email,
+            "./",
+            "5",
+            "mail_today.gif",
+            False,
+            forwarded_emails=["forwarduser@fake.email"],
         )
         assert result == 3
         assert "USPSInformedDelivery@usps.gov" in caplog.text
@@ -1247,26 +1253,59 @@ async def test_amazon_shipped_order_exception(hass, mock_imap_amazon_shipped, ca
 
 
 @pytest.mark.asyncio
-async def test_generate_mp4(
-    mock_osremove, mock_os_path_join, mock_subprocess_call, mock_os_path_split
-):
-    with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
+async def test_generate_mp4(mock_osremove):
+    """Test generating mp4."""
+    # Patch subprocess.run since the code now uses it instead of call
+    with patch("subprocess.run") as mock_run, patch(
+        "custom_components.mail_and_packages.helpers.cleanup_images"
+    ):
+
+        # Call the function
         _generate_mp4("./", "testfile.gif")
 
-        mock_os_path_join.assert_called_with("./", "testfile.mp4")
-        # mock_osremove.assert_called_with("./", "testfile.mp4")
-        mock_subprocess_call.assert_called_with(
+        # Construct expected paths
+        expected_input = os.path.join("./", "testfile.gif")
+        expected_output = os.path.join("./", "testfile.mp4")
+
+        # Assert called with correct arguments
+        # Note: The optimization added '-y' and 'check=True'
+        mock_run.assert_called_with(
             [
                 "ffmpeg",
+                "-y",
                 "-i",
-                "./testfile.mp4",
+                expected_input,
                 "-pix_fmt",
                 "yuv420p",
-                "./testfile.mp4",
+                expected_output,
             ],
-            stdout=-3,
-            stderr=-3,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
         )
+
+
+# @pytest.mark.asyncio
+# async def test_generate_mp4(
+#     mock_osremove, mock_os_path_join, mock_subprocess_call, mock_os_path_split
+# ):
+#     with patch("custom_components.mail_and_packages.helpers.cleanup_images"):
+#         _generate_mp4("./", "testfile.gif")
+
+#         mock_os_path_join.assert_called_with("./", "testfile.mp4")
+#         # mock_osremove.assert_called_with("./", "testfile.mp4")
+#         mock_subprocess_call.assert_called_with(
+#             [
+#                 "ffmpeg",
+#                 "-i",
+#                 "./testfile.mp4",
+#                 "-pix_fmt",
+#                 "yuv420p",
+#                 "./testfile.mp4",
+#             ],
+#             stdout=-3,
+#             stderr=-3,
+#         )
 
 
 @pytest.mark.asyncio

@@ -34,7 +34,11 @@ from custom_components.mail_and_packages.const import (
     CONFIG_VER,
     DOMAIN,
 )
-from custom_components.mail_and_packages.helpers import _check_ffmpeg, _test_login, NO_SSL
+from custom_components.mail_and_packages.helpers import (
+    _check_ffmpeg,
+    _test_login,
+    NO_SSL,
+)
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
 
 _LOGGER = logging.getLogger(__name__)
@@ -1600,7 +1604,12 @@ async def test_imap_login(mock_imap):
 @pytest.mark.asyncio
 async def test_imap_login_with_starttls(mock_imap):
     result = await _test_login(
-        "127.0.0.1", 993, "fakeuser@test.email", "suchfakemuchpassword", "startTLS", False
+        "127.0.0.1",
+        993,
+        "fakeuser@test.email",
+        "suchfakemuchpassword",
+        "startTLS",
+        False,
     )
     assert result
 
@@ -5803,9 +5812,7 @@ async def test_config_flow_reconfig_2_validation_error():
                 ],
             },
             "config_forwarded_emails",
-            {
-                "forwarded_emails": "user@example.com,testuser@example.com"
-            },
+            {"forwarded_emails": "user@example.com,testuser@example.com"},
             "config_amazon",
             {
                 "amazon_domain": "amazon.com",
@@ -6018,9 +6025,7 @@ async def test_form_allow_forwarded_emails(
                 ],
             },
             "config_forwarded_emails",
-            {
-                "forwarded_emails": "(none)"
-            },
+            {"forwarded_emails": "(none)"},
             "config_amazon",
             {
                 "amazon_domain": "amazon.com",
@@ -6228,9 +6233,7 @@ async def test_form_allowed_forwarded_emails_entered_none(
                 ],
             },
             "config_forwarded_emails",
-            {
-                "forwarded_emails": "user@example.com,testuser@example.com"
-            },
+            {"forwarded_emails": "user@example.com,testuser@example.com"},
             "config_storage",
             {
                 "storage": "custom_components/mail_and_packages/images/",
@@ -6408,9 +6411,7 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
                 ],
             },
             "config_forwarded_emails",
-            {
-                "forwarded_emails": "user@example.com,testuser@example.com"
-            },
+            {"forwarded_emails": "user@example.com,testuser@example.com"},
             "config_amazon",
             {
                 "amazon_domain": "amazon.com",
@@ -6609,9 +6610,7 @@ async def test_form_allow_forwarded_emails_without_custom_img(
                 ],
             },
             "config_forwarded_emails",
-            {
-                "forwarded_emails": "user@example.com,testuser@example.com"
-            },
+            {"forwarded_emails": "user@example.com,testuser@example.com"},
             "config_amazon",
             {
                 "amazon_domain": "amazon.com",
@@ -6809,9 +6808,7 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
                 ],
             },
             "config_forwarded_emails",
-            {
-                "forwarded_emails": "(none)"
-            },
+            {"forwarded_emails": "(none)"},
             "config_amazon",
             {
                 "amazon_domain": "amazon.com",
@@ -7262,7 +7259,7 @@ async def test_form_allowed_forwards_invalid_email_address_format(
     data,
     hass,
     mock_imap,
-    caplog
+    caplog,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -7363,9 +7360,7 @@ async def test_form_allowed_forwards_invalid_email_address_format(
                 ],
             },
             "reconfig_forwarded_emails",
-            {
-                "forwarded_emails": "user@example.com,testuser@example.com"
-            },
+            {"forwarded_emails": "user@example.com,testuser@example.com"},
             "reconfig_amazon",
             {
                 "amazon_domain": "amazon.com",
@@ -7592,9 +7587,7 @@ async def test_reconfigure_allow_forwarded_emails(
                 ],
             },
             "config_forwarded_emails",
-            {
-                "forwarded_emails": "no-reply@usps.com"
-            },
+            {"forwarded_emails": "no-reply@usps.com"},
             "config_amazon",
             {
                 "amazon_domain": "amazon.com",
@@ -7687,7 +7680,7 @@ async def test_form_allow_forwarded_emails_using_service_address(
     data,
     hass,
     mock_imap,
-    caplog
+    caplog,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})

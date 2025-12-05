@@ -286,8 +286,11 @@ async def test_coordinator_binary_sensor_update_usps_hash_comparison():
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    # Mock async_add_executor_job to return different hashes
-    mock_hass.async_add_executor_job = AsyncMock(side_effect=["hash1", "hash2"])
+    # Mock async_add_executor_job to return mtimes AND hashes
+    # Order: mtime(img), hash(img), mtime(none), hash(none)
+    mock_hass.async_add_executor_job = AsyncMock(
+        side_effect=[100.0, "hash1", 100.0, "hash2"]
+    )
 
     with patch(
         "custom_components.mail_and_packages.default_image_path",
@@ -310,8 +313,11 @@ async def test_coordinator_binary_sensor_update_amazon_hash_comparison():
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    # Mock async_add_executor_job to return different hashes
-    mock_hass.async_add_executor_job = AsyncMock(side_effect=["hash1", "hash2"])
+    # Mock async_add_executor_job to return mtimes AND hashes
+    # Order: mtime(img), hash(img), mtime(none), hash(none)
+    mock_hass.async_add_executor_job = AsyncMock(
+        side_effect=[100.0, "hash1", 100.0, "hash2"]
+    )
 
     with patch(
         "custom_components.mail_and_packages.default_image_path",
@@ -334,8 +340,11 @@ async def test_coordinator_binary_sensor_update_ups_hash_comparison():
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    # Mock async_add_executor_job to return different hashes
-    mock_hass.async_add_executor_job = AsyncMock(side_effect=["hash1", "hash2"])
+    # Mock async_add_executor_job to return mtimes AND hashes
+    # Order: mtime(img), hash(img), mtime(none), hash(none)
+    mock_hass.async_add_executor_job = AsyncMock(
+        side_effect=[100.0, "hash1", 100.0, "hash2"]
+    )
 
     with patch(
         "custom_components.mail_and_packages.default_image_path",
@@ -358,8 +367,11 @@ async def test_coordinator_binary_sensor_update_same_hashes():
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    # Mock async_add_executor_job to return same hashes
-    mock_hass.async_add_executor_job = AsyncMock(side_effect=["same_hash", "same_hash"])
+    # Mock async_add_executor_job to return mtimes AND hashes
+    # Order: mtime(img), hash(img), mtime(none), hash(none)
+    mock_hass.async_add_executor_job = AsyncMock(
+        side_effect=[100.0, "same_hash", 100.0, "same_hash"]
+    )
 
     with patch(
         "custom_components.mail_and_packages.default_image_path",
@@ -382,8 +394,12 @@ async def test_coordinator_binary_sensor_update_amazon_same_hashes():
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    # Mock async_add_executor_job to return same hashes
-    mock_hass.async_add_executor_job = AsyncMock(side_effect=["same_hash", "same_hash"])
+    # Mock async_add_executor_job to return mtimes AND hashes
+    # We provide extra values to ensure the mock doesn't run out (returning a Mock object),
+    # which would cause the equality check to fail.
+    mock_hass.async_add_executor_job = AsyncMock(
+        side_effect=[100.0, "same_hash", 100.0, "same_hash", 100.0, "same_hash"]
+    )
 
     with patch(
         "custom_components.mail_and_packages.default_image_path",
@@ -406,8 +422,11 @@ async def test_coordinator_binary_sensor_update_ups_same_hashes():
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    # Mock async_add_executor_job to return same hashes
-    mock_hass.async_add_executor_job = AsyncMock(side_effect=["same_hash", "same_hash"])
+    # Mock async_add_executor_job to return mtimes AND hashes
+    # We provide extra values to ensure the mock doesn't run out.
+    mock_hass.async_add_executor_job = AsyncMock(
+        side_effect=[100.0, "same_hash", 100.0, "same_hash", 100.0, "same_hash"]
+    )
 
     with patch(
         "custom_components.mail_and_packages.default_image_path",

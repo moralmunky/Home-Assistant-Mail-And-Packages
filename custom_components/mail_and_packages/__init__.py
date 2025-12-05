@@ -251,10 +251,27 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self.config = config
         self.hass = hass
         self._data = {}
+        self._file_mtime_cache = {} 
+        self._hash_cache = {}        
 
         _LOGGER.debug("Data will be update every %s", self.interval)
 
         super().__init__(hass, _LOGGER, name=self.name, update_interval=self.interval)
+
+    async def _get_file_hash_if_changed(self, file_path):
+        """Only hash file if mtime changed."""
+        try:
+            mtime = await self.hass.async_add_executor_job(os.path.getmtime, file_path)
+            if file_path in self._file_mtime_cache and self._file_mtime_cache[file_path] == mtime:
+                return self._hash_cache.get(file_path)
+            
+            # File changed, re-hash
+            file_hash = await self.hass.async_add_executor_job(hash_file, file_path)
+            self._file_mtime_cache[file_path] = mtime
+            self._hash_cache[file_path] = file_hash
+            return file_hash
+        except OSError:
+            return None        
 
     async def _async_update_data(self):
         """Fetch data."""
@@ -283,10 +300,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             usps_check = os.path.exists(usps_image)
             _LOGGER.debug("USPS Check: %s", usps_check)
             if usps_check:
-                image_hash = await self.hass.async_add_executor_job(
-                    hash_file, usps_image
-                )
-                none_hash = await self.hass.async_add_executor_job(hash_file, usps_none)
+                # Optimized: Use _get_file_hash_if_changed
+                image_hash = await self._get_file_hash_if_changed(usps_image)
+                none_hash = await self._get_file_hash_if_changed(usps_none)
 
                 _LOGGER.debug("USPS Image hash: %s", image_hash)
                 _LOGGER.debug("USPS None hash: %s", none_hash)
@@ -295,6 +311,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                     self._data["usps_update"] = True
                 else:
                     self._data["usps_update"] = False
+
         attributes = (ATTR_AMAZON_IMAGE, ATTR_IMAGE_PATH)
         if set(attributes).issubset(self._data.keys()):
             image = self._data[ATTR_AMAZON_IMAGE]
@@ -307,12 +324,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             amazon_check = os.path.exists(amazon_image)
             _LOGGER.debug("Amazon Check: %s", amazon_check)
             if amazon_check:
-                image_hash = await self.hass.async_add_executor_job(
-                    hash_file, amazon_image
-                )
-                none_hash = await self.hass.async_add_executor_job(
-                    hash_file, amazon_none
-                )
+                # Optimized: Use _get_file_hash_if_changed
+                image_hash = await self._get_file_hash_if_changed(amazon_image)
+                none_hash = await self._get_file_hash_if_changed(amazon_none)
 
                 _LOGGER.debug("Amazon Image hash: %s", image_hash)
                 _LOGGER.debug("Amazon None hash: %s", none_hash)
@@ -321,6 +335,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                     self._data["amazon_update"] = True
                 else:
                     self._data["amazon_update"] = False
+
         attributes = (ATTR_UPS_IMAGE, ATTR_IMAGE_PATH)
         _LOGGER.debug("UPS attributes check: %s", attributes)
         _LOGGER.debug("Available data keys: %s", list(self._data.keys()))
@@ -337,10 +352,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             ups_check = os.path.exists(ups_image)
             _LOGGER.debug("UPS Check: %s", ups_check)
             if ups_check:
-                image_hash = await self.hass.async_add_executor_job(
-                    hash_file, ups_image
-                )
-                none_hash = await self.hass.async_add_executor_job(hash_file, ups_none)
+                # Optimized: Use _get_file_hash_if_changed
+                image_hash = await self._get_file_hash_if_changed(ups_image)
+                none_hash = await self._get_file_hash_if_changed(ups_none)
 
                 _LOGGER.debug("UPS Image hash: %s", image_hash)
                 _LOGGER.debug("UPS None hash: %s", none_hash)
