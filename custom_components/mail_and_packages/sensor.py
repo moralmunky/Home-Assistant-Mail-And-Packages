@@ -72,11 +72,11 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         self._host = config.data[CONF_HOST]
         self._unique_id = self._config.entry_id
         self.data = self.coordinator.data
-        parts = self.type.split('_')
+        parts = self.type.split("_")
         if len(parts) > 1:
             self._tracking_key = f"{'_'.join(parts[:-1])}_tracking"
         else:
-            self._tracking_key = f"{self.type}_tracking"        
+            self._tracking_key = f"{self.type}_tracking"
 
     @property
     def device_info(self) -> dict:
@@ -101,14 +101,20 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         """Return the state of the sensor."""
-        value = None
+        value = self.coordinator.data.get(self.type)
 
-        if self.type in self.coordinator.data.keys():
-            value = self.coordinator.data[self.type]
-            if self.type == "mail_updated":
+        if self.type == "mail_updated":
+            # Ensure the value is a datetime object for the timestamp device class
+            if isinstance(value, str):
+                try:
+                    # Parse the ISO string back to a datetime object
+                    value = datetime.datetime.fromisoformat(value)
+                except ValueError:
+                    # Fallback if parsing fails
+                    value = datetime.datetime.now(timezone.utc)
+            elif value is None:
                 value = datetime.datetime.now(timezone.utc)
-        else:
-            value = None
+
         return value
 
     @property
@@ -125,7 +131,7 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
             any(sensor in self.type for sensor in ["_delivering", "_delivered"])
             and self._tracking_key in data.keys()
         ):
-            attr[ATTR_TRACKING_NUM] = data[self._tracking_key]        
+            attr[ATTR_TRACKING_NUM] = data[self._tracking_key]
 
         # Catch no data entries
         if self.data is None:

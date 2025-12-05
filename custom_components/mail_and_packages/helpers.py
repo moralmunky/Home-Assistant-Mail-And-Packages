@@ -165,14 +165,14 @@ async def _test_login(
             _LOGGER.warning(NO_SSL)
             account = imaplib.IMAP4(host=host, port=port)
     except Exception as err:
-        _LOGGER.error("Error connecting into IMAP Server: %s", str(err))
+        _LOGGER.error("Error connecting into IMAP Server: %s", err)
         return False
     # Validate we can login to mail server
     try:
         account.login(user, pwd)
         return True
     except Exception as err:
-        _LOGGER.error("Error logging into IMAP Server: %s", str(err))
+        _LOGGER.error("Error logging into IMAP Server: %s", err)
         return False
 
 
@@ -267,7 +267,7 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
             os.makedirs(ups_path)
             _LOGGER.debug("Created UPS directory: %s", ups_path)
         except Exception as err:
-            _LOGGER.error("Error creating UPS directory: %s", str(err))
+            _LOGGER.error("Error creating UPS directory: %s", err)
 
     # Ensure Walmart directory exists and has a default image
     walmart_path = f"{hass.config.path()}/{default_image_path(hass, config)}walmart/"
@@ -276,7 +276,7 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
             os.makedirs(walmart_path)
             _LOGGER.debug("Created Walmart directory: %s", walmart_path)
         except Exception as err:
-            _LOGGER.error("Error creating Walmart directory: %s", str(err))
+            _LOGGER.error("Error creating Walmart directory: %s", err)
 
     # Check if UPS image file exists
     ups_image_path = f"{ups_path}{ups_image_name}"
@@ -289,7 +289,7 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
             copyfile(nomail, ups_image_path)
             _LOGGER.debug("Created default UPS image: %s", ups_image_path)
         except Exception as err:
-            _LOGGER.error("Error creating default UPS image: %s", str(err))
+            _LOGGER.error("Error creating default UPS image: %s", err)
     else:
         _LOGGER.debug("UPS image file exists: %s", ups_image_path)
 
@@ -305,7 +305,7 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
             copyfile(nomail, walmart_image_path)
             _LOGGER.debug("Created default Walmart image: %s", walmart_image_path)
         except Exception as err:
-            _LOGGER.error("Error creating default Walmart image: %s", str(err))
+            _LOGGER.error("Error creating default Walmart image: %s", err)
     else:
         _LOGGER.debug("Walmart image file exists: %s", walmart_image_path)
 
@@ -480,7 +480,7 @@ def image_file_name(
         _LOGGER.debug("Successfully copied image to %s", target_path)
         _LOGGER.debug("Target file exists after copy: %s", os.path.exists(target_path))
     except Exception as err:
-        _LOGGER.error("Error copying image: %s", str(err))
+        _LOGGER.error("Error copying image: %s", err)
         # Return a fallback filename if copy fails
         return f"no_deliveries{ext}"
 
@@ -656,7 +656,7 @@ def fetch(
         )[ATTR_COUNT]
 
     data.update(count)
-    _LOGGER.debug("Sensor: %s Count: %s", sensor, str(count[sensor]))
+    _LOGGER.debug("Sensor: %s Count: %s", sensor, count[sensor])
     return count[sensor]
 
 
@@ -682,14 +682,14 @@ def login(
             account = imaplib.IMAP4(host=host, port=port)
 
     except Exception as err:
-        _LOGGER.error("Network error while connecting to server: %s", str(err))
+        _LOGGER.error("Network error while connecting to server: %s", err)
         return False
 
     # If login fails give error message
     try:
         account.login(user, pwd)
     except Exception as err:
-        _LOGGER.error("Error logging into IMAP Server: %s", str(err))
+        _LOGGER.error("Error logging into IMAP Server: %s", err)
         return False
 
     return account
@@ -700,12 +700,12 @@ def selectfolder(account: Type[imaplib.IMAP4_SSL], folder: str) -> bool:
     try:
         account.list()
     except Exception as err:
-        _LOGGER.error("Error listing folders: %s", str(err))
+        _LOGGER.error("Error listing folders: %s", err)
         return False
     try:
         account.select(folder, readonly=True)
     except Exception as err:
-        _LOGGER.error("Error selecting folder: %s", str(err))
+        _LOGGER.error("Error selecting folder: %s", err)
         return False
     return True
 
@@ -794,15 +794,13 @@ def email_search(
         try:
             value = account.search("utf-8", search)
         except Exception as err:
-            _LOGGER.debug(
-                "Error searching emails with unicode characters: %s", str(err)
-            )
+            _LOGGER.debug("Error searching emails with unicode characters: %s", err)
             value = "BAD", err.args[0]
     else:
         try:
             value = account.search(None, search)
         except Exception as err:
-            _LOGGER.error("Error searching emails: %s", str(err))
+            _LOGGER.error("Error searching emails: %s", err)
             value = "BAD", err.args[0]
 
     _LOGGER.debug("email_search value: %s", value)
@@ -840,7 +838,7 @@ def email_fetch(
     try:
         value = account.fetch(num_str, parts)
     except Exception as err:
-        _LOGGER.error("Error fetching emails: %s", str(err))
+        _LOGGER.error("Error fetching emails: %s", err)
         value = "BAD", err.args[0]
 
     return value
@@ -886,14 +884,14 @@ def get_mails(
         try:
             os.makedirs(image_output_path)
         except Exception as err:
-            _LOGGER.critical("Error creating directory: %s", str(err))
+            _LOGGER.critical("Error creating directory: %s", err)
 
     # Clean up image directory
-    _LOGGER.debug("Cleaning up image directory: %s", str(image_output_path))
+    _LOGGER.debug("Cleaning up image directory: %s", image_output_path)
     cleanup_images(image_output_path)
 
     # Copy overlays to image directory
-    _LOGGER.debug("Checking for overlay files in: %s", str(image_output_path))
+    _LOGGER.debug("Checking for overlay files in: %s", image_output_path)
     copy_overlays(image_output_path)
 
     if server_response == "OK":
@@ -932,9 +930,7 @@ def get_mails(
                                         images.append(image_output_path + filename)
                                         image_count = image_count + 1
                                 except Exception as err:
-                                    _LOGGER.critical(
-                                        "Error opening filepath: %s", str(err)
-                                    )
+                                    _LOGGER.critical("Error opening filepath: %s", err)
                                     return image_count
 
                         # Log error message if we are unable to open the filepath for
@@ -954,7 +950,7 @@ def get_mails(
                                     images.append(image_output_path + filename)
                                     image_count = image_count + 1
                             except Exception as err:
-                                _LOGGER.critical("Error opening filepath: %s", str(err))
+                                _LOGGER.critical("Error opening filepath: %s", err)
                                 return image_count
 
                         elif part.get_content_type() == "multipart":
@@ -984,7 +980,7 @@ def get_mails(
             )
         ]
         image_count = len(images)
-        _LOGGER.debug("Image Count: %s", str(image_count))
+        _LOGGER.debug("Image Count: %s", image_count)
 
         if image_count > 0:
             all_images = []
@@ -1014,7 +1010,7 @@ def get_mails(
                 )
                 _LOGGER.debug("Mail image generated.")
             except Exception as err:
-                _LOGGER.error("Error attempting to generate image: %s", str(err))
+                _LOGGER.error("Error attempting to generate image: %s", err)
             for image in images_delete:
                 cleanup_images(f"{os.path.split(image)[0]}/", os.path.split(image)[1])
 
@@ -1032,7 +1028,7 @@ def get_mails(
                     nomail = os.path.dirname(__file__) + "/mail_none.gif"
                 copyfile(nomail, image_output_path + image_name)
             except Exception as err:
-                _LOGGER.error("Error attempting to copy image: %s", str(err))
+                _LOGGER.error("Error attempting to copy image: %s", err)
 
         if gen_mp4:
             _generate_mp4(image_output_path, image_name)
@@ -1063,19 +1059,19 @@ def _generate_mp4(path: str, image_file: str) -> None:
 
     try:
         cmd = [
-            "ffmpeg", "-y",
-            "-i", gif_image,
-            "-pix_fmt", "yuv420p",
+            "ffmpeg",
+            "-y",
+            "-i",
+            gif_image,
+            "-pix_fmt",
+            "yuv420p",
             mp4_file,
         ]
         subprocess.run(
-            cmd, 
-            stdout=subprocess.DEVNULL, 
-            stderr=subprocess.DEVNULL, 
-            check=True
+            cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True
         )
     except subprocess.CalledProcessError as err:
-        _LOGGER.error("FFmpeg failed to generate MP4: %s", err)        
+        _LOGGER.error("FFmpeg failed to generate MP4: %s", err)
 
 
 def generate_grid_img(path: str, image_file: str, count: int) -> None:
@@ -1142,12 +1138,10 @@ def resize_images(images: list, width: int, height: int) -> list:
                     fd_img.close()
                     all_images.append(image)
                 except Exception as err:
-                    _LOGGER.error(
-                        "Error attempting to read image %s: %s", str(image), str(err)
-                    )
+                    _LOGGER.error("Error attempting to read image %s: %s", image, err)
                     continue
         except Exception as err:
-            _LOGGER.error("Error attempting to open image %s: %s", str(image), str(err))
+            _LOGGER.error("Error attempting to open image %s: %s", image, err)
             continue
 
     return all_images
@@ -1161,7 +1155,7 @@ def copy_overlays(path: str) -> None:
     # Copy files if they are missing
     if not check:
         for file in overlays:
-            _LOGGER.debug("Copying file to: %s", str(path + file))
+            _LOGGER.debug("Copying file to: %s", path + file)
             copyfile(
                 os.path.dirname(__file__) + "/" + file,
                 path + file,
@@ -1180,7 +1174,7 @@ def cleanup_images(path: str, image: Optional[str] = None) -> None:
         try:
             os.remove(path + image)
         except Exception as err:
-            _LOGGER.error("Error attempting to remove image: %s", str(err))
+            _LOGGER.error("Error attempting to remove image: %s", err)
         return
 
     for file in os.listdir(path):
@@ -1193,7 +1187,7 @@ def cleanup_images(path: str, image: Optional[str] = None) -> None:
             try:
                 os.remove(path + file)
             except Exception as err:
-                _LOGGER.error("Error attempting to remove found image: %s", str(err))
+                _LOGGER.error("Error attempting to remove found image: %s", err)
 
 
 def get_count(
@@ -1297,7 +1291,7 @@ def get_count(
 
     # Bail out if unknown sensor type
     if ATTR_EMAIL not in SENSOR_DATA[sensor_type]:
-        _LOGGER.debug("Unknown sensor type: %s", str(sensor_type))
+        _LOGGER.debug("Unknown sensor type: %s", sensor_type)
         result[ATTR_COUNT] = count
         result[ATTR_TRACKING] = ""
         return result
@@ -1430,7 +1424,7 @@ def get_tracking(
                             if found[0] not in tracking:
                                 tracking.append(found[0])
                     except Exception as err:
-                        _LOGGER.debug("Error processing email content: %s", str(err))
+                        _LOGGER.debug("Error processing email content: %s", err)
                 else:
                     # Original logic for all other tracking types
                     for part in msg.walk():
@@ -1491,12 +1485,12 @@ def find_text(
                             _LOGGER.debug(
                                 "Found (%s) in email result: %s",
                                 search,
-                                str(found.groups()),
+                                found.groups(),
                             )
                             count = int(found.group(1))
                         elif (found := pattern.findall(email_msg)) and len(found) > 0:
                             _LOGGER.debug(
-                                "Found (%s) in email %s times.", search, str(len(found))
+                                "Found (%s) in email %s times.", search, len(found)
                             )
                             count += len(found)
 
@@ -1553,7 +1547,7 @@ def ups_search(
                         ups_image_name,
                     )
             except Exception as err:
-                _LOGGER.error("Error attempting to copy image: %s", str(err))
+                _LOGGER.error("Error attempting to copy image: %s", err)
         return count
 
     # Check if the path exists, if not make it
@@ -1562,7 +1556,7 @@ def ups_search(
         try:
             os.makedirs(ups_path)
         except Exception as err:
-            _LOGGER.critical("Error creating directory: %s", str(err))
+            _LOGGER.critical("Error creating directory: %s", err)
             return count
 
     # Clean up image directory
@@ -1654,7 +1648,7 @@ def walmart_search(
                         walmart_image_name,
                     )
             except Exception as err:
-                _LOGGER.error("Error attempting to copy image: %s", str(err))
+                _LOGGER.error("Error attempting to copy image: %s", err)
         return count
 
     # Check if the path exists, if not make it
@@ -1663,7 +1657,7 @@ def walmart_search(
         try:
             os.makedirs(walmart_path)
         except Exception as err:
-            _LOGGER.critical("Error creating directory: %s", str(err))
+            _LOGGER.critical("Error creating directory: %s", err)
             return count
 
     # Clean up image directory
@@ -1731,7 +1725,7 @@ def amazon_search(
     cleanup_images(f"{image_path}amazon/")
 
     address_list = amazon_email_addresses(fwds, amazon_domain)
-    _LOGGER.debug("Amazon email list: %s", str(address_list))
+    _LOGGER.debug("Amazon email list: %s", address_list)
 
     for subject in subjects:
         _LOGGER.debug("Searching for Amazon delivered emails with subject: %s", subject)
@@ -1770,198 +1764,23 @@ def amazon_search(
                     amazon_image_name,
                 )
         except Exception as err:
-            _LOGGER.error("Error attempting to copy image: %s", str(err))
+            _LOGGER.error("Error attempting to copy image: %s", err)
 
     _LOGGER.debug("=== AMAZON DELIVERED SEARCH END ===")
     _LOGGER.debug("Final Amazon delivered count: %s", count)
     return count
 
 
-def get_ups_image(  # pylint: disable=too-many-return-statements
-    sdata: Any,
-    account: Type[imaplib.IMAP4_SSL],  # pylint: disable=unused-argument
-    image_path: str,
-    hass: HomeAssistant,  # pylint: disable=unused-argument
-    image_name: str,  # pylint: disable=unused-argument
-) -> bool:
-    """Extract UPS delivery photo from email.
-
-    Returns True if a photo was successfully saved, False otherwise.
-    """
-    _LOGGER.debug("Attempting to extract UPS delivery photo")
-
-    msg = email.message_from_string(sdata)
-
-    ups_path = f"{image_path}ups/"
-
-    # First pass: look for CID embedded images
-    cid_images = {}
-    for part in msg.walk():
-        if part.get_content_type() == "image/jpeg":
-            content_id = part.get("Content-ID")
-            if content_id:
-                # Remove < > from Content-ID
-                cid = content_id.strip("<>")
-                _LOGGER.debug("Found CID embedded image: %s", cid)
-                cid_images[cid] = part.get_payload(decode=True)
-
-    # Second pass: look for HTML content with CID references
-    for part in msg.walk():
-        if part.get_content_type() == "text/html":
-            _LOGGER.debug("Processing HTML content for UPS delivery photo")
-            part_content = part.get_payload(decode=True)
-            part_content = part_content.decode("utf-8", "ignore")
-
-            # Look for delivery photo in HTML content
-            if "deliveryPhoto" in part_content:
-                _LOGGER.debug("Found delivery photo reference in HTML")
-
-                # Check if we have the corresponding CID image
-                if "deliveryPhoto" in cid_images:
-                    _LOGGER.debug("Found matching CID image for deliveryPhoto")
-                    try:
-                        with open(ups_path + image_name, "wb") as the_file:
-                            the_file.write(cid_images["deliveryPhoto"])
-                        _LOGGER.debug(
-                            "UPS delivery photo saved from CID: %s", image_name
-                        )
-                        return True
-                    except Exception as err:
-                        _LOGGER.error(
-                            "Error saving UPS delivery photo from CID: %s", str(err)
-                        )
-                        return False
-
-                # Fallback: look for base64 encoded images
-                base64_pattern = r"data:image/jpeg;base64,([A-Za-z0-9+/=]+)"
-                matches = re.findall(base64_pattern, part_content)
-
-                if matches:
-                    _LOGGER.debug("Found base64 encoded UPS delivery photo")
-                    try:
-                        with open(ups_path + image_name, "wb") as the_file:
-                            the_file.write(base64.b64decode(matches[0]))
-                        _LOGGER.debug(
-                            "UPS delivery photo saved from base64: %s", image_name
-                        )
-                        return True
-                    except Exception as err:
-                        _LOGGER.error(
-                            "Error saving UPS delivery photo from base64: %s", str(err)
-                        )
-                        return False
-
-    # Third pass: look for regular JPEG attachments
-    for part in msg.walk():
-        if part.get_content_type() == "image/jpeg":
-            filename = part.get_filename()
-            if filename:
-                _LOGGER.debug("Found UPS delivery photo attachment: %s", filename)
-                try:
-                    with open(ups_path + image_name, "wb") as the_file:
-                        the_file.write(part.get_payload(decode=True))
-                    _LOGGER.debug("UPS delivery photo saved: %s", image_name)
-                    return True
-                except Exception as err:
-                    _LOGGER.error("Error saving UPS delivery photo: %s", str(err))
-                    return False
-
-    _LOGGER.debug("No UPS delivery photo found in email")
-    return False
+def get_ups_image(sdata, account, image_path, hass, image_name):
+    return _extract_delivery_image(
+        sdata, image_path, image_name, "ups", "deliveryPhoto", "image/jpeg"
+    )
 
 
-def get_walmart_image(  # pylint: disable=too-many-return-statements
-    sdata: Any,
-    account: Type[imaplib.IMAP4_SSL],  # pylint: disable=unused-argument
-    image_path: str,
-    hass: HomeAssistant,  # pylint: disable=unused-argument
-    image_name: str,  # pylint: disable=unused-argument
-) -> bool:
-    """Extract Walmart delivery photo from email.
-
-    Returns True if a photo was successfully saved, False otherwise.
-    """
-    _LOGGER.debug("Attempting to extract Walmart delivery photo")
-
-    msg = email.message_from_string(sdata)
-
-    walmart_path = f"{image_path}walmart/"
-
-    # First pass: look for CID embedded images
-    cid_images = {}
-    for part in msg.walk():
-        if part.get_content_type() == "image/png":
-            content_id = part.get("Content-ID")
-            if content_id:
-                # Remove < > from Content-ID
-                cid = content_id.strip("<>")
-                _LOGGER.debug("Found CID embedded image: %s", cid)
-                cid_images[cid] = part.get_payload(decode=True)
-
-    # Second pass: look for HTML content with CID references
-    for part in msg.walk():
-        if part.get_content_type() == "text/html":
-            _LOGGER.debug("Processing HTML content for Walmart delivery photo")
-            part_content = part.get_payload(decode=True)
-            part_content = part_content.decode("utf-8", "ignore")
-
-            # Look for delivery proof in HTML content
-            if "deliveryProofLabel" in part_content:
-                _LOGGER.debug("Found delivery proof reference in HTML")
-
-                # Check if we have the corresponding CID image
-                if "deliveryProofLabel" in cid_images:
-                    _LOGGER.debug("Found matching CID image for deliveryProofLabel")
-                    try:
-                        with open(walmart_path + image_name, "wb") as the_file:
-                            the_file.write(cid_images["deliveryProofLabel"])
-                        _LOGGER.debug(
-                            "Walmart delivery photo saved from CID: %s", image_name
-                        )
-                        return True
-                    except Exception as err:
-                        _LOGGER.error(
-                            "Error saving Walmart delivery photo from CID: %s", str(err)
-                        )
-                        return False
-
-                # Fallback: look for base64 encoded images
-                base64_pattern = r"data:image/png;base64,([A-Za-z0-9+/=]+)"
-                matches = re.findall(base64_pattern, part_content)
-
-                if matches:
-                    _LOGGER.debug("Found base64 encoded Walmart delivery photo")
-                    try:
-                        with open(walmart_path + image_name, "wb") as the_file:
-                            the_file.write(base64.b64decode(matches[0]))
-                        _LOGGER.debug(
-                            "Walmart delivery photo saved from base64: %s", image_name
-                        )
-                        return True
-                    except Exception as err:
-                        _LOGGER.error(
-                            "Error saving Walmart delivery photo from base64: %s",
-                            str(err),
-                        )
-                        return False
-
-    # Third pass: look for regular PNG attachments
-    for part in msg.walk():
-        if part.get_content_type() == "image/png":
-            filename = part.get_filename()
-            if filename:
-                _LOGGER.debug("Found Walmart delivery photo attachment: %s", filename)
-                try:
-                    with open(walmart_path + image_name, "wb") as the_file:
-                        the_file.write(part.get_payload(decode=True))
-                    _LOGGER.debug("Walmart delivery photo saved: %s", image_name)
-                    return True
-                except Exception as err:
-                    _LOGGER.error("Error saving Walmart delivery photo: %s", str(err))
-                    return False
-
-    _LOGGER.debug("No Walmart delivery photo found in email")
-    return False
+def get_walmart_image(sdata, account, image_path, hass, image_name):
+    return _extract_delivery_image(
+        sdata, image_path, image_name, "walmart", "deliveryProofLabel", "image/png"
+    )
 
 
 def get_amazon_image(
@@ -1983,8 +1802,8 @@ def get_amazon_image(
         for response_part in data:
             if isinstance(response_part, tuple):
                 msg = email.message_from_bytes(response_part[1])
-                _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
-                _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
+                _LOGGER.debug("Email Multipart: %s", msg.is_multipart())
+                _LOGGER.debug("Content Type: %s", msg.get_content_type())
 
                 for part in msg.walk():
                     if part.get_content_type() != "text/html":
@@ -2067,7 +1886,7 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: list[str] = None) -> dict
     today = get_formatted_date()
 
     email_addresses.extend(AMAZON_HUB_EMAIL)
-    _LOGGER.debug("[Hub] Amazon email list: %s", str(email_addresses))
+    _LOGGER.debug("[Hub] Amazon email list: %s", email_addresses)
 
     for address in email_addresses:
         (server_response, sdata) = email_search(
@@ -2085,7 +1904,7 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: list[str] = None) -> dict
 
         found = []
         id_list = sdata[0].split()
-        _LOGGER.debug("Amazon hub emails found: %s", str(len(id_list)))
+        _LOGGER.debug("Amazon hub emails found: %s", len(id_list))
         for i in id_list:
             data = email_fetch(account, i, "(RFC822)")[1]
             for response_part in data:
@@ -2108,7 +1927,7 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: list[str] = None) -> dict
                         else:
                             email_msg = quopri.decodestring(str(msg.get_payload()))
                     except Exception as err:
-                        _LOGGER.debug("Problem decoding email message: %s", str(err))
+                        _LOGGER.debug("Problem decoding email message: %s", err)
                         continue
                     email_msg = email_msg.decode("utf-8", "ignore")
                     pattern = re.compile(rf"{body_regex}")
@@ -2141,7 +1960,7 @@ def amazon_otp(account: Type[imaplib.IMAP4_SSL], fwds: Optional[list] = None) ->
 
         if server_response == "OK":
             id_list = sdata[0].split()
-            _LOGGER.debug("Found Amazon OTP email(s): %s", str(len(id_list)))
+            _LOGGER.debug("Found Amazon OTP email(s): %s", len(id_list))
             found = []
             for i in id_list:
                 data = email_fetch(account, i, "(RFC822)")[1]
@@ -2149,8 +1968,8 @@ def amazon_otp(account: Type[imaplib.IMAP4_SSL], fwds: Optional[list] = None) ->
                     if isinstance(response_part, tuple):
                         msg = email.message_from_bytes(response_part[1])
 
-                        _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
-                        _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
+                        _LOGGER.debug("Email Multipart: %s", msg.is_multipart())
+                        _LOGGER.debug("Content Type: %s", msg.get_content_type())
 
                         # Get code from message body
                         try:
@@ -2159,9 +1978,7 @@ def amazon_otp(account: Type[imaplib.IMAP4_SSL], fwds: Optional[list] = None) ->
                                 str(msg.get_payload(0))
                             )  # msg.get_payload(0).encode('utf-8')
                         except Exception as err:
-                            _LOGGER.debug(
-                                "Problem decoding email message: %s", str(err)
-                            )
+                            _LOGGER.debug("Problem decoding email message: %s", err)
                             continue
                         email_msg = email_msg.decode("utf-8", "ignore")
                         pattern = re.compile(rf"{body_regex}")
@@ -2192,7 +2009,7 @@ def amazon_exception(
     info = {}
 
     address_list = amazon_email_addresses(fwds, the_domain)
-    _LOGGER.debug("Amazon email list: %s", str(address_list))
+    _LOGGER.debug("Amazon email list: %s", address_list)
 
     (server_response, sdata) = email_search(
         account, address_list, tfmt, AMAZON_EXCEPTION_SUBJECT
@@ -2271,7 +2088,7 @@ def amazon_email_addresses(
                 email_address.append(f"{address}@{domain}")
             value.extend(email_address)
 
-    _LOGGER.debug("Amazon email search addresses: %s", str(value))
+    _LOGGER.debug("Amazon email search addresses: %s", value)
     return value
 
 
@@ -2300,7 +2117,7 @@ def get_items(
     all_shipped_orders = set()  # Track all shipped order numbers
 
     address_list = amazon_email_addresses(fwds, the_domain)
-    _LOGGER.debug("Amazon email list: %s", str(address_list))
+    _LOGGER.debug("Amazon email list: %s", address_list)
 
     (server_response, sdata) = email_search(account, address_list, tfmt)
 
@@ -2340,7 +2157,7 @@ def get_items(
     if server_response == "OK":
         mail_ids = sdata[1][0]
         id_list = mail_ids.split()
-        _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
+        _LOGGER.debug("Amazon emails found: %s", len(id_list))
         for i in id_list:
             data = email_fetch(account, i, "(RFC822)")[1]
             for response_part in data:
@@ -2370,7 +2187,7 @@ def get_items(
                                     "dateparser also failed to parse email date: %s",
                                     email_date_str,
                                 )
-                    _LOGGER.debug("Email from date: %s", str(email_date))
+                    _LOGGER.debug("Email from date: %s", email_date)
 
                     today_date = datetime.date.today()
 
@@ -2384,8 +2201,8 @@ def get_items(
                             )
                             continue
 
-                    _LOGGER.debug("Email Multipart: %s", str(msg.is_multipart()))
-                    _LOGGER.debug("Content Type: %s", str(msg.get_content_type()))
+                    _LOGGER.debug("Email Multipart: %s", msg.is_multipart())
+                    _LOGGER.debug("Content Type: %s", msg.get_content_type())
 
                     # Get and decode subject line
                     encoding = decode_header(msg["subject"])[0][1]
@@ -2399,7 +2216,7 @@ def get_items(
                     if not isinstance(email_subject, str):
                         email_subject = email_subject.decode("utf-8", "ignore")
 
-                    _LOGGER.debug("Amazon Subject: %s", str(email_subject))
+                    _LOGGER.debug("Amazon Subject: %s", email_subject)
 
                     # Skip ordered emails because the product hasn't shipped yet.
                     if any(
@@ -2439,7 +2256,7 @@ def get_items(
                                 )
                             except Exception as err:
                                 _LOGGER.debug(
-                                    "Error parsing delivered email body: %s", str(err)
+                                    "Error parsing delivered email body: %s", err
                                 )
 
                         if delivered_orders:
@@ -2474,7 +2291,7 @@ def get_items(
                         else:
                             email_msg = quopri.decodestring(str(msg.get_payload()))
                     except Exception as err:
-                        _LOGGER.debug("Problem decoding email message: %s", str(err))
+                        _LOGGER.debug("Problem decoding email message: %s", err)
                         _LOGGER.error("Unable to process this email. Skipping.")
                         continue
 
@@ -2609,12 +2426,10 @@ def get_items(
     final_count += len(deliveries_today)
 
     _LOGGER.debug(
-        "Amazon packages arriving today: %s", str(sum(packages_arriving_today.values()))
+        "Amazon packages arriving today: %s", sum(packages_arriving_today.values())
     )
-    _LOGGER.debug(
-        "Amazon packages delivered: %s", str(sum(delivered_packages.values()))
-    )
-    _LOGGER.debug("Amazon final count: %s", str(final_count))
+    _LOGGER.debug("Amazon packages delivered: %s", sum(delivered_packages.values()))
+    _LOGGER.debug("Amazon final count: %s", final_count)
 
     # Return delivery count or list of order numbers
     value = None
@@ -2623,10 +2438,10 @@ def get_items(
     else:
         # Return list of all shipped order numbers
         order_numbers = list(all_shipped_orders)
-        _LOGGER.debug("Amazon order: %s", str(order_numbers))
+        _LOGGER.debug("Amazon order: %s", order_numbers)
         value = order_numbers
 
-    _LOGGER.debug("Amazon value: %s", str(value))
+    _LOGGER.debug("Amazon value: %s", value)
     return value
 
 
@@ -2701,3 +2516,74 @@ def validate_email_address(email_address: str) -> bool:
     _LOGGER.debug("%s is a valid email address", email_address)
 
     return True
+
+
+def _extract_delivery_image(
+    sdata: Any,
+    image_path: str,
+    image_name: str,
+    target_dir: str,
+    cid_keyword: str,
+    mime_type: str,
+) -> bool:
+    """Generic function to extract delivery images (UPS/Walmart)."""
+    msg = email.message_from_string(sdata)
+    full_path_dir = f"{image_path}{target_dir}/"
+
+    # Map mime type to base64 regex
+    if mime_type == "image/jpeg":
+        base64_pattern = r"data:image/jpeg;base64,([A-Za-z0-9+/=]+)"
+    else:  # png
+        base64_pattern = r"data:image/png;base64,([A-Za-z0-9+/=]+)"
+
+    # First pass: look for CID embedded images
+    cid_images = {}
+    for part in msg.walk():
+        if part.get_content_type() == mime_type:
+            content_id = part.get("Content-ID")
+            if content_id:
+                cid = content_id.strip("<>")
+                cid_images[cid] = part.get_payload(decode=True)
+
+    # Second pass: HTML content
+    for part in msg.walk():
+        if part.get_content_type() == "text/html":
+            part_content = part.get_payload(decode=True).decode("utf-8", "ignore")
+
+            if cid_keyword in part_content:
+                # Check CID
+                if cid_keyword in cid_images:
+                    return _save_image(
+                        full_path_dir, image_name, cid_images[cid_keyword]
+                    )
+
+                # Check Base64
+                matches = re.findall(base64_pattern, part_content)
+                if matches:
+                    try:
+                        return _save_image(
+                            full_path_dir, image_name, base64.b64decode(matches[0])
+                        )
+                    except Exception:
+                        pass
+
+    # Third pass: Attachments
+    for part in msg.walk():
+        if part.get_content_type() == mime_type:
+            filename = part.get_filename()
+            if filename:
+                return _save_image(
+                    full_path_dir, image_name, part.get_payload(decode=True)
+                )
+
+    return False
+
+
+def _save_image(directory, filename, data):
+    try:
+        with open(os.path.join(directory, filename), "wb") as f:
+            f.write(data)
+        return True
+    except Exception as err:
+        _LOGGER.error("Error saving image: %s", err)
+        return False

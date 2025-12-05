@@ -251,8 +251,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self.config = config
         self.hass = hass
         self._data = {}
-        self._file_mtime_cache = {} 
-        self._hash_cache = {}        
+        self._file_mtime_cache = {}
+        self._hash_cache = {}
 
         _LOGGER.debug("Data will be update every %s", self.interval)
 
@@ -262,16 +262,19 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         """Only hash file if mtime changed."""
         try:
             mtime = await self.hass.async_add_executor_job(os.path.getmtime, file_path)
-            if file_path in self._file_mtime_cache and self._file_mtime_cache[file_path] == mtime:
+            if (
+                file_path in self._file_mtime_cache
+                and self._file_mtime_cache[file_path] == mtime
+            ):
                 return self._hash_cache.get(file_path)
-            
+
             # File changed, re-hash
             file_hash = await self.hass.async_add_executor_job(hash_file, file_path)
             self._file_mtime_cache[file_path] = mtime
             self._hash_cache[file_path] = file_hash
             return file_hash
         except OSError:
-            return None        
+            return None
 
     async def _async_update_data(self):
         """Fetch data."""
