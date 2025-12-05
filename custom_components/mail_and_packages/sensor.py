@@ -104,13 +104,11 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         value = self.coordinator.data.get(self.type)
 
         if self.type == "mail_updated":
-            # Ensure the value is a datetime object for the timestamp device class
+            # Safely handle string vs datetime to prevent ValueError
             if isinstance(value, str):
                 try:
-                    # Parse the ISO string back to a datetime object
                     value = datetime.datetime.fromisoformat(value)
                 except ValueError:
-                    # Fallback if parsing fails
                     value = datetime.datetime.now(timezone.utc)
             elif value is None:
                 value = datetime.datetime.now(timezone.utc)

@@ -723,16 +723,12 @@ def get_formatted_date() -> str:
     return today
 
 
-def update_time() -> Any:
+def update_time() -> datetime.datetime:
     """Get update time.
 
-    Returns current timestamp as string
+    Returns current timestamp as datetime object.
     """
-    # updated = datetime.datetime.now().strftime("%b-%d-%Y %I:%M %p")
-    # updated = datetime.datetime.now(timezone.utc).isoformat(timespec="minutes")
-    updated = datetime.datetime.now(timezone.utc)
-
-    return updated
+    return datetime.datetime.now(timezone.utc)
 
 
 def build_search(address: list, date: str, subject: str = None) -> tuple:
@@ -1454,14 +1450,13 @@ def get_tracking(
 def find_text(
     sdata: Any, account: Type[imaplib.IMAP4_SSL], search_terms: list, body_count: bool
 ) -> int:
-    """Filter for specific words in email.
-
-    Return count of items found as integer
-    """
+    """Filter for specific words in email."""
     _LOGGER.debug("Searching for (%s) in (%s) emails", search_terms, len(sdata))
     mail_list = sdata[0].split()
     count = 0
-    found = None
+
+    # Pre-compile regex patterns once, outside the loops
+    patterns = [re.compile(rf"{term}") for term in search_terms]
 
     for i in mail_list:
         data = email_fetch(account, i, "(RFC822)")[1]
@@ -1470,31 +1465,35 @@ def find_text(
                 msg = email.message_from_bytes(response_part[1])
 
                 for part in msg.walk():
-                    for search in search_terms:
-                        _LOGGER.debug("Content type: %s", part.get_content_type())
-                        if part.get_content_type() not in ["text/html", "text/plain"]:
-                            continue
-                        email_msg = part.get_payload(decode=True)
-                        email_msg = email_msg.decode("utf-8", "ignore")
-                        pattern = re.compile(rf"{search}")
-                        if (
-                            body_count
-                            and (found := pattern.search(email_msg))
-                            and len(found.groups()) > 0
-                        ):
-                            _LOGGER.debug(
-                                "Found (%s) in email result: %s",
-                                search,
-                                found.groups(),
-                            )
-                            count = int(found.group(1))
-                        elif (found := pattern.findall(email_msg)) and len(found) > 0:
-                            _LOGGER.debug(
-                                "Found (%s) in email %s times.", search, len(found)
-                            )
-                            count += len(found)
+                    if part.get_content_type() not in ["text/html", "text/plain"]:
+                        continue
 
-    _LOGGER.debug("Search for (%s) count results: %s", search_terms, count)
+                    email_msg = part.get_payload(decode=True)
+                    try:
+                        email_msg = email_msg.decode("utf-8", "ignore")
+                    except Exception:
+                        continue
+
+                    # Iterate over pre-compiled patterns
+                    for pattern in patterns:
+                        if body_count:
+                            if (found := pattern.search(email_msg)) and len(
+                                found.groups()
+                            ) > 0:
+                                _LOGGER.debug(
+                                    "Found (%s) in email result: %s",
+                                    pattern.pattern,
+                                    found.groups(),
+                                )
+                                count = int(found.group(1))
+                        else:
+                            if (found := pattern.findall(email_msg)) and len(found) > 0:
+                                _LOGGER.debug(
+                                    "Found (%s) in email %s times.",
+                                    pattern.pattern,
+                                    len(found),
+                                )
+                                count += len(found)
     return count
 
 
