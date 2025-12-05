@@ -149,9 +149,11 @@ AMAZON_SHIPMENT_TRACKING = [
 ]
 AMAZON_SHIPMENT_SUBJECT = [
     "Shipped:",
+    "Enviado:",
 ]
 AMAZON_ORDERED_SUBJECT = [
     "Ordered:",
+    "Pedido efetuado:"
 ]
 AMAZON_EMAIL = ["order-update@", "update-bestelling@", "versandbestaetigung@"]
 AMAZON_PACKAGES = "amazon_packages"
@@ -183,6 +185,7 @@ AMAZON_TIME_PATTERN = [
     "Entrega:",
     "A chegar:",
     "Arrivée :",
+    "Chega ",
     "Verwachte bezorgdatum:",
     "Votre date de livraison prévue est :",
 ]
@@ -215,6 +218,7 @@ AMAZON_TIME_PATTERN_REGEX = [
     "Arrivée (\\w+ \\d+) - (\\w+ \\d+)",
     "Arrivée (\\w+ \\d+)",
     "Arrivée (\\w+ \\d*)",
+    "Chega ((\\w+(-\\w+)?))",
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
