@@ -3,8 +3,8 @@
 import datetime
 import os
 import re
-import tempfile
 import subprocess
+import tempfile
 from datetime import date, datetime
 from unittest import mock
 from unittest.mock import MagicMock, call, mock_open, patch
@@ -3217,3 +3217,43 @@ Thank you for your purchase!
 
     # Should return 0 because no order number was found to count
     assert result == 0, f"Expected 0 (no order number found), got {result}"
+
+
+def test_extract_delivery_image_png(tmp_path):
+    """Test extracting a PNG delivery image (e.g. Walmart style)."""
+    from custom_components.mail_and_packages.helpers import _extract_delivery_image
+    
+    # Create dummy PNG data (base64)
+    png_data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+    
+    # Note: The HTML must contain the cid_keyword ("deliveryProofLabel") for the function to proceed
+    email_body = f"""MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="boundary"
+
+--boundary
+Content-Type: text/html; charset=utf-8
+
+<html>
+  <div class="deliveryProofLabel">
+    <img src="data:image/png;base64,{png_data}" />
+  </div>
+</html>
+--boundary--
+"""
+    
+    # Create target directory
+    image_path = str(tmp_path) + "/"
+    os.makedirs(os.path.join(image_path, "walmart"), exist_ok=True)
+    
+    # Run extraction
+    result = _extract_delivery_image(
+        email_body,
+        image_path,
+        "test.png",
+        "walmart",
+        "deliveryProofLabel", 
+        "image/png"
+    )
+    
+    assert result is True
+    assert os.path.exists(os.path.join(image_path, "walmart", "test.png"))
