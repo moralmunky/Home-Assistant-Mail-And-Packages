@@ -2527,7 +2527,7 @@ def _extract_delivery_image(
     cid_keyword: str,
     mime_type: str,
 ) -> bool:
-    """Function to extract delivery images (UPS/Walmart)."""
+    """Extract delivery images for UPS/Walmart deliveries."""
     msg = email.message_from_string(sdata)
     full_path_dir = f"{image_path}{target_dir}/"
 
