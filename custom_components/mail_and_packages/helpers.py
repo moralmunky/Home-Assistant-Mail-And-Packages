@@ -1771,12 +1771,14 @@ def amazon_search(
 
 
 def get_ups_image(sdata, account, image_path, hass, image_name):
+    """Return UPS image."""
     return _extract_delivery_image(
         sdata, image_path, image_name, "ups", "deliveryPhoto", "image/jpeg"
     )
 
 
 def get_walmart_image(sdata, account, image_path, hass, image_name):
+    """Return Walmart image."""
     return _extract_delivery_image(
         sdata, image_path, image_name, "walmart", "deliveryProofLabel", "image/png"
     )
@@ -2525,7 +2527,7 @@ def _extract_delivery_image(
     cid_keyword: str,
     mime_type: str,
 ) -> bool:
-    """Generic function to extract delivery images (UPS/Walmart)."""
+    """Function to extract delivery images (UPS/Walmart)."""
     msg = email.message_from_string(sdata)
     full_path_dir = f"{image_path}{target_dir}/"
 
