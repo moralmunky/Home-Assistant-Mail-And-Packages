@@ -174,45 +174,48 @@ async def test_image_path_sensor_urls(hass):
             CONF_PORT: 993,
             CONF_USERNAME: "test@test.com",
             CONF_PASSWORD: "password",
-        }
+        },
     )
-    
+
     # Mock coordinator data
     coordinator = MagicMock()
-    coordinator.data = {
-        "image_name": "test_image.gif",
-        "image_path": "images/"
-    }
-    
+    coordinator.data = {"image_name": "test_image.gif", "image_path": "images/"}
+
     # 1. Test with External URL
     hass.config.external_url = "https://external.hass.url"
     sensor = ImagePathSensors(
-        hass, 
-        entry, 
-        MagicMock(key="usps_mail_image_url", name="Mail Image URL"), 
-        coordinator
+        hass,
+        entry,
+        MagicMock(key="usps_mail_image_url", name="Mail Image URL"),
+        coordinator,
     )
-    assert sensor.native_value == "https://external.hass.url/local/mail_and_packages/test_image.gif"
+    assert (
+        sensor.native_value
+        == "https://external.hass.url/local/mail_and_packages/test_image.gif"
+    )
 
     # 2. Test with Internal URL only
     hass.config.external_url = None
     hass.config.internal_url = "http://internal.hass.url"
     sensor = ImagePathSensors(
-        hass, 
-        entry, 
-        MagicMock(key="usps_mail_image_url", name="Mail Image URL"), 
-        coordinator
+        hass,
+        entry,
+        MagicMock(key="usps_mail_image_url", name="Mail Image URL"),
+        coordinator,
     )
-    assert sensor.native_value == "http://internal.hass.url/local/mail_and_packages/test_image.gif"
+    assert (
+        sensor.native_value
+        == "http://internal.hass.url/local/mail_and_packages/test_image.gif"
+    )
 
     # 3. Test with NO URL set
     hass.config.external_url = None
     hass.config.internal_url = None
     sensor = ImagePathSensors(
-        hass, 
-        entry, 
-        MagicMock(key="usps_mail_image_url", name="Mail Image URL"), 
-        coordinator
+        hass,
+        entry,
+        MagicMock(key="usps_mail_image_url", name="Mail Image URL"),
+        coordinator,
     )
     assert sensor.native_value is None
 
@@ -222,16 +225,14 @@ async def test_mail_updated_sensor_string_conversion(hass):
     # This covers the fix we applied to sensor.py
     entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
     coordinator = MagicMock()
-    
+
     # Simulate data stored as a string (e.g. from restore state)
     coordinator.data = {"mail_updated": "2023-10-27T10:00:00+00:00"}
-    
+
     sensor = PackagesSensor(
-        entry, 
-        MagicMock(key="mail_updated", name="Mail Updated"), 
-        coordinator
+        entry, MagicMock(key="mail_updated", name="Mail Updated"), coordinator
     )
-    
+
     # Value should be converted to datetime object
     val = sensor.native_value
     assert isinstance(val, datetime.datetime)

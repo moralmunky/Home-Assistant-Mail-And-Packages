@@ -3222,10 +3222,10 @@ Thank you for your purchase!
 def test_extract_delivery_image_png(tmp_path):
     """Test extracting a PNG delivery image (e.g. Walmart style)."""
     from custom_components.mail_and_packages.helpers import _extract_delivery_image
-    
+
     # Create dummy PNG data (base64)
     png_data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-    
+
     # Note: The HTML must contain the cid_keyword ("deliveryProofLabel") for the function to proceed
     email_body = f"""MIME-Version: 1.0
 Content-Type: multipart/alternative; boundary="boundary"
@@ -3240,20 +3240,111 @@ Content-Type: text/html; charset=utf-8
 </html>
 --boundary--
 """
-    
+
     # Create target directory
     image_path = str(tmp_path) + "/"
     os.makedirs(os.path.join(image_path, "walmart"), exist_ok=True)
-    
+
     # Run extraction
     result = _extract_delivery_image(
-        email_body,
-        image_path,
-        "test.png",
-        "walmart",
-        "deliveryProofLabel", 
-        "image/png"
+        email_body, image_path, "test.png", "walmart", "deliveryProofLabel", "image/png"
     )
-    
+
     assert result is True
     assert os.path.exists(os.path.join(image_path, "walmart", "test.png"))
+
+
+def test_extract_delivery_image_bad_base64(tmp_path):
+    """Test extraction with invalid base64 data."""
+    from custom_components.mail_and_packages.helpers import _extract_delivery_image
+
+    # Invalid base64 string (contains spaces or invalid chars not padding)
+    bad_data = "This is not valid base64 data!!!"
+
+    email_body = f"""MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+
+<html>
+  <div class="deliveryProofLabel">
+    <img src="data:image/png;base64,{bad_data}" />
+  </div>
+</html>
+"""
+
+    image_path = str(tmp_path) + "/"
+
+    # Should handle the exception gracefully and return False
+    result = _extract_delivery_image(
+        email_body, image_path, "test.png", "walmart", "deliveryProofLabel", "image/png"
+    )
+
+    assert result is False
+
+
+def test_extract_delivery_image_save_error(tmp_path):
+    """Test error handling when saving the image fails."""
+    from custom_components.mail_and_packages.helpers import _extract_delivery_image
+    from unittest.mock import patch, mock_open
+
+    png_data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+
+    email_body = f"""MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+
+<html>
+  <div class="deliveryProofLabel">
+    <img src="data:image/png;base64,{png_data}" />
+  </div>
+</html>
+"""
+
+    # Patch builtins.open to raise an OSError
+    with patch("builtins.open", side_effect=OSError("Permission denied")):
+        result = _extract_delivery_image(
+            email_body,
+            str(tmp_path) + "/",
+            "test.png",
+            "walmart",
+            "deliveryProofLabel",
+            "image/png",
+        )
+
+    assert result is False
+
+
+@pytest.mark.asyncio
+async def test_find_text_decode_error():
+    """Test find_text handles decoding errors gracefully."""
+    from custom_components.mail_and_packages.helpers import find_text
+    from unittest.mock import MagicMock
+
+    # Mock account
+    mock_account = MagicMock()
+    mock_account.search.return_value = ("OK", [b"1"])
+
+    # Mock email message parts
+    mock_msg = MagicMock()
+
+    # Part 1: Valid text
+    part1 = MagicMock()
+    part1.get_content_type.return_value = "text/plain"
+    part1.get_payload.return_value = b"Hello World"
+
+    # Part 2: Payload is None (will cause AttributeError on decode)
+    part2 = MagicMock()
+    part2.get_content_type.return_value = "text/plain"
+    part2.get_payload.return_value = None
+
+    mock_msg.walk.return_value = [part1, part2]
+
+    # Mock email_fetch to return our constructed message
+    with patch(
+        "custom_components.mail_and_packages.helpers.email_fetch"
+    ) as mock_fetch, patch("email.message_from_bytes", return_value=mock_msg):
+
+        mock_fetch.return_value = ("OK", [(b"1", b"raw_data")])
+
+        # Search for "World" which is in part1. Part2 should crash but be skipped.
+        count = find_text(("OK", [b"1"]), mock_account, ["World"], False)
+
+        assert count == 1
