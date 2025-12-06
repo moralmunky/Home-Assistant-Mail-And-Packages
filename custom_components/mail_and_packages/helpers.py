@@ -1229,7 +1229,7 @@ def get_count(
             data.get(ATTR_UPS_IMAGE, "ups_delivery.jpg") if data else "ups_delivery.jpg"
         )
         result[ATTR_COUNT] = ups_search(
-            account, image_path, hass, ups_image_name, data, forwarded_emails
+            account, image_path, ups_image_name, data, forwarded_emails
         )
 
         # Extract tracking number if requested
@@ -1260,7 +1260,7 @@ def get_count(
             else "walmart_delivery.jpg"
         )
         result[ATTR_COUNT] = walmart_search(
-            account, image_path, hass, walmart_image_name, data
+            account, image_path, walmart_image_name, data
         )
 
         # Extract tracking number if requested
@@ -1500,7 +1500,6 @@ def find_text(
 def ups_search(
     account: Type[imaplib.IMAP4_SSL],
     image_path: str,
-    hass: HomeAssistant,
     ups_image_name: str,
     coordinator_data: Optional[dict] = None,
     forwarded_emails: Optional[dict] = None,
@@ -1571,7 +1570,7 @@ def ups_search(
                 # Count the delivery email (regardless of photo extraction)
                 count += 1
                 # Check if a UPS delivery photo was successfully saved
-                if get_ups_image(sdata, account, image_path, hass, ups_image_name):
+                if get_ups_image(sdata, image_path, ups_image_name):
                     new_image_saved = True
 
     # Note: No-delivery logic moved to early return case above
@@ -1597,7 +1596,6 @@ def ups_search(
 def walmart_search(
     account: Type[imaplib.IMAP4_SSL],
     image_path: str,
-    hass: HomeAssistant,
     walmart_image_name: str,
     coordinator_data: Optional[dict] = None,
 ) -> int:
@@ -1675,9 +1673,7 @@ def walmart_search(
                         # Count the delivery email (regardless of photo extraction)
                         count += 1
                         # Check if a Walmart delivery photo was successfully saved
-                        if get_walmart_image(
-                            sdata, account, image_path, hass, walmart_image_name
-                        ):
+                        if get_walmart_image(sdata, image_path, walmart_image_name):
                             new_image_saved = True
 
     # If a new image was saved, update the coordinator data with the actual filename
@@ -1770,14 +1766,14 @@ def amazon_search(
     return count
 
 
-def get_ups_image(sdata, account, image_path, hass, image_name):
+def get_ups_image(sdata, image_path, image_name):
     """Return UPS image."""
     return _extract_delivery_image(
         sdata, image_path, image_name, "ups", "deliveryPhoto", "image/jpeg"
     )
 
 
-def get_walmart_image(sdata, account, image_path, hass, image_name):
+def get_walmart_image(sdata, image_path, image_name):
     """Return Walmart image."""
     return _extract_delivery_image(
         sdata, image_path, image_name, "walmart", "deliveryProofLabel", "image/png"
