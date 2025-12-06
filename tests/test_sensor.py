@@ -1,6 +1,7 @@
 """Test Mail and Packages sensors."""
 
 import datetime
+from datetime import timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -237,3 +238,27 @@ async def test_mail_updated_sensor_string_conversion(hass):
     val = sensor.native_value
     assert isinstance(val, datetime.datetime)
     assert val.year == 2023
+
+
+async def test_mail_updated_sensor_invalid_date_string(hass):
+    """Test that the mail_updated sensor handles invalid date strings gracefully."""
+    from datetime import datetime
+    from unittest.mock import MagicMock
+
+    from custom_components.mail_and_packages.sensor import PackagesSensor
+
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
+    coordinator = MagicMock()
+
+    # Simulate invalid date string in data (e.g. corrupted cache)
+    coordinator.data = {"mail_updated": "NOT_A_VALID_DATE_STRING"}
+
+    sensor = PackagesSensor(
+        entry, MagicMock(key="mail_updated", name="Mail Updated"), coordinator
+    )
+
+    # Should trigger ValueError handler and return current time
+    val = sensor.native_value
+    assert isinstance(val, datetime)
+    # Verify it returned 'now' (roughly)
+    assert (datetime.now(timezone.utc) - val).total_seconds() < 5

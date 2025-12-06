@@ -3283,8 +3283,9 @@ Content-Type: text/html; charset=utf-8
 
 def test_extract_delivery_image_save_error(tmp_path):
     """Test error handling when saving the image fails."""
+    from unittest.mock import mock_open, patch
+
     from custom_components.mail_and_packages.helpers import _extract_delivery_image
-    from unittest.mock import patch, mock_open
 
     png_data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
 
@@ -3315,8 +3316,9 @@ Content-Type: text/html; charset=utf-8
 @pytest.mark.asyncio
 async def test_find_text_decode_error():
     """Test find_text handles decoding errors gracefully."""
-    from custom_components.mail_and_packages.helpers import find_text
     from unittest.mock import MagicMock
+
+    from custom_components.mail_and_packages.helpers import find_text
 
     # Mock account
     mock_account = MagicMock()

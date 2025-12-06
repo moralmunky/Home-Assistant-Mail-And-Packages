@@ -1650,3 +1650,62 @@ async def test_camera_custom_no_mail_image():
 
             # Should return True for custom no-mail image
             assert result is True
+
+
+async def test_generic_camera_skip_conditions(hass, caplog):
+    """Test that generic camera logs debug messages when skipping images."""
+    from custom_components.mail_and_packages.camera import MailCam
+    from custom_components.mail_and_packages.const import (
+        ATTR_AMAZON_IMAGE,
+        ATTR_IMAGE_PATH,
+    )
+
+    config = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "resources": ["amazon_delivered"],  # Amazon sensor enabled
+            "amazon_custom_img": False,
+        },
+    )
+
+    coordinator = MagicMock()
+    coordinator.last_update_success = True
+
+    # Setup data where Amazon has a 'no deliveries' image
+    # and NO active deliveries (count is 0 or missing)
+    coordinator.data = {
+        ATTR_IMAGE_PATH: "/tmp/images/",
+        ATTR_AMAZON_IMAGE: "no_deliveries_amazon.jpg",
+        "amazon_delivered": 0,  # No deliveries
+    }
+
+    # Create the generic camera
+    camera = MailCam(hass, "generic_camera", config, coordinator)
+
+    # Mock file existence so it attempts to process
+    with patch("os.path.exists", return_value=True), patch.object(
+        camera, "check_file_path_access"
+    ), patch.object(camera, "schedule_update_ha_state"):
+
+        await camera.update_file_path()
+
+    # Check for the specific debug message from the 'is_no_mail' branch
+    assert "Generic camera - filtered out amazon no-mail image" in caplog.text
+
+    # Clear caplog for next check
+    caplog.clear()
+
+    # Update data: Valid image, but still 0 deliveries
+    coordinator.data[ATTR_AMAZON_IMAGE] = "package_arrived.jpg"
+
+    with patch("os.path.exists", return_value=True), patch.object(
+        camera, "check_file_path_access"
+    ), patch.object(camera, "schedule_update_ha_state"):
+
+        await camera.update_file_path()
+
+    # Check for the specific debug message from the 'not has_current_deliveries' branch
+    assert (
+        "Generic camera - filtered out amazon (no current deliveries, count=0)"
+        in caplog.text
+    )
