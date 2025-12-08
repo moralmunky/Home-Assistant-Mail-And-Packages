@@ -166,7 +166,6 @@ class MailCam(CoordinatorEntity, Camera):
         """Update the file_path."""
         _LOGGER.debug("Camera Update: %s", self._type)
         _LOGGER.debug("Custom No Mail: %s", self._no_mail)
-        file_path = None
 
         if not self.coordinator.last_update_success:
             _LOGGER.debug("Update to update camera image. Unavailable.")
@@ -181,25 +180,27 @@ class MailCam(CoordinatorEntity, Camera):
 
         if self._type == "usps_camera":
             # Update camera image for USPS informed delivery images
-            file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
+            self._file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
             s1 = set([ATTR_IMAGE_NAME, ATTR_IMAGE_PATH])
             if s1.issubset(self.coordinator.data.keys()):
                 image = self.coordinator.data[ATTR_IMAGE_NAME]
                 path = self.coordinator.data[ATTR_IMAGE_PATH]
-                file_path = f"{self.hass.config.path()}/{path}{image}"
+                self._file_path = f"{self.hass.config.path()}/{path}{image}"
             else:
                 if self._no_mail:
-                    file_path = self._no_mail
+                    self._file_path = self._no_mail
 
         elif self._type == "generic_camera":
             # Update camera image for generic package deliveries
-            file_path = f"{os.path.dirname(__file__)}/no_deliveries_generic.jpg"
+            self._file_path = f"{os.path.dirname(__file__)}/no_deliveries_generic.jpg"
 
             # Check if custom image is configured for generic camera
             if self._no_mail:
                 # Use custom image (takes priority over everything)
-                file_path = self._no_mail
-                _LOGGER.debug("Generic camera - using custom no mail: %s", file_path)
+                self._file_path = self._no_mail
+                _LOGGER.debug(
+                    "Generic camera - using custom no mail: %s", self._file_path
+                )
             else:
                 # Collect all delivery images from different cameras to create an animated GIF
                 delivery_images = []
@@ -362,7 +363,7 @@ class MailCam(CoordinatorEntity, Camera):
                         if os.path.exists(coordinator_file_path) and os.access(
                             coordinator_file_path, os.R_OK
                         ):
-                            file_path = coordinator_file_path
+                            self._file_path = coordinator_file_path
                             _LOGGER.debug(
                                 "%s camera - found coordinator file: %s",
                                 self._type,
