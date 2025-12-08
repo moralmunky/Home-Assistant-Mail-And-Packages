@@ -2434,23 +2434,6 @@ def amazon_date_regex(email_msg: str) -> str | None:
     return None
 
 
-# def amazon_date_format(arrive_date: str, lang: str) -> tuple:
-#     """Return the date format."""
-#     if "de_" in lang:
-#         return (arrive_date.split(",", 1)[1].strip(), "%d %B")
-
-#     if "today" in arrive_date or "tomorrow" in arrive_date:
-#         return (arrive_date.split(",")[1].strip(), "%B %d")
-
-#     if arrive_date.endswith(","):
-#         return (arrive_date.rstrip(","), "%A, %B %d")
-
-#     if "," not in arrive_date:
-#         return (arrive_date, "%A %d %B")
-
-#     return (arrive_date, "%A, %B %d")
-
-
 def amazon_email_addresses(
     fwds: Optional[str] = None, the_domain: str = None
 ) -> list | None:
