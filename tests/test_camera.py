@@ -1999,3 +1999,78 @@ async def test_generic_camera_skip_conditions(hass, caplog):
         "Generic camera - filtered out amazon (no current deliveries, count=0)"
         in caplog.text
     )
+
+async def test_camera_fallback_to_recent_file(
+    hass,
+    integration,
+    mock_imap_no_email,
+    caplog,
+):
+    """Test that camera falls back to the most recent file if specific image is missing."""
+    entry = integration
+    
+    # Setup coordinator data with a file that "doesn't exist"
+    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator.data = {
+        "amazon_image": "missing_file.jpg",
+        "image_path": "custom_components/mail_and_packages/images/",
+        "amazon_delivered": 1
+    }
+
+    # Helper to mock file system state
+    def mock_exists_side_effect(path):
+        # The specific file doesn't exist, but the directory does
+        if "missing_file.jpg" in path:
+            return False
+        if "custom_components/mail_and_packages/images/amazon" in path:
+            return True
+        return True
+
+    def mock_getmtime_side_effect(path):
+        if "old.jpg" in path:
+            return 1000
+        if "new.jpg" in path:
+            return 2000
+        return 0
+
+    with patch("os.path.isfile", return_value=True), \
+         patch("os.access", return_value=True), \
+         patch("os.path.exists", side_effect=mock_exists_side_effect), \
+         patch("os.listdir", return_value=["old.jpg", "new.jpg"]), \
+         patch("os.path.getmtime", side_effect=mock_getmtime_side_effect):
+
+        # Trigger update
+        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        amazon_camera = next(c for c in cameras if c._type == "amazon_camera")
+        
+        await amazon_camera.update_file_path()
+        await hass.async_block_till_done()
+
+        # Verify it picked the newer file
+        state = hass.states.get("camera.mail_amazon_delivery_camera")
+        assert "new.jpg" in state.attributes.get("file_path")
+        assert "found alternative image file" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_camera_service_update_specific_explicit(hass, integration):
+    """Test updating a specific camera via service with explicit mock check."""
+    entry = integration
+    
+    # Get the Amazon camera object from hass data
+    cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+    amazon_cam = next(c for c in cameras if "amazon" in c.entity_id)
+    target_entity_id = amazon_cam.entity_id
+
+    # Patch the update_file_path method on the instance to verify it gets called
+    with patch.object(amazon_cam, 'update_file_path') as mock_update:
+        # Call service targeting this specific entity
+        await hass.services.async_call(
+            DOMAIN, 
+            "update_image", 
+            {"entity_id": target_entity_id}, 
+            blocking=True
+        )
+        
+        # Verify the method was called, confirming lines 175-176 were hit
+        mock_update.assert_called_once()        

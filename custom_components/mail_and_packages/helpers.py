@@ -2213,18 +2213,21 @@ async def download_img(
     filepath = f"{img_path}{img_name}"
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(img_url.replace("&amp;", "&")) as resp:
-            if resp.status != 200:
-                _LOGGER.error("Problem downloading file http error: %s", resp.status)
-                return
-            content_type = resp.headers["content-type"]
-            _LOGGER.debug("URL content-type: %s", content_type)
-            if "image" in content_type:
-                data = await resp.read()
-                _LOGGER.debug("Downloading image to: %s", filepath)
-                the_file = await hass.async_add_executor_job(open, filepath, "wb")
-                the_file.write(data)
-                _LOGGER.debug("Amazon image downloaded")
+        try:
+            async with session.get(img_url.replace("&amp;", "&")) as resp:
+                if resp.status != 200:
+                    _LOGGER.error("Problem downloading file http error: %s", resp.status)
+                    return
+                content_type = resp.headers["content-type"]
+                _LOGGER.debug("URL content-type: %s", content_type)
+                if "image" in content_type:
+                    data = await resp.read()
+                    _LOGGER.debug("Downloading image to: %s", filepath)
+                    the_file = await hass.async_add_executor_job(open, filepath, "wb")
+                    the_file.write(data)
+                    _LOGGER.debug("Amazon image downloaded")
+        except aiohttp.ClientError as err:
+            _LOGGER.error("Problem downloading file connection error: %s", err)
 
 
 def _process_amazon_forwards(email_list: str | list | None) -> list:
@@ -2429,21 +2432,21 @@ def amazon_date_regex(email_msg: str) -> str | None:
     return None
 
 
-def amazon_date_format(arrive_date: str, lang: str) -> tuple:
-    """Return the date format."""
-    if "de_" in lang:
-        return (arrive_date.split(",", 1)[1].strip(), "%d %B")
+# def amazon_date_format(arrive_date: str, lang: str) -> tuple:
+#     """Return the date format."""
+#     if "de_" in lang:
+#         return (arrive_date.split(",", 1)[1].strip(), "%d %B")
 
-    if "today" in arrive_date or "tomorrow" in arrive_date:
-        return (arrive_date.split(",")[1].strip(), "%B %d")
+#     if "today" in arrive_date or "tomorrow" in arrive_date:
+#         return (arrive_date.split(",")[1].strip(), "%B %d")
 
-    if arrive_date.endswith(","):
-        return (arrive_date.rstrip(","), "%A, %B %d")
+#     if arrive_date.endswith(","):
+#         return (arrive_date.rstrip(","), "%A, %B %d")
 
-    if "," not in arrive_date:
-        return (arrive_date, "%A %d %B")
+#     if "," not in arrive_date:
+#         return (arrive_date, "%A %d %B")
 
-    return (arrive_date, "%A, %B %d")
+#     return (arrive_date, "%A, %B %d")
 
 
 def amazon_email_addresses(

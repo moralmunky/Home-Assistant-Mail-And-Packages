@@ -262,3 +262,27 @@ async def test_mail_updated_sensor_invalid_date_string(hass):
     assert isinstance(val, datetime)
     # Verify it returned 'now' (roughly)
     assert (datetime.now(timezone.utc) - val).total_seconds() < 5
+
+
+@pytest.mark.asyncio
+async def test_mail_updated_sensor_totally_invalid_date(hass):
+    """Test mail_updated sensor with a string that definitely raises ValueError."""
+    from custom_components.mail_and_packages.sensor import PackagesSensor
+    from unittest.mock import MagicMock
+    from datetime import datetime
+
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
+    coordinator = MagicMock()
+    
+    # Use a string guaranteed to fail fromisoformat
+    coordinator.data = {"mail_updated": "this is not a date"}
+
+    sensor = PackagesSensor(
+        entry, MagicMock(key="mail_updated", name="Mail Updated"), coordinator
+    )
+
+    # This calls native_value, triggering the exception handler
+    val = sensor.native_value
+    
+    # Should return current time (roughly)
+    assert isinstance(val, datetime)
