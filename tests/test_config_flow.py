@@ -7668,21 +7668,22 @@ async def test_form_allow_forwarded_emails_using_service_address(
 
     assert "A service domain was found in email" in caplog.text
 
+
 @pytest.mark.asyncio
 async def test_get_mailboxes_generic_exception(caplog):
     """Test _get_mailboxes handles generic exception during parsing."""
-    
+
     with patch("custom_components.mail_and_packages.config_flow.login") as mock_login:
         mock_account = MagicMock()
-        
+
         # We need an item that causes IndexError first, then Exception (ValueError)
         # We can achieve this by mocking the decode().split() chain
         mock_item = MagicMock()
         mock_decoded = MagicMock()
-        
+
         # When decode() is called, return our mock string object
         mock_item.decode.return_value = mock_decoded
-        
+
         # Define side effects for split()
         # 1. First call with ' "/" ' raises IndexError (triggers outer except)
         # 2. Second call with ' "." ' raises ValueError (triggers inner except Exception)
@@ -7692,27 +7693,28 @@ async def test_get_mailboxes_generic_exception(caplog):
             if sep == ' "." ':
                 raise ValueError("Second split failed")
             return ["folder"]
-            
+
         mock_decoded.split.side_effect = split_side_effect
-        
+
         # Setup account list return
         mock_account.list.return_value = ("OK", [mock_item])
         mock_login.return_value = mock_account
 
         # Call the function
         result = _get_mailboxes("host", 993, "user", "pwd", "SSL", True)
-        
+
         # Verify it falls back to default folder
         assert result == [DEFAULT_FOLDER]
-        
+
         # Verify the error was logged
         assert "Problem getting mailbox listing using 'INBOX' message" in caplog.text
         assert "Second split failed" in caplog.text
 
+
 @pytest.mark.asyncio
 async def test_validate_user_input_specific_images():
     """Test validation logic for specific custom image providers."""
-    
+
     # Common base input
     base_input = {
         CONF_GENERATE_MP4: False,
@@ -7728,8 +7730,11 @@ async def test_validate_user_input_specific_images():
     user_input = base_input.copy()
     user_input[CONF_AMAZON_CUSTOM_IMG] = True
     user_input[CONF_AMAZON_CUSTOM_IMG_FILE] = "missing_amazon.jpg"
-    
-    with patch("custom_components.mail_and_packages.config_flow.path.isfile", return_value=False):
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.path.isfile",
+        return_value=False,
+    ):
         errors, _ = await _validate_user_input(user_input)
         assert errors[CONF_AMAZON_CUSTOM_IMG_FILE] == "file_not_found"
 
@@ -7737,8 +7742,11 @@ async def test_validate_user_input_specific_images():
     user_input = base_input.copy()
     user_input[CONF_UPS_CUSTOM_IMG] = True
     user_input[CONF_UPS_CUSTOM_IMG_FILE] = "missing_ups.jpg"
-    
-    with patch("custom_components.mail_and_packages.config_flow.path.isfile", return_value=False):
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.path.isfile",
+        return_value=False,
+    ):
         errors, _ = await _validate_user_input(user_input)
         assert errors[CONF_UPS_CUSTOM_IMG_FILE] == "file_not_found"
 
@@ -7746,7 +7754,10 @@ async def test_validate_user_input_specific_images():
     user_input = base_input.copy()
     user_input[CONF_FEDEX_CUSTOM_IMG] = True
     user_input[CONF_FEDEX_CUSTOM_IMG_FILE] = "missing_fedex.jpg"
-    
-    with patch("custom_components.mail_and_packages.config_flow.path.isfile", return_value=False):
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.path.isfile",
+        return_value=False,
+    ):
         errors, _ = await _validate_user_input(user_input)
         assert errors[CONF_FEDEX_CUSTOM_IMG_FILE] == "file_not_found"
