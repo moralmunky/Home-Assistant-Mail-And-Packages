@@ -2216,7 +2216,9 @@ async def download_img(
         try:
             async with session.get(img_url.replace("&amp;", "&")) as resp:
                 if resp.status != 200:
-                    _LOGGER.error("Problem downloading file http error: %s", resp.status)
+                    _LOGGER.error(
+                        "Problem downloading file http error: %s", resp.status
+                    )
                     return
                 content_type = resp.headers["content-type"]
                 _LOGGER.debug("URL content-type: %s", content_type)

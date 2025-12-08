@@ -273,7 +273,7 @@ async def test_mail_updated_sensor_totally_invalid_date(hass):
 
     entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
     coordinator = MagicMock()
-    
+
     # Use a string guaranteed to fail fromisoformat
     coordinator.data = {"mail_updated": "this is not a date"}
 
@@ -283,6 +283,6 @@ async def test_mail_updated_sensor_totally_invalid_date(hass):
 
     # This calls native_value, triggering the exception handler
     val = sensor.native_value
-    
+
     # Should return current time (roughly)
     assert isinstance(val, datetime)

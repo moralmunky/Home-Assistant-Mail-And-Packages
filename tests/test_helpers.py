@@ -3802,7 +3802,10 @@ async def test_find_text_decode_error():
 @pytest.mark.asyncio
 async def test_check_ffmpeg():
     """Test ffmpeg check helper."""
-    with patch("custom_components.mail_and_packages.helpers.which", return_value="/usr/bin/ffmpeg"):
+    with patch(
+        "custom_components.mail_and_packages.helpers.which",
+        return_value="/usr/bin/ffmpeg",
+    ):
         assert await _check_ffmpeg() is not None
 
     with patch("custom_components.mail_and_packages.helpers.which", return_value=None):
@@ -3812,14 +3815,17 @@ async def test_check_ffmpeg():
 @pytest.mark.asyncio
 async def test_download_img_connection_error(hass, caplog):
     """Test download_img handles connection errors."""
-    with patch("aiohttp.ClientSession.get", side_effect=aiohttp.ClientError("Connection failed")):
-         await download_img(
+    with patch(
+        "aiohttp.ClientSession.get",
+        side_effect=aiohttp.ClientError("Connection failed"),
+    ):
+        await download_img(
             hass,
             "http://fake.website.com/image.jpg",
             "/fake/directory/",
             "testfilename.jpg",
-        )        
-         
+        )
+
 
 @pytest.mark.asyncio
 async def test_process_emails_fedex_dir_creation(hass, integration, caplog):
@@ -3833,18 +3839,25 @@ async def test_process_emails_fedex_dir_creation(hass, integration, caplog):
             return False
         return True
 
-    with patch("os.path.isdir", side_effect=isdir_side_effect), \
-         patch("os.makedirs") as mock_makedirs, \
-         patch("custom_components.mail_and_packages.helpers.copyfile"), \
-         patch("custom_components.mail_and_packages.helpers.login", return_value=MagicMock()), \
-         patch("custom_components.mail_and_packages.helpers.selectfolder", return_value=True), \
-         patch("custom_components.mail_and_packages.helpers.image_file_name", return_value="test.gif"):
+    with patch("os.path.isdir", side_effect=isdir_side_effect), patch(
+        "os.makedirs"
+    ) as mock_makedirs, patch(
+        "custom_components.mail_and_packages.helpers.copyfile"
+    ), patch(
+        "custom_components.mail_and_packages.helpers.login", return_value=MagicMock()
+    ), patch(
+        "custom_components.mail_and_packages.helpers.selectfolder", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.helpers.image_file_name",
+        return_value="test.gif",
+    ):
 
         process_emails(hass, config)
-        
+
         # Verify we tried to create the directory
         mock_makedirs.assert_called()
         assert "Created FedEx directory" in caplog.text
+
 
 @pytest.mark.asyncio
 async def test_process_emails_fedex_dir_creation_error(hass, integration, caplog):
@@ -3858,16 +3871,21 @@ async def test_process_emails_fedex_dir_creation_error(hass, integration, caplog
         return True
 
     # Simulate error during makedirs
-    with patch("os.path.isdir", side_effect=isdir_side_effect), \
-         patch("os.makedirs", side_effect=OSError("Permission denied")), \
-         patch("custom_components.mail_and_packages.helpers.copyfile"), \
-         patch("custom_components.mail_and_packages.helpers.login", return_value=MagicMock()), \
-         patch("custom_components.mail_and_packages.helpers.selectfolder", return_value=True), \
-         patch("custom_components.mail_and_packages.helpers.image_file_name", return_value="test.gif"):
+    with patch("os.path.isdir", side_effect=isdir_side_effect), patch(
+        "os.makedirs", side_effect=OSError("Permission denied")
+    ), patch("custom_components.mail_and_packages.helpers.copyfile"), patch(
+        "custom_components.mail_and_packages.helpers.login", return_value=MagicMock()
+    ), patch(
+        "custom_components.mail_and_packages.helpers.selectfolder", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.helpers.image_file_name",
+        return_value="test.gif",
+    ):
 
         process_emails(hass, config)
-        
+
         assert "Error creating FedEx directory" in caplog.text
+
 
 @pytest.mark.asyncio
 async def test_process_emails_default_image_copy_errors(hass, integration, caplog):
@@ -3879,19 +3897,28 @@ async def test_process_emails_default_image_copy_errors(hass, integration, caplo
     # But return True for the source files (which contain "no_deliveries")
     def exists_side_effect(path):
         path_str = str(path)
-        if any(x in path_str for x in ["ups", "walmart", "fedex"]) and "no_deliveries" not in path_str:
+        if (
+            any(x in path_str for x in ["ups", "walmart", "fedex"])
+            and "no_deliveries" not in path_str
+        ):
             return False
         return True
 
     # Simulate error during copyfile
-    with patch("os.path.exists", side_effect=exists_side_effect), \
-         patch("custom_components.mail_and_packages.helpers.copyfile", side_effect=OSError("Copy failed")), \
-         patch("custom_components.mail_and_packages.helpers.login", return_value=MagicMock()), \
-         patch("custom_components.mail_and_packages.helpers.selectfolder", return_value=True), \
-         patch("custom_components.mail_and_packages.helpers.image_file_name", return_value="test.gif"):
+    with patch("os.path.exists", side_effect=exists_side_effect), patch(
+        "custom_components.mail_and_packages.helpers.copyfile",
+        side_effect=OSError("Copy failed"),
+    ), patch(
+        "custom_components.mail_and_packages.helpers.login", return_value=MagicMock()
+    ), patch(
+        "custom_components.mail_and_packages.helpers.selectfolder", return_value=True
+    ), patch(
+        "custom_components.mail_and_packages.helpers.image_file_name",
+        return_value="test.gif",
+    ):
 
         process_emails(hass, config)
-        
+
         # Verify error logs for all three providers
         assert "Error creating default UPS image" in caplog.text
         assert "Error creating default Walmart image" in caplog.text
