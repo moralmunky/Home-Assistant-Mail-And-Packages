@@ -18,7 +18,7 @@ COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
 SERVICE_UPDATE_FILE_PATH = "update_file_path"
 CAMERA = "cameras"
-CONFIG_VER = 12
+CONFIG_VER = 13
 
 # Attributes
 ATTR_AMAZON_IMAGE = "amazon_image"
@@ -40,6 +40,7 @@ ATTR_PATTERN = "pattern"
 ATTR_USPS_MAIL = "usps_mail"
 ATTR_UPS_IMAGE = "ups_image"
 ATTR_WALMART_IMAGE = "walmart_image"
+ATTR_FEDEX_IMAGE = "fedex_image"
 ATTR_GENERIC_IMAGE = "generic_image"
 
 # Configuration Properties
@@ -53,6 +54,8 @@ CONF_UPS_CUSTOM_IMG = "ups_custom_img"
 CONF_UPS_CUSTOM_IMG_FILE = "ups_custom_img_file"
 CONF_WALMART_CUSTOM_IMG = "walmart_custom_img"
 CONF_WALMART_CUSTOM_IMG_FILE = "walmart_custom_img_file"
+CONF_FEDEX_CUSTOM_IMG = "fedex_custom_img"
+CONF_FEDEX_CUSTOM_IMG_FILE = "fedex_custom_img_file"
 CONF_GENERIC_CUSTOM_IMG = "generic_custom_img"
 CONF_GENERIC_CUSTOM_IMG_FILE = "generic_custom_img_file"
 CONF_STORAGE = "storage"
@@ -99,6 +102,10 @@ DEFAULT_WALMART_CUSTOM_IMG = False
 DEFAULT_WALMART_CUSTOM_IMG_FILE = (
     "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
 )
+DEFAULT_FEDEX_CUSTOM_IMG = False
+DEFAULT_FEDEX_CUSTOM_IMG_FILE = (
+    "custom_components/mail_and_packages/no_deliveries_fedex.jpg"
+)
 DEFAULT_GENERIC_CUSTOM_IMG = False
 DEFAULT_GENERIC_CUSTOM_IMG_FILE = (
     "custom_components/mail_and_packages/no_deliveries_generic.jpg"
@@ -106,6 +113,7 @@ DEFAULT_GENERIC_CUSTOM_IMG_FILE = (
 DEFAULT_AMAZON_DAYS = 3
 DEFAULT_AMAZON_DOMAIN = "amazon.com"
 DEFAULT_STORAGE = "custom_components/mail_and_packages/images/"
+
 DEFAULT_ALLOW_FORWARDED_EMAILS = False
 DEFAULT_FORWARDED_EMAILS = "(none)"
 
@@ -1343,8 +1351,26 @@ CAMERA_DATA = {
     "usps_camera": ["Mail USPS Camera"],
     "ups_camera": ["Mail UPS Camera"],
     "amazon_camera": ["Mail Amazon Delivery Camera"],
-    "walmart_camera": ["Mail Walmart Camera"],
+    "walmart_camera": ["Mail Walmart Delivery Camera"],
+    "fedex_camera": ["Mail FedEx Delivery Camera"],
     "generic_camera": ["Mail Generic Delivery Camera"],
+}
+
+# Configuration for shipper-specific image extraction parameters
+# Only contains values that cannot be derived from shipper_name
+CAMERA_EXTRACTION_CONFIG = {
+    "ups": {
+        "image_type": "jpeg",
+        "cid_name": "deliveryPhoto",
+    },
+    "walmart": {
+        "image_type": "png",
+        "cid_name": "deliveryProofLabel",
+    },
+    "fedex": {
+        "image_type": "jpeg",
+        "attachment_filename_pattern": "delivery",
+    },
 }
 
 # Sensor Index

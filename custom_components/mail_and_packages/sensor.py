@@ -112,7 +112,6 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
                     value = datetime.datetime.now(timezone.utc)
             elif value is None:
                 value = datetime.datetime.now(timezone.utc)
-
         return value
 
     @property
@@ -125,6 +124,7 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         """Return device specific state attributes."""
         attr = {}
         data = self.coordinator.data
+
         if (
             any(sensor in self.type for sensor in ["_delivering", "_delivered"])
             and self._tracking_key in data.keys()

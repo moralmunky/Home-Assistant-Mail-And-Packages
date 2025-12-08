@@ -15,23 +15,12 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from . import const
 from .helpers import generate_delivery_gif
 from .const import (
-    ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
-    ATTR_UPS_IMAGE,
-    ATTR_WALMART_IMAGE,
     CAMERA,
     CAMERA_DATA,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
-    CONF_AMAZON_CUSTOM_IMG,
-    CONF_AMAZON_CUSTOM_IMG_FILE,
-    CONF_UPS_CUSTOM_IMG,
-    CONF_UPS_CUSTOM_IMG_FILE,
-    CONF_WALMART_CUSTOM_IMG,
-    CONF_WALMART_CUSTOM_IMG_FILE,
-    CONF_GENERIC_CUSTOM_IMG,
-    CONF_GENERIC_CUSTOM_IMG_FILE,
     COORDINATOR,
     DOMAIN,
     SENSOR_NAME,
@@ -109,76 +98,44 @@ class MailCam(CoordinatorEntity, Camera):
         self._type = name
         self._host = config.data.get(CONF_HOST)
         self._unique_id = config.entry_id
-        # Set custom image paths for each camera type
+
+        # Derive config keys and default image from camera type name
+        # Remove "_camera" suffix to get base name (e.g., "usps_camera" -> "usps")
+        base_name = self._type.replace("_camera", "")
+
+        # USPS uses special config keys (no prefix), others use prefixed keys
+        if base_name == "usps":
+            custom_img_key = CONF_CUSTOM_IMG
+            custom_img_file_key = CONF_CUSTOM_IMG_FILE
+            default_image = "mail_none.gif"
+        else:
+            # Derive config key names dynamically (e.g., "amazon" -> CONF_AMAZON_CUSTOM_IMG)
+            custom_img_key = getattr(
+                const, f"CONF_{base_name.upper()}_CUSTOM_IMG", None
+            )
+            custom_img_file_key = getattr(
+                const, f"CONF_{base_name.upper()}_CUSTOM_IMG_FILE", None
+            )
+            default_image = f"no_deliveries_{base_name}.jpg"
+
+        # Set custom image paths
         self._no_mail = None
-        if self._type == "usps_camera":
-            if config.data.get(CONF_CUSTOM_IMG):
-                self._no_mail = config.data.get(CONF_CUSTOM_IMG_FILE)
-        elif self._type == "amazon_camera":
-            if config.data.get(CONF_AMAZON_CUSTOM_IMG):
-                self._no_mail = config.data.get(CONF_AMAZON_CUSTOM_IMG_FILE)
-                _LOGGER.debug("Amazon camera - custom image enabled: %s", self._no_mail)
-        elif self._type == "ups_camera":
-            if config.data.get(CONF_UPS_CUSTOM_IMG):
-                self._no_mail = config.data.get(CONF_UPS_CUSTOM_IMG_FILE)
-                _LOGGER.debug("UPS camera - custom image enabled: %s", self._no_mail)
-        elif self._type == "walmart_camera":
-            if config.data.get(CONF_WALMART_CUSTOM_IMG):
-                self._no_mail = config.data.get(CONF_WALMART_CUSTOM_IMG_FILE)
-                _LOGGER.debug(
-                    "Walmart camera - custom image enabled: %s", self._no_mail
-                )
-        elif self._type == "generic_camera":
-            if config.data.get(CONF_GENERIC_CUSTOM_IMG):
-                self._no_mail = config.data.get(CONF_GENERIC_CUSTOM_IMG_FILE)
-                _LOGGER.debug(
-                    "Generic camera - custom image enabled: %s", self._no_mail
-                )
+        if custom_img_key and config.data.get(custom_img_key):
+            self._no_mail = config.data.get(custom_img_file_key)
+            _LOGGER.debug(
+                "%s camera - custom image enabled: %s", self._type, self._no_mail
+            )
 
         # Set initial file path based on camera type and custom settings
-        if self._type == "usps_camera":
-            if config.data.get(CONF_CUSTOM_IMG):
-                self._file_path = config.data.get(CONF_CUSTOM_IMG_FILE)
-            else:
-                self._file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
-        elif self._type == "amazon_camera":
-            if config.data.get(CONF_AMAZON_CUSTOM_IMG):
-                self._file_path = config.data.get(CONF_AMAZON_CUSTOM_IMG_FILE)
-                _LOGGER.debug(
-                    "Amazon camera - initial file path set to: %s", self._file_path
-                )
-            else:
-                self._file_path = (
-                    f"{os.path.dirname(__file__)}/no_deliveries_amazon.jpg"
-                )
-        elif self._type == "ups_camera":
-            if config.data.get(CONF_UPS_CUSTOM_IMG):
-                self._file_path = config.data.get(CONF_UPS_CUSTOM_IMG_FILE)
-                _LOGGER.debug(
-                    "UPS camera - initial file path set to: %s", self._file_path
-                )
-            else:
-                self._file_path = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
-        elif self._type == "walmart_camera":
-            if config.data.get(CONF_WALMART_CUSTOM_IMG):
-                self._file_path = config.data.get(CONF_WALMART_CUSTOM_IMG_FILE)
-                _LOGGER.debug(
-                    "Walmart camera - initial file path set to: %s", self._file_path
-                )
-            else:
-                self._file_path = (
-                    f"{os.path.dirname(__file__)}/no_deliveries_walmart.jpg"
-                )
-        elif self._type == "generic_camera":
-            if config.data.get(CONF_GENERIC_CUSTOM_IMG):
-                self._file_path = config.data.get(CONF_GENERIC_CUSTOM_IMG_FILE)
-                _LOGGER.debug(
-                    "Generic camera - initial file path set to: %s", self._file_path
-                )
-            else:
-                self._file_path = (
-                    f"{os.path.dirname(__file__)}/no_deliveries_generic.jpg"
-                )
+        if custom_img_key and config.data.get(custom_img_key):
+            self._file_path = config.data.get(custom_img_file_key)
+            _LOGGER.debug(
+                "%s camera - initial file path set to: %s",
+                self._type,
+                self._file_path,
+            )
+        else:
+            self._file_path = f"{os.path.dirname(__file__)}/{default_image}"
 
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
@@ -204,10 +161,12 @@ class MailCam(CoordinatorEntity, Camera):
                 "Could not read camera %s image from file: %s", self._name, file_path
             )
 
+    # pylint: disable=too-many-nested-blocks
     async def update_file_path(self) -> None:
         """Update the file_path."""
         _LOGGER.debug("Camera Update: %s", self._type)
         _LOGGER.debug("Custom No Mail: %s", self._no_mail)
+        file_path = None
 
         if not self.coordinator.last_update_success:
             _LOGGER.debug("Update to update camera image. Unavailable.")
@@ -217,69 +176,30 @@ class MailCam(CoordinatorEntity, Camera):
             _LOGGER.debug("Unable to update camera image, no data.")
             return
 
-        # Map camera type to: (subdir, default_img, image_attr, log_name)
-        # Note: USPS and Generic are handled separately due to unique logic
-        cam_config = {
-            "amazon_camera": (
-                "amazon/",
-                "no_deliveries_amazon.jpg",
-                ATTR_AMAZON_IMAGE,
-                "Amazon",
-            ),
-            "ups_camera": ("ups/", "no_deliveries_ups.jpg", ATTR_UPS_IMAGE, "UPS"),
-            "walmart_camera": (
-                "walmart/",
-                "no_deliveries_walmart.jpg",
-                ATTR_WALMART_IMAGE,
-                "Walmart",
-            ),
-        }
+        # Derive base name from camera type (e.g., "amazon_camera" -> "amazon")
+        base_name = self._type.replace("_camera", "")
 
         if self._type == "usps_camera":
-            # USPS Logic: Data > Custom No Mail > Default
-            self._file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
-            if {ATTR_IMAGE_NAME, ATTR_IMAGE_PATH}.issubset(
-                self.coordinator.data.keys()
-            ):
+            # Update camera image for USPS informed delivery images
+            file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
+            s1 = set([ATTR_IMAGE_NAME, ATTR_IMAGE_PATH])
+            if s1.issubset(self.coordinator.data.keys()):
                 image = self.coordinator.data[ATTR_IMAGE_NAME]
                 path = self.coordinator.data[ATTR_IMAGE_PATH]
-                self._file_path = f"{self.hass.config.path()}/{path}{image}"
-            elif self._no_mail:
-                self._file_path = self._no_mail
-
-        elif self._type in cam_config:
-            # Amazon/UPS/Walmart Logic: Custom No Mail > Data > Default
-            subdir, default_img, img_attr, log_name = cam_config[self._type]
-
-            # 1. Default
-            self._file_path = f"{os.path.dirname(__file__)}/{default_img}"
-
-            # 2. Check Custom Image (Highest Priority for these cameras)
-            if self._no_mail:
-                self._file_path = self._no_mail
-                _LOGGER.debug(
-                    "%s camera - using custom no mail: %s", log_name, self._file_path
-                )
-            # 3. Check Data
-            elif {img_attr, ATTR_IMAGE_PATH}.issubset(self.coordinator.data.keys()):
-                image = self.coordinator.data[img_attr]
-                path = f"{self.coordinator.data[ATTR_IMAGE_PATH]}{subdir}"
-                self._file_path = f"{self.hass.config.path()}/{path}{image}"
-                _LOGGER.debug(
-                    "%s camera - using coordinator data: %s", log_name, self._file_path
-                )
+                file_path = f"{self.hass.config.path()}/{path}{image}"
+            else:
+                if self._no_mail:
+                    file_path = self._no_mail
 
         elif self._type == "generic_camera":
             # Update camera image for generic package deliveries
-            self._file_path = f"{os.path.dirname(__file__)}/no_deliveries_generic.jpg"
+            file_path = f"{os.path.dirname(__file__)}/no_deliveries_generic.jpg"
 
             # Check if custom image is configured for generic camera
             if self._no_mail:
                 # Use custom image (takes priority over everything)
-                self._file_path = self._no_mail
-                _LOGGER.debug(
-                    "Generic camera - using custom no mail: %s", self._file_path
-                )
+                file_path = self._no_mail
+                _LOGGER.debug("Generic camera - using custom no mail: %s", file_path)
             else:
                 # Collect all delivery images from different cameras to create an animated GIF
                 delivery_images = []
@@ -386,6 +306,158 @@ class MailCam(CoordinatorEntity, Camera):
                         self._file_path,
                     )
 
+        else:
+            # Handle generic delivery cameras (Amazon, UPS, Walmart, FedEx) with unified logic
+            # Set default image path
+            self._file_path = (
+                f"{os.path.dirname(__file__)}/no_deliveries_{base_name}.jpg"
+            )
+
+            # Check if custom image is configured
+            if self._no_mail:
+                # Use custom image (takes priority over everything)
+                self._file_path = self._no_mail
+                _LOGGER.debug(
+                    "%s camera - using custom no mail: %s", self._type, self._file_path
+                )
+            else:
+                # Use coordinator data (actual deliveries or generated "no delivery" images)
+                image_attr_name = f"ATTR_{base_name.upper()}_IMAGE"
+                image_attr = getattr(const, image_attr_name, None)
+                if image_attr:
+                    required_keys = set([image_attr, ATTR_IMAGE_PATH])
+                    if required_keys.issubset(self.coordinator.data.keys()):
+                        image = self.coordinator.data[image_attr]
+                        # Normalize image_path to avoid double slashes
+                        image_path = (
+                            self.coordinator.data[ATTR_IMAGE_PATH].rstrip("/") + "/"
+                        )
+                        path = f"{image_path}{base_name}/"
+                        coordinator_file_path = (
+                            f"{self.hass.config.path()}/{path}{image}"
+                        )
+                        _LOGGER.info(
+                            "=== %s CAMERA UPDATE === coordinator %s = '%s'",
+                            self._type,
+                            image_attr,
+                            image,
+                        )
+                        _LOGGER.info(
+                            "%s camera - checking for file: %s",
+                            self._type,
+                            coordinator_file_path,
+                        )
+                        # Log all image-related keys in coordinator for this camera
+                        all_image_keys = {
+                            k: self.coordinator.data.get(k, "NOT SET")
+                            for k in self.coordinator.data.keys()
+                            if "image" in k.lower()
+                        }
+                        _LOGGER.info(
+                            "%s camera - All image keys in coordinator: %s",
+                            self._type,
+                            all_image_keys,
+                        )
+                        # Verify file exists before using it, fall back to default if not
+                        if os.path.exists(coordinator_file_path) and os.access(
+                            coordinator_file_path, os.R_OK
+                        ):
+                            file_path = coordinator_file_path
+                            _LOGGER.debug(
+                                "%s camera - found coordinator file: %s",
+                                self._type,
+                                self._file_path,
+                            )
+                        else:
+                            _LOGGER.warning(
+                                "%s camera - coordinator file not found or "
+                                "not readable: %s (exists: %s, readable: %s)",
+                                self._type,
+                                coordinator_file_path,
+                                os.path.exists(coordinator_file_path),
+                                (
+                                    os.access(coordinator_file_path, os.R_OK)
+                                    if os.path.exists(coordinator_file_path)
+                                    else False
+                                ),
+                            )
+                            # List directory contents for debugging
+                            path_dir = os.path.dirname(coordinator_file_path)
+                            _LOGGER.warning(
+                                "%s camera - Directory path: %s (exists: %s)",
+                                self._type,
+                                path_dir,
+                                os.path.exists(path_dir),
+                            )
+                            if os.path.exists(path_dir):
+                                try:
+                                    files_in_dir = os.listdir(path_dir)
+                                    _LOGGER.warning(
+                                        "%s camera - directory exists, files found: %s",
+                                        self._type,
+                                        files_in_dir,
+                                    )
+                                    _LOGGER.warning(
+                                        "%s camera - Expected file '%s' in directory: %s",
+                                        self._type,
+                                        image,
+                                        (
+                                            image in files_in_dir
+                                            if files_in_dir
+                                            else False
+                                        ),
+                                    )
+                                    # Try to find any image file in the directory
+                                    # if the expected one isn't there
+                                    # Prefer the most recent file (by modification
+                                    # time) to show latest delivery
+                                    image_files = []
+                                    for file in files_in_dir:
+                                        if file.endswith(
+                                            (".jpg", ".jpeg", ".png", ".gif")
+                                        ):
+                                            potential_file = os.path.join(
+                                                path_dir, file
+                                            )
+                                            if os.path.exists(
+                                                potential_file
+                                            ) and os.access(potential_file, os.R_OK):
+                                                # Skip "no_deliveries" default images
+                                                if "no_deliveries" not in file:
+                                                    image_files.append(
+                                                        (
+                                                            potential_file,
+                                                            os.path.getmtime(
+                                                                potential_file
+                                                            ),
+                                                        )
+                                                    )
+                                    if image_files:
+                                        # Sort by modification time (most recent first)
+                                        image_files.sort(
+                                            key=lambda x: x[1], reverse=True
+                                        )
+                                        self._file_path = image_files[0][0]
+                                        _LOGGER.debug(
+                                            "%s camera - found alternative "
+                                            "image file (most recent): %s",
+                                            self._type,
+                                            self._file_path,
+                                        )
+                                except Exception as err:
+                                    _LOGGER.debug(
+                                        "%s camera - error listing directory %s: %s",
+                                        self._type,
+                                        path_dir,
+                                        err,
+                                    )
+                            else:
+                                _LOGGER.warning(
+                                    "%s camera - directory does not exist: %s",
+                                    self._type,
+                                    path_dir,
+                                )
+
         self.check_file_path_access(self._file_path)
         self.schedule_update_ha_state()
 
@@ -478,6 +550,18 @@ class MailCam(CoordinatorEntity, Camera):
         False if entity pushes its state to HA.
         """
         return True
+
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        _LOGGER.debug(
+            "%s camera - coordinator update received, updating file path",
+            self._type,
+        )
+        # Call parent to handle coordinator update
+        super()._handle_coordinator_update()
+        # Schedule the file path update when coordinator data changes
+        # update_file_path() will call schedule_update_ha_state() at the end
+        self.hass.async_create_task(self.update_file_path())
 
     async def async_update(self):
         """Update camera entity and refresh attributes."""

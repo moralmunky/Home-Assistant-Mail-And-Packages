@@ -1,5 +1,45 @@
 """Constants for tests."""
 
+from custom_components.mail_and_packages.const import (
+    CONF_AMAZON_CUSTOM_IMG,
+    CONF_AMAZON_CUSTOM_IMG_FILE,
+    CONF_FEDEX_CUSTOM_IMG,
+    CONF_FEDEX_CUSTOM_IMG_FILE,
+    CONF_GENERIC_CUSTOM_IMG,
+    CONF_GENERIC_CUSTOM_IMG_FILE,
+    CONF_UPS_CUSTOM_IMG,
+    CONF_UPS_CUSTOM_IMG_FILE,
+    CONF_WALMART_CUSTOM_IMG,
+    CONF_WALMART_CUSTOM_IMG_FILE,
+    DEFAULT_AMAZON_CUSTOM_IMG,
+    DEFAULT_AMAZON_CUSTOM_IMG_FILE,
+    DEFAULT_FEDEX_CUSTOM_IMG,
+    DEFAULT_FEDEX_CUSTOM_IMG_FILE,
+    DEFAULT_GENERIC_CUSTOM_IMG,
+    DEFAULT_GENERIC_CUSTOM_IMG_FILE,
+    DEFAULT_UPS_CUSTOM_IMG,
+    DEFAULT_UPS_CUSTOM_IMG_FILE,
+    DEFAULT_WALMART_CUSTOM_IMG,
+    DEFAULT_WALMART_CUSTOM_IMG_FILE,
+)
+
+
+# Default custom image keys that are automatically added by config flow and async_setup_entry
+# These should be included in test expected data dictionaries
+DEFAULT_CUSTOM_IMAGE_DATA = {
+    CONF_AMAZON_CUSTOM_IMG: DEFAULT_AMAZON_CUSTOM_IMG,
+    CONF_AMAZON_CUSTOM_IMG_FILE: DEFAULT_AMAZON_CUSTOM_IMG_FILE,
+    CONF_UPS_CUSTOM_IMG: DEFAULT_UPS_CUSTOM_IMG,
+    CONF_UPS_CUSTOM_IMG_FILE: DEFAULT_UPS_CUSTOM_IMG_FILE,
+    CONF_WALMART_CUSTOM_IMG: DEFAULT_WALMART_CUSTOM_IMG,
+    CONF_WALMART_CUSTOM_IMG_FILE: DEFAULT_WALMART_CUSTOM_IMG_FILE,
+    CONF_FEDEX_CUSTOM_IMG: DEFAULT_FEDEX_CUSTOM_IMG,
+    CONF_FEDEX_CUSTOM_IMG_FILE: DEFAULT_FEDEX_CUSTOM_IMG_FILE,
+    CONF_GENERIC_CUSTOM_IMG: DEFAULT_GENERIC_CUSTOM_IMG,
+    CONF_GENERIC_CUSTOM_IMG_FILE: DEFAULT_GENERIC_CUSTOM_IMG_FILE,
+}
+
+
 FAKE_CONFIG_DATA_BAD = {
     "folder": '"INBOX"',
     "generate_mp4": "false",
@@ -63,6 +103,12 @@ FAKE_CONFIG_DATA = {
     "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
     "ups_custom_img": False,
     "ups_custom_img_file": "custom_components/mail_and_packages/no_deliveries_ups.jpg",
+    "walmart_custom_img": False,
+    "walmart_custom_img_file": "custom_components/mail_and_packages/no_deliveries_walmart.jpg",
+    "fedex_custom_img": False,
+    "fedex_custom_img_file": "custom_components/mail_and_packages/no_deliveries_fedex.jpg",
+    "generic_custom_img": False,
+    "generic_custom_img_file": "custom_components/mail_and_packages/no_deliveries_generic.jpg",
     "custom_img": False,
     "folder": '"INBOX"',
     "generate_mp4": False,
@@ -277,6 +323,8 @@ FAKE_CONFIG_DATA_CORRECTED_EXTERNAL = {
     "ups_custom_img_file": "custom_components/mail_and_packages/no_deliveries_ups.jpg",
     "walmart_custom_img": False,
     "walmart_custom_img_file": "custom_components/mail_and_packages/no_deliveries_walmart.jpg",
+    "fedex_custom_img": False,
+    "fedex_custom_img_file": "custom_components/mail_and_packages/no_deliveries_fedex.jpg",
     "generic_custom_img": False,
     "generic_custom_img_file": "custom_components/mail_and_packages/no_deliveries_generic.jpg",
     "custom_img": False,
@@ -797,6 +845,8 @@ FAKE_CONFIG_DATA_CUSTOM_IMG = {
     "ups_custom_img_file": "images/test_ups.jpg",
     "walmart_custom_img": True,
     "walmart_custom_img_file": "images/test_walmart.jpg",
+    "fedex_custom_img": True,
+    "fedex_custom_img_file": "images/test_fedex.jpg",
     "generic_custom_img": True,
     "generic_custom_img_file": "images/test_generic.jpg",
     "folder": '"INBOX"',

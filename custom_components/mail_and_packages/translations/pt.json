@@ -11,8 +11,8 @@
       "amazon_domain": "Endereço de encaminhamento de email inválido.",
       "file_not_found": "Arquivo de imagem não encontrado",
       "invalid_email_format": "Formato de endereço de email inválido.",
-      "path_not_found": "Diretório não encontrado",
-      "missing_forwarded_emails": "Endereços de e-mail encaminhados ausentes. Você pode inserir '(none)' para limpar esta configuração."
+      "missing_forwarded_emails": "Endereços de email encaminhados em falta. Pode introduzir '(none)' para limpar esta configuração.",
+      "path_not_found": "Diretório não encontrado"
     },
     "step": {
       "user": {
@@ -42,9 +42,10 @@
           "amazon_custom_img": "Usar imagem personalizada Amazon 'sem entrega'?",
           "ups_custom_img": "Usar imagem personalizada UPS 'sem entrega'?",
           "walmart_custom_img": "Usar imagem personalizada Walmart 'sem entrega'?",
+          "fedex_custom_img": "Usar imagem personalizada FedEx 'sem entrega'?",
           "generic_custom_img": "Usar imagem personalizada genérica 'sem entrega'?",
           "generate_grid": "Criar grade de imagens para modelos de visão LLM",
-          "allow_forwarded_emails": "Permitir e-mails encaminhados além do padrão de um serviço (por exemplo, no-reply@usps.com)"
+          "allow_forwarded_emails": "Permitir emails encaminhados além do padrão de um serviço (ex: no-reply@usps.com)"
         },
         "description": "Conclua a configuração, personalizando o seguinte com base na sua estrutura de email e instalação do Home Assistant. \n\n Para obter detalhes sobre as opções [integração de Mail e Pacotes] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), revise as opções de [configuração, modelos e seção de automações] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) no GitHub.",
         "title": "Correio e pacotes (Etapa 2 de 2)"
@@ -62,7 +63,7 @@
           "amazon_fwds": "A Amazon encaminhou endereços de email",
           "amazon_days": "Dias atrás para verificar emails da Amazon"
         },
-        "description": "Por favor, insira o domínio de onde a Amazon envia e-mails (por exemplo: amazon.com ou amazon.de)\n\nSe estiver usando e-mails encaminhados pela Amazon, separe cada endereço com uma vírgula ou insira (none) para limpar essa configuração.",
+        "description": "Por favor, insira o domínio de onde a Amazon envia e-mails (por exemplo: amazon.com ou amazon.de)\n\nSe estiver usando e-mails encaminhados pela Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.",
         "title": "Configurações da Amazon"
       },
       "reconfigure": {
@@ -92,11 +93,12 @@
           "amazon_custom_img": "Usar imagem personalizada Amazon 'sem entrega'?",
           "ups_custom_img": "Usar imagem personalizada UPS 'sem entrega'?",
           "walmart_custom_img": "Usar imagem personalizada Walmart 'sem entrega'?",
+          "fedex_custom_img": "Usar imagem personalizada FedEx 'sem entrega'?",
           "generic_custom_img": "Usar imagem personalizada genérica 'sem entrega'?",
           "generate_grid": "Criar grade de imagens para modelos de visão LLM",
-          "allow_forwarded_emails": "Permitir e-mails encaminhados além do padrão de um serviço (por exemplo, no-reply@usps.com)"
+          "allow_forwarded_emails": "Permitir emails encaminhados além do padrão de um serviço (ex: no-reply@usps.com)"
         },
-        "description": "Conclua a configuração personalizando o seguinte com base na estrutura do seu email e na instalação do Home Assistant.\n\nPara detalhes sobre as opções de [integração de Correio e Pacotes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), consulte a [seção de configuração, modelos e automações](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) no GitHub.\n\nSe estiver usando emails encaminhados da Amazon, separe cada endereço com uma vírgula ou insira (none) para limpar essa configuração.",
+        "description": "Conclua a configuração personalizando o seguinte com base na estrutura do seu email e na instalação do Home Assistant.\n\nPara detalhes sobre as opções de [integração de Correio e Pacotes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), consulte a [seção de configuração, modelos e automações](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) no GitHub.\n\nSe estiver usando emails encaminhados da Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.",
         "title": "Correio e pacotes (Etapa 2 de 2)"
       },
       "reconfig_3": {
@@ -112,7 +114,7 @@
           "amazon_fwds": "A Amazon encaminhou endereços de email",
           "amazon_days": "Dias atrás para verificar emails da Amazon"
         },
-        "description": "Por favor, insira o domínio de onde a Amazon envia e-mails (por exemplo: amazon.com ou amazon.de)\n\nSe estiver usando e-mails encaminhados pela Amazon, separe cada endereço com uma vírgula ou insira (none) para limpar essa configuração.",
+        "description": "Por favor, insira o domínio de onde a Amazon envia e-mails (por exemplo: amazon.com ou amazon.de)\n\nSe estiver usando e-mails encaminhados pela Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.",
         "title": "Configurações da Amazon"
       },
       "config_storage": {
@@ -131,17 +133,17 @@
       },
       "config_forwarded_emails": {
         "data": {
-          "forwarded_emails": "Endereços de e-mail encaminhados"
+          "forwarded_emails": "Endereços de email encaminhados"
         },
-        "description": "Por padrão, a integração Mail and Packages procura apenas mensagens que correspondam ao endereço de um serviço.\n\nSe você quiser usar e-mails encaminhados, separe cada endereço de onde as mensagens virão com uma vírgula ou digite '(none)' para limpar esta configuração.",
-        "title": "Endereços de e-mail encaminhados"
+        "description": "Por padrão, a integração Mail and Packages procura apenas mensagens que correspondem ao endereço de um serviço.\n\nSe desejar usar e-mails encaminhados, separe cada endereço de onde as mensagens virão com uma vírgula ou insira '(none)' para limpar esta configuração.",
+        "title": "Endereços de email encaminhados"
       },
       "reconfig_forwarded_emails": {
         "data": {
-          "forwarded_emails": "Endereços de e-mail encaminhados"
+          "forwarded_emails": "Endereços de email encaminhados"
         },
-        "description": "Por padrão, a integração Mail and Packages procura apenas mensagens que correspondam ao endereço de um serviço.\n\nSe você quiser usar e-mails encaminhados, separe cada endereço de onde as mensagens virão com uma vírgula ou digite '(none)' para limpar esta configuração.",
-        "title": "Endereços de e-mail encaminhados"
+        "description": "Por padrão, a integração Mail and Packages procura apenas mensagens que correspondem ao endereço de um serviço.\n\nSe desejar usar e-mails encaminhados, separe cada endereço de onde as mensagens virão com uma vírgula ou insira '(none)' para limpar esta configuração.",
+        "title": "Endereços de email encaminhados"
       }
     }
   }

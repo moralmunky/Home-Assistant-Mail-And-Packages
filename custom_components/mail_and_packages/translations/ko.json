@@ -11,8 +11,8 @@
       "amazon_domain": "잘못된 전달 이메일 주소입니다.",
       "file_not_found": "이미지 파일을 찾을 수 없습니다",
       "invalid_email_format": "잘못된 이메일 주소 형식입니다.",
-      "path_not_found": "디렉토리를 찾을 수 없습니다",
-      "missing_forwarded_emails": "전달된 이메일 주소가 누락되었습니다. 이 설정을 지우려면 '(none)'을 입력할 수 있습니다."
+      "missing_forwarded_emails": "전달된 이메일 주소가 없습니다. 이 설정을 지우려면 '(none)'을 입력할 수 있습니다.",
+      "path_not_found": "디렉토리를 찾을 수 없습니다"
     },
     "step": {
       "user": {
@@ -42,9 +42,10 @@
           "amazon_custom_img": "사용자 정의 Amazon '배송 없음' 이미지를 사용하시겠습니까?",
           "ups_custom_img": "사용자 정의 UPS '배송 없음' 이미지를 사용하시겠습니까?",
           "walmart_custom_img": "사용자 정의 Walmart '배송 없음' 이미지를 사용하시겠습니까?",
+          "fedex_custom_img": "사용자 정의 FedEx '배송 없음' 이미지를 사용하시겠습니까?",
           "generic_custom_img": "사용자 정의 일반 '배송 없음' 이미지를 사용하시겠습니까?",
           "generate_grid": "LLM 비전 모델을 위한 이미지 그리드 생성",
-          "allow_forwarded_emails": "서비스 기본값 외에 전달된 이메일을 허용합니다(예: no-reply@usps.com)."
+          "allow_forwarded_emails": "서비스 기본값 외에 전달된 이메일 허용 (예: no-reply@usps.com)"
         },
         "description": "이메일 구조 및 Home Assistant 설치에 따라 다음을 사용자 정의하여 구성을 완료하십시오. \n\n [메일 및 패키지 통합] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) 옵션에 대한 자세한 내용은 [구성, 템플릿 및 자동화 섹션] (https://github.com/moralmunky/Home-Assistant-Mail-and-Packages/wiki/Configuration-and-Email-Settings#configuration)",
         "title": "메일 및 패키지 (2/2 단계)"
@@ -92,9 +93,10 @@
           "amazon_custom_img": "사용자 정의 Amazon '배송 없음' 이미지를 사용하시겠습니까?",
           "ups_custom_img": "사용자 정의 UPS '배송 없음' 이미지를 사용하시겠습니까?",
           "walmart_custom_img": "사용자 정의 Walmart '배송 없음' 이미지를 사용하시겠습니까?",
+          "fedex_custom_img": "사용자 정의 FedEx '배송 없음' 이미지를 사용하시겠습니까?",
           "generic_custom_img": "사용자 정의 일반 '배송 없음' 이미지를 사용하시겠습니까?",
           "generate_grid": "LLM 비전 모델을 위한 이미지 그리드 생성",
-          "allow_forwarded_emails": "서비스 기본값 외에 전달된 이메일을 허용합니다(예: no-reply@usps.com)."
+          "allow_forwarded_emails": "서비스 기본값 외에 전달된 이메일 허용 (예: no-reply@usps.com)"
         },
         "description": "이메일 구조와 Home Assistant 설치에 따라 다음을 사용자 정의하여 구성을 완료하십시오.\n\n[Mail and Packages 통합](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) 옵션에 대한 자세한 내용은 GitHub의 [구성, 템플릿, 자동화 섹션](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)을 참조하십시오.\n\nAmazon에서 전달된 이메일을 사용하는 경우 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 (none)을 입력하십시오.",
         "title": "메일 및 패키지 (2/2 단계)"
@@ -133,14 +135,14 @@
         "data": {
           "forwarded_emails": "전달된 이메일 주소"
         },
-        "description": "기본적으로 메일 및 패키지 통합은 서비스 주소와 일치하는 메시지만 검색합니다.\n\n전달된 이메일을 사용하려면 메시지가 전송될 각 주소를 쉼표로 구분하거나 '(none)'을 입력하여 이 설정을 삭제하세요.",
+        "description": "기본적으로 Mail and Packages 통합은 서비스 주소와 일치하는 메시지만 검색합니다.\n\n전달된 이메일을 사용하려면 메시지가 올 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 '(none)'을 입력하세요.",
         "title": "전달된 이메일 주소"
       },
       "reconfig_forwarded_emails": {
         "data": {
           "forwarded_emails": "전달된 이메일 주소"
         },
-        "description": "기본적으로 메일 및 패키지 통합은 서비스 주소와 일치하는 메시지만 검색합니다.\n\n전달된 이메일을 사용하려면 메시지가 전송될 각 주소를 쉼표로 구분하거나 '(none)'을 입력하여 이 설정을 삭제하세요.",
+        "description": "기본적으로 Mail and Packages 통합은 서비스 주소와 일치하는 메시지만 검색합니다.\n\n전달된 이메일을 사용하려면 메시지가 올 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 '(none)'을 입력하세요.",
         "title": "전달된 이메일 주소"
       }
     }

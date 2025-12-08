@@ -11,8 +11,8 @@
       "amazon_domain": "Ongeldig doorstuur e-mailadres.",
       "file_not_found": "Afbeeldingsbestand niet gevonden",
       "invalid_email_format": "Ongeldig e-mailadres formaat.",
-      "path_not_found": "Map niet gevonden",
-      "missing_forwarded_emails": "Ontbrekende doorgestuurde e-mailadressen. U kunt '(none)' invoeren om deze instelling te wissen."
+      "missing_forwarded_emails": "Ontbrekende doorgestuurde e-mailadressen. U kunt '(none)' invoeren om deze instelling te wissen.",
+      "path_not_found": "Map niet gevonden"
     },
     "step": {
       "user": {
@@ -42,9 +42,10 @@
           "amazon_custom_img": "Gebruik aangepaste Amazon 'geen levering' afbeelding?",
           "ups_custom_img": "Gebruik aangepaste UPS 'geen levering' afbeelding?",
           "walmart_custom_img": "Gebruik aangepaste Walmart 'geen levering' afbeelding?",
+          "fedex_custom_img": "Gebruik aangepaste FedEx 'geen levering' afbeelding?",
           "generic_custom_img": "Gebruik aangepaste generieke 'geen levering' afbeelding?",
           "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen",
-          "allow_forwarded_emails": "Doorgestuurde e-mails toestaan ​​als aanvulling op de standaardservice (bijvoorbeeld no-reply@usps.com)"
+          "allow_forwarded_emails": "Doorgestuurde e-mails toestaan naast de standaardwaarde van een service (bijv. no-reply@usps.com)"
         },
         "description": "Voltooi de configuratie door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie. \n\n Voor meer informatie over de [E-mail en pakketten integratie] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties bekijk de [configuratie, sjablonen , en automatisering sectie] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.",
         "title": "Mail en pakketten (stap 2 van 2)"
@@ -62,7 +63,7 @@
           "amazon_fwds": "Amazon stuurde e-mailadressen door",
           "amazon_days": "Dagen terug om te controleren op Amazon e-mails"
         },
-        "description": "Voer het domein in waarvan Amazon e-mails verstuurt (bijv: amazon.com of amazon.de)\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (none) in om deze instelling te wissen.",
+        "description": "Voer het domein in waarvan Amazon e-mails verstuurt (bijv: amazon.com of amazon.de)\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
         "title": "Amazon Instellingen"
       },
       "reconfigure": {
@@ -92,11 +93,12 @@
           "amazon_custom_img": "Gebruik aangepaste Amazon 'geen levering' afbeelding?",
           "ups_custom_img": "Gebruik aangepaste UPS 'geen levering' afbeelding?",
           "walmart_custom_img": "Gebruik aangepaste Walmart 'geen levering' afbeelding?",
+          "fedex_custom_img": "Gebruik aangepaste FedEx 'geen levering' afbeelding?",
           "generic_custom_img": "Gebruik aangepaste generieke 'geen levering' afbeelding?",
           "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen",
-          "allow_forwarded_emails": "Doorgestuurde e-mails toestaan ​​als aanvulling op de standaardservice (bijvoorbeeld no-reply@usps.com)"
+          "allow_forwarded_emails": "Doorgestuurde e-mails toestaan naast de standaardwaarde van een service (bijv. no-reply@usps.com)"
         },
-        "description": "Rond de configuratie af door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie.\n\nVoor details over de [Mail en Packages integratie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties, bekijk de [configuratie, sjablonen en automatiseringen sectie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (none) in om deze instelling te wissen.",
+        "description": "Rond de configuratie af door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie.\n\nVoor details over de [Mail en Packages integratie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties, bekijk de [configuratie, sjablonen en automatiseringen sectie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
         "title": "Mail en pakketten (stap 2 van 2)"
       },
       "reconfig_3": {
@@ -112,7 +114,7 @@
           "amazon_fwds": "Amazon stuurde e-mailadressen door",
           "amazon_days": "Dagen terug om te controleren op Amazon e-mails"
         },
-        "description": "Voer het domein in waarvan Amazon e-mails verstuurt (bijv: amazon.com of amazon.de)\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (none) in om deze instelling te wissen.",
+        "description": "Voer het domein in waarvan Amazon e-mails verstuurt (bijv: amazon.com of amazon.de)\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
         "title": "Amazon Instellingen"
       },
       "config_storage": {
@@ -133,14 +135,14 @@
         "data": {
           "forwarded_emails": "Doorgestuurde e-mailadressen"
         },
-        "description": "Standaard zoekt de integratie van E-mail en Pakketten alleen naar berichten die overeenkomen met het adres van een dienst.\n\nAls u doorgestuurde e-mails wilt gebruiken, scheid dan elk adres waar de berichten vandaan komen met een komma of voer '(none)' in om deze instelling te wissen.",
+        "description": "Standaard zoekt de Mail and Packages-integratie alleen naar berichten die overeenkomen met het adres van een service.\n\nAls u doorgestuurde e-mails wilt gebruiken, scheid dan elk adres waarvan berichten zullen komen met een komma of voer '(none)' in om deze instelling te wissen.",
         "title": "Doorgestuurde e-mailadressen"
       },
       "reconfig_forwarded_emails": {
         "data": {
           "forwarded_emails": "Doorgestuurde e-mailadressen"
         },
-        "description": "Standaard zoekt de integratie van E-mail en Pakketten alleen naar berichten die overeenkomen met het adres van een dienst.\n\nAls u doorgestuurde e-mails wilt gebruiken, scheid dan elk adres waar de berichten vandaan komen met een komma of voer '(none)' in om deze instelling te wissen.",
+        "description": "Standaard zoekt de Mail and Packages-integratie alleen naar berichten die overeenkomen met het adres van een service.\n\nAls u doorgestuurde e-mails wilt gebruiken, scheid dan elk adres waarvan berichten zullen komen met een komma of voer '(none)' in om deze instelling te wissen.",
         "title": "Doorgestuurde e-mailadressen"
       }
     }

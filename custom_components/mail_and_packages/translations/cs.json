@@ -10,9 +10,9 @@
       "ffmpeg_not_found": "Generování MP4 vyžaduje ffmpeg",
       "amazon_domain": "Neplatná e-mailová adresa pro přeposílání.",
       "file_not_found": "Soubor obrázku nebyl nalezen",
+      "missing_forwarded_emails": "Chybí přeposílané e-mailové adresy. Můžete zadat '(none)' pro vymazání tohoto nastavení.",
       "scan_too_low": "Interval skenování je příliš nízký (minimum 5)",
-      "timeout_too_low": "IMAP timeout je příliš nízký (minimum 10)",
-      "missing_forwarded_emails": "Chybí přeposlané e-mailové adresy. Chcete-li toto nastavení vymazat, můžete zadat „(none)“."
+      "timeout_too_low": "IMAP timeout je příliš nízký (minimum 10)"
     },
     "step": {
       "user": {
@@ -42,8 +42,9 @@
           "amazon_custom_img": "Použít vlastní obrázek Amazon 'bez dodání'?",
           "ups_custom_img": "Použít vlastní obrázek UPS 'bez dodání'?",
           "walmart_custom_img": "Použít vlastní obrázek Walmart 'bez dodání'?",
+          "fedex_custom_img": "Použít vlastní obrázek FedEx 'bez dodání'?",
           "generic_custom_img": "Použít vlastní obrázek obecný 'bez dodání'?",
-          "allow_forwarded_emails": "Povolit přeposílané e-maily kromě výchozího nastavení služby (např. no-reply@usps.com)"
+          "allow_forwarded_emails": "Povolit přeposílané e-maily kromě výchozí hodnoty služby (např. no-reply@usps.com)"
         },
         "description": "Dokončete konfiguraci přizpůsobením následujících položek na základě struktury e-mailu a instalace Home Assistant.\n\nPodrobnosti o [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) můžete zkontrolovat na [configurace, styly a automatizace](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
         "title": "Mail and Packages (Krok 2 ze 3)"
@@ -57,22 +58,17 @@
       },
       "config_forwarded_emails": {
         "data": {
-          "forwarded_emails": "Přeposlané e-mailové adresy"
+          "forwarded_emails": "Přeposílané e-mailové adresy"
         },
-        "description": "Ve výchozím nastavení vyhledává integrace pošty a balíků pouze zprávy odpovídající adrese služby.\n\nPokud chcete používat přeposílané e-maily, oddělte prosím každou adresu, ze které budou zprávy přicházet, čárkou nebo zadáním „(none)“ toto nastavení vymažte.",
-        "title": "Přeposlané e-mailové adresy"
+        "description": "Ve výchozím nastavení integrace Mail and Packages vyhledává pouze zprávy odpovídající adrese služby.\n\nPokud chcete používat přeposílané e-maily, oddělte každou adresu, ze které budou zprávy přicházet, čárkou nebo zadejte '(none)' pro vymazání tohoto nastavení.",
+        "title": "Přeposílané e-mailové adresy"
       },
       "reconfig_forwarded_emails": {
         "data": {
-          "forwarded_emails": "Přeposlané e-mailové adresy"
+          "forwarded_emails": "Přeposílané e-mailové adresy"
         },
-        "description": "Ve výchozím nastavení vyhledává integrace pošty a balíků pouze zprávy odpovídající adrese služby.\n\nPokud chcete používat přeposílané e-maily, oddělte prosím každou adresu, ze které budou zprávy přicházet, čárkou nebo zadáním „(none)“ toto nastavení vymažte.",
-        "title": "Přeposlané e-mailové adresy"
-      },
-      "reconfig_2": {
-        "data": {
-          "allow_forwarded_emails": "Povolit přeposílané e-maily kromě výchozího nastavení služby (např. no-reply@usps.com)"
-        }
+        "description": "Ve výchozím nastavení integrace Mail and Packages vyhledává pouze zprávy odpovídající adrese služby.\n\nPokud chcete používat přeposílané e-maily, oddělte každou adresu, ze které budou zprávy přicházet, čárkou nebo zadejte '(none)' pro vymazání tohoto nastavení.",
+        "title": "Přeposílané e-mailové adresy"
       }
     },
     "title": "Mail and Packages"
@@ -84,6 +80,7 @@
       "ffmpeg_not_found": "Generování MP4 vyžaduje ffmpeg",
       "amazon_domain": "Neplatná e-mailová adresa pro přeposílání.",
       "file_not_found": "Soubor obrázku nebyl nalezen",
+      "missing_forwarded_emails": "Chybí přeposílané e-mailové adresy. Můžete zadat '(none)' pro vymazání tohoto nastavení.",
       "scan_too_low": "Interval skenování je příliš nízký (minimum 5)",
       "timeout_too_low": "IMAP timeout je příliš nízký (minimum 10)"
     },
@@ -115,7 +112,8 @@
           "amazon_custom_img": "Použít vlastní obrázek Amazon 'bez dodání'?",
           "ups_custom_img": "Použít vlastní obrázek UPS 'bez dodání'?",
           "walmart_custom_img": "Použít vlastní obrázek Walmart 'bez dodání'?",
-          "generic_custom_img": "Použít vlastní obrázek obecný 'bez dodání'?"
+          "generic_custom_img": "Použít vlastní obrázek obecný 'bez dodání'?",
+          "allow_forwarded_emails": "Povolit přeposílané e-maily kromě výchozí hodnoty služby (např. no-reply@usps.com)"
         },
         "description": "Dokončete konfiguraci přizpůsobením následujících položek na základě struktury e-mailu a instalace Home Assistant.\n\nPodrobnosti o [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) můžete zkontrolovat na [configurace, styly a automatizace](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
         "title": "Mail and Packages (Krok 2 ze 3)"

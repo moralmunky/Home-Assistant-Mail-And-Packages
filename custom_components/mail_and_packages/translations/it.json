@@ -11,8 +11,8 @@
       "amazon_domain": "Indirizzo email di inoltro non valido.",
       "file_not_found": "File immagine non trovato",
       "invalid_email_format": "Formato dell'indirizzo email non valido.",
-      "path_not_found": "Directory non trovato",
-      "missing_forwarded_emails": "Indirizzi email inoltrati mancanti. Puoi inserire \"(none)\" per cancellare questa impostazione."
+      "missing_forwarded_emails": "Indirizzi email inoltrati mancanti. Puoi inserire '(none)' per cancellare questa impostazione.",
+      "path_not_found": "Directory non trovato"
     },
     "step": {
       "user": {
@@ -42,9 +42,10 @@
           "amazon_custom_img": "Usare l'immagine personalizzata Amazon 'nessuna consegna'?",
           "ups_custom_img": "Usare l'immagine personalizzata UPS 'nessuna consegna'?",
           "walmart_custom_img": "Usare l'immagine personalizzata Walmart 'nessuna consegna'?",
+          "fedex_custom_img": "Usare l'immagine personalizzata FedEx 'nessuna consegna'?",
           "generic_custom_img": "Usare l'immagine personalizzata generica 'nessuna consegna'?",
           "generate_grid": "Crea una griglia di immagini per i modelli di visione LLM",
-          "allow_forwarded_emails": "Consenti email inoltrate in aggiunta a quelle predefinite di un servizio (ad esempio no-reply@usps.com)"
+          "allow_forwarded_emails": "Consenti email inoltrate oltre al valore predefinito di un servizio (ad es. no-reply@usps.com)"
         },
         "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua e-mail e all'installazione di Home Assistant. \n\n Per i dettagli sulle opzioni [Integrazione posta e pacchetti] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) rivedere le [configurazione, modelli e sezione automazioni] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) su GitHub.",
         "title": "Posta e pacchi (passaggio 2 di 2)"
@@ -62,7 +63,7 @@
           "amazon_fwds": "Amazon ha inoltrato gli indirizzi email",
           "amazon_days": "Giorni precedenti da controllare per le email di Amazon"
         },
-        "description": "Inserisci il dominio da cui Amazon invia le email (ad esempio: amazon.com o amazon.de)\n\nSe stai utilizzando email inoltrate da Amazon, separa ogni indirizzo con una virgola o inserisci (none) per cancellare questa impostazione.",
+        "description": "Inserisci il dominio da cui Amazon invia le email (ad esempio: amazon.com o amazon.de)\n\nSe stai utilizzando email inoltrate da Amazon, separa ogni indirizzo con una virgola o inserisci (nessuno) per cancellare questa impostazione.",
         "title": "Impostazioni Amazon"
       },
       "reconfigure": {
@@ -92,11 +93,12 @@
           "amazon_custom_img": "Usare l'immagine personalizzata Amazon 'nessuna consegna'?",
           "ups_custom_img": "Usare l'immagine personalizzata UPS 'nessuna consegna'?",
           "walmart_custom_img": "Usare l'immagine personalizzata Walmart 'nessuna consegna'?",
+          "fedex_custom_img": "Usare l'immagine personalizzata FedEx 'nessuna consegna'?",
           "generic_custom_img": "Usare l'immagine personalizzata generica 'nessuna consegna'?",
           "generate_grid": "Crea una griglia di immagini per i modelli di visione LLM",
-          "allow_forwarded_emails": "Consenti email inoltrate in aggiunta a quelle predefinite di un servizio (ad esempio no-reply@usps.com)"
+          "allow_forwarded_emails": "Consenti email inoltrate oltre al valore predefinito di un servizio (ad es. no-reply@usps.com)"
         },
-        "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua email e all'installazione di Home Assistant.\n\nPer i dettagli sulle opzioni di [integrazione Mail e Pacchetti](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) consulta la [sezione configurazione, modelli e automazioni](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) su GitHub.\n\nSe utilizzi email inoltrate da Amazon, separa ogni indirizzo con una virgola o inserisci (none) per cancellare questa impostazione.",
+        "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua email e all'installazione di Home Assistant.\n\nPer i dettagli sulle opzioni di [integrazione Mail e Pacchetti](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) consulta la [sezione configurazione, modelli e automazioni](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) su GitHub.\n\nSe utilizzi email inoltrate da Amazon, separa ogni indirizzo con una virgola o inserisci (nessuno) per cancellare questa impostazione.",
         "title": "Posta e pacchi (passaggio 2 di 2)"
       },
       "reconfig_3": {
@@ -112,7 +114,7 @@
           "amazon_fwds": "Amazon ha inoltrato gli indirizzi email",
           "amazon_days": "Giorni precedenti da controllare per le email di Amazon"
         },
-        "description": "Inserisci il dominio da cui Amazon invia le email (ad esempio: amazon.com o amazon.de)\n\nSe stai utilizzando email inoltrate da Amazon, separa ogni indirizzo con una virgola o inserisci (none) per cancellare questa impostazione.",
+        "description": "Inserisci il dominio da cui Amazon invia le email (ad esempio: amazon.com o amazon.de)\n\nSe stai utilizzando email inoltrate da Amazon, separa ogni indirizzo con una virgola o inserisci (nessuno) per cancellare questa impostazione.",
         "title": "Impostazioni Amazon"
       },
       "config_storage": {
@@ -133,14 +135,14 @@
         "data": {
           "forwarded_emails": "Indirizzi email inoltrati"
         },
-        "description": "Per impostazione predefinita, l'integrazione Posta e pacchi cerca solo i messaggi che corrispondono all'indirizzo di un servizio.\n\nSe desideri utilizzare le email inoltrate, separa ogni indirizzo da cui arriveranno i messaggi con una virgola o inserisci \"(none)\" per cancellare questa impostazione.",
+        "description": "Per impostazione predefinita, l'integrazione Mail and Packages cerca solo i messaggi che corrispondono all'indirizzo di un servizio.\n\nSe si desidera utilizzare e-mail inoltrate, separare ogni indirizzo da cui arriveranno i messaggi con una virgola o inserire '(none)' per cancellare questa impostazione.",
         "title": "Indirizzi email inoltrati"
       },
       "reconfig_forwarded_emails": {
         "data": {
           "forwarded_emails": "Indirizzi email inoltrati"
         },
-        "description": "Per impostazione predefinita, l'integrazione Posta e pacchi cerca solo i messaggi che corrispondono all'indirizzo di un servizio.\n\nSe desideri utilizzare le email inoltrate, separa ogni indirizzo da cui arriveranno i messaggi con una virgola o inserisci \"(none)\" per cancellare questa impostazione.",
+        "description": "Per impostazione predefinita, l'integrazione Mail and Packages cerca solo i messaggi che corrispondono all'indirizzo di un servizio.\n\nSe si desidera utilizzare e-mail inoltrate, separare ogni indirizzo da cui arriveranno i messaggi con una virgola o inserire '(none)' per cancellare questa impostazione.",
         "title": "Indirizzi email inoltrati"
       }
     }

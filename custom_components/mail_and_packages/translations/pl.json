@@ -11,8 +11,8 @@
       "amazon_domain": "Nieprawidłowy adres e-mail do przekierowania.",
       "file_not_found": "Nie znaleziono pliku obrazu",
       "invalid_email_format": "Nieprawidłowy format adresu e-mail.",
-      "path_not_found": "Katalog nie został znaleziony",
-      "missing_forwarded_emails": "Brak przesłanych adresów e-mail. Aby wyczyścić to ustawienie, możesz wpisać „(none)”."
+      "missing_forwarded_emails": "Brak przekierowanych adresów e-mail. Możesz wprowadzić '(none)', aby wyczyścić to ustawienie.",
+      "path_not_found": "Katalog nie został znaleziony"
     },
     "step": {
       "user": {
@@ -42,9 +42,10 @@
           "amazon_custom_img": "Użyć niestandardowego obrazu Amazon 'brak dostawy'?",
           "ups_custom_img": "Użyć niestandardowego obrazu UPS 'brak dostawy'?",
           "walmart_custom_img": "Użyć niestandardowego obrazu Walmart 'brak dostawy'?",
+          "fedex_custom_img": "Użyć niestandardowego obrazu FedEx 'brak dostawy'?",
           "generic_custom_img": "Użyć niestandardowego obrazu ogólnego 'brak dostawy'?",
           "generate_grid": "Utwórz siatkę obrazów dla modeli wizji LLM",
-          "allow_forwarded_emails": "Zezwalaj na przesyłanie dalej wiadomości e-mail oprócz domyślnej usługi (np. no-reply@usps.com)"
+          "allow_forwarded_emails": "Zezwalaj na przekierowane e-maile oprócz wartości domyślnej usługi (np. no-reply@usps.com)"
         },
         "description": "Zakończ konfigurację, dostosowując następujące elementy w oparciu o strukturę poczty e-mail i instalację Home Assistant. \n\n Aby uzyskać szczegółowe informacje na temat opcji [Integracja poczty i pakietów] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sprawdź opcje [konfiguracja, szablony i sekcja automatyzacji] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHub.",
         "title": "Poczta i paczki (krok 2 z 2)"
@@ -62,7 +63,7 @@
           "amazon_fwds": "Amazon przekazał adresy e-mail",
           "amazon_days": "Dni do sprawdzenia dla wiadomości e-mail od Amazon"
         },
-        "description": "Wprowadź domenę, z której Amazon wysyła e-maile (np. amazon.com lub amazon.de)\n\nJeśli korzystasz z przekierowanych e-maili od Amazon, oddziel każdy adres przecinkiem lub wpisz (none), aby wyczyścić to ustawienie.",
+        "description": "Wprowadź domenę, z której Amazon wysyła e-maile (np. amazon.com lub amazon.de)\n\nJeśli korzystasz z przekierowanych e-maili od Amazon, oddziel każdy adres przecinkiem lub wpisz (brak), aby wyczyścić to ustawienie.",
         "title": "Ustawienia Amazon"
       },
       "reconfigure": {
@@ -92,11 +93,12 @@
           "amazon_custom_img": "Użyć niestandardowego obrazu Amazon 'brak dostawy'?",
           "ups_custom_img": "Użyć niestandardowego obrazu UPS 'brak dostawy'?",
           "walmart_custom_img": "Użyć niestandardowego obrazu Walmart 'brak dostawy'?",
+          "fedex_custom_img": "Użyć niestandardowego obrazu FedEx 'brak dostawy'?",
           "generic_custom_img": "Użyć niestandardowego obrazu ogólnego 'brak dostawy'?",
           "generate_grid": "Utwórz siatkę obrazów dla modeli wizji LLM",
-          "allow_forwarded_emails": "Zezwalaj na przesyłanie dalej wiadomości e-mail oprócz domyślnej usługi (np. no-reply@usps.com)"
+          "allow_forwarded_emails": "Zezwalaj na przekierowane e-maile oprócz wartości domyślnej usługi (np. no-reply@usps.com)"
         },
-        "description": "Zakończ konfigurację, dostosowując następujące elementy do struktury swojego e-maila i instalacji Home Assistant.\n\nAby uzyskać szczegółowe informacje na temat opcji [integracji Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), zapoznaj się z [sekcją konfiguracji, szablonów i automatyzacji](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubie.\n\nJeśli korzystasz z przekierowanych e-maili Amazon, oddziel każdy adres przecinkiem lub wprowadź (none), aby wyczyścić to ustawienie.",
+        "description": "Zakończ konfigurację, dostosowując następujące elementy do struktury swojego e-maila i instalacji Home Assistant.\n\nAby uzyskać szczegółowe informacje na temat opcji [integracji Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), zapoznaj się z [sekcją konfiguracji, szablonów i automatyzacji](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubie.\n\nJeśli korzystasz z przekierowanych e-maili Amazon, oddziel każdy adres przecinkiem lub wprowadź (brak), aby wyczyścić to ustawienie.",
         "title": "Poczta i paczki (krok 2 z 2)"
       },
       "reconfig_3": {
@@ -112,7 +114,7 @@
           "amazon_fwds": "Amazon przekazał adresy e-mail",
           "amazon_days": "Dni do sprawdzenia dla wiadomości e-mail od Amazon"
         },
-        "description": "Wprowadź domenę, z której Amazon wysyła e-maile (np. amazon.com lub amazon.de)\n\nJeśli korzystasz z przekierowanych e-maili od Amazon, oddziel każdy adres przecinkiem lub wpisz (none), aby wyczyścić to ustawienie.",
+        "description": "Wprowadź domenę, z której Amazon wysyła e-maile (np. amazon.com lub amazon.de)\n\nJeśli korzystasz z przekierowanych e-maili od Amazon, oddziel każdy adres przecinkiem lub wpisz (brak), aby wyczyścić to ustawienie.",
         "title": "Ustawienia Amazon"
       },
       "config_storage": {
@@ -131,17 +133,17 @@
       },
       "config_forwarded_emails": {
         "data": {
-          "forwarded_emails": "Przekazywane adresy e-mail"
+          "forwarded_emails": "Przekierowane adresy e-mail"
         },
-        "description": "Domyślnie integracja poczty i pakietów wyszukuje tylko wiadomości pasujące do adresu usługi.\n\nJeśli chcesz korzystać z przekazywanych wiadomości e-mail, oddziel każdy adres, z którego będą przychodzić wiadomości, przecinkiem lub wpisz „(none)”, aby wyczyścić to ustawienie.",
-        "title": "Przekazywane adresy e-mail"
+        "description": "Domyślnie integracja Mail and Packages wyszukuje tylko wiadomości pasujące do adresu usługi.\n\nJeśli chcesz używać przekierowanych e-maili, oddziel każdy adres, z którego będą przychodzić wiadomości, przecinkiem lub wprowadź '(none)', aby wyczyścić to ustawienie.",
+        "title": "Przekierowane adresy e-mail"
       },
       "reconfig_forwarded_emails": {
         "data": {
-          "forwarded_emails": "Przekazywane adresy e-mail"
+          "forwarded_emails": "Przekierowane adresy e-mail"
         },
-        "description": "Domyślnie integracja poczty i pakietów wyszukuje tylko wiadomości pasujące do adresu usługi.\n\nJeśli chcesz korzystać z przekazywanych wiadomości e-mail, oddziel każdy adres, z którego będą przychodzić wiadomości, przecinkiem lub wpisz „(none)”, aby wyczyścić to ustawienie.",
-        "title": "Przekazywane adresy e-mail"
+        "description": "Domyślnie integracja Mail and Packages wyszukuje tylko wiadomości pasujące do adresu usługi.\n\nJeśli chcesz używać przekierowanych e-maili, oddziel każdy adres, z którego będą przychodzić wiadomości, przecinkiem lub wprowadź '(none)', aby wyczyścić to ustawienie.",
+        "title": "Przekierowane adresy e-mail"
       }
     }
   }

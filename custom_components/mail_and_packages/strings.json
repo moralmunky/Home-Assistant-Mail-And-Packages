@@ -42,6 +42,8 @@
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
           "ups_custom_img": "Use custom 'no UPS delivery' image?",
+          "walmart_custom_img": "Use custom 'no Walmart delivery' image?",
+          "fedex_custom_img": "Use custom 'no FedEx delivery' image?",
           "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
         },
         "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please separate each address with a comma.",
@@ -51,7 +53,9 @@
         "data": {
           "custom_img_file": "Path to custom USPS image: (ie: images/my_custom_no_mail.jpg)",
           "amazon_custom_img_file": "Path to custom Amazon image: (ie: images/my_custom_no_amazon.jpg)",
-          "ups_custom_img_file": "Path to custom UPS image: (ie: images/my_custom_no_ups.jpg)"
+          "ups_custom_img_file": "Path to custom UPS image: (ie: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (ie: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (ie: images/my_custom_no_fedex.jpg)"
         },
         "description": "Enter the path and file name to your custom no delivery images below.\n\nExample: images/custom_nomail.gif",
         "title": "Mail and Packages (Step 3 of 3)"
@@ -99,6 +103,8 @@
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
           "ups_custom_img": "Use custom 'no UPS delivery' image?",
+          "walmart_custom_img": "Use custom 'no Walmart delivery' image?",
+          "fedex_custom_img": "Use custom 'no FedEx delivery' image?",
           "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
         },
         "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
@@ -108,7 +114,9 @@
         "data": {
           "custom_img_file": "Path to custom USPS image: (i.e.: images/my_custom_no_mail.jpg)",
           "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
-          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)"
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
         },
         "description": "Enter the path and file name to your custom no delivery images below.\n\nExample: images/custom_nomail.gif",
         "title": "Mail and Packages (Step 3 of 3)"
@@ -129,6 +137,7 @@
         "description": "Please enter the directory you'd like your images to be stored in.\nThe default is auto populated.",
         "title": "Image storage location"
       },
+
       "reconfig_storage": {
         "data": {
           "storage": "Directory to store images"
@@ -137,7 +146,7 @@
         "title": "Image storage location"
       },
       "reconfig_forwarded_emails": {
-          "data": {
+        "data": {
           "forwarded_emails": "Forwarded Email Addresses"
         },
         "description": "By default, the Mail and Packages integration only searches for messages matching a service's address.\n\nIf you want to use forwarded emails, please separate each address messages will be coming from with a comma or enter '(none)' to clear this setting.",

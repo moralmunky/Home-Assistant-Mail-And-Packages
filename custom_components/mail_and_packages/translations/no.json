@@ -11,8 +11,8 @@
       "amazon_domain": "Ugyldig videresendings e-postadresse.",
       "file_not_found": "Bildefil ikke funnet",
       "invalid_email_format": "Ugyldig e-postadresseformat.",
-      "path_not_found": "Mappen ble ikke funnet",
-      "missing_forwarded_emails": "Mangler videresendte e-postadresser. Du kan angi '(none)' for å fjerne denne innstillingen."
+      "missing_forwarded_emails": "Manglende videresendte e-postadresser. Du kan skrive inn '(none)' for å tømme denne innstillingen.",
+      "path_not_found": "Mappen ble ikke funnet"
     },
     "step": {
       "user": {
@@ -42,9 +42,10 @@
           "amazon_custom_img": "Bruk tilpasset Amazon 'ingen levering' bilde?",
           "ups_custom_img": "Bruk tilpasset UPS 'ingen levering' bilde?",
           "walmart_custom_img": "Bruk tilpasset Walmart 'ingen levering' bilde?",
+          "fedex_custom_img": "Bruk tilpasset FedEx 'ingen levering' bilde?",
           "generic_custom_img": "Bruk tilpasset generisk 'ingen levering' bilde?",
           "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller",
-          "allow_forwarded_emails": "Tillat videresendte e-poster i tillegg til en tjenestes standard (f.eks. no-reply@usps.com)"
+          "allow_forwarded_emails": "Tillat videresendte e-poster i tillegg til en tjenestes standardverdi (f.eks. no-reply@usps.com)"
         },
         "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på e-poststrukturen og Home Assistant-installasjonen. \n\n For detaljer om alternativene [Mail and Packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), les gjennom [konfigurasjon, maler , og automatiseringsdel] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
         "title": "E-post og pakker (trinn 2 av 2)"
@@ -62,7 +63,7 @@
           "amazon_fwds": "Amazon videresendte e-postadresser",
           "amazon_days": "Dager tilbake for å sjekke Amazon-e-poster"
         },
-        "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (none) for å tømme denne innstillingen.",
+        "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (ingen) for å tømme denne innstillingen.",
         "title": "Amazon-innstillinger"
       },
       "reconfigure": {
@@ -92,11 +93,12 @@
           "amazon_custom_img": "Bruk tilpasset Amazon 'ingen levering' bilde?",
           "ups_custom_img": "Bruk tilpasset UPS 'ingen levering' bilde?",
           "walmart_custom_img": "Bruk tilpasset Walmart 'ingen levering' bilde?",
+          "fedex_custom_img": "Bruk tilpasset FedEx 'ingen levering' bilde?",
           "generic_custom_img": "Bruk tilpasset generisk 'ingen levering' bilde?",
           "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller",
-          "allow_forwarded_emails": "Tillat videresendte e-poster i tillegg til en tjenestes standard (f.eks. no-reply@usps.com)"
+          "allow_forwarded_emails": "Tillat videresendte e-poster i tillegg til en tjenestes standardverdi (f.eks. no-reply@usps.com)"
         },
-        "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på din e-poststruktur og Home Assistant-installasjon.\n\nFor detaljer om [Mail and Packages-integrasjonen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) alternativene, se gjennom [konfigurasjon, maler og automatiseringsseksjonen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma eller skriv inn (none) for å tømme denne innstillingen.",
+        "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på din e-poststruktur og Home Assistant-installasjon.\n\nFor detaljer om [Mail and Packages-integrasjonen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) alternativene, se gjennom [konfigurasjon, maler og automatiseringsseksjonen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma eller skriv inn (ingen) for å tømme denne innstillingen.",
         "title": "E-post og pakker (trinn 2 av 2)"
       },
       "reconfig_3": {
@@ -112,7 +114,7 @@
           "amazon_fwds": "Amazon videresendte e-postadresser",
           "amazon_days": "Dager tilbake for å sjekke Amazon-e-poster"
         },
-        "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (none) for å tømme denne innstillingen.",
+        "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (ingen) for å tømme denne innstillingen.",
         "title": "Amazon-innstillinger"
       },
       "config_storage": {
@@ -133,14 +135,14 @@
         "data": {
           "forwarded_emails": "Videresendte e-postadresser"
         },
-        "description": "Som standard søker Mail and Packages-integrasjonen bare etter meldinger som samsvarer med en tjenestes adresse.\n\nHvis du ønsker å bruke videresendte e-poster, må du skille hver adresse meldingene kommer fra med et komma eller skrive inn \"(none)\" for å fjerne denne innstillingen.",
+        "description": "Som standard søker Mail and Packages-integrasjonen bare etter meldinger som samsvarer med en tjenestes adresse.\n\nHvis du vil bruke videresendte e-poster, vennligst skill hver adresse meldingene kommer fra med et komma eller skriv inn '(none)' for å tømme denne innstillingen.",
         "title": "Videresendte e-postadresser"
       },
       "reconfig_forwarded_emails": {
         "data": {
           "forwarded_emails": "Videresendte e-postadresser"
         },
-        "description": "Som standard søker Mail and Packages-integrasjonen bare etter meldinger som samsvarer med en tjenestes adresse.\n\nHvis du ønsker å bruke videresendte e-poster, må du skille hver adresse meldingene kommer fra med et komma eller skrive inn \"(none)\" for å fjerne denne innstillingen.",
+        "description": "Som standard søker Mail and Packages-integrasjonen bare etter meldinger som samsvarer med en tjenestes adresse.\n\nHvis du vil bruke videresendte e-poster, vennligst skill hver adresse meldingene kommer fra med et komma eller skriv inn '(none)' for å tømme denne innstillingen.",
         "title": "Videresendte e-postadresser"
       }
     }

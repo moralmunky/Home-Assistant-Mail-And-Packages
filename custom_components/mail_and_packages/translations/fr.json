@@ -11,8 +11,8 @@
       "amazon_domain": "Adresse e-mail de transfert invalide.",
       "file_not_found": "Fichier image non trouvé",
       "invalid_email_format": "Format d'adresse e-mail invalide.",
-      "path_not_found": "Répertoire non trouvé",
-      "missing_forwarded_emails": "Adresses e-mail transférées manquantes. Vous pouvez saisir « (none) » pour effacer ce paramètre."
+      "missing_forwarded_emails": "Adresses e-mail de transfert manquantes. Vous pouvez entrer '(none)' pour effacer ce paramètre.",
+      "path_not_found": "Répertoire non trouvé"
     },
     "step": {
       "user": {
@@ -42,9 +42,10 @@
           "amazon_custom_img": "Utiliser une image personnalisée Amazon 'pas de livraison' ?",
           "ups_custom_img": "Utiliser une image personnalisée UPS 'pas de livraison' ?",
           "walmart_custom_img": "Utiliser une image personnalisée Walmart 'pas de livraison' ?",
+          "fedex_custom_img": "Utiliser une image personnalisée FedEx 'pas de livraison' ?",
           "generic_custom_img": "Utiliser une image personnalisée générique 'pas de livraison' ?",
           "generate_grid": "Créer une grille d'images pour les modèles de vision LLM",
-          "allow_forwarded_emails": "Autoriser les e-mails transférés en plus de la valeur par défaut d'un service (par exemple no-reply@usps.com)"
+          "allow_forwarded_emails": "Autoriser les e-mails transférés en plus de la valeur par défaut d'un service (par ex. no-reply@usps.com)"
         },
         "description": "Terminez la configuration en personnalisant les éléments suivants en fonction de votre structure de messagerie et de l'installation de Home Assistant. \n\n Pour plus de détails sur les [Intégration de messagerie et de packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), passez en revue les [configuration, modèles et section automatisations] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sur GitHub.",
         "title": "Courrier et colis (étape 2 sur 2)"
@@ -62,7 +63,7 @@
           "amazon_fwds": "Amazon a transmis des adresses e-mail",
           "amazon_days": "Jours en arrière pour vérifier les emails Amazon"
         },
-        "description": "Veuillez entrer le domaine à partir duquel Amazon envoie des emails (par exemple : amazon.com ou amazon.de)\n\nSi vous utilisez des emails transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (none) pour effacer ce paramètre.",
+        "description": "Veuillez entrer le domaine à partir duquel Amazon envoie des emails (par exemple : amazon.com ou amazon.de)\n\nSi vous utilisez des emails transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.",
         "title": "Paramètres Amazon"
       },
       "reconfigure": {
@@ -92,11 +93,12 @@
           "amazon_custom_img": "Utiliser une image personnalisée Amazon 'pas de livraison' ?",
           "ups_custom_img": "Utiliser une image personnalisée UPS 'pas de livraison' ?",
           "walmart_custom_img": "Utiliser une image personnalisée Walmart 'pas de livraison' ?",
+          "fedex_custom_img": "Utiliser une image personnalisée FedEx 'pas de livraison' ?",
           "generic_custom_img": "Utiliser une image personnalisée générique 'pas de livraison' ?",
           "generate_grid": "Créer une grille d'images pour les modèles de vision LLM",
-          "allow_forwarded_emails": "Autoriser les e-mails transférés en plus de la valeur par défaut d'un service (par exemple no-reply@usps.com)"
+          "allow_forwarded_emails": "Autoriser les e-mails transférés en plus de la valeur par défaut d'un service (par ex. no-reply@usps.com)"
         },
-        "description": "Terminez la configuration en personnalisant ce qui suit en fonction de la structure de votre courrier électronique et de l'installation de Home Assistant.\n\nPour plus de détails sur les options d'[intégration de courrier et de colis](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), consultez la [section configuration, modèles et automatisations](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sur GitHub.\n\nSi vous utilisez des courriels transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (none) pour effacer ce paramètre.",
+        "description": "Terminez la configuration en personnalisant ce qui suit en fonction de la structure de votre courrier électronique et de l'installation de Home Assistant.\n\nPour plus de détails sur les options d'[intégration de courrier et de colis](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), consultez la [section configuration, modèles et automatisations](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sur GitHub.\n\nSi vous utilisez des courriels transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.",
         "title": "Courrier et colis (étape 2 sur 2)"
       },
       "reconfig_3": {
@@ -112,7 +114,7 @@
           "amazon_fwds": "Amazon a transmis des adresses e-mail",
           "amazon_days": "Jours en arrière pour vérifier les emails Amazon"
         },
-        "description": "Veuillez entrer le domaine à partir duquel Amazon envoie des emails (par exemple : amazon.com ou amazon.de)\n\nSi vous utilisez des emails transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (none) pour effacer ce paramètre.",
+        "description": "Veuillez entrer le domaine à partir duquel Amazon envoie des emails (par exemple : amazon.com ou amazon.de)\n\nSi vous utilisez des emails transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.",
         "title": "Paramètres Amazon"
       },
       "config_storage": {
@@ -133,14 +135,14 @@
         "data": {
           "forwarded_emails": "Adresses e-mail transférées"
         },
-        "description": "Par défaut, l'intégration Mail et Packages recherche uniquement les messages correspondant à l'adresse d'un service.\n\nSi vous souhaitez utiliser les e-mails transférés, veuillez séparer chaque adresse d'où proviendront les messages par une virgule ou entrez « (none) » pour effacer ce paramètre.",
+        "description": "Par défaut, l'intégration Mail and Packages ne recherche que les messages correspondant à l'adresse d'un service.\n\nSi vous souhaitez utiliser des e-mails transférés, veuillez séparer chaque adresse d'où proviendront les messages par une virgule ou entrez '(none)' pour effacer ce paramètre.",
         "title": "Adresses e-mail transférées"
       },
       "reconfig_forwarded_emails": {
         "data": {
           "forwarded_emails": "Adresses e-mail transférées"
         },
-        "description": "Par défaut, l'intégration Mail et Packages recherche uniquement les messages correspondant à l'adresse d'un service.\n\nSi vous souhaitez utiliser les e-mails transférés, veuillez séparer chaque adresse d'où proviendront les messages par une virgule ou entrez « (none) » pour effacer ce paramètre.",
+        "description": "Par défaut, l'intégration Mail and Packages ne recherche que les messages correspondant à l'adresse d'un service.\n\nSi vous souhaitez utiliser des e-mails transférés, veuillez séparer chaque adresse d'où proviendront les messages par une virgule ou entrez '(none)' pour effacer ce paramètre.",
         "title": "Adresses e-mail transférées"
       }
     }

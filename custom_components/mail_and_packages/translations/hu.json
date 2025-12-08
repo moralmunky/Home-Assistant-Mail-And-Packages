@@ -11,8 +11,8 @@
       "amazon_domain": "Érvénytelen továbbítási e-mail cím.",
       "file_not_found": "Képfájl nem található",
       "invalid_email_format": "Érvénytelen e-mail cím formátum.",
-      "path_not_found": "Könyvtár nem található",
-      "missing_forwarded_emails": "Hiányzó továbbított e-mail címek. A beállítás törléséhez beírhatja a „(none)” értéket."
+      "missing_forwarded_emails": "Hiányzó továbbított e-mail címek. Megadhatja a '(none)' értéket a beállítás törléséhez.",
+      "path_not_found": "Könyvtár nem található"
     },
     "step": {
       "user": {
@@ -42,9 +42,10 @@
           "amazon_custom_img": "Használjon egyéni Amazon 'nincs szállítás' képet?",
           "ups_custom_img": "Használjon egyéni UPS 'nincs szállítás' képet?",
           "walmart_custom_img": "Használjon egyéni Walmart 'nincs szállítás' képet?",
+          "fedex_custom_img": "Használjon egyéni FedEx 'nincs szállítás' képet?",
           "generic_custom_img": "Használjon egyéni általános 'nincs szállítás' képet?",
           "generate_grid": "Kép rács létrehozása LLM látásmodellekhez",
-          "allow_forwarded_emails": "Továbbított e-mailek engedélyezése a szolgáltatás alapértelmezett értékei mellett (pl. no-reply@usps.com)"
+          "allow_forwarded_emails": "Engedélyezze a továbbított e-maileket a szolgáltatás alapértelmezett értékén kívül (pl. no-reply@usps.com)"
         },
         "description": "Végezze el a konfigurációt az alábbiak testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján. \n\n A [Levelek és csomagok integrációja] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opciókkal kapcsolatban tekintse meg a [konfiguráció, sablonok , és az automatizálás szakasz] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHubon.",
         "title": "Levél és csomagok (2. lépés a 2-ből)"
@@ -92,9 +93,10 @@
           "amazon_custom_img": "Használjon egyéni Amazon 'nincs szállítás' képet?",
           "ups_custom_img": "Használjon egyéni UPS 'nincs szállítás' képet?",
           "walmart_custom_img": "Használjon egyéni Walmart 'nincs szállítás' képet?",
+          "fedex_custom_img": "Használjon egyéni FedEx 'nincs szállítás' képet?",
           "generic_custom_img": "Használjon egyéni általános 'nincs szállítás' képet?",
           "generate_grid": "Kép rács létrehozása LLM látásmodellekhez",
-          "allow_forwarded_emails": "Továbbított e-mailek engedélyezése a szolgáltatás alapértelmezett értékei mellett (pl. no-reply@usps.com)"
+          "allow_forwarded_emails": "Engedélyezze a továbbított e-maileket a szolgáltatás alapértelmezett értékén kívül (pl. no-reply@usps.com)"
         },
         "description": "Fejezze be a konfigurációt a következők testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján.\n\nA [Mail and Packages integráció](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) lehetőségeinek részleteiről a GitHub-on található [konfiguráció, sablonok és automatizálások szekcióban](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) található információkat.\n\nHa Amazon továbbított e-maileket használ, kérjük, válassza el minden címet vesszővel, vagy írja be a (none) opciót, hogy törölje ezt a beállítást.",
         "title": "Levél és csomagok (2. lépés a 2-ből)"
@@ -133,14 +135,14 @@
         "data": {
           "forwarded_emails": "Továbbított e-mail címek"
         },
-        "description": "Alapértelmezés szerint a levelek és csomagok integrációja csak a szolgáltatás címének megfelelő üzeneteket keresi.\n\nHa továbbított e-maileket szeretne használni, kérjük, vesszővel válassza el az egyes címeket, amelyekről az üzenet érkezik, vagy írja be a „(none)” értéket a beállítás törléséhez.",
+        "description": "Alapértelmezés szerint a Mail and Packages integráció csak a szolgáltatás címével egyező üzeneteket keresi.\n\nHa továbbított e-maileket szeretne használni, kérjük, válassza el minden címet, ahonnan az üzenetek érkezni fognak, vesszővel, vagy írja be a '(none)' értéket a beállítás törléséhez.",
         "title": "Továbbított e-mail címek"
       },
       "reconfig_forwarded_emails": {
         "data": {
           "forwarded_emails": "Továbbított e-mail címek"
         },
-        "description": "Alapértelmezés szerint a levelek és csomagok integrációja csak a szolgáltatás címének megfelelő üzeneteket keresi.\n\nHa továbbított e-maileket szeretne használni, kérjük, vesszővel válassza el az egyes címeket, amelyekről az üzenet érkezik, vagy írja be a „(none)” értéket a beállítás törléséhez.",
+        "description": "Alapértelmezés szerint a Mail and Packages integráció csak a szolgáltatás címével egyező üzeneteket keresi.\n\nHa továbbított e-maileket szeretne használni, kérjük, válassza el minden címet, ahonnan az üzenetek érkezni fognak, vesszővel, vagy írja be a '(none)' értéket a beállítás törléséhez.",
         "title": "Továbbított e-mail címek"
       }
     }

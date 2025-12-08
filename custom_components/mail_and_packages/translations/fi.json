@@ -11,8 +11,8 @@
       "amazon_domain": "Virheellinen edelleenlähetettävä sähköpostiosoite.",
       "file_not_found": "Kuvatiedostoa ei löydy",
       "invalid_email_format": "Virheellinen sähköpostiosoitteen muoto.",
-      "path_not_found": "Hakemistoa ei löydy",
-      "missing_forwarded_emails": "Edelleenlähetetyt sähköpostiosoitteet puuttuvat. Voit tyhjentää tämän asetuksen kirjoittamalla (none)."
+      "missing_forwarded_emails": "Puuttuvat edelleenlähetetyt sähköpostiosoitteet. Voit syöttää '(none)' tyhjentääksesi tämän asetuksen.",
+      "path_not_found": "Hakemistoa ei löydy"
     },
     "step": {
       "user": {
@@ -42,9 +42,10 @@
           "amazon_custom_img": "Käytä mukautettua Amazon 'ei toimituksia' kuvaa?",
           "ups_custom_img": "Käytä mukautettua UPS 'ei toimituksia' kuvaa?",
           "walmart_custom_img": "Käytä mukautettua Walmart 'ei toimituksia' kuvaa?",
+          "fedex_custom_img": "Käytä mukautettua FedEx 'ei toimituksia' kuvaa?",
           "generic_custom_img": "Käytä mukautettua yleistä 'ei toimituksia' kuvaa?",
           "generate_grid": "Luo kuvaverkko LLM-näkömalleille",
-          "allow_forwarded_emails": "Salli edelleenlähetetyt sähköpostit palvelun oletusarvojen lisäksi (esim. no-reply@usps.com)"
+          "allow_forwarded_emails": "Salli edelleenlähetetyt sähköpostit palvelun oletusarvon lisäksi (esim. no-reply@usps.com)"
         },
         "description": "Viimeistele kokoonpano mukauttamalla seuraava sähköpostirakenteen ja Home Assistant -asennuksen perusteella. \n\n Lisätietoja [Posti ja paketit-integroinnista] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) -asetuksista on [kokoonpano, mallit , ja automaatiot-osio] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) GitHubissa.",
         "title": "Posti ja paketit (vaihe 2/2)"
@@ -92,9 +93,10 @@
           "amazon_custom_img": "Käytä mukautettua Amazon 'ei toimituksia' kuvaa?",
           "ups_custom_img": "Käytä mukautettua UPS 'ei toimituksia' kuvaa?",
           "walmart_custom_img": "Käytä mukautettua Walmart 'ei toimituksia' kuvaa?",
+          "fedex_custom_img": "Käytä mukautettua FedEx 'ei toimituksia' kuvaa?",
           "generic_custom_img": "Käytä mukautettua yleistä 'ei toimituksia' kuvaa?",
           "generate_grid": "Luo kuvaverkko LLM-näkömalleille",
-          "allow_forwarded_emails": "Salli edelleenlähetetyt sähköpostit palvelun oletusarvojen lisäksi (esim. no-reply@usps.com)"
+          "allow_forwarded_emails": "Salli edelleenlähetetyt sähköpostit palvelun oletusarvon lisäksi (esim. no-reply@usps.com)"
         },
         "description": "Suorita määritys loppuun mukauttamalla seuraavat sähköpostirakenteeseesi ja Home Assistant -asennukseesi perustuen.\n\nLisätietoja [Mail and Packages -integraation](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) vaihtoehdoista löydät GitHubista [määritys-, mallit- ja automaatiot-osiossa](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration).\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai syötä (none) tyhjentääksesi tämän asetuksen.",
         "title": "Posti ja paketit (vaihe 2/2)"
@@ -131,17 +133,17 @@
       },
       "config_forwarded_emails": {
         "data": {
-          "forwarded_emails": "Välitetyt sähköpostiosoitteet"
+          "forwarded_emails": "Edelleenlähetetyt sähköpostiosoitteet"
         },
-        "description": "Oletusarvoisesti Mail and Packages -integraatio etsii vain viestejä, jotka vastaavat palvelun osoitetta.\n\nJos haluat käyttää edelleenlähetettyjä sähköposteja, erottele kukin osoite, josta tulevat viestit tulevat, pilkulla tai tyhjennä asetus kirjoittamalla (none).",
-        "title": "Välitetyt sähköpostiosoitteet"
+        "description": "Oletuksena Mail and Packages -integraatio etsii vain viestejä, jotka vastaavat palvelun osoitetta.\n\nJos haluat käyttää edelleenlähetettyjä sähköposteja, erota jokainen osoite, josta viestit tulevat, pilkulla tai syötä '(none)' tyhjentääksesi tämän asetuksen.",
+        "title": "Edelleenlähetetyt sähköpostiosoitteet"
       },
       "reconfig_forwarded_emails": {
         "data": {
-          "forwarded_emails": "Välitetyt sähköpostiosoitteet"
+          "forwarded_emails": "Edelleenlähetetyt sähköpostiosoitteet"
         },
-        "description": "Oletusarvoisesti Mail and Packages -integraatio etsii vain viestejä, jotka vastaavat palvelun osoitetta.\n\nJos haluat käyttää edelleenlähetettyjä sähköposteja, erottele kukin osoite, josta tulevat viestit tulevat, pilkulla tai tyhjennä asetus kirjoittamalla (none).",
-        "title": "Välitetyt sähköpostiosoitteet"
+        "description": "Oletuksena Mail and Packages -integraatio etsii vain viestejä, jotka vastaavat palvelun osoitetta.\n\nJos haluat käyttää edelleenlähetettyjä sähköposteja, erota jokainen osoite, josta viestit tulevat, pilkulla tai syötä '(none)' tyhjentääksesi tämän asetuksen.",
+        "title": "Edelleenlähetetyt sähköpostiosoitteet"
       }
     }
   }

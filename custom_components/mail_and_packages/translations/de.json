@@ -11,8 +11,8 @@
       "amazon_domain": "Ungültige Weiterleitungs-E-Mail-Adresse.",
       "file_not_found": "Bilddatei nicht gefunden",
       "invalid_email_format": "Ungültiges E-Mail-Adressformat.",
-      "path_not_found": "Verzeichnis nicht gefunden",
-      "missing_forwarded_emails": "Fehlende weitergeleitete E-Mail-Adressen. Sie können „(none)“ eingeben, um diese Einstellung zu löschen."
+      "missing_forwarded_emails": "Fehlende weitergeleitete E-Mail-Adressen. Sie können '(none)' eingeben, um diese Einstellung zu löschen.",
+      "path_not_found": "Verzeichnis nicht gefunden"
     },
     "step": {
       "user": {
@@ -42,9 +42,10 @@
           "amazon_custom_img": "Benutzerdefiniertes Amazon 'keine Lieferung' Bild verwenden?",
           "ups_custom_img": "Benutzerdefiniertes UPS 'keine Lieferung' Bild verwenden?",
           "walmart_custom_img": "Benutzerdefiniertes Walmart 'keine Lieferung' Bild verwenden?",
+          "fedex_custom_img": "Benutzerdefiniertes FedEx 'keine Lieferung' Bild verwenden?",
           "generic_custom_img": "Benutzerdefiniertes generisches 'keine Lieferung' Bild verwenden?",
           "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle",
-          "allow_forwarded_emails": "Weitergeleitete E-Mails zusätzlich zum Standard eines Dienstes zulassen (z. B. no-reply@usps.com)"
+          "allow_forwarded_emails": "Weitergeleitete E-Mails zusätzlich zu den Standardwerten eines Dienstes zulassen (z. B. no-reply@usps.com)"
         },
         "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
         "title": "Briefe und Pakete (Schritt 2 von 2)"
@@ -62,7 +63,7 @@
           "amazon_fwds": "Amazon hat E-Mail-Adressen weitergeleitet",
           "amazon_days": "Tage zurück, um nach Amazon-E-Mails zu suchen"
         },
-        "description": "Bitte geben Sie die Domain ein, von der Amazon E-Mails sendet (z.B.: amazon.com oder amazon.de)\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse mit einem Komma oder geben Sie (none) ein, um diese Einstellung zu löschen.",
+        "description": "Bitte geben Sie die Domain ein, von der Amazon E-Mails sendet (z.B.: amazon.com oder amazon.de)\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse mit einem Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
         "title": "Amazon Einstellungen"
       },
       "reconfigure": {
@@ -92,11 +93,12 @@
           "amazon_custom_img": "Benutzerdefiniertes Amazon 'keine Lieferung' Bild verwenden?",
           "ups_custom_img": "Benutzerdefiniertes UPS 'keine Lieferung' Bild verwenden?",
           "walmart_custom_img": "Benutzerdefiniertes Walmart 'keine Lieferung' Bild verwenden?",
+          "fedex_custom_img": "Benutzerdefiniertes FedEx 'keine Lieferung' Bild verwenden?",
           "generic_custom_img": "Benutzerdefiniertes generisches 'keine Lieferung' Bild verwenden?",
           "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle",
-          "allow_forwarded_emails": "Weitergeleitete E-Mails zusätzlich zum Standard eines Dienstes zulassen (z. B. no-reply@usps.com)"
+          "allow_forwarded_emails": "Weitergeleitete E-Mails zusätzlich zu den Standardwerten eines Dienstes zulassen (z. B. no-reply@usps.com)"
         },
-        "description": "Schließen Sie die Konfiguration ab, indem Sie das Folgende an Ihre E-Mail-Struktur und Home Assistant-Installation anpassen.\n\nWeitere Informationen zu den [Mail und Packages Integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) Optionen finden Sie im [Konfigurations-, Vorlagen- und Automatisierungsabschnitt](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse durch ein Komma oder geben Sie (none) ein, um diese Einstellung zu löschen.",
+        "description": "Schließen Sie die Konfiguration ab, indem Sie das Folgende an Ihre E-Mail-Struktur und Home Assistant-Installation anpassen.\n\nWeitere Informationen zu den [Mail und Packages Integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) Optionen finden Sie im [Konfigurations-, Vorlagen- und Automatisierungsabschnitt](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse durch ein Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
         "title": "Briefe und Pakete (Schritt 2 von 2)"
       },
       "reconfig_3": {
@@ -112,7 +114,7 @@
           "amazon_fwds": "Amazon hat E-Mail-Adressen weitergeleitet",
           "amazon_days": "Tage zurück, um nach Amazon-E-Mails zu suchen"
         },
-        "description": "Bitte geben Sie die Domain ein, von der Amazon E-Mails sendet (z.B.: amazon.com oder amazon.de)\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse mit einem Komma oder geben Sie (none) ein, um diese Einstellung zu löschen.",
+        "description": "Bitte geben Sie die Domain ein, von der Amazon E-Mails sendet (z.B.: amazon.com oder amazon.de)\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse mit einem Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
         "title": "Amazon Einstellungen"
       },
       "config_storage": {
@@ -133,14 +135,14 @@
         "data": {
           "forwarded_emails": "Weitergeleitete E-Mail-Adressen"
         },
-        "description": "Standardmäßig sucht die Mail- und Pakete-Integration nur nach Nachrichten, die mit der Adresse eines Dienstes übereinstimmen.\n\nWenn Sie weitergeleitete E-Mails verwenden möchten, trennen Sie bitte jede Adresse, von der Nachrichten kommen, durch ein Komma oder geben Sie „(none)“ ein, um diese Einstellung zu löschen.",
+        "description": "Standardmäßig sucht die Mail- und Paket-Integration nur nach Nachrichten, die mit der Adresse eines Dienstes übereinstimmen.\n\nWenn Sie weitergeleitete E-Mails verwenden möchten, trennen Sie bitte jede Adresse, von der Nachrichten kommen werden, durch ein Komma oder geben Sie '(none)' ein, um diese Einstellung zu löschen.",
         "title": "Weitergeleitete E-Mail-Adressen"
       },
       "reconfig_forwarded_emails": {
         "data": {
           "forwarded_emails": "Weitergeleitete E-Mail-Adressen"
         },
-        "description": "Standardmäßig sucht die Mail- und Pakete-Integration nur nach Nachrichten, die mit der Adresse eines Dienstes übereinstimmen.\n\nWenn Sie weitergeleitete E-Mails verwenden möchten, trennen Sie bitte jede Adresse, von der Nachrichten kommen, durch ein Komma oder geben Sie „(none)“ ein, um diese Einstellung zu löschen.",
+        "description": "Standardmäßig sucht die Mail- und Paket-Integration nur nach Nachrichten, die mit der Adresse eines Dienstes übereinstimmen.\n\nWenn Sie weitergeleitete E-Mails verwenden möchten, trennen Sie bitte jede Adresse, von der Nachrichten kommen werden, durch ein Komma oder geben Sie '(none)' ein, um diese Einstellung zu löschen.",
         "title": "Weitergeleitete E-Mail-Adressen"
       }
     }

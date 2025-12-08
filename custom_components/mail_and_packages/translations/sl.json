@@ -11,8 +11,8 @@
       "amazon_domain": "Neveljaven naslov za preusmerjanje e-pošte.",
       "file_not_found": "Slikovna datoteka ni najdena",
       "invalid_email_format": "Neveljaven format e-poštnega naslova.",
-      "path_not_found": "Mapa ni najdena",
-      "missing_forwarded_emails": "Manjkajoči posredovani e-poštni naslovi. Če želite počistiti to nastavitev, lahko vnesete '(none)'."
+      "missing_forwarded_emails": "Manjkajo posredovani e-poštni naslovi. Vnesete lahko '(none)' za izbris te nastavitve.",
+      "path_not_found": "Mapa ni najdena"
     },
     "step": {
       "user": {
@@ -42,9 +42,10 @@
           "amazon_custom_img": "Uporabite prilagojeno sliko Amazon 'brez dostave'?",
           "ups_custom_img": "Uporabite prilagojeno sliko UPS 'brez dostave'?",
           "walmart_custom_img": "Uporabite prilagojeno sliko Walmart 'brez dostave'?",
+          "fedex_custom_img": "Uporabite prilagojeno sliko FedEx 'brez dostave'?",
           "generic_custom_img": "Uporabite prilagojeno splošno sliko 'brez dostave'?",
           "generate_grid": "Ustvari mrežo slik za vizualne modele LLM",
-          "allow_forwarded_emails": "Dovoli posredovana e-poštna sporočila poleg privzetih nastavitev storitve (npr. no-reply@usps.com)"
+          "allow_forwarded_emails": "Dovoli posredovane e-poštne sporočila poleg privzete vrednosti storitve (npr. no-reply@usps.com)"
         },
         "description": "Končajte konfiguracijo s prilagoditvijo naslednjih na podlagi strukture e-pošte in namestitve Home Assistant. \n\n Za podrobnosti o možnostih [Integracija pošte in paketov] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) preglejte [konfiguracijo, predloge in oddelku za avtomatizacije] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
         "title": "Pošta in paketi (2. korak od 2)"
@@ -92,9 +93,10 @@
           "amazon_custom_img": "Uporabite prilagojeno sliko Amazon 'brez dostave'?",
           "ups_custom_img": "Uporabite prilagojeno sliko UPS 'brez dostave'?",
           "walmart_custom_img": "Uporabite prilagojeno sliko Walmart 'brez dostave'?",
+          "fedex_custom_img": "Uporabite prilagojeno sliko FedEx 'brez dostave'?",
           "generic_custom_img": "Uporabite prilagojeno splošno sliko 'brez dostave'?",
           "generate_grid": "Ustvari mrežo slik za vizualne modele LLM",
-          "allow_forwarded_emails": "Dovoli posredovana e-poštna sporočila poleg privzetih nastavitev storitve (npr. no-reply@usps.com)"
+          "allow_forwarded_emails": "Dovoli posredovane e-poštne sporočila poleg privzete vrednosti storitve (npr. no-reply@usps.com)"
         },
         "description": "Konfiguracijo dokončajte z prilagajanjem naslednjega glede na strukturo vašega e-poštnega sporočila in namestitev Home Assistant.\n\nZa podrobnosti o možnostih [integracije Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) si oglejte [razdelek o konfiguraciji, predlogah in avtomatizacijah](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
         "title": "Pošta in paketi (2. korak od 2)"
@@ -133,14 +135,14 @@
         "data": {
           "forwarded_emails": "Posredovani e-poštni naslovi"
         },
-        "description": "Integracija pošte in paketov privzeto išče le sporočila, ki se ujemajo z naslovom storitve.\n\nČe želite uporabiti posredovana e-poštna sporočila, ločite vsak naslov, iz katerega bodo prišla sporočila, z vejico ali vnesite »(none)«, da počistite to nastavitev.",
+        "description": "Privzeto integracija Mail and Packages išče samo sporočila, ki ustrezajo naslovu storitve.\n\nČe želite uporabljati posredovana e-poštna sporočila, ločite vsak naslov, s katerega bodo prihajala sporočila, z vejico ali vnesite '(none)' za izbris te nastavitve.",
         "title": "Posredovani e-poštni naslovi"
       },
       "reconfig_forwarded_emails": {
         "data": {
           "forwarded_emails": "Posredovani e-poštni naslovi"
         },
-        "description": "Integracija pošte in paketov privzeto išče le sporočila, ki se ujemajo z naslovom storitve.\n\nČe želite uporabiti posredovana e-poštna sporočila, ločite vsak naslov, iz katerega bodo prišla sporočila, z vejico ali vnesite »(none)«, da počistite to nastavitev.",
+        "description": "Privzeto integracija Mail and Packages išče samo sporočila, ki ustrezajo naslovu storitve.\n\nČe želite uporabljati posredovana e-poštna sporočila, ločite vsak naslov, s katerega bodo prihajala sporočila, z vejico ali vnesite '(none)' za izbris te nastavitve.",
         "title": "Posredovani e-poštni naslovi"
       }
     }

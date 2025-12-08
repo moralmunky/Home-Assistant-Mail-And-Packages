@@ -11,8 +11,8 @@
       "amazon_domain": "Invalid forwarding email address.",
       "file_not_found": "Image file not found",
       "invalid_email_format": "Invalid email address format.",
-      "path_not_found": "Directory not found",
-      "missing_forwarded_emails": "Missing forwarded email addresses. You may enter '(none)' to clear this setting."
+      "missing_forwarded_emails": "Missing forwarded email addresses. You may enter '(none)' to clear this setting.",
+      "path_not_found": "Directory not found"
     },
     "step": {
       "user": {
@@ -42,6 +42,7 @@
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
           "ups_custom_img": "Use custom 'no UPS delivery' image?",
           "walmart_custom_img": "Use custom 'no Walmart delivery' image?",
+          "fedex_custom_img": "Use custom 'no FedEx delivery' image?",
           "generic_custom_img": "Use custom 'no Generic delivery' image?",
           "generate_grid": "Create image grid for LLM vision models",
           "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
@@ -92,6 +93,7 @@
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
           "ups_custom_img": "Use custom 'no UPS delivery' image?",
           "walmart_custom_img": "Use custom 'no Walmart delivery' image?",
+          "fedex_custom_img": "Use custom 'no FedEx delivery' image?",
           "generic_custom_img": "Use custom 'no Generic delivery' image?",
           "generate_grid": "Create image grid for LLM vision models",
           "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"

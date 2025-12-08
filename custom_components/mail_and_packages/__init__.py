@@ -12,20 +12,17 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
+from . import const
 from .const import (
-    ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
-    ATTR_UPS_IMAGE,
+    CONF_AMAZON_CUSTOM_IMG,
+    CONF_AMAZON_CUSTOM_IMG_FILE,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
-    CONF_AMAZON_CUSTOM_IMG,
-    CONF_AMAZON_CUSTOM_IMG_FILE,
-    CONF_UPS_CUSTOM_IMG,
-    CONF_UPS_CUSTOM_IMG_FILE,
-    CONF_WALMART_CUSTOM_IMG,
-    CONF_WALMART_CUSTOM_IMG_FILE,
+    CONF_FEDEX_CUSTOM_IMG,
+    CONF_FEDEX_CUSTOM_IMG_FILE,
     CONF_GENERIC_CUSTOM_IMG,
     CONF_GENERIC_CUSTOM_IMG_FILE,
     CONF_IMAGE_SECURITY,
@@ -34,10 +31,24 @@ from .const import (
     CONF_PATH,
     CONF_SCAN_INTERVAL,
     CONF_STORAGE,
+    CONF_UPS_CUSTOM_IMG,
+    CONF_UPS_CUSTOM_IMG_FILE,
     CONF_VERIFY_SSL,
+    CONF_WALMART_CUSTOM_IMG,
+    CONF_WALMART_CUSTOM_IMG_FILE,
     CONFIG_VER,
     COORDINATOR,
+    DEFAULT_AMAZON_CUSTOM_IMG,
+    DEFAULT_AMAZON_CUSTOM_IMG_FILE,
     DEFAULT_AMAZON_DAYS,
+    DEFAULT_FEDEX_CUSTOM_IMG,
+    DEFAULT_FEDEX_CUSTOM_IMG_FILE,
+    DEFAULT_GENERIC_CUSTOM_IMG,
+    DEFAULT_GENERIC_CUSTOM_IMG_FILE,
+    DEFAULT_UPS_CUSTOM_IMG,
+    DEFAULT_UPS_CUSTOM_IMG_FILE,
+    DEFAULT_WALMART_CUSTOM_IMG,
+    DEFAULT_WALMART_CUSTOM_IMG_FILE,
     DOMAIN,
     ISSUE_URL,
     PLATFORMS,
@@ -70,6 +81,28 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     if CONF_PATH not in updated_config:
         updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
+
+    # Set default custom image configurations if missing
+    if CONF_AMAZON_CUSTOM_IMG not in updated_config:
+        updated_config[CONF_AMAZON_CUSTOM_IMG] = DEFAULT_AMAZON_CUSTOM_IMG
+    if CONF_AMAZON_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_AMAZON_CUSTOM_IMG_FILE] = DEFAULT_AMAZON_CUSTOM_IMG_FILE
+    if CONF_UPS_CUSTOM_IMG not in updated_config:
+        updated_config[CONF_UPS_CUSTOM_IMG] = DEFAULT_UPS_CUSTOM_IMG
+    if CONF_UPS_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_UPS_CUSTOM_IMG_FILE] = DEFAULT_UPS_CUSTOM_IMG_FILE
+    if CONF_WALMART_CUSTOM_IMG not in updated_config:
+        updated_config[CONF_WALMART_CUSTOM_IMG] = DEFAULT_WALMART_CUSTOM_IMG
+    if CONF_WALMART_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_WALMART_CUSTOM_IMG_FILE] = DEFAULT_WALMART_CUSTOM_IMG_FILE
+    if CONF_FEDEX_CUSTOM_IMG not in updated_config:
+        updated_config[CONF_FEDEX_CUSTOM_IMG] = DEFAULT_FEDEX_CUSTOM_IMG
+    if CONF_FEDEX_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_FEDEX_CUSTOM_IMG_FILE] = DEFAULT_FEDEX_CUSTOM_IMG_FILE
+    if CONF_GENERIC_CUSTOM_IMG not in updated_config:
+        updated_config[CONF_GENERIC_CUSTOM_IMG] = DEFAULT_GENERIC_CUSTOM_IMG
+    if CONF_GENERIC_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_GENERIC_CUSTOM_IMG_FILE] = DEFAULT_GENERIC_CUSTOM_IMG_FILE
 
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(config_entry, data=updated_config)
@@ -227,6 +260,44 @@ async def async_migrate_entry(hass, config_entry):
                 "custom_components/mail_and_packages/no_deliveries_generic.jpg"
             )
 
+    if version <= 13:
+        # Add default FedEx and Generic custom image configurations
+        if CONF_FEDEX_CUSTOM_IMG not in updated_config:
+            updated_config[CONF_FEDEX_CUSTOM_IMG] = False
+        if CONF_FEDEX_CUSTOM_IMG_FILE not in updated_config:
+            updated_config[CONF_FEDEX_CUSTOM_IMG_FILE] = (
+                "custom_components/mail_and_packages/no_deliveries_fedex.jpg"
+            )
+        if CONF_GENERIC_CUSTOM_IMG not in updated_config:
+            updated_config[CONF_GENERIC_CUSTOM_IMG] = False
+        if CONF_GENERIC_CUSTOM_IMG_FILE not in updated_config:
+            updated_config[CONF_GENERIC_CUSTOM_IMG_FILE] = (
+                "custom_components/mail_and_packages/no_deliveries_generic.jpg"
+            )
+
+    # Ensure all custom image file fields are present (regardless of version)
+    # This handles cases where configs might be missing these fields
+    if CONF_AMAZON_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_AMAZON_CUSTOM_IMG_FILE] = (
+            "custom_components/mail_and_packages/no_deliveries_amazon.jpg"
+        )
+    if CONF_UPS_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_UPS_CUSTOM_IMG_FILE] = (
+            "custom_components/mail_and_packages/no_deliveries_ups.jpg"
+        )
+    if CONF_WALMART_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_WALMART_CUSTOM_IMG_FILE] = (
+            "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
+        )
+    if CONF_FEDEX_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_FEDEX_CUSTOM_IMG_FILE] = (
+            "custom_components/mail_and_packages/no_deliveries_fedex.jpg"
+        )
+    if CONF_GENERIC_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_GENERIC_CUSTOM_IMG_FILE] = (
+            "custom_components/mail_and_packages/no_deliveries_generic.jpg"
+        )
+
     if CONF_PATH not in updated_config:
         updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
 
@@ -294,6 +365,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _binary_sensor_update(self):
         """Update binary sensor states."""
+        # USPS uses different attributes (ATTR_IMAGE_NAME instead of ATTR_*_IMAGE)
         attributes = (ATTR_IMAGE_NAME, ATTR_IMAGE_PATH)
         if set(attributes).issubset(self._data.keys()):
             image = self._data[ATTR_IMAGE_NAME]
@@ -303,6 +375,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             usps_check = os.path.exists(usps_image)
             _LOGGER.debug("USPS Check: %s", usps_check)
             if usps_check:
+
                 # Optimized: Use _get_file_hash_if_changed
                 image_hash = await self._get_file_hash_if_changed(usps_image)
                 none_hash = await self._get_file_hash_if_changed(usps_none)
@@ -315,54 +388,66 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 else:
                     self._data["usps_update"] = False
 
-        attributes = (ATTR_AMAZON_IMAGE, ATTR_IMAGE_PATH)
-        if set(attributes).issubset(self._data.keys()):
-            image = self._data[ATTR_AMAZON_IMAGE]
-            path = f"{default_image_path(self.hass, self.config)}/amazon/"
-            amazon_image = f"{path}{image}"
-            if self.config.get(CONF_AMAZON_CUSTOM_IMG):
-                amazon_none = self.config.get(CONF_AMAZON_CUSTOM_IMG_FILE)
-            else:
-                amazon_none = f"{os.path.dirname(__file__)}/no_deliveries_amazon.jpg"
-            amazon_check = os.path.exists(amazon_image)
-            _LOGGER.debug("Amazon Check: %s", amazon_check)
-            if amazon_check:
-                # Optimized: Use _get_file_hash_if_changed
-                image_hash = await self._get_file_hash_if_changed(amazon_image)
-                none_hash = await self._get_file_hash_if_changed(amazon_none)
+        # Handle generic delivery cameras (Amazon, UPS, Walmart, FedEx, Generic) with unified logic
+        # Derive camera list dynamically from CAMERA_DATA, excluding usps_camera and generic_camera
+        delivery_cameras = [
+            camera_type.replace("_camera", "")
+            for camera_type in const.CAMERA_DATA
+            if camera_type not in ("usps_camera", "generic_camera")
+        ]
 
-                _LOGGER.debug("Amazon Image hash: %s", image_hash)
-                _LOGGER.debug("Amazon None hash: %s", none_hash)
+        for base_name in delivery_cameras:
+            # Derive attribute and config keys dynamically
+            image_attr_name = f"ATTR_{base_name.upper()}_IMAGE"
+            image_attr = getattr(const, image_attr_name, None)
+            if not image_attr:
+                continue
 
-                if image_hash != none_hash:
-                    self._data["amazon_update"] = True
+            custom_img_key = getattr(
+                const, f"CONF_{base_name.upper()}_CUSTOM_IMG", None
+            )
+            custom_img_file_key = getattr(
+                const, f"CONF_{base_name.upper()}_CUSTOM_IMG_FILE", None
+            )
+            update_key = f"{base_name}_update"
+
+            attributes = (image_attr, ATTR_IMAGE_PATH)
+            _LOGGER.debug("%s attributes check: %s", base_name.title(), attributes)
+            if set(attributes).issubset(self._data.keys()):
+                image = self._data[image_attr]
+                _LOGGER.debug(
+                    "%s image from coordinator data: %s", base_name.title(), image
+                )
+                # Normalize path to avoid double slashes
+                image_path = (
+                    default_image_path(self.hass, self.config).rstrip("/") + "/"
+                )
+                path = f"{image_path}{base_name}/"
+                # Use absolute path for file existence check
+                delivery_image_relative = f"{path}{image}"
+                delivery_image = f"{self.hass.config.path()}/{delivery_image_relative}"
+                _LOGGER.debug(
+                    "Full %s image path: %s", base_name.title(), delivery_image
+                )
+
+                if custom_img_key and self.config.get(custom_img_key):
+                    none_image = self.config.get(custom_img_file_key)
                 else:
-                    self._data["amazon_update"] = False
+                    none_image = (
+                        f"{os.path.dirname(__file__)}/no_deliveries_{base_name}.jpg"
+                    )
 
-        attributes = (ATTR_UPS_IMAGE, ATTR_IMAGE_PATH)
-        _LOGGER.debug("UPS attributes check: %s", attributes)
-        _LOGGER.debug("Available data keys: %s", list(self._data.keys()))
-        if set(attributes).issubset(self._data.keys()):
-            image = self._data[ATTR_UPS_IMAGE]
-            _LOGGER.debug("UPS image from coordinator data: %s", image)
-            path = f"{default_image_path(self.hass, self.config)}/ups/"
-            ups_image = f"{path}{image}"
-            _LOGGER.debug("Full UPS image path: %s", ups_image)
-            if self.config.get(CONF_UPS_CUSTOM_IMG):
-                ups_none = self.config.get(CONF_UPS_CUSTOM_IMG_FILE)
-            else:
-                ups_none = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
-            ups_check = os.path.exists(ups_image)
-            _LOGGER.debug("UPS Check: %s", ups_check)
-            if ups_check:
-                # Optimized: Use _get_file_hash_if_changed
-                image_hash = await self._get_file_hash_if_changed(ups_image)
-                none_hash = await self._get_file_hash_if_changed(ups_none)
+                image_check = os.path.exists(delivery_image)
+                _LOGGER.debug("%s Check: %s", base_name.title(), image_check)
+                if image_check:
+                    # Optimized: Use _get_file_hash_if_changed
+                    image_hash = await self._get_file_hash_if_changed(delivery_image)
+                    none_hash = await self._get_file_hash_if_changed(none_image)
 
-                _LOGGER.debug("UPS Image hash: %s", image_hash)
-                _LOGGER.debug("UPS None hash: %s", none_hash)
+                    _LOGGER.debug("%s Image hash: %s", base_name.title(), image_hash)
+                    _LOGGER.debug("%s None hash: %s", base_name.title(), none_hash)
 
-                if image_hash != none_hash:
-                    self._data["ups_update"] = True
-                else:
-                    self._data["ups_update"] = False
+                    if image_hash != none_hash:
+                        self._data[update_key] = True
+                    else:
+                        self._data[update_key] = False

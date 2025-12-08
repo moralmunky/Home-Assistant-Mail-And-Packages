@@ -11,8 +11,8 @@
       "amazon_domain": "Neplatná adresa pre presmerovanie e-mailov.",
       "file_not_found": "Obrázokový súbor nebol nájdený",
       "invalid_email_format": "Neplatný formát e-mailovej adresy.",
-      "path_not_found": "Adresár nebol nájdený",
-      "missing_forwarded_emails": "Chýbajúce preposlané e-mailové adresy. Toto nastavenie môžete vymazať zadaním „(none)“."
+      "missing_forwarded_emails": "Chýbajú preposielané e-mailové adresy. Môžete zadať '(none)' na vymazanie tohto nastavenia.",
+      "path_not_found": "Adresár nebol nájdený"
     },
     "step": {
       "user": {
@@ -42,9 +42,10 @@
           "amazon_custom_img": "Použiť vlastný obrázok Amazon 'bez dodávky'?",
           "ups_custom_img": "Použiť vlastný obrázok UPS 'bez dodávky'?",
           "walmart_custom_img": "Použiť vlastný obrázok Walmart 'bez dodávky'?",
+          "fedex_custom_img": "Použiť vlastný obrázok FedEx 'bez dodávky'?",
           "generic_custom_img": "Použiť vlastný obrázok všeobecný 'bez dodávky'?",
           "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM",
-          "allow_forwarded_emails": "Povoliť preposielané e-maily okrem predvoleného nastavenia služby (napr. no-reply@usps.com)"
+          "allow_forwarded_emails": "Povoliť preposielané e-maily okrem predvolenej hodnoty služby (napr. no-reply@usps.com)"
         },
         "description": "Dokončite konfiguráciu prispôsobením nasledujúcich položiek na základe štruktúry e-mailu a inštalácie Home Assistant.\n\nPodrobnosti nájdete na [Pošta a balíky integrácia](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) možnosti si pozrite v časti [konfigurácia, šablóny a automatizácie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHube.",
         "title": "Pošta a balíky (krok 2 z 2)"
@@ -62,7 +63,7 @@
           "amazon_fwds": "Amazon preposlal emailové adresy",
           "amazon_days": "Dni späť na kontrolu e-mailov od Amazonu"
         },
-        "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (none) na vymazanie tohto nastavenia.",
+        "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (žiadne) na vymazanie tohto nastavenia.",
         "title": "Nastavenia Amazon"
       },
       "reconfigure": {
@@ -92,9 +93,10 @@
           "amazon_custom_img": "Použiť vlastný obrázok Amazon 'bez dodávky'?",
           "ups_custom_img": "Použiť vlastný obrázok UPS 'bez dodávky'?",
           "walmart_custom_img": "Použiť vlastný obrázok Walmart 'bez dodávky'?",
+          "fedex_custom_img": "Použiť vlastný obrázok FedEx 'bez dodávky'?",
           "generic_custom_img": "Použiť vlastný obrázok všeobecný 'bez dodávky'?",
           "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM",
-          "allow_forwarded_emails": "Povoliť preposielané e-maily okrem predvoleného nastavenia služby (napr. no-reply@usps.com)"
+          "allow_forwarded_emails": "Povoliť preposielané e-maily okrem predvolenej hodnoty služby (napr. no-reply@usps.com)"
         },
         "description": "Dokončite konfiguráciu prispôsobením nasledujúceho na základe štruktúry vášho e-mailu a inštalácie Home Assistant.\n\nPre podrobnosti o možnostiach [integrácie Mail a Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) si prečítajte [sekciu o konfigurácii, šablónach a automatizáciách](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHub.\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (none) na vymazanie tohto nastavenia.",
         "title": "Pošta a balíky (krok 2 z 2)"
@@ -112,7 +114,7 @@
           "amazon_fwds": "Amazon preposlal emailové adresy",
           "amazon_days": "Dni späť na kontrolu e-mailov od Amazonu"
         },
-        "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (none) na vymazanie tohto nastavenia.",
+        "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (žiadne) na vymazanie tohto nastavenia.",
         "title": "Nastavenia Amazon"
       },
       "config_storage": {
@@ -131,17 +133,17 @@
       },
       "config_forwarded_emails": {
         "data": {
-          "forwarded_emails": "Preposlané e-mailové adresy"
+          "forwarded_emails": "Preposielané e-mailové adresy"
         },
-        "description": "Integrácia pošty a balíkov štandardne vyhľadáva iba správy zodpovedajúce adrese služby.\n\nAk chcete používať preposielané e-maily, oddeľte jednotlivé adresy, z ktorých budú správy prichádzať, čiarkou alebo zadaním „(none)“ toto nastavenie vymažte.",
-        "title": "Preposlané e-mailové adresy"
+        "description": "V predvolenom nastavení integrácia Mail and Packages vyhľadáva iba správy zodpovedajúce adrese služby.\n\nAk chcete používať preposielané e-maily, oddelte každú adresu, z ktorej budú správy prichádzať, čiarkou alebo zadajte '(none)' na vymazanie tohto nastavenia.",
+        "title": "Preposielané e-mailové adresy"
       },
       "reconfig_forwarded_emails": {
         "data": {
-          "forwarded_emails": "Preposlané e-mailové adresy"
+          "forwarded_emails": "Preposielané e-mailové adresy"
         },
-        "description": "Integrácia pošty a balíkov štandardne vyhľadáva iba správy zodpovedajúce adrese služby.\n\nAk chcete používať preposielané e-maily, oddeľte jednotlivé adresy, z ktorých budú správy prichádzať, čiarkou alebo zadaním „(none)“ toto nastavenie vymažte.",
-        "title": "Preposlané e-mailové adresy"
+        "description": "V predvolenom nastavení integrácia Mail and Packages vyhľadáva iba správy zodpovedajúce adrese služby.\n\nAk chcete používať preposielané e-maily, oddelte každú adresu, z ktorej budú správy prichádzať, čiarkou alebo zadajte '(none)' na vymazanie tohto nastavenia.",
+        "title": "Preposielané e-mailové adresy"
       }
     }
   }

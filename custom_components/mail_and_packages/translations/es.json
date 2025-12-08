@@ -11,8 +11,8 @@
       "amazon_domain": "Dirección de correo electrónico de reenvío no válida.",
       "file_not_found": "Archivo de imagen no encontrado",
       "invalid_email_format": "Formato de dirección de correo electrónico no válido.",
-      "path_not_found": "Directorio no encontrado",
-      "missing_forwarded_emails": "Faltan direcciones de correo electrónico reenviadas. Puede ingresar '(none)' para borrar esta configuración."
+      "missing_forwarded_emails": "Faltan direcciones de correo electrónico reenviadas. Puede introducir '(none)' para borrar esta configuración.",
+      "path_not_found": "Directorio no encontrado"
     },
     "step": {
       "user": {
@@ -42,9 +42,10 @@
           "amazon_custom_img": "¿Usar imagen personalizada de Amazon 'sin entrega'?",
           "ups_custom_img": "¿Usar imagen personalizada de UPS 'sin entrega'?",
           "walmart_custom_img": "¿Usar imagen personalizada de Walmart 'sin entrega'?",
+          "fedex_custom_img": "¿Usar imagen personalizada de FedEx 'sin entrega'?",
           "generic_custom_img": "¿Usar imagen personalizada genérica 'sin entrega'?",
           "generate_grid": "Crear cuadrícula de imágenes para modelos de visión LLM",
-          "allow_forwarded_emails": "Permitir correos electrónicos reenviados además de los predeterminados de un servicio (por ejemplo, no-reply@usps.com)"
+          "allow_forwarded_emails": "Permitir correos electrónicos reenviados además del valor predeterminado de un servicio (p. ej., no-reply@usps.com)"
         },
         "description": "Termine la configuración personalizando lo siguiente según su estructura de correo electrónico y la instalación de Home Assistant. \n\n Para obtener detalles sobre las opciones [Integración de correo y paquetes] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) revise las [configuración, plantillas , y la sección de automatizaciones] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) en GitHub.",
         "title": "Correo y paquetes (Paso 2 de 2)"
@@ -62,7 +63,7 @@
           "amazon_fwds": "Amazon reenvió direcciones de correo electrónico",
           "amazon_days": "Días atrás para verificar los correos electrónicos de Amazon"
         },
-        "description": "Por favor, introduzca el dominio desde el cual Amazon envía correos electrónicos (es decir: amazon.com o amazon.de)\n\nSi utiliza correos electrónicos reenviados por Amazon, separe cada dirección con una coma o introduzca (none) para borrar esta configuración.",
+        "description": "Por favor, introduzca el dominio desde el cual Amazon envía correos electrónicos (es decir: amazon.com o amazon.de)\n\nSi utiliza correos electrónicos reenviados por Amazon, separe cada dirección con una coma o introduzca (ninguno) para borrar esta configuración.",
         "title": "Configuración de Amazon"
       },
       "reconfigure": {
@@ -92,11 +93,12 @@
           "amazon_custom_img": "¿Usar imagen personalizada de Amazon 'sin entrega'?",
           "ups_custom_img": "¿Usar imagen personalizada de UPS 'sin entrega'?",
           "walmart_custom_img": "¿Usar imagen personalizada de Walmart 'sin entrega'?",
+          "fedex_custom_img": "¿Usar imagen personalizada de FedEx 'sin entrega'?",
           "generic_custom_img": "¿Usar imagen personalizada genérica 'sin entrega'?",
           "generate_grid": "Crear cuadrícula de imágenes para modelos de visión LLM",
-          "allow_forwarded_emails": "Permitir correos electrónicos reenviados además de los predeterminados de un servicio (por ejemplo, no-reply@usps.com)"
+          "allow_forwarded_emails": "Permitir correos electrónicos reenviados además del valor predeterminado de un servicio (p. ej., no-reply@usps.com)"
         },
-        "description": "Finalice la configuración personalizando lo siguiente en función de la estructura de su correo electrónico y la instalación de Home Assistant.\n\nPara obtener detalles sobre las opciones de [integración de correo y paquetes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), revise la [sección de configuración, plantillas y automatizaciones](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) en GitHub.\n\nSi utiliza correos electrónicos reenviados de Amazon, separe cada dirección con una coma o ingrese (none) para borrar esta configuración.",
+        "description": "Finalice la configuración personalizando lo siguiente en función de la estructura de su correo electrónico y la instalación de Home Assistant.\n\nPara obtener detalles sobre las opciones de [integración de correo y paquetes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), revise la [sección de configuración, plantillas y automatizaciones](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) en GitHub.\n\nSi utiliza correos electrónicos reenviados de Amazon, separe cada dirección con una coma o ingrese (ninguno) para borrar esta configuración.",
         "title": "Correo y paquetes (Paso 2 de 2)"
       },
       "reconfig_3": {
@@ -112,7 +114,7 @@
           "amazon_fwds": "Amazon reenvió direcciones de correo electrónico",
           "amazon_days": "Días atrás para verificar los correos electrónicos de Amazon"
         },
-        "description": "Por favor, introduzca el dominio desde el cual Amazon envía correos electrónicos (es decir: amazon.com o amazon.de)\n\nSi utiliza correos electrónicos reenviados por Amazon, separe cada dirección con una coma o introduzca (none) para borrar esta configuración.",
+        "description": "Por favor, introduzca el dominio desde el cual Amazon envía correos electrónicos (es decir: amazon.com o amazon.de)\n\nSi utiliza correos electrónicos reenviados por Amazon, separe cada dirección con una coma o introduzca (ninguno) para borrar esta configuración.",
         "title": "Configuración de Amazon"
       },
       "config_storage": {
@@ -133,14 +135,14 @@
         "data": {
           "forwarded_emails": "Direcciones de correo electrónico reenviadas"
         },
-        "description": "De forma predeterminada, la integración de Correo y Paquetes solo busca mensajes que coincidan con la dirección de un servicio.\n\nSi desea utilizar correos electrónicos reenviados, separe cada dirección de donde provendrán los mensajes con una coma o ingrese '(none)' para borrar esta configuración.",
+        "description": "Por defecto, la integración de correo y paquetes solo busca mensajes que coinciden con la dirección de un servicio.\n\nSi desea utilizar correos electrónicos reenviados, separe cada dirección de la que vendrán los mensajes con una coma o ingrese '(none)' para borrar esta configuración.",
         "title": "Direcciones de correo electrónico reenviadas"
       },
       "reconfig_forwarded_emails": {
         "data": {
           "forwarded_emails": "Direcciones de correo electrónico reenviadas"
         },
-        "description": "De forma predeterminada, la integración de Correo y Paquetes solo busca mensajes que coincidan con la dirección de un servicio.\n\nSi desea utilizar correos electrónicos reenviados, separe cada dirección de donde provendrán los mensajes con una coma o ingrese '(none)' para borrar esta configuración.",
+        "description": "Por defecto, la integración de correo y paquetes solo busca mensajes que coinciden con la dirección de un servicio.\n\nSi desea utilizar correos electrónicos reenviados, separe cada dirección de la que vendrán los mensajes con una coma o ingrese '(none)' para borrar esta configuración.",
         "title": "Direcciones de correo electrónico reenviadas"
       }
     }

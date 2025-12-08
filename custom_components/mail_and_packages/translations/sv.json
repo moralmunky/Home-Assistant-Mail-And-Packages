@@ -11,8 +11,8 @@
       "amazon_domain": "Ogiltig vidarebefordrings e-postadress.",
       "file_not_found": "Bildfilen hittades inte",
       "invalid_email_format": "Ogiltigt format för e-postadress.",
-      "path_not_found": "Katalogen hittades inte",
-      "missing_forwarded_emails": "Vidarebefordrade e-postadresser saknas. Du kan ange '(none)' för att rensa den här inställningen."
+      "missing_forwarded_emails": "Saknade vidarebefordrade e-postadresser. Du kan ange '(none)' för att rensa denna inställning.",
+      "path_not_found": "Katalogen hittades inte"
     },
     "step": {
       "user": {
@@ -42,6 +42,7 @@
           "amazon_custom_img": "Använd anpassad Amazon 'ingen leverans' bild?",
           "ups_custom_img": "Använd anpassad UPS 'ingen leverans' bild?",
           "walmart_custom_img": "Använd anpassad Walmart 'ingen leverans' bild?",
+          "fedex_custom_img": "Använd anpassad FedEx 'ingen leverans' bild?",
           "generic_custom_img": "Använd anpassad generisk 'ingen leverans' bild?",
           "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller",
           "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänsts standardvärde (t.ex. no-reply@usps.com)"
@@ -62,7 +63,7 @@
           "amazon_fwds": "Amazon vidarebefordrade e-postadresser",
           "amazon_days": "Dagar tillbaka för att kontrollera Amazon-e-postmeddelanden"
         },
-        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (none) för att rensa denna inställning.",
+        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
         "title": "Amazon-inställningar"
       },
       "reconfigure": {
@@ -91,10 +92,13 @@
           "custom_img": "Använd anpassad USPS 'inget post' bild?",
           "amazon_custom_img": "Använd anpassad Amazon 'ingen leverans' bild?",
           "ups_custom_img": "Använd anpassad UPS 'ingen leverans' bild?",
+          "walmart_custom_img": "Använd anpassad Walmart 'ingen leverans' bild?",
+          "fedex_custom_img": "Använd anpassad FedEx 'ingen leverans' bild?",
+          "generic_custom_img": "Använd anpassad generisk 'ingen leverans' bild?",
           "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller",
           "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänsts standardvärde (t.ex. no-reply@usps.com)"
         },
-        "description": "Slutför konfigurationen genom att anpassa följande baserat på din e-poststruktur och Home Assistant-installation.\n\nFör detaljer om [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) alternativen granska [konfiguration, mallar och automatiseringssektionen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.\n\nOm du använder vidarebefordrade e-postmeddelanden från Amazon, separera varje adress med ett kommatecken eller ange (none) för att rensa denna inställning.",
+        "description": "Slutför konfigurationen genom att anpassa följande baserat på din e-poststruktur och Home Assistant-installation.\n\nFör detaljer om [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) alternativen granska [konfiguration, mallar och automatiseringssektionen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.\n\nOm du använder vidarebefordrade e-postmeddelanden från Amazon, separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
         "title": "Mail och paket (steg 2 av 2)"
       },
       "reconfig_3": {
@@ -110,7 +114,7 @@
           "amazon_fwds": "Amazon vidarebefordrade e-postadresser",
           "amazon_days": "Dagar tillbaka för att kontrollera Amazon-e-postmeddelanden"
         },
-        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (none) för att rensa denna inställning.",
+        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
         "title": "Amazon-inställningar"
       },
       "config_storage": {
@@ -131,14 +135,14 @@
         "data": {
           "forwarded_emails": "Vidarebefordrade e-postadresser"
         },
-        "description": "Som standard söker integreringen av Mail och Packages endast efter meddelanden som matchar en tjänsts adress.\n\nOm du vill använda vidarebefordrade e-postmeddelanden, separera varje adress meddelanden kommer ifrån med ett kommatecken eller ange \"(none)\" för att rensa den här inställningen.",
+        "description": "Som standard söker Mail and Packages-integrationen endast efter meddelanden som matchar en tjänsts adress.\n\nOm du vill använda vidarebefordrade e-postmeddelanden, separera varje adress som meddelanden kommer från med ett kommatecken eller ange '(none)' för att rensa denna inställning.",
         "title": "Vidarebefordrade e-postadresser"
       },
       "reconfig_forwarded_emails": {
         "data": {
           "forwarded_emails": "Vidarebefordrade e-postadresser"
         },
-        "description": "Som standard söker integreringen av Mail och Packages endast efter meddelanden som matchar en tjänsts adress.\n\nOm du vill använda vidarebefordrade e-postmeddelanden, separera varje adress meddelanden kommer ifrån med ett kommatecken eller ange \"(none)\" för att rensa den här inställningen.",
+        "description": "Som standard söker Mail and Packages-integrationen endast efter meddelanden som matchar en tjänsts adress.\n\nOm du vill använda vidarebefordrade e-postmeddelanden, separera varje adress som meddelanden kommer från med ett kommatecken eller ange '(none)' för att rensa denna inställning.",
         "title": "Vidarebefordrade e-postadresser"
       }
     }
