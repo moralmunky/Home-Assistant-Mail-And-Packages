@@ -2175,6 +2175,7 @@ def get_amazon_image(
     img_url = None
     mail_list = sdata.split()
     _LOGGER.debug("HTML Amazon emails found: %s", len(mail_list))
+    pattern = re.compile(rf"{AMAZON_IMG_PATTERN}")
 
     for i in mail_list:
         data = email_fetch(account, i, "(RFC822)")[1]
@@ -2190,7 +2191,6 @@ def get_amazon_image(
                     _LOGGER.debug("Processing HTML email...")
                     part = part.get_payload(decode=True)
                     part = part.decode("utf-8", "ignore")
-                    pattern = re.compile(rf"{AMAZON_IMG_PATTERN}")
                     found = pattern.findall(part)
                     for url in found:
                         if url[1] != "us-prod-temp.s3.amazonaws.com":
@@ -2201,8 +2201,9 @@ def get_amazon_image(
 
     if img_url is not None:
         _LOGGER.debug("Attempting to download Amazon image.")
-        # Download the image we found
         hass.add_job(download_img(hass, img_url, image_path, image_name))
+    else:
+        _LOGGER.debug("Amazon delivery image not found in email.")
 
 
 async def download_img(
