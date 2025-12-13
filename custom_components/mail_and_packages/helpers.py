@@ -1786,7 +1786,7 @@ def find_text(
 
 
 def _save_image_data_to_disk(shipper_name: str, path: str, image_data: bytes) -> bool:
-    """Helper to write image bytes to disk and verify."""
+    """Write image bytes to disk and verify."""
     try:
         # Ensure directory exists
         directory = os.path.dirname(path)
