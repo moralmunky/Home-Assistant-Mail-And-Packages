@@ -1394,7 +1394,7 @@ async def test_selectfolder_select_error(mock_imap_select_error, caplog):
 @pytest.mark.asyncio
 async def test_resize_images_open_err(mock_open_excpetion, caplog):
     resize_images(["testimage.jpg", "anothertest.jpg"], 724, 320)
-    assert "Error attempting to open image" in caplog.text
+    assert "Error processing image" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -1402,7 +1402,7 @@ async def test_resize_images_read_err(mock_image_excpetion, caplog):
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
         resize_images(["testimage.jpg", "anothertest.jpg"], 724, 320)
-        assert "Error attempting to read image" in caplog.text
+        assert "Error processing image" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -3856,7 +3856,7 @@ async def test_process_emails_fedex_dir_creation(hass, integration, caplog):
 
         # Verify we tried to create the directory
         mock_makedirs.assert_called()
-        assert "Created FedEx directory" in caplog.text
+        assert "Created Fedex directory" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -3884,7 +3884,7 @@ async def test_process_emails_fedex_dir_creation_error(hass, integration, caplog
 
         process_emails(hass, config)
 
-        assert "Error creating FedEx directory" in caplog.text
+        assert "Error creating Fedex directory" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -3920,6 +3920,6 @@ async def test_process_emails_default_image_copy_errors(hass, integration, caplo
         process_emails(hass, config)
 
         # Verify error logs for all three providers
-        assert "Error creating default UPS image" in caplog.text
+        assert "Error creating default Ups image" in caplog.text
         assert "Error creating default Walmart image" in caplog.text
-        assert "Error creating default FedEx image" in caplog.text
+        assert "Error creating default Fedex image" in caplog.text

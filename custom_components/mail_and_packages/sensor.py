@@ -41,7 +41,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the sensor entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
     sensors = []
-    resources = entry.data[CONF_RESOURCES]
+    resources = entry.data.get(CONF_RESOURCES, [])
 
     for variable in resources:
         if variable in SENSOR_TYPES:

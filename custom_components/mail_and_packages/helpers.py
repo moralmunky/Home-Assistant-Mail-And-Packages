@@ -252,99 +252,67 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     _LOGGER.debug("Amazon Image Name: %s", image_name)
     _image[ATTR_AMAZON_IMAGE] = image_name
 
-    # UPS delivery image name
-    _LOGGER.debug("Generating UPS image name...")
-    ups_image_name = image_file_name(hass, config, ups=True)
-    _LOGGER.debug("UPS Image Name: %s", ups_image_name)
-    _image[ATTR_UPS_IMAGE] = ups_image_name
-    _LOGGER.debug("Set ATTR_UPS_IMAGE in coordinator data: %s", ups_image_name)
+    shipper_configs = [
+        {
+            "name": "ups",
+            "image_attr": ATTR_UPS_IMAGE,
+            "default_file": "no_deliveries_ups.jpg",
+        },
+        {
+            "name": "walmart",
+            "image_attr": ATTR_WALMART_IMAGE,
+            "default_file": "no_deliveries_walmart.jpg",
+        },
+        {
+            "name": "fedex",
+            "image_attr": ATTR_FEDEX_IMAGE,
+            "default_file": "no_deliveries_fedex.jpg",
+        },
+    ]
 
-    # Walmart delivery image name
-    _LOGGER.debug("Generating Walmart image name...")
-    walmart_image_name = image_file_name(hass, config, walmart=True)
-    _LOGGER.debug("Walmart Image Name: %s", walmart_image_name)
-    _image[ATTR_WALMART_IMAGE] = walmart_image_name
-    _LOGGER.debug("Set ATTR_WALMART_IMAGE in coordinator data: %s", walmart_image_name)
+    base_path = f"{hass.config.path()}/{default_image_path(hass, config)}"
 
-    # FedEx delivery image name
-    _LOGGER.debug("Generating FedEx image name...")
-    fedex_image_name = image_file_name(hass, config, fedex=True)
-    _LOGGER.debug("FedEx Image Name: %s", fedex_image_name)
-    _image[ATTR_FEDEX_IMAGE] = fedex_image_name
-    _LOGGER.debug("Set ATTR_FEDEX_IMAGE in coordinator data: %s", fedex_image_name)
+    for shipper in shipper_configs:
+        name = shipper["name"]
 
-    # Ensure UPS directory exists and has a default image
-    ups_path = f"{hass.config.path()}/{default_image_path(hass, config)}ups/"
-    if not os.path.isdir(ups_path):
-        try:
-            os.makedirs(ups_path)
-            _LOGGER.debug("Created UPS directory: %s", ups_path)
-        except Exception as err:
-            _LOGGER.error("Error creating UPS directory: %s", err)
+        # Generate image name
+        _LOGGER.debug("Generating %s image name...", name.title())
+        # Note: calling image_file_name with kwargs based on name
+        # This assumes image_file_name arguments match the shipper names (ups=True, etc.)
+        kwargs = {name: True}
+        img_name = image_file_name(hass, config, **kwargs)
 
-    # Ensure Walmart directory exists and has a default image
-    walmart_path = f"{hass.config.path()}/{default_image_path(hass, config)}walmart/"
-    if not os.path.isdir(walmart_path):
-        try:
-            os.makedirs(walmart_path)
-            _LOGGER.debug("Created Walmart directory: %s", walmart_path)
-        except Exception as err:
-            _LOGGER.error("Error creating Walmart directory: %s", err)
+        _LOGGER.debug("%s Image Name: %s", name.title(), img_name)
+        _image[shipper["image_attr"]] = img_name
+        _LOGGER.debug("Set %s in coordinator data: %s", shipper["image_attr"], img_name)
 
-    # Ensure FedEx directory exists and has a default image
-    fedex_path = f"{hass.config.path()}/{default_image_path(hass, config)}fedex/"
-    if not os.path.isdir(fedex_path):
-        try:
-            os.makedirs(fedex_path)
-            _LOGGER.debug("Created FedEx directory: %s", fedex_path)
-        except Exception as err:
-            _LOGGER.error("Error creating FedEx directory: %s", err)
+        # Handle Directory
+        full_dir_path = f"{base_path}{name}/"
+        if not os.path.isdir(full_dir_path):
+            try:
+                os.makedirs(full_dir_path)
+                _LOGGER.debug("Created %s directory: %s", name.title(), full_dir_path)
+            except Exception as err:
+                _LOGGER.error("Error creating %s directory: %s", name.title(), err)
 
-    # Check if UPS image file exists
-    ups_image_path = f"{ups_path}{ups_image_name}"
-    if not os.path.exists(ups_image_path):
-        _LOGGER.debug(
-            "UPS image file does not exist, creating default: %s", ups_image_path
-        )
-        try:
-            nomail = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
-            copyfile(nomail, ups_image_path)
-            _LOGGER.debug("Created default UPS image: %s", ups_image_path)
-        except Exception as err:
-            _LOGGER.error("Error creating default UPS image: %s", err)
-    else:
-        _LOGGER.debug("UPS image file exists: %s", ups_image_path)
-
-    # Check if Walmart image file exists
-    walmart_image_path = f"{walmart_path}{walmart_image_name}"
-    if not os.path.exists(walmart_image_path):
-        _LOGGER.debug(
-            "Walmart image file does not exist, creating default: %s",
-            walmart_image_path,
-        )
-        try:
-            nomail = f"{os.path.dirname(__file__)}/no_deliveries_walmart.jpg"
-            copyfile(nomail, walmart_image_path)
-            _LOGGER.debug("Created default Walmart image: %s", walmart_image_path)
-        except Exception as err:
-            _LOGGER.error("Error creating default Walmart image: %s", err)
-    else:
-        _LOGGER.debug("Walmart image file exists: %s", walmart_image_path)
-
-    # Check if FedEx image file exists
-    fedex_image_path = f"{fedex_path}{fedex_image_name}"
-    if not os.path.exists(fedex_image_path):
-        _LOGGER.debug(
-            "FedEx image file does not exist, creating default: %s", fedex_image_path
-        )
-        try:
-            nomail = f"{os.path.dirname(__file__)}/no_deliveries_fedex.jpg"
-            copyfile(nomail, fedex_image_path)
-            _LOGGER.debug("Created default FedEx image: %s", fedex_image_path)
-        except Exception as err:
-            _LOGGER.error("Error creating default FedEx image: %s", err)
-    else:
-        _LOGGER.debug("FedEx image file exists: %s", fedex_image_path)
+        # Handle Default Image
+        full_img_path = f"{full_dir_path}{img_name}"
+        if not os.path.exists(full_img_path):
+            _LOGGER.debug(
+                "%s image file does not exist, creating default: %s",
+                name.title(),
+                full_img_path,
+            )
+            try:
+                default_src = f"{os.path.dirname(__file__)}/{shipper['default_file']}"
+                copyfile(default_src, full_img_path)
+                _LOGGER.debug(
+                    "Created default %s image: %s", name.title(), full_img_path
+                )
+            except Exception as err:
+                _LOGGER.error("Error creating default %s image: %s", name.title(), err)
+        else:
+            _LOGGER.debug("%s image file exists: %s", name.title(), full_img_path)
 
     image_path = default_image_path(hass, config)
     _LOGGER.debug("Image path: %s", image_path)
@@ -418,71 +386,86 @@ def image_file_name(
         walmart,
         fedex,
     )
+
+    # Map flags to configuration keys and defaults
+    # format: (flag, custom_img_key, custom_img_file_key, default_file_const, default_local_file)
+    configs = [
+        (
+            amazon,
+            CONF_AMAZON_CUSTOM_IMG,
+            CONF_AMAZON_CUSTOM_IMG_FILE,
+            DEFAULT_AMAZON_CUSTOM_IMG_FILE,
+            "no_deliveries_amazon.jpg",
+            "amazon",
+        ),
+        (
+            ups,
+            CONF_UPS_CUSTOM_IMG,
+            CONF_UPS_CUSTOM_IMG_FILE,
+            DEFAULT_UPS_CUSTOM_IMG_FILE,
+            "no_deliveries_ups.jpg",
+            "ups",
+        ),
+        (
+            walmart,
+            CONF_WALMART_CUSTOM_IMG,
+            CONF_WALMART_CUSTOM_IMG_FILE,
+            DEFAULT_WALMART_CUSTOM_IMG_FILE,
+            "no_deliveries_walmart.jpg",
+            "walmart",
+        ),
+        (
+            fedex,
+            CONF_FEDEX_CUSTOM_IMG,
+            CONF_FEDEX_CUSTOM_IMG_FILE,
+            DEFAULT_FEDEX_CUSTOM_IMG_FILE,
+            "no_deliveries_fedex.jpg",
+            "fedex",
+        ),
+    ]
+
+    base_path = f"{hass.config.path()}/{default_image_path(hass, config)}"
     mail_none = None
     path = None
-    image_name = None
+    is_specific_courier = False
 
-    if amazon:
-        if config.get(CONF_AMAZON_CUSTOM_IMG):
-            mail_none = (
-                config.get(CONF_AMAZON_CUSTOM_IMG_FILE)
-                or DEFAULT_AMAZON_CUSTOM_IMG_FILE
-            )
-        else:
-            mail_none = f"{os.path.dirname(__file__)}/no_deliveries_amazon.jpg"
-        image_name = os.path.split(mail_none)[1]
-        path = f"{hass.config.path()}/{default_image_path(hass, config)}amazon"
-    elif ups:
-        _LOGGER.debug("Processing UPS image file name")
-        if config.get(CONF_UPS_CUSTOM_IMG):
-            mail_none = (
-                config.get(CONF_UPS_CUSTOM_IMG_FILE) or DEFAULT_UPS_CUSTOM_IMG_FILE
-            )
-            _LOGGER.debug("Using custom UPS image: %s", mail_none)
-        else:
-            mail_none = f"{os.path.dirname(__file__)}/no_deliveries_ups.jpg"
-            _LOGGER.debug("Using default UPS image: %s", mail_none)
-        image_name = os.path.split(mail_none)[1]
-        path = f"{hass.config.path()}/{default_image_path(hass, config)}ups"
-        _LOGGER.debug("UPS path: %s", path)
-    elif walmart:
-        _LOGGER.debug("Processing Walmart image file name")
-        if config.get(CONF_WALMART_CUSTOM_IMG):
-            mail_none = (
-                config.get(CONF_WALMART_CUSTOM_IMG_FILE)
-                or DEFAULT_WALMART_CUSTOM_IMG_FILE
-            )
-            _LOGGER.debug("Using custom Walmart image: %s", mail_none)
-        else:
-            mail_none = f"{os.path.dirname(__file__)}/no_deliveries_walmart.jpg"
-            _LOGGER.debug("Using default Walmart image: %s", mail_none)
-        image_name = os.path.split(mail_none)[1]
-        path = f"{hass.config.path()}/{default_image_path(hass, config)}walmart"
-        _LOGGER.debug("Walmart path: %s", path)
-    elif fedex:
-        _LOGGER.debug("Processing FedEx image file name")
-        if config.get(CONF_FEDEX_CUSTOM_IMG):
-            mail_none = (
-                config.get(CONF_FEDEX_CUSTOM_IMG_FILE) or DEFAULT_FEDEX_CUSTOM_IMG_FILE
-            )
-            _LOGGER.debug("Using custom FedEx image: %s", mail_none)
-        else:
-            mail_none = f"{os.path.dirname(__file__)}/no_deliveries_fedex.jpg"
-            _LOGGER.debug("Using default FedEx image: %s", mail_none)
-        image_name = os.path.split(mail_none)[1]
-        path = f"{hass.config.path()}/{default_image_path(hass, config)}fedex"
-        _LOGGER.debug("FedEx path: %s", path)
-    else:
-        path = f"{hass.config.path()}/{default_image_path(hass, config)}"
+    # Find which courier is active
+    for (
+        active,
+        img_conf,
+        file_conf,
+        default_file_conf,
+        local_default,
+        sub_dir,
+    ) in configs:
+        if active:
+            is_specific_courier = True
+            _LOGGER.debug("Processing %s image file name", sub_dir.title())
+            if config.get(img_conf):
+                mail_none = config.get(file_conf) or default_file_conf
+                _LOGGER.debug("Using custom %s image: %s", sub_dir.title(), mail_none)
+            else:
+                mail_none = f"{os.path.dirname(__file__)}/{local_default}"
+                _LOGGER.debug("Using default %s image: %s", sub_dir.title(), mail_none)
+
+            path = f"{base_path}{sub_dir}"
+            _LOGGER.debug("%s path: %s", sub_dir.title(), path)
+            break
+
+    # Handle standard mail case (if no specific courier flag was true)
+    if not is_specific_courier:
+        path = base_path.rstrip(
+            "/"
+        )  # remove trailing slash to be safe for os.path operations
         if config.get(CONF_CUSTOM_IMG):
             mail_none = config.get(CONF_CUSTOM_IMG_FILE) or DEFAULT_CUSTOM_IMG_FILE
         else:
             mail_none = f"{os.path.dirname(__file__)}/mail_none.gif"
-        image_name = os.path.split(mail_none)[1]
+
+    image_name = os.path.split(mail_none)[1]
 
     # Path check
-    path_check = os.path.exists(path)
-    if not path_check:
+    if not os.path.exists(path):
         try:
             os.makedirs(path)
         except OSError as err:
@@ -1199,36 +1182,27 @@ def generate_grid_img(path: str, image_file: str, count: int) -> None:
 
 
 def resize_images(images: list, width: int, height: int) -> list:
-    """Resize images.
-
-    This should keep the aspect ratio of the images
-    Returns list of images
-    """
+    """Resize images."""
     all_images = []
-    for image in images:
+    for image_path in images:
         try:
-            with open(image, "rb") as fd_img:
-                try:
-                    img = Image.open(fd_img)
-                    img.thumbnail((width, height), resample=Image.Resampling.LANCZOS)
+            with open(image_path, "rb") as fd_img:
+                img = Image.open(fd_img)
+                img.thumbnail((width, height), resample=Image.Resampling.LANCZOS)
+                img = ImageOps.pad(
+                    img, (width, height), method=Image.Resampling.LANCZOS
+                )
+                img = img.crop((0, 0, width, height))
 
-                    # Add padding as needed
-                    img = ImageOps.pad(
-                        img, (width, height), method=Image.Resampling.LANCZOS
-                    )
-                    # Crop to size
-                    img = img.crop((0, 0, width, height))
+                pre = os.path.splitext(image_path)[0]
+                new_image_path = pre + ".gif"
 
-                    pre = os.path.splitext(image)[0]
-                    image = pre + ".gif"
-                    img.save(image, img.format)
-                    fd_img.close()
-                    all_images.append(image)
-                except Exception as err:
-                    _LOGGER.error("Error attempting to read image %s: %s", image, err)
-                    continue
+                # Save and close
+                img.save(new_image_path, img.format)
+                all_images.append(new_image_path)
+
         except Exception as err:
-            _LOGGER.error("Error attempting to open image %s: %s", image, err)
+            _LOGGER.error("Error processing image %s: %s", image_path, err)
             continue
 
     return all_images
@@ -1811,6 +1785,45 @@ def find_text(
     return count
 
 
+def _save_image_data_to_disk(shipper_name: str, path: str, image_data: bytes) -> bool:
+    """Helper to write image bytes to disk and verify."""
+    try:
+        # Ensure directory exists
+        directory = os.path.dirname(path)
+        if not os.path.isdir(directory):
+            _LOGGER.debug("%s - Creating directory: %s", shipper_name, directory)
+            os.makedirs(directory, exist_ok=True)
+
+        _LOGGER.debug(
+            "%s - Writing %d bytes to file: %s", shipper_name, len(image_data), path
+        )
+        with open(path, "wb") as the_file:
+            the_file.write(image_data)
+
+        if os.path.exists(path):
+            file_size = os.path.getsize(path)
+            _LOGGER.info(
+                "%s - SUCCESS: Image written to disk: %s (%d bytes)",
+                shipper_name,
+                path,
+                file_size,
+            )
+            return True
+
+        _LOGGER.error(
+            "%s - ERROR: File write reported success but file doesn't exist: %s",
+            shipper_name,
+            path,
+        )
+        return False
+
+    except Exception as err:
+        _LOGGER.error(
+            "Error saving %s delivery photo to %s: %s", shipper_name, path, err
+        )
+        return False
+
+
 # pylint: disable=too-many-return-statements
 def _generic_delivery_image_extraction(
     sdata: Any,
@@ -1885,51 +1898,11 @@ def _generic_delivery_image_extraction(
                     )
                     try:
                         full_path = shipper_path + image_name
-                        _LOGGER.debug(
-                            "%s - Writing CID image to disk: %s",
-                            shipper_name,
-                            full_path,
-                        )
-                        # Ensure directory exists
-                        if not os.path.isdir(shipper_path):
-                            _LOGGER.debug(
-                                "%s - Creating directory: %s",
-                                shipper_name,
-                                shipper_path,
-                            )
-                            os.makedirs(shipper_path, exist_ok=True)
-                        image_data = cid_images[cid_name]
-                        _LOGGER.debug(
-                            "%s - Writing %d bytes to file: %s",
-                            shipper_name,
-                            len(image_data) if image_data else 0,
-                            full_path,
-                        )
-                        with open(full_path, "wb") as the_file:
-                            the_file.write(image_data)
-                        _LOGGER.debug(
-                            "%s - File write completed, verifying file exists...",
-                            shipper_name,
-                        )
-                        # Verify file was actually written
-                        if os.path.exists(full_path):
-                            file_size = os.path.getsize(full_path)
-                            _LOGGER.info(
-                                "%s - SUCCESS: CID image written to disk: %s (%d bytes)",
-                                shipper_name,
-                                full_path,
-                                file_size,
-                            )
+                        image_data_bytes = cid_images[cid_name]
+                        if _save_image_data_to_disk(
+                            shipper_name, full_path, image_data_bytes
+                        ):
                             return True
-
-                        _LOGGER.error(
-                            (
-                                "%s - ERROR:"
-                                "CID file write reported success but file doesn't exist: %s"
-                            ),
-                            shipper_name,
-                            full_path,
-                        )
                         return False
                     except Exception as err:
                         _LOGGER.error(
@@ -1955,44 +1928,11 @@ def _generic_delivery_image_extraction(
                         len(base64_data),
                     )
                     full_path = shipper_path + image_name
-                    _LOGGER.debug(
-                        "%s - Writing base64 image to disk: %s", shipper_name, full_path
-                    )
-                    # Ensure directory exists
-                    if not os.path.isdir(shipper_path):
-                        _LOGGER.debug(
-                            "%s - Creating directory: %s", shipper_name, shipper_path
-                        )
-                        os.makedirs(shipper_path, exist_ok=True)
-                    image_data = base64.b64decode(base64_data)
-                    _LOGGER.debug(
-                        "%s - Writing %d bytes to file: %s",
-                        shipper_name,
-                        len(image_data) if image_data else 0,
-                        full_path,
-                    )
-                    with open(full_path, "wb") as the_file:
-                        the_file.write(image_data)
-                    _LOGGER.debug(
-                        "%s - File write completed, verifying file exists...",
-                        shipper_name,
-                    )
-                    # Verify file was actually written
-                    if os.path.exists(full_path):
-                        file_size = os.path.getsize(full_path)
-                        _LOGGER.info(
-                            "%s - SUCCESS: Base64 image written to disk: %s (%d bytes)",
-                            shipper_name,
-                            full_path,
-                            file_size,
-                        )
+                    image_data_bytes = base64.b64decode(base64_data)
+                    if _save_image_data_to_disk(
+                        shipper_name, full_path, image_data_bytes
+                    ):
                         return True
-
-                    _LOGGER.error(
-                        "%s - ERROR: Base64 file write reported success but file doesn't exist: %s",
-                        shipper_name,
-                        full_path,
-                    )
                     return False
                 except Exception as err:
                     _LOGGER.error(
@@ -2031,51 +1971,11 @@ def _generic_delivery_image_extraction(
                     )
                 try:
                     full_path = shipper_path + image_name
-                    _LOGGER.debug(
-                        "%s - Writing attachment image to disk: %s",
-                        shipper_name,
-                        full_path,
-                    )
-                    # Ensure directory exists
-                    if not os.path.isdir(shipper_path):
-                        _LOGGER.debug(
-                            "%s - Creating directory: %s", shipper_name, shipper_path
-                        )
-                        os.makedirs(shipper_path, exist_ok=True)
-                    image_data = part.get_payload(decode=True)
-                    _LOGGER.debug(
-                        "%s - Writing %d bytes to file: %s",
-                        shipper_name,
-                        len(image_data) if image_data else 0,
-                        full_path,
-                    )
-                    with open(full_path, "wb") as the_file:
-                        the_file.write(image_data)
-                    _LOGGER.debug(
-                        "%s - File write completed, verifying file exists...",
-                        shipper_name,
-                    )
-                    # Verify file was actually written
-                    if os.path.exists(full_path):
-                        file_size = os.path.getsize(full_path)
-                        _LOGGER.info(
-                            (
-                                "%s - SUCCESS: Attachment image written to disk:"
-                                "%s (%d bytes)"
-                            ),
-                            shipper_name,
-                            full_path,
-                            file_size,
-                        )
+                    image_data_bytes = part.get_payload(decode=True)
+                    if _save_image_data_to_disk(
+                        shipper_name, full_path, image_data_bytes
+                    ):
                         return True
-                    _LOGGER.error(
-                        (
-                            "%s - ERROR:"
-                            "Attachment file write reported success but file doesn't exist: %s"
-                        ),
-                        shipper_name,
-                        full_path,
-                    )
                     return False
                 except Exception as err:
                     _LOGGER.error(
