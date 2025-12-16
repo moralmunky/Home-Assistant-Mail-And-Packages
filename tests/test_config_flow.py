@@ -4073,23 +4073,44 @@ async def test_validate_forwarded_emails_conflict(hass):
 async def test_reconfig_2_schema_validation(hass, integration):
     """Test that the schema correctly rejects a scan_interval below 5."""
     entry = integration
-    with patch("custom_components.mail_and_packages.config_flow._test_login", return_value=True), \
-         patch("custom_components.mail_and_packages.config_flow._get_mailboxes", return_value=['"INBOX"']):
-        
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow._test_login",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow._get_mailboxes",
+            return_value=['"INBOX"'],
+        ),
+    ):
         result = await hass.config_entries.flow.async_init(
             DOMAIN,
-            context={"source": config_entries.SOURCE_RECONFIGURE, "entry_id": entry.entry_id}
+            context={
+                "source": config_entries.SOURCE_RECONFIGURE,
+                "entry_id": entry.entry_id,
+            },
         )
-        
+
         # Advance to step 2
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            {"host": "imap.test.com", "port": 993, "username": "test", "password": "pwd", "imap_security": "SSL", "verify_ssl": True}
+            {
+                "host": "imap.test.com",
+                "port": 993,
+                "username": "test",
+                "password": "pwd",
+                "imap_security": "SSL",
+                "verify_ssl": True,
+            },
         )
 
         # Catch the expected schema validation failure
         with pytest.raises(InvalidData):
             await hass.config_entries.flow.async_configure(
                 result["flow_id"],
-                {"scan_interval": 1, "folder": '"INBOX"', "resources": ["mail_updated"]}
+                {
+                    "scan_interval": 1,
+                    "folder": '"INBOX"',
+                    "resources": ["mail_updated"],
+                },
             )
