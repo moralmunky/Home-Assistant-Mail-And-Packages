@@ -2136,3 +2136,49 @@ async def test_camera_service_update_specific_explicit(hass, integration):
 
         # Verify the method was called, confirming lines 175-176 were hit
         mock_update.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_camera_file_not_found(hass, mock_update):
+    """Test camera behavior when the expected image file is missing."""
+    mock_coordinator = MagicMock()
+    mock_config = MagicMock()
+    mock_config.data = {"host": "test.host"}
+
+    cam = MailCam(hass, "amazon_camera", mock_config, mock_coordinator)
+    cam._file_path = "/nonexistent/path.jpg"  # noqa: SLF001
+
+    image = await cam.async_camera_image()
+    assert image is None
+
+
+@pytest.mark.asyncio
+async def test_camera_image_read_error(hass, tmp_path):
+    """Test camera failure to read existing file (Lines 171-176)."""
+    # Create a secure temporary directory and file path
+    d = tmp_path / "test_dir"
+    d.mkdir()
+    safe_file_path = str(d / "test_image.jpg")
+
+    mock_coord = MagicMock()
+    mock_config = MagicMock()
+    cam = MailCam(hass, "amazon_camera", mock_config, mock_coord)
+
+    # Assign the secure temporary path
+    cam._file_path = safe_file_path  # noqa: SLF001
+
+    # Simulate file existing but failing to open
+    with patch("builtins.open", side_effect=FileNotFoundError):
+        image = await cam.async_camera_image()
+        assert image is None
+
+
+@pytest.mark.asyncio
+async def test_camera_find_alternative_image_no_dir(hass, caplog):
+    """Test _find_alternative_image when directory is missing."""
+    cam = MailCam(hass, "ups_camera", MagicMock(), MagicMock())
+
+    with patch("pathlib.Path.exists", return_value=False):
+        # Trigger alternative image search
+        cam._find_alternative_image("/fake/path/image.jpg", "image.jpg")  # noqa: SLF001
+        assert "directory does not exist" in caplog.text

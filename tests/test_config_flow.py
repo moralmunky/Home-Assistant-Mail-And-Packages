@@ -3868,3 +3868,26 @@ async def test_validate_user_input_specific_images():
     ):
         errors, _ = await _validate_user_input(user_input)
         assert errors[CONF_FEDEX_CUSTOM_IMG_FILE] == "file_not_found"
+
+
+@pytest.mark.asyncio
+async def test_config_flow_invalid_auth(hass):
+    """Test config flow when IMAP login fails (line 121)."""
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+
+    user_input = {
+        "host": "imap.test.com",
+        "port": 993,
+        "username": "test",
+        "password": "wrong_password",
+        "imap_security": False,
+        "verify_ssl": False,
+    }
+
+    with patch(
+        "custom_components.mail_and_packages.helpers._test_login", return_value=False
+    ):
+        result = await flow.async_step_user(user_input)
+        assert result["type"] == "form"
+        assert result["errors"] == {"base": "communication"}

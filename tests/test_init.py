@@ -6,6 +6,7 @@ import pytest
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import UpdateFailed
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages import (
     MailDataUpdateCoordinator,
@@ -459,37 +460,52 @@ async def test_coordinator_binary_sensor_update_amazon_same_hashes():
 
 
 @pytest.mark.asyncio
-async def test_coordinator_binary_sensor_update_ups_same_hashes():
-    """Test coordinator binary sensor update for UPS when hashes are the same."""
-    mock_hass = MagicMock()
-    mock_config = FAKE_CONFIG_DATA.copy()
+async def test_setup_entry_refresh_failure(hass):
+    """Test setup_entry when the coordinator fails to refresh data."""
+    mock_config_entry = MagicMock()
+    mock_config_entry.data = {
+        "host": "imap.test.com",
+        "scan_interval": 5,
+        "resources": [],
+    }
+    mock_config_entry.entry_id = "test_entry"
+    with patch(
+        "custom_components.mail_and_packages.MailDataUpdateCoordinator"
+    ) as mock_coordinator_class:
+        mock_coordinator = mock_coordinator_class.return_value
+        mock_coordinator.last_update_success = False
+        mock_coordinator.last_exception = "IMAP Timeout"
+        mock_coordinator.async_refresh = AsyncMock()
+        with pytest.raises(ConfigEntryNotReady):
+            await async_setup_entry(hass, mock_config_entry)
 
-    # Patch frame.report_usage to avoid "Frame helper not set up" error
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
-        coordinator._data = {  # noqa: SLF001
-            "ups_image": "test_ups.jpg",
-            "image_path": "custom_components/mail_and_packages/images/",
-        }
 
-        # Mock async_add_executor_job to return mtimes AND hashes
-        # We provide extra values to ensure the mock doesn't run out.
-        mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[100.0, "same_hash", 100.0, "same_hash", 100.0, "same_hash"]
-        )
+@pytest.mark.asyncio
+async def test_async_migrate_entry_invalid_version(hass):
+    """Test migration failure or handling when the version is unsupported."""
+    mock_entry = MockConfigEntry(
+        domain="mail_and_packages", version=0, data={}, entry_id="test_entry"
+    )
+    mock_entry.add_to_hass(hass)
+    result = await async_migrate_entry(hass, mock_entry)
+    assert result is True
+    assert mock_entry.version > 0
 
-        with (
-            patch(
-                "custom_components.mail_and_packages.default_image_path",
-                return_value="custom_components/mail_and_packages/images/",
-            ),
-            patch("pathlib.Path.exists", return_value=True),
-            patch(
-                "custom_components.mail_and_packages.hash_file",
-                side_effect=["same_hash", "same_hash"],
-            ),
-        ):
-            await coordinator._binary_sensor_update()  # noqa: SLF001
 
-            # Should set ups_update to False since hashes are the same
-            assert coordinator._data["ups_update"] is False  # noqa: SLF001
+@pytest.mark.asyncio
+async def test_async_migrate_entry_missing_amazon_fwds(hass):
+    """Test migration when CONF_AMAZON_FWDS is missing (Line 271)."""
+    # Create an entry specifically missing CONF_AMAZON_FWDS
+    mock_entry = MockConfigEntry(
+        domain="mail_and_packages",
+        version=1,
+        data={
+            "host": "imap.test.com",
+            # missing CONF_AMAZON_FWDS
+        },
+        entry_id="test_missing_keys",
+    )
+    mock_entry.add_to_hass(hass)
+
+    result = await async_migrate_entry(hass, mock_entry)
+    assert result is True

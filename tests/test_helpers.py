@@ -3933,3 +3933,52 @@ async def test_process_emails_default_image_copy_errors(hass, integration, caplo
         assert "Error creating default Ups image" in caplog.text
         assert "Error creating default Walmart image" in caplog.text
         assert "Error creating default Fedex image" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_resize_images_corrupt_file(caplog):
+    """Test resize_images with a corrupt or non-image file."""
+    with patch("PIL.Image.open", side_effect=OSError("Corrupt image")):
+        resize_images(["corrupt.jpg"], 724, 320)
+        assert "Error processing image" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_email_search_timeout(caplog):
+    """Test email_search handling a socket timeout."""
+    mock_imap = MagicMock()
+    mock_imap.search.side_effect = TimeoutError("IMAP connection timed out")
+
+    result = email_search(mock_imap, "test@email.com", "01-Jan-2024")
+    assert result == ("BAD", "IMAP connection timed out")
+    assert "Error searching emails" in caplog.text
+
+
+def test_login_network_error(caplog):
+    """Test login failure due to network error (Line 156)."""
+    with patch("imaplib.IMAP4_SSL", side_effect=OSError("Network unreachable")):
+        result = login("host", 993, "user", "pwd", "SSL", True)
+        assert result is False
+        assert "Network error while connecting to server" in caplog.text
+
+
+def test_email_search_unicode_error(caplog):
+    """Test email search with unicode characters failure (Line 471)."""
+    mock_imap = MagicMock()
+    # Simulate OSError during a literal search
+    mock_imap.search.side_effect = OSError("Literal search failed")
+
+    # Passing a non-ascii subject triggers the utf8_flag logic
+    check, value = email_search(
+        mock_imap, ["test@test.com"], "01-Jan-2024", subject="Pâckage"
+    )
+
+    assert check == "BAD"
+    assert "Error searching emails with unicode characters" in caplog.text
+
+
+def test_cleanup_images_directory_missing(caplog):
+    """Test cleanup_images when the directory does not exist (Line 843)."""
+    with patch("pathlib.Path.is_dir", return_value=False):
+        cleanup_images("/nonexistent/path/")
+        assert "Directory does not exist" in caplog.text
