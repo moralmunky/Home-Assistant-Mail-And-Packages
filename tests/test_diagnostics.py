@@ -1,7 +1,5 @@
 """Test the Mail and Packages diagnostics."""
 
-from unittest.mock import patch
-
 import pytest
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -11,7 +9,7 @@ from custom_components.mail_and_packages.diagnostics import (
     async_get_config_entry_diagnostics,
     async_get_device_diagnostics,
 )
-from tests.const import FAKE_CONFIG_DATA, FAKE_UPDATE_DATA, FAKE_UPDATE_DATA_REDACTED
+from tests.const import FAKE_CONFIG_DATA, FAKE_UPDATE_DATA_REDACTED
 
 
 @pytest.mark.asyncio

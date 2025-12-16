@@ -1,8 +1,7 @@
 """Test Mail and Packages sensors."""
 
 import datetime
-from datetime import timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
@@ -15,6 +14,7 @@ from tests.const import FAKE_CONFIG_DATA_NO_RND
 
 @pytest.mark.asyncio
 async def test_sensor(hass, mock_update):
+    """Test the setup and state of standard sensors."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
@@ -242,11 +242,6 @@ async def test_mail_updated_sensor_string_conversion(hass):
 
 async def test_mail_updated_sensor_invalid_date_string(hass):
     """Test that the mail_updated sensor handles invalid date strings gracefully."""
-    from datetime import datetime
-    from unittest.mock import MagicMock
-
-    from custom_components.mail_and_packages.sensor import PackagesSensor
-
     entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
     coordinator = MagicMock()
 
@@ -259,18 +254,14 @@ async def test_mail_updated_sensor_invalid_date_string(hass):
 
     # Should trigger ValueError handler and return current time
     val = sensor.native_value
-    assert isinstance(val, datetime)
+    assert isinstance(val, datetime.datetime)
     # Verify it returned 'now' (roughly)
-    assert (datetime.now(timezone.utc) - val).total_seconds() < 5
+    assert (datetime.datetime.now(datetime.UTC) - val).total_seconds() < 5
 
 
 @pytest.mark.asyncio
 async def test_mail_updated_sensor_totally_invalid_date(hass):
     """Test mail_updated sensor with a string that definitely raises ValueError."""
-    from custom_components.mail_and_packages.sensor import PackagesSensor
-    from unittest.mock import MagicMock
-    from datetime import datetime
-
     entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
     coordinator = MagicMock()
 
@@ -285,4 +276,4 @@ async def test_mail_updated_sensor_totally_invalid_date(hass):
     val = sensor.native_value
 
     # Should return current time (roughly)
-    assert isinstance(val, datetime)
+    assert isinstance(val, datetime.datetime)

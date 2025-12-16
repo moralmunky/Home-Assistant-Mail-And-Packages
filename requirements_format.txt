@@ -1,6 +1,1 @@
-black
-isort
-flake8
-pydocstyle
-pylint
 mypy

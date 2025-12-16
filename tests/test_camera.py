@@ -1,15 +1,20 @@
 """Tests for camera component."""
 
-import os
-import tempfile
+from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.camera import MailCam
-from custom_components.mail_and_packages.const import CAMERA, COORDINATOR, DOMAIN
-from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_CUSTOM_IMG
+from custom_components.mail_and_packages.const import (
+    ATTR_AMAZON_IMAGE,
+    ATTR_IMAGE_PATH,
+    CAMERA,
+    COORDINATOR,
+    DOMAIN,
+)
+from tests.const import FAKE_CONFIG_DATA_CUSTOM_IMG
 
 pytestmark = pytest.mark.asyncio
 
@@ -33,8 +38,10 @@ async def test_update_file_path(
 
     entries = hass.config_entries.async_entries(DOMAIN)
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
     ):
         state = hass.states.get("camera.mail_usps_camera")
         assert state.attributes.get("friendly_name") == "Mail USPS Camera"
@@ -77,8 +84,10 @@ async def test_update_file_path(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
     ):
         state = hass.states.get("camera.mail_usps_camera")
         assert state.attributes.get("friendly_name") == "Mail USPS Camera"
@@ -112,8 +121,9 @@ async def test_ups_camera(
 
     entries = hass.config_entries.async_entries(DOMAIN)
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_ups_camera")
         assert state.attributes.get("friendly_name") == "Mail UPS Camera"
@@ -148,8 +158,9 @@ async def test_ups_camera(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_ups_camera")
         assert state.attributes.get("friendly_name") == "Mail UPS Camera"
@@ -199,15 +210,16 @@ async def test_async_camera_image(
 ):
     """Test async_camera_image function."""
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=False
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=False),
     ):
         entry = integration
 
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         m_open = mock_open()
         with patch("builtins.open", m_open, create=True):
-            image = await cameras[0].async_camera_image()
+            await cameras[0].async_camera_image()
 
         assert m_open.call_count == 1
         assert (
@@ -233,8 +245,9 @@ async def test_async_camera_image_file_error(
 ):
     """Test async_camera_image function."""
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=False
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=False),
     ):
         entry = integration
 
@@ -242,7 +255,7 @@ async def test_async_camera_image_file_error(
         m_open = mock_open()
         with patch("builtins.open", m_open, create=True):
             m_open.side_effect = FileNotFoundError
-            image = await cameras[0].async_camera_image()
+            await cameras[0].async_camera_image()
 
         assert "Could not read camera" in caplog.text
 
@@ -262,8 +275,9 @@ async def test_async_on_demand_update(
 ):
     """Test async_camera_image function."""
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=False
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=False),
     ):
         entry = integration
 
@@ -301,8 +315,9 @@ async def test_amazon_camera_custom_img(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_amazon_delivery_camera_2")
         assert state.attributes.get("friendly_name") == "Mail Amazon Delivery Camera"
@@ -339,9 +354,11 @@ async def test_ups_camera_with_image_data(
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
-    ), patch("os.path.exists", return_value=True):
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
         state = hass.states.get("camera.mail_ups_camera")
         assert state.attributes.get("friendly_name") == "Mail UPS Camera"
 
@@ -349,7 +366,7 @@ async def test_ups_camera_with_image_data(
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         ups_camera = None
         for camera in cameras:
-            if camera._type == "ups_camera":
+            if camera._type == "ups_camera":  # noqa: SLF001
                 ups_camera = camera
                 break
 
@@ -387,9 +404,11 @@ async def test_amazon_camera_with_image_data(
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
-    ), patch("os.path.exists", return_value=True):
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
         state = hass.states.get("camera.mail_amazon_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Amazon Delivery Camera"
 
@@ -397,7 +416,7 @@ async def test_amazon_camera_with_image_data(
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         amazon_camera = None
         for camera in cameras:
-            if camera._type == "amazon_camera":
+            if camera._type == "amazon_camera":  # noqa: SLF001
                 amazon_camera = camera
                 break
 
@@ -444,8 +463,9 @@ async def test_ups_camera_with_custom_image(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_ups_camera")
         assert state.attributes.get("friendly_name") == "Mail UPS Camera"
@@ -491,8 +511,9 @@ async def test_amazon_camera_with_custom_image(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_amazon_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Amazon Delivery Camera"
@@ -520,10 +541,9 @@ async def test_ups_camera_default_image_path(
     caplog,
 ):
     """Test UPS camera uses correct default image path."""
-    entry = integration
-
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_ups_camera")
         assert state.attributes.get("friendly_name") == "Mail UPS Camera"
@@ -558,10 +578,9 @@ async def test_amazon_camera_default_image_path(
     caplog,
 ):
     """Test Amazon camera uses correct default image path."""
-    entry = integration
-
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_amazon_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Amazon Delivery Camera"
@@ -596,7 +615,6 @@ async def test_camera_entity_creation(
     caplog,
 ):
     """Test that all camera entities are created correctly."""
-    entry = integration
 
     # Check that all expected camera entities exist
     expected_cameras = [
@@ -630,8 +648,6 @@ async def test_camera_image_update_service(
     caplog,
 ):
     """Test camera image update service works for all cameras."""
-    entry = integration
-
     cameras_to_test = [
         "camera.mail_usps_camera",
         "camera.mail_amazon_delivery_camera",
@@ -642,8 +658,9 @@ async def test_camera_image_update_service(
     ]
 
     for camera_entity in cameras_to_test:
-        with patch("os.path.isfile", return_value=True), patch(
-            "os.access", return_value=True
+        with (
+            patch("os.path.isfile", return_value=True),
+            patch("os.access", return_value=True),
         ):
             state_before = hass.states.get(camera_entity)
             assert state_before is not None
@@ -679,8 +696,9 @@ async def test_generic_camera(
 
     entries = hass.config_entries.async_entries(DOMAIN)
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
@@ -715,8 +733,9 @@ async def test_generic_camera(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
@@ -754,9 +773,11 @@ async def test_generic_camera_with_delivery_images(
         "amazon_delivered": 1,  # Need delivery count > 0 for generic camera to include it
     }
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
-    ), patch("os.path.exists", return_value=True):
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
 
@@ -764,7 +785,7 @@ async def test_generic_camera_with_delivery_images(
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         generic_camera = None
         for camera in cameras:
-            if camera._type == "generic_camera":
+            if camera._type == "generic_camera":  # noqa: SLF001
                 generic_camera = camera
                 break
 
@@ -803,9 +824,11 @@ async def test_generic_camera_with_ups_delivery_images(
         "ups_delivered": 1,  # Need delivery count > 0 for generic camera to include it
     }
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
-    ), patch("os.path.exists", return_value=True):
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
 
@@ -813,7 +836,7 @@ async def test_generic_camera_with_ups_delivery_images(
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         generic_camera = None
         for camera in cameras:
-            if camera._type == "generic_camera":
+            if camera._type == "generic_camera":  # noqa: SLF001
                 generic_camera = camera
                 break
 
@@ -852,9 +875,11 @@ async def test_generic_camera_with_walmart_delivery_images(
         "walmart_delivered": 1,  # Need delivery count > 0 for generic camera to include it
     }
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
-    ), patch("os.path.exists", return_value=True):
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
 
@@ -862,7 +887,7 @@ async def test_generic_camera_with_walmart_delivery_images(
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         generic_camera = None
         for camera in cameras:
-            if camera._type == "generic_camera":
+            if camera._type == "generic_camera":  # noqa: SLF001
                 generic_camera = camera
                 break
 
@@ -901,9 +926,11 @@ async def test_generic_camera_with_usps_delivery_images_manual(
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
-    ), patch("os.path.exists", return_value=True):
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
 
@@ -911,7 +938,7 @@ async def test_generic_camera_with_usps_delivery_images_manual(
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         generic_camera = None
         for camera in cameras:
-            if camera._type == "generic_camera":
+            if camera._type == "generic_camera":  # noqa: SLF001
                 generic_camera = camera
                 break
 
@@ -958,20 +985,22 @@ async def test_generic_camera_with_all_delivery_types(
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
-    ), patch("os.path.exists", return_value=True), patch(
-        "custom_components.mail_and_packages.camera.generate_delivery_gif"
-    ) as mock_generate_gif:
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.camera.generate_delivery_gif"
+        ) as mock_generate_gif,
+    ):
         # Mock the generate_delivery_gif function to verify it's called correctly
         async def mock_generate_gif_func(delivery_images, gif_path):
             # Verify we received the expected delivery images
-            assert (
-                len(delivery_images) == 3
-            ), f"Expected 3 delivery images, got {len(delivery_images)}"
+            assert len(delivery_images) == 3, (
+                f"Expected 3 delivery images, got {len(delivery_images)}"
+            )
             # Verify the images are for Amazon, UPS, and Walmart
             # The paths should contain the image names from coordinator data
-            image_path = coordinator.data.get("image_path", "")
             assert any(
                 coordinator.data.get("amazon_image") in img for img in delivery_images
             ), f"Amazon image not found in {delivery_images}"
@@ -982,9 +1011,9 @@ async def test_generic_camera_with_all_delivery_types(
                 coordinator.data.get("walmart_image") in img for img in delivery_images
             ), f"Walmart image not found in {delivery_images}"
             # Verify the gif path
-            assert (
-                "generic_deliveries.gif" in gif_path
-            ), f"Expected generic_deliveries.gif in path, got {gif_path}"
+            assert "generic_deliveries.gif" in gif_path, (
+                f"Expected generic_deliveries.gif in path, got {gif_path}"
+            )
             return True
 
         mock_generate_gif.side_effect = mock_generate_gif_func
@@ -996,7 +1025,7 @@ async def test_generic_camera_with_all_delivery_types(
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         generic_camera = None
         for camera in cameras:
-            if camera._type == "generic_camera":
+            if camera._type == "generic_camera":  # noqa: SLF001
                 generic_camera = camera
                 break
 
@@ -1053,17 +1082,20 @@ async def test_generic_camera_filters_no_mail_images(
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
-    ), patch("os.path.exists", return_value=True), patch(
-        "custom_components.mail_and_packages.camera.generate_delivery_gif"
-    ) as mock_generate_gif:
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.camera.generate_delivery_gif"
+        ) as mock_generate_gif,
+    ):
         # Mock the generate_delivery_gif function to verify it's called correctly
         async def mock_generate_gif_func(delivery_images, gif_path):
             # Verify we received the expected delivery images (only Amazon and Walmart, no "no mail" images)
-            assert (
-                len(delivery_images) == 2
-            ), f"Expected 2 delivery images, got {len(delivery_images)}"
+            assert len(delivery_images) == 2, (
+                f"Expected 2 delivery images, got {len(delivery_images)}"
+            )
             # Verify the images are for Amazon and Walmart (UPS and USPS "no mail" images should be filtered out)
             assert any(
                 coordinator.data.get("amazon_image") in img for img in delivery_images
@@ -1072,16 +1104,16 @@ async def test_generic_camera_filters_no_mail_images(
                 coordinator.data.get("walmart_image") in img for img in delivery_images
             ), f"Walmart image not found in {delivery_images}"
             # Verify "no mail" images are NOT in the delivery images
-            assert not any(
-                "no_deliveries" in img for img in delivery_images
-            ), f"No mail images should not be in {delivery_images}"
-            assert not any(
-                "mail_none" in img for img in delivery_images
-            ), f"USPS no mail image should not be in {delivery_images}"
+            assert not any("no_deliveries" in img for img in delivery_images), (
+                f"No mail images should not be in {delivery_images}"
+            )
+            assert not any("mail_none" in img for img in delivery_images), (
+                f"USPS no mail image should not be in {delivery_images}"
+            )
             # Verify the gif path
-            assert (
-                "generic_deliveries.gif" in gif_path
-            ), f"Expected generic_deliveries.gif in path, got {gif_path}"
+            assert "generic_deliveries.gif" in gif_path, (
+                f"Expected generic_deliveries.gif in path, got {gif_path}"
+            )
             return True
 
         mock_generate_gif.side_effect = mock_generate_gif_func
@@ -1093,7 +1125,7 @@ async def test_generic_camera_filters_no_mail_images(
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         generic_camera = None
         for camera in cameras:
-            if camera._type == "generic_camera":
+            if camera._type == "generic_camera":  # noqa: SLF001
                 generic_camera = camera
                 break
 
@@ -1166,23 +1198,25 @@ async def test_generic_camera_respects_enabled_sensors(
     cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
     generic_camera = None
     for camera in cameras:
-        if camera._type == "generic_camera":
+        if camera._type == "generic_camera":  # noqa: SLF001
             generic_camera = camera
             break
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
-    ), patch("os.path.exists", return_value=True), patch(
-        "custom_components.mail_and_packages.camera.generate_delivery_gif"
-    ) as mock_generate_gif:
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.camera.generate_delivery_gif"
+        ) as mock_generate_gif,
+    ):
         # Mock the generate_delivery_gif function to verify it's called correctly
         async def mock_generate_gif_func(delivery_images, gif_path):
             # Verify we received the expected delivery images (only Amazon and Walmart)
-            assert (
-                len(delivery_images) == 2
-            ), f"Expected 2 delivery images, got {len(delivery_images)}"
+            assert len(delivery_images) == 2, (
+                f"Expected 2 delivery images, got {len(delivery_images)}"
+            )
             # Verify the images are for Amazon and Walmart (UPS and USPS should be excluded)
-            image_path = coordinator.data.get("image_path", "")
             assert any(
                 coordinator.data.get("amazon_image") in img for img in delivery_images
             ), f"Amazon image not found in {delivery_images}"
@@ -1194,9 +1228,9 @@ async def test_generic_camera_respects_enabled_sensors(
                 coordinator.data.get("ups_image") in img for img in delivery_images
             ), f"UPS image should not be in {delivery_images}"
             # Verify the gif path
-            assert (
-                "generic_deliveries.gif" in gif_path
-            ), f"Expected generic_deliveries.gif in path, got {gif_path}"
+            assert "generic_deliveries.gif" in gif_path, (
+                f"Expected generic_deliveries.gif in path, got {gif_path}"
+            )
             return True
 
         mock_generate_gif.side_effect = mock_generate_gif_func
@@ -1260,8 +1294,9 @@ async def test_generic_camera_with_custom_image(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
@@ -1289,10 +1324,9 @@ async def test_generic_camera_default_image_path(
     caplog,
 ):
     """Test Generic camera uses correct default image path."""
-    entry = integration
-
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
@@ -1339,14 +1373,16 @@ async def test_generic_camera_with_usps_delivery_images(
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
-    ), patch("os.path.exists", return_value=True):
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
         # Update the camera to use the new data
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         generic_camera = None
         for camera in cameras:
-            if camera._type == "generic_camera":
+            if camera._type == "generic_camera":  # noqa: SLF001
                 generic_camera = camera
                 break
 
@@ -1409,17 +1445,20 @@ async def test_generic_camera_with_multiple_delivery_images(
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
-    ), patch("os.path.exists", return_value=True), patch(
-        "custom_components.mail_and_packages.camera.generate_delivery_gif"
-    ) as mock_generate_gif:
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.camera.generate_delivery_gif"
+        ) as mock_generate_gif,
+    ):
         # Mock the generate_delivery_gif function to verify it's called correctly
         async def mock_generate_gif_func(delivery_images, gif_path):
             # Verify we received the expected delivery images (Amazon and UPS, USPS excluded)
-            assert (
-                len(delivery_images) == 2
-            ), f"Expected 2 delivery images, got {len(delivery_images)}"
+            assert len(delivery_images) == 2, (
+                f"Expected 2 delivery images, got {len(delivery_images)}"
+            )
             # Verify the images are for Amazon and UPS (USPS should be excluded)
             assert any(
                 coordinator.data.get("amazon_image") in img for img in delivery_images
@@ -1432,9 +1471,9 @@ async def test_generic_camera_with_multiple_delivery_images(
                 coordinator.data.get("image_name") in img for img in delivery_images
             ), f"USPS image should not be in {delivery_images}"
             # Verify the gif path
-            assert (
-                "generic_deliveries.gif" in gif_path
-            ), f"Expected generic_deliveries.gif in path, got {gif_path}"
+            assert "generic_deliveries.gif" in gif_path, (
+                f"Expected generic_deliveries.gif in path, got {gif_path}"
+            )
             return True
 
         mock_generate_gif.side_effect = mock_generate_gif_func
@@ -1478,8 +1517,9 @@ async def test_walmart_camera(
 
     entries = hass.config_entries.async_entries(DOMAIN)
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_walmart_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Walmart Delivery Camera"
@@ -1514,8 +1554,9 @@ async def test_walmart_camera(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_walmart_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Walmart Delivery Camera"
@@ -1552,9 +1593,11 @@ async def test_walmart_camera_with_image_data(
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
-    ), patch("os.path.exists", return_value=True):
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
         state = hass.states.get("camera.mail_walmart_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Walmart Delivery Camera"
 
@@ -1562,7 +1605,7 @@ async def test_walmart_camera_with_image_data(
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         walmart_camera = None
         for camera in cameras:
-            if camera._type == "walmart_camera":
+            if camera._type == "walmart_camera":  # noqa: SLF001
                 walmart_camera = camera
                 break
 
@@ -1609,8 +1652,9 @@ async def test_walmart_camera_with_custom_image(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_walmart_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Walmart Delivery Camera"
@@ -1638,10 +1682,9 @@ async def test_walmart_camera_default_image_path(
     caplog,
 ):
     """Test Walmart camera uses correct default image path."""
-    entry = integration
-
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_walmart_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Walmart Delivery Camera"
@@ -1680,8 +1723,9 @@ async def test_fedex_camera(
 
     entries = hass.config_entries.async_entries(DOMAIN)
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_fedex_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail FedEx Delivery Camera"
@@ -1716,8 +1760,9 @@ async def test_fedex_camera(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_fedex_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail FedEx Delivery Camera"
@@ -1754,9 +1799,11 @@ async def test_fedex_camera_with_image_data(
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
-    ), patch("os.path.exists", return_value=True):
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
         state = hass.states.get("camera.mail_fedex_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail FedEx Delivery Camera"
 
@@ -1764,7 +1811,7 @@ async def test_fedex_camera_with_image_data(
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         fedex_camera = None
         for camera in cameras:
-            if camera._type == "fedex_camera":
+            if camera._type == "fedex_camera":  # noqa: SLF001
                 fedex_camera = camera
                 break
 
@@ -1811,8 +1858,9 @@ async def test_fedex_camera_with_custom_image(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_fedex_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail FedEx Delivery Camera"
@@ -1840,10 +1888,9 @@ async def test_fedex_camera_default_image_path(
     caplog,
 ):
     """Test FedEx camera uses correct default image path."""
-    entry = integration
-
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_fedex_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail FedEx Delivery Camera"
@@ -1927,29 +1974,28 @@ async def test_camera_custom_no_mail_image():
         coordinator=mock_coordinator,
     )
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # Create test file
-        test_file = os.path.join(temp_dir, "no_mail.gif")
-        with open(test_file, "w") as f:
-            f.write("test")
+    # Mock config data to use a simpler path for resolution test
+    # The FAKE_CONFIG_DATA_CUSTOM_IMG uses "images/test.gif"
 
-        # Mock os.path.exists to return True for the custom file
-        with patch("os.path.exists", return_value=True):
-            # Test the _is_custom_no_mail_image method
-            result = camera._is_custom_no_mail_image("usps", "images/test.gif")
+    # Mock Path.exists and Path.resolve
+    # When resolve is called on "images/test.gif" (file_path) and the custom config path
+    # they should match.
 
-            # Should return True for custom no-mail image
-            assert result is True
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("pathlib.Path.resolve", side_effect=lambda: Path("/abs/images/test.gif")),
+    ):
+        # Test the _is_custom_no_mail_image method
+        result = camera._is_custom_no_mail_image(  # noqa: SLF001
+            "usps", "images/test.gif"
+        )
+
+        # Should return True for custom no-mail image
+        assert result is True
 
 
 async def test_generic_camera_skip_conditions(hass, caplog):
     """Test that generic camera logs debug messages when skipping images."""
-    from custom_components.mail_and_packages.camera import MailCam
-    from custom_components.mail_and_packages.const import (
-        ATTR_AMAZON_IMAGE,
-        ATTR_IMAGE_PATH,
-    )
-
     config = MockConfigEntry(
         domain=DOMAIN,
         data={
@@ -1964,7 +2010,7 @@ async def test_generic_camera_skip_conditions(hass, caplog):
     # Setup data where Amazon has a 'no deliveries' image
     # and NO active deliveries (count is 0 or missing)
     coordinator.data = {
-        ATTR_IMAGE_PATH: "/tmp/images/",
+        ATTR_IMAGE_PATH: "custom_components/mail_and_packages/images/",
         ATTR_AMAZON_IMAGE: "no_deliveries_amazon.jpg",
         "amazon_delivered": 0,  # No deliveries
     }
@@ -1973,10 +2019,12 @@ async def test_generic_camera_skip_conditions(hass, caplog):
     camera = MailCam(hass, "generic_camera", config, coordinator)
 
     # Mock file existence so it attempts to process
-    with patch("os.path.exists", return_value=True), patch.object(
-        camera, "check_file_path_access"
-    ), patch.object(camera, "schedule_update_ha_state"):
-
+    # Use path mock here
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch.object(camera, "check_file_path_access"),
+        patch.object(camera, "schedule_update_ha_state"),
+    ):
         await camera.update_file_path()
 
     # Check for the specific debug message from the 'is_no_mail' branch
@@ -1988,10 +2036,11 @@ async def test_generic_camera_skip_conditions(hass, caplog):
     # Update data: Valid image, but still 0 deliveries
     coordinator.data[ATTR_AMAZON_IMAGE] = "package_arrived.jpg"
 
-    with patch("os.path.exists", return_value=True), patch.object(
-        camera, "check_file_path_access"
-    ), patch.object(camera, "schedule_update_ha_state"):
-
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch.object(camera, "check_file_path_access"),
+        patch.object(camera, "schedule_update_ha_state"),
+    ):
         await camera.update_file_path()
 
     # Check for the specific debug message from the 'not has_current_deliveries' branch
@@ -2018,33 +2067,46 @@ async def test_camera_fallback_to_recent_file(
         "amazon_delivered": 1,
     }
 
-    # Helper to mock file system state
-    def mock_exists_side_effect(path):
-        # The specific file doesn't exist, but the directory does
-        if "missing_file.jpg" in path:
+    # Mock iterdir to simulate directory contents
+    f1 = MagicMock(spec=Path)
+    f1.name = "old.jpg"
+    f1.__str__.return_value = (
+        "custom_components/mail_and_packages/images/amazon/old.jpg"
+    )
+    f1.exists.return_value = True
+    f1.is_file.return_value = True
+    f1.stat.return_value.st_mtime = 1000
+
+    f2 = MagicMock(spec=Path)
+    f2.name = "new.jpg"
+    f2.__str__.return_value = (
+        "custom_components/mail_and_packages/images/amazon/new.jpg"
+    )
+    f2.exists.return_value = True
+    f2.is_file.return_value = True
+    f2.stat.return_value.st_mtime = 2000
+
+    def mock_path_exists(self):
+        if "missing_file.jpg" in str(self):
             return False
-        if "custom_components/mail_and_packages/images/amazon" in path:
+        # The parent directory exists
+        if "amazon" in str(self) and "images" in str(self):
             return True
-        return True
+        return False
 
-    def mock_getmtime_side_effect(path):
-        if "old.jpg" in path:
-            return 1000
-        if "new.jpg" in path:
-            return 2000
-        return 0
-
-    with patch("os.path.isfile", return_value=True), patch(
-        "os.access", return_value=True
-    ), patch("os.path.exists", side_effect=mock_exists_side_effect), patch(
-        "os.listdir", return_value=["old.jpg", "new.jpg"]
-    ), patch(
-        "os.path.getmtime", side_effect=mock_getmtime_side_effect
+    with (
+        patch("os.path.isfile", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", side_effect=mock_path_exists, autospec=True),
+        patch("pathlib.Path.iterdir", return_value=[f1, f2], autospec=True),
     ):
-
         # Trigger update
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
-        amazon_camera = next(c for c in cameras if c._type == "amazon_camera")
+        amazon_camera = next(
+            c
+            for c in cameras
+            if c._type == "amazon_camera"  # noqa: SLF001
+        )
 
         await amazon_camera.update_file_path()
         await hass.async_block_till_done()

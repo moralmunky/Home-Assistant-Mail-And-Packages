@@ -6,8 +6,7 @@ Configuration code contribution from @firstof9 https://github.com/firstof9/
 
 import datetime
 import logging
-from datetime import timezone
-from typing import Any, Optional
+from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
@@ -40,15 +39,18 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the sensor entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
-    sensors = []
     resources = entry.data.get(CONF_RESOURCES, [])
 
-    for variable in resources:
-        if variable in SENSOR_TYPES:
-            sensors.append(PackagesSensor(entry, SENSOR_TYPES[variable], coordinator))
+    sensors = [
+        PackagesSensor(entry, SENSOR_TYPES[variable], coordinator)
+        for variable in resources
+        if variable in SENSOR_TYPES
+    ]
 
-    for variable, value in IMAGE_SENSORS.items():
-        sensors.append(ImagePathSensors(hass, entry, value, coordinator))
+    sensors.extend(
+        ImagePathSensors(hass, entry, value, coordinator)
+        for value in IMAGE_SENSORS.values()
+    )
 
     async_add_entities(sensors, False)
 
@@ -109,9 +111,9 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
                 try:
                     value = datetime.datetime.fromisoformat(value)
                 except ValueError:
-                    value = datetime.datetime.now(timezone.utc)
+                    value = datetime.datetime.now(datetime.UTC)
             elif value is None:
-                value = datetime.datetime.now(timezone.utc)
+                value = datetime.datetime.now(datetime.UTC)
         return value
 
     @property
@@ -120,14 +122,14 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         return False
 
     @property
-    def extra_state_attributes(self) -> Optional[str]:
+    def extra_state_attributes(self) -> str | None:
         """Return device specific state attributes."""
         attr = {}
         data = self.coordinator.data
 
         if (
             any(sensor in self.type for sensor in ["_delivering", "_delivered"])
-            and self._tracking_key in data.keys()
+            and self._tracking_key in data
         ):
             attr[ATTR_TRACKING_NUM] = data[self._tracking_key]
 
@@ -136,17 +138,17 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
             return attr
 
         if "Amazon" in self._name:
-            if self._name == AMAZON_EXCEPTION and AMAZON_EXCEPTION_ORDER in data.keys():
+            if self._name == AMAZON_EXCEPTION and AMAZON_EXCEPTION_ORDER in data:
                 attr[ATTR_ORDER] = data[AMAZON_EXCEPTION_ORDER]
             elif self._name == AMAZON_DELIVERED:
                 attr[ATTR_ORDER] = data[AMAZON_DELIVERED]
-            elif AMAZON_ORDER in data.keys():
+            elif AMAZON_ORDER in data:
                 attr[ATTR_ORDER] = data[AMAZON_ORDER]
-        elif self._name == "Mail USPS Mail" and ATTR_IMAGE_NAME in data.keys():
+        elif self._name == "Mail USPS Mail" and ATTR_IMAGE_NAME in data:
             attr[ATTR_IMAGE] = data[ATTR_IMAGE_NAME]
         elif (
             any(sensor in self.type for sensor in ["_delivering", "_delivered"])
-            and self._tracking_key in data.keys()
+            and self._tracking_key in data
         ):
             attr[ATTR_TRACKING_NUM] = data[self._tracking_key]
             # TODO: Add Tracking URL when applicable
@@ -195,7 +197,7 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
         return self._name
 
     @property
-    def native_value(self) -> Optional[str]:
+    def native_value(self) -> str | None:
         """Return the state of the sensor."""
         image = ""
         the_path = None

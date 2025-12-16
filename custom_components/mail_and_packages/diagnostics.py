@@ -18,7 +18,8 @@ REDACT_KEYS = {CONF_PASSWORD, CONF_USERNAME, CONF_AMAZON_FWDS}
 
 
 async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, config_entry: ConfigEntry  # pylint: disable=unused-argument
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,  # pylint: disable=unused-argument
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
     diag: dict[str, Any] = {}
