@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
+from homeassistant.const import ATTR_ENTITY_ID
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.camera import MailCam
@@ -2182,3 +2183,38 @@ async def test_camera_find_alternative_image_no_dir(hass, caplog):
         # Trigger alternative image search
         cam._find_alternative_image("/fake/path/image.jpg", "image.jpg")  # noqa: SLF001
         assert "directory does not exist" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_camera_service_update_multiple_entities(hass, integration):
+    """Test updating multiple specific cameras via service."""
+    entry = integration
+    cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+
+    # Select two cameras to update
+    target_ids = [cameras[0].entity_id, cameras[1].entity_id]
+
+    with patch.object(MailCam, "update_file_path") as mock_update:
+        await hass.services.async_call(
+            DOMAIN, "update_image", {ATTR_ENTITY_ID: target_ids}, blocking=True
+        )
+
+        # Verify both target cameras were updated
+        assert mock_update.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_camera_update_coordinator_failed(hass, integration, caplog):
+    """Test camera update early exit on coordinator failure (Line 197)."""
+    entry = integration
+    cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+    target_camera = cameras[0]
+
+    # Simulate a failed update state
+    target_camera.coordinator.last_update_success = False
+
+    with patch.object(target_camera, "_update_standard_camera") as mock_update:
+        await target_camera.update_file_path()
+        # Should return before calling update logic
+        mock_update.assert_not_called()
+        assert "Update to update camera image. Unavailable." in caplog.text

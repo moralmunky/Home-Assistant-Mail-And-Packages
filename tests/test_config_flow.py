@@ -19,14 +19,14 @@ from custom_components.mail_and_packages.config_flow import (
     _validate_user_input,
 )
 from custom_components.mail_and_packages.const import (
-    CONF_AMAZON_DOMAIN,
-    CONF_FORWARDED_EMAILS,
-    CONF_AMAZON_FWDS,
     CONF_AMAZON_CUSTOM_IMG,
     CONF_AMAZON_CUSTOM_IMG_FILE,
+    CONF_AMAZON_DOMAIN,
+    CONF_AMAZON_FWDS,
     CONF_CUSTOM_IMG,
     CONF_FEDEX_CUSTOM_IMG,
     CONF_FEDEX_CUSTOM_IMG_FILE,
+    CONF_FORWARDED_EMAILS,
     CONF_GENERATE_MP4,
     CONF_GENERIC_CUSTOM_IMG,
     CONF_GENERIC_CUSTOM_IMG_FILE,
@@ -3925,7 +3925,7 @@ async def test_validate_forwarded_emails_errors():
 async def test_reconfigure_step_login_fail(hass, integration):
     """Test reconfigure flow when the new login info is invalid."""
     entry = integration
-    
+
     # Init the reconfigure flow
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
@@ -3956,6 +3956,7 @@ async def test_reconfigure_step_login_fail(hass, integration):
     assert result["step_id"] == "reconfigure"
     assert result["errors"] == {"base": "communication"}
 
+
 @pytest.mark.asyncio
 async def test_check_amazon_forwards_invalid_format(hass):
     """Test amazon forwards validation with missing @ symbol."""
@@ -3964,6 +3965,6 @@ async def test_check_amazon_forwards_invalid_format(hass):
         CONF_AMAZON_DOMAIN: "amazon.com",
         "generate_mp4": False,
     }
-    
+
     errors, _ = await _validate_user_input(user_input)
-    assert errors[CONF_AMAZON_FWDS] == "invalid_email_format"    
+    assert errors[CONF_AMAZON_FWDS] == "invalid_email_format"

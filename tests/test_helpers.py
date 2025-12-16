@@ -3955,7 +3955,7 @@ async def test_email_search_timeout(caplog):
 
 
 def test_login_network_error(caplog):
-    """Test login failure due to network error (Line 156)."""
+    """Test login failure due to network error."""
     with patch("imaplib.IMAP4_SSL", side_effect=OSError("Network unreachable")):
         result = login("host", 993, "user", "pwd", "SSL", True)
         assert result is False
@@ -3963,7 +3963,7 @@ def test_login_network_error(caplog):
 
 
 def test_email_search_unicode_error(caplog):
-    """Test email search with unicode characters failure (Line 471)."""
+    """Test email search with unicode characters failure."""
     mock_imap = MagicMock()
     # Simulate OSError during a literal search
     mock_imap.search.side_effect = OSError("Literal search failed")
@@ -3978,7 +3978,7 @@ def test_email_search_unicode_error(caplog):
 
 
 def test_cleanup_images_directory_missing(caplog):
-    """Test cleanup_images when the directory does not exist (Line 843)."""
+    """Test cleanup_images when the directory does not exist."""
     with patch("pathlib.Path.is_dir", return_value=False):
         cleanup_images("/nonexistent/path/")
         assert "Directory does not exist" in caplog.text
