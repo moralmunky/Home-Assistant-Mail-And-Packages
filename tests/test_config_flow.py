@@ -14,11 +14,13 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.mail_and_packages.config_flow import (
     DEFAULT_FOLDER,
     MailAndPackagesFlowHandler,
+    _check_forwarded_emails,
     _get_mailboxes,
     _get_schema_step_3,
     _validate_user_input,
 )
 from custom_components.mail_and_packages.const import (
+    CONF_ALLOW_FORWARDED_EMAILS,
     CONF_AMAZON_CUSTOM_IMG,
     CONF_AMAZON_CUSTOM_IMG_FILE,
     CONF_AMAZON_DOMAIN,
@@ -3968,3 +3970,100 @@ async def test_check_amazon_forwards_invalid_format(hass):
 
     errors, _ = await _validate_user_input(user_input)
     assert errors[CONF_AMAZON_FWDS] == "invalid_email_format"
+
+
+@pytest.mark.asyncio
+async def test_reconfigure_flow_mailbox_success(hass, integration):
+    """Test reconfigure flow moves to step 2 after successful login and mailbox fetch."""
+    entry = integration
+    with (
+        patch("custom_components.mail_and_packages.config_flow.login") as mock_login,
+        patch(
+            "custom_components.mail_and_packages.config_flow._test_login",
+            return_value=True,
+        ),
+    ):
+        # Create a mock account object that supports .list()
+        mock_account = MagicMock()
+        mock_account.list.return_value = ("OK", [b'(\\HasNoChildren) "/" "INBOX"'])
+        mock_login.return_value = mock_account
+
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={
+                "source": config_entries.SOURCE_RECONFIGURE,
+                "entry_id": entry.entry_id,
+            },
+        )
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "password",
+                "imap_security": "SSL",
+                "verify_ssl": True,
+            },
+        )
+
+        assert result["type"] == "form"
+        assert result["step_id"] == "reconfig_2"
+
+
+@pytest.mark.asyncio
+async def test_validate_user_input_forwarded_emails_none():
+    """Test validation when user enters (none) for forwarded emails."""
+    user_input = {
+        CONF_FORWARDED_EMAILS: "(none)",
+        CONF_ALLOW_FORWARDED_EMAILS: True,
+        CONF_GENERATE_MP4: False,
+    }
+
+    errors, result_input = await _validate_user_input(user_input)
+
+    assert errors == {}
+    # The helper should have set allow_forwarded_emails to False
+    assert result_input[CONF_ALLOW_FORWARDED_EMAILS] is False
+    assert CONF_FORWARDED_EMAILS not in result_input
+
+
+@pytest.mark.asyncio
+async def test_get_mailboxes_parsing_error(caplog):
+    """Test _get_mailboxes handles delimiter parsing failures."""
+    with patch("custom_components.mail_and_packages.config_flow.login") as mock_login:
+        mock_account = MagicMock()
+        # Mocking a list that doesn't contain the expected delimiters
+        # to trigger the nested IndexErrors and eventual fallback
+        mock_account.list.return_value = ("OK", [b"Bad Folder Format"])
+        mock_login.return_value = mock_account
+
+        result = _get_mailboxes("host", 993, "user", "pwd", "SSL", True)
+
+        assert result == [DEFAULT_FOLDER]
+        assert "Error creating folder array, using INBOX" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_mailboxes_period_delimiter(hass):
+    """Test _get_mailboxes fallback when using period delimiter."""
+    with patch("custom_components.mail_and_packages.config_flow.login") as mock_login:
+        mock_account = MagicMock()
+        mock_account.list.return_value = ("OK", [b'(\\HasNoChildren) "." "SENT"'])
+        mock_login.return_value = mock_account
+        result = _get_mailboxes("host", 993, "user", "pass", "SSL", True)
+        assert '"SENT"' in result
+
+
+@pytest.mark.asyncio
+async def test_validate_forwarded_emails_conflict(hass):
+    """Test error when forwarded email domain conflicts with service domains."""
+    user_input = {"forwarded_emails": "test@amazon.com", "amazon_fwds": []}
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.validate_email_address",
+        return_value=True,
+    ):
+        errors = await _check_forwarded_emails(user_input)
+        assert "ok" in errors
