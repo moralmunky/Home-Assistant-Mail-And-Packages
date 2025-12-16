@@ -19,6 +19,9 @@ from custom_components.mail_and_packages.config_flow import (
     _validate_user_input,
 )
 from custom_components.mail_and_packages.const import (
+    CONF_AMAZON_DOMAIN,
+    CONF_FORWARDED_EMAILS,
+    CONF_AMAZON_FWDS,
     CONF_AMAZON_CUSTOM_IMG,
     CONF_AMAZON_CUSTOM_IMG_FILE,
     CONF_CUSTOM_IMG,
@@ -3872,7 +3875,7 @@ async def test_validate_user_input_specific_images():
 
 @pytest.mark.asyncio
 async def test_config_flow_invalid_auth(hass):
-    """Test config flow when IMAP login fails (line 121)."""
+    """Test config flow when IMAP login fails."""
     flow = MailAndPackagesFlowHandler()
     flow.hass = hass
 
@@ -3891,3 +3894,76 @@ async def test_config_flow_invalid_auth(hass):
         result = await flow.async_step_user(user_input)
         assert result["type"] == "form"
         assert result["errors"] == {"base": "communication"}
+
+
+@pytest.mark.asyncio
+async def test_validate_forwarded_emails_errors():
+    """Test validation errors for forwarded emails."""
+    user_input = {
+        CONF_FORWARDED_EMAILS: "",
+        "generate_mp4": False,
+    }
+    errors, _ = await _validate_user_input(user_input)
+    assert errors[CONF_FORWARDED_EMAILS] == "missing_forwarded_emails"
+
+    user_input = {
+        CONF_FORWARDED_EMAILS: "not-an-email",
+        "generate_mp4": False,
+    }
+    errors, _ = await _validate_user_input(user_input)
+    assert errors[CONF_FORWARDED_EMAILS] == "invalid_email_format"
+
+    user_input = {
+        CONF_FORWARDED_EMAILS: "test@amazon.com",
+        CONF_AMAZON_FWDS: [],
+        "generate_mp4": False,
+    }
+    errors, _ = await _validate_user_input(user_input)
+
+
+@pytest.mark.asyncio
+async def test_reconfigure_step_login_fail(hass, integration):
+    """Test reconfigure flow when the new login info is invalid."""
+    entry = integration
+    
+    # Init the reconfigure flow
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
+    )
+
+    user_input = {
+        "host": "new.broken-host.com",
+        "port": 993,
+        "username": "user",
+        "password": "password",
+        "imap_security": "SSL",
+        "verify_ssl": True,
+    }
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._test_login",
+        return_value=False,
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input
+        )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfigure"
+    assert result["errors"] == {"base": "communication"}
+
+@pytest.mark.asyncio
+async def test_check_amazon_forwards_invalid_format(hass):
+    """Test amazon forwards validation with missing @ symbol."""
+    user_input = {
+        CONF_AMAZON_FWDS: "invalid-format",
+        CONF_AMAZON_DOMAIN: "amazon.com",
+        "generate_mp4": False,
+    }
+    
+    errors, _ = await _validate_user_input(user_input)
+    assert errors[CONF_AMAZON_FWDS] == "invalid_email_format"    
