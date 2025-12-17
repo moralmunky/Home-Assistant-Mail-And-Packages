@@ -148,7 +148,9 @@ async def _check_ffmpeg() -> bool:
     return which("ffmpeg")
 
 
-async def _test_login(host, port, user, pwd, security, verify):
+async def _test_login(
+    host: str, port: int, user: str, pwd: str, security: str, verify: bool = True
+):
     """Test login to IMAP server."""
     try:
         if security == "SSL":

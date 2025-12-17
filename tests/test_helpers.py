@@ -46,6 +46,7 @@ from custom_components.mail_and_packages.helpers import (
     _generate_mp4,
     _generic_delivery_image_extraction,
     _parse_amazon_arrival_date,
+    _test_login,
     amazon_exception,
     amazon_hub,
     amazon_otp,
@@ -4334,15 +4335,21 @@ async def test_generic_extraction_string_input(tmp_path):
 @pytest.mark.asyncio
 async def test_login_no_security():
     """Test IMAP login with no security (Plain)."""
-    with patch(
-        "custom_components.mail_and_packages.helpers.imaplib.IMAP4"
-    ) as mock_imap:
+    from custom_components.mail_and_packages.helpers import login, _test_login
+    
+    with patch("custom_components.mail_and_packages.helpers.imaplib.IMAP4") as mock_imap:
         mock_acc = MagicMock()
         mock_imap.return_value = mock_acc
+        mock_acc.login.return_value = ("OK", [b"LOGIN completed"])
+        
+        # login() returns the account object
         result = login("host", 143, "user", "pwd", "None")
         assert result == mock_acc
-        # Verify it initialized IMAP4 and did NOT call starttls
         mock_acc.starttls.assert_not_called()
+        
+        # _test_login() returns a boolean
+        result_bool = await _test_login("host", 143, "user", "pwd", "None")
+        assert result_bool is True
 
 
 @pytest.mark.asyncio
