@@ -2218,3 +2218,125 @@ async def test_camera_update_coordinator_failed(hass, integration, caplog):
         # Should return before calling update logic
         mock_update.assert_not_called()
         assert "Update to update camera image. Unavailable." in caplog.text
+
+
+async def test_is_custom_no_mail_file_not_exists_fixed(hass, integration):
+    """Custom path configured but file missing on disk."""
+    entry = integration
+    camera = hass.data[DOMAIN][entry.entry_id][CAMERA][0]
+
+    # Use a fake config object to bypass ConfigEntry data protection
+    fake_config = MagicMock()
+    fake_config.data = {
+        "amazon_custom_img": True,
+        "amazon_custom_img_file": "/non/existent/path.jpg",
+    }
+
+    with (
+        patch.object(camera, "config", fake_config),
+        patch(
+            "custom_components.mail_and_packages.camera.const.CONF_AMAZON_CUSTOM_IMG",
+            "amazon_custom_img",
+        ),
+        patch(
+            "custom_components.mail_and_packages.camera.const.CONF_AMAZON_CUSTOM_IMG_FILE",
+            "amazon_custom_img_file",
+        ),
+        patch("pathlib.Path.exists", return_value=False),
+    ):
+        result = camera._is_custom_no_mail_image("amazon", "/some/path.jpg")  # noqa: SLF001
+        assert result is False
+
+
+async def test_find_alternative_image_oserror_fixed(hass, integration, caplog):
+    """Handle OSError during directory iteration."""
+    entry = integration
+    camera = hass.data[DOMAIN][entry.entry_id][CAMERA][0]
+
+    # Patch Path.exists to return True so we pass the initial check at line 375
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("pathlib.Path.iterdir", side_effect=OSError("Permission Denied")),
+    ):
+        # Trigger the fallback logic
+        camera._find_alternative_image("/fake/path/img.jpg", "img.jpg")  # noqa: SLF001
+
+        # Verify the exception was caught and logged
+        assert "error listing directory" in caplog.text
+
+
+async def test_update_file_path_no_data(hass, integration, caplog):
+    """Early exit when coordinator data is missing."""
+    entry = integration
+    camera = hass.data[DOMAIN][entry.entry_id][CAMERA][0]
+    camera.coordinator.data = None
+
+    await camera.update_file_path()
+    assert "Unable to update camera image, no data." in caplog.text
+
+
+async def test_usps_camera_custom_no_mail(hass, integration):
+    """USPS camera using custom no-mail setting."""
+    entry = integration
+    camera = next(
+        c
+        for c in hass.data[DOMAIN][entry.entry_id][CAMERA]
+        if c._type == "usps_camera"  # noqa: SLF001
+    )
+
+    # Force state where no email data is present but custom image is set
+    camera.coordinator.data = {}
+    camera._no_mail = "custom_none.gif"  # noqa: SLF001
+
+    camera._update_usps_camera()  # noqa: SLF001
+    assert camera._file_path == "custom_none.gif"  # noqa: SLF001
+
+
+async def test_collect_generic_delivery_images_skip_no_attr(hass, integration):
+    """Skip cameras with no image attribute mapping."""
+    entry = integration
+    camera = next(
+        c
+        for c in hass.data[DOMAIN][entry.entry_id][CAMERA]
+        if c._type == "generic_camera"  # noqa: SLF001
+    )
+
+    # Patch CAMERA_DATA to include a fake camera that won't have an ATTR in const
+    with patch(
+        "custom_components.mail_and_packages.camera.CAMERA_DATA",
+        {"fake_camera": {"sensor_name": "fake"}},
+    ):
+        images = camera._collect_generic_delivery_images()  # noqa: SLF001
+        assert len(images) == 0
+
+
+async def test_update_standard_camera_no_attr(hass, integration):
+    """Early exit when attribute mapping is missing."""
+    entry = integration
+    cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+    # Use a real camera instance already initialized in CAMERA_DATA
+    camera = next(c for c in cameras if c._type == "amazon_camera")  # noqa: SLF001
+
+    # Patch getattr so that it fails to find the image attribute constant
+    with patch("custom_components.mail_and_packages.camera.getattr", return_value=None):
+        camera._update_standard_camera()  # noqa: SLF001
+        # Ensure the default 'no deliveries' path remains set
+        assert "no_deliveries_amazon.jpg" in camera._file_path  # noqa: SLF001
+
+
+async def test_get_sensor_name_usps(hass, integration):
+    """Correct sensor mapping for USPS."""
+    entry = integration
+    camera = hass.data[DOMAIN][entry.entry_id][CAMERA][0]
+    name = camera._get_sensor_name_for_camera("usps_camera")  # noqa: SLF001
+    assert name == "usps_mail"
+
+
+async def test_handle_coordinator_update_logic(hass, integration, caplog):
+    """Handle incoming coordinator data updates."""
+    entry = integration
+    camera = hass.data[DOMAIN][entry.entry_id][CAMERA][0]
+
+    # Directly trigger the update handler
+    camera._handle_coordinator_update()  # noqa: SLF001
+    assert "coordinator update received" in caplog.text
