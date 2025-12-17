@@ -381,12 +381,12 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
     )
 
 
-def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
+def _get_schema_step_3(user_input: dict, default_dict: dict) -> Any:
     """Get a schema using the default_dict as a backup."""
     if user_input is None:
         user_input = {}
 
-    def _get_default(key: str, fallback_default: Any = None) -> None:
+    def _get_default(key: str, fallback_default: Any = None) -> str:
         """Get default value for key."""
         return user_input.get(key, default_dict.get(key, fallback_default))
 
@@ -608,7 +608,6 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 if has_custom_image:
                     return await self.async_step_config_3()
 
-                self._apply_custom_image_defaults()
                 return self.async_create_entry(
                     title=self._data[CONF_HOST], data=self._data
                 )
@@ -750,7 +749,6 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
-                self._apply_custom_image_defaults()
                 return self.async_create_entry(
                     title=self._data[CONF_HOST], data=self._data
                 )
