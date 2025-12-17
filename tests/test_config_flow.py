@@ -4379,12 +4379,12 @@ async def test_form_allow_forwarded_emails(
         ),
         patch(
             "custom_components.mail_and_packages.config_flow.Path.exists",
-            return_value=True
+            return_value=True,
         ),
         patch(
             "custom_components.mail_and_packages.config_flow.Path.is_file",
-            return_value=True
-        ),        
+            return_value=True,
+        ),
         patch(
             "custom_components.mail_and_packages.async_setup", return_value=True
         ) as mock_setup,
@@ -4603,12 +4603,12 @@ async def test_form_allowed_forwarded_emails_entered_none(
         ),
         patch(
             "custom_components.mail_and_packages.config_flow.Path.exists",
-            return_value=True
+            return_value=True,
         ),
         patch(
             "custom_components.mail_and_packages.config_flow.Path.is_file",
-            return_value=True
-        ),           
+            return_value=True,
+        ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
@@ -4806,12 +4806,12 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
         ),
         patch(
             "custom_components.mail_and_packages.config_flow.Path.exists",
-            return_value=True
+            return_value=True,
         ),
         patch(
             "custom_components.mail_and_packages.config_flow.Path.is_file",
-            return_value=True
-        ),           
+            return_value=True,
+        ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
@@ -5435,12 +5435,12 @@ async def test_form_allow_forwarded_emails_none_entered(
         ),
         patch(
             "custom_components.mail_and_packages.config_flow.Path.exists",
-            return_value=True
+            return_value=True,
         ),
         patch(
             "custom_components.mail_and_packages.config_flow.Path.is_file",
-            return_value=True
-        ),           
+            return_value=True,
+        ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
@@ -5636,13 +5636,11 @@ async def test_form_allowed_forwards_missing_email_addresses(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
         ),
-        patch(
-            "custom_components.mail_and_packages.async_setup", return_value=True
-        ) as mock_setup,
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
         patch(
             "custom_components.mail_and_packages.async_setup_entry",
             return_value=True,
-        ) as mock_setup_entry,
+        ),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
@@ -5805,13 +5803,11 @@ async def test_form_allowed_forwards_invalid_email_address_format(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
         ),
-        patch(
-            "custom_components.mail_and_packages.async_setup", return_value=True
-        ) as mock_setup,
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
         patch(
             "custom_components.mail_and_packages.async_setup_entry",
             return_value=True,
-        ) as mock_setup_entry,
+        ),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
@@ -6005,14 +6001,16 @@ async def test_reconfigure_allow_forwarded_emails(
     """Test reconfigure flow."""
     entry = integration
 
-    with patch(
-        "custom_components.mail_and_packages.config_flow.Path.exists",
-        return_value=True
-    ), patch(
-        "custom_components.mail_and_packages.config_flow.Path.is_file",
-        return_value=True
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow.Path.exists",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow.Path.is_file",
+            return_value=True,
+        ),
     ):
-
         reconfigure_result = await hass.config_entries.flow.async_init(
             DOMAIN,
             context={
@@ -6241,12 +6239,12 @@ async def test_form_allow_forwarded_emails_using_service_address(
         ),
         patch(
             "custom_components.mail_and_packages.config_flow.Path.exists",
-            return_value=True
+            return_value=True,
         ),
         patch(
             "custom_components.mail_and_packages.config_flow.Path.is_file",
-            return_value=True
-        ),           
+            return_value=True,
+        ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
