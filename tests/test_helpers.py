@@ -8,6 +8,7 @@ from datetime import date, datetime
 from pathlib import Path
 from unittest import mock
 from unittest.mock import MagicMock, call, mock_open, patch
+import shutil
 
 import aiohttp
 import pytest
@@ -21,6 +22,7 @@ from custom_components.mail_and_packages.const import (
     ATTR_TRACKING,
     ATTR_UPS_IMAGE,
     ATTR_WALMART_IMAGE,
+    ATTR_GRID_IMAGE_NAME,
     CAMERA_DATA,
     CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_CUSTOM_IMG,
@@ -4029,7 +4031,6 @@ async def test_copy_images_mkdir_error(hass, caplog):
 @pytest.mark.asyncio
 async def test_cleanup_images_tuple_input(caplog):
     """Test cleanup_images when path is passed as a tuple."""
-    # Coverage for lines 843-847 in helpers.py
     with (
         patch("pathlib.Path.exists", return_value=True),
         patch("pathlib.Path.unlink") as mock_unlink,
@@ -4041,7 +4042,6 @@ async def test_cleanup_images_tuple_input(caplog):
 @pytest.mark.asyncio
 async def test_cleanup_images_oserror_on_list(caplog):
     """Test cleanup_images handles OSError when listing directory."""
-    # Coverage for line 888-890 in helpers.py
     with (
         patch("pathlib.Path.is_dir", return_value=True),
         patch("pathlib.Path.iterdir", side_effect=OSError("IO Error")),
@@ -4098,3 +4098,77 @@ async def test_generic_extraction_payload_not_bytes():
             b"data", "/path/", "img.jpg", "ups", "jpeg", "cid"
         )
         assert result is False
+
+
+@pytest.mark.asyncio
+async def test_process_emails_grid_generation_coverage(hass):
+    """Test process_emails with grid generation enabled."""
+    config = {
+        "host": "imap.test.com",
+        "generate_grid": True,
+        "resources": ["usps_mail"],
+    }
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.login",
+            return_value=MagicMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.selectfolder",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.image_file_name",
+            return_value="mail.gif",
+        ),
+        patch("custom_components.mail_and_packages.helpers.fetch"),
+    ):
+        result = process_emails(hass, config)
+        assert result[ATTR_GRID_IMAGE_NAME] == "mail_grid.png"
+
+
+@pytest.mark.asyncio
+async def test_copy_images_shutil_error(hass, caplog):
+    """Test copy_images handles shutil errors."""
+    config = {CONF_ALLOW_EXTERNAL: True}
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("custom_components.mail_and_packages.helpers.cleanup_images"),
+        patch(
+            "custom_components.mail_and_packages.helpers.copytree",
+            side_effect=shutil.Error("Copy fail"),
+        ),
+    ):
+        copy_images(hass, config)
+        assert "Problem copying files" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_cleanup_images_errors(caplog):
+    """Test cleanup_images error paths."""
+    # Directory disappears during iteration
+    with (
+        patch("pathlib.Path.is_dir", return_value=True),
+        patch("pathlib.Path.iterdir", side_effect=FileNotFoundError),
+    ):
+        cleanup_images("/fake/path/")
+        # Should return silently or log directory removed
+
+    # Permission error during listing
+    with (
+        patch("pathlib.Path.is_dir", return_value=True),
+        patch("pathlib.Path.iterdir", side_effect=OSError("Permission Denied")),
+    ):
+        cleanup_images("/fake/path/")
+        assert "Error listing directory for cleanup" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_generate_mp4_ffmpeg_error(caplog):
+    """Test _generate_mp4 handles FFmpeg failure."""
+    with (
+        patch("pathlib.Path.is_file", return_value=False),
+        patch("subprocess.run", side_effect=subprocess.CalledProcessError(1, "ffmpeg")),
+    ):
+        _generate_mp4("/path/", "image.gif")
+        assert "FFmpeg failed to generate MP4" in caplog.text
