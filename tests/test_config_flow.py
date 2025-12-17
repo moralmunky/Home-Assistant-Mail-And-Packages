@@ -4114,3 +4114,91 @@ async def test_reconfig_2_schema_validation(hass, integration):
                     "resources": ["mail_updated"],
                 },
             )
+
+
+@pytest.mark.asyncio
+async def test_reconfigure_flow_skip_to_storage(hass, integration):
+    """Test reconfigure flow skips directly to storage when no special options are enabled."""
+    entry = integration
+    reconfig_login_data = {
+        "host": "imap.test.email",
+        "port": 993,
+        "username": "test@test.email",
+        "password": "password",
+        "imap_security": "SSL",
+        "verify_ssl": True,
+    }
+
+    mock_account = MagicMock()
+    mock_account.list.return_value = ("OK", [b'(\\HasNoChildren) "/" "INBOX"'])
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow.login",
+            return_value=mock_account,
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow._test_login",
+            return_value=True,
+        ),
+    ):
+        # Initialize reconfigure flow
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={
+                "source": config_entries.SOURCE_RECONFIGURE,
+                "entry_id": entry.entry_id,
+            },
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], reconfig_login_data
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == "reconfig_2"
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "folder": '"INBOX"',
+                "resources": ["mail_updated", "usps_mail"],
+                "custom_img": False,
+                "amazon_custom_img": False,
+                "ups_custom_img": False,
+                "walmart_custom_img": False,
+                "fedex_custom_img": False,
+                "generic_custom_img": False,
+                "allow_forwarded_emails": False,
+                "generate_grid": False,
+            },
+        )
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_storage"
+
+
+@pytest.mark.asyncio
+async def test_get_schema_step_3_fedex_only():
+    """Test schema generation when only FedEx custom image is enabled."""
+    user_input = {CONF_FEDEX_CUSTOM_IMG: True}
+    defaults = {CONF_FEDEX_CUSTOM_IMG_FILE: "default_fedex.jpg"}
+
+    schema = _get_schema_step_3(user_input, defaults)
+
+    # Verify FedEx is in the schema but other providers are not
+    assert CONF_FEDEX_CUSTOM_IMG_FILE in schema.schema
+    assert "amazon_custom_img_file" not in schema.schema
+
+
+@pytest.mark.asyncio
+async def test_validate_forwarded_emails_missing_and_invalid():
+    """Test validation error when allowed_forwarded is True but input is missing or bad."""
+    user_input = {
+        "allow_forwarded_emails": True,
+        "forwarded_emails": "",
+        "generate_mp4": False,
+    }
+    errors, _ = await _validate_user_input(user_input)
+    assert errors["forwarded_emails"] == "missing_forwarded_emails"
+
+    user_input["forwarded_emails"] = "not-an-email-address"
+    errors, _ = await _validate_user_input(user_input)
+    assert errors["forwarded_emails"] == "invalid_email_format"
