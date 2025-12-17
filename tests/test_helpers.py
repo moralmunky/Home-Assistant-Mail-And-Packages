@@ -50,6 +50,7 @@ from custom_components.mail_and_packages.helpers import (
     amazon_hub,
     amazon_otp,
     amazon_search,
+    build_search,
     cleanup_images,
     copy_images,
     copy_overlays,
@@ -4278,3 +4279,92 @@ async def test_parse_amazon_arrival_date_weekday():
     ):
         result = _parse_amazon_arrival_date(email_msg, email_date)
         assert result == email_date + timedelta(days=2)
+
+
+@pytest.mark.asyncio
+async def test_amazon_search_no_emails_found(hass):
+    """Test amazon_search copies default image when no emails are found."""
+    mock_account = MagicMock()
+    # Search returns OK but with an empty list of IDs
+    mock_account.search.return_value = ("OK", [b""])
+
+    with (
+        patch("custom_components.mail_and_packages.helpers.cleanup_images"),
+        patch("custom_components.mail_and_packages.helpers.copyfile") as mock_copy,
+        patch(
+            "custom_components.mail_and_packages.helpers.amazon_email_addresses",
+            return_value=["test@amazon.com"],
+        ),
+    ):
+        amazon_search(
+            mock_account,
+            "/fake/path/",
+            hass,
+            "amazon.jpg",
+            "amazon.com",
+            coordinator_data={},
+        )
+        assert mock_copy.called
+
+
+def test_build_search_multiple_addresses():
+    """Test building search query with multiple addresses to cover OR prefix logic."""
+    # Length 3 ensures multiple OR prefixes are added
+    addresses = ["test1@test.com", "test2@test.com", "test3@test.com"]
+
+    utf8, search = build_search(addresses, "01-Jan-2024")
+    # Verify the prefix list is "OR OR" (len - 1)
+    assert search.count("OR") == 2
+    assert 'FROM "test1@test.com" FROM "test2@test.com" FROM "test3@test.com"' in search
+
+
+@pytest.mark.asyncio
+async def test_generic_extraction_string_input(tmp_path):
+    """Test image extraction when input is a string instead of bytes."""
+    sdata = "From: help@walmart.com\nSubject: Delivered\n\nContent"
+    image_path = str(tmp_path) + "/"
+
+    # This hits the 'else' branch of 'if isinstance(sdata, bytes)'
+    result = _generic_delivery_image_extraction(
+        sdata, image_path, "img.jpg", "walmart", "jpeg", cid_name="none"
+    )
+    assert result is False
+
+
+@pytest.mark.asyncio
+async def test_login_no_security():
+    """Test IMAP login with no security (Plain)."""
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib.IMAP4"
+    ) as mock_imap:
+        mock_acc = MagicMock()
+        mock_imap.return_value = mock_acc
+        result = login("host", 143, "user", "pwd", "None")
+        assert result == mock_acc
+        # Verify it initialized IMAP4 and did NOT call starttls
+        mock_acc.starttls.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_generate_grid_img_odd_count():
+    """Test grid generation calculation for odd number of images."""
+    with (
+        patch("custom_components.mail_and_packages.helpers.cleanup_images"),
+        patch("subprocess.call") as mock_sub,
+    ):
+        generate_grid_img("/path/", "mail.gif", 3)
+
+        # Flatten the list of arguments into one string to search
+        cmd_string = " ".join(mock_sub.call_args[0][0])
+        assert "tile=2x2" in cmd_string
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_icloud():
+    """Test email_fetch uses BODY[] parts for iCloud host."""
+    mock_acc = MagicMock()
+    mock_acc.host = "imap.mail.me.com"
+    email_fetch(mock_acc, "1")
+
+    # Verify it used BODY[] instead of (RFC822)
+    mock_acc.fetch.assert_called_with("1", "BODY[]")
