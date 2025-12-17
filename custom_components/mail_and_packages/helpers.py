@@ -153,18 +153,17 @@ async def _test_login(
 ):
     """Test login to IMAP server."""
     try:
+        ssl_context = (
+            ssl.create_client_context()
+            if verify
+            else ssl.create_no_verify_ssl_context()
+        )
         if security == "SSL":
-            if verify:
-                context = ssl.create_default_context()
-            else:
-                context = ssl.create_no_verify_ssl_context()
-            account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
+            account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=ssl_context)
         elif security == "startTLS":
-            context = ssl.create_default_context()
             account = imaplib.IMAP4(host=host, port=port)
-            account.starttls(ssl_context=context)
+            account.starttls(ssl_context)
         else:
-            _LOGGER.warning(NO_SSL)
             account = imaplib.IMAP4(host=host, port=port)
     except OSError as err:
         _LOGGER.error("Error connecting into IMAP Server: %s", err)

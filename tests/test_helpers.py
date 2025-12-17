@@ -1408,6 +1408,7 @@ async def test_connection_error(caplog):
     with patch("imaplib.IMAP4_SSL", side_effect=OSError("Connection failed")):
         result = login("localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
         assert not result
+        await _test_login("localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
         assert "Network error while connecting to server:" in caplog.text
 
     # Also check the startTLS/none path, which uses IMAP4
@@ -1415,6 +1416,9 @@ async def test_connection_error(caplog):
         result = login("localhost", 143, "fakeuser", "suchfakemuchpassword", "startTLS")
         assert not result
         assert "Network error while connecting to server:" in caplog.text
+        await _test_login(
+            "localhost", 143, "fakeuser", "suchfakemuchpassword", "startTLS"
+        )
 
 
 @pytest.mark.asyncio
