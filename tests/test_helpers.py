@@ -4335,18 +4335,18 @@ async def test_generic_extraction_string_input(tmp_path):
 @pytest.mark.asyncio
 async def test_login_no_security():
     """Test IMAP login with no security (Plain)."""
-    from custom_components.mail_and_packages.helpers import login, _test_login
-    
-    with patch("custom_components.mail_and_packages.helpers.imaplib.IMAP4") as mock_imap:
+    with patch(
+        "custom_components.mail_and_packages.helpers.imaplib.IMAP4"
+    ) as mock_imap:
         mock_acc = MagicMock()
         mock_imap.return_value = mock_acc
         mock_acc.login.return_value = ("OK", [b"LOGIN completed"])
-        
+
         # login() returns the account object
         result = login("host", 143, "user", "pwd", "None")
         assert result == mock_acc
         mock_acc.starttls.assert_not_called()
-        
+
         # _test_login() returns a boolean
         result_bool = await _test_login("host", 143, "user", "pwd", "None")
         assert result_bool is True
