@@ -2,13 +2,13 @@
 
 import logging
 import re
+import shutil
 import subprocess
 import tempfile
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from unittest import mock
 from unittest.mock import MagicMock, call, mock_open, patch
-import shutil
 
 import aiohttp
 import pytest
@@ -18,11 +18,11 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.mail_and_packages.const import (
     ATTR_COUNT,
     ATTR_FEDEX_IMAGE,
+    ATTR_GRID_IMAGE_NAME,
     ATTR_IMAGE_NAME,
     ATTR_TRACKING,
     ATTR_UPS_IMAGE,
     ATTR_WALMART_IMAGE,
-    ATTR_GRID_IMAGE_NAME,
     CAMERA_DATA,
     CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_CUSTOM_IMG,
@@ -45,6 +45,7 @@ from custom_components.mail_and_packages.helpers import (
     _check_ffmpeg,
     _generate_mp4,
     _generic_delivery_image_extraction,
+    _parse_amazon_arrival_date,
     amazon_exception,
     amazon_hub,
     amazon_otp,
@@ -59,6 +60,7 @@ from custom_components.mail_and_packages.helpers import (
     fetch,
     find_text,
     generate_grid_img,
+    get_amazon_image,
     get_count,
     get_formatted_date,
     get_items,
@@ -4172,3 +4174,107 @@ async def test_generate_mp4_ffmpeg_error(caplog):
     ):
         _generate_mp4("/path/", "image.gif")
         assert "FFmpeg failed to generate MP4" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_selectfolder_list_exception(caplog):
+    """Test selectfolder when account.list() raises an OSError."""
+    mock_account = MagicMock()
+    mock_account.list.side_effect = OSError("Server disconnected during list")
+
+    assert selectfolder(mock_account, "INBOX") is False
+    assert "Error listing folders: Server disconnected during list" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_selectfolder_select_exception(caplog):
+    """Test selectfolder when account.select() raises an OSError."""
+    mock_account = MagicMock()
+    mock_account.list.return_value = ("OK", ["INBOX"])
+    mock_account.select.side_effect = OSError("Folder locked")
+
+    assert selectfolder(mock_account, "INBOX") is False
+    assert "Error selecting folder: Folder locked" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_process_emails_shipper_mkdir_error(hass, caplog):
+    """Test error handling when creating a shipper-specific directory fails."""
+    config = FAKE_CONFIG_DATA_CORRECTED
+    # Mock login to succeed
+    mock_account = MagicMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.login",
+            return_value=mock_account,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.selectfolder",
+            return_value=True,
+        ),
+        patch("pathlib.Path.is_dir", return_value=False),
+        patch("pathlib.Path.mkdir", side_effect=OSError("Read-only file system")),
+    ):
+        process_emails(hass, config)
+        assert "Error creating Ups directory" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_amazon_image_ignored_domain(hass):
+    """Test that Amazon images from non-S3 domains are ignored."""
+    # Mock data with an image pattern from an untrusted domain
+    mock_email_body = '<html><img src="https://malicious.site/image.jpg"></html>'
+    mock_account = MagicMock()
+    # Mock the response to return the HTML above
+    mock_account.fetch.return_value = ("OK", [(b"1", mock_email_body.encode())])
+
+    with patch(
+        "custom_components.mail_and_packages.helpers.download_img"
+    ) as mock_download:
+        get_amazon_image(b"1", mock_account, "./", hass, "amazon.jpg")
+        # Ensure download was NEVER called because domain didn't match
+        mock_download.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_amazon_hub_decode_error(caplog):
+    """Test amazon_hub handles malformed multipart emails."""
+    mock_account = MagicMock()
+    mock_account.search.return_value = ("OK", [b"1"])
+    mock_account.fetch.return_value = ("OK", [(b"1", b"raw_data")])
+
+    mock_msg = MagicMock()
+    mock_msg.is_multipart.return_value = True
+    mock_msg.get_payload.side_effect = IndexError("No parts found")
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.email.message_from_bytes",
+            return_value=mock_msg,
+        ),
+        caplog.at_level(logging.DEBUG),
+    ):
+        result = amazon_hub(mock_account)
+        assert result["count"] == 0
+        assert "Problem decoding email message: No parts found" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_parse_amazon_arrival_date_weekday():
+    """Test parsing arrival dates that are just a weekday name."""
+    email_date = date(2025, 10, 27)
+    email_msg = "Arriving Wednesday"
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.get_today",
+            return_value=email_date,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.amazon_date_regex",
+            return_value="Wednesday",
+        ),
+    ):
+        result = _parse_amazon_arrival_date(email_msg, email_date)
+        assert result == email_date + timedelta(days=2)
