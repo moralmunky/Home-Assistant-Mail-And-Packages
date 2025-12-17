@@ -22,6 +22,7 @@ from custom_components.mail_and_packages.const import (
     ATTR_UPS_IMAGE,
     ATTR_WALMART_IMAGE,
     CAMERA_DATA,
+    CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_CUSTOM_IMG,
     CONF_AMAZON_CUSTOM_IMG_FILE,
     CONF_FEDEX_CUSTOM_IMG,
@@ -47,6 +48,7 @@ from custom_components.mail_and_packages.helpers import (
     amazon_otp,
     amazon_search,
     cleanup_images,
+    copy_images,
     copy_overlays,
     default_image_path,
     download_img,
@@ -3982,3 +3984,117 @@ def test_cleanup_images_directory_missing(caplog):
     with patch("pathlib.Path.is_dir", return_value=False):
         cleanup_images("/nonexistent/path/")
         assert "Directory does not exist" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_process_emails_login_failure(hass):
+    """Test process_emails returns empty data when login fails."""
+    config = {"host": "imap.test.com", "resources": []}
+    with patch("custom_components.mail_and_packages.helpers.login", return_value=False):
+        result = process_emails(hass, config)
+        assert result == {}
+
+
+@pytest.mark.asyncio
+async def test_process_emails_select_folder_failure(hass):
+    """Test process_emails returns empty data when folder selection fails."""
+    config = {"host": "imap.test.com", "folder": "INBOX", "resources": []}
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.login",
+            return_value=MagicMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.selectfolder",
+            return_value=False,
+        ),
+    ):
+        result = process_emails(hass, config)
+        assert result == {}
+
+
+@pytest.mark.asyncio
+async def test_copy_images_mkdir_error(hass, caplog):
+    """Test copy_images handles directory creation errors."""
+    config = {CONF_ALLOW_EXTERNAL: True}
+    with (
+        patch("pathlib.Path.exists", return_value=False),
+        patch("pathlib.Path.mkdir", side_effect=OSError("Disk Full")),
+    ):
+        copy_images(hass, config)
+        assert "Problem creating:" in caplog.text
+        assert "Disk Full" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_cleanup_images_tuple_input(caplog):
+    """Test cleanup_images when path is passed as a tuple."""
+    # Coverage for lines 843-847 in helpers.py
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("pathlib.Path.unlink") as mock_unlink,
+    ):
+        cleanup_images(("/fake/path/", "image.jpg"))
+        assert mock_unlink.called
+
+
+@pytest.mark.asyncio
+async def test_cleanup_images_oserror_on_list(caplog):
+    """Test cleanup_images handles OSError when listing directory."""
+    # Coverage for line 888-890 in helpers.py
+    with (
+        patch("pathlib.Path.is_dir", return_value=True),
+        patch("pathlib.Path.iterdir", side_effect=OSError("IO Error")),
+    ):
+        cleanup_images("/fake/path/")
+        assert "Error listing directory for cleanup" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_amazon_search_no_data(hass):
+    """Test amazon_search when server response is not OK."""
+    account = MagicMock()
+    with patch(
+        "custom_components.mail_and_packages.helpers.email_search",
+        return_value=("BAD", [None]),
+    ):
+        count = amazon_search(account, "/path/", hass, "img.jpg", "amazon.com")
+        assert count == 0
+
+
+@pytest.mark.asyncio
+async def test_amazon_otp_decode_error(caplog):
+    """Test amazon_otp handles decoding errors."""
+    account = MagicMock()
+    # Mock search and fetch to simulate finding one email
+    account.search.return_value = ("OK", [b"1"])
+    account.fetch.return_value = ("OK", [(None, b"Raw Data")])
+
+    with patch(
+        "custom_components.mail_and_packages.helpers.quopri.decodestring",
+        side_effect=ValueError("Decode fail"),
+    ):
+        # Use a valid Amazon domain to ensure the loop executes
+        result = amazon_otp(account, ["test@amazon.com"])
+
+    assert result == {"code": []}
+    with caplog.at_level(logging.DEBUG):
+        assert "Problem decoding email message: Decode fail" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_generic_extraction_payload_not_bytes():
+    """Test image extraction when payload is a string to hit Line 1920."""
+    test_html = "<html><body>No image</body></html>"
+    mock_part = MagicMock()
+    mock_part.get_content_type.return_value = "text/html"
+    mock_part.get_payload.return_value = test_html
+
+    mock_msg = MagicMock()
+    mock_msg.walk.return_value = [mock_part]
+
+    with patch("email.message_from_bytes", return_value=mock_msg):
+        result = _generic_delivery_image_extraction(
+            b"data", "/path/", "img.jpg", "ups", "jpeg", "cid"
+        )
+        assert result is False

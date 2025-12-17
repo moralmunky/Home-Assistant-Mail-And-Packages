@@ -2284,12 +2284,13 @@ def amazon_hub(account: type[imaplib.IMAP4_SSL], fwds: list[str] | None = None) 
 
 
 def amazon_otp(account: type[imaplib.IMAP4_SSL], fwds: list | None = None) -> dict:
-    """Find Amazon exception emails.
+    """Find Amazon OTP code emails.
 
     Returns dict of sensor data
     """
     tfmt = get_formatted_date()
     info = {}
+    found = []
     body_regex = AMAZON_OTP_REGEX
     email_addresses = []
     email_addresses.extend(_process_amazon_forwards(fwds))
@@ -2302,7 +2303,6 @@ def amazon_otp(account: type[imaplib.IMAP4_SSL], fwds: list | None = None) -> di
         if server_response == "OK":
             id_list = sdata[0].split()
             _LOGGER.debug("Found Amazon OTP email(s): %s", len(id_list))
-            found = []
             for i in id_list:
                 data = email_fetch(account, i, "(RFC822)")[1]
                 for response_part in data:
@@ -2315,12 +2315,17 @@ def amazon_otp(account: type[imaplib.IMAP4_SSL], fwds: list | None = None) -> di
                         # Get code from message body
                         try:
                             _LOGGER.debug("Decoding OTP email...")
-                            email_msg = quopri.decodestring(
-                                str(msg.get_payload(0))
-                            )  # msg.get_payload(0).encode('utf-8')
+                            # Safely handle both multipart and single-part emails
+                            payload = (
+                                msg.get_payload(0)
+                                if msg.is_multipart()
+                                else msg.get_payload()
+                            )
+                            email_msg = quopri.decodestring(str(payload))
                         except (ValueError, TypeError, IndexError) as err:
                             _LOGGER.debug("Problem decoding email message: %s", err)
                             continue
+
                         email_msg = email_msg.decode("utf-8", "ignore")
                         pattern = re.compile(rf"{body_regex}")
                         search = pattern.search(email_msg)
