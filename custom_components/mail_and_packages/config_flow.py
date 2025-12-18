@@ -1,7 +1,7 @@
 """Adds config flow for Mail and Packages."""
 
 import logging
-from os import path
+from pathlib import Path
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
@@ -18,53 +18,49 @@ from homeassistant.const import (
 from .const import (
     CONF_ALLOW_EXTERNAL,
     CONF_ALLOW_FORWARDED_EMAILS,
+    CONF_AMAZON_CUSTOM_IMG,
+    CONF_AMAZON_CUSTOM_IMG_FILE,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
-    CONF_AMAZON_CUSTOM_IMG,
-    CONF_AMAZON_CUSTOM_IMG_FILE,
-    CONF_UPS_CUSTOM_IMG,
-    CONF_UPS_CUSTOM_IMG_FILE,
-    CONF_WALMART_CUSTOM_IMG,
-    CONF_WALMART_CUSTOM_IMG_FILE,
+    CONF_DURATION,
     CONF_FEDEX_CUSTOM_IMG,
     CONF_FEDEX_CUSTOM_IMG_FILE,
-    CONF_GENERIC_CUSTOM_IMG,
-    CONF_GENERIC_CUSTOM_IMG_FILE,
-    CONF_DURATION,
     CONF_FOLDER,
     CONF_FORWARDED_EMAILS,
     CONF_GENERATE_GRID,
     CONF_GENERATE_MP4,
+    CONF_GENERIC_CUSTOM_IMG,
+    CONF_GENERIC_CUSTOM_IMG_FILE,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_SECURITY,
     CONF_IMAP_TIMEOUT,
     CONF_PATH,
     CONF_SCAN_INTERVAL,
     CONF_STORAGE,
+    CONF_UPS_CUSTOM_IMG,
+    CONF_UPS_CUSTOM_IMG_FILE,
     CONF_VERIFY_SSL,
+    CONF_WALMART_CUSTOM_IMG,
+    CONF_WALMART_CUSTOM_IMG_FILE,
     CONFIG_VER,
     DEFAULT_ALLOW_EXTERNAL,
     DEFAULT_ALLOW_FORWARDED_EMAILS,
+    DEFAULT_AMAZON_CUSTOM_IMG,
+    DEFAULT_AMAZON_CUSTOM_IMG_FILE,
     DEFAULT_AMAZON_DAYS,
     DEFAULT_AMAZON_DOMAIN,
     DEFAULT_AMAZON_FWDS,
     DEFAULT_CUSTOM_IMG,
     DEFAULT_CUSTOM_IMG_FILE,
-    DEFAULT_AMAZON_CUSTOM_IMG,
-    DEFAULT_AMAZON_CUSTOM_IMG_FILE,
-    DEFAULT_UPS_CUSTOM_IMG,
-    DEFAULT_UPS_CUSTOM_IMG_FILE,
-    DEFAULT_WALMART_CUSTOM_IMG,
-    DEFAULT_WALMART_CUSTOM_IMG_FILE,
     DEFAULT_FEDEX_CUSTOM_IMG,
     DEFAULT_FEDEX_CUSTOM_IMG_FILE,
-    DEFAULT_GENERIC_CUSTOM_IMG,
-    DEFAULT_GENERIC_CUSTOM_IMG_FILE,
     DEFAULT_FOLDER,
     DEFAULT_FORWARDED_EMAILS,
+    DEFAULT_GENERIC_CUSTOM_IMG,
+    DEFAULT_GENERIC_CUSTOM_IMG_FILE,
     DEFAULT_GIF_DURATION,
     DEFAULT_IMAGE_SECURITY,
     DEFAULT_IMAP_TIMEOUT,
@@ -72,14 +68,18 @@ from .const import (
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_STORAGE,
+    DEFAULT_UPS_CUSTOM_IMG,
+    DEFAULT_UPS_CUSTOM_IMG_FILE,
+    DEFAULT_WALMART_CUSTOM_IMG,
+    DEFAULT_WALMART_CUSTOM_IMG_FILE,
     DOMAIN,
 )
 from .helpers import (
     _check_ffmpeg,
     _test_login,
+    generate_service_email_domains,
     get_resources,
     login,
-    generate_service_email_domains,
     validate_email_address,
 )
 
@@ -128,19 +128,19 @@ async def _check_amazon_forwards(forwards: str, domain: str) -> tuple:
 
 
 async def _check_forwarded_emails(user_input: dict[str, Any]) -> list[str]:
-    """
-    Validate forwarded email addresses provided by the user.
+    """Validate forwarded email addresses provided by the user.
 
     Use Voluptuous to make sure that none of the forwarded email addresses use domains
     that match any of the Mail service domains, as this was known to cause issues when
     searching for Amazon emails.
 
     Args:
-        forwarded_emails (str): A comma-separated list of email addresses to validate
+        user_input (dict[str, Any]): The user input dictionary.
 
     Returns:
         list[str]: A list of error codes (e.g. "missing_forwarded_emails") or "ok" if the
                    email addresses are valid
+
     """
     forwarded_emails = user_input[CONF_FORWARDED_EMAILS]
 
@@ -181,6 +181,44 @@ async def _check_forwarded_emails(user_input: dict[str, Any]) -> list[str]:
     return errors
 
 
+def _validate_path_input(user_input: dict, errors: dict) -> None:
+    """Validate path and file inputs."""
+    # List of (Toggle Key, File Key, Error Key)
+    file_checks = [
+        (CONF_CUSTOM_IMG, CONF_CUSTOM_IMG_FILE, CONF_CUSTOM_IMG_FILE),
+        (
+            CONF_AMAZON_CUSTOM_IMG,
+            CONF_AMAZON_CUSTOM_IMG_FILE,
+            CONF_AMAZON_CUSTOM_IMG_FILE,
+        ),
+        (CONF_UPS_CUSTOM_IMG, CONF_UPS_CUSTOM_IMG_FILE, CONF_UPS_CUSTOM_IMG_FILE),
+        (
+            CONF_WALMART_CUSTOM_IMG,
+            CONF_WALMART_CUSTOM_IMG_FILE,
+            CONF_WALMART_CUSTOM_IMG_FILE,
+        ),
+        (
+            CONF_FEDEX_CUSTOM_IMG,
+            CONF_FEDEX_CUSTOM_IMG_FILE,
+            CONF_FEDEX_CUSTOM_IMG_FILE,
+        ),
+        (
+            CONF_GENERIC_CUSTOM_IMG,
+            CONF_GENERIC_CUSTOM_IMG_FILE,
+            CONF_GENERIC_CUSTOM_IMG_FILE,
+        ),
+    ]
+
+    for toggle, file_key, error_key in file_checks:
+        if user_input.get(toggle) and file_key in user_input:
+            if not Path(user_input[file_key]).is_file():
+                errors[error_key] = "file_not_found"
+
+    if CONF_STORAGE in user_input:
+        if not Path(user_input[CONF_STORAGE]).exists():
+            errors[CONF_STORAGE] = "path_not_found"
+
+
 async def _validate_user_input(user_input: dict) -> tuple:
     """Valididate user input from config flow.
 
@@ -213,86 +251,11 @@ async def _validate_user_input(user_input: dict) -> tuple:
 
     # Check for ffmpeg if option enabled
     if user_input[CONF_GENERATE_MP4]:
-        valid = await _check_ffmpeg()
-    else:
-        valid = True
+        if not await _check_ffmpeg():
+            errors[CONF_GENERATE_MP4] = "ffmpeg_not_found"
 
-    if not valid:
-        errors[CONF_GENERATE_MP4] = "ffmpeg_not_found"
-
-    # validate custom file exists
-    if user_input[CONF_CUSTOM_IMG] and CONF_CUSTOM_IMG_FILE in user_input:
-        valid = path.isfile(user_input[CONF_CUSTOM_IMG_FILE])
-    else:
-        valid = True
-
-    if not valid:
-        errors[CONF_CUSTOM_IMG_FILE] = "file_not_found"
-
-    # validate amazon custom file exists
-    if (
-        user_input.get(CONF_AMAZON_CUSTOM_IMG)
-        and CONF_AMAZON_CUSTOM_IMG_FILE in user_input
-    ):
-        valid = path.isfile(user_input[CONF_AMAZON_CUSTOM_IMG_FILE])
-    else:
-        valid = True
-
-    if not valid:
-        errors[CONF_AMAZON_CUSTOM_IMG_FILE] = "file_not_found"
-
-    # validate ups custom file exists
-    if user_input.get(CONF_UPS_CUSTOM_IMG) and CONF_UPS_CUSTOM_IMG_FILE in user_input:
-        valid = path.isfile(user_input[CONF_UPS_CUSTOM_IMG_FILE])
-    else:
-        valid = True
-
-    if not valid:
-        errors[CONF_UPS_CUSTOM_IMG_FILE] = "file_not_found"
-
-    # validate walmart custom file exists
-    if (
-        user_input.get(CONF_WALMART_CUSTOM_IMG)
-        and CONF_WALMART_CUSTOM_IMG_FILE in user_input
-    ):
-        valid = path.isfile(user_input[CONF_WALMART_CUSTOM_IMG_FILE])
-    else:
-        valid = True
-
-    if not valid:
-        errors[CONF_WALMART_CUSTOM_IMG_FILE] = "file_not_found"
-
-    # validate fedex custom file exists
-    if (
-        user_input.get(CONF_FEDEX_CUSTOM_IMG)
-        and CONF_FEDEX_CUSTOM_IMG_FILE in user_input
-    ):
-        valid = path.isfile(user_input[CONF_FEDEX_CUSTOM_IMG_FILE])
-    else:
-        valid = True
-
-    if not valid:
-        errors[CONF_FEDEX_CUSTOM_IMG_FILE] = "file_not_found"
-
-    # validate generic custom file exists
-    if (
-        user_input.get(CONF_GENERIC_CUSTOM_IMG)
-        and CONF_GENERIC_CUSTOM_IMG_FILE in user_input
-    ):
-        valid = path.isfile(user_input[CONF_GENERIC_CUSTOM_IMG_FILE])
-    else:
-        valid = True
-
-    if not valid:
-        errors[CONF_GENERIC_CUSTOM_IMG_FILE] = "file_not_found"
-
-    # validate path exists
-    if CONF_STORAGE in user_input:
-        valid = path.exists(user_input[CONF_STORAGE])
-    else:
-        valid = True
-    if not valid:
-        errors[CONF_STORAGE] = "path_not_found"
+    # Validate file paths
+    _validate_path_input(user_input, errors)
 
     return errors, user_input
 
@@ -310,17 +273,15 @@ def _get_mailboxes(
         mailboxes.append(DEFAULT_FOLDER)
     else:
         try:
-            for i in folderlist:
-                mailboxes.append(i.decode().split(' "/" ')[1])
+            mailboxes.extend(i.decode().split(' "/" ')[1] for i in folderlist)
         except IndexError:
             _LOGGER.error("Error creating folder array trying period")
             try:
-                for i in folderlist:
-                    mailboxes.append(i.decode().split(' "." ')[1])
+                mailboxes.extend(i.decode().split(' "." ')[1] for i in folderlist)
             except IndexError:
                 _LOGGER.error("Error creating folder array, using INBOX")
                 mailboxes.append(DEFAULT_FOLDER)
-            except Exception as err:
+            except (ValueError, UnicodeError) as err:
                 _LOGGER.error("%s: %s", ERROR_MAILBOX_FAIL, err)
                 mailboxes.append(DEFAULT_FOLDER)
 
@@ -420,12 +381,12 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
     )
 
 
-def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
+def _get_schema_step_3(user_input: dict, default_dict: dict) -> Any:
     """Get a schema using the default_dict as a backup."""
     if user_input is None:
         user_input = {}
 
-    def _get_default(key: str, fallback_default: Any = None) -> None:
+    def _get_default(key: str, fallback_default: Any = None) -> str:
         """Get default value for key."""
         return user_input.get(key, default_dict.get(key, fallback_default))
 
@@ -633,25 +594,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 )
                 if has_custom_image:
                     return await self.async_step_config_3()
-                # Ensure all custom image file fields are present with defaults
-                if CONF_AMAZON_CUSTOM_IMG_FILE not in self._data:
-                    self._data[CONF_AMAZON_CUSTOM_IMG_FILE] = (
-                        DEFAULT_AMAZON_CUSTOM_IMG_FILE
-                    )
-                if CONF_UPS_CUSTOM_IMG_FILE not in self._data:
-                    self._data[CONF_UPS_CUSTOM_IMG_FILE] = DEFAULT_UPS_CUSTOM_IMG_FILE
-                if CONF_WALMART_CUSTOM_IMG_FILE not in self._data:
-                    self._data[CONF_WALMART_CUSTOM_IMG_FILE] = (
-                        DEFAULT_WALMART_CUSTOM_IMG_FILE
-                    )
-                if CONF_FEDEX_CUSTOM_IMG_FILE not in self._data:
-                    self._data[CONF_FEDEX_CUSTOM_IMG_FILE] = (
-                        DEFAULT_FEDEX_CUSTOM_IMG_FILE
-                    )
-                if CONF_GENERIC_CUSTOM_IMG_FILE not in self._data:
-                    self._data[CONF_GENERIC_CUSTOM_IMG_FILE] = (
-                        DEFAULT_GENERIC_CUSTOM_IMG_FILE
-                    )
+
                 return self.async_create_entry(
                     title=self._data[CONF_HOST], data=self._data
                 )
@@ -793,35 +736,6 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
-                # Ensure all custom image configurations are present with defaults
-                if CONF_AMAZON_CUSTOM_IMG not in self._data:
-                    self._data[CONF_AMAZON_CUSTOM_IMG] = DEFAULT_AMAZON_CUSTOM_IMG
-                if CONF_AMAZON_CUSTOM_IMG_FILE not in self._data:
-                    self._data[CONF_AMAZON_CUSTOM_IMG_FILE] = (
-                        DEFAULT_AMAZON_CUSTOM_IMG_FILE
-                    )
-                if CONF_UPS_CUSTOM_IMG not in self._data:
-                    self._data[CONF_UPS_CUSTOM_IMG] = DEFAULT_UPS_CUSTOM_IMG
-                if CONF_UPS_CUSTOM_IMG_FILE not in self._data:
-                    self._data[CONF_UPS_CUSTOM_IMG_FILE] = DEFAULT_UPS_CUSTOM_IMG_FILE
-                if CONF_WALMART_CUSTOM_IMG not in self._data:
-                    self._data[CONF_WALMART_CUSTOM_IMG] = DEFAULT_WALMART_CUSTOM_IMG
-                if CONF_WALMART_CUSTOM_IMG_FILE not in self._data:
-                    self._data[CONF_WALMART_CUSTOM_IMG_FILE] = (
-                        DEFAULT_WALMART_CUSTOM_IMG_FILE
-                    )
-                if CONF_FEDEX_CUSTOM_IMG not in self._data:
-                    self._data[CONF_FEDEX_CUSTOM_IMG] = DEFAULT_FEDEX_CUSTOM_IMG
-                if CONF_FEDEX_CUSTOM_IMG_FILE not in self._data:
-                    self._data[CONF_FEDEX_CUSTOM_IMG_FILE] = (
-                        DEFAULT_FEDEX_CUSTOM_IMG_FILE
-                    )
-                if CONF_GENERIC_CUSTOM_IMG not in self._data:
-                    self._data[CONF_GENERIC_CUSTOM_IMG] = DEFAULT_GENERIC_CUSTOM_IMG
-                if CONF_GENERIC_CUSTOM_IMG_FILE not in self._data:
-                    self._data[CONF_GENERIC_CUSTOM_IMG_FILE] = (
-                        DEFAULT_GENERIC_CUSTOM_IMG_FILE
-                    )
                 return self.async_create_entry(
                     title=self._data[CONF_HOST], data=self._data
                 )
@@ -928,9 +842,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_reconfig_3(user_input)
 
-    async def _show_reconfig_3(
-        self, user_input=None
-    ):  # pylint: disable=unused-argument
+    async def _show_reconfig_3(self, user_input=None):  # pylint: disable=unused-argument
         """Step 3 setup."""
         # Defaults
         defaults = {

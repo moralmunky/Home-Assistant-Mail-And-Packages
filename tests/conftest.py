@@ -1,17 +1,17 @@
 """Fixtures for Mail and Packages tests."""
 
-import asyncio
 import datetime
 import errno
 import imaplib
 import time
-from datetime import timezone
+from pathlib import Path
 from unittest import mock
 from unittest.mock import patch
 
-import aiohttp
 import pytest
 from aioresponses import aioresponses
+from homeassistant import loader
+from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import (
@@ -46,21 +46,15 @@ def auto_enable_custom_integrations(request):
         if "hass" in request.fixturenames:
             # Get the hass fixture value
             hass = request.getfixturevalue("hass")
-            # Only proceed if hass is actually a HomeAssistant instance, not an async_generator
-            from homeassistant.core import HomeAssistant
-
             if isinstance(hass, HomeAssistant):
-                from homeassistant import loader
-
                 # Enable custom integrations
                 hass.data.pop(loader.DATA_CUSTOM_COMPONENTS, None)
     except (AttributeError, TypeError, KeyError):
         # Skip for tests that don't need hass or if hass is not available
         pass
-    yield
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_update():
     """Mock email data update class values."""
     with patch(
@@ -84,7 +78,7 @@ async def integration_fixture(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    yield entry
+    return entry
 
 
 @pytest.fixture(name="integration_no_amazon")
@@ -100,7 +94,7 @@ async def integration_fixture_no_amazon(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    yield entry
+    return entry
 
 
 @pytest.fixture(name="integration_no_path")
@@ -113,7 +107,7 @@ async def integration_fixture_2(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    yield entry
+    return entry
 
 
 @pytest.fixture(name="integration_no_timeout")
@@ -129,7 +123,7 @@ async def integration_fixture_3(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    yield entry
+    return entry
 
 
 @pytest.fixture(name="integration_fwd_string")
@@ -146,11 +140,11 @@ async def integration_fixture_4(hass, caplog):
     await hass.async_block_till_done()
 
     assert "Migrating from version 3" in caplog.text
-    assert "Migration complete to version 13" in caplog.text
+    assert f"Migration complete to version {CONFIG_VER}" in caplog.text
 
     assert CONF_AMAZON_DOMAIN in entry.data
 
-    yield entry
+    return entry
 
 
 @pytest.fixture(name="integration_custom_img")
@@ -165,7 +159,7 @@ async def integration_fixture_5(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    yield entry
+    return entry
 
 
 @pytest.fixture(name="integration_fake_external")
@@ -180,7 +174,7 @@ async def integration_fixture_6(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    yield entry
+    return entry
 
 
 @pytest.fixture(name="integration_v4_migration")
@@ -196,7 +190,7 @@ async def integration_fixture_7(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    yield entry
+    return entry
 
 
 @pytest.fixture(name="integration_capost")
@@ -212,7 +206,7 @@ async def integration_fixture_8(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    yield entry
+    return entry
 
 
 @pytest.fixture(name="integration_forwarded_emails_no_amazon")
@@ -228,10 +222,10 @@ async def integration_fixture_9(hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    yield entry
+    return entry
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap():
     """Mock imap class values."""
     with patch("custom_components.mail_and_packages.helpers.imaplib") as mock_imap:
@@ -253,7 +247,7 @@ def mock_imap():
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_login_error():
     """Mock imap class values."""
     with patch(
@@ -262,12 +256,12 @@ def mock_imap_login_error():
         mock_conn = mock.Mock(autospec=imaplib.IMAP4_SSL)
         mock_imap_login_error.IMAP4_SSL.return_value = mock_conn
 
-        mock_conn.login.side_effect = Exception("Invalid username or password")
+        mock_conn.login.side_effect = OSError("Invalid username or password")
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_select_error():
     """Mock imap class values."""
     with patch(
@@ -285,12 +279,12 @@ def mock_imap_select_error():
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
 
-        mock_conn.select.side_effect = Exception("Invalid folder")
+        mock_conn.select.side_effect = OSError("Invalid folder")
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_list_error():
     """Mock imap class values."""
     with patch(
@@ -304,12 +298,12 @@ def mock_imap_list_error():
             [b"user@fake.email authenticated (Success)"],
         )
 
-        mock_conn.list.side_effect = Exception("List error")
+        mock_conn.list.side_effect = OSError("List error")
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_no_email():
     """Mock imap class values."""
     with patch(
@@ -334,7 +328,7 @@ def mock_imap_no_email():
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_duplicate_orders():
     """Mock imap class for Amazon duplicate order emails."""
     with patch("custom_components.mail_and_packages.helpers.imaplib") as mock_imap:
@@ -371,7 +365,7 @@ Content-Type: text/html; charset=UTF-8
 </body>
 </html>"""
                 return ("OK", [(b"", content.encode())])
-            elif email_id == "2":
+            if email_id == "2":
                 content = """From: auto-confirm@amazon.com
 To: test@example.com
 Subject: Delivered: Your Amazon.com order #113-4567890-1234567
@@ -393,7 +387,7 @@ Content-Type: text/html; charset=UTF-8
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_search_error():
     """Mock imap class values."""
     with patch(
@@ -410,13 +404,13 @@ def mock_imap_search_error():
             "OK",
             [b'(\\HasNoChildren) "/" "INBOX"'],
         )
-        mock_conn.search.side_effect = Exception("Invalid SEARCH format")
+        mock_conn.search.side_effect = OSError("Invalid SEARCH format")
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_fetch_error():
     """Mock imap class values."""
     with patch(
@@ -436,11 +430,11 @@ def mock_imap_fetch_error():
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
         mock_conn.select.return_value = ("OK", [])
-        mock_conn.fetch.side_effect = Exception("Invalid Email")
+        mock_conn.fetch.side_effect = OSError("Invalid Email")
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_index_error():
     """Mock imap class values."""
     with patch(
@@ -461,7 +455,7 @@ def mock_imap_index_error():
         yield mock_imap_index_error
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_index_error_2():
     """Mock imap class values."""
     with patch(
@@ -483,7 +477,7 @@ def mock_imap_index_error_2():
         yield mock_imap_index_error
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_mailbox_format2():
     """Mock imap class values."""
     with patch(
@@ -506,7 +500,7 @@ def mock_imap_mailbox_format2():
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_mailbox_format3():
     """Mock imap class values."""
     with patch(
@@ -529,7 +523,7 @@ def mock_imap_mailbox_format3():
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_usps_informed_digest():
     """Mock imap class values."""
     with patch(
@@ -548,15 +542,16 @@ def mock_imap_usps_informed_digest():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/informed_delivery.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/informed_delivery.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_usps_new_informed_digest():
     """Mock imap class values."""
     with patch(
@@ -575,15 +570,16 @@ def mock_imap_usps_new_informed_digest():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/new_informed_delivery.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/new_informed_delivery.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_usps_informed_digest_missing():
     """Mock imap class values."""
     with patch(
@@ -602,15 +598,16 @@ def mock_imap_usps_informed_digest_missing():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/informed_delivery_missing_mailpiece.eml", "r")
-        email_file = f.read()
+        email_file = Path(
+            "tests/test_emails/informed_delivery_missing_mailpiece.eml"
+        ).read_text(encoding="utf-8")
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_usps_informed_digest_no_mail():
     """Mock imap class values."""
     with patch(
@@ -629,15 +626,16 @@ def mock_imap_usps_informed_digest_no_mail():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/informed_delivery_no_mail.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/informed_delivery_no_mail.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_usps_mail_delivered():
     """Mock imap class values."""
     with patch(
@@ -656,15 +654,16 @@ def mock_imap_usps_mail_delivered():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/usps_mail_delivered.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/usps_mail_delivered.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_ups_out_for_delivery():
     """Mock imap class values."""
     with patch(
@@ -683,15 +682,16 @@ def mock_imap_ups_out_for_delivery():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/ups_out_for_delivery.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/ups_out_for_delivery.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_ups_out_for_delivery_html():
     """Mock imap class values."""
     with patch(
@@ -710,15 +710,16 @@ def mock_imap_ups_out_for_delivery_html():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/ups_out_for_delivery_new.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/ups_out_for_delivery_new.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_dhl_out_for_delivery():
     """Mock imap class values."""
     with patch(
@@ -737,8 +738,9 @@ def mock_imap_dhl_out_for_delivery():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/dhl_out_for_delivery.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/dhl_out_for_delivery.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.enable.return_value = ("OK", [])
@@ -746,7 +748,7 @@ def mock_imap_dhl_out_for_delivery():
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_dhl_no_utf8():
     """Mock imap class values."""
     with patch(
@@ -765,8 +767,9 @@ def mock_imap_dhl_no_utf8():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/dhl_out_for_delivery.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/dhl_out_for_delivery.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.enable.side_effect = Exception("BAD", ["Unsupported"])
@@ -774,7 +777,7 @@ def mock_imap_dhl_no_utf8():
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_fedex_out_for_delivery():
     """Mock imap class values."""
     with patch(
@@ -793,8 +796,9 @@ def mock_imap_fedex_out_for_delivery():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/fedex_out_for_delivery.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/fedex_out_for_delivery.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         mock_conn.enable.return_value = ("OK", [])
@@ -802,7 +806,7 @@ def mock_imap_fedex_out_for_delivery():
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_fedex_out_for_delivery_2():
     """Mock imap class values."""
     with patch(
@@ -821,15 +825,16 @@ def mock_imap_fedex_out_for_delivery_2():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/fedex_out_for_delivery_2.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/fedex_out_for_delivery_2.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_usps_out_for_delivery():
     """Mock imap class values."""
     with patch(
@@ -848,15 +853,16 @@ def mock_imap_usps_out_for_delivery():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/usps_out_for_delivery.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/usps_out_for_delivery.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_shipped():
     """Mock imap class values."""
     with patch(
@@ -875,15 +881,16 @@ def mock_imap_amazon_shipped():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_shipped.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/amazon_shipped.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_shipped_uk():
     """Mock imap class values."""
     with patch(
@@ -902,15 +909,16 @@ def mock_imap_amazon_shipped_uk():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_uk_shipped.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/amazon_uk_shipped.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_shipped_uk_2():
     """Mock imap class values."""
     with patch(
@@ -929,15 +937,16 @@ def mock_imap_amazon_shipped_uk_2():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_uk_shipped_2.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/amazon_uk_shipped_2.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_shipped_alt():
     """Mock imap class values."""
     with patch(
@@ -956,15 +965,16 @@ def mock_imap_amazon_shipped_alt():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_shipped_alt.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/amazon_shipped_alt.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_shipped_alt_2():
     """Mock imap class values."""
     with patch(
@@ -983,15 +993,16 @@ def mock_imap_amazon_shipped_alt_2():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_shipped_alt_2.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/amazon_shipped_alt_2.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_shipped_it():
     """Mock imap class values."""
     with patch(
@@ -1010,15 +1021,16 @@ def mock_imap_amazon_shipped_it():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_shipped_it.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/amazon_shipped_it.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_shipped_alt_timeformat():
     """Mock imap class values."""
     with patch(
@@ -1037,15 +1049,16 @@ def mock_imap_amazon_shipped_alt_timeformat():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_shipped_alt_timeformat.eml", "r")
-        email_file = f.read()
+        email_file = Path(
+            "tests/test_emails/amazon_shipped_alt_timeformat.eml"
+        ).read_text(encoding="utf-8")
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_delivered():
     """Mock imap class values."""
     with patch(
@@ -1064,15 +1077,16 @@ def mock_imap_amazon_delivered():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_delivered.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/amazon_delivered.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_delivered_it():
     """Mock imap class values."""
     with patch(
@@ -1091,15 +1105,16 @@ def mock_imap_amazon_delivered_it():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_delivered_it.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/amazon_delivered_it.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_the_hub():
     """Mock imap class values."""
     with patch(
@@ -1118,15 +1133,16 @@ def mock_imap_amazon_the_hub():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_hub_notice.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/amazon_hub_notice.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_the_hub_2():
     """Mock imap class values."""
     with patch(
@@ -1145,8 +1161,9 @@ def mock_imap_amazon_the_hub_2():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_hub_notice_2.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/amazon_hub_notice_2.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
@@ -1173,7 +1190,7 @@ def test_invalid_ffmpeg():
 def mock_copyfile_exception():
     """Fixture to mock copyfile."""
     with patch("custom_components.mail_and_packages.helpers.copyfile") as mock_copyfile:
-        mock_copyfile.side_effect = Exception("File not found")
+        mock_copyfile.side_effect = OSError("File not found")
         yield mock_copyfile
 
 
@@ -1219,6 +1236,13 @@ def mock_listdir_noimgs():
             "lastfile.txt",
         ]
         yield mock_listdir_noimgs
+
+
+@pytest.fixture
+def mock_pathunlink():
+    """Fixture to mock remove."""
+    with patch("pathlib.Path.unlink", autospec=True):
+        yield
 
 
 @pytest.fixture
@@ -1277,7 +1301,7 @@ def mock_update_time():
         "custom_components.mail_and_packages.helpers.update_time"
     ) as mock_update_time:
         mock_update_time.return_value = datetime.datetime(
-            2022, 1, 6, 12, 14, 38, tzinfo=timezone.utc
+            2022, 1, 6, 12, 14, 38, tzinfo=datetime.UTC
         ).isoformat(timespec="minutes")
         # mock_update_time.return_value = "2022-01-06T12:14:38+00:00"
         yield mock_update_time
@@ -1315,8 +1339,9 @@ def mock_image_save_excpetion():
 @pytest.fixture
 def mock_resizeimage():
     """Fixture to mock splitext."""
-    with patch("custom_components.mail_and_packages.helpers.Image"), patch(
-        "custom_components.mail_and_packages.helpers.ImageOps"
+    with (
+        patch("custom_components.mail_and_packages.helpers.Image"),
+        patch("custom_components.mail_and_packages.helpers.ImageOps"),
     ):
         yield
 
@@ -1375,17 +1400,19 @@ def mock_copy_overlays():
         yield mock_copy_overlays
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_download_img():
     """Mock email data update class values."""
     with patch(
-        "custom_components.mail_and_packages.helpers.download_img", autospec=True
+        "custom_components.mail_and_packages.helpers.download_img",
+        autospec=True,
+        new_callable=mock.AsyncMock,
     ) as mock_download_img:
         mock_download_img.return_value = True
         yield mock_download_img
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_hermes_out_for_delivery():
     """Mock imap class values."""
     with patch(
@@ -1404,15 +1431,16 @@ def mock_imap_hermes_out_for_delivery():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/hermes_out_for_delivery.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/hermes_out_for_delivery.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_evri_out_for_delivery():
     """Mock imap class values."""
     with patch(
@@ -1431,15 +1459,16 @@ def mock_imap_evri_out_for_delivery():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/evri_out_for_delivery.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/evri_out_for_delivery.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_royal_out_for_delivery():
     """Mock imap class values."""
     with patch(
@@ -1458,8 +1487,9 @@ def mock_imap_royal_out_for_delivery():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/royal_mail_uk_out_for_delivery.eml", "r")
-        email_file = f.read()
+        email_file = Path(
+            "tests/test_emails/royal_mail_uk_out_for_delivery.eml"
+        ).read_text(encoding="utf-8")
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
@@ -1470,7 +1500,8 @@ def mock_imap_royal_out_for_delivery():
 def mock_copyoverlays():
     """Fixture to mock copy_overlays."""
     with patch(
-        "custom_components.mail_and_packages.helpers.copy_overlays"
+        "custom_components.mail_and_packages.helpers.copy_overlays",
+        new_callable=mock.AsyncMock,
     ) as mock_copyoverlays:
         mock_copyoverlays.return_value = True
         yield mock_copyoverlays
@@ -1490,8 +1521,7 @@ def hash_side_effect(value):
     """Side effect value."""
     if "mail_none.gif" in value:
         return "633d7356947eec543c50b76a1852f92427f4dca9"
-    else:
-        return "133d7356947fec542c50b76b1856f92427f5dca9"
+    return "133d7356947fec542c50b76b1856f92427f5dca9"
 
 
 @pytest.fixture
@@ -1532,7 +1562,7 @@ def mock_getctime_err():
         yield mock_getctime_err
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_usps_exception():
     """Mock imap class values."""
     with patch(
@@ -1551,8 +1581,9 @@ def mock_imap_usps_exception():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/usps_exception.eml", "r")
-        email_file = f.read()
+        email_file = Path("tests/test_emails/usps_exception.eml").read_text(
+            encoding="utf-8"
+        )
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
@@ -1564,8 +1595,7 @@ def aioclient_mock():
     """Fixture to mock aioclient calls."""
     with aioresponses() as mock_aiohttp:
         mock_headers = {"content-type": "image/gif"}
-        f = open("tests/test_emails/mail_none.gif", "rb")
-        image_file = f.read()
+        image_file = Path("tests/test_emails/mail_none.gif").read_bytes()
         mock_aiohttp.get(
             "http://fake.website.com/not/a/real/website/image.jpg",
             status=200,
@@ -1581,8 +1611,8 @@ def aioclient_mock_error():
     """Fixture to mock aioclient calls."""
     with aioresponses() as mock_aiohttp:
         mock_headers = {"content-type": "image/gif"}
-        f = open("tests/test_emails/mail_none.gif", "rb")
-        image_file = f.read()
+        image_file = Path("tests/test_emails/mail_none.gif").read_bytes()
+
         mock_aiohttp.get(
             "http://fake.website.com/not/a/real/website/image.jpg",
             status=404,
@@ -1601,7 +1631,7 @@ def mock_copytree():
         yield mock_copytree
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_exception():
     """Mock imap class values."""
     with patch(
@@ -1620,15 +1650,18 @@ def mock_imap_amazon_exception():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_exception.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/amazon_exception.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_auspost_out_for_delivery():
     """Mock imap class values."""
     with patch(
@@ -1647,15 +1680,18 @@ def mock_imap_auspost_out_for_delivery():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/auspost_out_for_delivery.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/auspost_out_for_delivery.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_auspost_delivered():
     """Mock imap class values."""
     with patch(
@@ -1674,15 +1710,18 @@ def mock_imap_auspost_delivered():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/auspost_delivered.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/auspost_delivered.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_poczta_polska_delivering():
     """Mock imap class values."""
     with patch(
@@ -1701,15 +1740,18 @@ def mock_imap_poczta_polska_delivering():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/poczta_polska_delivering.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/poczta_polska_delivering.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_inpost_pl_out_for_delivery():
     """Mock imap class values."""
     with patch(
@@ -1728,15 +1770,18 @@ def mock_imap_inpost_pl_out_for_delivery():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/inpost_pl_out_for_delivery.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/inpost_pl_out_for_delivery.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_inpost_pl_delivered():
     """Mock imap class values."""
     with patch(
@@ -1755,15 +1800,18 @@ def mock_imap_inpost_pl_delivered():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/inpost_pl_delivered.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/inpost_pl_delivered.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_dpd_com_pl_delivering():
     """Mock imap class values."""
     with patch(
@@ -1782,15 +1830,18 @@ def mock_imap_dpd_com_pl_delivering():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/dpd_com_pl_delivering.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/dpd_com_pl_delivering.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_search_error_none():
     """Mock imap class values."""
     with patch(
@@ -1813,7 +1864,7 @@ def mock_imap_search_error_none():
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_fwd():
     """Mock imap class values."""
     with patch(
@@ -1832,15 +1883,18 @@ def mock_imap_amazon_fwd():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_fwd.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/amazon_fwd.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_update_amazon_image():
     """Mock email data update class values."""
     with patch(
@@ -1851,7 +1905,7 @@ def mock_update_amazon_image():
         yield mock_update
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_otp():
     """Mock imap class values."""
     with patch("custom_components.mail_and_packages.helpers.imaplib") as mock_imap:
@@ -1868,14 +1922,17 @@ def mock_imap_amazon_otp():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_otp.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/amazon_otp.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_capost_mail():
     """Mock imap class values."""
     with patch(
@@ -1894,15 +1951,18 @@ def mock_imap_capost_mail():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/capost_mail.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/capost_mail.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_ups_delivered():
     """Mock imap class values."""
     with patch(
@@ -1921,15 +1981,18 @@ def mock_imap_ups_delivered():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/ups_delivered.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/ups_delivered.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_ups_delivered_with_photo():
     """Mock imap class values for UPS delivered with photo."""
     with patch(
@@ -1948,15 +2011,18 @@ def mock_imap_ups_delivered_with_photo():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/ups_delivered_with_photo.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/ups_delivered_with_photo.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_usps_delivered_individual():
     """Mock imap class values."""
     with patch(
@@ -1975,15 +2041,18 @@ def mock_imap_usps_delivered_individual():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/usps_delivered.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/usps_delivered.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_arriving_today():
     """Mock imap class values."""
     with patch(
@@ -2002,15 +2071,18 @@ def mock_imap_amazon_arriving_today():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_out_for_delivery_today.eml", "r")
-        email_file = f.read()
+
+        email_file = Path(
+            "tests/test_emails/amazon_out_for_delivery_today.eml"
+        ).read_text(encoding="utf-8")
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_amazon_arriving_tomorrow():
     """Mock imap class values for Amazon arriving tomorrow email."""
     with patch(
@@ -2029,15 +2101,18 @@ def mock_imap_amazon_arriving_tomorrow():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/amazon_arriving_today2.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/amazon_arriving_today2.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_walmart_delivered_with_photo():
     """Mock imap class values for Walmart delivered with photo."""
     with patch(
@@ -2056,15 +2131,18 @@ def mock_imap_walmart_delivered_with_photo():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/walmart_delivered.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/walmart_delivered.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_fedex_delivered_with_photo():
     """Mock imap class values for FedEx delivered with photo."""
     with patch(
@@ -2083,15 +2161,18 @@ def mock_imap_fedex_delivered_with_photo():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/fedex_delivered.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/fedex_delivered.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_walmart_delivering():
     """Mock imap class values for Walmart delivering."""
     with patch(
@@ -2110,15 +2191,18 @@ def mock_imap_walmart_delivering():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/walmart_delivery.eml", "r")
-        email_file = f.read()
+
+        email_file = Path("tests/test_emails/walmart_delivery.eml").read_text(
+            encoding="utf-8"
+        )
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 
         yield mock_conn
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_imap_informed_delivery_forwarded_email():
     """Mock imap class values."""
     with patch(
@@ -2137,8 +2221,11 @@ def mock_imap_informed_delivery_forwarded_email():
         )
         mock_conn.search.return_value = ("OK", [b"1"])
         mock_conn.uid.return_value = ("OK", [b"1"])
-        f = open("tests/test_emails/informed_delivery_forwarded_email.eml", "r")
-        email_file = f.read()
+
+        email_file = Path(
+            "tests/test_emails/informed_delivery_forwarded_email.eml"
+        ).read_text(encoding="utf-8")
+
         mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
         mock_conn.select.return_value = ("OK", [])
 

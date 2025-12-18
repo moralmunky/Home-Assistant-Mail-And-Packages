@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-"""
-Make sure you change the parameters - username, password, mailbox,
+"""Make sure you change the parameters - username, password, mailbox,
 paths and options.
 Based on @skalavala work at https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 """
@@ -11,9 +10,7 @@ import email
 import imaplib
 import os
 import re
-import subprocess
 import sys
-import time
 from datetime import timedelta
 from shutil import copyfile
 
@@ -39,7 +36,7 @@ FEDEX_Delivered_Subject = "Your package has been delivered"
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 GIF_FILE_NAME = "mail_today_test.gif"
-IMG_RESIZE_OPTIONS = "convert -resize 700x315\> "
+IMG_RESIZE_OPTIONS = r"convert -resize 700x315\> "
 GIF_MAKER_OPTIONS = (
     "convert -delay 300 -loop 0 -coalesce -fill white -dispose Background "
 )
@@ -102,7 +99,7 @@ def get_mails(account):
     images = []
     imagesDelete = []
 
-    print("Attempting to find Informed Delivery mail for {}".format(str(today)))
+    print(f"Attempting to find Informed Delivery mail for {today!s}")
 
     # Check the mail piece for mail images
     rv, data = account.search(
@@ -120,7 +117,7 @@ def get_mails(account):
     messageIDsString = str(data[0], encoding="utf8")
     listOfSplitStrings = messageIDsString.split(" ")
     msg_count = len(listOfSplitStrings)
-    print("Found emails: {}\n".format(str(msg_count)))
+    print(f"Found emails: {msg_count!s}\n")
 
     if rv == "OK":
         for num in data[0].split():
@@ -135,7 +132,7 @@ def get_mails(account):
                     continue
 
                 filepath = image_output_path + part.get_filename()
-                print("Image found: {}.".format(str(filepath)))
+                print(f"Image found: {filepath!s}.")
                 fp = open(filepath, "wb")
                 fp.write(part.get_payload(decode=True))
                 images.append(filepath)
@@ -144,7 +141,7 @@ def get_mails(account):
                 image_count = image_count + 1
                 fp.close()
 
-        print("Total mages found in email: {}. \n".format(str(image_count)))
+        print(f"Total mages found in email: {image_count!s}. \n")
 
         # Remove duplicate images
         print("Removing duplicate images.")
@@ -157,7 +154,7 @@ def get_mails(account):
         print("\n")
 
         image_count = len(images)
-        print("Found {} unique images total to generate gif.".format(str(image_count)))
+        print(f"Found {image_count!s} unique images total to generate gif.")
         print(*images, sep="\n")
         print("\n")
 
@@ -169,7 +166,7 @@ def get_mails(account):
         ]
         image_count = len(images)
 
-        print("Found {} mail images total to generate gif.".format(str(image_count)))
+        print(f"Found {image_count!s} mail images total to generate gif.")
         print(*images, sep="\n")
         print("\n")
 
@@ -195,7 +192,7 @@ def get_mails(account):
             try:
                 os.system(IMG_RESIZE_OPTIONS + image + " " + image)
             except Exception as err:
-                print("Error attempting to resize images: {}".format(str(err)))
+                print(f"Error attempting to resize images: {err!s}")
 
         # Combine images into GIF
         for image in images:
@@ -207,15 +204,15 @@ def get_mails(account):
             print("GIF of mail images generated.\n")
 
         except Exception as err:
-            print("Error attempting to generate image: {}".format(str(err)))
+            print(f"Error attempting to generate image: {err!s}")
 
         print("Deleting temporary images.")
         for image in imagesDelete:
             try:
                 os.remove(image)
-                print("Removed image: {}.".format(str(image)))
+                print(f"Removed image: {image!s}.")
             except Exception as err:
-                print("Error attempting to remove image: {}".format(str(err)))
+                print(f"Error attempting to remove image: {err!s}")
 
         print("\n")
 
@@ -224,14 +221,14 @@ def get_mails(account):
             os.remove(image_output_path + GIF_FILE_NAME)
             print("No mail GIF generated.\n")
         except Exception as err:
-            print("Error attempting to remove image: {}".format(str(err)))
+            print(f"Error attempting to remove image: {err!s}")
 
         try:
             copyfile(
                 image_output_path + "mail_none.gif", image_output_path + GIF_FILE_NAME
             )
         except Exception as err:
-            print("Error attempting to copy image: {}".format(str(err)))
+            print(f"Error attempting to copy image: {err!s}")
         print("\n")
 
         return image_count
@@ -262,7 +259,7 @@ def get_count(account, email, subject):
 def MailCheck():
 
     updated = update_time()
-    print("Update Time '{}'".format(updated))
+    print(f"Update Time '{updated}'")
 
 
 def USPS_Mail():
@@ -270,12 +267,12 @@ def USPS_Mail():
     account = login()
     selectfolder(account, folder)
     count = get_mails(account)
-    print("USPS Mail 1/4: Found '{}' mail pieces being delivered".format(count))
+    print(f"USPS Mail 1/4: Found '{count}' mail pieces being delivered")
 
     account = login()
     selectfolder(account, folder)
     count = get_count(account, USPS_Email, USPS_Mail_Subject)
-    print("USPS Mail 2/4: Found '{}' USPS emails".format(count))
+    print(f"USPS Mail 2/4: Found '{count}' USPS emails")
 
 
 def USPS_Delivering():
@@ -283,7 +280,7 @@ def USPS_Delivering():
     account = login()
     selectfolder(account, folder)
     count = get_count(account, USPS_Email, USPS_Delivering_Subject)
-    print("USPS 3/4: Found '{}' USPS packages delivering".format(count))
+    print(f"USPS 3/4: Found '{count}' USPS packages delivering")
 
 
 def USPS_Delivered():
@@ -291,7 +288,7 @@ def USPS_Delivered():
     account = login()
     selectfolder(account, folder)
     count = get_count(account, USPS_Email, USPS_Delivered_Subject)
-    print("USPS 4/4: Found '{}' USPS packages delivered".format(count))
+    print(f"USPS 4/4: Found '{count}' USPS packages delivered")
 
 
 def UPS_Delivering():
@@ -299,7 +296,7 @@ def UPS_Delivering():
     account = login()
     selectfolder(account, folder)
     count = get_count(account, UPS_Email, UPS_Delivering_Subject)
-    print("UPS 1/2: Found '{}' UPS packages delivering".format(count))
+    print(f"UPS 1/2: Found '{count}' UPS packages delivering")
 
 
 def UPS_Delivered():
@@ -307,7 +304,7 @@ def UPS_Delivered():
     account = login()
     selectfolder(account, folder)
     count = get_count(account, UPS_Email, UPS_Delivered_Subject)
-    print("UPS 2/2: Found '{}' UPS packages delivered".format(count))
+    print(f"UPS 2/2: Found '{count}' UPS packages delivered")
 
 
 def FEDEX_Delivering():
@@ -315,7 +312,7 @@ def FEDEX_Delivering():
     account = login()
     selectfolder(account, folder)
     count = get_count(account, FEDEX_Email, FEDEX_Delivering_Subject)
-    print("FEDEX 1/2: Found '{}' FedEx packages delivering".format(count))
+    print(f"FEDEX 1/2: Found '{count}' FedEx packages delivering")
 
 
 def FEDEX_Delivered():
@@ -323,7 +320,7 @@ def FEDEX_Delivered():
     account = login()
     selectfolder(account, folder)
     count = get_count(account, FEDEX_Email, FEDEX_Delivered_Subject)
-    print("FEDEX 2/2: Found '{}' FedEx packages delivered".format(count))
+    print(f"FEDEX 2/2: Found '{count}' FedEx packages delivered")
 
 
 # Primary logic for the component starts here

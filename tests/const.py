@@ -23,7 +23,6 @@ from custom_components.mail_and_packages.const import (
     DEFAULT_WALMART_CUSTOM_IMG_FILE,
 )
 
-
 # Default custom image keys that are automatically added by config flow and async_setup_entry
 # These should be included in test expected data dictionaries
 DEFAULT_CUSTOM_IMAGE_DATA = {

@@ -4,6 +4,7 @@ import asyncio
 import logging
 import os
 from datetime import timedelta
+from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
@@ -38,16 +39,11 @@ from .const import (
     CONF_WALMART_CUSTOM_IMG_FILE,
     CONFIG_VER,
     COORDINATOR,
-    DEFAULT_AMAZON_CUSTOM_IMG,
     DEFAULT_AMAZON_CUSTOM_IMG_FILE,
     DEFAULT_AMAZON_DAYS,
-    DEFAULT_FEDEX_CUSTOM_IMG,
     DEFAULT_FEDEX_CUSTOM_IMG_FILE,
-    DEFAULT_GENERIC_CUSTOM_IMG,
     DEFAULT_GENERIC_CUSTOM_IMG_FILE,
-    DEFAULT_UPS_CUSTOM_IMG,
     DEFAULT_UPS_CUSTOM_IMG_FILE,
-    DEFAULT_WALMART_CUSTOM_IMG,
     DEFAULT_WALMART_CUSTOM_IMG_FILE,
     DOMAIN,
     ISSUE_URL,
@@ -59,9 +55,7 @@ from .helpers import default_image_path, hash_file, process_emails
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(
-    hass: HomeAssistant, config_entry: ConfigEntry
-):  # pylint: disable=unused-argument
+async def async_setup(hass: HomeAssistant, config_entry: ConfigEntry):  # pylint: disable=unused-argument
     """Disallow configuration via YAML."""
     return True
 
@@ -78,31 +72,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Sort the resources
     updated_config[CONF_RESOURCES] = sorted(updated_config[CONF_RESOURCES])
-
-    if CONF_PATH not in updated_config:
-        updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
-
-    # Set default custom image configurations if missing
-    if CONF_AMAZON_CUSTOM_IMG not in updated_config:
-        updated_config[CONF_AMAZON_CUSTOM_IMG] = DEFAULT_AMAZON_CUSTOM_IMG
-    if CONF_AMAZON_CUSTOM_IMG_FILE not in updated_config:
-        updated_config[CONF_AMAZON_CUSTOM_IMG_FILE] = DEFAULT_AMAZON_CUSTOM_IMG_FILE
-    if CONF_UPS_CUSTOM_IMG not in updated_config:
-        updated_config[CONF_UPS_CUSTOM_IMG] = DEFAULT_UPS_CUSTOM_IMG
-    if CONF_UPS_CUSTOM_IMG_FILE not in updated_config:
-        updated_config[CONF_UPS_CUSTOM_IMG_FILE] = DEFAULT_UPS_CUSTOM_IMG_FILE
-    if CONF_WALMART_CUSTOM_IMG not in updated_config:
-        updated_config[CONF_WALMART_CUSTOM_IMG] = DEFAULT_WALMART_CUSTOM_IMG
-    if CONF_WALMART_CUSTOM_IMG_FILE not in updated_config:
-        updated_config[CONF_WALMART_CUSTOM_IMG_FILE] = DEFAULT_WALMART_CUSTOM_IMG_FILE
-    if CONF_FEDEX_CUSTOM_IMG not in updated_config:
-        updated_config[CONF_FEDEX_CUSTOM_IMG] = DEFAULT_FEDEX_CUSTOM_IMG
-    if CONF_FEDEX_CUSTOM_IMG_FILE not in updated_config:
-        updated_config[CONF_FEDEX_CUSTOM_IMG_FILE] = DEFAULT_FEDEX_CUSTOM_IMG_FILE
-    if CONF_GENERIC_CUSTOM_IMG not in updated_config:
-        updated_config[CONF_GENERIC_CUSTOM_IMG] = DEFAULT_GENERIC_CUSTOM_IMG
-    if CONF_GENERIC_CUSTOM_IMG_FILE not in updated_config:
-        updated_config[CONF_GENERIC_CUSTOM_IMG_FILE] = DEFAULT_GENERIC_CUSTOM_IMG_FILE
 
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(config_entry, data=updated_config)
@@ -161,7 +130,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
     return unload_ok
 
 
-async def async_migrate_entry(hass, config_entry):
+async def async_migrate_entry(hass, config_entry):  # noqa: C901
     """Migrate an old config entry."""
     version = config_entry.version
     new_version = CONFIG_VER
@@ -171,7 +140,7 @@ async def async_migrate_entry(hass, config_entry):
 
     # 1 -> 4: Migrate format
     if version == 1:
-        if CONF_AMAZON_FWDS in updated_config.keys():
+        if CONF_AMAZON_FWDS in updated_config:
             if not isinstance(updated_config[CONF_AMAZON_FWDS], list):
                 updated_config[CONF_AMAZON_FWDS] = [
                     x.strip() for x in updated_config[CONF_AMAZON_FWDS].split(",")
@@ -225,81 +194,43 @@ async def async_migrate_entry(hass, config_entry):
         if CONF_AMAZON_DOMAIN not in updated_config:
             updated_config[CONF_AMAZON_DOMAIN] = "amazon.com"
 
-    if version < 10:
-        # Add default for image storage config
-        if CONF_STORAGE not in updated_config:
-            updated_config[CONF_STORAGE] = "custom_components/mail_and_packages/images/"
-
-    if version < 11:
-        # Add default custom image configurations
-        if CONF_AMAZON_CUSTOM_IMG not in updated_config:
-            updated_config[CONF_AMAZON_CUSTOM_IMG] = False
-        if CONF_AMAZON_CUSTOM_IMG_FILE not in updated_config:
-            updated_config[CONF_AMAZON_CUSTOM_IMG_FILE] = (
-                "custom_components/mail_and_packages/no_deliveries_amazon.jpg"
-            )
-        if CONF_UPS_CUSTOM_IMG not in updated_config:
-            updated_config[CONF_UPS_CUSTOM_IMG] = False
-        if CONF_UPS_CUSTOM_IMG_FILE not in updated_config:
-            updated_config[CONF_UPS_CUSTOM_IMG_FILE] = (
-                "custom_components/mail_and_packages/no_deliveries_ups.jpg"
-            )
-
-    if version < 12:
-        # Add default Walmart and Generic custom image configurations
-        if CONF_WALMART_CUSTOM_IMG not in updated_config:
-            updated_config[CONF_WALMART_CUSTOM_IMG] = False
-        if CONF_WALMART_CUSTOM_IMG_FILE not in updated_config:
-            updated_config[CONF_WALMART_CUSTOM_IMG_FILE] = (
-                "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
-            )
-        if CONF_GENERIC_CUSTOM_IMG not in updated_config:
-            updated_config[CONF_GENERIC_CUSTOM_IMG] = False
-        if CONF_GENERIC_CUSTOM_IMG_FILE not in updated_config:
-            updated_config[CONF_GENERIC_CUSTOM_IMG_FILE] = (
-                "custom_components/mail_and_packages/no_deliveries_generic.jpg"
-            )
-
-    if version <= 13:
-        # Add default FedEx and Generic custom image configurations
-        if CONF_FEDEX_CUSTOM_IMG not in updated_config:
-            updated_config[CONF_FEDEX_CUSTOM_IMG] = False
-        if CONF_FEDEX_CUSTOM_IMG_FILE not in updated_config:
-            updated_config[CONF_FEDEX_CUSTOM_IMG_FILE] = (
-                "custom_components/mail_and_packages/no_deliveries_fedex.jpg"
-            )
-        if CONF_GENERIC_CUSTOM_IMG not in updated_config:
-            updated_config[CONF_GENERIC_CUSTOM_IMG] = False
-        if CONF_GENERIC_CUSTOM_IMG_FILE not in updated_config:
-            updated_config[CONF_GENERIC_CUSTOM_IMG_FILE] = (
-                "custom_components/mail_and_packages/no_deliveries_generic.jpg"
-            )
-
-    # Ensure all custom image file fields are present (regardless of version)
-    # This handles cases where configs might be missing these fields
-    if CONF_AMAZON_CUSTOM_IMG_FILE not in updated_config:
-        updated_config[CONF_AMAZON_CUSTOM_IMG_FILE] = (
-            "custom_components/mail_and_packages/no_deliveries_amazon.jpg"
-        )
-    if CONF_UPS_CUSTOM_IMG_FILE not in updated_config:
-        updated_config[CONF_UPS_CUSTOM_IMG_FILE] = (
-            "custom_components/mail_and_packages/no_deliveries_ups.jpg"
-        )
-    if CONF_WALMART_CUSTOM_IMG_FILE not in updated_config:
-        updated_config[CONF_WALMART_CUSTOM_IMG_FILE] = (
-            "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
-        )
-    if CONF_FEDEX_CUSTOM_IMG_FILE not in updated_config:
-        updated_config[CONF_FEDEX_CUSTOM_IMG_FILE] = (
-            "custom_components/mail_and_packages/no_deliveries_fedex.jpg"
-        )
-    if CONF_GENERIC_CUSTOM_IMG_FILE not in updated_config:
-        updated_config[CONF_GENERIC_CUSTOM_IMG_FILE] = (
-            "custom_components/mail_and_packages/no_deliveries_generic.jpg"
-        )
+    # Require configs on all migration paths
 
     if CONF_PATH not in updated_config:
         updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
+
+    if CONF_RESOURCES not in updated_config:
+        updated_config[CONF_RESOURCES] = []
+
+    # Add default for image storage config
+    if CONF_STORAGE not in updated_config:
+        updated_config[CONF_STORAGE] = "custom_components/mail_and_packages/images/"
+
+    # Add default custom image configurations
+    if CONF_AMAZON_CUSTOM_IMG not in updated_config:
+        updated_config[CONF_AMAZON_CUSTOM_IMG] = False
+    if CONF_AMAZON_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_AMAZON_CUSTOM_IMG_FILE] = DEFAULT_AMAZON_CUSTOM_IMG_FILE
+    if CONF_UPS_CUSTOM_IMG not in updated_config:
+        updated_config[CONF_UPS_CUSTOM_IMG] = False
+    if CONF_UPS_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_UPS_CUSTOM_IMG_FILE] = DEFAULT_UPS_CUSTOM_IMG_FILE
+
+    # Add default Walmart and Generic custom image configurations
+    if CONF_WALMART_CUSTOM_IMG not in updated_config:
+        updated_config[CONF_WALMART_CUSTOM_IMG] = False
+    if CONF_WALMART_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_WALMART_CUSTOM_IMG_FILE] = DEFAULT_WALMART_CUSTOM_IMG_FILE
+    if CONF_GENERIC_CUSTOM_IMG not in updated_config:
+        updated_config[CONF_GENERIC_CUSTOM_IMG] = False
+    if CONF_GENERIC_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_GENERIC_CUSTOM_IMG_FILE] = DEFAULT_GENERIC_CUSTOM_IMG_FILE
+
+    # Add default FedEx
+    if CONF_FEDEX_CUSTOM_IMG not in updated_config:
+        updated_config[CONF_FEDEX_CUSTOM_IMG] = False
+    if CONF_FEDEX_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_FEDEX_CUSTOM_IMG_FILE] = DEFAULT_FEDEX_CUSTOM_IMG_FILE
 
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(
@@ -343,9 +274,10 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             file_hash = await self.hass.async_add_executor_job(hash_file, file_path)
             self._file_mtime_cache[file_path] = mtime
             self._hash_cache[file_path] = file_hash
-            return file_hash
         except OSError:
             return None
+        else:
+            return file_hash
 
     async def _async_update_data(self):
         """Fetch data."""
@@ -371,11 +303,10 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             image = self._data[ATTR_IMAGE_NAME]
             path = default_image_path(self.hass, self.config)
             usps_image = f"{path}/{image}"
-            usps_none = f"{os.path.dirname(__file__)}/mail_none.gif"
-            usps_check = os.path.exists(usps_image)
+            usps_none = f"{Path(__file__).parent}/mail_none.gif"
+            usps_check = Path(usps_image).exists()
             _LOGGER.debug("USPS Check: %s", usps_check)
             if usps_check:
-
                 # Optimized: Use _get_file_hash_if_changed
                 image_hash = await self._get_file_hash_if_changed(usps_image)
                 none_hash = await self._get_file_hash_if_changed(usps_none)
@@ -434,10 +365,10 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                     none_image = self.config.get(custom_img_file_key)
                 else:
                     none_image = (
-                        f"{os.path.dirname(__file__)}/no_deliveries_{base_name}.jpg"
+                        f"{Path(__file__).parent}/no_deliveries_{base_name}.jpg"
                     )
 
-                image_check = os.path.exists(delivery_image)
+                image_check = Path(delivery_image).exists()
                 _LOGGER.debug("%s Check: %s", base_name.title(), image_check)
                 if image_check:
                     # Optimized: Use _get_file_hash_if_changed

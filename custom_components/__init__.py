@@ -1,1 +1,1 @@
-"""File for tests"""
+"""File for tests."""

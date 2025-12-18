@@ -1,7 +1,5 @@
 """Test Mail and Packages binary sensors."""
 
-from unittest.mock import patch
-
 import pytest
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -14,6 +12,7 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_USPS_DELIVERED
 async def test_binary_sensor_no_updates(
     hass, mock_imap_no_email, entity_registry: er.EntityRegistry
 ):
+    """Test binary sensor no updates."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
@@ -92,6 +91,7 @@ async def test_binary_sensor_no_updates(
 async def test_binary_sensor_mail_delivered(
     hass, mock_imap_usps_mail_delivered, entity_registry: er.EntityRegistry, caplog
 ):
+    """Test binary_sensor mail delivered."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
@@ -173,7 +173,6 @@ def hash_side_effect(value):
     """Side effect value."""
     if "mail_none.gif" in value:
         return "633d7356947eec543c50b76a1852f92427f4dca9"
-    elif "no_deliveries.jpg" in value:
+    if "no_deliveries.jpg" in value:
         return "633d7356947ffc643c50b76a1852f92427f4dca9"
-    else:
-        return "133d7356947fec542c50b76b1856f92427f5dca9"
+    return "133d7356947fec542c50b76b1856f92427f5dca9"
