@@ -3967,11 +3967,14 @@ async def test_email_search_timeout(caplog):
     assert "Error searching emails" in caplog.text
 
 
-def test_login_network_error(caplog):
+@pytest.mark.asyncio
+async def test_login_network_error(caplog):
     """Test login failure due to network error."""
     with patch("imaplib.IMAP4_SSL", side_effect=OSError("Network unreachable")):
         result = login("host", 993, "user", "pwd", "SSL", True)
         assert result is False
+        result_bool = await _test_login("host", 993, "user", "pwd", "SSL", True)
+        assert not result_bool
         assert "Network error while connecting to server" in caplog.text
 
 
