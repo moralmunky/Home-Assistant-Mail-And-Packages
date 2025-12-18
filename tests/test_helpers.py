@@ -1425,6 +1425,7 @@ async def test_connection_error(caplog):
 async def test_login_error(mock_imap_login_error, caplog):
     """Test handling of errors during IMAP login."""
     login("localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
+    await _test_login("localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
     assert (
         "Error logging into IMAP Server:" in caplog.text
         or "Error connecting into IMAP Server:" in caplog.text
