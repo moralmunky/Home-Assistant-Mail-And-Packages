@@ -3207,6 +3207,7 @@ async def test_login_starttls_security():
         # Should return the mock account
         assert result == mock_account
         mock_account.starttls.assert_called_once()
+        await _test_login("imap.test.com", 993, "user", "pass", "startTLS", True)
 
 
 async def test_login_no_ssl_security():
