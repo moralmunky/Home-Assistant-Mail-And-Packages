@@ -260,13 +260,20 @@ async def _validate_user_input(user_input: dict) -> tuple:
     return errors, user_input
 
 
-def _get_mailboxes(
+async def _get_mailboxes(
     host: str, port: int, user: str, pwd: str, security: str, verify: bool
 ) -> list:
     """Get list of mailbox folders from mail server."""
-    account = login(host, port, user, pwd, security, verify)
+    account = await login(host, port, user, pwd, security, verify)
 
-    status, folderlist = account.list()
+    if isinstance(account, bool):
+        _LOGGER.error("Problem logging in to mailbox.")
+        return []
+
+    result = await account.list()
+    status = result.result
+    folderlist = result.lines
+    _LOGGER.debug("Get mailbox status: %s folder list: %s", status, folderlist)
     mailboxes = []
     if status != "OK":
         _LOGGER.error("Error listing mailboxes ... using default")
@@ -284,6 +291,9 @@ def _get_mailboxes(
             except (ValueError, UnicodeError) as err:
                 _LOGGER.error("%s: %s", ERROR_MAILBOX_FAIL, err)
                 mailboxes.append(DEFAULT_FOLDER)
+        except (AttributeError, TypeError):
+            _LOGGER.error("Problem reading mailbox folders, using default.")
+            mailboxes.append(DEFAULT_FOLDER)
 
     return mailboxes
 
@@ -313,7 +323,7 @@ def _get_schema_step_1(user_input: list, default_dict: list) -> Any:
     )
 
 
-def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
+async def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
     """Get a schema using the default_dict as a backup."""
     if user_input is None:
         user_input = {}
@@ -325,7 +335,7 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
     return vol.Schema(
         {
             vol.Required(CONF_FOLDER, default=_get_default(CONF_FOLDER)): vol.In(
-                _get_mailboxes(
+                await _get_mailboxes(
                     data[CONF_HOST],
                     data[CONF_PORT],
                     data[CONF_USERNAME],
@@ -626,7 +636,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="config_2",
-            data_schema=_get_schema_step_2(self._data, user_input, defaults),
+            data_schema=await _get_schema_step_2(self._data, user_input, defaults),
             errors=self._errors,
         )
 
@@ -825,7 +835,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Step 2 setup."""
         return self.async_show_form(
             step_id="reconfig_2",
-            data_schema=_get_schema_step_2(self._data, user_input, self._data),
+            data_schema=await _get_schema_step_2(self._data, user_input, self._data),
             errors=self._errors,
         )
 

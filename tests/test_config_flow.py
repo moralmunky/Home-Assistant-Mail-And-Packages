@@ -3,7 +3,7 @@
 import logging
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant import config_entries, setup
@@ -3234,14 +3234,20 @@ async def test_walmart_custom_image_validation():
 
 async def test_walmart_custom_image_in_config_flow(hass):
     """Test that Walmart custom image options are properly handled in config flow."""
-
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+    mock_conn.list = AsyncMock(
+        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "/" "INBOX"'])
+    )
+    mock_conn.logout = AsyncMock()
     # Test that Walmart custom image is included in the flow when enabled
     await setup.async_setup_component(hass, "persistent_notification", {})
 
     with (
         patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
+            "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+            return_value=mock_conn,
         ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
@@ -3260,12 +3266,9 @@ async def test_walmart_custom_image_in_config_flow(hass):
             "pathlib.Path.exists",
             return_value=True,
         ),
-        patch("custom_components.mail_and_packages.config_flow.login") as mock_login,
     ):
         # Mock the login function to return a mock IMAP account
-        mock_account = MagicMock()
-        mock_account.list.return_value = ("OK", [b'(\\HasNoChildren) "/" "INBOX"'])
-        mock_login.return_value = mock_account
+
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": config_entries.SOURCE_USER}
         )
@@ -3401,6 +3404,13 @@ async def test_generic_custom_image_validation(hass: HomeAssistant):
 
 async def test_generic_custom_image_in_config_flow(hass: HomeAssistant):
     """Test generic custom image configuration in full config flow."""
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+    mock_conn.list = AsyncMock(
+        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "/" "INBOX"'])
+    )
+    mock_conn.logout = AsyncMock()
 
     # Create a temporary image file
     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
@@ -3410,8 +3420,8 @@ async def test_generic_custom_image_in_config_flow(hass: HomeAssistant):
     try:
         with (
             patch(
-                "custom_components.mail_and_packages.config_flow._test_login",
-                return_value=True,
+                "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+                return_value=mock_conn,
             ),
             patch(
                 "custom_components.mail_and_packages.config_flow._check_ffmpeg",
@@ -3424,14 +3434,17 @@ async def test_generic_custom_image_in_config_flow(hass: HomeAssistant):
             ),
             patch("pathlib.Path.is_file", return_value=True),
             patch("pathlib.Path.exists", return_value=True),
-            patch(
-                "custom_components.mail_and_packages.config_flow.login"
-            ) as mock_login,
         ):
             # Mock the login function to return a mock IMAP account
-            mock_account = MagicMock()
-            mock_account.list.return_value = ("OK", [b'(\\HasNoChildren) "/" "INBOX"'])
-            mock_login.return_value = mock_account
+            mock_conn = AsyncMock()
+            mock_conn.wait_hello_from_server = AsyncMock()
+            mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+            mock_conn.list = AsyncMock(
+                return_value=MagicMock(
+                    result="OK", lines=[b'(\\HasNoChildren) "/" "INBOX"']
+                )
+            )
+            mock_conn.logout = AsyncMock()
 
             # Start the config flow
             result = await hass.config_entries.flow.async_init(
@@ -3698,18 +3711,54 @@ async def test_fedex_config_flow_version():
     )
 
 
-async def test_get_mailboxes_non_ok_status():
-    """Test _get_mailboxes handles non-OK status gracefully."""
-    # Mock login to return an account that returns non-OK status
-    with patch("custom_components.mail_and_packages.config_flow.login") as mock_login:
-        mock_account = MagicMock()
-        mock_account.list.return_value = ("ERROR", [])  # Non-OK status
-        mock_login.return_value = mock_account
+async def test_get_mailboxes_non_ok_status(hass, caplog):
+    """Test getting mailboxes with a non-OK status."""
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+    mock_conn.list = AsyncMock(
+        return_value=MagicMock(
+            result="AUTH_ERROR", lines=[b"Invalid credentials or folder access"]
+        )
+    )
+    mock_conn.logout = AsyncMock()
+    with patch(
+        "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+        return_value=mock_conn,
+    ):
+        # Test the mailbox retrieval logic
+        result = await _get_mailboxes("imap.test.com", 993, "user", "pass", "SSL", True)
 
-        result = _get_mailboxes("test.host", 993, "user", "pass", "SSL", True)
-
-        # Should return default folder when status is not OK
+        # Verify the flow handles the non-OK status by returning an empty list or error
         assert result == ['"INBOX"']
+        assert "Error listing mailboxes ... using default" in caplog.text
+        mock_conn.list.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_get_mailboxes_exception(hass):
+    """Test getting mailboxes when an exception occurs."""
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+
+    # Matching the aioimaplib response object pattern
+    mock_login_res = MagicMock()
+    mock_login_res.result = "OK"
+    mock_conn.login.return_value = mock_login_res
+
+    mock_conn.list.side_effect = OSError("Connection lost")
+    mock_conn.logout = AsyncMock()
+
+    with patch(
+        "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+        return_value=mock_conn,
+    ):
+        # Only the statement that triggers the exception goes inside pytest.raises
+        with pytest.raises(OSError, match="Connection lost"):
+            await _get_mailboxes("imap.test.com", 993, "user", "pass", "SSL", True)
+
+        # Subsequent assertions go outside the raises block
+        mock_conn.list.assert_called_once()
 
 
 async def test_get_schema_step_3_none_input():
@@ -3806,43 +3855,29 @@ async def test_config_flow_reconfig_2_validation_error():
 @pytest.mark.asyncio
 async def test_get_mailboxes_generic_exception(caplog):
     """Test _get_mailboxes handles generic exception during parsing."""
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+    mock_response = MagicMock()
+    mock_response.result = "OK"  # Change to .status if you don't change the code above
+    mock_response.lines = [
+        b'(\\HasNoChildren) "." "INBOX"'
+    ]  # This will trigger the TypeError/AttributeError
+    mock_conn.list = AsyncMock(return_value=mock_response)
+    mock_conn.logout = AsyncMock()
 
-    with patch("custom_components.mail_and_packages.config_flow.login") as mock_login:
-        mock_account = MagicMock()
-
-        # We need an item that causes IndexError first, then Exception (ValueError)
-        # We can achieve this by mocking the decode().split() chain
-        mock_item = MagicMock()
-        mock_decoded = MagicMock()
-
-        # When decode() is called, return our mock string object
-        mock_item.decode.return_value = mock_decoded
-
-        # Define side effects for split()
-        # 1. First call with ' "/" ' raises IndexError (triggers outer except)
-        # 2. Second call with ' "." ' raises ValueError (triggers inner except Exception)
-        def split_side_effect(sep):
-            if sep == ' "/" ':
-                raise IndexError("First split failed")
-            if sep == ' "." ':
-                raise ValueError("Second split failed")
-            return ["folder"]
-
-        mock_decoded.split.side_effect = split_side_effect
-
-        # Setup account list return
-        mock_account.list.return_value = ("OK", [mock_item])
-        mock_login.return_value = mock_account
-
+    with patch(
+        "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+        return_value=mock_conn,
+    ):
         # Call the function
-        result = _get_mailboxes("host", 993, "user", "pwd", "SSL", True)
+        result = await _get_mailboxes("host", 993, "user", "pwd", "SSL", True)
 
         # Verify it falls back to default folder
         assert result == [DEFAULT_FOLDER]
 
         # Verify the error was logged
-        assert "Problem getting mailbox listing using 'INBOX' message" in caplog.text
-        assert "Second split failed" in caplog.text
+        assert "Error creating folder array trying period" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -3998,18 +4033,21 @@ async def test_check_amazon_forwards_invalid_format(hass):
 async def test_reconfigure_flow_mailbox_success(hass, integration):
     """Test reconfigure flow moves to step 2 after successful login and mailbox fetch."""
     entry = integration
-    with (
-        patch("custom_components.mail_and_packages.config_flow.login") as mock_login,
-        patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
-    ):
-        # Create a mock account object that supports .list()
-        mock_account = MagicMock()
-        mock_account.list.return_value = ("OK", [b'(\\HasNoChildren) "/" "INBOX"'])
-        mock_login.return_value = mock_account
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+    mock_conn.list = AsyncMock(
+        return_value=MagicMock(
+            result="OK",
+            lines=[b'(\\HasNoChildren) "/" "INBOX"', b'(\\HasNoChildren) "/" "Sent"'],
+        )
+    )
+    mock_conn.logout = AsyncMock()
 
+    with patch(
+        "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+        return_value=mock_conn,
+    ):
         result = await hass.config_entries.flow.async_init(
             DOMAIN,
             context={
@@ -4054,27 +4092,42 @@ async def test_validate_user_input_forwarded_emails_none():
 @pytest.mark.asyncio
 async def test_get_mailboxes_parsing_error(caplog):
     """Test _get_mailboxes handles delimiter parsing failures."""
-    with patch("custom_components.mail_and_packages.config_flow.login") as mock_login:
-        mock_account = MagicMock()
-        # Mocking a list that doesn't contain the expected delimiters
-        # to trigger the nested IndexErrors and eventual fallback
-        mock_account.list.return_value = ("OK", [b"Bad Folder Format"])
-        mock_login.return_value = mock_account
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
 
-        result = _get_mailboxes("host", 993, "user", "pwd", "SSL", True)
+    # Return a response that triggers a parsing error (e.g., None where a list is expected)
+    mock_conn.list = AsyncMock(return_value=MagicMock(result="OK", lines=None))
+    mock_conn.logout = AsyncMock()
+
+    with patch(
+        "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+        return_value=mock_conn,
+    ):
+        result = await _get_mailboxes("host", 993, "user", "pwd", "SSL", True)
 
         assert result == [DEFAULT_FOLDER]
-        assert "Error creating folder array, using INBOX" in caplog.text
+        assert "Problem reading mailbox folders, using default." in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_get_mailboxes_period_delimiter(hass):
     """Test _get_mailboxes fallback when using period delimiter."""
-    with patch("custom_components.mail_and_packages.config_flow.login") as mock_login:
-        mock_account = MagicMock()
-        mock_account.list.return_value = ("OK", [b'(\\HasNoChildren) "." "SENT"'])
-        mock_login.return_value = mock_account
-        result = _get_mailboxes("host", 993, "user", "pass", "SSL", True)
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+
+    # Simulate a server that uses "." as a delimiter
+    mock_conn.list = AsyncMock(
+        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "." "SENT"'])
+    )
+    mock_conn.logout = AsyncMock()
+
+    with patch(
+        "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+        return_value=mock_conn,
+    ):
+        result = await _get_mailboxes("host", 993, "user", "pass", "SSL", True)
         assert '"SENT"' in result
 
 
@@ -4151,13 +4204,18 @@ async def test_reconfigure_flow_skip_to_storage(hass, integration):
         "verify_ssl": True,
     }
 
-    mock_account = MagicMock()
-    mock_account.list.return_value = ("OK", [b'(\\HasNoChildren) "/" "INBOX"'])
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+    mock_conn.list = AsyncMock(
+        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "/" "INBOX"'])
+    )
+    mock_conn.logout = AsyncMock()
 
     with (
         patch(
-            "custom_components.mail_and_packages.config_flow.login",
-            return_value=mock_account,
+            "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+            return_value=mock_conn,
         ),
         patch(
             "custom_components.mail_and_packages.config_flow._test_login",

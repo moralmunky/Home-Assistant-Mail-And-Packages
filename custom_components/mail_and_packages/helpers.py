@@ -6,7 +6,6 @@ import base64
 import datetime
 import email
 import hashlib
-import imaplib
 import logging
 import os
 import quopri
@@ -20,8 +19,10 @@ from shutil import copyfile, copytree, which
 from typing import Any
 
 import aiohttp
+import aioimaplib
 import dateparser
 import homeassistant.helpers.config_validation as cv
+from aioimaplib import AioImapException
 from bs4 import BeautifulSoup
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -32,7 +33,6 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.util import ssl
 from PIL import Image, ImageOps
 from voluptuous import Email, MultipleInvalid, Schema
 
@@ -151,28 +151,23 @@ async def _check_ffmpeg() -> bool:
 async def _test_login(
     host: str, port: int, user: str, pwd: str, security: str, verify: bool = True
 ):
-    """Test login to IMAP server."""
+    """Test login to IMAP server using aioimaplib."""
+    account = None
     try:
-        ssl_context = (
-            ssl.create_client_context()
-            if verify
-            else ssl.create_no_verify_ssl_context()
-        )
         if security == "SSL":
-            account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=ssl_context)
-        elif security == "startTLS":
-            account = imaplib.IMAP4(host=host, port=port)
-            account.starttls(ssl_context)
+            account = aioimaplib.IMAP4_SSL(host=host, port=port)
         else:
-            account = imaplib.IMAP4(host=host, port=port)
-    except OSError as err:
-        _LOGGER.error("Error connecting into IMAP Server: %s", err)
-        return False
+            account = aioimaplib.IMAP4(host=host, port=port)
 
-    try:
-        account.login(user, pwd)
-    except OSError as err:
-        _LOGGER.error("Error logging into IMAP Server: %s", err)
+        await account.wait_hello_from_server()
+
+        if security == "startTLS":
+            await account.starttls()
+
+        await account.login(user, pwd)
+        await account.logout()
+    except (AioImapException, OSError) as err:
+        _LOGGER.error("Error testing login to IMAP Server: %s", err)
         return False
     else:
         return True
@@ -200,7 +195,7 @@ def default_image_path(
     return "custom_components/mail_and_packages/images/"
 
 
-def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # noqa: C901
+async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # noqa: C901
     """Process emails and return value.
 
     Returns dict containing sensor data
@@ -220,14 +215,16 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # noqa: C
     data = {}
 
     # Login to email server and select the folder
-    account = login(host, port, user, pwd, imap_security, verify_ssl)
+    account = await login(host, port, user, pwd, imap_security, verify_ssl)
 
     # Do not process if account returns false
     if not account:
         return data
 
-    if not selectfolder(account, folder):
-        # Bail out on error
+    if not await selectfolder(account, folder):
+        _LOGGER.error("Folder selection failed")
+        # Clean up the open IMAP connection
+        await account.logout()
         return data
 
     # Create image file name dict container
@@ -299,7 +296,7 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # noqa: C
     # Only update sensors we're intrested in
     for sensor in resources:
         try:
-            fetch(hass, config, account, data, sensor)
+            await fetch(hass, config, account, data, sensor)
         except (OSError, ValueError) as err:
             _LOGGER.error("Error updating sensor: %s reason: %s", sensor, err)
 
@@ -307,6 +304,8 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # noqa: C
     if config.get(CONF_ALLOW_EXTERNAL):
         copy_images(hass, config)
 
+    # Logout of async IMAP session
+    await account.logout()
     return data
 
 
@@ -530,7 +529,7 @@ def hash_file(filename: str) -> str:
     return the_hash.hexdigest()
 
 
-def fetch(  # noqa: C901
+async def fetch(  # noqa: C901
     hass: HomeAssistant, config: ConfigEntry, account: Any, data: dict, sensor: str
 ) -> int:
     """Fetch data for a single sensor, including any sensors it depends on.
@@ -568,7 +567,7 @@ def fetch(  # noqa: C901
     data.setdefault("amazon_delivered_by_others", 0)
 
     if sensor == "usps_mail":
-        count[sensor] = get_mails(
+        count[sensor] = await get_mails(
             account,
             img_out_path,
             gif_duration,
@@ -579,14 +578,14 @@ def fetch(  # noqa: C901
             forwarded_emails,
         )
     elif sensor == AMAZON_PACKAGES:
-        count[sensor] = get_items(
+        count[sensor] = await get_items(
             account,
             ATTR_COUNT,
             forwarded_emails,
             amazon_days,
             amazon_domain,
         )
-        count[AMAZON_ORDER] = get_items(
+        count[AMAZON_ORDER] = await get_items(
             account,
             ATTR_ORDER,
             amazon_fwds,
@@ -594,30 +593,30 @@ def fetch(  # noqa: C901
             amazon_domain,
         )
     elif sensor == AMAZON_HUB:
-        value = amazon_hub(
+        value = await amazon_hub(
             account,
             forwarded_emails,
         )
         count[sensor] = value[ATTR_COUNT]
         count[AMAZON_HUB_CODE] = value[ATTR_CODE]
     elif sensor == AMAZON_EXCEPTION:
-        info = amazon_exception(account, forwarded_emails, amazon_domain)
+        info = await amazon_exception(account, forwarded_emails, amazon_domain)
         count[sensor] = info[ATTR_COUNT]
         count[AMAZON_EXCEPTION_ORDER] = info[ATTR_ORDER]
     elif sensor == AMAZON_OTP:
-        count[sensor] = amazon_otp(
+        count[sensor] = await amazon_otp(
             account,
             forwarded_emails,
         )
     elif "_packages" in sensor:
         prefix = sensor.replace("_packages", "")
-        delivering = fetch(hass, config, account, data, f"{prefix}_delivering")
-        delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
+        delivering = await fetch(hass, config, account, data, f"{prefix}_delivering")
+        delivered = await fetch(hass, config, account, data, f"{prefix}_delivered")
         count[sensor] = delivering + delivered
     elif "_delivering" in sensor:
         prefix = sensor.replace("_delivering", "")
-        delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
-        info = get_count(
+        delivered = await fetch(hass, config, account, data, f"{prefix}_delivered")
+        info = await get_count(
             account,
             sensor,
             True,
@@ -632,7 +631,7 @@ def fetch(  # noqa: C901
         for shipper in SHIPPERS:
             delivered = f"{shipper}_delivered"
             if delivered in data and delivered != sensor:
-                count[sensor] += fetch(hass, config, account, data, delivered)
+                count[sensor] += await fetch(hass, config, account, data, delivered)
     elif sensor == "zpackages_transit":
         total = 0
         for shipper in SHIPPERS:
@@ -642,13 +641,13 @@ def fetch(  # noqa: C901
                 continue
             delivering = f"{shipper}_delivering"
             if delivering in data and delivering != sensor:
-                total += fetch(hass, config, account, data, delivering)
+                total += await fetch(hass, config, account, data, delivering)
 
         # We are going to best guess for in transit as amazon doesn't reveal who the
         # shipper is in email.
         if "amazon_packages" in data and sensor != "amazon_packages":
             amazon_packages = max(
-                0, fetch(hass, config, account, data, "amazon_packages")
+                0, (await fetch(hass, config, account, data, "amazon_packages"))
             )
 
             # We know if we are expecting packages from amazon, and in tranit is lower
@@ -668,19 +667,21 @@ def fetch(  # noqa: C901
 
         count[sensor] = max(0, total)
     elif sensor == "mail_updated":
-        count[sensor] = update_time()
+        count[sensor] = await update_time()
     else:
         _LOGGER.debug("if statement sensor: %s", sensor)
-        count[sensor] = get_count(
-            account,
-            sensor,
-            False,
-            img_out_path,
-            hass,
-            amazon_image_name,
-            amazon_domain,
-            forwarded_emails,
-            data=data,
+        count[sensor] = (
+            await get_count(
+                account,
+                sensor,
+                False,
+                img_out_path,
+                hass,
+                amazon_image_name,
+                amazon_domain,
+                forwarded_emails,
+                data=data,
+            )
         )[ATTR_COUNT]
 
     data.update(count)
@@ -688,54 +689,44 @@ def fetch(  # noqa: C901
     return count[sensor]
 
 
-def login(
+async def login(
     host: str, port: int, user: str, pwd: str, security: str, verify: bool = True
-) -> bool | type[imaplib.IMAP4_SSL]:
-    """Login to IMAP server.
-
-    Returns account object
-    """
+) -> bool | aioimaplib.IMAP4_SSL:
+    """Login to IMAP server asynchronously."""
     try:
-        ssl_context = (
-            ssl.create_client_context()
-            if verify
-            else ssl.create_no_verify_ssl_context()
-        )
         if security == "SSL":
-            account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=ssl_context)
-        elif security == "startTLS":
-            account = imaplib.IMAP4(host=host, port=port)
-            account.starttls(ssl_context)
+            account = aioimaplib.IMAP4_SSL(host=host, port=port)
         else:
-            account = imaplib.IMAP4(host=host, port=port)
+            account = aioimaplib.IMAP4(host=host, port=port)
 
-    except OSError as err:
-        _LOGGER.error("Network error while connecting to server: %s", err)
-        return False
+        await account.wait_hello_from_server()
 
-    # If login fails give error message
-    try:
-        account.login(user, pwd)
-    except OSError as err:
+        if security == "startTLS":
+            await account.starttls()
+
+        await account.login(user, pwd)
+    except (AioImapException, OSError) as err:
         _LOGGER.error("Error logging into IMAP Server: %s", err)
         return False
+    else:
+        return account
 
-    return account
 
-
-def selectfolder(account: type[imaplib.IMAP4_SSL], folder: str) -> bool:
-    """Select folder inside the mailbox."""
+async def selectfolder(account: aioimaplib.IMAP4_SSL, folder: str) -> bool:
+    """Select folder inside the mailbox asynchronously."""
     try:
-        account.list()
-    except OSError as err:
-        _LOGGER.error("Error listing folders: %s", err)
+        await account.list()
+    except (AioImapException, OSError) as err:
+        _LOGGER.error("Error listing folder %s: %s", folder, err)
         return False
+
     try:
-        account.select(folder, readonly=True)
-    except OSError as err:
-        _LOGGER.error("Error selecting folder: %s", err)
+        await account.select(folder)
+    except (AioImapException, OSError) as err:
+        _LOGGER.error("Error selecting folder %s: %s", folder, err)
         return False
-    return True
+    else:
+        return True
 
 
 def get_today() -> datetime.date:
@@ -756,7 +747,7 @@ def get_formatted_date() -> str:
     return get_today().strftime("%d-%b-%Y")
 
 
-def update_time() -> datetime.datetime:
+async def update_time() -> datetime.datetime:
     """Get update time.
 
     Returns current timestamp as datetime object.
@@ -807,90 +798,48 @@ def build_search(address: list, date: str, subject: str = "") -> tuple:
     return (utf8_flag, imap_search)
 
 
-def email_search(
-    account: type[imaplib.IMAP4_SSL], address: list, date: str, subject: str = ""
+async def email_search(
+    account: aioimaplib.IMAP4_SSL, address: list, date: str, subject: str = ""
 ) -> tuple:
-    """Search emails with from, subject, senton date.
-
-    Returns a tuple
-    """
+    """Search emails with from, subject, and date asynchronously."""
     utf8_flag, search = build_search(address, date, subject)
-    value = ("", [""])
 
-    if utf8_flag:
-        subject = subject.encode("utf-8")
-        account.literal = subject
-        try:
-            value = account.search("utf-8", search)
-        except OSError as err:
-            _LOGGER.debug("Error searching emails with unicode characters: %s", err)
-            value = "BAD", err.args[0]
+    try:
+        if utf8_flag:
+            res = await account.search(criteria=search, charset="UTF-8")
+        else:
+            res = await account.search(criteria=search)
+    except (AioImapException, OSError) as err:
+        _LOGGER.error("Error searching emails: %s", err)
+        return ("BAD", str(err))
     else:
-        try:
-            value = account.search(None, search)
-        except OSError as err:
-            _LOGGER.error("Error searching emails: %s", err)
-            value = "BAD", err.args[0]
-
-    _LOGGER.debug("email_search value: %s", value)
-
-    (check, new_value) = value
-    # Handle case where account.search() returns a Mock (in tests)
-    # Only convert to list when status is "OK" - "BAD" responses keep error as-is
-    if check == "OK":
-        # Ensure we always return a proper tuple with a list as the second element
-        # for "OK" responses
-        if not isinstance(new_value, list):
-            _LOGGER.debug(
-                "email_search: new_value is not a list (type: %s), converting to empty list",
-                type(new_value).__name__,
-            )
-            new_value = [b""]
-        elif len(new_value) == 0:
-            # Empty list is valid, keep it as is
-            pass
-        elif new_value[0] is None:
-            _LOGGER.debug("email_search value was invalid: None")
-            new_value = [b""]
-    # For "BAD" responses, keep the error message as-is (could be string or other type)
-
-    return (check, new_value)
+        if res.result == "OK":
+            return ("OK", res.lines)
+        return (res.result, [b""])
 
 
-def email_fetch(
-    account: type[imaplib.IMAP4_SSL], num, parts: str = "(RFC822)"
+async def email_fetch(
+    account: aioimaplib.IMAP4_SSL, num, parts: str = "(RFC822)"
 ) -> tuple:
-    """Download specified email for parsing.
-
-    Args:
-        account: IMAP account instance
-        num: Email message ID (int, str, or bytes)
-        parts: Message parts to fetch
-
-    Returns tuple
-
-    """
-    # iCloud doesn't support RFC822 so override the 'message parts'
+    """Download specified email for parsing asynchronously."""
     if account.host == "imap.mail.me.com":
         parts = "BODY[]"
 
-    # Convert num to string for imaplib
-    if isinstance(num, bytes):
-        num_str = num.decode()
-    else:
-        num_str = str(num)
+    num_str = num.decode() if isinstance(num, bytes) else str(num)
 
     try:
-        value = account.fetch(num_str, parts)
-    except OSError as err:
-        _LOGGER.error("Error fetching emails: %s", err)
-        value = "BAD", err.args[0]
+        res = await account.fetch(num_str, parts)
+    except (AioImapException, OSError) as err:
+        _LOGGER.error("Error fetching email %s: %s", num_str, err)
+        return ("BAD", str(err))
+    else:
+        if res.result == "OK":
+            return ("OK", res.lines)
+        return (res.result, [b""])
 
-    return value
 
-
-def get_mails(  # noqa: C901
-    account: type[imaplib.IMAP4_SSL],
+async def get_mails(  # noqa: C901
+    account: type[aioimaplib.IMAP4_SSL],
     image_output_path: str,
     gif_duration: int,
     image_name: str,
@@ -913,7 +862,7 @@ def get_mails(  # noqa: C901
     else:
         email_addresses = SENSOR_DATA[ATTR_USPS_MAIL][ATTR_EMAIL]
 
-    (server_response, data) = email_search(
+    (server_response, data) = await email_search(
         account,
         email_addresses,
         get_formatted_date(),
@@ -942,7 +891,7 @@ def get_mails(  # noqa: C901
     if server_response == "OK":
         _LOGGER.debug("Informed Delivery email found processing...")
         for num in data[0].split():
-            msg = email_fetch(account, num, "(RFC822)")[1]
+            msg = (await email_fetch(account, num, "(RFC822)"))[1]
             for response_part in msg:
                 if isinstance(response_part, tuple):
                     msg = email.message_from_bytes(response_part[1])
@@ -1274,8 +1223,8 @@ def cleanup_images(path: str, image: str | None = None) -> None:  # noqa: C901
         _LOGGER.error("Error listing directory for cleanup: %s", err)
 
 
-def get_count(  # noqa: C901
-    account: type[imaplib.IMAP4_SSL],
+async def get_count(  # noqa: C901
+    account: type[aioimaplib.IMAP4_SSL],
     sensor_type: str,
     get_tracking_num: bool = False,
     image_path: str | None = None,
@@ -1300,7 +1249,7 @@ def get_count(  # noqa: C901
     # Return Amazon delivered info
     if sensor_type == AMAZON_DELIVERED:
         _LOGGER.debug("=== PROCESSING AMAZON DELIVERED SENSOR ===")
-        result[ATTR_COUNT] = amazon_search(
+        result[ATTR_COUNT] = await amazon_search(
             account,
             image_path,
             hass,
@@ -1428,7 +1377,7 @@ def get_count(  # noqa: C901
             subject,
         )
 
-        (server_response, email_data) = email_search(
+        (server_response, email_data) = await email_search(
             account, email_addresses, today, subject
         )
         if (
@@ -1461,7 +1410,7 @@ def get_count(  # noqa: C901
                             for email_id in new_email_ids
                         ),
                     )
-                    count += find_text(
+                    count += await find_text(
                         new_email_data,
                         account,
                         sensor_data[ATTR_BODY],
@@ -1473,7 +1422,7 @@ def get_count(  # noqa: C901
             # If generic delivery sensor, extract images from emails
             if shipper_name:
                 for email_id in new_email_ids:
-                    msg = email_fetch(account, email_id, "(RFC822)")[1]
+                    msg = (await email_fetch(account, email_id, "(RFC822)"))[1]
                     for response_part in msg:
                         if isinstance(response_part, tuple):
                             # Pass raw bytes to preserve binary attachments
@@ -1582,7 +1531,7 @@ def get_count(  # noqa: C901
                 and new_email_ids
             ):
                 # Use original email_data for Amazon check (all emails, not just new ones)
-                amazon_mentions = find_text(
+                amazon_mentions = await find_text(
                     email_data,
                     account,
                     AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT,
@@ -1630,7 +1579,7 @@ def get_count(  # noqa: C901
 
     if track is not None and get_tracking_num and count > 0:
         for sdata in found:
-            tracking.extend(get_tracking(sdata, account, track))
+            tracking.extend(await get_tracking(sdata, account, track))
         tracking = list(dict.fromkeys(tracking))
 
     if len(tracking) > 0:
@@ -1651,8 +1600,8 @@ def get_count(  # noqa: C901
     return result
 
 
-def get_tracking(  # noqa: C901
-    sdata: Any, account: type[imaplib.IMAP4_SSL], the_format: str | None = None
+async def get_tracking(  # noqa: C901
+    sdata: Any, account: type[aioimaplib.IMAP4_SSL], the_format: str | None = None
 ) -> list:
     """Parse tracking numbers from email.
 
@@ -1664,7 +1613,7 @@ def get_tracking(  # noqa: C901
     _LOGGER.debug("Searching for tracking numbers in %s messages...", len(mail_list))
 
     for i in mail_list:
-        data = email_fetch(account, i, "(RFC822)")[1]
+        data = (await email_fetch(account, i, "(RFC822)"))[1]
         for response_part in data:
             if isinstance(response_part, tuple):
                 msg = email.message_from_bytes(response_part[1])
@@ -1758,8 +1707,8 @@ def _match_patterns(
     return local_count, extracted_value
 
 
-def _scan_email_for_text(
-    account: type[imaplib.IMAP4_SSL],
+async def _scan_email_for_text(
+    account: type[aioimaplib.IMAP4_SSL],
     email_id: str,
     patterns: list[re.Pattern],
     body_count: bool,
@@ -1773,7 +1722,7 @@ def _scan_email_for_text(
     total_matches = 0
     last_value = None
 
-    data = email_fetch(account, email_id, "(RFC822)")[1]
+    data = (await email_fetch(account, email_id, "(RFC822)"))[1]
     for response_part in data:
         if not isinstance(response_part, tuple):
             continue
@@ -1798,8 +1747,11 @@ def _scan_email_for_text(
     return total_matches, last_value
 
 
-def find_text(
-    sdata: Any, account: type[imaplib.IMAP4_SSL], search_terms: list, body_count: bool
+async def find_text(
+    sdata: Any,
+    account: type[aioimaplib.IMAP4_SSL],
+    search_terms: list,
+    body_count: bool,
 ) -> int:
     """Filter for specific words in email."""
     _LOGGER.debug("Searching for (%s) in (%s) emails", search_terms, len(sdata))
@@ -1810,7 +1762,7 @@ def find_text(
     patterns = [re.compile(rf"{term}") for term in search_terms]
 
     for i in mail_list:
-        matches, value = _scan_email_for_text(account, i, patterns, body_count)
+        matches, value = await _scan_email_for_text(account, i, patterns, body_count)
 
         if body_count:
             # If extracting a value, "last found value wins" (updates count)
@@ -2034,8 +1986,8 @@ def _generic_delivery_image_extraction(  # noqa: C901
     return False
 
 
-def amazon_search(
-    account: type[imaplib.IMAP4_SSL],
+async def amazon_search(
+    account: type[aioimaplib.IMAP4_SSL],
     image_path: str,
     hass: HomeAssistant,
     amazon_image_name: str,
@@ -2064,7 +2016,9 @@ def amazon_search(
 
     for subject in subjects:
         _LOGGER.debug("Searching for Amazon delivered emails with subject: %s", subject)
-        (server_response, data) = email_search(account, address_list, today, subject)
+        (server_response, data) = await email_search(
+            account, address_list, today, subject
+        )
 
         if server_response == "OK" and data[0] is not None:
             email_count = len(data[0].split())
@@ -2076,7 +2030,7 @@ def amazon_search(
             )
             _LOGGER.debug("Email IDs found: %s", data[0])
 
-            get_amazon_image(
+            await get_amazon_image(
                 data[0],
                 account,
                 image_path,
@@ -2106,9 +2060,9 @@ def amazon_search(
     return count
 
 
-def get_amazon_image(
+async def get_amazon_image(
     sdata: Any,
-    account: type[imaplib.IMAP4_SSL],
+    account: type[aioimaplib.IMAP4_SSL],
     image_path: str,
     hass: HomeAssistant,
     image_name: str,
@@ -2122,7 +2076,7 @@ def get_amazon_image(
     pattern = re.compile(rf"{AMAZON_IMG_PATTERN}")
 
     for i in mail_list:
-        data = email_fetch(account, i, "(RFC822)")[1]
+        data = (await email_fetch(account, i, "(RFC822)"))[1]
         for response_part in data:
             if isinstance(response_part, tuple):
                 msg = email.message_from_bytes(response_part[1])
@@ -2145,7 +2099,7 @@ def get_amazon_image(
 
     if img_url is not None:
         _LOGGER.debug("Attempting to download Amazon image.")
-        hass.add_job(download_img(hass, img_url, image_path, image_name))
+        await download_img(hass, img_url, image_path, image_name)
     else:
         _LOGGER.debug("Amazon delivery image not found in email.")
 
@@ -2235,7 +2189,9 @@ def _extract_hub_code(
     return None
 
 
-def amazon_hub(account: type[imaplib.IMAP4_SSL], fwds: list[str] | None = None) -> dict:
+async def amazon_hub(
+    account: type[aioimaplib.IMAP4_SSL], fwds: list[str] | None = None
+) -> dict:
     """Find Amazon Hub info emails."""
     email_addresses = []
     email_addresses.extend(_process_amazon_forwards(fwds))
@@ -2251,7 +2207,7 @@ def amazon_hub(account: type[imaplib.IMAP4_SSL], fwds: list[str] | None = None) 
     _LOGGER.debug("[Hub] Amazon email list: %s", email_addresses)
 
     for address in email_addresses:
-        (server_response, sdata) = email_search(
+        (server_response, sdata) = await email_search(
             account, address, today, subject=AMAZON_HUB_SUBJECT
         )
 
@@ -2270,7 +2226,7 @@ def amazon_hub(account: type[imaplib.IMAP4_SSL], fwds: list[str] | None = None) 
                 continue
             processed_ids.add(i)
 
-            data = email_fetch(account, i, "(RFC822)")[1]
+            data = (await email_fetch(account, i, "(RFC822)"))[1]
             for response_part in data:
                 if isinstance(response_part, tuple):
                     msg = email.message_from_bytes(response_part[1])
@@ -2284,7 +2240,9 @@ def amazon_hub(account: type[imaplib.IMAP4_SSL], fwds: list[str] | None = None) 
     return info
 
 
-def amazon_otp(account: type[imaplib.IMAP4_SSL], fwds: list | None = None) -> dict:
+async def amazon_otp(
+    account: type[aioimaplib.IMAP4_SSL], fwds: list | None = None
+) -> dict:
     """Find Amazon OTP code emails.
 
     Returns dict of sensor data
@@ -2297,7 +2255,7 @@ def amazon_otp(account: type[imaplib.IMAP4_SSL], fwds: list | None = None) -> di
     email_addresses.extend(_process_amazon_forwards(fwds))
 
     for address in email_addresses:
-        (server_response, sdata) = email_search(
+        (server_response, sdata) = await email_search(
             account, address, tfmt, AMAZON_OTP_SUBJECT
         )
 
@@ -2305,7 +2263,7 @@ def amazon_otp(account: type[imaplib.IMAP4_SSL], fwds: list | None = None) -> di
             id_list = sdata[0].split()
             _LOGGER.debug("Found Amazon OTP email(s): %s", len(id_list))
             for i in id_list:
-                data = email_fetch(account, i, "(RFC822)")[1]
+                data = (await email_fetch(account, i, "(RFC822)"))[1]
                 for response_part in data:
                     if isinstance(response_part, tuple):
                         msg = email.message_from_bytes(response_part[1])
@@ -2341,8 +2299,8 @@ def amazon_otp(account: type[imaplib.IMAP4_SSL], fwds: list | None = None) -> di
     return info
 
 
-def amazon_exception(
-    account: type[imaplib.IMAP4_SSL],
+async def amazon_exception(
+    account: type[aioimaplib.IMAP4_SSL],
     fwds: list | None = None,
     the_domain: str | None = None,
 ) -> dict:
@@ -2358,14 +2316,14 @@ def amazon_exception(
     address_list = amazon_email_addresses(fwds, the_domain)
     _LOGGER.debug("Amazon email list: %s", str(address_list))
 
-    (server_response, sdata) = email_search(
+    (server_response, sdata) = await email_search(
         account, address_list, tfmt, AMAZON_EXCEPTION_SUBJECT
     )
 
     if server_response == "OK":
         count += len(sdata[0].split())
         _LOGGER.debug("Found %s Amazon exceptions", count)
-        order_numbers = get_tracking(sdata[0], account, AMAZON_PATTERN)
+        order_numbers = await get_tracking(sdata[0], account, AMAZON_PATTERN)
         order_number.extend(order_numbers)
 
     info[ATTR_COUNT] = count
@@ -2425,8 +2383,8 @@ def amazon_email_addresses(
     return value
 
 
-def _search_amazon_emails(
-    account: type[imaplib.IMAP4_SSL], address_list: list[str], days: int
+async def _search_amazon_emails(
+    account: type[aioimaplib.IMAP4_SSL], address_list: list[str], days: int
 ) -> list[bytes]:
     """Search for Amazon emails and return a unique list of email IDs."""
     past_date = get_today() - datetime.timedelta(days=days)
@@ -2439,7 +2397,9 @@ def _search_amazon_emails(
     # Search for Amazon emails with relevant subjects
     for subject in amazon_subjects:
         _LOGGER.debug("Searching for Amazon emails with subject: %s", subject)
-        (server_response, sdata) = email_search(account, address_list, tfmt, subject)
+        (server_response, sdata) = await email_search(
+            account, address_list, tfmt, subject
+        )
         if server_response == "OK" and sdata[0] is not None:
             email_ids = sdata[0].split()
             _LOGGER.debug("Found %s emails for subject '%s'", len(email_ids), subject)
@@ -2537,8 +2497,8 @@ def _parse_amazon_arrival_date(
     return None
 
 
-def get_items(  # noqa: C901
-    account: type[imaplib.IMAP4_SSL],
+async def get_items(  # noqa: C901
+    account: type[aioimaplib.IMAP4_SSL],
     param: str | None = None,
     fwds: str | None = None,
     days: int = DEFAULT_AMAZON_DAYS,
@@ -2556,7 +2516,7 @@ def get_items(  # noqa: C901
     all_shipped_orders = set()
 
     address_list = amazon_email_addresses(fwds, the_domain)
-    unique_emails = _search_amazon_emails(account, address_list, days)
+    unique_emails = await _search_amazon_emails(account, address_list, days)
     _LOGGER.debug("Total unique Amazon emails found: %s", len(unique_emails))
 
     order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
@@ -2564,7 +2524,7 @@ def get_items(  # noqa: C901
     for email_id in unique_emails:
         # Convert bytes to string for fetch if necessary
         fetch_id = email_id.decode() if isinstance(email_id, bytes) else email_id
-        data = email_fetch(account, fetch_id, "(RFC822)")[1]
+        data = (await email_fetch(account, fetch_id, "(RFC822)"))[1]
 
         for response_part in data:
             if not isinstance(response_part, tuple):

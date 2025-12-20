@@ -249,28 +249,19 @@ async def test_async_remove_config_entry_device():
 
 
 @pytest.mark.asyncio
-async def test_coordinator_async_refresh_error():
-    """Test coordinator async_refresh error handling."""
-    mock_hass = MagicMock()
+async def test_coordinator_async_refresh_error(hass):
+    """Test coordinator update failure."""
     mock_config = FAKE_CONFIG_DATA.copy()
+    coordinator = MailDataUpdateCoordinator(hass, mock_config)
 
-    # Patch frame.report_usage to avoid "Frame helper not set up" error
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
-
-        # Mock process_emails to raise an exception
-        with (
-            patch(
-                "custom_components.mail_and_packages.process_emails",
-                side_effect=Exception("Test error"),
-            ),
-            patch(
-                "custom_components.mail_and_packages.hash_file",
-                return_value="test_hash",
-            ),
-            pytest.raises(UpdateFailed),
-        ):
-            await coordinator._async_update_data()  # noqa: SLF001
+    with (
+        patch(
+            "custom_components.mail_and_packages.process_emails",
+            side_effect=Exception("Test error"),
+        ),
+        pytest.raises(UpdateFailed),
+    ):
+        await coordinator._async_update_data()  # noqa: SLF001
 
 
 @pytest.mark.asyncio
