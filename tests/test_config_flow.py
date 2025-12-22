@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant import config_entries, setup
+from homeassistant.const import CONF_RESOURCES
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType, InvalidData
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -23,9 +24,11 @@ from custom_components.mail_and_packages.const import (
     CONF_ALLOW_FORWARDED_EMAILS,
     CONF_AMAZON_CUSTOM_IMG,
     CONF_AMAZON_CUSTOM_IMG_FILE,
+    CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
     CONF_CUSTOM_IMG,
+    CONF_CUSTOM_IMG_FILE,
     CONF_FEDEX_CUSTOM_IMG,
     CONF_FEDEX_CUSTOM_IMG_FILE,
     CONF_FORWARDED_EMAILS,
@@ -6405,3 +6408,178 @@ async def test_form_allow_forwarded_emails_using_service_address(
     assert len(mock_setup_entry.mock_calls) == 1
 
     assert "A service domain was found in email" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_validate_amazon_forwards_empty_inputs():
+    """Test validation of amazon forwards with empty or none strings (Line 111)."""
+    # Test with (none)
+    user_input = {
+        CONF_AMAZON_FWDS: "(none)",
+        CONF_AMAZON_DOMAIN: "amazon.com",
+        CONF_GENERATE_MP4: False,
+    }
+    errors, result = await _validate_user_input(user_input)
+    assert result[CONF_AMAZON_FWDS] == []
+    assert errors == {}
+
+    # Test with empty string
+    user_input[CONF_AMAZON_FWDS] = ""
+    errors, result = await _validate_user_input(user_input)
+    assert result[CONF_AMAZON_FWDS] == []
+    assert errors == {}
+
+
+@pytest.mark.asyncio
+async def test_get_mailboxes_fallback_delimiters(caplog):
+    """Test get_mailboxes fallback logic for different delimiters (Lines 270-277)."""
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+    mock_conn.logout = AsyncMock()
+
+    # Case 1: Use a pipe delimiter to trigger IndexError on both "/" and "." splits
+    # This hits lines 270 (Error logging), 271 (try period), and 276-277 (fallback to INBOX)
+    mock_conn.list = AsyncMock(
+        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "|" "INBOX"'])
+    )
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.login",
+        return_value=mock_conn,
+    ):
+        result = await _get_mailboxes("host", 993, "user", "pwd", "SSL", True)
+
+        assert result == [DEFAULT_FOLDER]
+        assert "Error creating folder array trying period" in caplog.text
+        assert "Error creating folder array, using INBOX" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_mailboxes_type_attribute_errors(caplog):
+    """Test get_mailboxes generic exception handling (Lines 291-294)."""
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+    mock_conn.logout = AsyncMock()
+
+    # Trigger TypeError by returning a non-iterable integer instead of a list
+    mock_conn.list = AsyncMock(return_value=MagicMock(result="OK", lines=12345))
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.login",
+        return_value=mock_conn,
+    ):
+        result = await _get_mailboxes("host", 993, "user", "pwd", "SSL", True)
+
+        assert result == [DEFAULT_FOLDER]
+        assert "Problem reading mailbox folders, using default." in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_step_config_3_validation_error(hass):
+    """Test config flow step 3 validation failure (Line 690)."""
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    # Ensure generate_mp4 is present to avoid KeyError in validation
+    flow._data = {  # noqa: SLF001
+        CONF_CUSTOM_IMG: True,
+        CONF_GENERATE_MP4: False,
+    }
+
+    # Simulate invalid input (file not found)
+    user_input = {CONF_CUSTOM_IMG_FILE: "non_existent_file.gif"}
+
+    with (
+        patch("pathlib.Path.is_file", return_value=False),
+        patch.object(flow, "async_show_form") as mock_show_form,
+    ):
+        await flow.async_step_config_3(user_input)
+
+        # Should return the form again due to validation error
+        mock_show_form.assert_called_once()
+        assert flow._errors[CONF_CUSTOM_IMG_FILE] == "file_not_found"  # noqa: SLF001
+
+
+@pytest.mark.asyncio
+async def test_step_config_amazon_validation_error(hass):
+    """Test config flow step amazon validation failure (Line 721)."""
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    # Ensure generate_mp4 is present to avoid KeyError in validation
+    flow._data = {CONF_GENERATE_MP4: False}  # noqa: SLF001
+
+    # Simulate invalid email format
+    user_input = {
+        CONF_AMAZON_DOMAIN: "amazon.com",
+        CONF_AMAZON_FWDS: "invalid-email",
+        CONF_AMAZON_DAYS: 3,
+    }
+
+    with patch.object(flow, "async_show_form") as mock_show_form:
+        await flow.async_step_config_amazon(user_input)
+
+        # Should return the form again due to validation error
+        mock_show_form.assert_called_once()
+        assert flow._errors[CONF_AMAZON_FWDS] == "invalid_email_format"  # noqa: SLF001
+
+
+@pytest.mark.asyncio
+async def test_reconfig_forwarded_emails_routing_failure(hass, integration):
+    """Test reconfig forwarded emails failure path."""
+    entry = integration
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    flow._entry = entry  # noqa: SLF001
+    flow._data = dict(entry.data)  # noqa: SLF001
+
+    # Ensure dependencies are set to avoid KeyErrors or wrong paths
+    flow._data[CONF_RESOURCES] = ["mail_updated"]  # noqa: SLF001
+    flow._data[CONF_CUSTOM_IMG] = False  # noqa: SLF001
+    flow._data[CONF_GENERATE_MP4] = False  # noqa: SLF001
+
+    user_input_error = {CONF_FORWARDED_EMAILS: "bad-email"}
+
+    with (
+        patch.object(flow, "async_show_form") as mock_show_form,
+        patch(
+            "custom_components.mail_and_packages.config_flow.validate_email_address",
+            return_value=False,
+        ),
+    ):
+        await flow.async_step_reconfig_forwarded_emails(user_input_error)
+
+        mock_show_form.assert_called_once()
+        assert flow._errors[CONF_FORWARDED_EMAILS] == "invalid_email_format"  # noqa: SLF001
+
+
+@pytest.mark.asyncio
+async def test_reconfig_forwarded_emails_routing_success(hass, integration):
+    """Test reconfig forwarded emails success path routing to storage."""
+    entry = integration
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    flow._entry = entry  # noqa: SLF001
+    flow._data = dict(entry.data)  # noqa: SLF001
+
+    # Ensure data ensures routing to storage (No Amazon sensors, No Custom Img)
+    flow._data[CONF_RESOURCES] = ["mail_updated"]  # noqa: SLF001
+    flow._data[CONF_CUSTOM_IMG] = False  # noqa: SLF001
+    flow._data[CONF_GENERATE_MP4] = False  # noqa: SLF001
+
+    user_input_success = {CONF_FORWARDED_EMAILS: "good@email.com"}
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow.validate_email_address",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow._validate_path_input",
+        ),
+    ):
+        result = await flow.async_step_reconfig_forwarded_emails(user_input_success)
+
+        # Expectation: The flow proceeds to the storage step, which returns a form
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "reconfig_storage"
