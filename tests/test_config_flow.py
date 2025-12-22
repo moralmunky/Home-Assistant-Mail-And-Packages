@@ -6411,8 +6411,8 @@ async def test_form_allow_forwarded_emails_using_service_address(
 
 
 @pytest.mark.asyncio
-async def test_validate_amazon_forwards_empty_inputs():
-    """Test validation of amazon forwards with empty or none strings (Line 111)."""
+async def test_validate_amazon_forwards(caplog):
+    """Test validation of amazon forwards with empty or none strings."""
     # Test with (none)
     user_input = {
         CONF_AMAZON_FWDS: "(none)",
@@ -6429,17 +6429,22 @@ async def test_validate_amazon_forwards_empty_inputs():
     assert result[CONF_AMAZON_FWDS] == []
     assert errors == {}
 
+    # Test with amazon.com address
+    user_input[CONF_AMAZON_FWDS] = "fakeuser@amazon.com"
+    errors, result = await _validate_user_input(user_input)
+    assert result[CONF_AMAZON_FWDS] == "fakeuser@amazon.com"
+    assert errors == {}
+    assert "Amazon domain found in email: fakeuser@amazon.com, this may cause errors when searching emails." in caplog.text
+
 
 @pytest.mark.asyncio
 async def test_get_mailboxes_fallback_delimiters(caplog):
-    """Test get_mailboxes fallback logic for different delimiters (Lines 270-277)."""
+    """Test get_mailboxes fallback logic for different delimiters."""
     mock_conn = AsyncMock()
     mock_conn.wait_hello_from_server = AsyncMock()
     mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
     mock_conn.logout = AsyncMock()
 
-    # Case 1: Use a pipe delimiter to trigger IndexError on both "/" and "." splits
-    # This hits lines 270 (Error logging), 271 (try period), and 276-277 (fallback to INBOX)
     mock_conn.list = AsyncMock(
         return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "|" "INBOX"'])
     )
@@ -6457,7 +6462,7 @@ async def test_get_mailboxes_fallback_delimiters(caplog):
 
 @pytest.mark.asyncio
 async def test_get_mailboxes_type_attribute_errors(caplog):
-    """Test get_mailboxes generic exception handling (Lines 291-294)."""
+    """Test get_mailboxes generic exception handling."""
     mock_conn = AsyncMock()
     mock_conn.wait_hello_from_server = AsyncMock()
     mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
@@ -6478,7 +6483,7 @@ async def test_get_mailboxes_type_attribute_errors(caplog):
 
 @pytest.mark.asyncio
 async def test_step_config_3_validation_error(hass):
-    """Test config flow step 3 validation failure (Line 690)."""
+    """Test config flow step 3 validation failure."""
     flow = MailAndPackagesFlowHandler()
     flow.hass = hass
     # Ensure generate_mp4 is present to avoid KeyError in validation
@@ -6503,7 +6508,7 @@ async def test_step_config_3_validation_error(hass):
 
 @pytest.mark.asyncio
 async def test_step_config_amazon_validation_error(hass):
-    """Test config flow step amazon validation failure (Line 721)."""
+    """Test config flow step amazon validation failure."""
     flow = MailAndPackagesFlowHandler()
     flow.hass = hass
     # Ensure generate_mp4 is present to avoid KeyError in validation
