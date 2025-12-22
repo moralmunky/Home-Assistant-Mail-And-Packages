@@ -1,5 +1,6 @@
 """Tests for helpers module."""
 
+import email
 import logging
 import re
 import shutil
@@ -4528,3 +4529,37 @@ async def test_email_fetch_icloud():
     await email_fetch(mock_acc, "1")
 
     mock_acc.fetch.assert_called_with("1", "BODY[]")
+
+
+@pytest.mark.asyncio
+async def test_get_mails_unexpected_html(hass, caplog, tmp_path):
+    """Test get_mails with HTML part missing expected content."""
+    account = AsyncMock()
+    # Convert the secure temp path object to a string
+    temp_dir = str(tmp_path)
+
+    # Create a mock email message with text/html but no images
+    msg = email.message.Message()
+    msg.set_type("text/html")
+    msg.set_payload(
+        '<html><body><img id="mailpiece-image-src-id" src="bad_src"></body></html>'
+    )
+
+    # We need to structure the response so email_fetch returns this message
+    mock_fetch_response = [(b"1 (RFC822 {100}", msg.as_bytes())]
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.email_search",
+            return_value=("OK", ["1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.email_fetch",
+            return_value=("OK", mock_fetch_response),
+        ),
+        patch("custom_components.mail_and_packages.helpers.cleanup_images"),
+        patch("custom_components.mail_and_packages.helpers.copy_overlays"),
+        patch("pathlib.Path.is_dir", return_value=True),
+    ):
+        await get_mails(account, temp_dir, 5, "img.gif")
+        assert "Unexpected html format found." in caplog.text
