@@ -6591,3 +6591,18 @@ async def test_reconfig_forwarded_emails_routing_success(hass, integration):
         # Expectation: The flow proceeds to the storage step, which returns a form
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "reconfig_storage"
+
+
+@pytest.mark.asyncio
+async def test_get_mailboxes_login_bool_failure(caplog):
+    """Test get_mailboxes handling when login returns a boolean (failure)."""
+    # Verify the specific branch where login returns False (bool) instead of an account object
+    with patch(
+        "custom_components.mail_and_packages.config_flow.login",
+        return_value=False,
+    ):
+        result = await _get_mailboxes("host", 993, "user", "pwd", "SSL", True)
+
+        # Verify it returns an empty list and logs the error
+        assert result == []
+        assert "Problem logging in to mailbox." in caplog.text
