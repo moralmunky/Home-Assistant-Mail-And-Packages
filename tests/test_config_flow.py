@@ -6434,7 +6434,10 @@ async def test_validate_amazon_forwards(caplog):
     errors, result = await _validate_user_input(user_input)
     assert result[CONF_AMAZON_FWDS] == "fakeuser@amazon.com"
     assert errors == {}
-    assert "Amazon domain found in email: fakeuser@amazon.com, this may cause errors when searching emails." in caplog.text
+    assert (
+        "Amazon domain found in email: fakeuser@amazon.com, this may cause errors when searching emails."
+        in caplog.text
+    )
 
 
 @pytest.mark.asyncio
