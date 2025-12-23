@@ -833,9 +833,7 @@ async def email_fetch(
         _LOGGER.error("Error fetching email %s: %s", num_str, err)
         return ("BAD", str(err))
     else:
-        if res.result == "OK":
-            return ("OK", res.lines)
-        return (res.result, [b""])
+        return (res.result, res.lines)
 
 
 async def get_mails(  # noqa: C901
