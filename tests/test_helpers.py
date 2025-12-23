@@ -4569,3 +4569,33 @@ async def test_get_mails_unexpected_html(hass, caplog, tmp_path):
     ):
         await get_mails(account, temp_dir, 5, "img.gif")
         assert "Unexpected html format found." in caplog.text
+
+
+async def test_generic_delivery_image_extraction_attachment_save_error(
+    caplog, tmp_path
+):
+    """Test generic image extraction failure during attachment save (Lines 1296-1303)."""
+    temp_dir = str(tmp_path)
+    msg = email.message.Message()
+    msg.set_type("multipart/mixed")
+    image_part = email.message.Message()
+    image_part.set_type("image/jpeg")
+    image_part.add_header("Content-Disposition", "attachment", filename="delivery.jpg")
+    image_part.set_payload("fake_image_data")
+    msg.attach(image_part)
+    sdata = msg.as_bytes()
+    with patch(
+        "custom_components.mail_and_packages.helpers._save_image_data_to_disk",
+        side_effect=ValueError("Simulated Save Error"),
+    ):
+        result = _generic_delivery_image_extraction(
+            sdata,
+            temp_dir,
+            "test.jpg",
+            "ups",
+            "jpeg",
+        )
+        # Should return False because of the exception
+        assert result is False
+        assert "Error saving ups delivery photo" in caplog.text
+        assert "Simulated Save Error" in caplog.text
