@@ -17,6 +17,8 @@ from freezegun import freeze_time
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import (
+    AMAZON_OTP,
+    ATTR_AMAZON_IMAGE,
     ATTR_COUNT,
     ATTR_FEDEX_IMAGE,
     ATTR_IMAGE_NAME,
@@ -4599,3 +4601,22 @@ async def test_generic_delivery_image_extraction_attachment_save_error(
         assert result is False
         assert "Error saving ups delivery photo" in caplog.text
         assert "Simulated Save Error" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_fetch_amazon_otp(hass):
+    """Test fetch logic for amazon_otp (Lines 606-610)."""
+    config = FAKE_CONFIG_DATA_CORRECTED
+    account = AsyncMock()
+    data = {
+        ATTR_IMAGE_NAME: "mail_today.gif",
+        ATTR_AMAZON_IMAGE: "amazon_today.jpg",
+    }
+    mock_otp_result = {"code": ["123456"]}
+    with patch(
+        "custom_components.mail_and_packages.helpers.amazon_otp",
+        return_value=mock_otp_result,
+    ) as mock_otp:
+        result = await fetch(hass, config, account, data, AMAZON_OTP)
+        mock_otp.assert_called_once()
+        assert result == mock_otp_result
