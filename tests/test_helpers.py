@@ -3246,12 +3246,18 @@ async def test_login_starttls_security():
     with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
         mock_acc = AsyncMock()
         mock_lib.IMAP4.return_value = mock_acc
-
         result = await login("imap.test.com", 143, "user", "pass", "startTLS", True)
-
         assert result == mock_acc
         mock_acc.starttls.assert_called_once()
         mock_acc.login.assert_called_once_with("user", "pass")
+        mock_acc.reset_mock()
+        result_bool = await _test_login(
+            "imap.test.com", 143, "user", "pass", "startTLS", True
+        )
+        assert result_bool is True
+        mock_acc.starttls.assert_called_once()
+        mock_acc.login.assert_called_once_with("user", "pass")
+        mock_acc.logout.assert_called_once()
 
 
 @pytest.mark.asyncio
