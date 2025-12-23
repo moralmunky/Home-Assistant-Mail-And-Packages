@@ -813,9 +813,7 @@ async def email_search(
         _LOGGER.error("Error searching emails: %s", err)
         return ("BAD", str(err))
     else:
-        if res.result == "OK":
-            return ("OK", res.lines)
-        return (res.result, [b""])
+        return (res.result, res.lines)
 
 
 async def email_fetch(
