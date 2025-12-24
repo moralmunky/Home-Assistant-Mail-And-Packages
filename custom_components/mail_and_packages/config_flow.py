@@ -842,7 +842,9 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_reconfig_3(user_input)
 
-    async def _show_reconfig_3(self, user_input=None):  # pylint: disable=unused-argument
+    async def _show_reconfig_3(
+        self, user_input=None
+    ):  # pylint: disable=unused-argument
         """Step 3 setup."""
         # Defaults
         defaults = {
