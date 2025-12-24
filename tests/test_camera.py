@@ -2244,7 +2244,9 @@ async def test_is_custom_no_mail_file_not_exists_fixed(hass, integration):
         ),
         patch("pathlib.Path.exists", return_value=False),
     ):
-        result = camera._is_custom_no_mail_image("amazon", "/some/path.jpg")  # noqa: SLF001
+        result = camera._is_custom_no_mail_image(  # noqa: SLF001
+            "amazon", "/some/path.jpg"
+        )
         assert result is False
 
 

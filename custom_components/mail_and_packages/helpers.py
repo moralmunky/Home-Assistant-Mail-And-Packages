@@ -51,6 +51,7 @@ from .const import (
     AMAZON_HUB_EMAIL,
     AMAZON_HUB_SUBJECT,
     AMAZON_HUB_SUBJECT_SEARCH,
+    AMAZON_IMG_LIST,
     AMAZON_IMG_PATTERN,
     AMAZON_ORDER,
     AMAZON_ORDERED_SUBJECT,
@@ -2137,7 +2138,7 @@ def get_amazon_image(
                     part = part.decode("utf-8", "ignore")
                     found = pattern.findall(part)
                     for url in found:
-                        if url[1] != "us-prod-temp.s3.amazonaws.com":
+                        if url[1] not in AMAZON_IMG_LIST:
                             continue
                         img_url = url[0] + url[1] + url[2]
                         _LOGGER.debug("Amazon img URL: %s", img_url)
