@@ -982,9 +982,9 @@ async def test_ups_search_with_photo(
         # Note: The image may or may not be set depending on extraction success
         # If it's set, verify it's a string
         if ATTR_UPS_IMAGE in coordinator_data:
-            assert isinstance(
-                coordinator_data[ATTR_UPS_IMAGE], str
-            ), f"UPS image should be a string, got {type(coordinator_data[ATTR_UPS_IMAGE])}"
+            assert isinstance(coordinator_data[ATTR_UPS_IMAGE], str), (
+                f"UPS image should be a string, got {type(coordinator_data[ATTR_UPS_IMAGE])}"
+            )
 
     # Also test direct image extraction with a known-good email format
     # This ensures the extraction logic works even if the test email format has issues
@@ -1021,9 +1021,9 @@ Content-ID: <deliveryPhoto>
     )
 
     # Verify extraction was successful
-    assert (
-        extraction_result is True
-    ), "UPS image extraction should succeed with CID image"
+    assert extraction_result is True, (
+        "UPS image extraction should succeed with CID image"
+    )
 
     # Verify the image file was created
     extracted_image = ups_path / "test_ups_extraction.jpg"
@@ -1255,9 +1255,9 @@ async def test_amazon_search_results(
         shipped_result = get_items(
             mock_imap_amazon_shipped, "count", the_domain="amazon.com"
         )
-        assert (
-            shipped_result == 0
-        ), f"Expected 0 shipped emails arriving today, got {shipped_result}"
+        assert shipped_result == 0, (
+            f"Expected 0 shipped emails arriving today, got {shipped_result}"
+        )
 
         # Test delivered emails
         delivered_result = amazon_search(
@@ -1267,9 +1267,9 @@ async def test_amazon_search_results(
             "testfilename.jpg",
             "amazon.com",
         )
-        assert (
-            delivered_result == 10
-        ), f"Expected 10 delivered emails (no deduplication), got {delivered_result}"
+        assert delivered_result == 10, (
+            f"Expected 10 delivered emails (no deduplication), got {delivered_result}"
+        )
 
 
 @pytest.mark.asyncio
@@ -1388,15 +1388,15 @@ async def test_generate_mp4(mock_osremove, mock_subprocess_run, mock_os_path_spl
         assert cmd[1] == "-y"
         assert cmd[2] == "-i"
         # The input file should end with testfile.gif (may have .// or ./ prefix)
-        assert cmd[3].endswith(
-            "testfile.gif"
-        ), f"Expected input file to end with testfile.gif, got {cmd[3]}"
+        assert cmd[3].endswith("testfile.gif"), (
+            f"Expected input file to end with testfile.gif, got {cmd[3]}"
+        )
         assert cmd[4] == "-pix_fmt"
         assert cmd[5] == "yuv420p"
         # The output file should end with testfile.mp4 (may have .// or ./ prefix)
-        assert cmd[6].endswith(
-            "testfile.mp4"
-        ), f"Expected output file to end with testfile.mp4, got {cmd[6]}"
+        assert cmd[6].endswith("testfile.mp4"), (
+            f"Expected output file to end with testfile.mp4, got {cmd[6]}"
+        )
         assert call_args[1]["stdout"] == subprocess.DEVNULL
         assert call_args[1]["stderr"] == subprocess.DEVNULL
         assert call_args[1]["check"] is True
@@ -1751,9 +1751,9 @@ async def test_amazon_out_for_delivery_today(hass, mock_imap_amazon_arriving_tod
     # The email says "Arriving today" and email date matches today
     # Delivery count should be 1 (detected "today")
     # Result is min(deliveries_today, len(order_number))
-    assert (
-        result == 1
-    ), "Count should be 1 when 'Arriving today' and email date matches today"
+    assert result == 1, (
+        "Count should be 1 when 'Arriving today' and email date matches today"
+    )
 
 
 @pytest.mark.asyncio
@@ -2254,13 +2254,15 @@ async def test_walmart_delivered_email_processing(hass, integration):
     assert result == 1, f"Expected at least 1 Walmart delivery, got {result}"
 
     # Verify that coordinator data was updated with the image filename
-    assert (
-        ATTR_WALMART_IMAGE in coordinator_data
-    ), "Walmart image should be set in coordinator data"
+    assert ATTR_WALMART_IMAGE in coordinator_data, (
+        "Walmart image should be set in coordinator data"
+    )
     assert coordinator_data[ATTR_WALMART_IMAGE] in [
         "walmart_delivery.jpg",
         "test_walmart.jpg",
-    ], f"Walmart image filename should be set, got {coordinator_data.get(ATTR_WALMART_IMAGE)}"
+    ], (
+        f"Walmart image filename should be set, got {coordinator_data.get(ATTR_WALMART_IMAGE)}"
+    )
 
 
 @pytest.mark.asyncio
@@ -2309,15 +2311,15 @@ async def test_walmart_delivering_email_processing(hass):
             )
 
     # Should return 1 since one email was found
-    assert (
-        result[ATTR_COUNT] == 1
-    ), f"Expected 1 Walmart delivering package, got {result[ATTR_COUNT]}"
+    assert result[ATTR_COUNT] == 1, (
+        f"Expected 1 Walmart delivering package, got {result[ATTR_COUNT]}"
+    )
 
     # Test that tracking numbers are extracted
     if ATTR_TRACKING in result:
-        assert (
-            len(result[ATTR_TRACKING]) >= 0
-        ), "Tracking numbers should be extracted if present"
+        assert len(result[ATTR_TRACKING]) >= 0, (
+            "Tracking numbers should be extracted if present"
+        )
 
 
 @pytest.mark.asyncio
@@ -2354,9 +2356,9 @@ async def test_walmart_image_extraction(hass):
         )
 
     # Should return True since the email contains a delivery photo
-    assert (
-        result is True
-    ), "Walmart image extraction should return True for email with delivery photo"
+    assert result is True, (
+        "Walmart image extraction should return True for email with delivery photo"
+    )
 
 
 async def test_walmart_email_patterns():
@@ -2366,28 +2368,28 @@ async def test_walmart_email_patterns():
     walmart_delivered_subjects = SENSOR_DATA["walmart_delivered"]["subject"]
 
     # Should include the Walmart email address
-    assert (
-        "help@walmart.com" in walmart_delivered_emails
-    ), "Walmart delivered emails should include help@walmart.com"
+    assert "help@walmart.com" in walmart_delivered_emails, (
+        "Walmart delivered emails should include help@walmart.com"
+    )
 
     # Should include "Delivered:" subject pattern
-    assert (
-        "Delivered:" in walmart_delivered_subjects
-    ), "Walmart delivered subjects should include 'Delivered:'"
+    assert "Delivered:" in walmart_delivered_subjects, (
+        "Walmart delivered subjects should include 'Delivered:'"
+    )
 
     # Test Walmart delivering email patterns
     walmart_delivering_emails = SENSOR_DATA["walmart_delivering"]["email"]
     walmart_delivering_subjects = SENSOR_DATA["walmart_delivering"]["subject"]
 
     # Should include the same email address
-    assert (
-        "help@walmart.com" in walmart_delivering_emails
-    ), "Walmart delivering emails should include help@walmart.com"
+    assert "help@walmart.com" in walmart_delivering_emails, (
+        "Walmart delivering emails should include help@walmart.com"
+    )
 
     # Should include "Your package should arrive by" subject pattern
-    assert (
-        "Your package should arrive by" in walmart_delivering_subjects
-    ), "Walmart delivering subjects should include 'Your package should arrive by'"
+    assert "Your package should arrive by" in walmart_delivering_subjects, (
+        "Walmart delivering subjects should include 'Your package should arrive by'"
+    )
 
 
 async def test_walmart_tracking_pattern():
@@ -2400,18 +2402,18 @@ async def test_walmart_tracking_pattern():
     sample_tracking = "#1234567-12345678"
     pattern = walmart_tracking_pattern[0]  # "#[0-9]{7}-[0-9]{7,8}"
     match = re.search(pattern, sample_tracking)
-    assert (
-        match is not None
-    ), f"Sample tracking number {sample_tracking} should match Walmart pattern {pattern}"
+    assert match is not None, (
+        f"Sample tracking number {sample_tracking} should match Walmart pattern {pattern}"
+    )
 
 
 async def test_ups_camera_integration():
     """Test that UPS camera is properly integrated with coordinator data."""
     # Test that UPS camera is defined in CAMERA_DATA
     assert "ups_camera" in CAMERA_DATA, "UPS camera should be defined in CAMERA_DATA"
-    assert (
-        CAMERA_DATA["ups_camera"][0] == "Mail UPS Camera"
-    ), "UPS camera should have correct name"
+    assert CAMERA_DATA["ups_camera"][0] == "Mail UPS Camera", (
+        "UPS camera should have correct name"
+    )
 
     # Test that ATTR_UPS_IMAGE constant exists
     assert ATTR_UPS_IMAGE == "ups_image", "ATTR_UPS_IMAGE should be defined correctly"
@@ -2420,17 +2422,17 @@ async def test_ups_camera_integration():
 async def test_walmart_camera_integration():
     """Test that Walmart camera is properly integrated with coordinator data."""
     # Test that Walmart camera is defined in CAMERA_DATA
-    assert (
-        "walmart_camera" in CAMERA_DATA
-    ), "Walmart camera should be defined in CAMERA_DATA"
-    assert (
-        CAMERA_DATA["walmart_camera"][0] == "Mail Walmart Delivery Camera"
-    ), "Walmart camera should have correct name"
+    assert "walmart_camera" in CAMERA_DATA, (
+        "Walmart camera should be defined in CAMERA_DATA"
+    )
+    assert CAMERA_DATA["walmart_camera"][0] == "Mail Walmart Delivery Camera", (
+        "Walmart camera should have correct name"
+    )
 
     # Test that ATTR_WALMART_IMAGE constant exists
-    assert (
-        ATTR_WALMART_IMAGE == "walmart_image"
-    ), "ATTR_WALMART_IMAGE should be defined correctly"
+    assert ATTR_WALMART_IMAGE == "walmart_image", (
+        "ATTR_WALMART_IMAGE should be defined correctly"
+    )
 
 
 @pytest.mark.asyncio
@@ -2473,9 +2475,9 @@ async def test_walmart_no_deliveries_handling(hass, integration):
     assert result == 0, f"Expected 0 Walmart deliveries, got {result}"
 
     # Verify that coordinator data was updated with no-delivery image
-    assert (
-        ATTR_WALMART_IMAGE in coordinator_data
-    ), "Walmart image should be set in coordinator data even with no deliveries"
+    assert ATTR_WALMART_IMAGE in coordinator_data, (
+        "Walmart image should be set in coordinator data even with no deliveries"
+    )
 
     # Verify that copyfile was called to create no-delivery image
     assert mock_copyfile.called, "copyfile should be called to create no-delivery image"
@@ -2521,9 +2523,9 @@ async def test_ups_no_deliveries_handling(hass, integration):
     assert result == 0, f"Expected 0 UPS deliveries, got {result}"
 
     # Verify that coordinator data was updated with no-delivery image
-    assert (
-        ATTR_UPS_IMAGE in coordinator_data
-    ), "UPS image should be set in coordinator data even with no deliveries"
+    assert ATTR_UPS_IMAGE in coordinator_data, (
+        "UPS image should be set in coordinator data even with no deliveries"
+    )
 
     # Verify that copyfile was called to create no-delivery image
     assert mock_copyfile.called, "copyfile should be called to create no-delivery image"
@@ -2543,17 +2545,17 @@ async def test_walmart_custom_image_support():
 async def test_walmart_sensor_integration():
     """Test that Walmart is properly integrated with sensor counts."""
     # Test that Walmart is in the SHIPPERS list
-    assert (
-        "walmart" in SHIPPERS
-    ), "Walmart should be in SHIPPERS list for sensor counting"
+    assert "walmart" in SHIPPERS, (
+        "Walmart should be in SHIPPERS list for sensor counting"
+    )
 
     # Test that Walmart sensors are defined
-    assert (
-        "walmart_delivered" in SENSOR_DATA
-    ), "Walmart delivered sensor should be defined"
-    assert (
-        "walmart_delivering" in SENSOR_DATA
-    ), "Walmart delivering sensor should be defined"
+    assert "walmart_delivered" in SENSOR_DATA, (
+        "Walmart delivered sensor should be defined"
+    )
+    assert "walmart_delivering" in SENSOR_DATA, (
+        "Walmart delivering sensor should be defined"
+    )
 
     # Test that Walmart will be counted in aggregate sensors
     walmart_delivered = "walmart_delivered"
@@ -2581,9 +2583,9 @@ async def test_walmart_order_tracking():
 
     for order in test_orders:
         match = re.search(pattern, order)
-        assert (
-            match is not None
-        ), f"Order number '{order}' should match Walmart tracking pattern"
+        assert match is not None, (
+            f"Order number '{order}' should match Walmart tracking pattern"
+        )
 
     # Test that invalid formats don't match
     invalid_orders = [
@@ -2595,9 +2597,9 @@ async def test_walmart_order_tracking():
 
     for order in invalid_orders:
         match = re.search(pattern, order)
-        assert (
-            match is None
-        ), f"Invalid order number '{order}' should not match Walmart tracking pattern"
+        assert match is None, (
+            f"Invalid order number '{order}' should not match Walmart tracking pattern"
+        )
 
 
 async def test_get_walmart_image_with_real_email():
@@ -2932,25 +2934,25 @@ async def test_fedex_image_extraction(hass):
         )
 
     # Should return True since the email contains a delivery photo
-    assert (
-        result is True
-    ), "FedEx image extraction should return True for email with delivery photo"
+    assert result is True, (
+        "FedEx image extraction should return True for email with delivery photo"
+    )
 
 
 async def test_fedex_camera_integration():
     """Test that FedEx camera is properly integrated with coordinator data."""
     # Test that FedEx camera is defined in CAMERA_DATA
-    assert (
-        "fedex_camera" in CAMERA_DATA
-    ), "FedEx camera should be defined in CAMERA_DATA"
-    assert (
-        CAMERA_DATA["fedex_camera"][0] == "Mail FedEx Delivery Camera"
-    ), "FedEx camera should have correct name"
+    assert "fedex_camera" in CAMERA_DATA, (
+        "FedEx camera should be defined in CAMERA_DATA"
+    )
+    assert CAMERA_DATA["fedex_camera"][0] == "Mail FedEx Delivery Camera", (
+        "FedEx camera should have correct name"
+    )
 
     # Test that ATTR_FEDEX_IMAGE constant exists
-    assert (
-        ATTR_FEDEX_IMAGE == "fedex_image"
-    ), "ATTR_FEDEX_IMAGE should be defined correctly"
+    assert ATTR_FEDEX_IMAGE == "fedex_image", (
+        "ATTR_FEDEX_IMAGE should be defined correctly"
+    )
 
 
 @pytest.mark.asyncio
@@ -2992,9 +2994,9 @@ async def test_fedex_no_deliveries_handling(hass, integration):
     assert result["count"] == 0, f"Expected 0 FedEx deliveries, got {result['count']}"
 
     # Verify that coordinator data was updated with no-delivery image
-    assert (
-        ATTR_FEDEX_IMAGE in coordinator_data
-    ), "FedEx image should be set in coordinator data even with no deliveries"
+    assert ATTR_FEDEX_IMAGE in coordinator_data, (
+        "FedEx image should be set in coordinator data even with no deliveries"
+    )
 
     # Verify that copyfile was called to create no-delivery image
     assert mock_copyfile.called, "copyfile should be called to create no-delivery image"
@@ -3258,9 +3260,9 @@ async def test_amazon_shipped_vs_delivered_logic():
         in_transit_packages += in_transit_count
 
     # Should return 0 because all shipped packages were delivered
-    assert (
-        in_transit_packages == 0
-    ), f"Expected 0 (all shipped packages were delivered), got {in_transit_packages}"
+    assert in_transit_packages == 0, (
+        f"Expected 0 (all shipped packages were delivered), got {in_transit_packages}"
+    )
 
 
 @pytest.mark.asyncio
@@ -3285,9 +3287,9 @@ async def test_amazon_mixed_orders_shipped_vs_delivered():
         in_transit_packages += in_transit_count
 
     # Should return 3 because: 1 + (2-1) + 1 = 3 packages in transit
-    assert (
-        in_transit_packages == 3
-    ), f"Expected 3 (3 packages in transit), got {in_transit_packages}"
+    assert in_transit_packages == 3, (
+        f"Expected 3 (3 packages in transit), got {in_transit_packages}"
+    )
 
 
 @pytest.mark.asyncio
@@ -3313,9 +3315,9 @@ async def test_amazon_delivered_orders_excluded_from_transit():
 
     # Should return 1 because only 1 package (#111-1111111-1111111) is in transit
     # Orders #222-2222222-2222222 and #333-3333333-3333333 were fully delivered
-    assert (
-        in_transit_packages == 1
-    ), f"Expected 1 (only 1 package in transit), got {in_transit_packages}"
+    assert in_transit_packages == 1, (
+        f"Expected 1 (only 1 package in transit), got {in_transit_packages}"
+    )
 
 
 @pytest.mark.asyncio

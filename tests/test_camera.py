@@ -997,9 +997,9 @@ async def test_generic_camera_with_all_delivery_types(
         # Mock the generate_delivery_gif function to verify it's called correctly
         async def mock_generate_gif_func(delivery_images, gif_path):
             # Verify we received the expected delivery images
-            assert (
-                len(delivery_images) == 3
-            ), f"Expected 3 delivery images, got {len(delivery_images)}"
+            assert len(delivery_images) == 3, (
+                f"Expected 3 delivery images, got {len(delivery_images)}"
+            )
             # Verify the images are for Amazon, UPS, and Walmart
             # The paths should contain the image names from coordinator data
             assert any(
@@ -1012,9 +1012,9 @@ async def test_generic_camera_with_all_delivery_types(
                 coordinator.data.get("walmart_image") in img for img in delivery_images
             ), f"Walmart image not found in {delivery_images}"
             # Verify the gif path
-            assert (
-                "generic_deliveries.gif" in gif_path
-            ), f"Expected generic_deliveries.gif in path, got {gif_path}"
+            assert "generic_deliveries.gif" in gif_path, (
+                f"Expected generic_deliveries.gif in path, got {gif_path}"
+            )
             return True
 
         mock_generate_gif.side_effect = mock_generate_gif_func
@@ -1094,9 +1094,9 @@ async def test_generic_camera_filters_no_mail_images(
         # Mock the generate_delivery_gif function to verify it's called correctly
         async def mock_generate_gif_func(delivery_images, gif_path):
             # Verify we received the expected delivery images (only Amazon and Walmart, no "no mail" images)
-            assert (
-                len(delivery_images) == 2
-            ), f"Expected 2 delivery images, got {len(delivery_images)}"
+            assert len(delivery_images) == 2, (
+                f"Expected 2 delivery images, got {len(delivery_images)}"
+            )
             # Verify the images are for Amazon and Walmart (UPS and USPS "no mail" images should be filtered out)
             assert any(
                 coordinator.data.get("amazon_image") in img for img in delivery_images
@@ -1105,16 +1105,16 @@ async def test_generic_camera_filters_no_mail_images(
                 coordinator.data.get("walmart_image") in img for img in delivery_images
             ), f"Walmart image not found in {delivery_images}"
             # Verify "no mail" images are NOT in the delivery images
-            assert not any(
-                "no_deliveries" in img for img in delivery_images
-            ), f"No mail images should not be in {delivery_images}"
-            assert not any(
-                "mail_none" in img for img in delivery_images
-            ), f"USPS no mail image should not be in {delivery_images}"
+            assert not any("no_deliveries" in img for img in delivery_images), (
+                f"No mail images should not be in {delivery_images}"
+            )
+            assert not any("mail_none" in img for img in delivery_images), (
+                f"USPS no mail image should not be in {delivery_images}"
+            )
             # Verify the gif path
-            assert (
-                "generic_deliveries.gif" in gif_path
-            ), f"Expected generic_deliveries.gif in path, got {gif_path}"
+            assert "generic_deliveries.gif" in gif_path, (
+                f"Expected generic_deliveries.gif in path, got {gif_path}"
+            )
             return True
 
         mock_generate_gif.side_effect = mock_generate_gif_func
@@ -1214,9 +1214,9 @@ async def test_generic_camera_respects_enabled_sensors(
         # Mock the generate_delivery_gif function to verify it's called correctly
         async def mock_generate_gif_func(delivery_images, gif_path):
             # Verify we received the expected delivery images (only Amazon and Walmart)
-            assert (
-                len(delivery_images) == 2
-            ), f"Expected 2 delivery images, got {len(delivery_images)}"
+            assert len(delivery_images) == 2, (
+                f"Expected 2 delivery images, got {len(delivery_images)}"
+            )
             # Verify the images are for Amazon and Walmart (UPS and USPS should be excluded)
             assert any(
                 coordinator.data.get("amazon_image") in img for img in delivery_images
@@ -1229,9 +1229,9 @@ async def test_generic_camera_respects_enabled_sensors(
                 coordinator.data.get("ups_image") in img for img in delivery_images
             ), f"UPS image should not be in {delivery_images}"
             # Verify the gif path
-            assert (
-                "generic_deliveries.gif" in gif_path
-            ), f"Expected generic_deliveries.gif in path, got {gif_path}"
+            assert "generic_deliveries.gif" in gif_path, (
+                f"Expected generic_deliveries.gif in path, got {gif_path}"
+            )
             return True
 
         mock_generate_gif.side_effect = mock_generate_gif_func
@@ -1457,9 +1457,9 @@ async def test_generic_camera_with_multiple_delivery_images(
         # Mock the generate_delivery_gif function to verify it's called correctly
         async def mock_generate_gif_func(delivery_images, gif_path):
             # Verify we received the expected delivery images (Amazon and UPS, USPS excluded)
-            assert (
-                len(delivery_images) == 2
-            ), f"Expected 2 delivery images, got {len(delivery_images)}"
+            assert len(delivery_images) == 2, (
+                f"Expected 2 delivery images, got {len(delivery_images)}"
+            )
             # Verify the images are for Amazon and UPS (USPS should be excluded)
             assert any(
                 coordinator.data.get("amazon_image") in img for img in delivery_images
@@ -1472,9 +1472,9 @@ async def test_generic_camera_with_multiple_delivery_images(
                 coordinator.data.get("image_name") in img for img in delivery_images
             ), f"USPS image should not be in {delivery_images}"
             # Verify the gif path
-            assert (
-                "generic_deliveries.gif" in gif_path
-            ), f"Expected generic_deliveries.gif in path, got {gif_path}"
+            assert "generic_deliveries.gif" in gif_path, (
+                f"Expected generic_deliveries.gif in path, got {gif_path}"
+            )
             return True
 
         mock_generate_gif.side_effect = mock_generate_gif_func
@@ -2104,7 +2104,9 @@ async def test_camera_fallback_to_recent_file(
         # Trigger update
         cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
         amazon_camera = next(
-            c for c in cameras if c._type == "amazon_camera"  # noqa: SLF001
+            c
+            for c in cameras
+            if c._type == "amazon_camera"  # noqa: SLF001
         )
 
         await amazon_camera.update_file_path()
@@ -2242,9 +2244,9 @@ async def test_is_custom_no_mail_file_not_exists_fixed(hass, integration):
         ),
         patch("pathlib.Path.exists", return_value=False),
     ):
-        result = camera._is_custom_no_mail_image(
+        result = camera._is_custom_no_mail_image(  # noqa: SLF001
             "amazon", "/some/path.jpg"
-        )  # noqa: SLF001
+        )
         assert result is False
 
 

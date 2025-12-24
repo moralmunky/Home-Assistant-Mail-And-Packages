@@ -2137,9 +2137,9 @@ async def test_reconfigure_with_default_images(
             if isinstance(expected_value, list) and isinstance(actual_value, list):
                 expected_value = sorted(expected_value)
                 actual_value = sorted(actual_value)
-            assert (
-                expected_value == actual_value
-            ), f"Value mismatch for {key}: expected {data[key]}, got {actual_data[key]}"
+            assert expected_value == actual_value, (
+                f"Value mismatch for {key}: expected {data[key]}, got {actual_data[key]}"
+            )
         for key in actual_data:
             assert key in data, f"Extra key: {key}"
 
@@ -2316,9 +2316,9 @@ async def test_config_flow_with_amazon_custom_image_only(
                 expected_value = sorted(expected_value)
                 actual_value = sorted(actual_value)
 
-            assert (
-                expected_value == actual_value
-            ), f"Value mismatch for {key}: expected {expected_data[key]}, got {actual_data[key]}"
+            assert expected_value == actual_value, (
+                f"Value mismatch for {key}: expected {expected_data[key]}, got {actual_data[key]}"
+            )
 
         # Check for any extra keys in actual data
         for key in actual_data:
@@ -2495,9 +2495,9 @@ async def test_config_flow_with_ups_custom_image_only(
         # Compare key by key to handle any order differences
         for key, expected_value in expected_data.items():
             assert key in actual_data, f"Missing key: {key}"
-            assert (
-                actual_data[key] == expected_value
-            ), f"Mismatch for {key}: {actual_data[key]} != {expected_value}"
+            assert actual_data[key] == expected_value, (
+                f"Mismatch for {key}: {actual_data[key]} != {expected_value}"
+            )
 
         # Check for any extra keys in actual data
         for key in actual_data:
@@ -3634,9 +3634,9 @@ async def test_walmart_config_flow_integration():
         errors, validated_input = await _validate_user_input(user_input)
 
         # Should not have file_not_found error for Walmart custom image
-        assert (
-            CONF_WALMART_CUSTOM_IMG_FILE not in errors
-        ), "Walmart custom image file should be valid"
+        assert CONF_WALMART_CUSTOM_IMG_FILE not in errors, (
+            "Walmart custom image file should be valid"
+        )
         assert validated_input[CONF_WALMART_CUSTOM_IMG] is True
         assert validated_input[CONF_WALMART_CUSTOM_IMG_FILE] == temp_file_path
 
@@ -3658,9 +3658,9 @@ async def test_walmart_config_flow_integration():
     errors, validated_input = await _validate_user_input(user_input)
 
     # Should have file_not_found error for Walmart custom image
-    assert (
-        CONF_WALMART_CUSTOM_IMG_FILE in errors
-    ), "Walmart custom image file should be invalid"
+    assert CONF_WALMART_CUSTOM_IMG_FILE in errors, (
+        "Walmart custom image file should be invalid"
+    )
     assert errors[CONF_WALMART_CUSTOM_IMG_FILE] == "file_not_found"
 
     # Test 3: Validate Walmart custom image disabled (should not validate file)
@@ -3677,25 +3677,25 @@ async def test_walmart_config_flow_integration():
     errors, validated_input = await _validate_user_input(user_input)
 
     # Should not have file_not_found error when Walmart custom image is disabled
-    assert (
-        CONF_WALMART_CUSTOM_IMG_FILE not in errors
-    ), "Walmart custom image file should not be validated when disabled"
+    assert CONF_WALMART_CUSTOM_IMG_FILE not in errors, (
+        "Walmart custom image file should not be validated when disabled"
+    )
 
 
 async def test_walmart_config_flow_version():
     """Test that the config version has been incremented for Walmart support."""
     # Version should be 12 or higher to include Walmart custom image support
-    assert (
-        CONFIG_VER >= 12
-    ), f"Config version should be 12 or higher for Walmart support, got {CONFIG_VER}"
+    assert CONFIG_VER >= 12, (
+        f"Config version should be 12 or higher for Walmart support, got {CONFIG_VER}"
+    )
 
 
 async def test_fedex_config_flow_version():
     """Test that the config version has been incremented for FedEx support."""
     # Version should be 13 or higher to include FedEx custom image support
-    assert (
-        CONFIG_VER >= 13
-    ), f"Config version should be 13 or higher for FedEx support, got {CONFIG_VER}"
+    assert CONFIG_VER >= 13, (
+        f"Config version should be 13 or higher for FedEx support, got {CONFIG_VER}"
+    )
 
 
 async def test_get_mailboxes_non_ok_status():
