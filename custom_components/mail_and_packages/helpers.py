@@ -14,6 +14,7 @@ import shutil
 import subprocess  # nosec
 import uuid
 from email.header import decode_header
+from functools import partial
 from pathlib import Path
 from shutil import copyfile, copytree, which
 from typing import Any
@@ -33,6 +34,7 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.util import ssl
 from PIL import Image, ImageOps
 from voluptuous import Email, MultipleInvalid, Schema
 
@@ -149,20 +151,33 @@ async def _check_ffmpeg() -> bool:
 
 
 async def _test_login(
-    host: str, port: int, user: str, pwd: str, security: str, verify: bool = True
+    hass: HomeAssistant,
+    host: str,
+    port: int,
+    user: str,
+    pwd: str,
+    security: str,
+    verify: bool = True,
 ):
     """Test login to IMAP server using aioimaplib."""
     account = None
     try:
+        ssl_context = (
+            ssl.client_context(ssl.SSLCipherList.PYTHON_DEFAULT)
+            if verify
+            else ssl.create_no_verify_ssl_context()
+        )
         if security == "SSL":
-            account = aioimaplib.IMAP4_SSL(host=host, port=port)
+            account = aioimaplib.IMAP4_SSL(
+                host=host, port=port, ssl_context=ssl_context
+            )
         else:
             account = aioimaplib.IMAP4(host=host, port=port)
 
         await account.wait_hello_from_server()
 
         if security == "startTLS":
-            await account.starttls()
+            await account.starttls(ssl_context=ssl_context)
 
         await account.login(user, pwd)
         await account.logout()
@@ -215,7 +230,8 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # n
     data = {}
 
     # Login to email server and select the folder
-    account = await login(host, port, user, pwd, imap_security, verify_ssl)
+    _LOGGER.debug("Attempting to log int IMAP server.")
+    account = await login(hass, host, port, user, pwd, imap_security, verify_ssl)
 
     # Do not process if account returns false
     if not account:
@@ -227,11 +243,15 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # n
         await account.logout()
         return data
 
+    _LOGGER.debug("IMAP Login completed.")
+
     # Create image file name dict container
     _image = {}
 
     # USPS Mail Image name
-    image_name = image_file_name(hass, config)
+    image_name = await hass.async_add_executor_job(
+        partial(image_file_name, hass, config)
+    )
     _LOGGER.debug("Image name: %s", image_name)
     _image[ATTR_IMAGE_NAME] = image_name
 
@@ -241,7 +261,9 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # n
         _image[ATTR_GRID_IMAGE_NAME] = png_file
 
     # Amazon delivery image name
-    image_name = image_file_name(hass, config, True)
+    image_name = await hass.async_add_executor_job(
+        partial(image_file_name, hass, config, True)
+    )
     _LOGGER.debug("Amazon Image Name: %s", image_name)
     _image[ATTR_AMAZON_IMAGE] = image_name
 
@@ -255,7 +277,9 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # n
 
     for name, attr, default_img in shippers:
         _LOGGER.debug("Generating %s image name...", name.title())
-        img_name = image_file_name(hass, config, **{name: True})
+        img_name = await hass.async_add_executor_job(
+            partial(image_file_name, hass, config, **{name: True})
+        )
         _LOGGER.debug("%s Image Name: %s", name.title(), img_name)
         _image[attr] = img_name
         _LOGGER.debug("Set %s in coordinator data: %s", attr, img_name)
@@ -279,7 +303,7 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # n
             )
             try:
                 src = str(Path(__file__).parent / default_img)
-                copyfile(src, full_img_path)
+                await hass.async_add_executor_job(partial(copyfile, src, full_img_path))
                 _LOGGER.debug(
                     "Created default %s image: %s", name.title(), full_img_path
                 )
@@ -294,6 +318,7 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # n
     data.update(_image)
 
     # Only update sensors we're intrested in
+    _LOGGER.debug("Starting email sensor fetch.")
     for sensor in resources:
         try:
             await fetch(hass, config, account, data, sensor)
@@ -302,7 +327,7 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # n
 
     # Copy image file to www directory if enabled
     if config.get(CONF_ALLOW_EXTERNAL):
-        copy_images(hass, config)
+        await hass.async_add_executor_job(partial(copy_images, hass, config))
 
     # Logout of async IMAP session
     await account.logout()
@@ -568,6 +593,7 @@ async def fetch(  # noqa: C901
 
     if sensor == "usps_mail":
         count[sensor] = await get_mails(
+            hass,
             account,
             img_out_path,
             gif_duration,
@@ -690,19 +716,32 @@ async def fetch(  # noqa: C901
 
 
 async def login(
-    host: str, port: int, user: str, pwd: str, security: str, verify: bool = True
+    hass: HomeAssistant,
+    host: str,
+    port: int,
+    user: str,
+    pwd: str,
+    security: str,
+    verify: bool = True,
 ) -> bool | aioimaplib.IMAP4_SSL:
     """Login to IMAP server asynchronously."""
     try:
+        ssl_context = (
+            ssl.client_context(ssl.SSLCipherList.PYTHON_DEFAULT)
+            if verify
+            else ssl.create_no_verify_ssl_context()
+        )
         if security == "SSL":
-            account = aioimaplib.IMAP4_SSL(host=host, port=port)
+            account = aioimaplib.IMAP4_SSL(
+                host=host, port=port, ssl_context=ssl_context
+            )
         else:
             account = aioimaplib.IMAP4(host=host, port=port)
 
         await account.wait_hello_from_server()
 
         if security == "startTLS":
-            await account.starttls()
+            await account.starttls(ssl_context=ssl_context)
 
         await account.login(user, pwd)
     except (AioImapException, OSError) as err:
@@ -715,7 +754,7 @@ async def login(
 async def selectfolder(account: aioimaplib.IMAP4_SSL, folder: str) -> bool:
     """Select folder inside the mailbox asynchronously."""
     try:
-        await account.list()
+        await account.list(folder, "*")
     except (AioImapException, OSError) as err:
         _LOGGER.error("Error listing folder %s: %s", folder, err)
         return False
@@ -806,9 +845,9 @@ async def email_search(
 
     try:
         if utf8_flag:
-            res = await account.search(criteria=search, charset="UTF-8")
+            res = await account.search(search, charset="UTF-8")
         else:
-            res = await account.search(criteria=search)
+            res = await account.search(search)
     except (AioImapException, OSError) as err:
         _LOGGER.error("Error searching emails: %s", err)
         return ("BAD", str(err))
@@ -835,6 +874,7 @@ async def email_fetch(
 
 
 async def get_mails(  # noqa: C901
+    hass: HomeAssistant,
     account: type[aioimaplib.IMAP4_SSL],
     image_output_path: str,
     gif_duration: int,
@@ -872,17 +912,20 @@ async def get_mails(  # noqa: C901
     # Check to see if the path exists, if not make it
     if not Path(image_output_path).is_dir():
         try:
-            Path(image_output_path).mkdir(parents=True, exist_ok=True)
+            # Fixed: Run mkdir in executor
+            await hass.async_add_executor_job(
+                partial(Path(image_output_path).mkdir, parents=True, exist_ok=True)
+            )
         except OSError as err:
             _LOGGER.critical("Error creating directory: %s", err)
 
     # Clean up image directory
     _LOGGER.debug("Cleaning up image directory: %s", image_output_path)
-    cleanup_images(image_output_path)
+    await hass.async_add_executor_job(cleanup_images, image_output_path)
 
     # Copy overlays to image directory
     _LOGGER.debug("Checking for overlay files in: %s", image_output_path)
-    copy_overlays(image_output_path)
+    await hass.async_add_executor_job(copy_overlays, image_output_path)
 
     if server_response == "OK":
         _LOGGER.debug("Informed Delivery email found processing...")
@@ -914,10 +957,14 @@ async def get_mails(  # noqa: C901
                                 data = str(image["src"]).split(",")[1]
                                 try:
                                     target_path = Path(image_output_path) / filename
-                                    with target_path.open("wb") as the_file:
-                                        the_file.write(base64.b64decode(data))
-                                        images.append(str(target_path))
-                                        image_count = image_count + 1
+                                    # Fixed: Write file in executor
+                                    await hass.async_add_executor_job(
+                                        io_save_file,
+                                        target_path,
+                                        base64.b64decode(data),
+                                    )
+                                    images.append(str(target_path))
+                                    image_count = image_count + 1
                                 except (OSError, ValueError) as err:
                                     _LOGGER.critical("Error opening filepath: %s", err)
                                     return image_count
@@ -933,10 +980,14 @@ async def get_mails(  # noqa: C901
                                 continue
                             try:
                                 target_path = Path(image_output_path) / filename
-                                with target_path.open("wb") as the_file:
-                                    the_file.write(part.get_payload(decode=True))
-                                    images.append(str(target_path))
-                                    image_count = image_count + 1
+                                # Fixed: Write file in executor
+                                await hass.async_add_executor_job(
+                                    io_save_file,
+                                    target_path,
+                                    part.get_payload(decode=True),
+                                )
+                                images.append(str(target_path))
+                                image_count = image_count + 1
                             except OSError as err:
                                 _LOGGER.critical("Error opening filepath: %s", err)
                                 return image_count
@@ -974,33 +1025,44 @@ async def get_mails(  # noqa: C901
             all_images = []
 
             _LOGGER.debug("Resizing images to 724x320...")
-            # Resize images to 724x320
-            all_images = resize_images(images, 724, 320)
+            # Fixed: Resize images (Heavy I/O + CPU) in executor
+            all_images = await hass.async_add_executor_job(
+                resize_images, images, 724, 320
+            )
 
             # Create copy of image list for deleting temporary images
             for image in all_images:
                 images_delete.append(image)
 
-            # Create numpy array of images
-            _LOGGER.debug("Creating array of image files...")
-            img, *imgs = [Image.open(file) for file in all_images]
-
             try:
                 _LOGGER.debug("Generating animated GIF")
-                # Use Pillow to create mail images
-                img.save(
-                    fp=Path(image_output_path) / image_name,
-                    format="GIF",
-                    append_images=imgs,
-                    save_all=True,
-                    duration=gif_duration * 1000,
-                    loop=0,
-                )
+
+                # Fixed: GIF creation (Heavy I/O + CPU) in executor
+                # We can reuse the generate_delivery_gif function logic or wrap the saving here
+                # Creating a small helper lambda or partial to run the Pillow save in executor
+                def _save_gif():
+                    img, *imgs = [Image.open(file) for file in all_images]
+                    img.save(
+                        fp=Path(image_output_path) / image_name,
+                        format="GIF",
+                        append_images=imgs,
+                        save_all=True,
+                        duration=gif_duration * 1000,
+                        loop=0,
+                    )
+
+                await hass.async_add_executor_job(_save_gif)
                 _LOGGER.debug("Mail image generated.")
             except (OSError, ValueError) as err:
                 _LOGGER.error("Error attempting to generate image: %s", err)
+
             for image in images_delete:
-                cleanup_images(f"{os.path.split(image)[0]}/", os.path.split(image)[1])
+                # Fixed: Cleanup in executor
+                await hass.async_add_executor_job(
+                    cleanup_images,
+                    f"{os.path.split(image)[0]}/",
+                    os.path.split(image)[1],
+                )
 
         elif image_count == 0:
             _LOGGER.debug("No mail found.")
@@ -1009,7 +1071,10 @@ async def get_mails(  # noqa: C901
 
             if target_file.is_file():
                 _LOGGER.debug("Removing %s", target_file)
-                cleanup_images(image_output_path, image_name)
+                # Fixed: Cleanup in executor
+                await hass.async_add_executor_job(
+                    cleanup_images, image_output_path, image_name
+                )
 
             try:
                 _LOGGER.debug("Copying nomail gif")
@@ -1018,15 +1083,24 @@ async def get_mails(  # noqa: C901
                 else:
                     nomail = str(Path(__file__).parent / "mail_none.gif")
 
-                copyfile(nomail, image_output_path + image_name)
+                # Fixed: Copy file in executor
+                await hass.async_add_executor_job(
+                    copyfile, nomail, image_output_path + image_name
+                )
 
             except OSError as err:
                 _LOGGER.error("Error attempting to copy image: %s", err)
 
         if gen_mp4:
-            _generate_mp4(image_output_path, image_name)
+            # Fixed: Subprocess call in executor
+            await hass.async_add_executor_job(
+                _generate_mp4, image_output_path, image_name
+            )
         if gen_grid:
-            generate_grid_img(image_output_path, image_name, image_count)
+            # Fixed: Subprocess call in executor
+            await hass.async_add_executor_job(
+                generate_grid_img, image_output_path, image_name, image_count
+            )
 
     return image_count
 
@@ -1346,7 +1420,9 @@ async def get_count(  # noqa: C901
         shipper_path_obj = Path(absolute_shipper_path)
         if not shipper_path_obj.is_dir():
             try:
-                shipper_path_obj.mkdir(parents=True, exist_ok=True)
+                await hass.async_add_executor_job(
+                    partial(shipper_path_obj.mkdir, parents=True, exist_ok=True)
+                )
             except OSError as err:
                 _LOGGER.critical("Error creating directory: %s", err)
                 result[ATTR_COUNT] = count
@@ -1430,9 +1506,10 @@ async def get_count(  # noqa: C901
                                 image_name,
                             )
                             # Get the image
-                            extraction_result = _generic_delivery_image_extraction(
+                            extraction_result = await hass.async_add_executor_job(
+                                _generic_delivery_image_extraction,
                                 email_bytes,
-                                absolute_image_path,  # Use absolute path for saving
+                                absolute_image_path,
                                 image_name,
                                 shipper_name,
                                 image_type,
@@ -1551,15 +1628,19 @@ async def get_count(  # noqa: C901
             # Clean up image directory before setting default (use absolute path)
             # Only clean up if directory exists
             if Path(absolute_shipper_path).is_dir():
-                cleanup_images(absolute_shipper_path)
+                await hass.async_add_executor_job(cleanup_images, absolute_shipper_path)
 
             try:
                 # Ensure directory exists before copying (use absolute path)
                 shipper_dir = Path(absolute_shipper_path)
                 if not shipper_dir.is_dir():
-                    shipper_dir.mkdir(parents=True, exist_ok=True)
+                    await hass.async_add_executor_job(
+                        partial(shipper_dir.mkdir, parents=True, exist_ok=True)
+                    )
 
-                copyfile(no_delivery_image_file, absolute_shipper_path + image_name)
+                await hass.async_add_executor_job(
+                    copyfile, no_delivery_image_file, absolute_shipper_path + image_name
+                )
                 if data is not None:
                     data[image_attr] = image_name
             except OSError as err:
@@ -2005,7 +2086,7 @@ async def amazon_search(
     _LOGGER.debug("Today's date: %s", today)
     _LOGGER.debug("Amazon delivered subjects to search: %s", subjects)
     _LOGGER.debug("Cleaning up amazon images...")
-    cleanup_images(f"{image_path}amazon/")
+    await hass.async_add_executor_job(cleanup_images, f"{image_path}amazon/")
 
     address_list = amazon_email_addresses(fwds, amazon_domain)
     _LOGGER.debug("Amazon email list: %s", address_list)
@@ -2040,7 +2121,9 @@ async def amazon_search(
         _LOGGER.debug("No Amazon deliveries found.")
         nomail = f"{Path(__file__).parent}/no_deliveries_amazon.jpg"
         try:
-            copyfile(nomail, f"{image_path}amazon/" + amazon_image_name)
+            await hass.async_add_executor_job(
+                copyfile, nomail, f"{image_path}amazon/" + amazon_image_name
+            )
             # Update coordinator data with the no-delivery filename
             if coordinator_data is not None:
                 coordinator_data[ATTR_AMAZON_IMAGE] = amazon_image_name
@@ -2120,8 +2203,8 @@ async def download_img(
                 if "image" in content_type:
                     data = await resp.read()
                     _LOGGER.debug("Downloading image to: %s", filepath)
-                    the_file = await hass.async_add_executor_job(open, filepath, "wb")
-                    the_file.write(data)
+                    # Fixed: Write file in executor
+                    await hass.async_add_executor_job(io_save_file, filepath, data)
                     _LOGGER.debug("Amazon image downloaded")
         except aiohttp.ClientError as err:
             _LOGGER.error("Problem downloading file connection error: %s", err)
@@ -2691,3 +2774,9 @@ def validate_email_address(email_address: str) -> bool:
     _LOGGER.debug("%s is a valid email address", email_address)
 
     return True
+
+
+def io_save_file(path: str | Path, data: bytes) -> None:
+    """Write bytes to a file synchronously (for use in executor)."""
+    with Path(path).open("wb") as the_file:
+        the_file.write(data)

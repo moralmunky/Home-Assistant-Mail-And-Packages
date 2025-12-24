@@ -270,7 +270,7 @@ async def _get_mailboxes(
         _LOGGER.error("Problem logging in to mailbox.")
         return []
 
-    result = await account.list()
+    result = await account.list("*", "*")
     status = result.result
     folderlist = result.lines
     _LOGGER.debug("Get mailbox status: %s folder list: %s", status, folderlist)
@@ -549,6 +549,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._data.update(user_input)
             valid = await _test_login(
+                self.hass,
                 user_input[CONF_HOST],
                 user_input[CONF_PORT],
                 user_input[CONF_USERNAME],

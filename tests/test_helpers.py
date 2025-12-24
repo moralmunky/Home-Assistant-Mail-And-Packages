@@ -9,7 +9,7 @@ import tempfile
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from unittest import mock
-from unittest.mock import AsyncMock, MagicMock, call, mock_open, patch
+from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 import aiohttp
 import pytest
@@ -432,26 +432,31 @@ async def test_email_fetch(mock_imap_fetch_error, caplog):
 
 
 @pytest.mark.asyncio
-async def test_get_mails(mock_imap_no_email, mock_copyfile):
+async def test_get_mails(hass, mock_imap_no_email, mock_copyfile):
     """Test the get_mails helper for retrieving mail count."""
-    result = await get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
+    result = await get_mails(
+        hass, mock_imap_no_email, "./", "5", "mail_today.gif", False
+    )
     assert result == 0
 
 
 @pytest.mark.asyncio
-async def test_get_mails_makedirs_error(mock_imap_no_email, mock_copyfile, caplog):
+async def test_get_mails_makedirs_error(
+    hass, mock_imap_no_email, mock_copyfile, caplog
+):
     """Test error handling when creating mail directories fails."""
     # Fix: Patch pathlib.Path.is_dir and pathlib.Path.mkdir
     with (
         patch("pathlib.Path.is_dir", return_value=False),
         patch("pathlib.Path.mkdir", side_effect=OSError("Permission denied")),
     ):
-        await get_mails(mock_imap_no_email, "./", "5", "mail_today.gif", False)
+        await get_mails(hass, mock_imap_no_email, "./", "5", "mail_today.gif", False)
         assert "Error creating directory:" in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_get_mails_copyfile_error(
+    hass,
     mock_imap_usps_informed_digest_no_mail,
     mock_copyoverlays,
     mock_copyfile_exception,
@@ -459,7 +464,7 @@ async def test_get_mails_copyfile_error(
 ):
     """Test error handling when copying mail images fails."""
     await get_mails(
-        mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
+        hass, mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
     )
     assert "File not found" in caplog.text
 
@@ -484,6 +489,7 @@ async def test_get_mails_email_search_error(
 
 @pytest.mark.asyncio
 async def test_informed_delivery_emails(
+    hass,
     mock_imap_usps_informed_digest,
     mock_osremove,
     mock_osmakedir,
@@ -495,13 +501,14 @@ async def test_informed_delivery_emails(
     """Test parsing of USPS Informed Delivery emails via async IMAP."""
     # get_mails is now async
     result = await get_mails(
-        mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
+        hass, mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", False
     )
     assert result == 3
 
 
 @pytest.mark.asyncio
 async def test_informed_delivery_forwarded_emails(
+    hass,
     mock_imap_informed_delivery_forwarded_email,
     mock_osremove,
     mock_osmakedir,
@@ -516,6 +523,7 @@ async def test_informed_delivery_forwarded_emails(
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
         result = await get_mails(
+            hass,
             mock_imap_informed_delivery_forwarded_email,
             "./",
             "5",
@@ -532,6 +540,7 @@ async def test_informed_delivery_forwarded_emails(
 
 @pytest.mark.asyncio
 async def test_new_informed_delivery_emails(
+    hass,
     mock_imap_usps_new_informed_digest,
     mock_osremove,
     mock_osmakedir,
@@ -546,7 +555,7 @@ async def test_new_informed_delivery_emails(
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
         result = await get_mails(
-            mock_imap_usps_new_informed_digest, "./", "5", "mail_today.gif", False
+            hass, mock_imap_usps_new_informed_digest, "./", "5", "mail_today.gif", False
         )
         assert result == 4
         assert "USPSInformedDelivery@usps.gov" in caplog.text
@@ -557,6 +566,7 @@ async def test_new_informed_delivery_emails(
 
 @pytest.mark.asyncio
 async def test_informed_delivery_emails_mp4(
+    hass,
     mock_imap_usps_informed_digest,
     mock_osremove,
     mock_osmakedir,
@@ -573,7 +583,7 @@ async def test_informed_delivery_emails_mp4(
         m_open = mock_open()
         with patch("builtins.open", m_open, create=True):
             result = await get_mails(
-                mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", True
+                hass, mock_imap_usps_informed_digest, "./", "5", "mail_today.gif", True
             )
             assert result == 3
             mock_generate_mp4.assert_called_with("./", "mail_today.gif")
@@ -581,6 +591,7 @@ async def test_informed_delivery_emails_mp4(
 
 @pytest.mark.asyncio
 async def test_informed_delivery_emails_open_err(
+    hass,
     mock_imap_usps_informed_digest,
     mock_listdir,
     mock_osremove,
@@ -600,6 +611,7 @@ async def test_informed_delivery_emails_open_err(
         patch("pathlib.Path.open", side_effect=OSError(2, "No such file or directory")),
     ):
         await get_mails(
+            hass,
             mock_imap_usps_informed_digest,
             "/totally/fake/path/",
             "5",
@@ -613,6 +625,7 @@ async def test_informed_delivery_emails_open_err(
 
 @pytest.mark.asyncio
 async def test_informed_delivery_emails_io_err(
+    hass,
     mock_imap_usps_informed_digest,
     mock_listdir,
     mock_osremove,
@@ -620,6 +633,7 @@ async def test_informed_delivery_emails_io_err(
     mock_os_path_splitext,
     mock_image_save_excpetion,
     mock_copyfile,
+    caplog,
 ):
     """Test IO error handling during mail processing."""
     # Create a mock image object that raises ValueError on .save()
@@ -627,7 +641,7 @@ async def test_informed_delivery_emails_io_err(
     # Configure chainable methods to return the mock object itself
     mock_img.thumbnail.return_value = mock_img
     mock_img.crop.return_value = mock_img
-    mock_img.save.side_effect = ValueError  # Explicitly raise the target error
+    mock_img.save.side_effect = ValueError("Mocked Save Error")
 
     # Mock pathlib methods for directory checks and file opening
     with (
@@ -638,20 +652,26 @@ async def test_informed_delivery_emails_io_err(
         patch("PIL.Image.open", return_value=mock_img),
         # Mock ImageOps.pad to return our configured mock image
         patch("PIL.ImageOps.pad", return_value=mock_img),
-        pytest.raises(ValueError) as exc_info,
     ):
         await get_mails(
+            hass,
             mock_imap_usps_informed_digest,
             "/totally/fake/path/",
             "5",
             "mail_today.gif",
             False,
         )
-    assert type(exc_info.value) is ValueError
+
+    # Verify that the error was caught and logged instead of raised
+    assert (
+        "Error attempting to generate image" in caplog.text
+        or "Error processing image" in caplog.text
+    )
 
 
 @pytest.mark.asyncio
 async def test_informed_delivery_missing_mailpiece(
+    hass,
     mock_imap_usps_informed_digest_missing,
     mock_listdir,
     mock_osremove,
@@ -665,13 +685,19 @@ async def test_informed_delivery_missing_mailpiece(
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
         result = await get_mails(
-            mock_imap_usps_informed_digest_missing, "./", "5", "mail_today.gif", False
+            hass,
+            mock_imap_usps_informed_digest_missing,
+            "./",
+            "5",
+            "mail_today.gif",
+            False,
         )
         assert result == 5
 
 
 @pytest.mark.asyncio
 async def test_informed_delivery_no_mail(
+    hass,
     mock_imap_usps_informed_digest_no_mail,
     mock_listdir,
     mock_osremove,
@@ -686,7 +712,12 @@ async def test_informed_delivery_no_mail(
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
         result = await get_mails(
-            mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
+            hass,
+            mock_imap_usps_informed_digest_no_mail,
+            "./",
+            "5",
+            "mail_today.gif",
+            False,
         )
         assert result == 0
 
@@ -694,6 +725,7 @@ async def test_informed_delivery_no_mail(
 @pytest.mark.asyncio
 async def test_informed_delivery_no_mail_copy_error(
     mock_imap_usps_informed_digest_no_mail,
+    hass,
     mock_listdir,
     mock_osremove,
     mock_osmakedir,
@@ -709,7 +741,12 @@ async def test_informed_delivery_no_mail_copy_error(
     m_open = mock_open()
     with patch("builtins.open", m_open, create=True):
         await get_mails(
-            mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
+            hass,
+            mock_imap_usps_informed_digest_no_mail,
+            "./",
+            "5",
+            "mail_today.gif",
+            False,
         )
         assert "./mail_today.gif" in mock_copyfile_exception.call_args.args
         assert "File not found" in caplog.text
@@ -1419,14 +1456,16 @@ async def test_generate_mp4(mock_osremove, mock_subprocess_run, mock_os_path_spl
 
 
 @pytest.mark.asyncio
-async def test_connection_error(caplog):
+async def test_connection_error(hass, caplog):
     """Test handling of connection errors during IMAP login."""
     with patch("aioimaplib.IMAP4_SSL", side_effect=OSError("Connection failed")):
         result = await login(
-            "localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL"
+            hass, "localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL"
         )
         assert not result
-        await _test_login("localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
+        await _test_login(
+            hass, "localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL"
+        )
         assert "Error logging into IMAP Server: Connection failed" in caplog.text
         assert "Error testing login to IMAP Server: Connection failed" in caplog.text
 
@@ -1434,21 +1473,21 @@ async def test_connection_error(caplog):
     # Also check the startTLS/none path, which uses IMAP4
     with patch("aioimaplib.IMAP4", side_effect=OSError("Connection failed")):
         result = await login(
-            "localhost", 143, "fakeuser", "suchfakemuchpassword", "startTLS"
+            hass, "localhost", 143, "fakeuser", "suchfakemuchpassword", "startTLS"
         )
         assert not result
         await _test_login(
-            "localhost", 143, "fakeuser", "suchfakemuchpassword", "startTLS"
+            hass, "localhost", 143, "fakeuser", "suchfakemuchpassword", "startTLS"
         )
         assert "Error logging into IMAP Server: Connection failed" in caplog.text
         assert "Error testing login to IMAP Server: Connection failed" in caplog.text
 
 
 @pytest.mark.asyncio
-async def test_login_error(mock_imap_login_error, caplog):
+async def test_login_error(hass, mock_imap_login_error, caplog):
     """Test handling of errors during IMAP login."""
-    await login("localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
-    await _test_login("localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
+    await login(hass, "localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
+    await _test_login(hass, "localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
     assert (
         "Error logging into IMAP Server:" in caplog.text
         or "Error connecting into IMAP Server:" in caplog.text
@@ -1533,17 +1572,23 @@ async def test_download_img(
     caplog,
 ):
     """Test handling of image download."""
-    m_open = mock_open()
-    with patch("builtins.open", m_open, create=True):
+    # Patch io_save_file to prevent actual file writing and verify call
+    with patch("custom_components.mail_and_packages.helpers.io_save_file") as mock_save:
         await download_img(
             hass,
             "http://fake.website.com/not/a/real/website/image.jpg",
             "/fake/directory/",
             "testfilename.jpg",
         )
-        assert m_open.call_count == 1
-        assert m_open.call_args == call("/fake/directory/amazon/testfilename.jpg", "wb")
-        assert "URL content-type: image/gif" in caplog.text
+
+        # Verify io_save_file was called with the correct path
+        mock_save.assert_called_once()
+        args = mock_save.call_args[0]
+        # args[0] is path, args[1] is data
+        assert str(args[0]) == "/fake/directory/amazon/testfilename.jpg"
+
+        # Verify logging
+        assert "Downloading image to:" in caplog.text
         assert "Amazon image downloaded" in caplog.text
 
 
@@ -1697,6 +1742,7 @@ async def test_fedex_out_for_delivery_2(hass, mock_imap_fedex_out_for_delivery_2
 
 @pytest.mark.asyncio
 async def test_get_mails_email_search_none(
+    hass,
     mock_imap_usps_informed_digest_no_mail,
     mock_copyoverlays,
     mock_copyfile_exception,
@@ -1708,7 +1754,12 @@ async def test_get_mails_email_search_none(
         return_value=("OK", [None]),
     ):
         result = await get_mails(
-            mock_imap_usps_informed_digest_no_mail, "./", "5", "mail_today.gif", False
+            hass,
+            mock_imap_usps_informed_digest_no_mail,
+            "./",
+            "5",
+            "mail_today.gif",
+            False,
         )
         assert result == 0
 
@@ -3243,18 +3294,20 @@ async def test_image_file_name_copy_error(hass, integration):
 
 
 @pytest.mark.asyncio
-async def test_login_starttls_security():
+async def test_login_starttls_security(hass):
     """Test login with startTLS security using aioimaplib."""
     with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
         mock_acc = AsyncMock()
         mock_lib.IMAP4.return_value = mock_acc
-        result = await login("imap.test.com", 143, "user", "pass", "startTLS", True)
+        result = await login(
+            hass, "imap.test.com", 143, "user", "pass", "startTLS", True
+        )
         assert result == mock_acc
         mock_acc.starttls.assert_called_once()
         mock_acc.login.assert_called_once_with("user", "pass")
         mock_acc.reset_mock()
         result_bool = await _test_login(
-            "imap.test.com", 143, "user", "pass", "startTLS", True
+            hass, "imap.test.com", 143, "user", "pass", "startTLS", True
         )
         assert result_bool is True
         mock_acc.starttls.assert_called_once()
@@ -4029,12 +4082,12 @@ async def test_email_search_timeout(caplog):
 
 
 @pytest.mark.asyncio
-async def test_login_network_error(caplog):
+async def test_login_network_error(hass, caplog):
     """Test login failure due to network error."""
     with patch("aioimaplib.IMAP4_SSL", side_effect=OSError("Network unreachable")):
-        result = await login("host", 993, "user", "pwd", "SSL", True)
+        result = await login(hass, "host", 993, "user", "pwd", "SSL", True)
         assert result is False
-        result_bool = await _test_login("host", 993, "user", "pwd", "SSL", True)
+        result_bool = await _test_login(hass, "host", 993, "user", "pwd", "SSL", True)
         assert not result_bool
         assert "Error logging into IMAP Server: Network unreachable" in caplog.text
         assert "Error testing login to IMAP Server: Network unreachable" in caplog.text
@@ -4569,7 +4622,7 @@ async def test_get_mails_unexpected_html(hass, caplog, tmp_path):
         patch("custom_components.mail_and_packages.helpers.copy_overlays"),
         patch("pathlib.Path.is_dir", return_value=True),
     ):
-        await get_mails(account, temp_dir, 5, "img.gif")
+        await get_mails(hass, account, temp_dir, 5, "img.gif")
         assert "Unexpected html format found." in caplog.text
 
 
