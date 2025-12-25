@@ -1049,7 +1049,6 @@ async def test_form_index_error(
     title,
     data,
     hass,
-    mock_imap_index_error,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -1060,7 +1059,17 @@ async def test_form_index_error(
     assert result["errors"] == {}
     # assert result["title"] == title_1
 
+    mock_account = MagicMock()
+    mock_account.list = AsyncMock(
+        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "." "INBOX"'])
+    )
+
     with (
+        patch(
+            "custom_components.mail_and_packages.config_flow.login",
+            return_value=mock_account,
+            new_callable=AsyncMock,
+        ),
         patch(
             "custom_components.mail_and_packages.config_flow._test_login",
             return_value=True,
@@ -1252,7 +1261,6 @@ async def test_form_index_error_2(
     title,
     data,
     hass,
-    mock_imap_index_error_2,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -1263,7 +1271,18 @@ async def test_form_index_error_2(
     assert result["errors"] == {}
     # assert result["title"] == title_1
 
+    # Mock connection that triggers both IndexErrors and falls back to default
+    mock_account = MagicMock()
+    mock_account.list = AsyncMock(
+        return_value=MagicMock(result="OK", lines=[b"GARBAGE DATA"])
+    )
+
     with (
+        patch(
+            "custom_components.mail_and_packages.config_flow.login",
+            return_value=mock_account,
+            new_callable=AsyncMock,
+        ),
         patch(
             "custom_components.mail_and_packages.config_flow._test_login",
             return_value=True,
@@ -3237,20 +3256,17 @@ async def test_walmart_custom_image_validation():
 
 async def test_walmart_custom_image_in_config_flow(hass):
     """Test that Walmart custom image options are properly handled in config flow."""
-    mock_conn = AsyncMock()
-    mock_conn.wait_hello_from_server = AsyncMock()
-    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
-    mock_conn.list = AsyncMock(
-        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "/" "INBOX"'])
-    )
-    mock_conn.logout = AsyncMock()
-    # Test that Walmart custom image is included in the flow when enabled
+    # We don't need to mock IMAP4_SSL if we mock _test_login and _get_mailboxes
     await setup.async_setup_component(hass, "persistent_notification", {})
 
     with (
         patch(
-            "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
-            return_value=mock_conn,
+            "custom_components.mail_and_packages.config_flow._test_login",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow._get_mailboxes",
+            return_value=['"INBOX"'],
         ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
@@ -3270,8 +3286,6 @@ async def test_walmart_custom_image_in_config_flow(hass):
             return_value=True,
         ),
     ):
-        # Mock the login function to return a mock IMAP account
-
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": config_entries.SOURCE_USER}
         )
@@ -3315,42 +3329,36 @@ async def test_walmart_custom_image_in_config_flow(hass):
         assert result["step_id"] == "config_3"
 
         # Complete step 3 with Walmart custom image file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
-            temp_file_path = temp_file.name
-            temp_file.write(b"fake walmart image data")
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_WALMART_CUSTOM_IMG_FILE: "custom_components/mail_and_packages/images/walmart.jpg",
+            },
+        )
 
-        try:
-            result = await hass.config_entries.flow.async_configure(
-                result["flow_id"],
-                {
-                    CONF_WALMART_CUSTOM_IMG_FILE: temp_file_path,
-                },
-            )
+        # Should proceed to storage step
+        assert result["type"] == "form"
+        assert result["step_id"] == "config_storage"
 
-            # Should proceed to storage step
-            assert result["type"] == "form"
-            assert result["step_id"] == "config_storage"
+        # Complete storage step
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+        )
 
-            # Complete storage step
-            result = await hass.config_entries.flow.async_configure(
-                result["flow_id"],
-                {
-                    "storage": "custom_components/mail_and_packages/images/",
-                },
-            )
+        # Should create entry successfully
+        assert result["type"] == "create_entry"
+        assert result["title"] == "imap.test.email"
 
-            # Should create entry successfully
-            assert result["type"] == "create_entry"
-            assert result["title"] == "imap.test.email"
-
-            # Verify Walmart custom image settings are saved
-            entry = result["result"]
-            assert entry.data[CONF_WALMART_CUSTOM_IMG] is True
-            assert entry.data[CONF_WALMART_CUSTOM_IMG_FILE] == temp_file_path
-
-        finally:
-            # Clean up temp file
-            Path(temp_file_path).unlink(missing_ok=True)
+        # Verify Walmart custom image settings are saved
+        entry = result["result"]
+        assert entry.data[CONF_WALMART_CUSTOM_IMG] is True
+        assert (
+            entry.data[CONF_WALMART_CUSTOM_IMG_FILE]
+            == "custom_components/mail_and_packages/images/walmart.jpg"
+        )
 
 
 async def test_generic_custom_image_validation(hass: HomeAssistant):
@@ -3407,69 +3415,48 @@ async def test_generic_custom_image_validation(hass: HomeAssistant):
 
 async def test_generic_custom_image_in_config_flow(hass: HomeAssistant):
     """Test generic custom image configuration in full config flow."""
-    mock_conn = AsyncMock()
-    mock_conn.wait_hello_from_server = AsyncMock()
-    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
-    mock_conn.list = AsyncMock(
-        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "/" "INBOX"'])
-    )
-    mock_conn.logout = AsyncMock()
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow._test_login",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow._get_mailboxes",
+            return_value=['"INBOX"'],
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry",
+            return_value=True,
+        ),
+        patch("pathlib.Path.is_file", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
+        # Start the config flow
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "user"
 
-    # Create a temporary image file
-    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
-        temp_file_path = temp_file.name
-        temp_file.write(b"fake image data")
-
-    try:
-        with (
-            patch(
-                "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
-                return_value=mock_conn,
-            ),
-            patch(
-                "custom_components.mail_and_packages.config_flow._check_ffmpeg",
-                return_value=True,
-            ),
-            patch("custom_components.mail_and_packages.async_setup", return_value=True),
-            patch(
-                "custom_components.mail_and_packages.async_setup_entry",
-                return_value=True,
-            ),
-            patch("pathlib.Path.is_file", return_value=True),
-            patch("pathlib.Path.exists", return_value=True),
-        ):
-            # Mock the login function to return a mock IMAP account
-            mock_conn = AsyncMock()
-            mock_conn.wait_hello_from_server = AsyncMock()
-            mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
-            mock_conn.list = AsyncMock(
-                return_value=MagicMock(
-                    result="OK", lines=[b'(\\HasNoChildren) "/" "INBOX"']
-                )
-            )
-            mock_conn.logout = AsyncMock()
-
-            # Start the config flow
-            result = await hass.config_entries.flow.async_init(
-                DOMAIN, context={"source": config_entries.SOURCE_USER}
-            )
-            assert result["type"] == FlowResultType.FORM
-            assert result["step_id"] == "user"
-
-            # Step 1: Basic IMAP settings
-            result = await hass.config_entries.flow.async_configure(
-                result["flow_id"],
-                {
-                    "host": "imap.test.email",
-                    "port": "993",
-                    "username": "test@test.email",
-                    "password": "notarealpassword",
-                    "imap_security": "SSL",
-                    "verify_ssl": False,
-                },
-            )
-            assert result["type"] == FlowResultType.FORM
-            assert result["step_id"] == "config_2"
+        # Step 1: Basic IMAP settings
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+        )
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "config_2"
 
         # Step 2: Enable generic custom image
         result = await hass.config_entries.flow.async_configure(
@@ -3491,7 +3478,7 @@ async def test_generic_custom_image_in_config_flow(hass: HomeAssistant):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                "generic_custom_img_file": temp_file_path,
+                "generic_custom_img_file": "custom_components/mail_and_packages/images/generic.jpg",
             },
         )
         assert result["type"] == FlowResultType.FORM
@@ -3510,12 +3497,11 @@ async def test_generic_custom_image_in_config_flow(hass: HomeAssistant):
         # Verify generic custom image settings are saved
         entry = result["result"]
         assert entry.data[CONF_GENERIC_CUSTOM_IMG] is True
-        assert entry.data[CONF_GENERIC_CUSTOM_IMG_FILE] == temp_file_path
+        assert (
+            entry.data[CONF_GENERIC_CUSTOM_IMG_FILE]
+            == "custom_components/mail_and_packages/images/generic.jpg"
+        )
         assert entry.version == CONFIG_VER
-
-    finally:
-        # Clean up temp file
-        Path(temp_file_path).unlink(missing_ok=True)
 
 
 async def test_migration_to_version_12(hass: HomeAssistant):
@@ -3726,7 +3712,7 @@ async def test_get_mailboxes_non_ok_status(hass, caplog):
     )
     mock_conn.logout = AsyncMock()
     with patch(
-        "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+        "custom_components.mail_and_packages.config_flow.login",
         return_value=mock_conn,
     ):
         # Test the mailbox retrieval logic
@@ -3749,11 +3735,12 @@ async def test_get_mailboxes_exception(hass):
     mock_login_res.result = "OK"
     mock_conn.login.return_value = mock_login_res
 
+    # This will trigger the exception when list() is called
     mock_conn.list.side_effect = OSError("Connection lost")
     mock_conn.logout = AsyncMock()
 
     with patch(
-        "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+        "custom_components.mail_and_packages.config_flow.login",
         return_value=mock_conn,
     ):
         # Only the statement that triggers the exception goes inside pytest.raises
@@ -3865,18 +3852,18 @@ async def test_get_mailboxes_generic_exception(caplog):
     mock_response.result = "OK"  # Change to .status if you don't change the code above
     mock_response.lines = [
         b'(\\HasNoChildren) "." "INBOX"'
-    ]  # This will trigger the TypeError/AttributeError
+    ]  # This will trigger the IndexError and fallback to period
     mock_conn.list = AsyncMock(return_value=mock_response)
     mock_conn.logout = AsyncMock()
 
     with patch(
-        "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+        "custom_components.mail_and_packages.config_flow.login",
         return_value=mock_conn,
     ):
         # Call the function
         result = await _get_mailboxes("host", 993, "user", "pwd", "SSL", True)
 
-        # Verify it falls back to default folder
+        # Verify it falls back to default folder (parsed via period delimiter)
         assert result == [DEFAULT_FOLDER]
 
         # Verify the error was logged
@@ -4047,9 +4034,15 @@ async def test_reconfigure_flow_mailbox_success(hass, integration):
     )
     mock_conn.logout = AsyncMock()
 
-    with patch(
-        "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
-        return_value=mock_conn,
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+            return_value=mock_conn,
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow._test_login",
+            return_value=True,
+        ),
     ):
         result = await hass.config_entries.flow.async_init(
             DOMAIN,
@@ -4092,7 +4085,6 @@ async def test_validate_user_input_forwarded_emails_none():
     assert CONF_FORWARDED_EMAILS not in result_input
 
 
-@pytest.mark.asyncio
 async def test_get_mailboxes_parsing_error(caplog):
     """Test _get_mailboxes handles delimiter parsing failures."""
     mock_conn = AsyncMock()
@@ -4104,7 +4096,7 @@ async def test_get_mailboxes_parsing_error(caplog):
     mock_conn.logout = AsyncMock()
 
     with patch(
-        "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+        "custom_components.mail_and_packages.config_flow.login",
         return_value=mock_conn,
     ):
         result = await _get_mailboxes("host", 993, "user", "pwd", "SSL", True)
@@ -4127,7 +4119,7 @@ async def test_get_mailboxes_period_delimiter(hass):
     mock_conn.logout = AsyncMock()
 
     with patch(
-        "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
+        "custom_components.mail_and_packages.config_flow.login",
         return_value=mock_conn,
     ):
         result = await _get_mailboxes("host", 993, "user", "pass", "SSL", True)
@@ -4207,18 +4199,10 @@ async def test_reconfigure_flow_skip_to_storage(hass, integration):
         "verify_ssl": True,
     }
 
-    mock_conn = AsyncMock()
-    mock_conn.wait_hello_from_server = AsyncMock()
-    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
-    mock_conn.list = AsyncMock(
-        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "/" "INBOX"'])
-    )
-    mock_conn.logout = AsyncMock()
-
     with (
         patch(
-            "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4_SSL",
-            return_value=mock_conn,
+            "custom_components.mail_and_packages.config_flow._get_mailboxes",
+            return_value=['"INBOX"'],
         ),
         patch(
             "custom_components.mail_and_packages.config_flow._test_login",
