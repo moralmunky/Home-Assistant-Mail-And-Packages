@@ -53,6 +53,7 @@ from .const import (
     AMAZON_HUB_EMAIL,
     AMAZON_HUB_SUBJECT,
     AMAZON_HUB_SUBJECT_SEARCH,
+    AMAZON_IMG_LIST,
     AMAZON_IMG_PATTERN,
     AMAZON_ORDER,
     AMAZON_ORDERED_SUBJECT,
@@ -817,10 +818,9 @@ def build_search(address: list, date: str, subject: str = "") -> tuple:
         if not subject.isascii():
             utf8_flag = True
             if prefix_list is not None:
-                imap_search = f'{prefix_list} FROM "{email_list}" {the_date} SUBJECT'
+                imap_search = f'({prefix_list} FROM "{email_list}" {the_date})'
             else:
-                imap_search = f'FROM "{email_list}" {the_date} SUBJECT'
-            # imap_search = f"{the_date} SUBJECT"
+                imap_search = f'(FROM "{email_list}" {the_date})'
         elif prefix_list is not None:
             imap_search = (
                 f'({prefix_list} FROM "{email_list}" SUBJECT "{subject}" {the_date})'
@@ -1231,48 +1231,48 @@ def cleanup_images(path: str, image: str | None = None) -> None:  # noqa: C901
 
     Only supose to delete .gif, .mp4, and .jpg files
     """
-    _LOGGER.warning("=== cleanup_images CALLED === path: %s, image: %s", path, image)
+    _LOGGER.debug("=== cleanup_images CALLED === path: %s, image: %s", path, image)
 
     if isinstance(path, tuple):
         path = path[0]
         image = path[1]
     if image is not None:
         full_path = path + image
-        _LOGGER.warning("cleanup_images - Removing specific file: %s", full_path)
+        _LOGGER.debug("cleanup_images - Removing specific file: %s", full_path)
         try:
             file_path_obj = Path(full_path)
             if file_path_obj.exists():
                 file_path_obj.unlink()
-                _LOGGER.warning("cleanup_images - Successfully removed: %s", full_path)
+                _LOGGER.debug("cleanup_images - Successfully removed: %s", full_path)
             else:
-                _LOGGER.warning("cleanup_images - File does not exist: %s", full_path)
+                _LOGGER.debug("cleanup_images - File does not exist: %s", full_path)
         except OSError as err:
             _LOGGER.error("Error attempting to remove image: %s", err)
         return
 
     # Only clean up if directory exists
     if not Path(path).is_dir():
-        _LOGGER.warning("cleanup_images - Directory does not exist: %s", path)
+        _LOGGER.debug("cleanup_images - Directory does not exist: %s", path)
         return
 
     try:
         files_before = [x.name for x in Path(path).iterdir()]
-        _LOGGER.warning(
+        _LOGGER.debug(
             "cleanup_images - Files in directory BEFORE cleanup: %s", files_before
         )
         for file in files_before:
             if file.endswith((".gif", ".mp4", ".jpg", ".png")):
                 full_path = path + file
-                _LOGGER.warning("cleanup_images - Removing file: %s", full_path)
+                _LOGGER.debug("cleanup_images - Removing file: %s", full_path)
                 try:
                     file_path_obj = Path(full_path)
                     if file_path_obj.exists():
                         file_path_obj.unlink()
-                        _LOGGER.warning(
+                        _LOGGER.debug(
                             "cleanup_images - Successfully removed: %s", full_path
                         )
                     else:
-                        _LOGGER.warning(
+                        _LOGGER.debug(
                             "cleanup_images - File does not exist: %s", full_path
                         )
                 except OSError as err:
@@ -1283,12 +1283,12 @@ def cleanup_images(path: str, image: str | None = None) -> None:  # noqa: C901
         else:
             files_after = []
 
-        _LOGGER.warning(
+        _LOGGER.debug(
             "cleanup_images - Files in directory AFTER cleanup: %s", files_after
         )
     except FileNotFoundError:
         # Directory was removed between check and listdir
-        _LOGGER.warning("cleanup_images - Directory removed during cleanup: %s", path)
+        _LOGGER.debug("cleanup_images - Directory removed during cleanup: %s", path)
     except OSError as err:
         _LOGGER.error("Error listing directory for cleanup: %s", err)
 
@@ -2170,7 +2170,7 @@ async def get_amazon_image(
                     part = part.decode("utf-8", "ignore")
                     found = pattern.findall(part)
                     for url in found:
-                        if url[1] != "us-prod-temp.s3.amazonaws.com":
+                        if url[1] not in AMAZON_IMG_LIST:
                             continue
                         img_url = url[0] + url[1] + url[2]
                         _LOGGER.debug("Amazon img URL: %s", img_url)
