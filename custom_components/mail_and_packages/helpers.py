@@ -768,39 +768,30 @@ def update_time() -> datetime.datetime:
 def build_search(address: list, date: str, subject: str = "") -> tuple:
     """Build IMAP search query.
 
-    Return tuple of utf8 flag and search query.
+    Return tuple of utf8 flag and search query as a list.
     """
-    the_date = f"SINCE {date}"
-    imap_search = None
+    imap_search = []
     utf8_flag = False
-    prefix_list = None
-    email_list = None
 
-    if len(address) == 1:
-        email_list = address[0]
-    else:
-        email_list = '" FROM "'.join(address)
-        prefix_list = " ".join(["OR"] * (len(address) - 1))
+    # Prefix ORs for multiple addresses (N addresses require N-1 ORs)
+    if len(address) > 1:
+        imap_search.extend(["OR"] * (len(address) - 1))
+
+    # Add addresses
+    for addr in address:
+        imap_search.extend(["FROM", addr])
+
+    # Add Date
+    imap_search.extend(["SINCE", date])
 
     _LOGGER.debug("DEBUG subject: %s", subject)
 
     if subject is not None:
         if not subject.isascii():
             utf8_flag = True
-            if prefix_list is not None:
-                imap_search = f'({prefix_list} FROM "{email_list}" {the_date})'
-            else:
-                imap_search = f'(FROM "{email_list}" {the_date})'
-        elif prefix_list is not None:
-            imap_search = (
-                f'({prefix_list} FROM "{email_list}" SUBJECT "{subject}" {the_date})'
-            )
+            # Subject handled via literal in email_search
         else:
-            imap_search = f'(FROM "{email_list}" SUBJECT "{subject}" {the_date})'
-    elif prefix_list is not None:
-        imap_search = f'({prefix_list} FROM "{email_list}" {the_date})'
-    else:
-        imap_search = f'(FROM "{email_list}" {the_date})'
+            imap_search.extend(["SUBJECT", subject])
 
     _LOGGER.debug("DEBUG imap_search: %s", imap_search)
 
@@ -818,16 +809,19 @@ def email_search(
     value = ("", [""])
 
     if utf8_flag:
-        subject = subject.encode("utf-8")
-        account.literal = subject
+        # Encode subject for the literal
+        subject_bytes = subject.encode("utf-8")
+        account.literal = subject_bytes
         try:
-            value = account.search("utf-8", search, "SUBJECT")
+            # Unpack (*search) and add SUBJECT keyword manually
+            value = account.search("utf-8", *search, "SUBJECT")
         except OSError as err:
             _LOGGER.debug("Error searching emails with unicode characters: %s", err)
             value = "BAD", err.args[0]
     else:
         try:
-            value = account.search(None, search)
+            # Unpack (*search) so imaplib sends tokens separately
+            value = account.search(None, *search)
         except OSError as err:
             _LOGGER.error("Error searching emails: %s", err)
             value = "BAD", err.args[0]
@@ -835,24 +829,15 @@ def email_search(
     _LOGGER.debug("email_search value: %s", value)
 
     (check, new_value) = value
-    # Handle case where account.search() returns a Mock (in tests)
-    # Only convert to list when status is "OK" - "BAD" responses keep error as-is
+
+    # Standardize return value
     if check == "OK":
-        # Ensure we always return a proper tuple with a list as the second element
-        # for "OK" responses
         if not isinstance(new_value, list):
-            _LOGGER.debug(
-                "email_search: new_value is not a list (type: %s), converting to empty list",
-                type(new_value).__name__,
-            )
             new_value = [b""]
         elif len(new_value) == 0:
-            # Empty list is valid, keep it as is
             pass
         elif new_value[0] is None:
-            _LOGGER.debug("email_search value was invalid: None")
             new_value = [b""]
-    # For "BAD" responses, keep the error message as-is (could be string or other type)
 
     return (check, new_value)
 
