@@ -3417,8 +3417,7 @@ async def test_amazon_shipped_minus_delivered_with_body_orders():
 
     # Mock email search to return both shipped and delivered emails
     # Correct signature to accept (charset, criteria)
-    def mock_search(charset, criteria):
-        # criteria might be bytes or string depending on implementation, ensure string for check
+    def mock_search(charset, criteria, *args):
         criteria_str = str(criteria)
         if "Shipped:" in criteria_str:
             return ("OK", [b"1 2"])  # 2 shipped emails
