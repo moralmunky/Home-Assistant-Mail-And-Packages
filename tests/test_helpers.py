@@ -3975,7 +3975,7 @@ async def test_email_search_yahoo(caplog):
     mock_imap.search = "OK", 'b[""]'
 
     result = email_search(mock_imap, "test@email.com", "01-Jan-2024", subject="Pâckage")
-    assert result == ('OK', [b''])
+    assert result == ("OK", [b""])
 
 
 @pytest.mark.asyncio
