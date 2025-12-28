@@ -817,6 +817,10 @@ def email_search(
     utf8_flag, search = build_search(address, date, subject)
     value = ("", [""])
 
+    if account.host == "imap.mail.yahoo.com" and utf8_flag:
+        # Yahoo IMAP has issues with UTF8 searching, so bail out
+        return "OK", [b""]
+
     if utf8_flag:
         subject = subject.encode("utf-8")
         account.literal = subject
