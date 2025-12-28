@@ -4084,11 +4084,13 @@ async def test_email_search_timeout(caplog):
 @pytest.mark.asyncio
 async def test_email_search_yahoo(caplog):
     """Test email_search handling a socket timeout."""
-    mock_imap = MagicMock()
-    mock_imap.host = "imap.mail.yahoo.com"
-    mock_imap.search = "OK", 'b[""]'
+    mock_account = AsyncMock()
+    mock_account.host = "imap.mail.yahoo.com"
+    mock_account.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b""]))
 
-    result = email_search(mock_imap, "test@email.com", "01-Jan-2024", subject="Pâckage")
+    result = await email_search(
+        mock_account, ["test@test.com"], "01-Jan-2024", subject="Pâckage"
+    )
     assert result == ("OK", [b""])
 
 
