@@ -4324,20 +4324,10 @@ def test_build_search_multiple_addresses():
     utf8, search = build_search(addresses, "01-Jan-2024")
     # Verify the prefix list is "OR OR" (len - 1)
     assert search.count("OR") == 2
-    assert search == [
-        "OR",
-        "OR",
-        "FROM",
-        "test1@test.com",
-        "FROM",
-        "test2@test.com",
-        "FROM",
-        "test3@test.com",
-        "SINCE",
-        "01-Jan-2024",
-        "SUBJECT",
-        "",
-    ]
+    assert (
+        search
+        == '(OR OR FROM "test1@test.com" FROM "test2@test.com" FROM "test3@test.com" SUBJECT "" SINCE 01-Jan-2024)'
+    )
 
 
 @pytest.mark.asyncio
