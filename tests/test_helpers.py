@@ -3968,6 +3968,17 @@ async def test_email_search_timeout(caplog):
 
 
 @pytest.mark.asyncio
+async def test_email_search_yahoo(caplog):
+    """Test email_search handling a socket timeout."""
+    mock_imap = MagicMock()
+    mock_imap.host = "imap.mail.yahoo.com"
+    mock_imap.search = "OK", 'b[""]'
+
+    result = email_search(mock_imap, "test@email.com", "01-Jan-2024", subject="Pâckage")
+    assert result == ('OK', [b''])
+
+
+@pytest.mark.asyncio
 async def test_login_network_error(caplog):
     """Test login failure due to network error."""
     with patch("imaplib.IMAP4_SSL", side_effect=OSError("Network unreachable")):
