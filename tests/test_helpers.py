@@ -4093,7 +4093,7 @@ async def test_email_search_yahoo(caplog):
 
 
 @pytest.mark.asyncio
-async def test_login_network_error(caplog):
+async def test_login_network_error(hass, caplog):
     """Test login failure due to network error."""
     with patch("aioimaplib.IMAP4_SSL", side_effect=OSError("Network unreachable")):
         result = await login(hass, "host", 993, "user", "pwd", "SSL", True)
