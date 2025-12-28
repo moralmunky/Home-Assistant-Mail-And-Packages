@@ -995,7 +995,7 @@ async def test_generic_camera_with_all_delivery_types(
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
-        async def mock_generate_gif_func(delivery_images, gif_path):
+        def mock_generate_gif_func(delivery_images, gif_path):
             # Verify we received the expected delivery images
             assert len(delivery_images) == 3, (
                 f"Expected 3 delivery images, got {len(delivery_images)}"
@@ -1092,7 +1092,7 @@ async def test_generic_camera_filters_no_mail_images(
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
-        async def mock_generate_gif_func(delivery_images, gif_path):
+        def mock_generate_gif_func(delivery_images, gif_path):
             # Verify we received the expected delivery images (only Amazon and Walmart, no "no mail" images)
             assert len(delivery_images) == 2, (
                 f"Expected 2 delivery images, got {len(delivery_images)}"
@@ -1212,7 +1212,7 @@ async def test_generic_camera_respects_enabled_sensors(
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
-        async def mock_generate_gif_func(delivery_images, gif_path):
+        def mock_generate_gif_func(delivery_images, gif_path):
             # Verify we received the expected delivery images (only Amazon and Walmart)
             assert len(delivery_images) == 2, (
                 f"Expected 2 delivery images, got {len(delivery_images)}"
@@ -1455,7 +1455,7 @@ async def test_generic_camera_with_multiple_delivery_images(
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
-        async def mock_generate_gif_func(delivery_images, gif_path):
+        def mock_generate_gif_func(delivery_images, gif_path):
             # Verify we received the expected delivery images (Amazon and UPS, USPS excluded)
             assert len(delivery_images) == 2, (
                 f"Expected 2 delivery images, got {len(delivery_images)}"
