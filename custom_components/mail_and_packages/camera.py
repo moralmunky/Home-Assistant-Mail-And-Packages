@@ -214,7 +214,10 @@ class MailCam(CoordinatorEntity, Camera):
             gif_path = f"{Path(__file__).parent}/generic_deliveries.gif"
 
             # Generate animated GIF using helper function
-            gif_created = generate_delivery_gif(delivery_images, gif_path)
+            # Run in executor to avoid blocking the event loop
+            gif_created = await self.hass.async_add_executor_job(
+                generate_delivery_gif, delivery_images, gif_path
+            )
 
             if gif_created:
                 self._file_path = gif_path
