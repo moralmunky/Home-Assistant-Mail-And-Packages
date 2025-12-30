@@ -369,7 +369,7 @@ class MailCam(CoordinatorEntity, Camera):
     ) -> None:
         """Attempt to find an alternative image in the directory."""
         path_dir = Path(coordinator_file_path).parent
-        _LOGGER.warning(
+        _LOGGER.debug(
             "%s camera - coordinator file not found: %s",
             self._type,
             coordinator_file_path,
@@ -378,7 +378,7 @@ class MailCam(CoordinatorEntity, Camera):
         # Define a helper to run blocking I/O in the executor
         def _scan_images():
             if not path_dir.exists():
-                _LOGGER.warning(
+                _LOGGER.debug(
                     "%s camera - directory does not exist: %s", self._type, path_dir
                 )
                 return None
