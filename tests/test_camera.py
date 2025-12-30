@@ -2181,7 +2181,7 @@ async def test_camera_find_alternative_image_no_dir(hass, caplog):
 
     with patch("pathlib.Path.exists", return_value=False):
         # Trigger alternative image search
-        cam._find_alternative_image("/fake/path/image.jpg", "image.jpg")  # noqa: SLF001
+        await cam._find_alternative_image("/fake/path/image.jpg", "image.jpg")
         assert "directory does not exist" in caplog.text
 
 
@@ -2254,14 +2254,12 @@ async def test_find_alternative_image_oserror_fixed(hass, integration, caplog):
     """Handle OSError during directory iteration."""
     entry = integration
     camera = hass.data[DOMAIN][entry.entry_id][CAMERA][0]
-
-    # Patch Path.exists to return True so we pass the initial check at line 375
     with (
         patch("pathlib.Path.exists", return_value=True),
         patch("pathlib.Path.iterdir", side_effect=OSError("Permission Denied")),
     ):
         # Trigger the fallback logic
-        camera._find_alternative_image("/fake/path/img.jpg", "img.jpg")  # noqa: SLF001
+        await camera._find_alternative_image("/fake/path/img.jpg", "img.jpg")
 
         # Verify the exception was caught and logged
         assert "error listing directory" in caplog.text
@@ -2321,7 +2319,7 @@ async def test_update_standard_camera_no_attr(hass, integration):
 
     # Patch getattr so that it fails to find the image attribute constant
     with patch("custom_components.mail_and_packages.camera.getattr", return_value=None):
-        camera._update_standard_camera()  # noqa: SLF001
+        await camera._update_standard_camera()
         # Ensure the default 'no deliveries' path remains set
         assert "no_deliveries_amazon.jpg" in camera._file_path  # noqa: SLF001
 
