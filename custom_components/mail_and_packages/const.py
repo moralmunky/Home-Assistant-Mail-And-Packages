@@ -677,8 +677,7 @@ SENSOR_DATA = {
             "notifications@intelcom.ca",
             "notifications@dragonflyshipping.ca",
             "notifications@dragonflyshipping.com",
-            "notifications@nl.dragonflyinternational.com",
-            
+            "notifications@nl.dragonflyinternational.com",   
         ],
         "subject": [
             "Your order has been delivered!",
