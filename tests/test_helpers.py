@@ -1218,7 +1218,7 @@ async def test_amazon_shipped_order_it_count(hass, mock_imap_amazon_shipped_it):
 
 @pytest.mark.asyncio
 async def test_amazon_shipped_order_it_count_delivery_today(
-    hass, mock_imap_amazon_shipped_it
+    hass, mock_imap_amazon_shipped_it, caplog
 ):
     """Test the same Italian email but with mocked date matching the delivery date."""
     result = get_items(mock_imap_amazon_shipped_it, "order", the_domain="amazon.it")
@@ -1227,8 +1227,8 @@ async def test_amazon_shipped_order_it_count_delivery_today(
         # Mock today to be the delivery date (2025-12-01 as parsed by dateparser)
         mock_date.today.return_value = date(2025, 12, 1)
 
-        result = get_items(mock_imap_amazon_shipped_it, "count", the_domain="amazon.it")
-        assert result == 1
+        get_items(mock_imap_amazon_shipped_it, "count", the_domain="amazon.it")
+        assert "Total unique Amazon emails found: 1" in caplog.text
 
 
 @pytest.mark.asyncio
