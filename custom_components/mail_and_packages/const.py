@@ -431,7 +431,11 @@ SENSOR_DATA = {
         ],
     },
     "dhl_packages": {},
-    "dhl_tracking": {"pattern": ["(?:JJD\\d{18}|JVGL\\d{20}|00\\d{18}|(?<![0-9])\\d{10,11}(?![0-9]))"]},
+    "dhl_tracking": {
+        "pattern": [
+            "(?:JJD\\d{18}|JVGL\\d{20}|00\\d{18}|(?<![0-9])\\d{10,11}(?![0-9]))"
+        ]
+    },
     # Hermes.co.uk
     "hermes_delivered": {
         "email": ["donotreply@myhermes.co.uk"],
