@@ -357,7 +357,7 @@ def image_file_name(  # noqa: C901
 
     Returns filename
     """
-    _LOGGER.info(
+    _LOGGER.debug(
         "=== image_file_name CALLED === - amazon: %s, ups: %s, walmart: %s, fedex: %s",
         amazon,
         ups,
@@ -486,9 +486,9 @@ def image_file_name(  # noqa: C901
     # If we find no images in the image directory generate a new filename
     if image_name in mail_none:
         image_name = f"{uuid.uuid4()!s}{ext}"
-        _LOGGER.info("=== image_file_name GENERATED NEW UUID: %s ===", image_name)
+        _LOGGER.debug("=== image_file_name GENERATED NEW UUID: %s ===", image_name)
     else:
-        _LOGGER.info("=== image_file_name USING EXISTING: %s ===", image_name)
+        _LOGGER.debug("=== image_file_name USING EXISTING: %s ===", image_name)
     _LOGGER.debug("Image Name: %s", image_name)
 
     # Insert place holder image
@@ -1373,7 +1373,7 @@ def get_count(  # noqa: C901
         image_name = (
             data.get(image_attr, default_image_name) if data else default_image_name
         )
-        _LOGGER.info(
+        _LOGGER.debug(
             (
                 "%s - get_count: image_name from coordinator data: %s "
                 "(image_attr: %s, data has key: %s)"
@@ -1509,7 +1509,7 @@ def get_count(  # noqa: C901
                             # If we get a result and the file exists, then we can save the image
                             if extraction_result and expected_path_obj.exists():
                                 file_size = expected_path_obj.stat().st_size
-                                _LOGGER.info(
+                                _LOGGER.debug(
                                     "%s - File verified on disk: %s (%d bytes)",
                                     shipper_name,
                                     expected_file_path,
@@ -1519,7 +1519,7 @@ def get_count(  # noqa: C901
                                 # Update coordinator data immediately with the exact image name
                                 if data is not None:
                                     old_value = data.get(image_attr, "NOT SET")
-                                    _LOGGER.info(
+                                    _LOGGER.debug(
                                         (
                                             "%s - UPDATING COORDINATOR: Setting %s ="
                                             "%s (was: %s) in coordinator data",
@@ -1531,7 +1531,7 @@ def get_count(  # noqa: C901
                                     )
                                     data[image_attr] = image_name
                                     new_value = data.get(image_attr, "NOT SET")
-                                    _LOGGER.info(
+                                    _LOGGER.debug(
                                         "%s - Coordinator data updated. %s is now: %s",
                                         shipper_name,
                                         image_attr,
@@ -1541,7 +1541,7 @@ def get_count(  # noqa: C901
                                     image_keys = [
                                         k for k in data if "image" in k.lower()
                                     ]
-                                    _LOGGER.info(
+                                    _LOGGER.debug(
                                         "%s - All image keys in coordinator: %s",
                                         shipper_name,
                                         {k: data.get(k, "NOT SET") for k in image_keys},
@@ -1850,7 +1850,7 @@ def _save_image_data_to_disk(shipper_name: str, path: str, image_data: bytes) ->
     else:
         if Path(path).exists():
             file_size = Path(path).stat().st_size
-            _LOGGER.info(
+            _LOGGER.debug(
                 "%s - SUCCESS: Image written to disk: %s (%d bytes)",
                 shipper_name,
                 path,
