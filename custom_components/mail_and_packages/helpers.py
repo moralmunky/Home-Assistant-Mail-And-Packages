@@ -2260,9 +2260,10 @@ def amazon_hub(account: type[imaplib.IMAP4_SSL], fwds: list[str] | None = None) 
 
     _LOGGER.debug("[Hub] Amazon email list: %s", email_addresses)
 
-    for address in email_addresses:
+    # Fix: Iterate through subjects (AMAZON_HUB_SUBJECT is a list)
+    for subject in AMAZON_HUB_SUBJECT:
         (server_response, sdata) = email_search(
-            account, address, today, subject=AMAZON_HUB_SUBJECT
+            account, email_addresses, today, subject=subject
         )
 
         if server_response != "OK" or sdata[0] is None:
@@ -2305,47 +2306,52 @@ def amazon_otp(account: type[imaplib.IMAP4_SSL], fwds: list | None = None) -> di
     body_regex = AMAZON_OTP_REGEX
     email_addresses = []
     email_addresses.extend(_process_amazon_forwards(fwds))
+    email_addresses.extend(AMAZON_HUB_EMAIL)
 
-    for address in email_addresses:
-        (server_response, sdata) = email_search(
-            account, address, tfmt, AMAZON_OTP_SUBJECT
-        )
+    (server_response, sdata) = email_search(
+        account, email_addresses, tfmt, AMAZON_OTP_SUBJECT
+    )
 
-        if server_response == "OK":
-            id_list = sdata[0].split()
-            _LOGGER.debug("Found Amazon OTP email(s): %s", len(id_list))
-            for i in id_list:
-                data = email_fetch(account, i, "(RFC822)")[1]
-                for response_part in data:
-                    if isinstance(response_part, tuple):
-                        msg = email.message_from_bytes(response_part[1])
+    if server_response == "OK":
+        id_list = sdata[0].split()
+        _LOGGER.debug("Found Amazon OTP email(s): %s", len(id_list))
+        for i in id_list:
+            data = email_fetch(account, i, "(RFC822)")[1]
+            for response_part in data:
+                if isinstance(response_part, tuple):
+                    msg = email.message_from_bytes(response_part[1])
 
-                        _LOGGER.debug("Email Multipart: %s", msg.is_multipart())
-                        _LOGGER.debug("Content Type: %s", msg.get_content_type())
+                    _LOGGER.debug("Email Multipart: %s", msg.is_multipart())
+                    _LOGGER.debug("Content Type: %s", msg.get_content_type())
 
-                        # Get code from message body
-                        try:
-                            _LOGGER.debug("Decoding OTP email...")
-                            # Safely handle both multipart and single-part emails
-                            payload = (
-                                msg.get_payload(0)
-                                if msg.is_multipart()
-                                else msg.get_payload()
-                            )
+                    # Get code from message body
+                    try:
+                        _LOGGER.debug("Decoding OTP email...")
+                        # Safely handle both multipart and single-part emails
+                        payload = (
+                            msg.get_payload(0)
+                            if msg.is_multipart()
+                            else msg.get_payload()
+                        )
+                        # Check if payload is None before converting to string
+                        if payload:
                             email_msg = quopri.decodestring(str(payload))
-                        except (ValueError, TypeError, IndexError) as err:
-                            _LOGGER.debug("Problem decoding email message: %s", err)
-                            continue
+                            email_msg = email_msg.decode("utf-8", "ignore")
 
-                        email_msg = email_msg.decode("utf-8", "ignore")
-                        pattern = re.compile(rf"{body_regex}")
-                        search = pattern.search(email_msg)
-                        if search is not None:
-                            if len(search.groups()) > 1:
-                                _LOGGER.debug(
-                                    "Amazon OTP search results: %s", search.group(2)
-                                )
-                                found.append(search.group(2))
+                            pattern = re.compile(rf"{body_regex}")
+                            search = pattern.search(email_msg)
+                            if search is not None:
+                                if len(search.groups()) > 1:
+                                    _LOGGER.debug(
+                                        "Amazon OTP search results: %s", search.group(2)
+                                    )
+                                    found.append(search.group(2))
+                        else:
+                            _LOGGER.debug("Email payload was empty/None")
+
+                    except (ValueError, TypeError, IndexError) as err:
+                        _LOGGER.debug("Problem decoding email message: %s", err)
+                        continue
 
     info[ATTR_CODE] = found
     return info
