@@ -2151,7 +2151,13 @@ def get_amazon_image(
         _LOGGER.debug("Attempting to download Amazon image.")
         hass.add_job(download_img(hass, img_url, image_path, image_name))
     else:
-        _LOGGER.debug("Amazon delivery image not found in email.")
+        # No S3 delivery image found in emails, use default image
+        try:
+            _LOGGER.debug("No Amazon delivery image found in emails, using default.")
+            nomail = f"{Path(__file__).parent}/no_deliveries_amazon.jpg"
+            copyfile(nomail, f"{image_path}amazon/{image_name}")
+        except OSError as err:
+            _LOGGER.error("Error attempting to copy default image: %s", err)
 
 
 async def download_img(
