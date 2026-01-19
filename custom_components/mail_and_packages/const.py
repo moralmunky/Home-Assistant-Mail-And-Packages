@@ -347,6 +347,7 @@ SENSOR_DATA = {
             "Your package is now out for delivery",
             "Your shipment is out for delivery today",
             "out for delivery today",
+            "Ihre Sendung wird voraussichtlich heute zugestellt",
         ],
     },
     "fedex_packages": {},
@@ -391,6 +392,7 @@ SENSOR_DATA = {
             "Powiadomienie o przesyłce",
             "wurde zugestellt",
             "DHL Shipment Notification",
+            "liegt am gewünschten Ablageort",
         ],
         "body": [
             "has been delivered",
@@ -415,6 +417,8 @@ SENSOR_DATA = {
             "wird gleich zugestellt",
             "Powiadomienie o przesyłce",
             "DHL Shipment Notification",
+            "ist unterwegs",
+            "Jetzt Live verfolgen",
         ],
         "body": [
             "scheduled for delivery TODAY",
@@ -427,7 +431,11 @@ SENSOR_DATA = {
         ],
     },
     "dhl_packages": {},
-    "dhl_tracking": {"pattern": ["\\d{10,11}"]},
+    "dhl_tracking": {
+        "pattern": [
+            "(?:JJD\\d{18}|JVGL\\d{20}|00\\d{18}|(?<![0-9])\\d{10,11}(?![0-9]))"
+        ]
+    },
     # Hermes.co.uk
     "hermes_delivered": {
         "email": ["donotreply@myhermes.co.uk"],
@@ -677,6 +685,7 @@ SENSOR_DATA = {
             "notifications@intelcom.ca",
             "notifications@dragonflyshipping.ca",
             "notifications@dragonflyshipping.com",
+            "notifications@nl.dragonflyinternational.com",
         ],
         "subject": [
             "Your order has been delivered!",
@@ -684,6 +693,7 @@ SENSOR_DATA = {
             "Hooray! Your package is here",
             "Votre commande a été livrée!",
             "Votre colis a été livré!",
+            "We hebben je pakket bezorgd!",
         ],
     },
     "intelcom_delivering": {
@@ -691,12 +701,14 @@ SENSOR_DATA = {
             "notifications@intelcom.ca",
             "notifications@dragonflyshipping.ca",
             "notifications@dragonflyshipping.com",
+            "notifications@nl.dragonflyinternational.com",
         ],
         "subject": [
             "Your package is on the way!",
             "Your package is on its way",
             "Votre colis est en chemin!",
             "package is on its way",
+            "Vandaag bezorgen we je pakket",
         ],
     },
     "intelcom_packages": {
@@ -704,14 +716,16 @@ SENSOR_DATA = {
             "notifications@intelcom.ca",
             "notifications@dragonflyshipping.ca",
             "notifications@dragonflyshipping.com",
+            "notifications@nl.dragonflyinternational.com",
         ],
         "subject": [
             "Your package has been received!",
             "We've received your package",
             "We've received your",
+            "Je pakket is bij ons aangekomen",
         ],
     },
-    "intelcom_tracking": {"pattern": ["NSPRSO[0-9]{10}"]},
+    "intelcom_tracking": {"pattern": ["(NSPRSO[0-9]{10}|AMZNL[0-9]{12})"]},
     # Walmart
     "walmart_delivering": {
         "email": ["help@walmart.com"],

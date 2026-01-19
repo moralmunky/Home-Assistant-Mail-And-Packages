@@ -1402,7 +1402,6 @@ def mock_copyoverlays():
     """Fixture to mock copy_overlays."""
     with patch(
         "custom_components.mail_and_packages.helpers.copy_overlays",
-        new_callable=mock.AsyncMock,
     ) as mock_copyoverlays:
         mock_copyoverlays.return_value = True
         yield mock_copyoverlays

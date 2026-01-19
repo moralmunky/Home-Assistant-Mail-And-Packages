@@ -381,7 +381,7 @@ def image_file_name(  # noqa: C901
 
     Returns filename
     """
-    _LOGGER.info(
+    _LOGGER.debug(
         "=== image_file_name CALLED === - amazon: %s, ups: %s, walmart: %s, fedex: %s",
         amazon,
         ups,
@@ -510,9 +510,9 @@ def image_file_name(  # noqa: C901
     # If we find no images in the image directory generate a new filename
     if image_name in mail_none:
         image_name = f"{uuid.uuid4()!s}{ext}"
-        _LOGGER.info("=== image_file_name GENERATED NEW UUID: %s ===", image_name)
+        _LOGGER.debug("=== image_file_name GENERATED NEW UUID: %s ===", image_name)
     else:
-        _LOGGER.info("=== image_file_name USING EXISTING: %s ===", image_name)
+        _LOGGER.debug("=== image_file_name USING EXISTING: %s ===", image_name)
     _LOGGER.debug("Image Name: %s", image_name)
 
     # Insert place holder image
@@ -1384,7 +1384,7 @@ async def get_count(  # noqa: C901
         image_name = (
             data.get(image_attr, default_image_name) if data else default_image_name
         )
-        _LOGGER.info(
+        _LOGGER.debug(
             (
                 "%s - get_count: image_name from coordinator data: %s "
                 "(image_attr: %s, data has key: %s)"
@@ -1523,7 +1523,7 @@ async def get_count(  # noqa: C901
                             # If we get a result and the file exists, then we can save the image
                             if extraction_result and expected_path_obj.exists():
                                 file_size = expected_path_obj.stat().st_size
-                                _LOGGER.info(
+                                _LOGGER.debug(
                                     "%s - File verified on disk: %s (%d bytes)",
                                     shipper_name,
                                     expected_file_path,
@@ -1533,7 +1533,7 @@ async def get_count(  # noqa: C901
                                 # Update coordinator data immediately with the exact image name
                                 if data is not None:
                                     old_value = data.get(image_attr, "NOT SET")
-                                    _LOGGER.info(
+                                    _LOGGER.debug(
                                         (
                                             "%s - UPDATING COORDINATOR: Setting %s ="
                                             "%s (was: %s) in coordinator data",
@@ -1545,7 +1545,7 @@ async def get_count(  # noqa: C901
                                     )
                                     data[image_attr] = image_name
                                     new_value = data.get(image_attr, "NOT SET")
-                                    _LOGGER.info(
+                                    _LOGGER.debug(
                                         "%s - Coordinator data updated. %s is now: %s",
                                         shipper_name,
                                         image_attr,
@@ -1555,7 +1555,7 @@ async def get_count(  # noqa: C901
                                     image_keys = [
                                         k for k in data if "image" in k.lower()
                                     ]
-                                    _LOGGER.info(
+                                    _LOGGER.debug(
                                         "%s - All image keys in coordinator: %s",
                                         shipper_name,
                                         {k: data.get(k, "NOT SET") for k in image_keys},
@@ -1871,7 +1871,7 @@ def _save_image_data_to_disk(shipper_name: str, path: str, image_data: bytes) ->
     else:
         if Path(path).exists():
             file_size = Path(path).stat().st_size
-            _LOGGER.info(
+            _LOGGER.debug(
                 "%s - SUCCESS: Image written to disk: %s (%d bytes)",
                 shipper_name,
                 path,
@@ -2176,7 +2176,13 @@ async def get_amazon_image(
         _LOGGER.debug("Attempting to download Amazon image.")
         await download_img(hass, img_url, image_path, image_name)
     else:
-        _LOGGER.debug("Amazon delivery image not found in email.")
+        # No S3 delivery image found in emails, use default image
+        try:
+            _LOGGER.debug("No Amazon delivery image found in emails, using default.")
+            nomail = f"{Path(__file__).parent}/no_deliveries_amazon.jpg"
+            copyfile(nomail, f"{image_path}amazon/{image_name}")
+        except OSError as err:
+            _LOGGER.error("Error attempting to copy default image: %s", err)
 
 
 async def download_img(
@@ -2280,10 +2286,10 @@ async def amazon_hub(
     processed_ids = set()
 
     _LOGGER.debug("[Hub] Amazon email list: %s", email_addresses)
-
-    for address in email_addresses:
-        (server_response, sdata) = await email_search(
-            account, address, today, subject=AMAZON_HUB_SUBJECT
+    # Fix: Iterate through subjects (AMAZON_HUB_SUBJECT is a list)
+    for subject in AMAZON_HUB_SUBJECT:
+        (server_response, sdata) = email_search(
+            account, email_addresses, today, subject=subject
         )
 
         if server_response != "OK" or sdata[0] is None:
@@ -2328,47 +2334,51 @@ async def amazon_otp(
     body_regex = AMAZON_OTP_REGEX
     email_addresses = []
     email_addresses.extend(_process_amazon_forwards(fwds))
+    email_addresses.extend(AMAZON_HUB_EMAIL)
+    (server_response, sdata) = email_search(
+        account, email_addresses, tfmt, AMAZON_OTP_SUBJECT
+    )
 
-    for address in email_addresses:
-        (server_response, sdata) = await email_search(
-            account, address, tfmt, AMAZON_OTP_SUBJECT
-        )
+    if server_response == "OK":
+        id_list = sdata[0].split()
+        _LOGGER.debug("Found Amazon OTP email(s): %s", len(id_list))
+        for i in id_list:
+            data = email_fetch(account, i, "(RFC822)")[1]
+            for response_part in data:
+                if isinstance(response_part, tuple):
+                    msg = email.message_from_bytes(response_part[1])
 
-        if server_response == "OK":
-            id_list = sdata[0].split()
-            _LOGGER.debug("Found Amazon OTP email(s): %s", len(id_list))
-            for i in id_list:
-                data = (await email_fetch(account, i, "(RFC822)"))[1]
-                for response_part in data:
-                    if isinstance(response_part, tuple):
-                        msg = email.message_from_bytes(response_part[1])
+                    _LOGGER.debug("Email Multipart: %s", msg.is_multipart())
+                    _LOGGER.debug("Content Type: %s", msg.get_content_type())
 
-                        _LOGGER.debug("Email Multipart: %s", msg.is_multipart())
-                        _LOGGER.debug("Content Type: %s", msg.get_content_type())
-
-                        # Get code from message body
-                        try:
-                            _LOGGER.debug("Decoding OTP email...")
-                            # Safely handle both multipart and single-part emails
-                            payload = (
-                                msg.get_payload(0)
-                                if msg.is_multipart()
-                                else msg.get_payload()
-                            )
+                    # Get code from message body
+                    try:
+                        _LOGGER.debug("Decoding OTP email...")
+                        # Safely handle both multipart and single-part emails
+                        payload = (
+                            msg.get_payload(0)
+                            if msg.is_multipart()
+                            else msg.get_payload()
+                        )
+                        # Check if payload is None before converting to string
+                        if payload:
                             email_msg = quopri.decodestring(str(payload))
-                        except (ValueError, TypeError, IndexError) as err:
-                            _LOGGER.debug("Problem decoding email message: %s", err)
-                            continue
+                            email_msg = email_msg.decode("utf-8", "ignore")
 
-                        email_msg = email_msg.decode("utf-8", "ignore")
-                        pattern = re.compile(rf"{body_regex}")
-                        search = pattern.search(email_msg)
-                        if search is not None:
-                            if len(search.groups()) > 1:
-                                _LOGGER.debug(
-                                    "Amazon OTP search results: %s", search.group(2)
-                                )
-                                found.append(search.group(2))
+                            pattern = re.compile(rf"{body_regex}")
+                            search = pattern.search(email_msg)
+                            if search is not None:
+                                if len(search.groups()) > 1:
+                                    _LOGGER.debug(
+                                        "Amazon OTP search results: %s", search.group(2)
+                                    )
+                                    found.append(search.group(2))
+                        else:
+                            _LOGGER.debug("Email payload was empty/None")
+
+                    except (ValueError, TypeError, IndexError) as err:
+                        _LOGGER.debug("Problem decoding email message: %s", err)
+                        continue
 
     info[ATTR_CODE] = found
     return info

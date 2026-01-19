@@ -180,7 +180,7 @@ class MailCam(CoordinatorEntity, Camera):
         elif self._type == "generic_camera":
             await self._update_generic_camera()
         else:
-            self._update_standard_camera()
+            await self._update_standard_camera()
 
         self.check_file_path_access(self._file_path)
         self.schedule_update_ha_state()
@@ -214,7 +214,10 @@ class MailCam(CoordinatorEntity, Camera):
             gif_path = f"{Path(__file__).parent}/generic_deliveries.gif"
 
             # Generate animated GIF using helper function
-            gif_created = generate_delivery_gif(delivery_images, gif_path)
+            # Run in executor to avoid blocking the event loop
+            gif_created = await self.hass.async_add_executor_job(
+                generate_delivery_gif, delivery_images, gif_path
+            )
 
             if gif_created:
                 self._file_path = gif_path
@@ -305,7 +308,7 @@ class MailCam(CoordinatorEntity, Camera):
 
         return delivery_images
 
-    def _update_standard_camera(self) -> None:
+    async def _update_standard_camera(self) -> None:
         """Update file path for standard cameras (Amazon, UPS, etc)."""
         base_name = self._type.replace("_camera", "")
         self._file_path = f"{Path(__file__).parent}/no_deliveries_{base_name}.jpg"
@@ -359,46 +362,59 @@ class MailCam(CoordinatorEntity, Camera):
                 "%s camera - found coordinator file: %s", self._type, self._file_path
             )
         else:
-            self._find_alternative_image(coordinator_file_path, image)
+            await self._find_alternative_image(coordinator_file_path, image)
 
-    def _find_alternative_image(
+    async def _find_alternative_image(
         self, coordinator_file_path: str, expected_image: str
     ) -> None:
         """Attempt to find an alternative image in the directory."""
         path_dir = Path(coordinator_file_path).parent
-        _LOGGER.warning(
+        _LOGGER.debug(
             "%s camera - coordinator file not found: %s",
             self._type,
             coordinator_file_path,
         )
 
-        if not path_dir.exists():
-            _LOGGER.warning(
-                "%s camera - directory does not exist: %s", self._type, path_dir
-            )
-            return
-
-        try:
-            image_files = []
-            for file_path in path_dir.iterdir():
-                if file_path.name.lower().endswith((".jpg", ".jpeg", ".png", ".gif")):
-                    if file_path.exists() and os.access(file_path, os.R_OK):
-                        if "no_deliveries" not in file_path.name:
-                            image_files.append(
-                                (str(file_path), file_path.stat().st_mtime)
-                            )
-
-            if image_files:
-                image_files.sort(key=lambda x: x[1], reverse=True)
-                self._file_path = image_files[0][0]
+        # Define a helper to run blocking I/O in the executor
+        def _scan_images():
+            if not path_dir.exists():
                 _LOGGER.debug(
-                    "%s camera - found alternative image file (most recent): %s",
-                    self._type,
-                    self._file_path,
+                    "%s camera - directory does not exist: %s", self._type, path_dir
                 )
-        except OSError as err:
+                return None
+
+            try:
+                found_images = []
+                for file_path in path_dir.iterdir():
+                    if file_path.name.lower().endswith(
+                        (".jpg", ".jpeg", ".png", ".gif")
+                    ):
+                        if file_path.exists() and os.access(file_path, os.R_OK):
+                            if "no_deliveries" not in file_path.name:
+                                found_images.append(
+                                    (str(file_path), file_path.stat().st_mtime)
+                                )
+            except OSError as err:
+                _LOGGER.debug(
+                    "%s camera - error listing directory %s: %s",
+                    self._type,
+                    path_dir,
+                    err,
+                )
+                return None
+            else:
+                return found_images
+
+        # Execute the scan in a background thread
+        image_files = await self.hass.async_add_executor_job(_scan_images)
+
+        if image_files:
+            image_files.sort(key=lambda x: x[1], reverse=True)
+            self._file_path = image_files[0][0]
             _LOGGER.debug(
-                "%s camera - error listing directory %s: %s", self._type, path_dir, err
+                "%s camera - found alternative image file (most recent): %s",
+                self._type,
+                self._file_path,
             )
 
     def _is_custom_no_mail_image(self, base_name: str, file_path: str) -> bool:
