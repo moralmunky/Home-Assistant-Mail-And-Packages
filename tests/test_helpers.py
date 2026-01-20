@@ -1258,7 +1258,7 @@ async def test_amazon_shipped_order_it_count_delivery_today(
     with patch("datetime.date") as mock_date:
         # Mock today to be the delivery date (2025-12-01 as parsed by dateparser)
         mock_date.today.return_value = date(2025, 12, 1)
-        get_items(mock_imap_amazon_shipped_it, "count", the_domain="amazon.it")
+        await get_items(mock_imap_amazon_shipped_it, "count", the_domain="amazon.it")
         assert "Total unique Amazon emails found: 1" in caplog.text
 
 
