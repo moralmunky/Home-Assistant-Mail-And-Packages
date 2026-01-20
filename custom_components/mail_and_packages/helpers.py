@@ -2180,7 +2180,9 @@ async def get_amazon_image(
         try:
             _LOGGER.debug("No Amazon delivery image found in emails, using default.")
             nomail = f"{Path(__file__).parent}/no_deliveries_amazon.jpg"
-            copyfile(nomail, f"{image_path}amazon/{image_name}")
+            await hass.async_add_executor_job(
+                copyfile, nomail, f"{image_path}amazon/{image_name}"
+            )
         except OSError as err:
             _LOGGER.error("Error attempting to copy default image: %s", err)
 
