@@ -24,14 +24,6 @@ async def test_update_file_path(
     hass,
     integration,
     mock_imap_no_email,
-    mock_osremove,
-    mock_osmakedir,
-    mock_listdir,
-    mock_update_time,
-    mock_copy_overlays,
-    mock_hash_file,
-    mock_getctime_today,
-    mock_copyfile,
     caplog,
 ):
     """Test update_file_path service."""
