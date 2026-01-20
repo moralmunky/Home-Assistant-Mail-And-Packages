@@ -2288,7 +2288,7 @@ async def amazon_hub(
     _LOGGER.debug("[Hub] Amazon email list: %s", email_addresses)
     # Fix: Iterate through subjects (AMAZON_HUB_SUBJECT is a list)
     for subject in AMAZON_HUB_SUBJECT:
-        (server_response, sdata) = email_search(
+        (server_response, sdata) = await email_search(
             account, email_addresses, today, subject=subject
         )
 
@@ -2335,7 +2335,7 @@ async def amazon_otp(
     email_addresses = []
     email_addresses.extend(_process_amazon_forwards(fwds))
     email_addresses.extend(AMAZON_HUB_EMAIL)
-    (server_response, sdata) = email_search(
+    (server_response, sdata) = await email_search(
         account, email_addresses, tfmt, AMAZON_OTP_SUBJECT
     )
 
@@ -2343,7 +2343,7 @@ async def amazon_otp(
         id_list = sdata[0].split()
         _LOGGER.debug("Found Amazon OTP email(s): %s", len(id_list))
         for i in id_list:
-            data = email_fetch(account, i, "(RFC822)")[1]
+            data = (await email_fetch(account, i, "(RFC822)"))[1]
             for response_part in data:
                 if isinstance(response_part, tuple):
                     msg = email.message_from_bytes(response_part[1])
