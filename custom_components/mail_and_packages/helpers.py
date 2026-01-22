@@ -2057,6 +2057,7 @@ def amazon_search(
     subjects = AMAZON_DELIVERED_SUBJECT
     today = get_formatted_date()
     count = 0
+    image_found = False
 
     _LOGGER.debug("Today's date: %s", today)
     _LOGGER.debug("Amazon delivered subjects to search: %s", subjects)
@@ -2070,7 +2071,7 @@ def amazon_search(
         _LOGGER.debug("Searching for Amazon delivered emails with subject: %s", subject)
         (server_response, data) = email_search(account, address_list, today, subject)
 
-        if server_response == "OK" and data[0] is not None:
+        if server_response == "OK" and data[0] is not None and data[0] != b"":
             email_count = len(data[0].split())
             count += email_count
             _LOGGER.debug(
@@ -2080,17 +2081,18 @@ def amazon_search(
             )
             _LOGGER.debug("Email IDs found: %s", data[0])
 
-            get_amazon_image(
+            if get_amazon_image(
                 data[0],
                 account,
                 image_path,
                 hass,
                 amazon_image_name,
-            )
+            ):
+                image_found = True
         else:
             _LOGGER.debug("No Amazon delivered emails found for subject '%s'", subject)
 
-    if count == 0:
+    if count == 0 or not image_found:
         _LOGGER.debug("No Amazon deliveries found.")
         nomail = f"{Path(__file__).parent}/no_deliveries_amazon.jpg"
         try:
@@ -2116,8 +2118,8 @@ def get_amazon_image(
     image_path: str,
     hass: HomeAssistant,
     image_name: str,
-) -> None:
-    """Find Amazon delivery image."""
+) -> bool:
+    """Find Amazon delivery image. Returns True if image was found and download started."""
     _LOGGER.debug("Searching for Amazon image in emails...")
 
     img_url = None
@@ -2150,14 +2152,10 @@ def get_amazon_image(
     if img_url is not None:
         _LOGGER.debug("Attempting to download Amazon image.")
         hass.add_job(download_img(hass, img_url, image_path, image_name))
-    else:
-        # No S3 delivery image found in emails, use default image
-        try:
-            _LOGGER.debug("No Amazon delivery image found in emails, using default.")
-            nomail = f"{Path(__file__).parent}/no_deliveries_amazon.jpg"
-            copyfile(nomail, f"{image_path}amazon/{image_name}")
-        except OSError as err:
-            _LOGGER.error("Error attempting to copy default image: %s", err)
+        return True
+
+    _LOGGER.debug("No Amazon delivery image found in emails.")
+    return False
 
 
 async def download_img(
