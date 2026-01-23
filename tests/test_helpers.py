@@ -4844,3 +4844,31 @@ async def test_generation_functions_remove_old_files(caplog, tmp_path):
 
         assert mock_cleanup.call_count == 2
         assert "Removing old png grid:" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_count_missing_image_attr(hass, caplog, tmp_path):
+    """Test get_count handling of missing image attribute for shipper (covers lines 1324-1331)."""
+    mock_account = MagicMock()
+    secure_image_path = str(tmp_path) + "/"
+    fake_sensor_data = SENSOR_DATA["ups_delivered"].copy()
+
+    with (
+        patch.dict(
+            "custom_components.mail_and_packages.helpers.SENSOR_DATA",
+            {"test_delivered": fake_sensor_data},
+        ),
+        patch.dict(
+            "custom_components.mail_and_packages.helpers.CAMERA_DATA",
+            {"test_camera": ["Test Camera"]},
+        ),
+    ):
+        result = await get_count(
+            mock_account,
+            "test_delivered",
+            image_path=secure_image_path,
+            hass=hass,
+        )
+    assert result[ATTR_COUNT] == 0
+    assert result[ATTR_TRACKING] == ""
+    assert "Could not find image attribute ATTR_TEST_IMAGE for test" in caplog.text
