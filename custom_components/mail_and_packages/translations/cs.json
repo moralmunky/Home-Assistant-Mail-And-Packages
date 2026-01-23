@@ -5,7 +5,7 @@
       "reconfigure_successful": "Rekonfigurace úspěšná"
     },
     "error": {
-      "communication": "Nelze se připojit nebo přihlásit k poštovnímu serveru. Podrobnosti naleznete v logu.",
+      "cannot_connect": "Nelze se připojit nebo přihlásit k poštovnímu serveru. Podrobnosti naleznete v logu.",
       "invalid_path": "Prosím uložte obrázky do jiného adresáře.",
       "ffmpeg_not_found": "Generování MP4 vyžaduje ffmpeg",
       "amazon_domain": "Neplatná e-mailová adresa pro přeposílání.",
@@ -75,7 +75,7 @@
   },
   "options": {
     "error": {
-      "communication": "Nelze se připojit nebo přihlásit k poštovnímu serveru. Podrobnosti naleznete v logu.",
+      "cannot_connect": "Nelze se připojit nebo přihlásit k poštovnímu serveru. Podrobnosti naleznete v logu.",
       "invalid_path": "Prosím uložte obrázky do jiného adresáře.",
       "ffmpeg_not_found": "Generování MP4 vyžaduje ffmpeg",
       "amazon_domain": "Neplatná e-mailová adresa pro přeposílání.",

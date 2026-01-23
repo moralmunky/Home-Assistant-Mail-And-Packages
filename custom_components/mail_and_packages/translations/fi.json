@@ -5,7 +5,7 @@
       "reconfigure_successful": "Uudelleenmääritys onnistui"
     },
     "error": {
-      "communication": "Ei voida muodostaa yhteyttä tai kirjautua sisään postipalvelimeen. Tarkista lokista yksityiskohdat.",
+      "cannot_connect": "Ei voida muodostaa yhteyttä tai kirjautua sisään postipalvelimeen. Tarkista lokista yksityiskohdat.",
       "invalid_path": "Tallenna kuvat toiseen hakemistoon.",
       "ffmpeg_not_found": "MP4:n luominen vaatii ffmpeg:n",
       "amazon_domain": "Virheellinen edelleenlähetettävä sähköpostiosoite.",

@@ -5,7 +5,7 @@
       "reconfigure_successful": "Pomyślnie przekonfigurowano"
     },
     "error": {
-      "communication": "Nie można połączyć się lub zalogować do serwera pocztowego. Sprawdź szczegóły w dzienniku.",
+      "cannot_connect": "Nie można połączyć się lub zalogować do serwera pocztowego. Sprawdź szczegóły w dzienniku.",
       "invalid_path": "Proszę przechowywać obrazy w innym katalogu.",
       "ffmpeg_not_found": "Generowanie MP4 wymaga ffmpeg",
       "amazon_domain": "Nieprawidłowy adres e-mail do przekierowania.",

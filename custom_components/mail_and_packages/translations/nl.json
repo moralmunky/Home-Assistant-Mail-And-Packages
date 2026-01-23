@@ -5,7 +5,7 @@
       "reconfigure_successful": "Herconfiguratie succesvol"
     },
     "error": {
-      "communication": "Kan geen verbinding maken met of inloggen op de mailserver. Controleer het logboek voor details.",
+      "cannot_connect": "Kan geen verbinding maken met of inloggen op de mailserver. Controleer het logboek voor details.",
       "invalid_path": "Bewaar de afbeeldingen in een andere map.",
       "ffmpeg_not_found": "MP4 genereren vereist ffmpeg",
       "amazon_domain": "Ongeldig doorstuur e-mailadres.",

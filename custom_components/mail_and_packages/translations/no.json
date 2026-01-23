@@ -5,7 +5,7 @@
       "reconfigure_successful": "Omkonfigurering vellykket"
     },
     "error": {
-      "communication": "Kan ikke koble til eller logge inn på postserveren. Vennligst sjekk loggen for detaljer.",
+      "cannot_connect": "Kan ikke koble til eller logge inn på postserveren. Vennligst sjekk loggen for detaljer.",
       "invalid_path": "Lagre bildene i en annen katalog.",
       "ffmpeg_not_found": "Generer MP4 krever ffmpeg",
       "amazon_domain": "Ugyldig videresendings e-postadresse.",

@@ -5,7 +5,7 @@
       "reconfigure_successful": "Riconfigurazione Riuscita"
     },
     "error": {
-      "communication": "Impossibile connettersi o accedere al server di posta. Si prega di controllare il registro per i dettagli.",
+      "cannot_connect": "Impossibile connettersi o accedere al server di posta. Si prega di controllare il registro per i dettagli.",
       "invalid_path": "Conservare le immagini in un'altra directory.",
       "ffmpeg_not_found": "Generare MP4 richiede ffmpeg",
       "amazon_domain": "Indirizzo email di inoltro non valido.",

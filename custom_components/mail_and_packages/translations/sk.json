@@ -5,7 +5,7 @@
       "reconfigure_successful": "Rekonfigurácia úspešná"
     },
     "error": {
-      "communication": "Nedá sa pripojiť alebo prihlásiť na poštový server. Podrobnosti nájdete v protokole.",
+      "cannot_connect": "Nedá sa pripojiť alebo prihlásiť na poštový server. Podrobnosti nájdete v protokole.",
       "invalid_path": "Uložte obrázky do iného adresára.",
       "ffmpeg_not_found": "Vytvorenie MP4 vyžaduje ffmpeg",
       "amazon_domain": "Neplatná adresa pre presmerovanie e-mailov.",

@@ -5,7 +5,7 @@
       "reconfigure_successful": "Reconfiguration réussie"
     },
     "error": {
-      "communication": "Impossible de se connecter ou de se connecter au serveur de messagerie. Veuillez consulter le journal pour plus de détails.",
+      "cannot_connect": "Impossible de se connecter ou de se connecter au serveur de messagerie. Veuillez consulter le journal pour plus de détails.",
       "invalid_path": "Veuillez stocker les images dans un autre répertoire.",
       "ffmpeg_not_found": "Générer MP4 nécessite ffmpeg",
       "amazon_domain": "Adresse e-mail de transfert invalide.",
