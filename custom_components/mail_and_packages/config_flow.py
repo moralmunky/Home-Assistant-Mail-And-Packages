@@ -1,11 +1,13 @@
 """Adds config flow for Mail and Packages."""
 
 import logging
+import ssl
 from pathlib import Path
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
+from aioimaplib import AioImapException
 from homeassistant import config_entries
 from homeassistant.const import (
     CONF_HOST,
@@ -14,6 +16,7 @@ from homeassistant.const import (
     CONF_RESOURCES,
     CONF_USERNAME,
 )
+from homeassistant.core import HomeAssistant
 
 from .const import (
     CONF_ALLOW_EXTERNAL,
@@ -75,8 +78,8 @@ from .const import (
     DOMAIN,
 )
 from .helpers import (
+    InvalidAuth,
     _check_ffmpeg,
-    _test_login,
     generate_service_email_domains,
     get_resources,
     login,
@@ -261,39 +264,54 @@ async def _validate_user_input(user_input: dict) -> tuple:
 
 
 async def _get_mailboxes(
-    host: str, port: int, user: str, pwd: str, security: str, verify: bool
+    hass: HomeAssistant,
+    host: str,
+    port: int,
+    user: str,
+    pwd: str,
+    security: str,
+    verify: bool,
 ) -> list:
     """Get list of mailbox folders from mail server."""
-    account = await login(host, port, user, pwd, security, verify)
+    _LOGGER.debug("Getting mailboxes, login...")
+    try:
+        account = await login(hass, host, port, user, pwd, security, verify)
 
-    if isinstance(account, bool):
-        _LOGGER.error("Problem logging in to mailbox.")
+    except (TimeoutError, AioImapException, ConnectionRefusedError) as err:
+        _LOGGER.error("Unable to connect: %s", err)
         return []
 
-    result = await account.list("*", "*")
+    _LOGGER.debug("Attempting to get mailbox list...")
+    result = await account.list('""', '"*"')
     status = result.result
     folderlist = result.lines
     _LOGGER.debug("Get mailbox status: %s folder list: %s", status, folderlist)
     mailboxes = []
-    if status != "OK":
+    if status != "OK" or not isinstance(folderlist, list):
         _LOGGER.error("Error listing mailboxes ... using default")
         mailboxes.append(DEFAULT_FOLDER)
     else:
-        try:
-            mailboxes.extend(i.decode().split(' "/" ')[1] for i in folderlist)
-        except IndexError:
-            _LOGGER.error("Error creating folder array trying period")
-            try:
-                mailboxes.extend(i.decode().split(' "." ')[1] for i in folderlist)
-            except IndexError:
-                _LOGGER.error("Error creating folder array, using INBOX")
-                mailboxes.append(DEFAULT_FOLDER)
-            except (ValueError, UnicodeError) as err:
-                _LOGGER.error("%s: %s", ERROR_MAILBOX_FAIL, err)
-                mailboxes.append(DEFAULT_FOLDER)
-        except (AttributeError, TypeError):
-            _LOGGER.error("Problem reading mailbox folders, using default.")
-            mailboxes.append(DEFAULT_FOLDER)
+        mailboxes = await _parse_folder_list(folderlist)
+
+    return mailboxes
+
+
+async def _parse_folder_list(folderlist: list) -> list:
+    """Parse folder list from IMAP server response."""
+    mailboxes = []
+    try:  # noqa: SIM105
+        mailboxes.extend(i.decode().split(' "/" ')[1] for i in folderlist)
+    except IndexError:
+        pass
+
+    try:  # noqa: SIM105
+        mailboxes.extend(i.decode().split(' "." ')[1] for i in folderlist)
+    except IndexError:
+        pass
+
+    if len(mailboxes) == 0:
+        _LOGGER.error("Problem reading mailbox folders, using default.")
+        mailboxes.append(DEFAULT_FOLDER)
 
     return mailboxes
 
@@ -323,7 +341,9 @@ def _get_schema_step_1(user_input: list, default_dict: list) -> Any:
     )
 
 
-async def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
+async def _get_schema_step_2(
+    data: list, user_input: list, default_dict: list, hass: HomeAssistant
+) -> Any:
     """Get a schema using the default_dict as a backup."""
     if user_input is None:
         user_input = {}
@@ -336,6 +356,7 @@ async def _get_schema_step_2(data: list, user_input: list, default_dict: list) -
         {
             vol.Required(CONF_FOLDER, default=_get_default(CONF_FOLDER)): vol.In(
                 await _get_mailboxes(
+                    hass,
                     data[CONF_HOST],
                     data[CONF_PORT],
                     data[CONF_USERNAME],
@@ -358,34 +379,38 @@ async def _get_schema_step_2(data: list, user_input: list, default_dict: list) -
             ): vol.Coerce(int),
             vol.Optional(
                 CONF_ALLOW_FORWARDED_EMAILS,
-                default=_get_default(CONF_ALLOW_FORWARDED_EMAILS),
+                default=_get_default(CONF_ALLOW_FORWARDED_EMAILS, False),
             ): cv.boolean,
             vol.Optional(
-                CONF_GENERATE_GRID, default=_get_default(CONF_GENERATE_GRID)
+                CONF_GENERATE_GRID, default=_get_default(CONF_GENERATE_GRID, False)
             ): cv.boolean,
             vol.Optional(
-                CONF_GENERATE_MP4, default=_get_default(CONF_GENERATE_MP4)
+                CONF_GENERATE_MP4, default=_get_default(CONF_GENERATE_MP4, False)
             ): cv.boolean,
             vol.Optional(
-                CONF_ALLOW_EXTERNAL, default=_get_default(CONF_ALLOW_EXTERNAL)
+                CONF_ALLOW_EXTERNAL, default=_get_default(CONF_ALLOW_EXTERNAL, False)
             ): cv.boolean,
             vol.Optional(
-                CONF_CUSTOM_IMG, default=_get_default(CONF_CUSTOM_IMG)
+                CONF_CUSTOM_IMG, default=_get_default(CONF_CUSTOM_IMG, False)
             ): cv.boolean,
             vol.Optional(
-                CONF_AMAZON_CUSTOM_IMG, default=_get_default(CONF_AMAZON_CUSTOM_IMG)
+                CONF_AMAZON_CUSTOM_IMG,
+                default=_get_default(CONF_AMAZON_CUSTOM_IMG, False),
             ): cv.boolean,
             vol.Optional(
-                CONF_UPS_CUSTOM_IMG, default=_get_default(CONF_UPS_CUSTOM_IMG)
+                CONF_UPS_CUSTOM_IMG, default=_get_default(CONF_UPS_CUSTOM_IMG, False)
             ): cv.boolean,
             vol.Optional(
-                CONF_WALMART_CUSTOM_IMG, default=_get_default(CONF_WALMART_CUSTOM_IMG)
+                CONF_WALMART_CUSTOM_IMG,
+                default=_get_default(CONF_WALMART_CUSTOM_IMG, False),
             ): cv.boolean,
             vol.Optional(
-                CONF_FEDEX_CUSTOM_IMG, default=_get_default(CONF_FEDEX_CUSTOM_IMG)
+                CONF_FEDEX_CUSTOM_IMG,
+                default=_get_default(CONF_FEDEX_CUSTOM_IMG, False),
             ): cv.boolean,
             vol.Optional(
-                CONF_GENERIC_CUSTOM_IMG, default=_get_default(CONF_GENERIC_CUSTOM_IMG)
+                CONF_GENERIC_CUSTOM_IMG,
+                default=_get_default(CONF_GENERIC_CUSTOM_IMG, False),
             ): cv.boolean,
         }
     )
@@ -529,6 +554,38 @@ def _get_schema_step_storage(user_input: list, default_dict: list) -> Any:
     )
 
 
+async def _validate_login(
+    hass: HomeAssistant, user_input: dict[str, Any]
+) -> dict[str, str]:
+    """Validate login credentials."""
+    errors = {}
+    _LOGGER.debug("Testing login...")
+    try:
+        imap_client = await login(
+            hass,
+            host=user_input[CONF_HOST],
+            port=user_input[CONF_PORT],
+            user=user_input[CONF_USERNAME],
+            pwd=user_input[CONF_PASSWORD],
+            security=user_input[CONF_IMAP_SECURITY],
+            verify=user_input[CONF_VERIFY_SSL],
+        )
+        result, data = await imap_client.select()
+
+    except InvalidAuth:
+        errors[CONF_USERNAME] = errors[CONF_PASSWORD] = "invalid_auth"
+    except ssl.SSLError:
+        errors["base"] = "ssl_error"
+    except (TimeoutError, AioImapException, ConnectionRefusedError) as err:
+        _LOGGER.error("Unable to connect: %s", err)
+        errors["base"] = "cannot_connect"
+    else:
+        if result != "OK":
+            errors["base"] = "missing_inbox"
+
+    return errors
+
+
 @config_entries.HANDLERS.register(DOMAIN)
 class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Mail and Packages."""
@@ -548,18 +605,11 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             self._data.update(user_input)
-            valid = await _test_login(
+            self._errors = await _validate_login(
                 self.hass,
-                user_input[CONF_HOST],
-                user_input[CONF_PORT],
-                user_input[CONF_USERNAME],
-                user_input[CONF_PASSWORD],
-                user_input[CONF_IMAP_SECURITY],
-                user_input[CONF_VERIFY_SSL],
+                user_input,
             )
-            if not valid:
-                self._errors["base"] = "communication"
-            else:
+            if self._errors == {}:
                 return await self.async_step_config_2()
 
             return await self._show_config_form(user_input)
@@ -637,7 +687,9 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="config_2",
-            data_schema=await _get_schema_step_2(self._data, user_input, defaults),
+            data_schema=await _get_schema_step_2(
+                self._data, user_input, defaults, self.hass
+            ),
             errors=self._errors,
         )
 
@@ -776,17 +828,11 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             self._data.update(user_input)
-            valid = await _test_login(
-                user_input[CONF_HOST],
-                user_input[CONF_PORT],
-                user_input[CONF_USERNAME],
-                user_input[CONF_PASSWORD],
-                user_input[CONF_IMAP_SECURITY],
-                user_input[CONF_VERIFY_SSL],
+            self._errors = await _validate_login(
+                self.hass,
+                user_input,
             )
-            if not valid:
-                self._errors["base"] = "communication"
-            else:
+            if self._errors == {}:
                 return await self.async_step_reconfig_2()
 
             return await self._show_reconfig_form(user_input)
@@ -804,6 +850,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_reconfig_2(self, user_input=None):
         """Configure form step 2."""
         self._errors = {}
+        _LOGGER.debug("Loading step 2...")
         if user_input is not None:
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(user_input)
@@ -836,7 +883,9 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Step 2 setup."""
         return self.async_show_form(
             step_id="reconfig_2",
-            data_schema=await _get_schema_step_2(self._data, user_input, self._data),
+            data_schema=await _get_schema_step_2(
+                self._data, user_input, self._data, self.hass
+            ),
             errors=self._errors,
         )
 

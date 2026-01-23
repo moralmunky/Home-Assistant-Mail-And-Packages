@@ -20,10 +20,9 @@ from shutil import copyfile, copytree, which
 from typing import Any
 
 import aiohttp
-import aioimaplib
 import dateparser
 import homeassistant.helpers.config_validation as cv
-from aioimaplib import AioImapException
+from aioimaplib import AUTH, IMAP4, IMAP4_SSL, NONAUTH, SELECTED, AioImapException
 from bs4 import BeautifulSoup
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -34,6 +33,7 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import ssl
 from PIL import Image, ImageOps
 from voluptuous import Email, MultipleInvalid, Schema
@@ -123,6 +123,11 @@ from .const import (
 NO_SSL = "Email will be accessed without encryption using this method and is not recommended."
 _LOGGER = logging.getLogger(__name__)
 
+
+class InvalidAuth(HomeAssistantError):
+    """Raise exception for invalid credentials."""
+
+
 # Config Flow Helpers
 
 
@@ -151,7 +156,7 @@ async def _check_ffmpeg() -> bool:
     return which("ffmpeg")
 
 
-async def _test_login(
+async def login(
     hass: HomeAssistant,
     host: str,
     port: int,
@@ -159,34 +164,29 @@ async def _test_login(
     pwd: str,
     security: str,
     verify: bool = True,
-):
-    """Test login to IMAP server using aioimaplib."""
-    account = None
-    try:
-        ssl_context = (
-            ssl.client_context(ssl.SSLCipherList.PYTHON_DEFAULT)
-            if verify
-            else ssl.create_no_verify_ssl_context()
-        )
-        if security == "SSL":
-            account = aioimaplib.IMAP4_SSL(
-                host=host, port=port, ssl_context=ssl_context
-            )
-        else:
-            account = aioimaplib.IMAP4(host=host, port=port)
+) -> IMAP4_SSL | IMAP4:
+    """Login to IMAP server asynchronously."""
+    ssl_context = (
+        ssl.client_context(ssl.SSLCipherList.PYTHON_DEFAULT)
+        if verify
+        else ssl.create_no_verify_ssl_context()
+    )
+    if security == "SSL":
+        account = IMAP4_SSL(host=host, port=port, ssl_context=ssl_context)
+    else:
+        account = IMAP4(host=host, port=port)
 
-        await account.wait_hello_from_server()
+    await account.wait_hello_from_server()
 
+    if account.protocol.state == NONAUTH:
         if security == "startTLS":
             await account.starttls(ssl_context=ssl_context)
-
         await account.login(user, pwd)
-        await account.logout()
-    except (AioImapException, OSError) as err:
-        _LOGGER.error("Error testing login to IMAP Server: %s", err)
-        return False
-    else:
-        return True
+
+    if account.protocol.state not in {AUTH, SELECTED}:
+        _LOGGER.error("Error loggging in to IMAP Server")
+        raise InvalidAuth
+    return account
 
 
 # Email Data helpers
@@ -231,7 +231,7 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # n
     data = {}
 
     # Login to email server and select the folder
-    _LOGGER.debug("Attempting to log int IMAP server.")
+    _LOGGER.debug("Attempting to log in to IMAP server.")
     account = await login(hass, host, port, user, pwd, imap_security, verify_ssl)
 
     # Do not process if account returns false
@@ -716,43 +716,7 @@ async def fetch(  # noqa: C901
     return count[sensor]
 
 
-async def login(
-    hass: HomeAssistant,
-    host: str,
-    port: int,
-    user: str,
-    pwd: str,
-    security: str,
-    verify: bool = True,
-) -> bool | aioimaplib.IMAP4_SSL:
-    """Login to IMAP server asynchronously."""
-    try:
-        ssl_context = (
-            ssl.client_context(ssl.SSLCipherList.PYTHON_DEFAULT)
-            if verify
-            else ssl.create_no_verify_ssl_context()
-        )
-        if security == "SSL":
-            account = aioimaplib.IMAP4_SSL(
-                host=host, port=port, ssl_context=ssl_context
-            )
-        else:
-            account = aioimaplib.IMAP4(host=host, port=port)
-
-        await account.wait_hello_from_server()
-
-        if security == "startTLS":
-            await account.starttls(ssl_context=ssl_context)
-
-        await account.login(user, pwd)
-    except (AioImapException, OSError) as err:
-        _LOGGER.error("Error logging into IMAP Server: %s", err)
-        return False
-    else:
-        return account
-
-
-async def selectfolder(account: aioimaplib.IMAP4_SSL, folder: str) -> bool:
+async def selectfolder(account: IMAP4_SSL, folder: str) -> bool:
     """Select folder inside the mailbox asynchronously."""
     try:
         await account.list(folder, "*")
@@ -834,7 +798,7 @@ def build_search(address: list, date: str, subject: str = "") -> tuple:
 
 
 async def email_search(
-    account: aioimaplib.IMAP4_SSL, address: list, date: str, subject: str = ""
+    account: IMAP4_SSL, address: list, date: str, subject: str = ""
 ) -> tuple:
     """Search emails with from, subject, and date asynchronously."""
     utf8_flag, search = build_search(address, date, subject)
@@ -851,9 +815,7 @@ async def email_search(
         return (res.result, res.lines)
 
 
-async def email_fetch(
-    account: aioimaplib.IMAP4_SSL, num, parts: str = "(RFC822)"
-) -> tuple:
+async def email_fetch(account: IMAP4_SSL, num, parts: str = "(RFC822)") -> tuple:
     """Download specified email for parsing asynchronously."""
     if account.host == "imap.mail.me.com":
         parts = "BODY[]"
@@ -871,7 +833,7 @@ async def email_fetch(
 
 async def get_mails(  # noqa: C901
     hass: HomeAssistant,
-    account: type[aioimaplib.IMAP4_SSL],
+    account: type[IMAP4_SSL],
     image_output_path: str,
     gif_duration: int,
     image_name: str,
@@ -1290,7 +1252,7 @@ def cleanup_images(path: str, image: str | None = None) -> None:  # noqa: C901
 
 
 async def get_count(  # noqa: C901
-    account: type[aioimaplib.IMAP4_SSL],
+    account: type[IMAP4_SSL],
     sensor_type: str,
     get_tracking_num: bool = False,
     image_path: str | None = None,
@@ -1674,7 +1636,7 @@ async def get_count(  # noqa: C901
 
 
 async def get_tracking(  # noqa: C901
-    sdata: Any, account: type[aioimaplib.IMAP4_SSL], the_format: str | None = None
+    sdata: Any, account: type[IMAP4_SSL], the_format: str | None = None
 ) -> list:
     """Parse tracking numbers from email.
 
@@ -1781,7 +1743,7 @@ def _match_patterns(
 
 
 async def _scan_email_for_text(
-    account: type[aioimaplib.IMAP4_SSL],
+    account: type[IMAP4_SSL],
     email_id: str,
     patterns: list[re.Pattern],
     body_count: bool,
@@ -1822,7 +1784,7 @@ async def _scan_email_for_text(
 
 async def find_text(
     sdata: Any,
-    account: type[aioimaplib.IMAP4_SSL],
+    account: type[IMAP4_SSL],
     search_terms: list,
     body_count: bool,
 ) -> int:
@@ -2060,7 +2022,7 @@ def _generic_delivery_image_extraction(  # noqa: C901
 
 
 async def amazon_search(
-    account: type[aioimaplib.IMAP4_SSL],
+    account: type[IMAP4_SSL],
     image_path: str,
     hass: HomeAssistant,
     amazon_image_name: str,
@@ -2137,7 +2099,7 @@ async def amazon_search(
 
 async def get_amazon_image(
     sdata: Any,
-    account: type[aioimaplib.IMAP4_SSL],
+    account: type[IMAP4_SSL],
     image_path: str,
     hass: HomeAssistant,
     image_name: str,
@@ -2272,9 +2234,7 @@ def _extract_hub_code(
     return None
 
 
-async def amazon_hub(
-    account: type[aioimaplib.IMAP4_SSL], fwds: list[str] | None = None
-) -> dict:
+async def amazon_hub(account: type[IMAP4_SSL], fwds: list[str] | None = None) -> dict:
     """Find Amazon Hub info emails."""
     email_addresses = []
     email_addresses.extend(_process_amazon_forwards(fwds))
@@ -2323,9 +2283,7 @@ async def amazon_hub(
     return info
 
 
-async def amazon_otp(
-    account: type[aioimaplib.IMAP4_SSL], fwds: list | None = None
-) -> dict:
+async def amazon_otp(account: type[IMAP4_SSL], fwds: list | None = None) -> dict:
     """Find Amazon OTP code emails.
 
     Returns dict of sensor data
@@ -2387,7 +2345,7 @@ async def amazon_otp(
 
 
 async def amazon_exception(
-    account: type[aioimaplib.IMAP4_SSL],
+    account: type[IMAP4_SSL],
     fwds: list | None = None,
     the_domain: str | None = None,
 ) -> dict:
@@ -2471,7 +2429,7 @@ def amazon_email_addresses(
 
 
 async def _search_amazon_emails(
-    account: type[aioimaplib.IMAP4_SSL], address_list: list[str], days: int
+    account: type[IMAP4_SSL], address_list: list[str], days: int
 ) -> list[bytes]:
     """Search for Amazon emails and return a unique list of email IDs."""
     past_date = get_today() - datetime.timedelta(days=days)
@@ -2585,7 +2543,7 @@ def _parse_amazon_arrival_date(
 
 
 async def get_items(  # noqa: C901
-    account: type[aioimaplib.IMAP4_SSL],
+    account: type[IMAP4_SSL],
     param: str | None = None,
     fwds: str | None = None,
     days: int = DEFAULT_AMAZON_DAYS,
@@ -2636,7 +2594,23 @@ async def get_items(  # noqa: C901
             encoding = decode_header(header_val)[0][1]
             subject_bytes = decode_header(header_val)[0][0]
             if encoding:
-                email_subject = subject_bytes.decode(encoding, "ignore")
+                # subject_bytes may be bytes or already a str; decode safely and fall back to utf-8
+                try:
+                    if isinstance(subject_bytes, bytes):
+                        email_subject = subject_bytes.decode(encoding, "ignore")
+                    else:
+                        email_subject = str(subject_bytes)
+                except (LookupError, UnicodeError):
+                    # Unknown encoding or decode error, fall back to utf-8
+                    try:
+                        if isinstance(subject_bytes, bytes):
+                            email_subject = subject_bytes.decode("utf-8", "ignore")
+                        else:
+                            email_subject = str(subject_bytes)
+                    except (UnicodeError, TypeError) as err:
+                        _LOGGER.debug("Error decoding subject with fallback: %s", err)
+                        email_subject = str(subject_bytes)
+
             elif isinstance(subject_bytes, bytes):
                 email_subject = subject_bytes.decode("utf-8", "ignore")
             else:

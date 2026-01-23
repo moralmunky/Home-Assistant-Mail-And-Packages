@@ -228,18 +228,19 @@ async def integration_fixture_9(hass):
 @pytest.fixture
 def mock_imap():
     """Mock aioimaplib class values."""
-    # We patch the helper's reference to aioimaplib
-    with patch(
-        "custom_components.mail_and_packages.helpers.aioimaplib"
-    ) as mock_imap_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_imap_lib.IMAP4_SSL.return_value = mock_conn
-        mock_imap_lib.IMAP4.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
+        mock_conn.protocol.state = aioimaplib.AUTH
 
         # aioimaplib methods return a response object with 'result' and 'lines' attributes
         mock_conn.wait_hello_from_server = AsyncMock()
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b"1"]))
         mock_conn.logout = AsyncMock(return_value=MagicMock(result="BYE"))
         mock_conn.list = AsyncMock(
             return_value=MagicMock(
@@ -262,23 +263,49 @@ def mock_imap():
 @pytest.fixture
 def mock_imap_login_error():
     """Mock aioimaplib login failure."""
-    with patch(
-        "custom_components.mail_and_packages.helpers.aioimaplib"
-    ) as mock_imap_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_imap_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
-        mock_conn.login.side_effect = OSError("Invalid username or password")
+        mock_conn.protocol.state = aioimaplib.NONAUTH
+        mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+        yield mock_conn
+
+
+@pytest.fixture
+def mock_imap_connect_error():
+    """Mock aioimaplib connection failure."""
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
+        mock_conn = AsyncMock()
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
+        mock_conn.wait_hello_from_server.side_effect = ConnectionRefusedError(
+            "Unable to connect."
+        )
+        mock_conn.protocol.state = aioimaplib.NONAUTH
+        mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         yield mock_conn
 
 
 @pytest.fixture
 def mock_imap_select_error():
     """Mock folder select error."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(
             return_value=MagicMock(
                 result="OK", lines=[b"user@fake.email authenticated (Success)"]
@@ -297,10 +324,15 @@ def mock_imap_select_error():
 @pytest.fixture
 def mock_imap_list_error():
     """Mock error when listing folders."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(
             return_value=MagicMock(
                 result="OK", lines=[b"user@fake.email authenticated (Success)"]
@@ -314,14 +346,18 @@ def mock_imap_list_error():
 @pytest.fixture
 def mock_imap_no_email():
     """Mock IMAP connection with no search hits."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
-        mock_lib.IMAP4.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
+        mock_conn.protocol.state = aioimaplib.AUTH
 
         mock_conn.wait_hello_from_server = AsyncMock()
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.list = AsyncMock(
             return_value=MagicMock(
                 result="OK", lines=[b'(\\HasNoChildren) "/" "INBOX"']
@@ -339,17 +375,22 @@ def mock_imap_no_email():
 @pytest.fixture
 def mock_imap_amazon_duplicate_orders():
     """Mock duplicate amazon orders found."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(
             return_value=MagicMock(result="OK", lines=[b"1 2"])
         )
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1 2"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         async def fetch_side_effect(email_id, parts):
             content = """From: auto-confirm@amazon.com
@@ -364,12 +405,17 @@ Order #113-4567890-1234567"""
 @pytest.fixture
 def mock_imap_fetch_error():
     """Mock IMAP fetch error."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.fetch.side_effect = OSError("Invalid Email")
@@ -380,10 +426,15 @@ def mock_imap_fetch_error():
 @pytest.fixture
 def mock_imap_index_error():
     """Mock imap class values correctly for async and wait_hello."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(
             return_value=MagicMock(
@@ -398,10 +449,15 @@ def mock_imap_index_error():
 @pytest.fixture
 def mock_imap_index_error_2():
     """Mock imap class values for async compatibility and wait_hello."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(
             return_value=MagicMock(
@@ -417,10 +473,15 @@ def mock_imap_index_error_2():
 @pytest.fixture
 def mock_imap_mailbox_format2():
     """Mock imap class values for async compatibility."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(
             return_value=MagicMock(
@@ -438,10 +499,15 @@ def mock_imap_mailbox_format2():
 @pytest.fixture
 def mock_imap_mailbox_format3():
     """Mock imap class values for async compatibility."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(
             return_value=MagicMock(
@@ -470,15 +536,20 @@ def mock_imap_usps_informed_digest(mock_imap):
 @pytest.fixture
 def mock_imap_usps_new_informed_digest():
     """Mock IMAP search returning USPS informed digest."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/new_informed_delivery.eml").read_text(
             encoding="utf-8"
@@ -495,15 +566,20 @@ def mock_imap_usps_new_informed_digest():
 @pytest.fixture
 def mock_imap_usps_informed_digest_missing():
     """Mock IMAP search returning USPS informed digest with missing mailpiece."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path(
             "tests/test_emails/informed_delivery_missing_mailpiece.eml"
@@ -520,15 +596,20 @@ def mock_imap_usps_informed_digest_missing():
 @pytest.fixture
 def mock_imap_usps_informed_digest_no_mail():
     """Mock IMAP search returning USPS informed digest with no mail coming."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/informed_delivery_no_mail.eml").read_text(
             encoding="utf-8"
@@ -545,15 +626,18 @@ def mock_imap_usps_informed_digest_no_mail():
 @pytest.fixture
 def mock_imap_usps_mail_delivered():
     """Mock IMAP search returning USPS package delivered."""
-    with patch(
-        "custom_components.mail_and_packages.helpers.aioimaplib"
-    ) as mock_imap_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_imap_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
+        mock_conn.protocol.state = aioimaplib.AUTH
 
         # Ensure these are AsyncMocks returning objects with a .result attribute
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
 
         email_file = Path("tests/test_emails/usps_mail_delivered.eml").read_text(
@@ -572,15 +656,20 @@ def mock_imap_usps_mail_delivered():
 @pytest.fixture
 def mock_imap_ups_out_for_delivery():
     """Mock IMAP search returning USPS package out for delivery."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/ups_out_for_delivery.eml").read_text(
             encoding="utf-8"
@@ -597,12 +686,17 @@ def mock_imap_ups_out_for_delivery():
 @pytest.fixture
 def mock_imap_ups_out_for_delivery_html():
     """Mock IMAP search returning USPS package out for delivery html format."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
 
         # Mock mandatory greeting and login
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
 
         # Setup .list() response with explicit attributes for logging
@@ -614,7 +708,7 @@ def mock_imap_ups_out_for_delivery_html():
         # Standard IMAP sequence mocks
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.logout = AsyncMock()
 
         # Load the specific UPS HTML email content
@@ -634,15 +728,20 @@ def mock_imap_ups_out_for_delivery_html():
 @pytest.fixture
 def mock_imap_dhl_out_for_delivery():
     """Mock IMAP search returning DHL package out for delivery."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.enable = AsyncMock(return_value=MagicMock(result="OK"))
 
         email_file = Path("tests/test_emails/dhl_out_for_delivery.eml").read_text(
@@ -660,15 +759,20 @@ def mock_imap_dhl_out_for_delivery():
 @pytest.fixture
 def mock_imap_dhl_no_utf8():
     """Mock IMAP search returning DHL package out for delivery with no UTF-8 encoding."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/dhl_out_for_delivery.eml").read_text(
             encoding="utf-8"
@@ -685,15 +789,20 @@ def mock_imap_dhl_no_utf8():
 @pytest.fixture
 def mock_imap_fedex_out_for_delivery():
     """Mock IMAP search returning FedEx package out for delivery."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.enable = AsyncMock(return_value=MagicMock(result="OK"))
 
         email_file = Path("tests/test_emails/fedex_out_for_delivery.eml").read_text(
@@ -711,10 +820,15 @@ def mock_imap_fedex_out_for_delivery():
 @pytest.fixture
 def mock_imap_fedex_out_for_delivery_2():
     """Mock IMAP search returning FedEx package out for delivery alternative."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_list_response = MagicMock()
         mock_list_response.result = "OK"
@@ -723,7 +837,7 @@ def mock_imap_fedex_out_for_delivery_2():
 
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.logout = AsyncMock()
         email_file = Path("tests/test_emails/fedex_out_for_delivery_2.eml").read_text(
             encoding="utf-8"
@@ -739,15 +853,20 @@ def mock_imap_fedex_out_for_delivery_2():
 @pytest.fixture
 def mock_imap_usps_out_for_delivery():
     """Mock IMAP search returning USPS package out for delivery."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/usps_out_for_delivery.eml").read_text(
             encoding="utf-8"
@@ -764,15 +883,20 @@ def mock_imap_usps_out_for_delivery():
 @pytest.fixture
 def mock_imap_amazon_shipped():
     """Mock IMAP search returning Amazon package shipped."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/amazon_shipped.eml").read_text(
             encoding="utf-8"
@@ -789,15 +913,20 @@ def mock_imap_amazon_shipped():
 @pytest.fixture
 def mock_imap_amazon_shipped_uk():
     """Mock IMAP search returning Amazon package shipped UK versionclear."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/amazon_uk_shipped.eml").read_text(
             encoding="utf-8"
@@ -825,6 +954,7 @@ def mock_imap_amazon_shipped_uk_2():
     mock_conn.login.return_value = imap_response(
         "OK", [b"user@fake.email authenticated (Success)"]
     )
+    mock_conn.protocol.state = aioimaplib.AUTH
     mock_conn.list.return_value = imap_response(
         "OK", [b'(\\HasNoChildren) "/" "INBOX"']
     )
@@ -846,12 +976,17 @@ def mock_imap_amazon_shipped_uk_2():
 @pytest.fixture
 def mock_imap_amazon_shipped_alt():
     """Mock IMAP search with Amazon shipped email, alternative format."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
 
         # Handshake and Login
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
 
         # List response with explicit attributes for debug logging
@@ -863,7 +998,7 @@ def mock_imap_amazon_shipped_alt():
         # Standard search and select mocks
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.logout = AsyncMock()
 
         # Load the specific Amazon alternative shipped email content
@@ -883,12 +1018,17 @@ def mock_imap_amazon_shipped_alt():
 @pytest.fixture
 def mock_imap_amazon_shipped_alt_2():
     """Mock IMAP search with Amazon shipped email, 2nd alternative format."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
 
         # Handshake and Login
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
 
         # List response with explicit attributes for debug logging
@@ -900,7 +1040,7 @@ def mock_imap_amazon_shipped_alt_2():
         # Standard search and select mocks
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.logout = AsyncMock()
 
         # Load the specific second Amazon alternative shipped email content
@@ -920,15 +1060,20 @@ def mock_imap_amazon_shipped_alt_2():
 @pytest.fixture
 def mock_imap_amazon_shipped_it():
     """Mock IMAP search with Amazon shipped email, Italian format."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/amazon_shipped_it.eml").read_text(
             encoding="utf-8"
@@ -944,12 +1089,17 @@ def mock_imap_amazon_shipped_it():
 @pytest.fixture
 def mock_imap_amazon_shipped_alt_timeformat():
     """Mock IMAP search with Amazon shipped email, alternative time format."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
 
         # Handshake and Login
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
 
         # List response with explicit attributes for debug logging
@@ -961,7 +1111,7 @@ def mock_imap_amazon_shipped_alt_timeformat():
         # Standard search and select mocks
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.logout = AsyncMock()
 
         # Load the specific Amazon alternative time format email content
@@ -981,15 +1131,20 @@ def mock_imap_amazon_shipped_alt_timeformat():
 @pytest.fixture
 def mock_imap_amazon_delivered():
     """Mock IMAP search with Amazon delivered email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/amazon_delivered.eml").read_text(
             encoding="utf-8"
@@ -1006,15 +1161,20 @@ def mock_imap_amazon_delivered():
 @pytest.fixture
 def mock_imap_amazon_delivered_it():
     """Mock IMAP search with Amazon delivered email, italian format."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/amazon_delivered_it.eml").read_text(
             encoding="utf-8"
@@ -1030,15 +1190,20 @@ def mock_imap_amazon_delivered_it():
 @pytest.fixture
 def mock_imap_amazon_the_hub():
     """Mock IMAP search with Amazon hub email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/amazon_hub_notice.eml").read_text(
             encoding="utf-8"
@@ -1066,6 +1231,7 @@ def mock_imap_amazon_the_hub_2():
     mock_conn.login.return_value = imap_response(
         "OK", [b"user@fake.email authenticated (Success)"]
     )
+    mock_conn.protocol.state = aioimaplib.AUTH
     mock_conn.list.return_value = imap_response(
         "OK", [b'(\\HasNoChildren) "/" "INBOX"']
     )
@@ -1314,9 +1480,9 @@ def mock_copy_overlays():
 @pytest.fixture
 def mock_download_img():
     """Mock email data update class values."""
+    # Removed autospec=True to resolve conflict with new_callable
     with patch(
         "custom_components.mail_and_packages.helpers.download_img",
-        autospec=True,
         new_callable=mock.AsyncMock,
     ) as mock_download_img:
         mock_download_img.return_value = True
@@ -1326,15 +1492,20 @@ def mock_download_img():
 @pytest.fixture
 def mock_imap_hermes_out_for_delivery():
     """Mock IMAP search with Hermes out for delivery email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/hermes_out_for_delivery.eml").read_text(
             encoding="utf-8"
@@ -1351,15 +1522,20 @@ def mock_imap_hermes_out_for_delivery():
 @pytest.fixture
 def mock_imap_evri_out_for_delivery():
     """Mock IMAP search with Evri out for delivery email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/evri_out_for_delivery.eml").read_text(
             encoding="utf-8"
@@ -1375,15 +1551,20 @@ def mock_imap_evri_out_for_delivery():
 @pytest.fixture
 def mock_imap_royal_out_for_delivery():
     """Mock IMAP search with Royal Post out for delivery email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path(
             "tests/test_emails/royal_mail_uk_out_for_delivery.eml"
@@ -1465,15 +1646,20 @@ def mock_getctime_err():
 @pytest.fixture
 def mock_imap_usps_exception():
     """Mock IMAP search with USPS exception email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/usps_exception.eml").read_text(
             encoding="utf-8"
@@ -1531,15 +1717,20 @@ def mock_copytree():
 @pytest.fixture
 def mock_imap_amazon_exception():
     """Mock IMAP search with Amazon exception email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/amazon_exception.eml").read_text(
             encoding="utf-8"
@@ -1556,15 +1747,20 @@ def mock_imap_amazon_exception():
 @pytest.fixture
 def mock_imap_auspost_out_for_delivery():
     """Mock IMAP search with AU Post out for delivery email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/auspost_out_for_delivery.eml").read_text(
             encoding="utf-8"
@@ -1581,15 +1777,20 @@ def mock_imap_auspost_out_for_delivery():
 @pytest.fixture
 def mock_imap_auspost_delivered():
     """Mock IMAP search with AU Post delivered email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/auspost_delivered.eml").read_text(
             encoding="utf-8"
@@ -1606,15 +1807,20 @@ def mock_imap_auspost_delivered():
 @pytest.fixture
 def mock_imap_poczta_polska_delivering():
     """Mock IMAP search with poczta polska delivering email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/poczta_polska_delivering.eml").read_text(
             encoding="utf-8"
@@ -1631,15 +1837,20 @@ def mock_imap_poczta_polska_delivering():
 @pytest.fixture
 def mock_imap_inpost_pl_out_for_delivery():
     """Mock IMAP search with inpost pl out for delivery email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/inpost_pl_out_for_delivery.eml").read_text(
             encoding="utf-8"
@@ -1666,6 +1877,7 @@ def mock_imap_inpost_pl_delivered():
             "OK",
             [b"user@fake.email authenticated (Success)"],
         )
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.list.return_value = (
             "OK",
             [b'(\\HasNoChildren) "/" "INBOX"'],
@@ -1686,15 +1898,20 @@ def mock_imap_inpost_pl_delivered():
 @pytest.fixture
 def mock_imap_dpd_com_pl_delivering():
     """Mock IMAP search with dpd.com.pl delivering email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/dpd_com_pl_delivering.eml").read_text(
             encoding="utf-8"
@@ -1711,12 +1928,17 @@ def mock_imap_dpd_com_pl_delivering():
 @pytest.fixture
 def mock_imap_search_error():
     """Mock IMAP search error."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.search.side_effect = OSError("Invalid SEARCH format")
 
         yield mock_conn
@@ -1725,15 +1947,20 @@ def mock_imap_search_error():
 @pytest.fixture
 def mock_imap_amazon_fwd():
     """Mock IMAP search with forwarded amazon email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/amazon_fwd.eml").read_text(
             encoding="utf-8"
@@ -1761,15 +1988,20 @@ def mock_update_amazon_image():
 @pytest.fixture
 def mock_imap_amazon_otp():
     """Mock IMAP search with amazon OTP email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/amazon_otp.eml").read_text(
             encoding="utf-8"
@@ -1785,22 +2017,29 @@ def mock_imap_amazon_otp():
 @pytest.fixture
 def mock_imap_capost_mail():
     """Mock IMAP search with CA Post mail."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/capost_mail.eml").read_text(
             encoding="utf-8"
         )
+        # Updated to match the format of other successful mocks (adding the IMAP header)
         mock_conn.fetch = AsyncMock(
             return_value=MagicMock(
-                result="OK", lines=[(b"", email_file.encode("utf-8"))]
+                result="OK",
+                lines=[(b"1 (RFC822 {1234}", email_file.encode("utf-8"))],
             )
         )
 
@@ -1810,11 +2049,16 @@ def mock_imap_capost_mail():
 @pytest.fixture
 def mock_imap_ups_delivered():
     """Mock IMAP search with UPS delivered email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
 
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
 
         mock_list_res = MagicMock()
@@ -1824,7 +2068,7 @@ def mock_imap_ups_delivered():
 
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.logout = AsyncMock()
 
         email_file = Path("tests/test_emails/ups_delivered.eml").read_text(
@@ -1842,15 +2086,20 @@ def mock_imap_ups_delivered():
 @pytest.fixture
 def mock_imap_ups_delivered_with_photo():
     """Mock IMAP search with UPS delivered email containing delivery photo."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/ups_delivered_with_photo.eml").read_text(
             encoding="utf-8"
@@ -1867,10 +2116,15 @@ def mock_imap_ups_delivered_with_photo():
 @pytest.fixture
 def mock_imap_search_error_none():
     """Mock IMAP connection where search returns None or empty results."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_list_res = MagicMock()
         mock_list_res.result = "OK"
@@ -1881,7 +2135,7 @@ def mock_imap_search_error_none():
         mock_search_res.lines = [None]
         mock_conn.search = AsyncMock(return_value=mock_search_res)
 
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.logout = AsyncMock()
 
         yield mock_conn
@@ -1890,10 +2144,15 @@ def mock_imap_search_error_none():
 @pytest.fixture
 def mock_imap_usps_delivered_individual():
     """Mock IMAP search with USPS delivered email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_list_response = MagicMock()
         mock_list_response.result = "OK"
@@ -1901,7 +2160,7 @@ def mock_imap_usps_delivered_individual():
         mock_conn.list = AsyncMock(return_value=mock_list_response)
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         email_file = Path("tests/test_emails/usps_delivered.eml").read_text(
             encoding="utf-8"
         )
@@ -1910,22 +2169,26 @@ def mock_imap_usps_delivered_individual():
                 result="OK", lines=[(b"", email_file.encode("utf-8"))]
             )
         )
-
         yield mock_conn
 
 
 @pytest.fixture
 def mock_imap_amazon_arriving_today():
     """Mock IMAP search with amazon package arriving today email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path(
             "tests/test_emails/amazon_out_for_delivery_today.eml"
@@ -1942,10 +2205,15 @@ def mock_imap_amazon_arriving_today():
 @pytest.fixture
 def mock_imap_amazon_arriving_tomorrow():
     """Mock aioimaplib class values for Amazon arriving tomorrow email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_list_res = MagicMock()
         mock_list_res.result = "OK"
@@ -1953,7 +2221,7 @@ def mock_imap_amazon_arriving_tomorrow():
         mock_conn.list = AsyncMock(return_value=mock_list_res)
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.logout = AsyncMock()
         email_file = Path("tests/test_emails/amazon_arriving_today2.eml").read_text(
             encoding="utf-8"
@@ -1969,15 +2237,20 @@ def mock_imap_amazon_arriving_tomorrow():
 @pytest.fixture
 def mock_imap_walmart_delivered_with_photo():
     """Mock IMAP search with Walmart delivered email containing delivery photo."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/walmart_delivered.eml").read_text(
             encoding="utf-8"
@@ -1993,30 +2266,30 @@ def mock_imap_walmart_delivered_with_photo():
 
 @pytest.fixture
 def mock_imap_fedex_delivered_with_photo():
-    """Mock imap class values for FedEx delivered with photo."""
-    with patch(
-        "custom_components.mail_and_packages.helpers.aioimaplib"
-    ) as mock_imap_fedex_delivered_with_photo:
-        mock_conn = mock.Mock(autospec=aioimaplib.IMAP4_SSL)
-        mock_imap_fedex_delivered_with_photo.IMAP4_SSL.return_value = mock_conn
-
-        mock_conn.login.return_value = (
-            "OK",
-            [b"user@fake.email authenticated (Success)"],
-        )
-        mock_conn.list.return_value = (
-            "OK",
-            [b'(\\HasNoChildren) "/" "INBOX"'],
-        )
-        mock_conn.search.return_value = ("OK", [b"1"])
-        mock_conn.uid.return_value = ("OK", [b"1"])
+    """Mock IMAP search with FedEx delivered email containing delivery photo."""
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
+        mock_conn = AsyncMock()
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
+        mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
+        mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
+        mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/fedex_delivered.eml").read_text(
             encoding="utf-8"
         )
-
-        mock_conn.fetch.return_value = ("OK", [(b"", email_file.encode("utf-8"))])
-        mock_conn.select.return_value = ("OK", [])
+        mock_conn.fetch = AsyncMock(
+            return_value=MagicMock(
+                result="OK", lines=[(b"", email_file.encode("utf-8"))]
+            )
+        )
 
         yield mock_conn
 
@@ -2024,15 +2297,20 @@ def mock_imap_fedex_delivered_with_photo():
 @pytest.fixture
 def mock_imap_walmart_delivering():
     """Mock IMAP search with Walmart delivering email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path("tests/test_emails/walmart_delivery.eml").read_text(
             encoding="utf-8"
@@ -2049,15 +2327,20 @@ def mock_imap_walmart_delivering():
 @pytest.fixture
 def mock_imap_informed_delivery_forwarded_email():
     """Mock IMAP search with USPS informed delivery email from forwarded email."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.list = AsyncMock(return_value=MagicMock(result="OK"))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
         mock_conn.uid = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
 
         email_file = Path(
             "tests/test_emails/informed_delivery_forwarded_email.eml"
@@ -2074,13 +2357,17 @@ def mock_imap_informed_delivery_forwarded_email():
 @pytest.fixture
 def mock_imap_list_result_error():
     """Mock IMAP connection where list() returns a non-OK status."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+    ):
         mock_conn = AsyncMock()
-        mock_lib.IMAP4_SSL.return_value = mock_conn
-        mock_lib.IMAP4.return_value = mock_conn
+        mock_imap_ssl.return_value = mock_conn
+        mock_imap_plain.return_value = mock_conn
         mock_conn.wait_hello_from_server = AsyncMock()
+        mock_conn.protocol.state = aioimaplib.AUTH
         mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
-        mock_conn.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_conn.select = AsyncMock(return_value=("OK", [b""]))
         mock_conn.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b""]))
         mock_conn.logout = AsyncMock()
         # Simulate a successful connection but a failed folder list command

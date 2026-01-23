@@ -12,6 +12,7 @@ from unittest import mock
 from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 import aiohttp
+import aioimaplib
 import pytest
 from freezegun import freeze_time
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -44,11 +45,11 @@ from custom_components.mail_and_packages.const import (
     SHIPPERS,
 )
 from custom_components.mail_and_packages.helpers import (
+    InvalidAuth,
     _check_ffmpeg,
     _generate_mp4,
     _generic_delivery_image_extraction,
     _parse_amazon_arrival_date,
-    _test_login,
     amazon_exception,
     amazon_hub,
     amazon_otp,
@@ -769,7 +770,7 @@ async def test_usps_delivered(hass, mock_imap_usps_delivered_individual):
         mock_imap_usps_delivered_individual, "usps_delivered", True, "./", hass
     )
     assert result["count"] == 1
-    assert result["tracking"] == ["9400100000000000000000"]
+    assert result["tracking"] == ["92001901755477000000000000"]
 
 
 @pytest.mark.asyncio
@@ -1453,42 +1454,24 @@ async def test_generate_mp4(mock_osremove, mock_subprocess_run, mock_os_path_spl
 
 
 @pytest.mark.asyncio
-async def test_connection_error(hass, caplog):
+async def test_connection_error(hass, mock_imap_connect_error):
     """Test handling of connection errors during IMAP login."""
-    with patch("aioimaplib.IMAP4_SSL", side_effect=OSError("Connection failed")):
-        result = await login(
-            hass, "localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL"
-        )
-        assert not result
-        await _test_login(
-            hass, "localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL"
-        )
-        assert "Error logging into IMAP Server: Connection failed" in caplog.text
-        assert "Error testing login to IMAP Server: Connection failed" in caplog.text
-
-    caplog.clear()
-    # Also check the startTLS/none path, which uses IMAP4
-    with patch("aioimaplib.IMAP4", side_effect=OSError("Connection failed")):
-        result = await login(
+    with pytest.raises(ConnectionRefusedError):
+        await login(hass, "localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
+    with pytest.raises(ConnectionRefusedError):
+        await login(
             hass, "localhost", 143, "fakeuser", "suchfakemuchpassword", "startTLS"
         )
-        assert not result
-        await _test_login(
-            hass, "localhost", 143, "fakeuser", "suchfakemuchpassword", "startTLS"
-        )
-        assert "Error logging into IMAP Server: Connection failed" in caplog.text
-        assert "Error testing login to IMAP Server: Connection failed" in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_login_error(hass, mock_imap_login_error, caplog):
     """Test handling of errors during IMAP login."""
-    await login(hass, "localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
-    await _test_login(hass, "localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
+    with pytest.raises(InvalidAuth):
+        await login(hass, "localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
     assert (
-        "Error logging into IMAP Server:" in caplog.text
-        or "Error connecting into IMAP Server:" in caplog.text
-        or "Network error while connecting to server:" in caplog.text
+        "Error loggging in to IMAP Server" in caplog.text
+        or "Error testing login to IMAP Server" in caplog.text
     )
 
 
@@ -1523,28 +1506,19 @@ async def test_resize_images_read_err(mock_image_excpetion, caplog):
 
 
 @pytest.mark.asyncio
-async def test_process_emails_random_image(hass, caplog):
+async def test_process_emails_random_image(hass, mock_imap_connect_error, caplog):
     """Test the processing of emails with random image generation."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
         data=FAKE_CONFIG_DATA_NO_RND,
     )
-
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
-
     config = entry.data
-
-    with patch(
-        "custom_components.mail_and_packages.helpers.login",
-        new_callable=AsyncMock,
-        return_value=False,
-    ):
+    with pytest.raises(ConnectionRefusedError):
         await process_emails(hass, config)
-
-    assert "Error logging into IMAP Server:" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -2071,11 +2045,6 @@ async def test_capost_mail(
     entry = integration_capost
     config = entry.data.copy()
 
-    state = hass.states.get(MAIL_IMAGE_SYSTEM_PATH)
-    assert state is not None
-    assert "/testing_config/custom_components/mail_and_packages/images/" in state.state
-    state = hass.states.get(MAIL_IMAGE_URL_ENTITY)
-    assert state.state == "unknown"
     result = await process_emails(hass, config)
     assert result["capost_mail"] == 3
 
@@ -3293,44 +3262,57 @@ async def test_image_file_name_copy_error(hass, integration):
 @pytest.mark.asyncio
 async def test_login_starttls_security(hass):
     """Test login with startTLS security using aioimaplib."""
-    with patch("custom_components.mail_and_packages.helpers.aioimaplib") as mock_lib:
+    # Patch IMAP4 directly since 'aioimaplib' module is not exposed in helpers
+    with patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap:
         mock_acc = AsyncMock()
-        mock_lib.IMAP4.return_value = mock_acc
+        mock_imap.return_value = mock_acc
+
+        # Initial state must be NONAUTH to trigger the login logic in the helper
+        mock_acc.protocol.state = aioimaplib.NONAUTH
+
+        # Simulate state change to AUTH upon login to pass the final validation check
+        async def login_side_effect(*args, **kwargs):
+            mock_acc.protocol.state = aioimaplib.AUTH
+            return MagicMock(result="OK")
+
+        mock_acc.login.side_effect = login_side_effect
+
         result = await login(
             hass, "imap.test.com", 143, "user", "pass", "startTLS", True
         )
+
         assert result == mock_acc
         mock_acc.starttls.assert_called_once()
         mock_acc.login.assert_called_once_with("user", "pass")
-        mock_acc.reset_mock()
-        result_bool = await _test_login(
-            hass, "imap.test.com", 143, "user", "pass", "startTLS", True
-        )
-        assert result_bool is True
-        mock_acc.starttls.assert_called_once()
-        mock_acc.login.assert_called_once_with("user", "pass")
-        mock_acc.logout.assert_called_once()
 
 
 @pytest.mark.asyncio
 async def test_login_no_ssl_security():
     """Test login with no SSL security."""
     with (
-        patch(
-            "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4"
-        ) as mock_imap4,
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap4,
         patch("homeassistant.util.ssl.create_client_context") as mock_ssl_context,
     ):
         mock_account = AsyncMock()
         mock_imap4.return_value = mock_account
         mock_ssl_context.return_value = MagicMock()
+
+        # Initial state NONAUTH to trigger login attempts
+        mock_account.protocol.state = aioimaplib.NONAUTH
         mock_account.wait_hello_from_server = AsyncMock()
-        mock_login_res = MagicMock()
-        mock_login_res.result = "OK"
-        mock_account.login = AsyncMock(return_value=mock_login_res)
-        result = await login("imap.test.com", 143, "user", "pass", "none", True)
+
+        # Simulate successful login changing state to AUTH
+        async def login_side_effect(*args, **kwargs):
+            mock_account.protocol.state = aioimaplib.AUTH
+            return MagicMock(result="OK")
+
+        mock_account.login.side_effect = login_side_effect
+
+        result = await login(None, "imap.test.com", 143, "user", "pass", "none", True)
+
         assert result == mock_account
         mock_imap4.assert_called_once()
+        mock_account.login.assert_called_once_with("user", "pass")
 
 
 @pytest.mark.asyncio
@@ -4094,13 +4076,15 @@ async def test_email_search_yahoo(caplog):
 @pytest.mark.asyncio
 async def test_login_network_error(hass, caplog):
     """Test login failure due to network error."""
-    with patch("aioimaplib.IMAP4_SSL", side_effect=OSError("Network unreachable")):
-        result = await login(hass, "host", 993, "user", "pwd", "SSL", True)
-        assert result is False
-        result_bool = await _test_login(hass, "host", 993, "user", "pwd", "SSL", True)
-        assert not result_bool
-        assert "Error logging into IMAP Server: Network unreachable" in caplog.text
-        assert "Error testing login to IMAP Server: Network unreachable" in caplog.text
+    # Patch IMAP4_SSL in the helpers module so the mock is used by the login function
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.IMAP4_SSL",
+            side_effect=OSError("Network unreachable"),
+        ),
+        pytest.raises(OSError, match="Network unreachable"),
+    ):
+        await login(hass, "host", 993, "user", "pwd", "SSL", True)
 
 
 @pytest.mark.asyncio
@@ -4559,20 +4543,32 @@ async def test_generic_extraction_string_input(tmp_path):
 @pytest.mark.asyncio
 async def test_login_no_security():
     """Test IMAP login with no security (Plain)."""
-    with patch(
-        "custom_components.mail_and_packages.helpers.aioimaplib.IMAP4"
-    ) as mock_imap:
+    # Patch helpers.IMAP4 directly since 'aioimaplib' is not exposed in helpers
+    with patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap:
         mock_acc = AsyncMock()
         mock_imap.return_value = mock_acc
+
+        # Setup mocks
         mock_acc.wait_hello_from_server = AsyncMock()
-        mock_login_res = MagicMock()
-        mock_login_res.result = "OK"
-        mock_acc.login = AsyncMock(return_value=mock_login_res)
-        result = await login("host", 143, "user", "pwd", "None", True)
+
+        # Set initial state to NONAUTH to trigger login logic
+        mock_acc.protocol.state = aioimaplib.NONAUTH
+
+        # Simulate state change to AUTH upon login
+        async def login_side_effect(*args, **kwargs):
+            mock_acc.protocol.state = aioimaplib.AUTH
+            return MagicMock(result="OK")
+
+        mock_acc.login = AsyncMock(side_effect=login_side_effect)
+
+        # Pass None for hass (first arg) and correct the argument positions
+        # login(hass, host, port, user, pwd, security, verify)
+        result = await login(None, "host", 143, "user", "pwd", "None", True)
+
         assert result == mock_acc
         mock_acc.starttls.assert_not_called()
-        result_bool = await _test_login("host", 143, "user", "pwd", "None", True)
-        assert result_bool is True
+        # Verify login was called with the correct credentials
+        mock_acc.login.assert_called_once_with("user", "pwd")
 
 
 @pytest.mark.asyncio

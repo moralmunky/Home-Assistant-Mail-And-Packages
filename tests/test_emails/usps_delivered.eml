@@ -5,7 +5,10 @@ To: xxxx@gmail.com
 Message-ID: <84xxxx.xxx7.xxxxx.JavaMail.ppts2_b@eagnmnmep25d5.usps.gov>
 Subject: USPS® Item Delivered, Left with Individual xxxxxxx
 MIME-Version: 1.0
-Content-Type: text/html; charset=UTF-8
+Content-Type: multipart/mixed; boundary="----=_Part_1068330_882902799.1576916571769"
+
+------=_Part_1068330_882902799.1576916571769
+Content-Type: text/html
 Content-Transfer-Encoding: quoted-printable
 
 <!DOCTYPE html>
@@ -21,11 +24,11 @@ Content-Transfer-Encoding: quoted-printable
                 <td style="text-align: center;font-size: 20px;">
                     <p style="font-family: sans-serif;text-align: left;">Hello <strong></strong>,</p>
                     <p style="font-family: sans-serif;text-align: left;">Your item was delivered to an individual at the address at 1:07 pm on July 27, 2025 in NEW CANAN, CT 06840.</p>
-                    <p style="font-family: sans-serif;text-align: left;">Tracking Number: <a style="color:#3573B1; font-family: sans-serif;font-weight:bold;text-decoration: underline;" href="https://tools.usps.com/go/TrackConfirmAction?tLabels=9400100000000000000000&utm_source=delivered&utm_medium=email&utm_content=tracking-number&utm_campaign=trackingnotify">9400100000000000000000</a></p>
-                    <p style="text-align: left;font-family: sans-serif;">Package Shipped from: <strong>AMAZON</strong></p>
+                    <p style="font-family: sans-serif;text-align: left;">Tracking Number: <a style="color:#3573B1; font-family: sans-serif;font-weight:bold;text-decoration: underline;" href="https://tools.usps.com/go/TrackConfirmAction?tLabels=92001901755477000000000000">92001901755477000000000000</a></p>
                 </td>
             </tr>
         </tbody>
     </table>
 </body>
 </html>
+------=_Part_1068330_882902799.1576916571769--

@@ -19,7 +19,9 @@ from tests.const import FAKE_CONFIG_DATA
 
 
 @pytest.mark.asyncio
-async def test_unload_entry(hass, integration, mock_update, mock_copy_overlays):
+async def test_unload_entry(
+    hass, mock_imap_no_email, integration, mock_update, mock_copy_overlays
+):
     """Test unloading entities."""
 
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 48
@@ -39,8 +41,8 @@ async def test_unload_entry(hass, integration, mock_update, mock_copy_overlays):
 @pytest.mark.asyncio
 async def test_setup_entry(
     hass,
-    integration,
     mock_imap_no_email,
+    integration,
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
@@ -59,8 +61,8 @@ async def test_setup_entry(
 @pytest.mark.asyncio
 async def test_no_path_no_sec(
     hass,
-    integration_no_path,
     mock_imap_no_email,
+    integration_no_path,
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
@@ -79,8 +81,8 @@ async def test_no_path_no_sec(
 @pytest.mark.asyncio
 async def test_missing_imap_timeout(
     hass,
-    integration_no_timeout,
     mock_imap_no_email,
+    integration_no_timeout,
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
@@ -99,8 +101,8 @@ async def test_missing_imap_timeout(
 @pytest.mark.asyncio
 async def test_amazon_fwds_string(
     hass,
-    integration_fwd_string,
     mock_imap_no_email,
+    integration_fwd_string,
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
@@ -119,8 +121,8 @@ async def test_amazon_fwds_string(
 @pytest.mark.asyncio
 async def test_custom_img(
     hass,
-    integration_custom_img,
     mock_imap_no_email,
+    integration_custom_img,
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
@@ -139,8 +141,8 @@ async def test_custom_img(
 @pytest.mark.asyncio
 async def test_v4_migration(
     hass,
-    integration_v4_migration,
     mock_imap_no_email,
+    integration_v4_migration,
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
