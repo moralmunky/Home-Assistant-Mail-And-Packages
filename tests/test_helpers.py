@@ -4771,3 +4771,50 @@ def test_build_search_no_subject():
 
     assert utf8 is False
     assert search == '(FROM "test1@test.com" SINCE 01-Jan-2024)'
+
+
+@pytest.mark.asyncio
+async def test_get_mails_save_error_html_image(hass, caplog, tmp_path):
+    """Test get_mails handling error when saving HTML image (covers lines 926-928)."""
+    account = AsyncMock()
+    temp_dir = str(tmp_path)
+
+    # Create HTML content with the specific ID required to trigger the image extraction logic
+    html_content = """
+    <html>
+    <body>
+        <img id="mailpiece-image-src-id" src="data:image/jpeg;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
+    </body>
+    </html>
+    """
+
+    # Create the email message
+    msg = email.message.Message()
+    msg.set_type("text/html")
+    msg.set_payload(html_content)
+
+    mock_fetch_response = [(b"1 (RFC822 {100}", msg.as_bytes())]
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.email_search",
+            return_value=("OK", ["1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.email_fetch",
+            return_value=("OK", mock_fetch_response),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.io_save_file",
+            side_effect=OSError("Disk write failed"),
+        ),
+        patch("custom_components.mail_and_packages.helpers.cleanup_images"),
+        patch("custom_components.mail_and_packages.helpers.copy_overlays"),
+        patch("pathlib.Path.is_dir", return_value=True),
+    ):
+        result = await get_mails(hass, account, temp_dir, 5, "mail_today.gif")
+
+        # Verify the function returned the current image count (0)
+        assert result == 0
+        # Verify the critical error was logged (Lines 927-928)
+        assert "Error opening filepath: Disk write failed" in caplog.text
