@@ -4818,3 +4818,27 @@ async def test_get_mails_save_error_html_image(hass, caplog, tmp_path):
         assert result == 0
         # Verify the critical error was logged (Lines 927-928)
         assert "Error opening filepath: Disk write failed" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_generation_functions_remove_old_files(caplog):
+    """Test that _generate_mp4 and generate_grid_img remove existing files before creation."""
+    with (
+        patch("pathlib.Path.is_file", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.helpers.cleanup_images"
+        ) as mock_cleanup,
+        patch("subprocess.run"),
+        patch("subprocess.call"),
+    ):
+        _generate_mp4("/tmp/", "test.gif")
+
+        # Verify cleanup and logging for MP4
+        assert mock_cleanup.call_count == 1
+        assert "Removing old mp4:" in caplog.text
+
+        generate_grid_img("/tmp/", "test.gif", 5)
+
+        # Verify cleanup and logging for Grid Image
+        assert mock_cleanup.call_count == 2
+        assert "Removing old png grid:" in caplog.text
