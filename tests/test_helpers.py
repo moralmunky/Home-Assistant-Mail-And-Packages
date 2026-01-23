@@ -4711,7 +4711,7 @@ async def test_image_file_name_stat_error(hass, caplog):
 
 @pytest.mark.asyncio
 async def test_image_file_name_hash_error(hass, caplog):
-    """Test image_file_name handling of hash_file errors (covers lines 480-482)."""
+    """Test image_file_name handling of hash_file errors."""
     config = FAKE_CONFIG_DATA_CORRECTED
     with (
         patch("pathlib.Path.exists", return_value=True),
@@ -4727,3 +4727,47 @@ async def test_image_file_name_hash_error(hass, caplog):
         # Verify the error log from the exception block
         assert "Problem accessing file:" in caplog.text
         assert "Mocked Hash Error" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_image_file_name_generate_new_uuid(hass):
+    """Test generating a new UUID filename for old/different images."""
+    config = FAKE_CONFIG_DATA_CORRECTED
+    mock_file = MagicMock()
+    mock_file.name = "existing_image.gif"
+
+    # Set creation time to yesterday so (today != created) is True
+    yesterday = datetime.now() - timedelta(days=1)
+    mock_file.stat.return_value.st_ctime = yesterday.timestamp()
+
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("pathlib.Path.mkdir", return_value=True),
+        patch("pathlib.Path.iterdir", return_value=[mock_file]),
+        patch(
+            "custom_components.mail_and_packages.helpers.hash_file",
+            side_effect=["hash_source", "hash_existing"],
+        ),
+        patch("custom_components.mail_and_packages.helpers.copyfile"),
+        patch("uuid.uuid4", return_value="1234-5678-9012-3456"),
+    ):
+        result = image_file_name(hass, config)
+
+        # Verify line 506 was executed: result should be uuid + ext
+        assert result == "1234-5678-9012-3456.gif"
+
+
+def test_build_search_no_subject():
+    """Test build_search with no subject (None)."""
+    addresses_multi = ["test1@test.com", "test2@test.com"]
+    utf8, search = build_search(addresses_multi, "01-Jan-2024", subject=None)
+
+    assert utf8 is False
+    assert (
+        search == '(OR FROM "test1@test.com" FROM "test2@test.com" SINCE 01-Jan-2024)'
+    )
+    addresses_single = ["test1@test.com"]
+    utf8, search = build_search(addresses_single, "01-Jan-2024", subject=None)
+
+    assert utf8 is False
+    assert search == '(FROM "test1@test.com" SINCE 01-Jan-2024)'
