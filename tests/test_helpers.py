@@ -4821,8 +4821,10 @@ async def test_get_mails_save_error_html_image(hass, caplog, tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_generation_functions_remove_old_files(caplog):
+async def test_generation_functions_remove_old_files(caplog, tmp_path):
     """Test that _generate_mp4 and generate_grid_img remove existing files before creation."""
+    temp_dir = str(tmp_path) + "/"
+
     with (
         patch("pathlib.Path.is_file", return_value=True),
         patch(
@@ -4831,14 +4833,14 @@ async def test_generation_functions_remove_old_files(caplog):
         patch("subprocess.run"),
         patch("subprocess.call"),
     ):
-        _generate_mp4("/tmp/", "test.gif")
+        # 1. Test _generate_mp4 logic
+        _generate_mp4(temp_dir, "test.gif")
 
-        # Verify cleanup and logging for MP4
         assert mock_cleanup.call_count == 1
         assert "Removing old mp4:" in caplog.text
 
-        generate_grid_img("/tmp/", "test.gif", 5)
+        # 2. Test generate_grid_img logic
+        generate_grid_img(temp_dir, "test.gif", 5)
 
-        # Verify cleanup and logging for Grid Image
         assert mock_cleanup.call_count == 2
         assert "Removing old png grid:" in caplog.text
