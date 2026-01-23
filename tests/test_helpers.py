@@ -4872,3 +4872,36 @@ async def test_get_count_missing_image_attr(hass, caplog, tmp_path):
     assert result[ATTR_COUNT] == 0
     assert result[ATTR_TRACKING] == ""
     assert "Could not find image attribute ATTR_TEST_IMAGE for test" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_items_subject_decoding_fallback_failure(hass, caplog):
+    """Test get_items handling of subject decoding errors."""
+    mock_account = AsyncMock()
+    mock_account.host = "imap.test.email"
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
+    mock_fetch_res = MagicMock()
+    mock_fetch_res.result = "OK"
+    mock_fetch_res.lines = [(b"1 (RFC822 {100}", b"Subject: Test\r\n\r\nBody")]
+    mock_account.fetch.return_value = mock_fetch_res
+
+    # Define a class that raises specific errors on consecutive string conversions
+    class TrickySubject:
+        def __init__(self):
+            self.call_count = 0
+
+        def __str__(self):
+            self.call_count += 1
+            if self.call_count == 1:
+                raise LookupError("Simulated LookupError")
+            if self.call_count == 2:
+                raise TypeError("Simulated TypeError")
+            return "Safe Fallback Subject"
+
+    tricky_subject = TrickySubject()
+    with patch(
+        "custom_components.mail_and_packages.helpers.decode_header",
+        return_value=[(tricky_subject, "utf-8")],
+    ):
+        await get_items(mock_account, "count", "amazon.com")
+    assert "Error decoding subject with fallback: Simulated TypeError" in caplog.text
