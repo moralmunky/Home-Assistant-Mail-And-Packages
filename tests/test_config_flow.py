@@ -6644,7 +6644,7 @@ async def test_reconfig_2_validation_error(hass, mock_imap_no_email, integration
 async def test_reconfig_3_validation_error(hass, mock_imap_no_email, integration):
     """Test step 3 validation errors."""
     entry = integration
-    
+
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
         context={
@@ -6693,11 +6693,16 @@ async def test_reconfig_3_validation_error(hass, mock_imap_no_email, integration
 
     assert result["type"] == "form"
     assert result["step_id"] == "reconfig_3"
-    assert result["errors"] == {'custom_img_file': 'file_not_found', 'storage': 'path_not_found'}
+    assert result["errors"] == {
+        "custom_img_file": "file_not_found",
+        "storage": "path_not_found",
+    }
 
 
 @pytest.mark.asyncio
-async def test_reconfig_forwarded_emails_to_reconfig_3(hass, mock_imap_no_email, integration):
+async def test_reconfig_forwarded_emails_to_reconfig_3(
+    hass, mock_imap_no_email, integration
+):
     """Test transition from reconfig forwarded emails to reconfig 3."""
     entry = integration
     result = await hass.config_entries.flow.async_init(
@@ -6734,7 +6739,7 @@ async def test_reconfig_forwarded_emails_to_reconfig_3(hass, mock_imap_no_email,
                 "resources": ["mail_updated"],
             },
         )
-    
+
     assert result["type"] == "form"
     assert result["step_id"] == "reconfig_forwarded_emails"
 
@@ -6754,6 +6759,7 @@ async def test_reconfig_forwarded_emails_to_reconfig_3(hass, mock_imap_no_email,
         )
     assert result["type"] == "form"
     assert result["step_id"] == "reconfig_3"
+
 
 @pytest.mark.asyncio
 async def test_reconfig_storage_validation_error(hass, mock_imap_no_email, integration):
