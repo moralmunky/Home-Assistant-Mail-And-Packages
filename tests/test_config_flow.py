@@ -6763,7 +6763,7 @@ async def test_reconfig_forwarded_emails_to_reconfig_3(
 
 @pytest.mark.asyncio
 async def test_reconfig_storage_validation_error(hass, mock_imap_no_email, integration):
-    """Test validation error in reconfig storage step (covers line 1002)."""
+    """Test validation error in reconfig storage step."""
     entry = integration
     result = await hass.config_entries.flow.async_init(
         DOMAIN,

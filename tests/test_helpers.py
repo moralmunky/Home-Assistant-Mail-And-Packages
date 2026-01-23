@@ -4638,7 +4638,7 @@ async def test_get_mails_unexpected_html(hass, caplog, tmp_path):
 async def test_generic_delivery_image_extraction_attachment_save_error(
     caplog, tmp_path
 ):
-    """Test generic image extraction failure during attachment save (Lines 1296-1303)."""
+    """Test generic image extraction failure during attachment save."""
     temp_dir = str(tmp_path)
     msg = email.message.Message()
     msg.set_type("multipart/mixed")
@@ -4667,7 +4667,7 @@ async def test_generic_delivery_image_extraction_attachment_save_error(
 
 @pytest.mark.asyncio
 async def test_fetch_amazon_otp(hass):
-    """Test fetch logic for amazon_otp (Lines 606-610)."""
+    """Test fetch logic for amazon_otp."""
     config = FAKE_CONFIG_DATA_CORRECTED
     account = AsyncMock()
     data = {
@@ -4682,3 +4682,48 @@ async def test_fetch_amazon_otp(hass):
         result = await fetch(hass, config, account, data, AMAZON_OTP)
         mock_otp.assert_called_once()
         assert result == mock_otp_result
+
+
+@pytest.mark.asyncio
+async def test_image_file_name_stat_error(hass, caplog):
+    """Test image_file_name handling of stat errors."""
+    config = FAKE_CONFIG_DATA_CORRECTED
+    mock_file = MagicMock()
+    mock_file.name = "existing_image.gif"
+    mock_file.stat.side_effect = OSError("Mocked Stat Error")
+
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("pathlib.Path.mkdir", return_value=True),
+        patch("pathlib.Path.iterdir", return_value=[mock_file]),
+        patch(
+            "custom_components.mail_and_packages.helpers.hash_file",
+            return_value="fake_hash",
+        ),
+    ):
+        result = image_file_name(hass, config)
+
+        # Verify the function caught the error, logged it, and returned the default image name
+        assert result == "mail_none.gif"
+        assert "Problem accessing file: existing_image.gif" in caplog.text
+        assert "Mocked Stat Error" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_image_file_name_hash_error(hass, caplog):
+    """Test image_file_name handling of hash_file errors (covers lines 480-482)."""
+    config = FAKE_CONFIG_DATA_CORRECTED
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("pathlib.Path.mkdir", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.helpers.hash_file",
+            side_effect=OSError("Mocked Hash Error"),
+        ),
+    ):
+        result = image_file_name(hass, config)
+        assert result == "mail_none.gif"
+
+        # Verify the error log from the exception block
+        assert "Problem accessing file:" in caplog.text
+        assert "Mocked Hash Error" in caplog.text
