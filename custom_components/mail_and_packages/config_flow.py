@@ -166,7 +166,7 @@ async def _check_forwarded_emails(user_input: dict[str, Any]) -> list[str]:
 
     emails = [email.strip() for email in forwarded_emails.split(",")]
     for email in emails:
-        _LOGGER.info("validating email address %s", email)
+        _LOGGER.debug("validating email address %s", email)
         if not validate_email_address(email):
             _LOGGER.error("%s does not look like a valid email address", email)
             errors.append("invalid_email_format")
