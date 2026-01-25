@@ -14,7 +14,6 @@ from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 import aiohttp
 import aioimaplib
 import pytest
-from freezegun import freeze_time
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import (
@@ -63,7 +62,6 @@ from custom_components.mail_and_packages.helpers import (
     email_fetch,
     email_search,
     fetch,
-    find_text,
     generate_grid_img,
     get_amazon_image,
     get_count,
@@ -1084,7 +1082,7 @@ Content-ID: <deliveryPhoto>
 #     result = await get_count(mock_imap_dhl_no_utf8, "dhl_delivering", True, "./", hass)
 #     assert result["count"] == 1
 #     assert result["tracking"] == ["4212345678"]
-    # assert "UTF-8 not supported: ('BAD', ['Unsupported'])" in caplog.text
+# assert "UTF-8 not supported: ('BAD', ['Unsupported'])" in caplog.text
 
 
 # TODO: Get updated hermes email
