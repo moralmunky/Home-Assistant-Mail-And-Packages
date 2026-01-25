@@ -905,7 +905,7 @@ async def get_mails(  # noqa: C901
                             if isinstance(payload, (bytes, bytearray)):
                                 try:
                                     content = payload.decode("utf-8", "ignore")
-                                except (AttributeError, UnicodeError):
+                                except ValueError:
                                     content = str(payload)
                             else:
                                 content = str(payload)
