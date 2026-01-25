@@ -5152,3 +5152,150 @@ async def test_parse_amazon_arrival_date_variations():
     ):
         result = _parse_amazon_arrival_date(msg_weekday, email_date)
         assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_items_logic(hass):
+    """Test get_items logic including count calculation and order list extraction."""
+    mock_account = AsyncMock()
+
+    # We patch the helpers to control the environment (date, email search results, content)
+    with (
+        patch("custom_components.mail_and_packages.helpers.get_today") as mock_today,
+        patch(
+            "custom_components.mail_and_packages.helpers._search_amazon_emails"
+        ) as mock_search,
+        patch("custom_components.mail_and_packages.helpers.email_fetch") as mock_fetch,
+        patch(
+            "custom_components.mail_and_packages.helpers._parse_amazon_arrival_date"
+        ) as mock_parse_date,
+        patch(
+            "custom_components.mail_and_packages.helpers.AMAZON_DELIVERED_SUBJECT",
+            ["Delivered:"],
+        ),
+    ):
+        # Set "Today" to a fixed date
+        today_date = date(2023, 10, 25)
+        mock_today.return_value = today_date
+
+        # Mock parsing to return today's date (so items are counted as arriving)
+        # This simulates the body text saying "Arriving today" or similar
+        mock_parse_date.return_value = today_date
+
+        # Mock Search Results: 3 unique emails found
+        # 1. Shipped, arriving today (Order 111)
+        # 2. Delivered (Order 111)
+        # 3. Shipped, arriving today (Order 222)
+        mock_search.return_value = [b"1", b"2", b"3"]
+
+        # Mock Email Fetching to return specific content for each ID
+        async def fetch_side_effect(account, email_id, format):
+            uid = email_id.decode() if isinstance(email_id, bytes) else email_id
+            msg = email.message.Message()
+            msg["Date"] = "Wed, 25 Oct 2023 10:00:00 -0000"
+
+            if uid == "1":
+                # Shipped Email for Order 111
+                msg["Subject"] = (
+                    "Your Amazon.com order #111-1111111-1111111 has shipped"
+                )
+                msg.set_payload("Body implies arrival")
+            elif uid == "2":
+                # Delivered Email for Order 111 (Matches AMAZON_DELIVERED_SUBJECT mock)
+                msg["Subject"] = "Delivered: Your Amazon.com order #111-1111111-1111111"
+                msg.set_payload("Body implies delivered")
+            elif uid == "3":
+                # Shipped Email for Order 222
+                msg["Subject"] = (
+                    "Your Amazon.com order #222-2222222-2222222 has shipped"
+                )
+                msg.set_payload("Body implies arrival")
+
+            # get_items iterates over the lines list and expects bytearray content
+            return ("OK", [bytearray(msg.as_bytes())])
+
+        mock_fetch.side_effect = fetch_side_effect
+
+        # Scenario 1: Count (param="count")
+        # Logic:
+        # - Order 111: 1 arriving (from email 1) - 1 delivered (from email 2) = 0
+        # - Order 222: 1 arriving (from email 3) - 0 delivered = 1
+        # Total Count = 1
+        count = await get_items(mock_account, param="count")
+        assert count == 1
+
+        # Scenario 2: Order List (param="order")
+        # Logic: Should return a list of all order numbers identified as shipped
+        orders = await get_items(mock_account, param="order")
+
+        assert isinstance(orders, list)
+        assert len(orders) == 2
+        assert "111-1111111-1111111" in orders
+        assert "222-2222222-2222222" in orders
+
+
+class BadBytes(bytes):
+    """Custom bytes subclass to trigger specific decode errors."""
+
+    def decode(self, encoding="utf-8", errors="strict"):
+        """Docstring for decode.
+
+        :param self: Description
+        :param encoding: Description
+        :param errors: Description
+        """
+        # Trigger LookupError for the initial attempt (simulates bad encoding)
+        if encoding == "unknown":
+            raise LookupError("Simulated LookupError")
+        # Trigger TypeError for the fallback attempt (utf-8)
+        raise TypeError("Simulated TypeError in fallback")
+
+
+@pytest.mark.asyncio
+async def test_get_items_subject_decoding_logic(caplog):
+    """Test the robust subject decoding logic in get_items (lines 2606-2620).
+
+    This test forces the execution path through:
+    1. The initial try/except block (by simulating an unknown encoding).
+    2. The fallback try/except block (by simulating a failure even with utf-8).
+    3. The final error logging.
+    """
+    mock_account = MagicMock()
+
+    # Mocks to ensure we reach the subject parsing logic
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers._search_amazon_emails",
+            return_value=[b"1"],
+        ),
+        patch("custom_components.mail_and_packages.helpers.email_fetch") as mock_fetch,
+        patch(
+            "custom_components.mail_and_packages.helpers.decode_header"
+        ) as mock_decode_header,
+        patch("custom_components.mail_and_packages.helpers.get_today"),
+        patch("custom_components.mail_and_packages.helpers._parse_amazon_arrival_date"),
+    ):
+        # 1. Setup a dummy email response
+        # The content doesn't matter much because we mock decode_header,
+        # but we need a 'Subject' header to be present.
+        raw_email = (
+            b"Date: Wed, 25 Oct 2023 10:00:00 -0000\r\n"
+            b"Subject: Test Subject\r\n"
+            b"\r\n"
+            b"Body"
+        )
+        # get_items expects tuple ("OK", [bytearray])
+        mock_fetch.return_value = ("OK", [bytearray(raw_email)])
+
+        # 2. Setup decode_header to return our malicious BadBytes object
+        # decode_header returns a list of (decoded_string_or_bytes, encoding)
+        # We return 'unknown' encoding to trigger the first LookupError in the code.
+        # We use BadBytes to trigger the second error (TypeError) when decode('utf-8') is called.
+        bad_subject_bytes = BadBytes(b"Problematic Subject")
+        mock_decode_header.return_value = [(bad_subject_bytes, "unknown")]
+
+        # 3. Run the function
+        await get_items(mock_account)
+
+        # 4. Verify that we hit the innermost exception handler
+        assert "Error decoding subject with fallback" in caplog.text
