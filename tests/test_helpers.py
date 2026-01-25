@@ -53,6 +53,7 @@ from custom_components.mail_and_packages.helpers import (
     _match_patterns,
     _parse_amazon_arrival_date,
     _scan_email_for_text,
+    amazon_date_regex,
     amazon_date_search,
     amazon_exception,
     amazon_hub,
@@ -5369,3 +5370,35 @@ async def test_scan_email_for_text_coverage():
         # Verify final results accumulated from Part C
         assert count == 5
         assert val == 99
+
+
+def test_amazon_date_regex():
+    """Test the amazon_date_regex helper function."""
+
+    # Mock patterns to test logic independent of actual constants
+    mock_patterns = [
+        r"Arriving between (\d{1,2}:\d{2})",  # Pattern 1: Expects time extraction
+        r"Expected delivery: (\w+)",  # Pattern 2: Expects day extraction
+        r"Just a match",  # Pattern 3: No capture groups
+    ]
+
+    with patch(
+        "custom_components.mail_and_packages.helpers.AMAZON_TIME_PATTERN_REGEX",
+        mock_patterns,
+    ):
+        # Scenario 1: Match first pattern
+        msg_1 = "Your package is Arriving between 10:00 and 12:00"
+        assert amazon_date_regex(msg_1) == "10:00"
+
+        # Scenario 2: Match second pattern (first pattern does not match)
+        msg_2 = "Status update. Expected delivery: Monday"
+        assert amazon_date_regex(msg_2) == "Monday"
+
+        # Scenario 3: No match
+        msg_3 = "No dates here"
+        assert amazon_date_regex(msg_3) is None
+
+        # Scenario 4: Pattern matches but has no capture groups
+        # The function specifically checks len(search.groups()) > 0
+        msg_4 = "This is Just a match in text"
+        assert amazon_date_regex(msg_4) is None
