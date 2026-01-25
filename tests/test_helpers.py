@@ -52,6 +52,7 @@ from custom_components.mail_and_packages.helpers import (
     _get_email_body,
     _match_patterns,
     _parse_amazon_arrival_date,
+    _scan_email_for_text,
     amazon_date_search,
     amazon_exception,
     amazon_hub,
@@ -5299,3 +5300,72 @@ async def test_get_items_subject_decoding_logic(caplog):
 
         # 4. Verify that we hit the innermost exception handler
         assert "Error decoding subject with fallback" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_scan_email_for_text_coverage():
+    """Test _scan_email_for_text logic for iterating parts, skipping non-text, and handling decoding errors."""
+
+    mock_account = MagicMock()
+    with (
+        patch("custom_components.mail_and_packages.helpers.email_fetch") as mock_fetch,
+        patch(
+            "custom_components.mail_and_packages.helpers.email.message_from_bytes"
+        ) as mock_msg_from_bytes,
+        patch(
+            "custom_components.mail_and_packages.helpers._match_patterns"
+        ) as mock_match,
+    ):
+        # 1. Setup email_fetch to return data so the loop runs
+        # The content doesn't matter as we mock message_from_bytes
+        mock_fetch.return_value = ("OK", [bytearray(b"dummy_data")])
+
+        # 2. Setup the mock message object
+        mock_msg = MagicMock()
+        mock_msg_from_bytes.return_value = mock_msg
+
+        # 3. Define 3 parts to exercise all branches
+
+        # Part A: Image/Non-text (Should skip)
+        part_image = MagicMock()
+        part_image.get_content_type.return_value = "image/jpeg"
+
+        # Part B: Text but decode fails (Should catch exception and skip)
+        part_bad_decode = MagicMock()
+        part_bad_decode.get_content_type.return_value = "text/plain"
+        # Return a Mock object for payload so we can raise an error on .decode()
+        mock_payload_bad = MagicMock()
+        mock_payload_bad.decode.side_effect = UnicodeError("Simulated Decode Error")
+        part_bad_decode.get_payload.return_value = mock_payload_bad
+
+        # Part C: Valid Text (Should process)
+        part_valid = MagicMock()
+        part_valid.get_content_type.return_value = "text/html"
+        # Return real bytes for payload so .decode() works normally
+        part_valid.get_payload.return_value = b"Valid Content"
+
+        # Configure msg.walk() to yield these 3 parts
+        mock_msg.walk.return_value = [part_image, part_bad_decode, part_valid]
+
+        # 4. Setup _match_patterns to verify valid part processing
+        # Return (count, value)
+        mock_match.return_value = (5, 99)
+
+        # 5. Run function
+        patterns = [MagicMock()]  # Dummy patterns list
+        count, val = await _scan_email_for_text(
+            mock_account, "1", patterns, body_count=True
+        )
+
+        # 6. Assertions
+
+        # Verify match_patterns was called EXACTLY once (only for Part C)
+        assert mock_match.call_count == 1
+
+        # Verify it was called with the decoded content of Part C
+        args, _ = mock_match.call_args
+        assert args[0] == "Valid Content"
+
+        # Verify final results accumulated from Part C
+        assert count == 5
+        assert val == 99
