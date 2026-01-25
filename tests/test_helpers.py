@@ -5079,3 +5079,76 @@ async def test_get_email_body(caplog):
     with patch("quopri.decodestring", side_effect=ValueError("Bad encoding")):
         assert _get_email_body(msg_single) == ""
         assert "Bad encoding" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_parse_amazon_arrival_date_variations():
+    """Test various scenarios for _parse_amazon_arrival_date."""
+    # Base email date: Wednesday, Oct 25, 2023
+    email_date = date(2023, 10, 25)
+
+    # Scenario 1: Regex Match (e.g. "tomorrow")
+    # This path triggers when amazon_date_regex returns a value.
+    # "tomorrow" relative to Oct 25 is Oct 26.
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.AMAZON_TIME_PATTERN",
+            ["Arriving"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.amazon_date_regex",
+            return_value="tomorrow",
+        ),
+    ):
+        result = _parse_amazon_arrival_date("Arriving tomorrow", email_date)
+        assert result == date(2023, 10, 26)
+
+    # Scenario 2: String Slicing with explicit date
+    # This path triggers when amazon_date_regex returns None.
+    # It slices the string from the end of the pattern to the index returned by amazon_date_search.
+    msg = "Expected by October 27"
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.AMAZON_TIME_PATTERN",
+            ["Expected by"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.amazon_date_regex",
+            return_value=None,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.amazon_date_search",
+            return_value=len(msg),
+        ),
+    ):
+        result = _parse_amazon_arrival_date(msg, email_date)
+        assert result == date(2023, 10, 27)
+
+    # Scenario 3: Weekday logic - Past date check
+    # Email date: Oct 25, 2023 (Wednesday).
+    # Text: "Arriving Monday".
+    # Logic: Monday (0) - Wednesday (2) = -2. (-2 % 7) = 5 days ahead.
+    # Calculated Arrival: Oct 25 + 5 days = Oct 30, 2023.
+    # Mock Today: Nov 1, 2023.
+    # Since Oct 30 < Nov 1, the function should ignore this date and return None.
+    msg_weekday = "Arriving Monday"
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.AMAZON_TIME_PATTERN",
+            ["Arriving"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.amazon_date_regex",
+            return_value=None,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.amazon_date_search",
+            return_value=len(msg_weekday),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.get_today",
+            return_value=date(2023, 11, 1),
+        ),
+    ):
+        result = _parse_amazon_arrival_date(msg_weekday, email_date)
+        assert result is None
