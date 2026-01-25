@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import tempfile
 from datetime import date, datetime, timedelta
+from email.message import Message
 from pathlib import Path
 from unittest import mock
 from unittest.mock import AsyncMock, MagicMock, mock_open, patch
@@ -48,7 +49,10 @@ from custom_components.mail_and_packages.helpers import (
     _check_ffmpeg,
     _generate_mp4,
     _generic_delivery_image_extraction,
+    _get_email_body,
+    _match_patterns,
     _parse_amazon_arrival_date,
+    amazon_date_search,
     amazon_exception,
     amazon_hub,
     amazon_otp,
@@ -4638,9 +4642,9 @@ async def test_generic_delivery_image_extraction_attachment_save_error(
 ):
     """Test generic image extraction failure during attachment save."""
     temp_dir = str(tmp_path)
-    msg = email.message.Message()
+    msg = Message()
     msg.set_type("multipart/mixed")
-    image_part = email.message.Message()
+    image_part = Message()
     image_part.set_type("image/jpeg")
     image_part.add_header("Content-Disposition", "attachment", filename="delivery.jpg")
     image_part.set_payload("fake_image_data")
@@ -4958,3 +4962,120 @@ async def test_get_count_calculates_correctly(hass):
 
     # Verify search was called
     mock_account.search.assert_called()
+
+
+def test_match_patterns():
+    """Test the _match_patterns helper function logic."""
+
+    # ---------------------------------------------------------
+    # Scenario 1: body_count=False (Counting occurrences)
+    # ---------------------------------------------------------
+    text_counting = "apple apple orange banana apple"
+    patterns_counting = [re.compile(r"apple"), re.compile(r"orange")]
+
+    count, value = _match_patterns(text_counting, patterns_counting, body_count=False)
+
+    # Expect 3 apples + 1 orange = 4
+    assert count == 4
+    # Value should be None when body_count is False
+    assert value is None
+
+    # ---------------------------------------------------------
+    # Scenario 2: body_count=True (Extracting values)
+    # ---------------------------------------------------------
+    text_extracting = "You have 5 packages arriving today."
+    # Pattern must contain a capture group for the number
+    patterns_extracting = [re.compile(r"have (\d+) packages")]
+
+    count, value = _match_patterns(
+        text_extracting, patterns_extracting, body_count=True
+    )
+
+    # Count remains 0 in extraction mode
+    assert count == 0
+    # Extracted value should be the integer 5
+    assert value == 5
+
+    # ---------------------------------------------------------
+    # Scenario 3: No Matches
+    # ---------------------------------------------------------
+    text_no_match = "No mail today."
+    patterns_no_match = [re.compile(r"packages")]
+
+    count, value = _match_patterns(text_no_match, patterns_no_match, body_count=False)
+
+    assert count == 0
+    assert value is None
+
+    # ---------------------------------------------------------
+    # Scenario 4: Multiple Patterns Extraction (Last Match Logic)
+    # ---------------------------------------------------------
+    # If multiple patterns match in body_count mode, the function iterates
+    # through all of them, updating extracted_value each time a match is found.
+    text_multi = "Metric A: 10, Metric B: 20"
+    patterns_multi = [re.compile(r"Metric A: (\d+)"), re.compile(r"Metric B: (\d+)")]
+
+    _, value = _match_patterns(text_multi, patterns_multi, body_count=True)
+
+    # It should return 20 because it is the last pattern in the list that matched
+    assert value == 20
+
+
+@pytest.mark.asyncio
+async def test_amazon_date_search():
+    """Test the amazon_date_search helper function."""
+    # Mock the patterns to predictable strings for testing
+    mock_patterns = ["end_pattern_1", "end_pattern_2"]
+
+    with patch(
+        "custom_components.mail_and_packages.helpers.AMAZON_TIME_PATTERN_END",
+        mock_patterns,
+    ):
+        # Scenario 1: Pattern is found
+        # "The date is " is 12 characters long, so "end_pattern_1" starts at index 12
+        msg_match = "The date is end_pattern_1"
+        assert amazon_date_search(msg_match) == 12
+
+        # Scenario 2: Pattern is found (checking second pattern in list)
+        msg_match_2 = "The date is end_pattern_2"
+        assert amazon_date_search(msg_match_2) == 12
+
+        # Scenario 3: No pattern is found
+        msg_no_match = "The date is not here"
+        assert amazon_date_search(msg_no_match) == -1
+
+
+@pytest.mark.asyncio
+async def test_get_email_body(caplog):
+    """Test the _get_email_body helper function."""
+    # Scenario 1: Single part email
+    msg_single = email.message.Message()
+    msg_single.set_payload("Test Single Body")
+    # The helper converts payload to str, decodes quoted-printable, then decodes utf-8
+    assert _get_email_body(msg_single) == "Test Single Body"
+
+    # Scenario 2: Multipart email
+    msg_multi = email.message.Message()
+    msg_multi.add_header("Content-Type", "multipart/mixed")
+    part = email.message.Message()
+    part.set_payload("Multipart Body Content")
+    msg_multi.attach(part)
+    
+    # Use .strip() to remove the leading newline introduced by str(MessageObject)
+    assert _get_email_body(msg_multi).strip() == "Multipart Body Content"
+
+    # Scenario 3: Exception handling (IndexError on empty multipart)
+    msg_empty_multi = email.message.Message()
+    msg_empty_multi.add_header("Content-Type", "multipart/mixed")
+    # IMPORTANT: is_multipart() checks if payload is a list. 
+    # We must explicitly set it to a list to simulate a multipart message with no parts.
+    msg_empty_multi.set_payload([])
+    
+    assert _get_email_body(msg_empty_multi) == ""
+    assert "Problem decoding email message:" in caplog.text
+
+    # Scenario 4: Exception handling (Decoding error)
+    # Mock quopri to raise a ValueError to simulate a bad payload
+    with patch("quopri.decodestring", side_effect=ValueError("Bad encoding")):
+        assert _get_email_body(msg_single) == ""
+        assert "Bad encoding" in caplog.text
