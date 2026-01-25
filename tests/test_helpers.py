@@ -5060,17 +5060,17 @@ async def test_get_email_body(caplog):
     part = email.message.Message()
     part.set_payload("Multipart Body Content")
     msg_multi.attach(part)
-    
+
     # Use .strip() to remove the leading newline introduced by str(MessageObject)
     assert _get_email_body(msg_multi).strip() == "Multipart Body Content"
 
     # Scenario 3: Exception handling (IndexError on empty multipart)
     msg_empty_multi = email.message.Message()
     msg_empty_multi.add_header("Content-Type", "multipart/mixed")
-    # IMPORTANT: is_multipart() checks if payload is a list. 
+    # IMPORTANT: is_multipart() checks if payload is a list.
     # We must explicitly set it to a list to simulate a multipart message with no parts.
     msg_empty_multi.set_payload([])
-    
+
     assert _get_email_body(msg_empty_multi) == ""
     assert "Problem decoding email message:" in caplog.text
 
