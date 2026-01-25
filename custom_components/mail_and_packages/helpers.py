@@ -889,22 +889,31 @@ async def get_mails(  # noqa: C901
         _LOGGER.debug("Informed Delivery email found processing...")
         for num in data[0].split():
             msg = (await email_fetch(account, num, "(RFC822)"))[1]
+            _LOGGER.debug("Processing email number: %s", num)
             for response_part in msg:
-                if isinstance(response_part, tuple):
-                    msg = email.message_from_bytes(response_part[1])
-                    _LOGGER.debug("msg: %s", msg)
-
+                if isinstance(response_part, (bytes, bytearray)):
+                    msg = email.message_from_bytes(response_part)
+                    _LOGGER.debug("Email parsed successfully.")
                     # walking through the email parts to find images
                     for part in msg.walk():
+                        _LOGGER.debug(
+                            "Processing email part: %s", part.get_content_type()
+                        )
                         if part.get_content_type() == "text/html":
                             _LOGGER.debug("Found html email processing...")
-                            part = part.get_payload(decode=True)
-                            part = part.decode("utf-8", "ignore")
-                            soup = BeautifulSoup(part, "html.parser")
+                            payload = part.get_payload(decode=True)
+                            if isinstance(payload, (bytes, bytearray)):
+                                try:
+                                    content = payload.decode("utf-8", "ignore")
+                                except (AttributeError, UnicodeError):
+                                    content = str(payload)
+                            else:
+                                content = str(payload)
+                            soup = BeautifulSoup(content, "html.parser")
                             found_images = soup.find_all(id="mailpiece-image-src-id")
                             if not found_images:
                                 continue
-                            if "data:image/jpeg;base64" not in part:
+                            if "data:image/jpeg;base64" not in content:
                                 _LOGGER.debug("Unexpected html format found.")
                                 continue
                             _LOGGER.debug("Found images: %s", bool(found_images))
@@ -933,6 +942,9 @@ async def get_mails(  # noqa: C901
                             _LOGGER.debug("Extracting image from email")
                             filename = part.get_filename()
                             junkmail = ["mailer", "content", "package"]
+                            if filename is None:
+                                _LOGGER.debug("Discarding unnamed attachment.")
+                                continue
                             if any(junk in filename for junk in junkmail):
                                 _LOGGER.debug("Discarding junk mail.")
                                 continue
@@ -1410,11 +1422,7 @@ async def get_count(  # noqa: C901
         (server_response, email_data) = await email_search(
             account, email_addresses, today, subject
         )
-        if (
-            server_response == "OK"
-            and email_data[0] is not None
-            and email_data[0] != b""
-        ):
+        if server_response == "OK" and email_data[0] is not None:
             # Get email IDs for this subject search
             email_ids = email_data[0].split()
             # Track unique email IDs to avoid double counting when multiple subjects match
@@ -1454,9 +1462,9 @@ async def get_count(  # noqa: C901
                 for email_id in new_email_ids:
                     msg = (await email_fetch(account, email_id, "(RFC822)"))[1]
                     for response_part in msg:
-                        if isinstance(response_part, tuple):
+                        if isinstance(response_part, (bytes, bytearray)):
                             # Pass raw bytes to preserve binary attachments
-                            email_bytes = response_part[1]
+                            email_bytes = response_part
                             _LOGGER.debug(
                                 "%s - Attempting image extraction for email %s, image_name: %s",
                                 shipper_name,
@@ -1650,8 +1658,8 @@ async def get_tracking(  # noqa: C901
     for i in mail_list:
         data = (await email_fetch(account, i, "(RFC822)"))[1]
         for response_part in data:
-            if isinstance(response_part, tuple):
-                msg = email.message_from_bytes(response_part[1])
+            if isinstance(response_part, (bytes, bytearray)):
+                msg = email.message_from_bytes(response_part)
                 _LOGGER.debug("Checking message subject...")
 
                 # Search subject for a tracking number
@@ -1673,7 +1681,7 @@ async def get_tracking(  # noqa: C901
                 if the_format == "1Z?[0-9A-Z]{16}":
                     try:
                         # Get the raw email content
-                        email_content = str(response_part[1], "utf-8", errors="ignore")
+                        email_content = str(response_part, "utf-8", errors="ignore")
 
                         # Search for tracking number in the entire email content
                         if (found := pattern.findall(email_content)) and len(found) > 0:
@@ -1759,10 +1767,10 @@ async def _scan_email_for_text(
 
     data = (await email_fetch(account, email_id, "(RFC822)"))[1]
     for response_part in data:
-        if not isinstance(response_part, tuple):
+        if not isinstance(response_part, bytearray):
             continue
 
-        msg = email.message_from_bytes(response_part[1])
+        msg = email.message_from_bytes(response_part)
 
         for part in msg.walk():
             if part.get_content_type() not in ["text/html", "text/plain"]:
@@ -1876,8 +1884,8 @@ def _generic_delivery_image_extraction(  # noqa: C901
     _LOGGER.debug("Attempting to extract %s delivery photo", shipper_name)
     _LOGGER.debug("%s - image_path parameter: %s", shipper_name, image_path)
 
-    # Handle both bytes and string input
-    if isinstance(sdata, bytes):
+    # Check for both bytes and bytearray
+    if isinstance(sdata, (bytes, bytearray)):
         msg = email.message_from_bytes(sdata)
     else:
         msg = email.message_from_string(sdata)
@@ -2115,8 +2123,8 @@ async def get_amazon_image(
     for i in mail_list:
         data = (await email_fetch(account, i, "(RFC822)"))[1]
         for response_part in data:
-            if isinstance(response_part, tuple):
-                msg = email.message_from_bytes(response_part[1])
+            if isinstance(response_part, (bytes, bytearray)):
+                msg = email.message_from_bytes(response_part)
                 _LOGGER.debug("Email Multipart: %s", msg.is_multipart())
                 _LOGGER.debug("Content Type: %s", msg.get_content_type())
 
@@ -2271,8 +2279,8 @@ async def amazon_hub(account: type[IMAP4_SSL], fwds: list[str] | None = None) ->
 
             data = (await email_fetch(account, i, "(RFC822)"))[1]
             for response_part in data:
-                if isinstance(response_part, tuple):
-                    msg = email.message_from_bytes(response_part[1])
+                if isinstance(response_part, (bytes, bytearray)):
+                    msg = email.message_from_bytes(response_part)
                     code = _extract_hub_code(msg, subject_regex, body_regex)
                     if code:
                         found_codes.append(code)
@@ -2305,8 +2313,8 @@ async def amazon_otp(account: type[IMAP4_SSL], fwds: list | None = None) -> dict
         for i in id_list:
             data = (await email_fetch(account, i, "(RFC822)"))[1]
             for response_part in data:
-                if isinstance(response_part, tuple):
-                    msg = email.message_from_bytes(response_part[1])
+                if isinstance(response_part, (bytes, bytearray)):
+                    msg = email.message_from_bytes(response_part)
 
                     _LOGGER.debug("Email Multipart: %s", msg.is_multipart())
                     _LOGGER.debug("Content Type: %s", msg.get_content_type())
@@ -2572,10 +2580,10 @@ async def get_items(  # noqa: C901
         data = (await email_fetch(account, fetch_id, "(RFC822)"))[1]
 
         for response_part in data:
-            if not isinstance(response_part, tuple):
+            if not isinstance(response_part, bytearray):
                 continue
 
-            msg = email.message_from_bytes(response_part[1])
+            msg = email.message_from_bytes(response_part)
 
             # Parse Date
             email_date_str = msg.get("Date")

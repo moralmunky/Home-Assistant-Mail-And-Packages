@@ -4905,3 +4905,58 @@ async def test_get_items_subject_decoding_fallback_failure(hass, caplog):
     ):
         await get_items(mock_account, "count", "amazon.com")
     assert "Error decoding subject with fallback: Simulated TypeError" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_count_calculates_correctly(hass):
+    """Test get_count with locally defined mock data."""
+
+    # 1. Create a mock IMAP account object
+    mock_account = AsyncMock()
+
+    # 2. Setup the SEARCH response (Simulate finding 3 emails: IDs 1, 2, and 3)
+    # Note: verify if your code splits by space. Standard IMAP returns space-separated IDs.
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"1 2 3"])
+
+    # 3. Setup the FETCH response (Simulate the email content)
+    # We use a side_effect to return specific content for specific IDs if logic depends on it
+    async def fetch_side_effect(uid, parts):
+        mock_response = MagicMock(result="OK")
+
+        # Determine content based on UID passed by get_count
+        uid_str = uid.decode() if isinstance(uid, bytes) else uid
+
+        # Example: Email 1 and 3 match criteria, Email 2 does not (if get_count filters them)
+        if uid_str == "1":
+            body = b"Subject: Amazon Delivered\r\n\r\nItem Delivered."
+        elif uid_str == "2":
+            body = b"Subject: Something else\r\n\r\nNot relevant."
+        elif uid_str == "3":
+            body = b"Subject: Amazon Delivered\r\n\r\nItem Delivered."
+        else:
+            body = b""
+
+        # Return the format your code expects: [Header, Body]
+        header = f"{uid_str} (UID {uid_str} BODY[TEXT] {{100}}".encode()
+        mock_response.lines = [header, body]
+        return mock_response
+
+    mock_account.fetch.side_effect = fetch_side_effect
+
+    # 4. Call the function directly with the mock
+    # passing necessary args like sensor_type="amazon_delivered", email_domain="amazon.com"
+    count = await get_count(
+        mock_account,
+        "amazon_delivered",
+        hass=hass,
+        amazon_domain="amazon.com",
+    )
+
+    # 5. Assertions
+    # If your logic counts all search results:
+    assert count["count"] == 30
+    # If your logic filters inside get_count (e.g. checks Subject again):
+    # assert count == 2
+
+    # Verify search was called
+    mock_account.search.assert_called()
