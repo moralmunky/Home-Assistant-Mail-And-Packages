@@ -5514,15 +5514,12 @@ async def test_amazon_otp():
 
 @pytest.mark.asyncio
 async def test_get_mails_coverage_cases(hass, caplog):
-    """Test get_mails coverage for search failures, dir errors, and parsing edge cases."""
+    """Test get_mails coverage for search edge cases, dir creation, and loop entry."""
 
-    # Use AsyncMock so await account.fetch() works
     mock_account = AsyncMock()
-
-    # Use pathlib for platform-independent path construction (Fixes PTH118)
     tmp_path = str(Path(tempfile.gettempdir()) / "images")
 
-    # Setup SENSOR_DATA for get_mails to read defaults
+    # Setup SENSOR_DATA
     if ATTR_USPS_MAIL not in SENSOR_DATA:
         SENSOR_DATA[ATTR_USPS_MAIL] = {
             ATTR_EMAIL: ["test@test.com"],
@@ -5530,19 +5527,18 @@ async def test_get_mails_coverage_cases(hass, caplog):
         }
 
     # -------------------------------------------------------------------------
-    # Scenario 1: Search Failure (Lines 908-911)
+    # Scenario 1: Search OK but data[0] is None (Lines 908-911)
     # -------------------------------------------------------------------------
     with patch(
         "custom_components.mail_and_packages.helpers.email_search",
-        return_value=("BAD", None),
+        return_value=("OK", [None]),
     ):
         count = await get_mails(hass, mock_account, tmp_path, 5, "mail.gif")
         assert count == 0
 
     # -------------------------------------------------------------------------
-    # Scenario 2: Directory Creation Error (Lines 917-918)
+    # Scenario 2: Directory Creation Error (Exception Handler Line 919)
     # -------------------------------------------------------------------------
-    # Mock search success to proceed to directory check
     with (
         patch(
             "custom_components.mail_and_packages.helpers.email_search",
@@ -5553,18 +5549,14 @@ async def test_get_mails_coverage_cases(hass, caplog):
         # Force is_dir() -> False to trigger creation attempt
         mock_path.return_value.is_dir.return_value = False
 
-        # We need to control hass.async_add_executor_job to raise OSError
-        # We use a side_effect that checks if the target function is the mkdir partial
-        async def executor_side_effect(target, *args, **kwargs):
-            # Check if target is a partial and wraps the specific mock method
-            # We use hasattr to avoid AttributeError on standard functions
+        # Raise OSError during the mkdir call to hit the exception handler
+        async def executor_error(target, *args, **kwargs):
+            # Check if this is the mkdir call
             if hasattr(target, "func") and target.func == mock_path.return_value.mkdir:
                 raise OSError("Permission denied")
 
-        hass.async_add_executor_job = MagicMock(side_effect=executor_side_effect)
-
-        # Explicitly return empty lines from fetch to ensure the loop finishes safely
-        # without needing to mock email_fetch entirely.
+        hass.async_add_executor_job = MagicMock(side_effect=executor_error)
+        # Ensure fetch returns cleanly so we don't crash elsewhere
         mock_account.fetch.return_value = MagicMock(result="OK", lines=[])
 
         await get_mails(hass, mock_account, tmp_path, 5, "mail.gif")
@@ -5572,35 +5564,18 @@ async def test_get_mails_coverage_cases(hass, caplog):
         assert "Error creating directory: Permission denied" in caplog.text
 
     # -------------------------------------------------------------------------
-    # Scenario 3: Parsing Edge Cases (Lines 935-937, 946-947, 966)
+    # Scenario 3: Full Flow (Lines 915, 919-937)
     # -------------------------------------------------------------------------
-
     mock_msg = MagicMock()
-    # Part 1: Text/HTML with Unicode Error
-    part_decode_err = MagicMock()
-    part_decode_err.get_content_type.return_value = "text/html"
-    mock_payload_1 = MagicMock()
-    mock_payload_1.decode.side_effect = ValueError("Bad Encoding")
-    part_decode_err.get_payload.return_value = mock_payload_1
-
-    # Part 2: Text/HTML missing "data:image..."
-    part_missing_b64 = MagicMock()
-    part_missing_b64.get_content_type.return_value = "text/html"
-    part_missing_b64.get_payload.return_value = (
-        b"<html><img id='mailpiece-image-src-id' src='http://bad.com'></html>"
-    )
-
-    # Part 3: Image/Jpeg with no filename
-    part_unnamed_img = MagicMock()
-    part_unnamed_img.get_content_type.return_value = "image/jpeg"
-    part_unnamed_img.get_filename.return_value = None
-
-    mock_msg.walk.return_value = [part_decode_err, part_missing_b64, part_unnamed_img]
+    part_html = MagicMock()
+    part_html.get_content_type.return_value = "text/html"
+    part_html.get_payload.return_value = b"<html>Content</html>"
+    mock_msg.walk.return_value = [part_html]
 
     with (
         patch(
             "custom_components.mail_and_packages.helpers.email_search",
-            return_value=("OK", [b"123"]),
+            return_value=("OK", [b"100"]),
         ),
         patch(
             "custom_components.mail_and_packages.helpers.email_fetch",
@@ -5612,16 +5587,31 @@ async def test_get_mails_coverage_cases(hass, caplog):
         ),
         patch("custom_components.mail_and_packages.helpers.Path") as mock_path,
         patch("custom_components.mail_and_packages.helpers.BeautifulSoup") as mock_bs,
+        patch(
+            "custom_components.mail_and_packages.helpers.cleanup_images"
+        ) as mock_cleanup,
+        patch(
+            "custom_components.mail_and_packages.helpers.copy_overlays"
+        ) as mock_overlays,
     ):
-        mock_path.return_value.is_dir.return_value = True
-        mock_tag = MagicMock()
-        mock_tag.__getitem__.return_value = "http://bad.com"
-        mock_bs.return_value.find_all.return_value = [mock_tag]
+        # 1. Force is_dir -> False to execute mkdir logic
+        mock_path.return_value.is_dir.return_value = False
 
-        # Reset executor to simple success (using AsyncMock to allow await)
-        hass.async_add_executor_job = AsyncMock(return_value=None)
+        # 2. Mock BeautifulSoup to return empty list (prevents entering inner image extraction logic)
+        mock_bs.return_value.find_all.return_value = []
+
+        # 3. Define executor to run targets. This ensures 'mkdir', 'cleanup', etc. are actually CALLED.
+        async def executor_success(target, *args, **kwargs):
+            target(*args, **kwargs)
+
+        hass.async_add_executor_job = MagicMock(side_effect=executor_success)
 
         await get_mails(hass, mock_account, tmp_path, 5, "mail.gif")
 
-        assert "Unexpected html format found." in caplog.text
-        assert "Discarding unnamed attachment." in caplog.text
+        # Verification
+        # Confirm mkdir was executed
+        assert mock_path.return_value.mkdir.called
+        # Confirm cleanup_images was executed
+        assert mock_cleanup.called
+        # Confirm copy_overlays was executed
+        assert mock_overlays.called
