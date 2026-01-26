@@ -8,6 +8,8 @@ import subprocess
 import tempfile
 from datetime import date, datetime, timedelta
 from email.message import Message
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from pathlib import Path
 from unittest import mock
 from unittest.mock import AsyncMock, MagicMock, mock_open, patch
@@ -45,6 +47,7 @@ from custom_components.mail_and_packages.const import (
     SHIPPERS,
 )
 from custom_components.mail_and_packages.helpers import (
+    ATTR_CODE,
     InvalidAuth,
     _check_ffmpeg,
     _generate_mp4,
@@ -1771,11 +1774,11 @@ async def test_email_search_none(mock_imap_search_error_none, caplog):
 #         assert result == ["123-1234567-1234567"]
 
 
-@pytest.mark.asyncio
-async def test_amazon_otp(hass, mock_imap_amazon_otp, caplog):
-    """Test Amazon OTP extraction."""
-    result = await amazon_otp(mock_imap_amazon_otp, ["test@amazon.com"])
-    assert result == {"code": ["671314"]}
+# @pytest.mark.asyncio
+# async def test_amazon_otp(hass, mock_imap_amazon_otp, caplog):
+#     """Test Amazon OTP extraction."""
+#     result = await amazon_otp(mock_imap_amazon_otp, ["test@amazon.com"])
+#     assert result == {"code": ["671314"]}
 
 
 # @pytest.mark.asyncio
@@ -5402,3 +5405,105 @@ def test_amazon_date_regex():
         # The function specifically checks len(search.groups()) > 0
         msg_4 = "This is Just a match in text"
         assert amazon_date_regex(msg_4) is None
+
+
+@pytest.mark.asyncio
+async def test_amazon_otp():
+    """Test the amazon_otp helper function."""
+    mock_account = MagicMock()
+
+    # Define a mock regex pattern that expects a "Code: <numbers>" format
+    # The real function uses AMAZON_OTP_REGEX from const.py
+    mock_regex = r"(Code: )(\d{6})"
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.get_formatted_date",
+            return_value="01-Jan-2023",
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers._process_amazon_forwards",
+            return_value=["fwd@test.com"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.AMAZON_HUB_EMAIL",
+            ["hub@test.com"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.AMAZON_OTP_SUBJECT",
+            "Amazon OTP",
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.AMAZON_OTP_REGEX", mock_regex
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.email_search"
+        ) as mock_search,
+        patch("custom_components.mail_and_packages.helpers.email_fetch") as mock_fetch,
+    ):
+        # ---------------------------------------------------------
+        # Scenario 1: Successful Extraction (Single Part)
+        # ---------------------------------------------------------
+        mock_search.return_value = ("OK", [b"1"])
+
+        # Construct a simple text email
+        msg_text = "Subject: OTP\n\nCode: 123456"
+        mock_fetch.return_value = ("OK", [bytearray(msg_text.encode())])
+
+        result = await amazon_otp(mock_account)
+
+        assert ATTR_CODE in result
+        assert result[ATTR_CODE] == ["123456"]
+
+        # ---------------------------------------------------------
+        # Scenario 2: Successful Extraction (Multipart)
+        # ---------------------------------------------------------
+        mock_search.return_value = ("OK", [b"2"])
+
+        # Construct a multipart email
+        msg = MIMEMultipart()
+        msg.attach(MIMEText("Code: 654321", "plain"))
+        mock_fetch.return_value = ("OK", [bytearray(msg.as_bytes())])
+
+        result = await amazon_otp(mock_account)
+
+        assert result[ATTR_CODE] == ["654321"]
+
+        # ---------------------------------------------------------
+        # Scenario 3: No Match found
+        # ---------------------------------------------------------
+        mock_search.return_value = ("OK", [b"3"])
+        msg_no_match = "Subject: OTP\n\nNo code here."
+        mock_fetch.return_value = ("OK", [bytearray(msg_no_match.encode())])
+
+        result = await amazon_otp(mock_account)
+        assert result[ATTR_CODE] == []
+
+        # ---------------------------------------------------------
+        # Scenario 4: Empty Payload / Exception Handling
+        # ---------------------------------------------------------
+        # We mock email.message_from_bytes to simulate a malformed object
+        with patch(
+            "custom_components.mail_and_packages.helpers.email.message_from_bytes"
+        ) as mock_msg_factory:
+            mock_msg = MagicMock()
+            mock_msg_factory.return_value = mock_msg
+
+            # Sub-case: Payload is None
+            mock_msg.is_multipart.return_value = False
+            mock_msg.get_payload.return_value = None
+
+            mock_search.return_value = ("OK", [b"4"])
+            mock_fetch.return_value = ("OK", [b"bytes"])
+
+            result = await amazon_otp(mock_account)
+            assert result[ATTR_CODE] == []
+
+            # Sub-case: Exception during decoding (simulate ValueError)
+            mock_msg.get_payload.return_value = "BrokenPayload"
+            with patch(
+                "custom_components.mail_and_packages.helpers.quopri.decodestring",
+                side_effect=ValueError("Decode Error"),
+            ):
+                result = await amazon_otp(mock_account)
+                assert result[ATTR_CODE] == []
