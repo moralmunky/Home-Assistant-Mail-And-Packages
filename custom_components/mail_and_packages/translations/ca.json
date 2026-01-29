@@ -5,7 +5,7 @@
       "reconfigure_successful": "Reconfiguració exitosa"
     },
     "error": {
-      "communication": "No es pot connectar o iniciar sessió al servidor de correu. Consulteu el registre per obtenir més detalls.",
+      "cannot_connect": "No es pot connectar o iniciar sessió al servidor de correu. Consulteu el registre per obtenir més detalls.",
       "invalid_path": "Deseu les imatges en un altre directori.",
       "ffmpeg_not_found": "Generar MP4 requereix ffmpeg",
       "amazon_domain": "Adreça de correu electrònic de reenviament no vàlida.",

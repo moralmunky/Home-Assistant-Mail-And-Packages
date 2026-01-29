@@ -6,7 +6,6 @@ import base64
 import datetime
 import email
 import hashlib
-import imaplib
 import logging
 import os
 import quopri
@@ -15,6 +14,7 @@ import shutil
 import subprocess  # nosec
 import uuid
 from email.header import decode_header
+from functools import partial
 from pathlib import Path
 from shutil import copyfile, copytree, which
 from typing import Any
@@ -22,6 +22,7 @@ from typing import Any
 import aiohttp
 import dateparser
 import homeassistant.helpers.config_validation as cv
+from aioimaplib import AUTH, IMAP4, IMAP4_SSL, NONAUTH, SELECTED, AioImapException
 from bs4 import BeautifulSoup
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -32,6 +33,7 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import ssl
 from PIL import Image, ImageOps
 from voluptuous import Email, MultipleInvalid, Schema
@@ -121,6 +123,11 @@ from .const import (
 NO_SSL = "Email will be accessed without encryption using this method and is not recommended."
 _LOGGER = logging.getLogger(__name__)
 
+
+class InvalidAuth(HomeAssistantError):
+    """Raise exception for invalid credentials."""
+
+
 # Config Flow Helpers
 
 
@@ -149,34 +156,37 @@ async def _check_ffmpeg() -> bool:
     return which("ffmpeg")
 
 
-async def _test_login(
-    host: str, port: int, user: str, pwd: str, security: str, verify: bool = True
-):
-    """Test login to IMAP server."""
-    try:
-        ssl_context = (
-            ssl.create_client_context()
-            if verify
-            else ssl.create_no_verify_ssl_context()
-        )
-        if security == "SSL":
-            account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=ssl_context)
-        elif security == "startTLS":
-            account = imaplib.IMAP4(host=host, port=port)
-            account.starttls(ssl_context)
-        else:
-            account = imaplib.IMAP4(host=host, port=port)
-    except OSError as err:
-        _LOGGER.error("Error connecting into IMAP Server: %s", err)
-        return False
-
-    try:
-        account.login(user, pwd)
-    except OSError as err:
-        _LOGGER.error("Error logging into IMAP Server: %s", err)
-        return False
+async def login(
+    hass: HomeAssistant,
+    host: str,
+    port: int,
+    user: str,
+    pwd: str,
+    security: str,
+    verify: bool = True,
+) -> IMAP4_SSL | IMAP4:
+    """Login to IMAP server asynchronously."""
+    ssl_context = (
+        ssl.client_context(ssl.SSLCipherList.PYTHON_DEFAULT)
+        if verify
+        else ssl.create_no_verify_ssl_context()
+    )
+    if security == "SSL":
+        account = IMAP4_SSL(host=host, port=port, ssl_context=ssl_context)
     else:
-        return True
+        account = IMAP4(host=host, port=port)
+
+    await account.wait_hello_from_server()
+
+    if account.protocol.state == NONAUTH:
+        if security == "startTLS":
+            await account.starttls(ssl_context=ssl_context)
+        await account.login(user, pwd)
+
+    if account.protocol.state not in {AUTH, SELECTED}:
+        _LOGGER.error("Error loggging in to IMAP Server")
+        raise InvalidAuth
+    return account
 
 
 # Email Data helpers
@@ -201,7 +211,7 @@ def default_image_path(
     return "custom_components/mail_and_packages/images/"
 
 
-def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # noqa: C901
+async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # noqa: C901
     """Process emails and return value.
 
     Returns dict containing sensor data
@@ -221,21 +231,28 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # noqa: C
     data = {}
 
     # Login to email server and select the folder
-    account = login(host, port, user, pwd, imap_security, verify_ssl)
+    _LOGGER.debug("Attempting to log in to IMAP server.")
+    account = await login(hass, host, port, user, pwd, imap_security, verify_ssl)
 
     # Do not process if account returns false
     if not account:
         return data
 
-    if not selectfolder(account, folder):
-        # Bail out on error
+    if not await selectfolder(account, folder):
+        _LOGGER.error("Folder selection failed")
+        # Clean up the open IMAP connection
+        await account.logout()
         return data
+
+    _LOGGER.debug("IMAP Login completed.")
 
     # Create image file name dict container
     _image = {}
 
     # USPS Mail Image name
-    image_name = image_file_name(hass, config)
+    image_name = await hass.async_add_executor_job(
+        partial(image_file_name, hass, config)
+    )
     _LOGGER.debug("Image name: %s", image_name)
     _image[ATTR_IMAGE_NAME] = image_name
 
@@ -245,7 +262,9 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # noqa: C
         _image[ATTR_GRID_IMAGE_NAME] = png_file
 
     # Amazon delivery image name
-    image_name = image_file_name(hass, config, True)
+    image_name = await hass.async_add_executor_job(
+        partial(image_file_name, hass, config, True)
+    )
     _LOGGER.debug("Amazon Image Name: %s", image_name)
     _image[ATTR_AMAZON_IMAGE] = image_name
 
@@ -259,7 +278,9 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # noqa: C
 
     for name, attr, default_img in shippers:
         _LOGGER.debug("Generating %s image name...", name.title())
-        img_name = image_file_name(hass, config, **{name: True})
+        img_name = await hass.async_add_executor_job(
+            partial(image_file_name, hass, config, **{name: True})
+        )
         _LOGGER.debug("%s Image Name: %s", name.title(), img_name)
         _image[attr] = img_name
         _LOGGER.debug("Set %s in coordinator data: %s", attr, img_name)
@@ -283,7 +304,7 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # noqa: C
             )
             try:
                 src = str(Path(__file__).parent / default_img)
-                copyfile(src, full_img_path)
+                await hass.async_add_executor_job(partial(copyfile, src, full_img_path))
                 _LOGGER.debug(
                     "Created default %s image: %s", name.title(), full_img_path
                 )
@@ -298,16 +319,19 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # noqa: C
     data.update(_image)
 
     # Only update sensors we're intrested in
+    _LOGGER.debug("Starting email sensor fetch.")
     for sensor in resources:
         try:
-            fetch(hass, config, account, data, sensor)
+            await fetch(hass, config, account, data, sensor)
         except (OSError, ValueError) as err:
             _LOGGER.error("Error updating sensor: %s reason: %s", sensor, err)
 
     # Copy image file to www directory if enabled
     if config.get(CONF_ALLOW_EXTERNAL):
-        copy_images(hass, config)
+        await hass.async_add_executor_job(partial(copy_images, hass, config))
 
+    # Logout of async IMAP session
+    await account.logout()
     return data
 
 
@@ -531,7 +555,7 @@ def hash_file(filename: str) -> str:
     return the_hash.hexdigest()
 
 
-def fetch(  # noqa: C901
+async def fetch(  # noqa: C901
     hass: HomeAssistant, config: ConfigEntry, account: Any, data: dict, sensor: str
 ) -> int:
     """Fetch data for a single sensor, including any sensors it depends on.
@@ -569,7 +593,8 @@ def fetch(  # noqa: C901
     data.setdefault("amazon_delivered_by_others", 0)
 
     if sensor == "usps_mail":
-        count[sensor] = get_mails(
+        count[sensor] = await get_mails(
+            hass,
             account,
             img_out_path,
             gif_duration,
@@ -580,14 +605,14 @@ def fetch(  # noqa: C901
             forwarded_emails,
         )
     elif sensor == AMAZON_PACKAGES:
-        count[sensor] = get_items(
+        count[sensor] = await get_items(
             account,
             ATTR_COUNT,
             forwarded_emails,
             amazon_days,
             amazon_domain,
         )
-        count[AMAZON_ORDER] = get_items(
+        count[AMAZON_ORDER] = await get_items(
             account,
             ATTR_ORDER,
             amazon_fwds,
@@ -595,30 +620,30 @@ def fetch(  # noqa: C901
             amazon_domain,
         )
     elif sensor == AMAZON_HUB:
-        value = amazon_hub(
+        value = await amazon_hub(
             account,
             forwarded_emails,
         )
         count[sensor] = value[ATTR_COUNT]
         count[AMAZON_HUB_CODE] = value[ATTR_CODE]
     elif sensor == AMAZON_EXCEPTION:
-        info = amazon_exception(account, forwarded_emails, amazon_domain)
+        info = await amazon_exception(account, forwarded_emails, amazon_domain)
         count[sensor] = info[ATTR_COUNT]
         count[AMAZON_EXCEPTION_ORDER] = info[ATTR_ORDER]
     elif sensor == AMAZON_OTP:
-        count[sensor] = amazon_otp(
+        count[sensor] = await amazon_otp(
             account,
             forwarded_emails,
         )
     elif "_packages" in sensor:
         prefix = sensor.replace("_packages", "")
-        delivering = fetch(hass, config, account, data, f"{prefix}_delivering")
-        delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
+        delivering = await fetch(hass, config, account, data, f"{prefix}_delivering")
+        delivered = await fetch(hass, config, account, data, f"{prefix}_delivered")
         count[sensor] = delivering + delivered
     elif "_delivering" in sensor:
         prefix = sensor.replace("_delivering", "")
-        delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
-        info = get_count(
+        delivered = await fetch(hass, config, account, data, f"{prefix}_delivered")
+        info = await get_count(
             account,
             sensor,
             True,
@@ -633,7 +658,7 @@ def fetch(  # noqa: C901
         for shipper in SHIPPERS:
             delivered = f"{shipper}_delivered"
             if delivered in data and delivered != sensor:
-                count[sensor] += fetch(hass, config, account, data, delivered)
+                count[sensor] += await fetch(hass, config, account, data, delivered)
     elif sensor == "zpackages_transit":
         total = 0
         for shipper in SHIPPERS:
@@ -643,13 +668,13 @@ def fetch(  # noqa: C901
                 continue
             delivering = f"{shipper}_delivering"
             if delivering in data and delivering != sensor:
-                total += fetch(hass, config, account, data, delivering)
+                total += await fetch(hass, config, account, data, delivering)
 
         # We are going to best guess for in transit as amazon doesn't reveal who the
         # shipper is in email.
         if "amazon_packages" in data and sensor != "amazon_packages":
             amazon_packages = max(
-                0, fetch(hass, config, account, data, "amazon_packages")
+                0, (await fetch(hass, config, account, data, "amazon_packages"))
             )
 
             # We know if we are expecting packages from amazon, and in tranit is lower
@@ -669,19 +694,21 @@ def fetch(  # noqa: C901
 
         count[sensor] = max(0, total)
     elif sensor == "mail_updated":
-        count[sensor] = update_time()
+        count[sensor] = await update_time()
     else:
         _LOGGER.debug("if statement sensor: %s", sensor)
-        count[sensor] = get_count(
-            account,
-            sensor,
-            False,
-            img_out_path,
-            hass,
-            amazon_image_name,
-            amazon_domain,
-            forwarded_emails,
-            data=data,
+        count[sensor] = (
+            await get_count(
+                account,
+                sensor,
+                False,
+                img_out_path,
+                hass,
+                amazon_image_name,
+                amazon_domain,
+                forwarded_emails,
+                data=data,
+            )
         )[ATTR_COUNT]
 
     data.update(count)
@@ -689,54 +716,21 @@ def fetch(  # noqa: C901
     return count[sensor]
 
 
-def login(
-    host: str, port: int, user: str, pwd: str, security: str, verify: bool = True
-) -> bool | type[imaplib.IMAP4_SSL]:
-    """Login to IMAP server.
-
-    Returns account object
-    """
+async def selectfolder(account: IMAP4_SSL, folder: str) -> bool:
+    """Select folder inside the mailbox asynchronously."""
     try:
-        ssl_context = (
-            ssl.create_client_context()
-            if verify
-            else ssl.create_no_verify_ssl_context()
-        )
-        if security == "SSL":
-            account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=ssl_context)
-        elif security == "startTLS":
-            account = imaplib.IMAP4(host=host, port=port)
-            account.starttls(ssl_context)
-        else:
-            account = imaplib.IMAP4(host=host, port=port)
-
-    except OSError as err:
-        _LOGGER.error("Network error while connecting to server: %s", err)
+        await account.list(folder, "*")
+    except (AioImapException, OSError) as err:
+        _LOGGER.error("Error listing folder %s: %s", folder, err)
         return False
 
-    # If login fails give error message
     try:
-        account.login(user, pwd)
-    except OSError as err:
-        _LOGGER.error("Error logging into IMAP Server: %s", err)
+        await account.select(folder)
+    except (AioImapException, OSError) as err:
+        _LOGGER.error("Error selecting folder %s: %s", folder, err)
         return False
-
-    return account
-
-
-def selectfolder(account: type[imaplib.IMAP4_SSL], folder: str) -> bool:
-    """Select folder inside the mailbox."""
-    try:
-        account.list()
-    except OSError as err:
-        _LOGGER.error("Error listing folders: %s", err)
-        return False
-    try:
-        account.select(folder, readonly=True)
-    except OSError as err:
-        _LOGGER.error("Error selecting folder: %s", err)
-        return False
-    return True
+    else:
+        return True
 
 
 def get_today() -> datetime.date:
@@ -757,7 +751,7 @@ def get_formatted_date() -> str:
     return get_today().strftime("%d-%b-%Y")
 
 
-def update_time() -> datetime.datetime:
+async def update_time() -> datetime.datetime:
     """Get update time.
 
     Returns current timestamp as datetime object.
@@ -787,11 +781,7 @@ def build_search(address: list, date: str, subject: str = "") -> tuple:
     if subject is not None:
         if not subject.isascii():
             utf8_flag = True
-            if prefix_list is not None:
-                imap_search = f'({prefix_list} FROM "{email_list}" {the_date})'
-            else:
-                imap_search = f'(FROM "{email_list}" {the_date})'
-        elif prefix_list is not None:
+        if prefix_list is not None:
             imap_search = (
                 f'({prefix_list} FROM "{email_list}" SUBJECT "{subject}" {the_date})'
             )
@@ -807,94 +797,43 @@ def build_search(address: list, date: str, subject: str = "") -> tuple:
     return (utf8_flag, imap_search)
 
 
-def email_search(
-    account: type[imaplib.IMAP4_SSL], address: list, date: str, subject: str = ""
+async def email_search(
+    account: IMAP4_SSL, address: list, date: str, subject: str = ""
 ) -> tuple:
-    """Search emails with from, subject, senton date.
-
-    Returns a tuple
-    """
+    """Search emails with from, subject, and date asynchronously."""
     utf8_flag, search = build_search(address, date, subject)
-    value = ("", [""])
 
-    if account.host == "imap.mail.yahoo.com" and utf8_flag:
-        # Yahoo IMAP has issues with UTF8 searching, so bail out
-        return "OK", [b""]
-
-    if utf8_flag:
-        subject = subject.encode("utf-8")
-        account.literal = subject
-        try:
-            value = account.search("utf-8", search, "SUBJECT")
-        except OSError as err:
-            _LOGGER.debug("Error searching emails with unicode characters: %s", err)
-            value = "BAD", err.args[0]
+    try:
+        if utf8_flag:
+            res = await account.search(search, charset="UTF-8")
+        else:
+            res = await account.search(search)
+    except (AioImapException, OSError) as err:
+        _LOGGER.error("Error searching emails: %s", err)
+        return ("BAD", str(err))
     else:
-        try:
-            value = account.search(None, search)
-        except OSError as err:
-            _LOGGER.error("Error searching emails: %s", err)
-            value = "BAD", err.args[0]
-
-    _LOGGER.debug("email_search value: %s", value)
-
-    (check, new_value) = value
-    # Handle case where account.search() returns a Mock (in tests)
-    # Only convert to list when status is "OK" - "BAD" responses keep error as-is
-    if check == "OK":
-        # Ensure we always return a proper tuple with a list as the second element
-        # for "OK" responses
-        if not isinstance(new_value, list):
-            _LOGGER.debug(
-                "email_search: new_value is not a list (type: %s), converting to empty list",
-                type(new_value).__name__,
-            )
-            new_value = [b""]
-        elif len(new_value) == 0:
-            # Empty list is valid, keep it as is
-            pass
-        elif new_value[0] is None:
-            _LOGGER.debug("email_search value was invalid: None")
-            new_value = [b""]
-    # For "BAD" responses, keep the error message as-is (could be string or other type)
-
-    return (check, new_value)
+        return (res.result, res.lines)
 
 
-def email_fetch(
-    account: type[imaplib.IMAP4_SSL], num, parts: str = "(RFC822)"
-) -> tuple:
-    """Download specified email for parsing.
-
-    Args:
-        account: IMAP account instance
-        num: Email message ID (int, str, or bytes)
-        parts: Message parts to fetch
-
-    Returns tuple
-
-    """
-    # iCloud doesn't support RFC822 so override the 'message parts'
+async def email_fetch(account: IMAP4_SSL, num, parts: str = "(RFC822)") -> tuple:
+    """Download specified email for parsing asynchronously."""
     if account.host == "imap.mail.me.com":
         parts = "BODY[]"
 
-    # Convert num to string for imaplib
-    if isinstance(num, bytes):
-        num_str = num.decode()
-    else:
-        num_str = str(num)
+    num_str = num.decode() if isinstance(num, bytes) else str(num)
 
     try:
-        value = account.fetch(num_str, parts)
-    except OSError as err:
-        _LOGGER.error("Error fetching emails: %s", err)
-        value = "BAD", err.args[0]
+        res = await account.fetch(num_str, parts)
+    except (AioImapException, OSError) as err:
+        _LOGGER.error("Error fetching email %s: %s", num_str, err)
+        return ("BAD", str(err))
+    else:
+        return (res.result, res.lines)
 
-    return value
 
-
-def get_mails(  # noqa: C901
-    account: type[imaplib.IMAP4_SSL],
+async def get_mails(  # noqa: C901
+    hass: HomeAssistant,
+    account: type[IMAP4_SSL],
     image_output_path: str,
     gif_duration: int,
     image_name: str,
@@ -917,7 +856,7 @@ def get_mails(  # noqa: C901
     else:
         email_addresses = SENSOR_DATA[ATTR_USPS_MAIL][ATTR_EMAIL]
 
-    (server_response, data) = email_search(
+    (server_response, data) = await email_search(
         account,
         email_addresses,
         get_formatted_date(),
@@ -931,38 +870,50 @@ def get_mails(  # noqa: C901
     # Check to see if the path exists, if not make it
     if not Path(image_output_path).is_dir():
         try:
-            Path(image_output_path).mkdir(parents=True, exist_ok=True)
+            # Fixed: Run mkdir in executor
+            await hass.async_add_executor_job(
+                partial(Path(image_output_path).mkdir, parents=True, exist_ok=True)
+            )
         except OSError as err:
             _LOGGER.critical("Error creating directory: %s", err)
 
     # Clean up image directory
     _LOGGER.debug("Cleaning up image directory: %s", image_output_path)
-    cleanup_images(image_output_path)
+    await hass.async_add_executor_job(cleanup_images, image_output_path)
 
     # Copy overlays to image directory
     _LOGGER.debug("Checking for overlay files in: %s", image_output_path)
-    copy_overlays(image_output_path)
+    await hass.async_add_executor_job(copy_overlays, image_output_path)
 
     if server_response == "OK":
         _LOGGER.debug("Informed Delivery email found processing...")
         for num in data[0].split():
-            msg = email_fetch(account, num, "(RFC822)")[1]
+            msg = (await email_fetch(account, num, "(RFC822)"))[1]
+            _LOGGER.debug("Processing email number: %s", num)
             for response_part in msg:
-                if isinstance(response_part, tuple):
-                    msg = email.message_from_bytes(response_part[1])
-                    _LOGGER.debug("msg: %s", msg)
-
+                if isinstance(response_part, (bytes, bytearray)):
+                    msg = email.message_from_bytes(response_part)
+                    _LOGGER.debug("Email parsed successfully.")
                     # walking through the email parts to find images
                     for part in msg.walk():
+                        _LOGGER.debug(
+                            "Processing email part: %s", part.get_content_type()
+                        )
                         if part.get_content_type() == "text/html":
                             _LOGGER.debug("Found html email processing...")
-                            part = part.get_payload(decode=True)
-                            part = part.decode("utf-8", "ignore")
-                            soup = BeautifulSoup(part, "html.parser")
+                            payload = part.get_payload(decode=True)
+                            if isinstance(payload, (bytes, bytearray)):
+                                try:
+                                    content = payload.decode("utf-8", "ignore")
+                                except ValueError:
+                                    content = str(payload)
+                            else:
+                                content = str(payload)
+                            soup = BeautifulSoup(content, "html.parser")
                             found_images = soup.find_all(id="mailpiece-image-src-id")
                             if not found_images:
                                 continue
-                            if "data:image/jpeg;base64" not in part:
+                            if "data:image/jpeg;base64" not in content:
                                 _LOGGER.debug("Unexpected html format found.")
                                 continue
                             _LOGGER.debug("Found images: %s", bool(found_images))
@@ -973,10 +924,14 @@ def get_mails(  # noqa: C901
                                 data = str(image["src"]).split(",")[1]
                                 try:
                                     target_path = Path(image_output_path) / filename
-                                    with target_path.open("wb") as the_file:
-                                        the_file.write(base64.b64decode(data))
-                                        images.append(str(target_path))
-                                        image_count = image_count + 1
+                                    # Fixed: Write file in executor
+                                    await hass.async_add_executor_job(
+                                        io_save_file,
+                                        target_path,
+                                        base64.b64decode(data),
+                                    )
+                                    images.append(str(target_path))
+                                    image_count = image_count + 1
                                 except (OSError, ValueError) as err:
                                     _LOGGER.critical("Error opening filepath: %s", err)
                                     return image_count
@@ -987,15 +942,22 @@ def get_mails(  # noqa: C901
                             _LOGGER.debug("Extracting image from email")
                             filename = part.get_filename()
                             junkmail = ["mailer", "content", "package"]
+                            if filename is None:
+                                _LOGGER.debug("Discarding unnamed attachment.")
+                                continue
                             if any(junk in filename for junk in junkmail):
                                 _LOGGER.debug("Discarding junk mail.")
                                 continue
                             try:
                                 target_path = Path(image_output_path) / filename
-                                with target_path.open("wb") as the_file:
-                                    the_file.write(part.get_payload(decode=True))
-                                    images.append(str(target_path))
-                                    image_count = image_count + 1
+                                # Fixed: Write file in executor
+                                await hass.async_add_executor_job(
+                                    io_save_file,
+                                    target_path,
+                                    part.get_payload(decode=True),
+                                )
+                                images.append(str(target_path))
+                                image_count = image_count + 1
                             except OSError as err:
                                 _LOGGER.critical("Error opening filepath: %s", err)
                                 return image_count
@@ -1033,33 +995,44 @@ def get_mails(  # noqa: C901
             all_images = []
 
             _LOGGER.debug("Resizing images to 724x320...")
-            # Resize images to 724x320
-            all_images = resize_images(images, 724, 320)
+            # Fixed: Resize images (Heavy I/O + CPU) in executor
+            all_images = await hass.async_add_executor_job(
+                resize_images, images, 724, 320
+            )
 
             # Create copy of image list for deleting temporary images
             for image in all_images:
                 images_delete.append(image)
 
-            # Create numpy array of images
-            _LOGGER.debug("Creating array of image files...")
-            img, *imgs = [Image.open(file) for file in all_images]
-
             try:
                 _LOGGER.debug("Generating animated GIF")
-                # Use Pillow to create mail images
-                img.save(
-                    fp=Path(image_output_path) / image_name,
-                    format="GIF",
-                    append_images=imgs,
-                    save_all=True,
-                    duration=gif_duration * 1000,
-                    loop=0,
-                )
+
+                # Fixed: GIF creation (Heavy I/O + CPU) in executor
+                # We can reuse the generate_delivery_gif function logic or wrap the saving here
+                # Creating a small helper lambda or partial to run the Pillow save in executor
+                def _save_gif():
+                    img, *imgs = [Image.open(file) for file in all_images]
+                    img.save(
+                        fp=Path(image_output_path) / image_name,
+                        format="GIF",
+                        append_images=imgs,
+                        save_all=True,
+                        duration=gif_duration * 1000,
+                        loop=0,
+                    )
+
+                await hass.async_add_executor_job(_save_gif)
                 _LOGGER.debug("Mail image generated.")
             except (OSError, ValueError) as err:
                 _LOGGER.error("Error attempting to generate image: %s", err)
+
             for image in images_delete:
-                cleanup_images(f"{os.path.split(image)[0]}/", os.path.split(image)[1])
+                # Fixed: Cleanup in executor
+                await hass.async_add_executor_job(
+                    cleanup_images,
+                    f"{os.path.split(image)[0]}/",
+                    os.path.split(image)[1],
+                )
 
         elif image_count == 0:
             _LOGGER.debug("No mail found.")
@@ -1068,7 +1041,10 @@ def get_mails(  # noqa: C901
 
             if target_file.is_file():
                 _LOGGER.debug("Removing %s", target_file)
-                cleanup_images(image_output_path, image_name)
+                # Fixed: Cleanup in executor
+                await hass.async_add_executor_job(
+                    cleanup_images, image_output_path, image_name
+                )
 
             try:
                 _LOGGER.debug("Copying nomail gif")
@@ -1077,15 +1053,24 @@ def get_mails(  # noqa: C901
                 else:
                     nomail = str(Path(__file__).parent / "mail_none.gif")
 
-                copyfile(nomail, image_output_path + image_name)
+                # Fixed: Copy file in executor
+                await hass.async_add_executor_job(
+                    copyfile, nomail, image_output_path + image_name
+                )
 
             except OSError as err:
                 _LOGGER.error("Error attempting to copy image: %s", err)
 
         if gen_mp4:
-            _generate_mp4(image_output_path, image_name)
+            # Fixed: Subprocess call in executor
+            await hass.async_add_executor_job(
+                _generate_mp4, image_output_path, image_name
+            )
         if gen_grid:
-            generate_grid_img(image_output_path, image_name, image_count)
+            # Fixed: Subprocess call in executor
+            await hass.async_add_executor_job(
+                generate_grid_img, image_output_path, image_name, image_count
+            )
 
     return image_count
 
@@ -1278,8 +1263,8 @@ def cleanup_images(path: str, image: str | None = None) -> None:  # noqa: C901
         _LOGGER.error("Error listing directory for cleanup: %s", err)
 
 
-def get_count(  # noqa: C901
-    account: type[imaplib.IMAP4_SSL],
+async def get_count(  # noqa: C901
+    account: type[IMAP4_SSL],
     sensor_type: str,
     get_tracking_num: bool = False,
     image_path: str | None = None,
@@ -1304,7 +1289,7 @@ def get_count(  # noqa: C901
     # Return Amazon delivered info
     if sensor_type == AMAZON_DELIVERED:
         _LOGGER.debug("=== PROCESSING AMAZON DELIVERED SENSOR ===")
-        result[ATTR_COUNT] = amazon_search(
+        result[ATTR_COUNT] = await amazon_search(
             account,
             image_path,
             hass,
@@ -1405,7 +1390,9 @@ def get_count(  # noqa: C901
         shipper_path_obj = Path(absolute_shipper_path)
         if not shipper_path_obj.is_dir():
             try:
-                shipper_path_obj.mkdir(parents=True, exist_ok=True)
+                await hass.async_add_executor_job(
+                    partial(shipper_path_obj.mkdir, parents=True, exist_ok=True)
+                )
             except OSError as err:
                 _LOGGER.critical("Error creating directory: %s", err)
                 result[ATTR_COUNT] = count
@@ -1432,14 +1419,10 @@ def get_count(  # noqa: C901
             subject,
         )
 
-        (server_response, email_data) = email_search(
+        (server_response, email_data) = await email_search(
             account, email_addresses, today, subject
         )
-        if (
-            server_response == "OK"
-            and email_data[0] is not None
-            and email_data[0] != b""
-        ):
+        if server_response == "OK" and email_data[0] is not None:
             # Get email IDs for this subject search
             email_ids = email_data[0].split()
             # Track unique email IDs to avoid double counting when multiple subjects match
@@ -1465,7 +1448,7 @@ def get_count(  # noqa: C901
                             for email_id in new_email_ids
                         ),
                     )
-                    count += find_text(
+                    count += await find_text(
                         new_email_data,
                         account,
                         sensor_data[ATTR_BODY],
@@ -1477,11 +1460,11 @@ def get_count(  # noqa: C901
             # If generic delivery sensor, extract images from emails
             if shipper_name:
                 for email_id in new_email_ids:
-                    msg = email_fetch(account, email_id, "(RFC822)")[1]
+                    msg = (await email_fetch(account, email_id, "(RFC822)"))[1]
                     for response_part in msg:
-                        if isinstance(response_part, tuple):
+                        if isinstance(response_part, (bytes, bytearray)):
                             # Pass raw bytes to preserve binary attachments
-                            email_bytes = response_part[1]
+                            email_bytes = response_part
                             _LOGGER.debug(
                                 "%s - Attempting image extraction for email %s, image_name: %s",
                                 shipper_name,
@@ -1489,9 +1472,10 @@ def get_count(  # noqa: C901
                                 image_name,
                             )
                             # Get the image
-                            extraction_result = _generic_delivery_image_extraction(
+                            extraction_result = await hass.async_add_executor_job(
+                                _generic_delivery_image_extraction,
                                 email_bytes,
-                                absolute_image_path,  # Use absolute path for saving
+                                absolute_image_path,
                                 image_name,
                                 shipper_name,
                                 image_type,
@@ -1586,7 +1570,7 @@ def get_count(  # noqa: C901
                 and new_email_ids
             ):
                 # Use original email_data for Amazon check (all emails, not just new ones)
-                amazon_mentions = find_text(
+                amazon_mentions = await find_text(
                     email_data,
                     account,
                     AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT,
@@ -1610,15 +1594,19 @@ def get_count(  # noqa: C901
             # Clean up image directory before setting default (use absolute path)
             # Only clean up if directory exists
             if Path(absolute_shipper_path).is_dir():
-                cleanup_images(absolute_shipper_path)
+                await hass.async_add_executor_job(cleanup_images, absolute_shipper_path)
 
             try:
                 # Ensure directory exists before copying (use absolute path)
                 shipper_dir = Path(absolute_shipper_path)
                 if not shipper_dir.is_dir():
-                    shipper_dir.mkdir(parents=True, exist_ok=True)
+                    await hass.async_add_executor_job(
+                        partial(shipper_dir.mkdir, parents=True, exist_ok=True)
+                    )
 
-                copyfile(no_delivery_image_file, absolute_shipper_path + image_name)
+                await hass.async_add_executor_job(
+                    copyfile, no_delivery_image_file, absolute_shipper_path + image_name
+                )
                 if data is not None:
                     data[image_attr] = image_name
             except OSError as err:
@@ -1634,7 +1622,7 @@ def get_count(  # noqa: C901
 
     if track is not None and get_tracking_num and count > 0:
         for sdata in found:
-            tracking.extend(get_tracking(sdata, account, track))
+            tracking.extend(await get_tracking(sdata, account, track))
         tracking = list(dict.fromkeys(tracking))
 
     if len(tracking) > 0:
@@ -1655,8 +1643,8 @@ def get_count(  # noqa: C901
     return result
 
 
-def get_tracking(  # noqa: C901
-    sdata: Any, account: type[imaplib.IMAP4_SSL], the_format: str | None = None
+async def get_tracking(  # noqa: C901
+    sdata: Any, account: type[IMAP4_SSL], the_format: str | None = None
 ) -> list:
     """Parse tracking numbers from email.
 
@@ -1668,10 +1656,10 @@ def get_tracking(  # noqa: C901
     _LOGGER.debug("Searching for tracking numbers in %s messages...", len(mail_list))
 
     for i in mail_list:
-        data = email_fetch(account, i, "(RFC822)")[1]
+        data = (await email_fetch(account, i, "(RFC822)"))[1]
         for response_part in data:
-            if isinstance(response_part, tuple):
-                msg = email.message_from_bytes(response_part[1])
+            if isinstance(response_part, (bytes, bytearray)):
+                msg = email.message_from_bytes(response_part)
                 _LOGGER.debug("Checking message subject...")
 
                 # Search subject for a tracking number
@@ -1693,7 +1681,7 @@ def get_tracking(  # noqa: C901
                 if the_format == "1Z?[0-9A-Z]{16}":
                     try:
                         # Get the raw email content
-                        email_content = str(response_part[1], "utf-8", errors="ignore")
+                        email_content = str(response_part, "utf-8", errors="ignore")
 
                         # Search for tracking number in the entire email content
                         if (found := pattern.findall(email_content)) and len(found) > 0:
@@ -1762,8 +1750,8 @@ def _match_patterns(
     return local_count, extracted_value
 
 
-def _scan_email_for_text(
-    account: type[imaplib.IMAP4_SSL],
+async def _scan_email_for_text(
+    account: type[IMAP4_SSL],
     email_id: str,
     patterns: list[re.Pattern],
     body_count: bool,
@@ -1777,12 +1765,12 @@ def _scan_email_for_text(
     total_matches = 0
     last_value = None
 
-    data = email_fetch(account, email_id, "(RFC822)")[1]
+    data = (await email_fetch(account, email_id, "(RFC822)"))[1]
     for response_part in data:
-        if not isinstance(response_part, tuple):
+        if not isinstance(response_part, bytearray):
             continue
 
-        msg = email.message_from_bytes(response_part[1])
+        msg = email.message_from_bytes(response_part)
 
         for part in msg.walk():
             if part.get_content_type() not in ["text/html", "text/plain"]:
@@ -1802,8 +1790,11 @@ def _scan_email_for_text(
     return total_matches, last_value
 
 
-def find_text(
-    sdata: Any, account: type[imaplib.IMAP4_SSL], search_terms: list, body_count: bool
+async def find_text(
+    sdata: Any,
+    account: type[IMAP4_SSL],
+    search_terms: list,
+    body_count: bool,
 ) -> int:
     """Filter for specific words in email."""
     _LOGGER.debug("Searching for (%s) in (%s) emails", search_terms, len(sdata))
@@ -1814,7 +1805,7 @@ def find_text(
     patterns = [re.compile(rf"{term}") for term in search_terms]
 
     for i in mail_list:
-        matches, value = _scan_email_for_text(account, i, patterns, body_count)
+        matches, value = await _scan_email_for_text(account, i, patterns, body_count)
 
         if body_count:
             # If extracting a value, "last found value wins" (updates count)
@@ -1893,8 +1884,8 @@ def _generic_delivery_image_extraction(  # noqa: C901
     _LOGGER.debug("Attempting to extract %s delivery photo", shipper_name)
     _LOGGER.debug("%s - image_path parameter: %s", shipper_name, image_path)
 
-    # Handle both bytes and string input
-    if isinstance(sdata, bytes):
+    # Check for both bytes and bytearray
+    if isinstance(sdata, (bytes, bytearray)):
         msg = email.message_from_bytes(sdata)
     else:
         msg = email.message_from_string(sdata)
@@ -2038,8 +2029,8 @@ def _generic_delivery_image_extraction(  # noqa: C901
     return False
 
 
-def amazon_search(
-    account: type[imaplib.IMAP4_SSL],
+async def amazon_search(
+    account: type[IMAP4_SSL],
     image_path: str,
     hass: HomeAssistant,
     amazon_image_name: str,
@@ -2061,14 +2052,16 @@ def amazon_search(
     _LOGGER.debug("Today's date: %s", today)
     _LOGGER.debug("Amazon delivered subjects to search: %s", subjects)
     _LOGGER.debug("Cleaning up amazon images...")
-    cleanup_images(f"{image_path}amazon/")
+    await hass.async_add_executor_job(cleanup_images, f"{image_path}amazon/")
 
     address_list = amazon_email_addresses(fwds, amazon_domain)
     _LOGGER.debug("Amazon email list: %s", address_list)
 
     for subject in subjects:
         _LOGGER.debug("Searching for Amazon delivered emails with subject: %s", subject)
-        (server_response, data) = email_search(account, address_list, today, subject)
+        (server_response, data) = await email_search(
+            account, address_list, today, subject
+        )
 
         if server_response == "OK" and data[0] is not None:
             email_count = len(data[0].split())
@@ -2080,7 +2073,7 @@ def amazon_search(
             )
             _LOGGER.debug("Email IDs found: %s", data[0])
 
-            get_amazon_image(
+            await get_amazon_image(
                 data[0],
                 account,
                 image_path,
@@ -2094,7 +2087,9 @@ def amazon_search(
         _LOGGER.debug("No Amazon deliveries found.")
         nomail = f"{Path(__file__).parent}/no_deliveries_amazon.jpg"
         try:
-            copyfile(nomail, f"{image_path}amazon/" + amazon_image_name)
+            await hass.async_add_executor_job(
+                copyfile, nomail, f"{image_path}amazon/" + amazon_image_name
+            )
             # Update coordinator data with the no-delivery filename
             if coordinator_data is not None:
                 coordinator_data[ATTR_AMAZON_IMAGE] = amazon_image_name
@@ -2110,9 +2105,9 @@ def amazon_search(
     return count
 
 
-def get_amazon_image(
+async def get_amazon_image(
     sdata: Any,
-    account: type[imaplib.IMAP4_SSL],
+    account: type[IMAP4_SSL],
     image_path: str,
     hass: HomeAssistant,
     image_name: str,
@@ -2126,10 +2121,10 @@ def get_amazon_image(
     pattern = re.compile(rf"{AMAZON_IMG_PATTERN}")
 
     for i in mail_list:
-        data = email_fetch(account, i, "(RFC822)")[1]
+        data = (await email_fetch(account, i, "(RFC822)"))[1]
         for response_part in data:
-            if isinstance(response_part, tuple):
-                msg = email.message_from_bytes(response_part[1])
+            if isinstance(response_part, (bytes, bytearray)):
+                msg = email.message_from_bytes(response_part)
                 _LOGGER.debug("Email Multipart: %s", msg.is_multipart())
                 _LOGGER.debug("Content Type: %s", msg.get_content_type())
 
@@ -2149,13 +2144,15 @@ def get_amazon_image(
 
     if img_url is not None:
         _LOGGER.debug("Attempting to download Amazon image.")
-        hass.add_job(download_img(hass, img_url, image_path, image_name))
+        await download_img(hass, img_url, image_path, image_name)
     else:
         # No S3 delivery image found in emails, use default image
         try:
             _LOGGER.debug("No Amazon delivery image found in emails, using default.")
             nomail = f"{Path(__file__).parent}/no_deliveries_amazon.jpg"
-            copyfile(nomail, f"{image_path}amazon/{image_name}")
+            await hass.async_add_executor_job(
+                copyfile, nomail, f"{image_path}amazon/{image_name}"
+            )
         except OSError as err:
             _LOGGER.error("Error attempting to copy default image: %s", err)
 
@@ -2180,8 +2177,8 @@ async def download_img(
                 if "image" in content_type:
                     data = await resp.read()
                     _LOGGER.debug("Downloading image to: %s", filepath)
-                    the_file = await hass.async_add_executor_job(open, filepath, "wb")
-                    the_file.write(data)
+                    # Fixed: Write file in executor
+                    await hass.async_add_executor_job(io_save_file, filepath, data)
                     _LOGGER.debug("Amazon image downloaded")
         except aiohttp.ClientError as err:
             _LOGGER.error("Problem downloading file connection error: %s", err)
@@ -2245,7 +2242,7 @@ def _extract_hub_code(
     return None
 
 
-def amazon_hub(account: type[imaplib.IMAP4_SSL], fwds: list[str] | None = None) -> dict:
+async def amazon_hub(account: type[IMAP4_SSL], fwds: list[str] | None = None) -> dict:
     """Find Amazon Hub info emails."""
     email_addresses = []
     email_addresses.extend(_process_amazon_forwards(fwds))
@@ -2259,10 +2256,9 @@ def amazon_hub(account: type[imaplib.IMAP4_SSL], fwds: list[str] | None = None) 
     processed_ids = set()
 
     _LOGGER.debug("[Hub] Amazon email list: %s", email_addresses)
-
     # Fix: Iterate through subjects (AMAZON_HUB_SUBJECT is a list)
     for subject in AMAZON_HUB_SUBJECT:
-        (server_response, sdata) = email_search(
+        (server_response, sdata) = await email_search(
             account, email_addresses, today, subject=subject
         )
 
@@ -2281,10 +2277,10 @@ def amazon_hub(account: type[imaplib.IMAP4_SSL], fwds: list[str] | None = None) 
                 continue
             processed_ids.add(i)
 
-            data = email_fetch(account, i, "(RFC822)")[1]
+            data = (await email_fetch(account, i, "(RFC822)"))[1]
             for response_part in data:
-                if isinstance(response_part, tuple):
-                    msg = email.message_from_bytes(response_part[1])
+                if isinstance(response_part, (bytes, bytearray)):
+                    msg = email.message_from_bytes(response_part)
                     code = _extract_hub_code(msg, subject_regex, body_regex)
                     if code:
                         found_codes.append(code)
@@ -2295,7 +2291,7 @@ def amazon_hub(account: type[imaplib.IMAP4_SSL], fwds: list[str] | None = None) 
     return info
 
 
-def amazon_otp(account: type[imaplib.IMAP4_SSL], fwds: list | None = None) -> dict:
+async def amazon_otp(account: type[IMAP4_SSL], fwds: list | None = None) -> dict:
     """Find Amazon OTP code emails.
 
     Returns dict of sensor data
@@ -2307,8 +2303,7 @@ def amazon_otp(account: type[imaplib.IMAP4_SSL], fwds: list | None = None) -> di
     email_addresses = []
     email_addresses.extend(_process_amazon_forwards(fwds))
     email_addresses.extend(AMAZON_HUB_EMAIL)
-
-    (server_response, sdata) = email_search(
+    (server_response, sdata) = await email_search(
         account, email_addresses, tfmt, AMAZON_OTP_SUBJECT
     )
 
@@ -2316,10 +2311,10 @@ def amazon_otp(account: type[imaplib.IMAP4_SSL], fwds: list | None = None) -> di
         id_list = sdata[0].split()
         _LOGGER.debug("Found Amazon OTP email(s): %s", len(id_list))
         for i in id_list:
-            data = email_fetch(account, i, "(RFC822)")[1]
+            data = (await email_fetch(account, i, "(RFC822)"))[1]
             for response_part in data:
-                if isinstance(response_part, tuple):
-                    msg = email.message_from_bytes(response_part[1])
+                if isinstance(response_part, (bytes, bytearray)):
+                    msg = email.message_from_bytes(response_part)
 
                     _LOGGER.debug("Email Multipart: %s", msg.is_multipart())
                     _LOGGER.debug("Content Type: %s", msg.get_content_type())
@@ -2357,8 +2352,8 @@ def amazon_otp(account: type[imaplib.IMAP4_SSL], fwds: list | None = None) -> di
     return info
 
 
-def amazon_exception(
-    account: type[imaplib.IMAP4_SSL],
+async def amazon_exception(
+    account: type[IMAP4_SSL],
     fwds: list | None = None,
     the_domain: str | None = None,
 ) -> dict:
@@ -2374,14 +2369,14 @@ def amazon_exception(
     address_list = amazon_email_addresses(fwds, the_domain)
     _LOGGER.debug("Amazon email list: %s", str(address_list))
 
-    (server_response, sdata) = email_search(
+    (server_response, sdata) = await email_search(
         account, address_list, tfmt, AMAZON_EXCEPTION_SUBJECT
     )
 
     if server_response == "OK":
         count += len(sdata[0].split())
         _LOGGER.debug("Found %s Amazon exceptions", count)
-        order_numbers = get_tracking(sdata[0], account, AMAZON_PATTERN)
+        order_numbers = await get_tracking(sdata[0], account, AMAZON_PATTERN)
         order_number.extend(order_numbers)
 
     info[ATTR_COUNT] = count
@@ -2441,8 +2436,8 @@ def amazon_email_addresses(
     return value
 
 
-def _search_amazon_emails(
-    account: type[imaplib.IMAP4_SSL], address_list: list[str], days: int
+async def _search_amazon_emails(
+    account: type[IMAP4_SSL], address_list: list[str], days: int
 ) -> list[bytes]:
     """Search for Amazon emails and return a unique list of email IDs."""
     past_date = get_today() - datetime.timedelta(days=days)
@@ -2455,7 +2450,9 @@ def _search_amazon_emails(
     # Search for Amazon emails with relevant subjects
     for subject in amazon_subjects:
         _LOGGER.debug("Searching for Amazon emails with subject: %s", subject)
-        (server_response, sdata) = email_search(account, address_list, tfmt, subject)
+        (server_response, sdata) = await email_search(
+            account, address_list, tfmt, subject
+        )
         if server_response == "OK" and sdata[0] is not None:
             email_ids = sdata[0].split()
             _LOGGER.debug("Found %s emails for subject '%s'", len(email_ids), subject)
@@ -2553,8 +2550,8 @@ def _parse_amazon_arrival_date(
     return None
 
 
-def get_items(  # noqa: C901
-    account: type[imaplib.IMAP4_SSL],
+async def get_items(  # noqa: C901
+    account: type[IMAP4_SSL],
     param: str | None = None,
     fwds: str | None = None,
     days: int = DEFAULT_AMAZON_DAYS,
@@ -2572,7 +2569,7 @@ def get_items(  # noqa: C901
     all_shipped_orders = set()
 
     address_list = amazon_email_addresses(fwds, the_domain)
-    unique_emails = _search_amazon_emails(account, address_list, days)
+    unique_emails = await _search_amazon_emails(account, address_list, days)
     _LOGGER.debug("Total unique Amazon emails found: %s", len(unique_emails))
 
     order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
@@ -2580,13 +2577,13 @@ def get_items(  # noqa: C901
     for email_id in unique_emails:
         # Convert bytes to string for fetch if necessary
         fetch_id = email_id.decode() if isinstance(email_id, bytes) else email_id
-        data = email_fetch(account, fetch_id, "(RFC822)")[1]
+        data = (await email_fetch(account, fetch_id, "(RFC822)"))[1]
 
         for response_part in data:
-            if not isinstance(response_part, tuple):
+            if not isinstance(response_part, bytearray):
                 continue
 
-            msg = email.message_from_bytes(response_part[1])
+            msg = email.message_from_bytes(response_part)
 
             # Parse Date
             email_date_str = msg.get("Date")
@@ -2605,7 +2602,23 @@ def get_items(  # noqa: C901
             encoding = decode_header(header_val)[0][1]
             subject_bytes = decode_header(header_val)[0][0]
             if encoding:
-                email_subject = subject_bytes.decode(encoding, "ignore")
+                # subject_bytes may be bytes or already a str; decode safely and fall back to utf-8
+                try:
+                    if isinstance(subject_bytes, bytes):
+                        email_subject = subject_bytes.decode(encoding, "ignore")
+                    else:
+                        email_subject = str(subject_bytes)
+                except (LookupError, UnicodeError):
+                    # Unknown encoding or decode error, fall back to utf-8
+                    try:
+                        if isinstance(subject_bytes, bytes):
+                            email_subject = subject_bytes.decode("utf-8", "ignore")
+                        else:
+                            email_subject = str(subject_bytes)
+                    except (UnicodeError, TypeError) as err:
+                        _LOGGER.debug("Error decoding subject with fallback: %s", err)
+                        email_subject = str(subject_bytes)
+
             elif isinstance(subject_bytes, bytes):
                 email_subject = subject_bytes.decode("utf-8", "ignore")
             else:
@@ -2751,3 +2764,9 @@ def validate_email_address(email_address: str) -> bool:
     _LOGGER.debug("%s is a valid email address", email_address)
 
     return True
+
+
+def io_save_file(path: str | Path, data: bytes) -> None:
+    """Write bytes to a file synchronously (for use in executor)."""
+    with Path(path).open("wb") as the_file:
+        the_file.write(data)
