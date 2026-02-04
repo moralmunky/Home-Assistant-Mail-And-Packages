@@ -179,7 +179,7 @@ AMAZON_HUB_EMAIL = [
     "amazonlockers@amazon.com",
     "versandbestaetigung@amazon.de",
 ]
-AMAZON_HUB_SUBJECT = "ready for pickup from Amazon Hub Locker"
+AMAZON_HUB_SUBJECT = ["ready for pickup from Amazon Hub Locker"]
 AMAZON_HUB_SUBJECT_SEARCH = "(a package to pick up)(.*)(\\d{6})"
 AMAZON_HUB_BODY = "(Your pickup code is <b>)(\\d{6})"
 AMAZON_TIME_PATTERN = [

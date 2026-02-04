@@ -1,12 +1,15 @@
 """Test Mail and Packages config flow."""
 
 import logging
+import ssl
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from aioimaplib import AioImapException
 from homeassistant import config_entries, setup
+from homeassistant.const import CONF_RESOURCES
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType, InvalidData
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -23,9 +26,11 @@ from custom_components.mail_and_packages.const import (
     CONF_ALLOW_FORWARDED_EMAILS,
     CONF_AMAZON_CUSTOM_IMG,
     CONF_AMAZON_CUSTOM_IMG_FILE,
+    CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
     CONF_CUSTOM_IMG,
+    CONF_CUSTOM_IMG_FILE,
     CONF_FEDEX_CUSTOM_IMG,
     CONF_FEDEX_CUSTOM_IMG_FILE,
     CONF_FORWARDED_EMAILS,
@@ -186,6 +191,7 @@ _LOGGER = logging.getLogger(__name__)
 )
 @pytest.mark.asyncio
 async def test_form(
+    mock_imap,
     input_1,
     step_id_2,
     input_2,
@@ -198,7 +204,6 @@ async def test_form(
     title,
     data,
     hass,
-    mock_imap,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -209,10 +214,6 @@ async def test_form(
     assert result["errors"] == {}
 
     with (
-        patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
@@ -432,10 +433,6 @@ async def test_form_no_fwds(
 
     with (
         patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
-        patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
         ),
@@ -640,10 +637,6 @@ async def test_form_invalid_custom_img_path(
 
     with (
         patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
-        patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
         ),
@@ -700,7 +693,7 @@ async def test_form_invalid_custom_img_path(
     ],
 )
 @pytest.mark.asyncio
-async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
+async def test_form_connection_error(input_1, step_id_2, hass, mock_imap_connect_error):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
@@ -708,13 +701,8 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
 
     with (
-        patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=False,
-        ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
@@ -728,9 +716,9 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
-        assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
-        assert result2["errors"] == {"base": "communication"}
+    assert result2["type"] == "form"
+    assert result2["step_id"] == step_id_2
+    assert result2["errors"] == {"base": "cannot_connect"}
 
 
 @pytest.mark.parametrize(
@@ -875,10 +863,6 @@ async def test_form_invalid_ffmpeg(
     # assert result["title"] == title_1
 
     with (
-        patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=False,
@@ -1046,7 +1030,6 @@ async def test_form_index_error(
     title,
     data,
     hass,
-    mock_imap_index_error,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -1055,12 +1038,19 @@ async def test_form_index_error(
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
+
+    mock_account = MagicMock()
+    # Fix: Make select an AsyncMock and return a tuple for unpacking
+    mock_account.select = AsyncMock(return_value=("OK", [b"1"]))
+    mock_account.list = AsyncMock(
+        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "." "INBOX"'])
+    )
 
     with (
         patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
+            "custom_components.mail_and_packages.config_flow.login",
+            return_value=mock_account,
+            new_callable=AsyncMock,
         ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
@@ -1249,7 +1239,6 @@ async def test_form_index_error_2(
     title,
     data,
     hass,
-    mock_imap_index_error_2,
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -1258,12 +1247,20 @@ async def test_form_index_error_2(
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
+
+    # Mock connection that triggers both IndexErrors and falls back to default
+    mock_account = MagicMock()
+    # Fix: Make select an AsyncMock and return a tuple for unpacking
+    mock_account.select = AsyncMock(return_value=("OK", [b"1"]))
+    mock_account.list = AsyncMock(
+        return_value=MagicMock(result="OK", lines=[b"GARBAGE DATA"])
+    )
 
     with (
         patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
+            "custom_components.mail_and_packages.config_flow.login",
+            return_value=mock_account,
+            new_callable=AsyncMock,
         ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
@@ -1459,10 +1456,6 @@ async def test_form_storage_error(
 
     with (
         patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
-        patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
         ),
@@ -1640,6 +1633,7 @@ async def test_form_storage_error(
 )
 @pytest.mark.asyncio
 async def test_reconfigure(
+    mock_imap_no_email,
     input_1,
     step_id_2,
     input_2,
@@ -1653,7 +1647,6 @@ async def test_reconfigure(
     data,
     hass: HomeAssistant,
     integration,
-    mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
@@ -1850,6 +1843,7 @@ async def test_reconfigure(
 )
 @pytest.mark.asyncio
 async def test_reconfigure_no_amazon(
+    mock_imap_no_email,
     input_1,
     step_id_2,
     input_2,
@@ -1861,7 +1855,6 @@ async def test_reconfigure_no_amazon(
     data,
     hass: HomeAssistant,
     integration,
-    mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
@@ -2055,6 +2048,7 @@ async def test_reconfigure_no_amazon(
 )
 @pytest.mark.asyncio
 async def test_reconfigure_with_default_images(
+    mock_imap_no_email,
     input_1,
     step_id_2,
     input_2,
@@ -2066,7 +2060,6 @@ async def test_reconfigure_with_default_images(
     data,
     hass: HomeAssistant,
     integration,
-    mock_imap_no_email,
     mock_osremove,
     mock_osmakedir,
     mock_listdir,
@@ -2160,10 +2153,6 @@ async def test_config_flow_with_amazon_custom_image_only(
     """Test config flow with only Amazon custom image enabled."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     with (
-        patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
@@ -2341,10 +2330,6 @@ async def test_config_flow_with_ups_custom_image_only(
     """Test config flow with only UPS custom image enabled."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     with (
-        patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
@@ -3028,6 +3013,7 @@ async def test_migration_with_minimal_config(hass, caplog):
 @pytest.mark.asyncio
 async def test_reconfig_amazon_error(
     hass: HomeAssistant,
+    mock_imap_no_email,
     integration,
     input_1,
     step_id_2,
@@ -3052,16 +3038,18 @@ async def test_reconfig_amazon_error(
         },
     )
 
-    with patch(
-        "custom_components.mail_and_packages.helpers._test_login",
-        return_value=True,
-    ):
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
-        )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_1)
 
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfigure"
+    assert result["step_id"] == "reconfig_2"
+
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_2)
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_amazon"
+
+    # The flow is still on Amazon step because of invalid domain
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_amazon"
 
 
 @pytest.mark.parametrize(
@@ -3124,6 +3112,7 @@ async def test_reconfig_amazon_error(
 @pytest.mark.asyncio
 async def test_reconfig_storage_error(
     hass: HomeAssistant,
+    mock_imap_no_email,
     integration,
     input_1,
     step_id_2,
@@ -3148,24 +3137,20 @@ async def test_reconfig_storage_error(
         },
     )
 
-    with patch(
-        "custom_components.mail_and_packages.helpers._test_login",
-        return_value=True,
-    ):
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
-        )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_1)
 
-        assert result["type"] == "form"
-        assert result["step_id"] == "reconfigure"
-
-    # The flow is still on reconfigure step because IMAP login failed
-    # We can't proceed to Amazon step or storage step
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfigure"
+    assert result["step_id"] == "reconfig_2"
 
-    # The flow is still on reconfigure step because IMAP login failed
-    # We can't test storage configuration error since we can't reach that step
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_2)
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_amazon"
+
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_3)
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_amazon"
 
 
 async def test_walmart_custom_image_validation():
@@ -3232,17 +3217,12 @@ async def test_walmart_custom_image_validation():
     assert CONF_WALMART_CUSTOM_IMG_FILE not in errors
 
 
-async def test_walmart_custom_image_in_config_flow(hass):
+async def test_walmart_custom_image_in_config_flow(hass, mock_imap_no_email):
     """Test that Walmart custom image options are properly handled in config flow."""
-
-    # Test that Walmart custom image is included in the flow when enabled
+    # We don't need to mock IMAP4_SSL if we mock _test_login and _get_mailboxes
     await setup.async_setup_component(hass, "persistent_notification", {})
 
     with (
-        patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
@@ -3260,12 +3240,7 @@ async def test_walmart_custom_image_in_config_flow(hass):
             "pathlib.Path.exists",
             return_value=True,
         ),
-        patch("custom_components.mail_and_packages.config_flow.login") as mock_login,
     ):
-        # Mock the login function to return a mock IMAP account
-        mock_account = MagicMock()
-        mock_account.list.return_value = ("OK", [b'(\\HasNoChildren) "/" "INBOX"'])
-        mock_login.return_value = mock_account
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": config_entries.SOURCE_USER}
         )
@@ -3309,45 +3284,39 @@ async def test_walmart_custom_image_in_config_flow(hass):
         assert result["step_id"] == "config_3"
 
         # Complete step 3 with Walmart custom image file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
-            temp_file_path = temp_file.name
-            temp_file.write(b"fake walmart image data")
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_WALMART_CUSTOM_IMG_FILE: "custom_components/mail_and_packages/images/walmart.jpg",
+            },
+        )
 
-        try:
-            result = await hass.config_entries.flow.async_configure(
-                result["flow_id"],
-                {
-                    CONF_WALMART_CUSTOM_IMG_FILE: temp_file_path,
-                },
-            )
+        # Should proceed to storage step
+        assert result["type"] == "form"
+        assert result["step_id"] == "config_storage"
 
-            # Should proceed to storage step
-            assert result["type"] == "form"
-            assert result["step_id"] == "config_storage"
+        # Complete storage step
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+        )
 
-            # Complete storage step
-            result = await hass.config_entries.flow.async_configure(
-                result["flow_id"],
-                {
-                    "storage": "custom_components/mail_and_packages/images/",
-                },
-            )
+        # Should create entry successfully
+        assert result["type"] == "create_entry"
+        assert result["title"] == "imap.test.email"
 
-            # Should create entry successfully
-            assert result["type"] == "create_entry"
-            assert result["title"] == "imap.test.email"
-
-            # Verify Walmart custom image settings are saved
-            entry = result["result"]
-            assert entry.data[CONF_WALMART_CUSTOM_IMG] is True
-            assert entry.data[CONF_WALMART_CUSTOM_IMG_FILE] == temp_file_path
-
-        finally:
-            # Clean up temp file
-            Path(temp_file_path).unlink(missing_ok=True)
+        # Verify Walmart custom image settings are saved
+        entry = result["result"]
+        assert entry.data[CONF_WALMART_CUSTOM_IMG] is True
+        assert (
+            entry.data[CONF_WALMART_CUSTOM_IMG_FILE]
+            == "custom_components/mail_and_packages/images/walmart.jpg"
+        )
 
 
-async def test_generic_custom_image_validation(hass: HomeAssistant):
+async def test_generic_custom_image_validation(hass: HomeAssistant, mock_imap_no_email):
     """Test validation of generic custom image file."""
 
     # Test with non-existent file
@@ -3368,14 +3337,11 @@ async def test_generic_custom_image_validation(hass: HomeAssistant):
         "resources": ["usps_mail"],
     }
 
-    with patch(
-        "custom_components.mail_and_packages.helpers._test_login", return_value=True
-    ):
-        errors, validated_input = await _validate_user_input(user_input)
+    errors, validated_input = await _validate_user_input(user_input)
 
-        # Should have validation error for non-existent file
-        assert "generic_custom_img_file" in errors
-        assert "file_not_found" in errors["generic_custom_img_file"]
+    # Should have validation error for non-existent file
+    assert "generic_custom_img_file" in errors
+    assert "file_not_found" in errors["generic_custom_img_file"]
 
     # Test with existing file
     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
@@ -3385,75 +3351,55 @@ async def test_generic_custom_image_validation(hass: HomeAssistant):
     try:
         user_input["generic_custom_img_file"] = temp_file_path
 
-        with patch(
-            "custom_components.mail_and_packages.helpers._test_login", return_value=True
-        ):
-            errors, validated_input = await _validate_user_input(user_input)
+        errors, validated_input = await _validate_user_input(user_input)
 
-            # Should not have validation error for existing file
-            assert "generic_custom_img_file" not in errors
-            assert validated_input[CONF_GENERIC_CUSTOM_IMG_FILE] == temp_file_path
+        # Should not have validation error for existing file
+        assert "generic_custom_img_file" not in errors
+        assert validated_input[CONF_GENERIC_CUSTOM_IMG_FILE] == temp_file_path
 
     finally:
         # Clean up temp file
         Path(temp_file_path).unlink(missing_ok=True)
 
 
-async def test_generic_custom_image_in_config_flow(hass: HomeAssistant):
+async def test_generic_custom_image_in_config_flow(
+    hass: HomeAssistant, mock_imap_no_email
+):
     """Test generic custom image configuration in full config flow."""
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry",
+            return_value=True,
+        ),
+        patch("pathlib.Path.is_file", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
+        # Start the config flow
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "user"
 
-    # Create a temporary image file
-    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
-        temp_file_path = temp_file.name
-        temp_file.write(b"fake image data")
-
-    try:
-        with (
-            patch(
-                "custom_components.mail_and_packages.config_flow._test_login",
-                return_value=True,
-            ),
-            patch(
-                "custom_components.mail_and_packages.config_flow._check_ffmpeg",
-                return_value=True,
-            ),
-            patch("custom_components.mail_and_packages.async_setup", return_value=True),
-            patch(
-                "custom_components.mail_and_packages.async_setup_entry",
-                return_value=True,
-            ),
-            patch("pathlib.Path.is_file", return_value=True),
-            patch("pathlib.Path.exists", return_value=True),
-            patch(
-                "custom_components.mail_and_packages.config_flow.login"
-            ) as mock_login,
-        ):
-            # Mock the login function to return a mock IMAP account
-            mock_account = MagicMock()
-            mock_account.list.return_value = ("OK", [b'(\\HasNoChildren) "/" "INBOX"'])
-            mock_login.return_value = mock_account
-
-            # Start the config flow
-            result = await hass.config_entries.flow.async_init(
-                DOMAIN, context={"source": config_entries.SOURCE_USER}
-            )
-            assert result["type"] == FlowResultType.FORM
-            assert result["step_id"] == "user"
-
-            # Step 1: Basic IMAP settings
-            result = await hass.config_entries.flow.async_configure(
-                result["flow_id"],
-                {
-                    "host": "imap.test.email",
-                    "port": "993",
-                    "username": "test@test.email",
-                    "password": "notarealpassword",
-                    "imap_security": "SSL",
-                    "verify_ssl": False,
-                },
-            )
-            assert result["type"] == FlowResultType.FORM
-            assert result["step_id"] == "config_2"
+        # Step 1: Basic IMAP settings
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+        )
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "config_2"
 
         # Step 2: Enable generic custom image
         result = await hass.config_entries.flow.async_configure(
@@ -3475,7 +3421,7 @@ async def test_generic_custom_image_in_config_flow(hass: HomeAssistant):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                "generic_custom_img_file": temp_file_path,
+                "generic_custom_img_file": "custom_components/mail_and_packages/images/generic.jpg",
             },
         )
         assert result["type"] == FlowResultType.FORM
@@ -3494,15 +3440,14 @@ async def test_generic_custom_image_in_config_flow(hass: HomeAssistant):
         # Verify generic custom image settings are saved
         entry = result["result"]
         assert entry.data[CONF_GENERIC_CUSTOM_IMG] is True
-        assert entry.data[CONF_GENERIC_CUSTOM_IMG_FILE] == temp_file_path
+        assert (
+            entry.data[CONF_GENERIC_CUSTOM_IMG_FILE]
+            == "custom_components/mail_and_packages/images/generic.jpg"
+        )
         assert entry.version == CONFIG_VER
 
-    finally:
-        # Clean up temp file
-        Path(temp_file_path).unlink(missing_ok=True)
 
-
-async def test_migration_to_version_12(hass: HomeAssistant):
+async def test_migration_to_version_12(hass: HomeAssistant, mock_imap_no_email):
     """Test migration to version 12 adds new Walmart and Generic camera fields."""
     # Create a mock config entry with version 11
     entry = MockConfigEntry(
@@ -3529,11 +3474,8 @@ async def test_migration_to_version_12(hass: HomeAssistant):
     entry.add_to_hass(hass)
 
     # Set up the integration (this will trigger migration)
-    with patch(
-        "custom_components.mail_and_packages.helpers._test_login", return_value=True
-    ):
-        await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
 
     # Verify version was updated (will go to 13, but we're testing that version 12 fields were added)
     assert entry.version == CONFIG_VER
@@ -3562,7 +3504,7 @@ async def test_migration_to_version_12(hass: HomeAssistant):
     assert entry.data["ups_custom_img"] is False
 
 
-async def test_migration_to_version_13(hass: HomeAssistant):
+async def test_migration_to_version_13(hass: HomeAssistant, mock_imap_no_email):
     """Test migration to version 13 adds new generic camera fields."""
     # Create a mock config entry with version 11
     entry = MockConfigEntry(
@@ -3589,11 +3531,8 @@ async def test_migration_to_version_13(hass: HomeAssistant):
     entry.add_to_hass(hass)
 
     # Set up the integration (this will trigger migration)
-    with patch(
-        "custom_components.mail_and_packages.helpers._test_login", return_value=True
-    ):
-        await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
 
     # Verify version was updated to 12
     assert entry.version == CONFIG_VER
@@ -3698,18 +3637,59 @@ async def test_fedex_config_flow_version():
     )
 
 
-async def test_get_mailboxes_non_ok_status():
-    """Test _get_mailboxes handles non-OK status gracefully."""
-    # Mock login to return an account that returns non-OK status
-    with patch("custom_components.mail_and_packages.config_flow.login") as mock_login:
-        mock_account = MagicMock()
-        mock_account.list.return_value = ("ERROR", [])  # Non-OK status
-        mock_login.return_value = mock_account
+async def test_get_mailboxes_non_ok_status(hass, caplog):
+    """Test getting mailboxes with a non-OK status."""
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+    mock_conn.list = AsyncMock(
+        return_value=MagicMock(
+            result="AUTH_ERROR", lines=[b"Invalid credentials or folder access"]
+        )
+    )
+    mock_conn.logout = AsyncMock()
+    with patch(
+        "custom_components.mail_and_packages.config_flow.login",
+        return_value=mock_conn,
+    ):
+        # Test the mailbox retrieval logic
+        result = await _get_mailboxes(
+            hass, "imap.test.com", 993, "user", "pass", "SSL", True
+        )
 
-        result = _get_mailboxes("test.host", 993, "user", "pass", "SSL", True)
-
-        # Should return default folder when status is not OK
+        # Verify the flow handles the non-OK status by returning an empty list or error
         assert result == ['"INBOX"']
+        assert "Error listing mailboxes ... using default" in caplog.text
+        mock_conn.list.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_get_mailboxes_exception(hass):
+    """Test getting mailboxes when an exception occurs."""
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+
+    # Matching the aioimaplib response object pattern
+    mock_login_res = MagicMock()
+    mock_login_res.result = "OK"
+    mock_conn.login.return_value = mock_login_res
+
+    # This will trigger the exception when list() is called
+    mock_conn.list.side_effect = OSError("Connection lost")
+    mock_conn.logout = AsyncMock()
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.login",
+        return_value=mock_conn,
+    ):
+        # Only the statement that triggers the exception goes inside pytest.raises
+        with pytest.raises(OSError, match="Connection lost"):
+            await _get_mailboxes(
+                hass, "imap.test.com", 993, "user", "pass", "SSL", True
+            )
+
+        # Subsequent assertions go outside the raises block
+        mock_conn.list.assert_called_once()
 
 
 async def test_get_schema_step_3_none_input():
@@ -3804,45 +3784,28 @@ async def test_config_flow_reconfig_2_validation_error():
 
 
 @pytest.mark.asyncio
-async def test_get_mailboxes_generic_exception(caplog):
+async def test_get_mailboxes_generic_exception(hass, caplog):
     """Test _get_mailboxes handles generic exception during parsing."""
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+    mock_response = MagicMock()
+    mock_response.result = "OK"  # Change to .status if you don't change the code above
+    mock_response.lines = [
+        b'(\\HasNoChildren) "." "INBOX"'
+    ]  # This will trigger the IndexError and fallback to period
+    mock_conn.list = AsyncMock(return_value=mock_response)
+    mock_conn.logout = AsyncMock()
 
-    with patch("custom_components.mail_and_packages.config_flow.login") as mock_login:
-        mock_account = MagicMock()
-
-        # We need an item that causes IndexError first, then Exception (ValueError)
-        # We can achieve this by mocking the decode().split() chain
-        mock_item = MagicMock()
-        mock_decoded = MagicMock()
-
-        # When decode() is called, return our mock string object
-        mock_item.decode.return_value = mock_decoded
-
-        # Define side effects for split()
-        # 1. First call with ' "/" ' raises IndexError (triggers outer except)
-        # 2. Second call with ' "." ' raises ValueError (triggers inner except Exception)
-        def split_side_effect(sep):
-            if sep == ' "/" ':
-                raise IndexError("First split failed")
-            if sep == ' "." ':
-                raise ValueError("Second split failed")
-            return ["folder"]
-
-        mock_decoded.split.side_effect = split_side_effect
-
-        # Setup account list return
-        mock_account.list.return_value = ("OK", [mock_item])
-        mock_login.return_value = mock_account
-
+    with patch(
+        "custom_components.mail_and_packages.config_flow.login",
+        return_value=mock_conn,
+    ):
         # Call the function
-        result = _get_mailboxes("host", 993, "user", "pwd", "SSL", True)
+        result = await _get_mailboxes(hass, "host", 993, "user", "pwd", "SSL", True)
 
-        # Verify it falls back to default folder
+        # Verify it falls back to default folder (parsed via period delimiter)
         assert result == [DEFAULT_FOLDER]
-
-        # Verify the error was logged
-        assert "Problem getting mailbox listing using 'INBOX' message" in caplog.text
-        assert "Second split failed" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -3898,7 +3861,7 @@ async def test_validate_user_input_specific_images():
 
 
 @pytest.mark.asyncio
-async def test_config_flow_invalid_auth(hass):
+async def test_config_flow_invalid_auth(hass, mock_imap_login_error):
     """Test config flow when IMAP login fails."""
     flow = MailAndPackagesFlowHandler()
     flow.hass = hass
@@ -3912,12 +3875,9 @@ async def test_config_flow_invalid_auth(hass):
         "verify_ssl": False,
     }
 
-    with patch(
-        "custom_components.mail_and_packages.helpers._test_login", return_value=False
-    ):
-        result = await flow.async_step_user(user_input)
-        assert result["type"] == "form"
-        assert result["errors"] == {"base": "communication"}
+    result = await flow.async_step_user(user_input)
+    assert result["type"] == "form"
+    assert result["errors"] == {"password": "invalid_auth", "username": "invalid_auth"}
 
 
 @pytest.mark.asyncio
@@ -3946,7 +3906,7 @@ async def test_validate_forwarded_emails_errors():
 
 
 @pytest.mark.asyncio
-async def test_reconfigure_step_login_fail(hass, integration):
+async def test_reconfigure_step_login_fail(hass, mock_imap_login_error, integration):
     """Test reconfigure flow when the new login info is invalid."""
     entry = integration
 
@@ -3968,17 +3928,13 @@ async def test_reconfigure_step_login_fail(hass, integration):
         "verify_ssl": True,
     }
 
-    with patch(
-        "custom_components.mail_and_packages.config_flow._test_login",
-        return_value=False,
-    ):
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input
-        )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input
+    )
 
     assert result["type"] == "form"
     assert result["step_id"] == "reconfigure"
-    assert result["errors"] == {"base": "communication"}
+    assert result["errors"] == {"password": "invalid_auth", "username": "invalid_auth"}
 
 
 @pytest.mark.asyncio
@@ -3995,43 +3951,32 @@ async def test_check_amazon_forwards_invalid_format(hass):
 
 
 @pytest.mark.asyncio
-async def test_reconfigure_flow_mailbox_success(hass, integration):
+async def test_reconfigure_flow_mailbox_success(hass, mock_imap_no_email, integration):
     """Test reconfigure flow moves to step 2 after successful login and mailbox fetch."""
     entry = integration
-    with (
-        patch("custom_components.mail_and_packages.config_flow.login") as mock_login,
-        patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
-    ):
-        # Create a mock account object that supports .list()
-        mock_account = MagicMock()
-        mock_account.list.return_value = ("OK", [b'(\\HasNoChildren) "/" "INBOX"'])
-        mock_login.return_value = mock_account
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
+    )
 
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN,
-            context={
-                "source": config_entries.SOURCE_RECONFIGURE,
-                "entry_id": entry.entry_id,
-            },
-        )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            "host": "imap.test.email",
+            "port": 993,
+            "username": "test@test.email",
+            "password": "password",
+            "imap_security": "SSL",
+            "verify_ssl": True,
+        },
+    )
 
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                "host": "imap.test.email",
-                "port": 993,
-                "username": "test@test.email",
-                "password": "password",
-                "imap_security": "SSL",
-                "verify_ssl": True,
-            },
-        )
-
-        assert result["type"] == "form"
-        assert result["step_id"] == "reconfig_2"
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+    assert result["step_id"] == "reconfig_2"
 
 
 @pytest.mark.asyncio
@@ -4051,30 +3996,44 @@ async def test_validate_user_input_forwarded_emails_none():
     assert CONF_FORWARDED_EMAILS not in result_input
 
 
-@pytest.mark.asyncio
-async def test_get_mailboxes_parsing_error(caplog):
+async def test_get_mailboxes_parsing_error(hass, caplog):
     """Test _get_mailboxes handles delimiter parsing failures."""
-    with patch("custom_components.mail_and_packages.config_flow.login") as mock_login:
-        mock_account = MagicMock()
-        # Mocking a list that doesn't contain the expected delimiters
-        # to trigger the nested IndexErrors and eventual fallback
-        mock_account.list.return_value = ("OK", [b"Bad Folder Format"])
-        mock_login.return_value = mock_account
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
 
-        result = _get_mailboxes("host", 993, "user", "pwd", "SSL", True)
+    # Return a response that triggers a parsing error (e.g., None where a list is expected)
+    mock_conn.list = AsyncMock(return_value=MagicMock(result="OK", lines=None))
+    mock_conn.logout = AsyncMock()
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.login",
+        return_value=mock_conn,
+    ):
+        result = await _get_mailboxes(hass, "host", 993, "user", "pwd", "SSL", True)
 
         assert result == [DEFAULT_FOLDER]
-        assert "Error creating folder array, using INBOX" in caplog.text
+        assert "Error listing mailboxes ... using default" in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_get_mailboxes_period_delimiter(hass):
     """Test _get_mailboxes fallback when using period delimiter."""
-    with patch("custom_components.mail_and_packages.config_flow.login") as mock_login:
-        mock_account = MagicMock()
-        mock_account.list.return_value = ("OK", [b'(\\HasNoChildren) "." "SENT"'])
-        mock_login.return_value = mock_account
-        result = _get_mailboxes("host", 993, "user", "pass", "SSL", True)
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+
+    # Simulate a server that uses "." as a delimiter
+    mock_conn.list = AsyncMock(
+        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "." "SENT"'])
+    )
+    mock_conn.logout = AsyncMock()
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.login",
+        return_value=mock_conn,
+    ):
+        result = await _get_mailboxes(hass, "host", 993, "user", "pass", "SSL", True)
         assert '"SENT"' in result
 
 
@@ -4096,10 +4055,6 @@ async def test_reconfig_2_schema_validation(hass, integration):
     """Test that the schema correctly rejects a scan_interval below 5."""
     entry = integration
     with (
-        patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
         patch(
             "custom_components.mail_and_packages.config_flow._get_mailboxes",
             return_value=['"INBOX"'],
@@ -4139,7 +4094,7 @@ async def test_reconfig_2_schema_validation(hass, integration):
 
 
 @pytest.mark.asyncio
-async def test_reconfigure_flow_skip_to_storage(hass, integration):
+async def test_reconfigure_flow_skip_to_storage(hass, mock_imap_no_email, integration):
     """Test reconfigure flow skips directly to storage when no special options are enabled."""
     entry = integration
     reconfig_login_data = {
@@ -4151,48 +4106,35 @@ async def test_reconfigure_flow_skip_to_storage(hass, integration):
         "verify_ssl": True,
     }
 
-    mock_account = MagicMock()
-    mock_account.list.return_value = ("OK", [b'(\\HasNoChildren) "/" "INBOX"'])
+    # Initialize reconfigure flow
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], reconfig_login_data
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_2"
 
-    with (
-        patch(
-            "custom_components.mail_and_packages.config_flow.login",
-            return_value=mock_account,
-        ),
-        patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
-    ):
-        # Initialize reconfigure flow
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN,
-            context={
-                "source": config_entries.SOURCE_RECONFIGURE,
-                "entry_id": entry.entry_id,
-            },
-        )
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], reconfig_login_data
-        )
-        assert result["type"] == "form"
-        assert result["step_id"] == "reconfig_2"
-
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                "folder": '"INBOX"',
-                "resources": ["mail_updated", "usps_mail"],
-                "custom_img": False,
-                "amazon_custom_img": False,
-                "ups_custom_img": False,
-                "walmart_custom_img": False,
-                "fedex_custom_img": False,
-                "generic_custom_img": False,
-                "allow_forwarded_emails": False,
-                "generate_grid": False,
-            },
-        )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            "folder": '"INBOX"',
+            "resources": ["mail_updated", "usps_mail"],
+            "custom_img": False,
+            "amazon_custom_img": False,
+            "ups_custom_img": False,
+            "walmart_custom_img": False,
+            "fedex_custom_img": False,
+            "generic_custom_img": False,
+            "allow_forwarded_emails": False,
+            "generate_grid": False,
+        },
+    )
     assert result["type"] == "form"
     assert result["step_id"] == "reconfig_storage"
 
@@ -4395,10 +4337,6 @@ async def test_form_allow_forwarded_emails(
     assert result["errors"] == {}
 
     with (
-        patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
@@ -4628,10 +4566,6 @@ async def test_form_allowed_forwarded_emails_entered_none(
 
     with (
         patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
-        patch(
             "custom_components.mail_and_packages.config_flow.Path.exists",
             return_value=True,
         ),
@@ -4834,10 +4768,6 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
     assert result["errors"] == {}
 
     with (
-        patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
         patch(
             "custom_components.mail_and_packages.config_flow.Path.exists",
             return_value=True,
@@ -5047,10 +4977,6 @@ async def test_form_allow_forwarded_emails_without_custom_img(
 
     with (
         patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
-        patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
         ),
@@ -5255,10 +5181,6 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
     assert result["errors"] == {}
 
     with (
-        patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
@@ -5476,10 +5398,6 @@ async def test_form_allow_forwarded_emails_none_entered(
 
     with (
         patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
-        patch(
             "custom_components.mail_and_packages.config_flow.Path.exists",
             return_value=True,
         ),
@@ -5675,10 +5593,6 @@ async def test_form_allowed_forwards_missing_email_addresses(
 
     with (
         patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
-        patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
         ),
@@ -5841,10 +5755,6 @@ async def test_form_allowed_forwards_invalid_email_address_format(
     assert result["errors"] == {}
 
     with (
-        patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
         patch(
             "custom_components.mail_and_packages.config_flow._check_ffmpeg",
             return_value=True,
@@ -6284,10 +6194,6 @@ async def test_form_allow_forwarded_emails_using_service_address(
 
     with (
         patch(
-            "custom_components.mail_and_packages.config_flow._test_login",
-            return_value=True,
-        ),
-        patch(
             "custom_components.mail_and_packages.config_flow.Path.exists",
             return_value=True,
         ),
@@ -6347,3 +6253,586 @@ async def test_form_allow_forwarded_emails_using_service_address(
     assert len(mock_setup_entry.mock_calls) == 1
 
     assert "A service domain was found in email" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_validate_amazon_forwards(caplog):
+    """Test validation of amazon forwards with empty or none strings."""
+    # Test with (none)
+    user_input = {
+        CONF_AMAZON_FWDS: "(none)",
+        CONF_AMAZON_DOMAIN: "amazon.com",
+        CONF_GENERATE_MP4: False,
+    }
+    errors, result = await _validate_user_input(user_input)
+    assert result[CONF_AMAZON_FWDS] == []
+    assert errors == {}
+
+    # Test with empty string
+    user_input[CONF_AMAZON_FWDS] = ""
+    errors, result = await _validate_user_input(user_input)
+    assert result[CONF_AMAZON_FWDS] == []
+    assert errors == {}
+
+    # Test with amazon.com address
+    user_input[CONF_AMAZON_FWDS] = "fakeuser@amazon.com"
+    errors, result = await _validate_user_input(user_input)
+    assert result[CONF_AMAZON_FWDS] == "fakeuser@amazon.com"
+    assert errors == {}
+    assert (
+        "Amazon domain found in email: fakeuser@amazon.com, this may cause errors when searching emails."
+        in caplog.text
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_mailboxes_fallback_delimiters(hass, caplog):
+    """Test get_mailboxes fallback logic for different delimiters."""
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+    mock_conn.logout = AsyncMock()
+
+    mock_conn.list = AsyncMock(
+        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "|" "INBOX"'])
+    )
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.login",
+        return_value=mock_conn,
+    ):
+        result = await _get_mailboxes(hass, "host", 993, "user", "pwd", "SSL", True)
+
+        assert result == [DEFAULT_FOLDER]
+        assert "Problem reading mailbox folders, using default." in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_mailboxes_type_attribute_errors(hass, caplog):
+    """Test get_mailboxes generic exception handling."""
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+    mock_conn.logout = AsyncMock()
+
+    # Trigger TypeError by returning a non-iterable integer instead of a list
+    mock_conn.list = AsyncMock(return_value=MagicMock(result="OK", lines=12345))
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.login",
+        return_value=mock_conn,
+    ):
+        result = await _get_mailboxes(hass, "host", 993, "user", "pwd", "SSL", True)
+
+        assert result == [DEFAULT_FOLDER]
+        assert "Error listing mailboxes ... using default" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_step_config_3_validation_error(hass):
+    """Test config flow step 3 validation failure."""
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    # Ensure generate_mp4 is present to avoid KeyError in validation
+    flow._data = {  # noqa: SLF001
+        CONF_CUSTOM_IMG: True,
+        CONF_GENERATE_MP4: False,
+    }
+
+    # Simulate invalid input (file not found)
+    user_input = {CONF_CUSTOM_IMG_FILE: "non_existent_file.gif"}
+
+    with (
+        patch("pathlib.Path.is_file", return_value=False),
+        patch.object(flow, "async_show_form") as mock_show_form,
+    ):
+        await flow.async_step_config_3(user_input)
+
+        # Should return the form again due to validation error
+        mock_show_form.assert_called_once()
+        assert flow._errors[CONF_CUSTOM_IMG_FILE] == "file_not_found"  # noqa: SLF001
+
+
+@pytest.mark.asyncio
+async def test_step_config_amazon_validation_error(hass):
+    """Test config flow step amazon validation failure."""
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    # Ensure generate_mp4 is present to avoid KeyError in validation
+    flow._data = {CONF_GENERATE_MP4: False}  # noqa: SLF001
+
+    # Simulate invalid email format
+    user_input = {
+        CONF_AMAZON_DOMAIN: "amazon.com",
+        CONF_AMAZON_FWDS: "invalid-email",
+        CONF_AMAZON_DAYS: 3,
+    }
+
+    with patch.object(flow, "async_show_form") as mock_show_form:
+        await flow.async_step_config_amazon(user_input)
+
+        # Should return the form again due to validation error
+        mock_show_form.assert_called_once()
+        assert flow._errors[CONF_AMAZON_FWDS] == "invalid_email_format"  # noqa: SLF001
+
+
+@pytest.mark.asyncio
+async def test_reconfig_forwarded_emails_routing_failure(hass, integration):
+    """Test reconfig forwarded emails failure path."""
+    entry = integration
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    flow._entry = entry  # noqa: SLF001
+    flow._data = dict(entry.data)  # noqa: SLF001
+
+    # Ensure dependencies are set to avoid KeyErrors or wrong paths
+    flow._data[CONF_RESOURCES] = ["mail_updated"]  # noqa: SLF001
+    flow._data[CONF_CUSTOM_IMG] = False  # noqa: SLF001
+    flow._data[CONF_GENERATE_MP4] = False  # noqa: SLF001
+
+    user_input_error = {CONF_FORWARDED_EMAILS: "bad-email"}
+
+    with (
+        patch.object(flow, "async_show_form") as mock_show_form,
+        patch(
+            "custom_components.mail_and_packages.config_flow.validate_email_address",
+            return_value=False,
+        ),
+    ):
+        await flow.async_step_reconfig_forwarded_emails(user_input_error)
+
+        mock_show_form.assert_called_once()
+        assert flow._errors[CONF_FORWARDED_EMAILS] == "invalid_email_format"  # noqa: SLF001
+
+
+@pytest.mark.asyncio
+async def test_reconfig_forwarded_emails_routing_success(hass, integration):
+    """Test reconfig forwarded emails success path routing to storage."""
+    entry = integration
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    flow._entry = entry  # noqa: SLF001
+    flow._data = dict(entry.data)  # noqa: SLF001
+
+    # Ensure data ensures routing to storage (No Amazon sensors, No Custom Img)
+    flow._data[CONF_RESOURCES] = ["mail_updated"]  # noqa: SLF001
+    flow._data[CONF_CUSTOM_IMG] = False  # noqa: SLF001
+    flow._data[CONF_GENERATE_MP4] = False  # noqa: SLF001
+
+    user_input_success = {CONF_FORWARDED_EMAILS: "good@email.com"}
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow.validate_email_address",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow._validate_path_input",
+        ),
+    ):
+        result = await flow.async_step_reconfig_forwarded_emails(user_input_success)
+
+        # Expectation: The flow proceeds to the storage step, which returns a form
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "reconfig_storage"
+
+
+@pytest.mark.asyncio
+async def test_get_mailboxes_connection_exceptions(hass, caplog):
+    """Test get_mailboxes handling of connection exceptions (lines 281-282)."""
+    # Test triggering the specific exception block with AioImapException
+    with patch(
+        "custom_components.mail_and_packages.config_flow.login",
+        side_effect=AioImapException("Connection refused"),
+    ):
+        result = await _get_mailboxes(hass, "host", 993, "user", "pwd", "SSL", True)
+        assert "Unable to connect: Connection refused" in caplog.text
+        assert result == []
+
+    caplog.clear()
+
+    # Test triggering the same block with TimeoutError
+    with patch(
+        "custom_components.mail_and_packages.config_flow.login",
+        side_effect=TimeoutError("Timed out"),
+    ):
+        result = await _get_mailboxes(hass, "host", 993, "user", "pwd", "SSL", True)
+        assert "Unable to connect: Timed out" in caplog.text
+        assert result == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("login_side_effect", "select_return", "expected_error"),
+    [
+        (ssl.SSLError("SSL Handshake Failed"), None, "ssl_error"),
+        (None, ("NO", [b"Select Failed"]), "missing_inbox"),
+    ],
+)
+async def test_config_flow_validate_login_errors(
+    hass, login_side_effect, select_return, expected_error
+):
+    """Test config flow handling of login errors (SSL and Missing Inbox)."""
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+
+    user_input = {
+        "host": "imap.test.email",
+        "port": 993,
+        "username": "test@test.email",
+        "password": "password",
+        "imap_security": "SSL",
+        "verify_ssl": True,
+    }
+
+    # Setup the login patch
+    with patch("custom_components.mail_and_packages.config_flow.login") as mock_login:
+        if login_side_effect:
+            mock_login.side_effect = login_side_effect
+        else:
+            mock_account = MagicMock()
+            mock_account.select = AsyncMock(return_value=select_return)
+            mock_account.logout = AsyncMock()
+            mock_login.return_value = mock_account
+
+        result = await flow.async_step_user(user_input)
+
+    # Verify the form is re-shown with the expected error code
+    assert result["type"] == "form"
+    assert result["errors"] == {"base": expected_error}
+
+
+@pytest.mark.asyncio
+async def test_step_2_finish_flow(hass, mock_imap):
+    """Test config flow finishes at step 2 when features are disabled (covers line 659)."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            "host": "imap.test.email",
+            "port": 993,
+            "username": "test@test.email",
+            "password": "password",
+            "imap_security": "SSL",
+            "verify_ssl": True,
+        },
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == "config_2"
+    input_2 = {
+        "allow_external": False,
+        "allow_forwarded_emails": False,
+        "custom_img": False,
+        "folder": '"INBOX"',
+        "generate_grid": False,
+        "generate_mp4": False,
+        "gif_duration": 5,
+        "imap_timeout": 30,
+        "scan_interval": 20,
+        "resources": ["mail_updated"],
+    }
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry", return_value=True
+        ),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_2
+        )
+    assert result["type"] == "create_entry"
+    assert result["title"] == "imap.test.email"
+    assert result["data"]["allow_forwarded_emails"] is False
+    assert result["data"]["custom_img"] is False
+
+
+@pytest.mark.asyncio
+async def test_step_forwarded_emails_skip_amazon(hass, mock_imap):
+    """Test transition from forwarded emails directly to step 3."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            "host": "imap.test.email",
+            "port": 993,
+            "username": "test@test.email",
+            "password": "password",
+            "imap_security": "SSL",
+            "verify_ssl": True,
+        },
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            "allow_external": False,
+            "allow_forwarded_emails": True,
+            "custom_img": True,
+            "folder": '"INBOX"',
+            "generate_grid": False,
+            "generate_mp4": False,
+            "gif_duration": 5,
+            "imap_timeout": 30,
+            "scan_interval": 20,
+            "resources": ["mail_updated"],
+        },
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == "config_forwarded_emails"
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            "forwarded_emails": "forwarder@example.com",
+        },
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == "config_3"
+
+
+@pytest.mark.asyncio
+async def test_reconfig_2_validation_error(hass, mock_imap_no_email, integration):
+    """Test step 2 validiation errors."""
+    entry = integration
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            "host": "imap.test.email",
+            "port": 993,
+            "username": "test@test.email",
+            "password": "password",
+            "imap_security": "SSL",
+            "verify_ssl": True,
+        },
+    )
+    assert result["step_id"] == "reconfig_2"
+    with patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=False,
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "folder": '"INBOX"',
+                "generate_mp4": True,
+                "scan_interval": 20,
+                "resources": ["mail_updated"],
+            },
+        )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_2"
+    assert result["errors"] == {"generate_mp4": "ffmpeg_not_found"}
+
+
+@pytest.mark.asyncio
+async def test_reconfig_3_validation_error(hass, mock_imap_no_email, integration):
+    """Test step 3 validation errors."""
+    entry = integration
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            "host": "imap.test.email",
+            "port": 993,
+            "username": "test@test.email",
+            "password": "password",
+            "imap_security": "SSL",
+            "verify_ssl": True,
+        },
+    )
+
+    assert result["step_id"] == "reconfig_2"
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "folder": '"INBOX"',
+                "custom_img": True,
+                "scan_interval": 20,
+                "resources": ["mail_updated"],
+            },
+        )
+
+    assert result["step_id"] == "reconfig_3"
+
+    with patch("pathlib.Path.is_file", return_value=False):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "custom_img_file": "non_existent_file.gif",
+            },
+        )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_3"
+    assert result["errors"] == {
+        "custom_img_file": "file_not_found",
+        "storage": "path_not_found",
+    }
+
+
+@pytest.mark.asyncio
+async def test_reconfig_forwarded_emails_to_reconfig_3(
+    hass, mock_imap_no_email, integration
+):
+    """Test transition from reconfig forwarded emails to reconfig 3."""
+    entry = integration
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            "host": "imap.test.email",
+            "port": 993,
+            "username": "test@test.email",
+            "password": "password",
+            "imap_security": "SSL",
+            "verify_ssl": True,
+        },
+    )
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "custom_img": True,
+                "folder": '"INBOX"',
+                "scan_interval": 20,
+                "resources": ["mail_updated"],
+            },
+        )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_forwarded_emails"
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow.validate_email_address",
+            return_value=True,
+        ),
+        patch("pathlib.Path.exists", return_value=True),
+        patch("os.path.isfile", return_value=True),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "forwarded_emails": "forwarder@example.com",
+            },
+        )
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_3"
+
+
+@pytest.mark.asyncio
+async def test_reconfig_storage_validation_error(hass, mock_imap_no_email, integration):
+    """Test validation error in reconfig storage step."""
+    entry = integration
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            "host": "imap.test.email",
+            "port": 993,
+            "username": "test@test.email",
+            "password": "password",
+            "imap_security": "SSL",
+            "verify_ssl": True,
+        },
+    )
+    with patch(
+        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+        return_value=True,
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "allow_external": False,
+                "allow_forwarded_emails": True,
+                "custom_img": True,
+                "folder": '"INBOX"',
+                "scan_interval": 20,
+                "resources": ["mail_updated"],
+            },
+        )
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow.validate_email_address",
+            return_value=True,
+        ),
+        patch("pathlib.Path.exists", return_value=True),
+        patch("os.path.isfile", return_value=True),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "forwarded_emails": "forwarder@example.com",
+            },
+        )
+    assert result["step_id"] == "reconfig_3"
+    with (
+        patch("pathlib.Path.is_file", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "custom_img_file": "test_image.gif",
+            },
+        )
+    assert result["errors"] == {}
+    assert result["step_id"] == "reconfig_storage"
+    with patch("pathlib.Path.exists", return_value=False):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "storage": "/invalid/path/does/not/exist",
+            },
+        )
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_storage"
+    assert result["errors"] != {}

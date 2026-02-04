@@ -22,30 +22,59 @@ jobs:
     steps:
       - name: 📥 Checkout the repository
         uses: actions/checkout@v4
-      - name: 🛠️ Set up Python
-        uses: actions/setup-python@v5
         with:
           fetch-depth: 2
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: 🛠️ Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install additional OS dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get -y install \
-            ffmpeg \
-            libturbojpeg
+      - name: 🚀 Install uv
+        uses: astral-sh/setup-uv@v5
       - name: 📦 Install requirements
-        run: |
-          pip install tox tox-gh-actions
-      - name: 🏃 Test with tox
-        run: tox
-      - name: 📤 Upload coverage to Codecov
-        uses: "actions/upload-artifact@v4"
+        run: uv pip install --system -r requirements_test.txt
+      - name: 🏃 Run pytest
+        run: pytest tests --cov=custom_components/mail_and_packages --cov-report=xml
+      - name: 📤 Upload coverage artifact
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-data
-          path: "coverage.xml"
+          path: coverage.xml
+
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint (ruff)
+    steps:
+      - name: 📥 Checkout the repository
+        uses: actions/checkout@v4
+      - name: 🛠️ Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: 🚀 Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: 📦 Install requirements
+        run: uv pip install --system -r requirements_test.txt
+      - name: 🧹 Run ruff format check
+        run: ruff format --check custom_components/ tests/
+      - name: 🔍 Run ruff check
+        run: ruff check custom_components/ tests/
+
+  mypy:
+    runs-on: ubuntu-latest
+    name: Type check (mypy)
+    steps:
+      - name: 📥 Checkout the repository
+        uses: actions/checkout@v4
+      - name: 🛠️ Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: 🚀 Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: 📦 Install requirements
+        run: uv pip install --system -r requirements_test.txt
+      - name: 🔎 Run mypy
+        run: mypy custom_components/mail_and_packages
 
   coverage:
     runs-on: ubuntu-latest
@@ -60,6 +89,8 @@ jobs:
         with:
           name: coverage-data
       - name: 📤 Upload coverage report
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
-          token: ${{ secrets.CODECOV_TOKEN }} # required
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: python
+          files: ./coverage.xml

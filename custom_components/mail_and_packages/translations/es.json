@@ -5,7 +5,7 @@
       "reconfigure_successful": "Reconfiguración Exitosa"
     },
     "error": {
-      "communication": "No se puede conectar o iniciar sesión en el servidor de correo. Por favor, consulte el registro para más detalles.",
+      "cannot_connect": "No se puede conectar o iniciar sesión en el servidor de correo. Por favor, consulte el registro para más detalles.",
       "invalid_path": "Guarde las imágenes en otro directorio.",
       "ffmpeg_not_found": "Generar MP4 requiere ffmpeg",
       "amazon_domain": "Dirección de correo electrónico de reenvío no válida.",

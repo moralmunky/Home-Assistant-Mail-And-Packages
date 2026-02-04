@@ -5,7 +5,7 @@
       "reconfigure_successful": "重新配置成功"
     },
     "error": {
-      "communication": "無法連接或登錄到郵件服務器。請檢查日誌以獲取詳細信息。",
+      "cannot_connect": "無法連接或登錄到郵件服務器。請檢查日誌以獲取詳細信息。",
       "invalid_path": "請將圖像存儲在另一個目錄中。",
       "ffmpeg_not_found": "生成MP4需要ffmpeg",
       "amazon_domain": "無效的轉發電郵地址。",

@@ -5,7 +5,7 @@
       "reconfigure_successful": "Omkonfigurering lyckades"
     },
     "error": {
-      "communication": "Det går inte att ansluta eller logga in på e-postservern. Kontrollera loggen för mer information.",
+      "cannot_connect": "Det går inte att ansluta eller logga in på e-postservern. Kontrollera loggen för mer information.",
       "invalid_path": "Förvara bilderna i en annan katalog.",
       "ffmpeg_not_found": "Generera MP4 kräver ffmpeg",
       "amazon_domain": "Ogiltig vidarebefordrings e-postadress.",

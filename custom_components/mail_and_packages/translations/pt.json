@@ -5,7 +5,7 @@
       "reconfigure_successful": "Reconfiguração bem-sucedida"
     },
     "error": {
-      "communication": "Não foi possível conectar ou fazer login no servidor de email. Por favor, verifique o log para obter detalhes.",
+      "cannot_connect": "Não foi possível conectar ou fazer login no servidor de email. Por favor, verifique o log para obter detalhes.",
       "invalid_path": "Por favor, guarde as imagens em outro diretório.",
       "ffmpeg_not_found": "Gerar MP4 requer ffmpeg",
       "amazon_domain": "Endereço de encaminhamento de email inválido.",
