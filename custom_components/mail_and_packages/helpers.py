@@ -2074,13 +2074,16 @@ async def amazon_search(
             )
             _LOGGER.debug("Email IDs found: %s", data[0])
 
-            image_found = await get_amazon_image(
-                data[0],
-                account,
-                image_path,
-                hass,
-                amazon_image_name,
-            ) or image_found
+            image_found = (
+                await get_amazon_image(
+                    data[0],
+                    account,
+                    image_path,
+                    hass,
+                    amazon_image_name,
+                )
+                or image_found
+            )
         else:
             _LOGGER.debug("No Amazon delivered emails found for subject '%s'", subject)
 
