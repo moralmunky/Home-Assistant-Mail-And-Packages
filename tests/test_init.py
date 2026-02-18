@@ -502,3 +502,28 @@ async def test_async_migrate_entry_missing_amazon_fwds(hass):
 
     result = await async_migrate_entry(hass, mock_entry)
     assert result is True
+
+@pytest.mark.asyncio
+async def test_get_file_hash_cache_hit():
+    """Test the file hash cache in MailDataUpdateCoordinator."""
+    mock_hass = MagicMock()
+    mock_config = FAKE_CONFIG_DATA.copy()
+    
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+        
+        file_path = "test.gif"
+        mtime = 100.0
+        file_hash = "abc123"
+        
+        # First call: populate cache
+        mock_hass.async_add_executor_job = AsyncMock(side_effect=[mtime, file_hash])
+        result1 = await coordinator._get_file_hash_if_changed(file_path)
+        assert result1 == file_hash
+        assert mock_hass.async_add_executor_job.call_count == 2
+        
+        # Second call: same mtime, should hit cache (line 271)
+        mock_hass.async_add_executor_job = AsyncMock(return_value=mtime)
+        result2 = await coordinator._get_file_hash_if_changed(file_path)
+        assert result2 == file_hash
+        assert mock_hass.async_add_executor_job.call_count == 1

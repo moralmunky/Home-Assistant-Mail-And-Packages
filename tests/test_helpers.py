@@ -4111,17 +4111,24 @@ async def test_email_search_yahoo(caplog):
 
 
 @pytest.mark.asyncio
-async def test_login_network_error(hass, caplog):
-    """Test login failure due to network error."""
-    # Patch IMAP4_SSL in the helpers module so the mock is used by the login function
+@pytest.mark.asyncio
+async def test_login_exception(hass, caplog):
+    """Test login failure due to AioImapException/OSError."""
     with (
         patch(
             "custom_components.mail_and_packages.helpers.IMAP4_SSL",
-            side_effect=OSError("Network unreachable"),
-        ),
-        pytest.raises(OSError, match="Network unreachable"),
+        ) as mock_imap_ssl,
+        pytest.raises(InvalidAuth),
     ):
+        mock_acc = AsyncMock()
+        mock_acc.wait_hello_from_server = AsyncMock()
+        mock_acc.protocol.state = aioimaplib.NONAUTH
+        mock_acc.login.side_effect = OSError("Login failed")
+        mock_imap_ssl.return_value = mock_acc
+
         await login(hass, "host", 993, "user", "pwd", "SSL", True)
+
+    assert "Error logging in to IMAP Server: Login failed" in caplog.text
 
 
 @pytest.mark.asyncio
