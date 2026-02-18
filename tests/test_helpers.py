@@ -11,6 +11,7 @@ from email.message import Message
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
+from shutil import copyfile
 from unittest import mock
 from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
@@ -20,8 +21,12 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import (
+    AMAZON_DELIVERED_SUBJECT,
+    AMAZON_ORDERED_SUBJECT,
     AMAZON_OTP,
+    AMAZON_TIME_PATTERN,
     ATTR_AMAZON_IMAGE,
+    ATTR_BODY_COUNT,
     ATTR_COUNT,
     ATTR_FEDEX_IMAGE,
     ATTR_IMAGE_NAME,
@@ -53,6 +58,7 @@ from custom_components.mail_and_packages.helpers import (
     ATTR_USPS_MAIL,
     InvalidAuth,
     _check_ffmpeg,
+    _extract_hub_code,
     _generate_mp4,
     _generic_delivery_image_extraction,
     _get_email_body,
@@ -61,6 +67,7 @@ from custom_components.mail_and_packages.helpers import (
     _scan_email_for_text,
     amazon_date_regex,
     amazon_date_search,
+    amazon_email_addresses,
     amazon_exception,
     amazon_hub,
     amazon_otp,
@@ -74,6 +81,8 @@ from custom_components.mail_and_packages.helpers import (
     email_fetch,
     email_search,
     fetch,
+    find_text,
+    generate_delivery_gif,
     generate_grid_img,
     get_amazon_image,
     get_count,
@@ -81,8 +90,10 @@ from custom_components.mail_and_packages.helpers import (
     get_items,
     get_mails,
     get_resources,
+    get_tracking,
     hash_file,
     image_file_name,
+    io_save_file,
     login,
     process_emails,
     resize_images,
@@ -96,6 +107,12 @@ from tests.const import (
     FAKE_CONFIG_DATA_CUSTOM_IMG,
     FAKE_CONFIG_DATA_NO_RND,
 )
+
+
+def load_test_email(email_file):
+    """Load test email file."""
+    return Path(email_file).read_text(encoding="utf-8")
+
 
 MAIL_IMAGE_URL_ENTITY = "sensor.mail_image_url"
 MAIL_IMAGE_SYSTEM_PATH = "sensor.mail_image_system_path"
@@ -2352,9 +2369,9 @@ async def test_walmart_delivering_email_processing(hass):
             "custom_components.mail_and_packages.helpers.email_fetch"
         ) as mock_email_fetch:
             # Read the actual test email content
-            test_email_content = Path(  # noqa: ASYNC240
-                "tests/test_emails/walmart_delivery.eml"
-            ).read_text(encoding="utf-8")
+            test_email_content = await hass.async_add_executor_job(
+                load_test_email, "tests/test_emails/walmart_delivery.eml"
+            )
 
             mock_email_fetch.return_value = (
                 "OK",
@@ -2389,8 +2406,8 @@ async def test_walmart_image_extraction(hass):
     image_name = "test_walmart.jpg"
 
     # Read the actual test email content
-    test_email_content = Path("tests/test_emails/walmart_delivered.eml").read_text(  # noqa: ASYNC240
-        encoding="utf-8"
+    test_email_content = await hass.async_add_executor_job(
+        load_test_email, "tests/test_emails/walmart_delivered.eml"
     )
 
     # Mock file operations
@@ -2665,11 +2682,11 @@ async def test_walmart_order_tracking():
         )
 
 
-async def test_get_walmart_image_with_real_email():
+async def test_get_walmart_image_with_real_email(hass):
     """Test get_walmart_image function with real Walmart delivery email."""
     # Read the actual Walmart delivery email
-    test_email = Path("tests/test_emails/walmart_delivery.eml").read_text(  # noqa: ASYNC240
-        encoding="utf-8"
+    test_email = await hass.async_add_executor_job(
+        load_test_email, "tests/test_emails/walmart_delivery.eml"
     )
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -2856,11 +2873,11 @@ iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAA
             assert result is False
 
 
-async def test_walmart_email_with_order_number():
+async def test_walmart_email_with_order_number(hass):
     """Test that Walmart emails contain order numbers that can be extracted."""
     # Read the actual Walmart delivery email
-    test_email = Path("tests/test_emails/walmart_delivery.eml").read_text(  # noqa: ASYNC240
-        encoding="utf-8"
+    test_email = await hass.async_add_executor_job(
+        load_test_email, "tests/test_emails/walmart_delivery.eml"
     )
 
     # Test that the order number is in the email content (handle MIME encoding)
@@ -2883,11 +2900,11 @@ async def test_walmart_email_with_order_number():
     assert match is not None, "Should find at least a partial order number match"
 
 
-async def test_walmart_delivered_email_with_real_data():
+async def test_walmart_delivered_email_with_real_data(hass):
     """Test Walmart delivered email processing with real email data."""
     # Read the actual Walmart delivered email
-    test_email = Path("tests/test_emails/walmart_delivered.eml").read_text(  # noqa: ASYNC240
-        encoding="utf-8"
+    test_email = await hass.async_add_executor_job(
+        load_test_email, "tests/test_emails/walmart_delivered.eml"
     )
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -2972,8 +2989,8 @@ async def test_fedex_image_extraction(hass):
     image_name = "test_fedex.jpg"
 
     # Read the actual test email content
-    test_email_content = Path("tests/test_emails/fedex_delivered.eml").read_text(  # noqa: ASYNC240
-        encoding="utf-8"
+    test_email_content = await hass.async_add_executor_job(
+        load_test_email, "tests/test_emails/fedex_delivered.eml"
     )
 
     # Mock file operations
@@ -4118,7 +4135,6 @@ async def test_login_exception(hass, caplog):
         patch(
             "custom_components.mail_and_packages.helpers.IMAP4_SSL",
         ) as mock_imap_ssl,
-        pytest.raises(InvalidAuth),
     ):
         mock_acc = AsyncMock()
         mock_acc.wait_hello_from_server = AsyncMock()
@@ -4126,7 +4142,8 @@ async def test_login_exception(hass, caplog):
         mock_acc.login.side_effect = OSError("Login failed")
         mock_imap_ssl.return_value = mock_acc
 
-        await login(hass, "host", 993, "user", "pwd", "SSL", True)
+        with pytest.raises(InvalidAuth):
+            await login(hass, "host", 993, "user", "pwd", "SSL", True)
 
     assert "Error logging in to IMAP Server: Login failed" in caplog.text
 
@@ -5659,3 +5676,555 @@ async def test_get_mails_coverage_cases(hass, caplog):
 
         assert "Unexpected html format found." in caplog.text
         assert "Discarding unnamed attachment." in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_mails_additional_coverage(hass, caplog):
+    """Test remaining uncovered lines in get_mails."""
+    mock_account = AsyncMock()
+    tmp_path = str(Path(tempfile.gettempdir()) / "images_additional")
+
+    if ATTR_USPS_MAIL not in SENSOR_DATA:
+        SENSOR_DATA[ATTR_USPS_MAIL] = {
+            ATTR_EMAIL: ["test@test.com"],
+            ATTR_SUBJECT: ["Informed Delivery"],
+        }
+
+    # 1. ValueError on decode (909-910)
+    mock_msg = MagicMock()
+    part_html_value_err = MagicMock()
+    part_html_value_err.get_content_type.return_value = "text/html"
+    # We need payload to be a bytes object whose .decode raises ValueError
+    payload_mock = MagicMock(spec=bytes)
+    payload_mock.decode.side_effect = ValueError("Simulated decode error")
+    part_html_value_err.get_payload.return_value = payload_mock
+
+    # 2. multipart part skip (967)
+    part_multipart = MagicMock()
+    part_multipart.get_content_type.return_value = "multipart"
+
+    mock_msg.walk.return_value = [part_html_value_err, part_multipart]
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.email_search",
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.email_fetch",
+            return_value=("OK", [b"raw"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.email.message_from_bytes",
+            return_value=mock_msg,
+        ),
+        patch("custom_components.mail_and_packages.helpers.Path") as mock_path,
+        patch("custom_components.mail_and_packages.helpers.BeautifulSoup"),
+    ):
+        mock_path.return_value.is_dir.return_value = True
+        hass.async_add_executor_job = AsyncMock(return_value=None)
+
+        await get_mails(hass, mock_account, tmp_path, 5, "mail.gif")
+
+    # 3. OSError on io_save_file during HTML extraction (936-938)
+    mock_msg_save_err = MagicMock()
+    part_html_save_err = MagicMock()
+    part_html_save_err.get_content_type.return_value = "text/html"
+    part_html_save_err.get_payload.return_value = (
+        b"<html><img id='mailpiece-image-src-id' "
+        b"src='data:image/jpeg;base64,AAAA'></html>"
+    )
+    mock_msg_save_err.walk.return_value = [part_html_save_err]
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.email_search",
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.email_fetch",
+            return_value=("OK", [b"raw"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.email.message_from_bytes",
+            return_value=mock_msg_save_err,
+        ),
+        patch("custom_components.mail_and_packages.helpers.Path") as mock_path,
+    ):
+        mock_path.return_value.is_dir.return_value = True
+
+        async def executor_save_err(target, *args, **kwargs):
+            if target == io_save_file:
+                raise OSError("Disk Full")
+
+        hass.async_add_executor_job = AsyncMock(side_effect=executor_save_err)
+
+        count = await get_mails(hass, mock_account, tmp_path, 5, "mail.gif")
+        assert count == 0
+        assert "Error opening filepath: Disk Full" in caplog.text
+
+    # 4. image_count == 0 with existing file removal (1043-1048) and custom_img (1052-1053)
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.email_search",
+            return_value=("OK", [b""]),
+        ),
+        patch("custom_components.mail_and_packages.helpers.Path") as mock_path,
+    ):
+        mock_path.return_value.__truediv__.return_value.is_file.return_value = True
+
+        hass.async_add_executor_job = AsyncMock(return_value=None)
+
+        await get_mails(
+            hass, mock_account, tmp_path, 5, "mail.gif", custom_img="custom.gif"
+        )
+
+        cleanup_called = False
+        copyfile_called = False
+
+        for call in hass.async_add_executor_job.call_args_list:
+            if call[0][0] == cleanup_images:
+                cleanup_called = True
+            if call[0][0] == copyfile:
+                copyfile_called = True
+                assert call[0][1] == "custom.gif"
+
+        assert cleanup_called
+        assert copyfile_called
+
+
+@pytest.mark.asyncio
+async def test_cleanup_images_directory_removed_mid_cleanup(caplog):
+    """Test cleanup_images when directory is removed during execution."""
+    path_str = "/tests/fakedir_removed/"
+
+    with (
+        patch("custom_components.mail_and_packages.helpers.Path") as mock_path,
+    ):
+        # Initial check passes
+        mock_path.return_value.is_dir.return_value = True
+        # iterdir raises FileNotFoundError (simulating removal after is_dir check)
+        mock_path.return_value.iterdir.side_effect = FileNotFoundError()
+
+        cleanup_images(path_str)
+        assert "cleanup_images - Directory removed during cleanup" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_count_additional_coverage(hass, tmp_path, caplog):
+    """Test remaining uncovered lines in get_count."""
+    mock_account = AsyncMock()
+
+    # 1. image_path=None for generic delivery (1374-1380)
+    with patch(
+        "custom_components.mail_and_packages.helpers.CAMERA_DATA", {"ups_camera": {}}
+    ):
+        result = await get_count(mock_account, "ups_delivered", image_path=None)
+        assert result[ATTR_COUNT] == 0
+        assert "get_count: image_path is None for sensor ups_delivered" in caplog.text
+
+    # 2. ATTR_BODY in SENSOR_DATA (1443+)
+    sensor_type = "test_sensor"
+    SENSOR_DATA[sensor_type] = {
+        ATTR_EMAIL: ["test@test.com"],
+        ATTR_SUBJECT: ["Test Subject"],
+        "body": ["find me"],
+        ATTR_BODY_COUNT: True,
+    }
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.email_search",
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.find_text",
+            AsyncMock(return_value=5),
+        ) as mock_find_text,
+    ):
+        result = await get_count(mock_account, sensor_type)
+        assert result[ATTR_COUNT] == 5
+        mock_find_text.assert_called_once()
+
+    # 4. Successful image extraction + coordinator updates (1498-1546)
+    data_dict = {"ups_image": "old.jpg"}
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.CAMERA_DATA",
+            {"ups_camera": {}},
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.email_search",
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.email_fetch",
+            return_value=("OK", [b"raw"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers._generic_delivery_image_extraction",
+            AsyncMock(return_value=True),
+        ),
+        patch("custom_components.mail_and_packages.helpers.Path") as mock_path,
+    ):
+        mock_path.return_value.exists.return_value = True
+        mock_path.return_value.stat.return_value.st_size = 100
+        mock_path.return_value.is_dir.return_value = True
+
+        hass.async_add_executor_job = AsyncMock(
+            side_effect=lambda f, *args: f(*args) if callable(f) else f
+        )
+
+        result = await get_count(
+            mock_account,
+            "ups_delivered",
+            image_path=str(tmp_path),
+            data=data_dict,
+            hass=hass,
+        )
+        assert data_dict["ups_image"] == "old.jpg"
+        assert "ups - File verified on disk" in caplog.text
+
+    # 5. "AMAZON" mentions in delivered emails (1587+)
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.email_search",
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.find_text",
+            AsyncMock(return_value=2),
+        ),
+    ):
+        data_dict = {"amazon_delivered_by_others": 0}
+        await get_count(
+            mock_account,
+            "ups_delivered",
+            data=data_dict,
+            image_path=str(tmp_path),
+            hass=hass,
+        )
+        assert data_dict["amazon_delivered_by_others"] == 2
+
+
+@pytest.mark.asyncio
+async def test_get_tracking_additional_coverage(hass, caplog):
+    """Test remaining uncovered lines in get_tracking."""
+    mock_account = AsyncMock()
+
+    # 1. UPS simplified search errors (1700+)
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.email_fetch",
+            return_value=("OK", [None, b"raw"]),
+        ),
+        patch("custom_components.mail_and_packages.helpers.re.compile") as mock_compile,
+    ):
+        mock_pattern = MagicMock()
+        mock_pattern.findall.side_effect = TypeError("Simulated error")
+        mock_compile.return_value = mock_pattern
+
+        ups_format = "1Z?[0-9A-Z]{16}"
+        result = await get_tracking(b"1", mock_account, ups_format)
+        assert "Error processing email content" in caplog.text
+
+    # 2. DHL space handling (1713)
+    dhl_format = "DHL [0-9]+"
+    mock_part = MagicMock()
+    mock_part.get_content_type.return_value = "text/plain"
+    mock_part.get_payload.return_value = b"DHL 12345"
+
+    mock_msg = MagicMock()
+    mock_msg.walk.return_value = [mock_part]
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.email_fetch",
+            return_value=("OK", [None, b"raw"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.email.message_from_bytes",
+            return_value=mock_msg,
+        ),
+    ):
+        result = await get_tracking(b"1", mock_account, dhl_format)
+        assert result == ["12345"]
+
+    # 3. No numbers found (1722+)
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.email_fetch",
+            return_value=("OK", [None, b"raw"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.email.message_from_bytes",
+            return_value=MagicMock(),
+        ),
+    ):
+        result = await get_tracking(b"1", mock_account, "NONEXISTENT")
+        assert result == []
+        assert "No tracking numbers found" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_find_text_additional_coverage(hass, caplog):
+    """Test remaining uncovered lines in find_text."""
+    mock_account = AsyncMock()
+    # sdata = (b'1', )
+    sdata = (b"1",)
+
+    # 1. body_count=True success (1819-1820)
+    with patch(
+        "custom_components.mail_and_packages.helpers._scan_email_for_text",
+        AsyncMock(return_value=(0, 10)),
+    ):
+        count = await find_text(sdata, mock_account, ["test"], body_count=True)
+        assert count == 10
+
+
+@pytest.mark.asyncio
+async def test_generic_delivery_image_extraction_additional_coverage(
+    hass, tmp_path, caplog
+):
+    """Test generic extraction for remaining edge cases."""
+    # 1. Base64/CID error handling (1945+, 1977+, 1983)
+    # 2. Attachment filename pattern mismatch (2003, 2009)
+
+    # Mock email with CID but error saving
+    msg_cid = MIMEMultipart("related")
+    img_part = MIMEText("fake image data")
+    img_part.set_type("image/jpeg")
+    img_part.add_header("Content-ID", "<deliveryPhoto>")
+    msg_cid.attach(img_part)
+    msg_cid.attach(MIMEText("<html><img src='cid:deliveryPhoto'></html>", "html"))
+
+    with patch(
+        "custom_components.mail_and_packages.helpers._save_image_data_to_disk",
+        return_value=False,
+    ):
+        result = _generic_delivery_image_extraction(
+            msg_cid.as_bytes(),
+            str(tmp_path),
+            "test.jpg",
+            "ups",
+            "jpeg",
+            cid_name="deliveryPhoto",
+        )
+        assert result is False
+
+    # Attachment with pattern mismatch
+    msg_att = MIMEMultipart()
+    att_part = MIMEText("data")
+    att_part.set_type("image/jpeg")
+    att_part.add_header("Content-Disposition", "attachment", filename="other.jpg")
+    msg_att.attach(att_part)
+
+    result = _generic_delivery_image_extraction(
+        msg_att.as_bytes(),
+        str(tmp_path),
+        "test.jpg",
+        "ups",
+        "jpeg",
+        attachment_filename_pattern="delivery",
+    )
+    assert result is False
+    assert (
+        "Attachment filename 'other.jpg' doesn't match pattern 'delivery'"
+        in caplog.text
+    )
+
+
+@pytest.mark.asyncio
+async def test_amazon_hub_more_coverage(hass, caplog):
+    """Test amazon_hub coverage for processed IDs."""
+    mock_account = AsyncMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.email_search",
+            return_value=("OK", [b"1 1"]),
+        ),  # Duplicate ID
+        patch(
+            "custom_components.mail_and_packages.helpers.email_fetch",
+            side_effect=[("OK", [None, b"raw"]), ("OK", [None, b"raw"])],
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers._extract_hub_code",
+            return_value="123456",
+        ),
+    ):
+        result = await amazon_hub(mock_account, fwds=["test@amazon.com"])
+        assert result[ATTR_COUNT] == 1  # Deduplicated
+        assert result[ATTR_CODE] == ["123456"]
+
+
+@pytest.mark.asyncio
+async def test_amazon_parsing_more_coverage(hass, caplog):
+    """Test more Amazon parsing code paths."""
+    # 1. _extract_hub_code decoding errors (2246+)
+    msg_bad = MagicMock()
+    msg_bad.get.return_value = "No Match"
+    msg_bad.is_multipart.return_value = False
+    msg_bad.get_payload.return_value = None
+    with patch(
+        "custom_components.mail_and_packages.helpers.quopri.decodestring",
+        side_effect=ValueError("Simulated err"),
+    ):
+        result = _extract_hub_code(msg_bad, "regex", "regex")
+        assert result is None
+        assert "Problem decoding email message" in caplog.text
+
+    # 2. amazon_email_addresses with domains containing @ (2433+)
+    addresses = amazon_email_addresses(fwds="fwd@amazon.com", the_domain="amazon.com")
+    assert "fwd@amazon.com" in addresses
+    assert "shipment-tracking@amazon.com" in addresses  # from amazon.com domain
+
+    # 3. _parse_amazon_arrival_date with email_date=None (2539)
+    with patch(
+        "custom_components.mail_and_packages.helpers.dateparser.parse",
+        return_value=datetime(2026, 1, 1),
+    ):
+        result = _parse_amazon_arrival_date("Arriving Tomorrow", None)
+        assert result == date(2026, 1, 1)
+
+
+@pytest.mark.asyncio
+async def test_get_items_more_coverage(hass, caplog):
+    """Test get_items for remaining uncovered lines."""
+    mock_account = AsyncMock()
+
+    # We'll use multiple emails
+    unique_ids = ["old_arriving", "ordered", "delivered_body", "arriving_no_order"]
+
+    # Mock _search_amazon_emails
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers._search_amazon_emails",
+            AsyncMock(return_value=unique_ids),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.email_fetch",
+            AsyncMock(return_value=("OK", [None, bytearray(b"raw")])),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.email.message_from_bytes"
+        ) as mock_from_bytes,
+        patch(
+            "custom_components.mail_and_packages.helpers._parse_amazon_arrival_date",
+            return_value=date.today(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.get_today",
+            return_value=date.today(),
+        ),
+    ):
+        # Email 1: old arriving
+        msg_old = MagicMock()
+        msg_old.get.side_effect = (
+            lambda k: "2020-01-01"
+            if k == "Date"
+            else "Arriving"
+            if k == "subject"
+            else None
+        )
+        msg_old.__getitem__.side_effect = (
+            lambda k: "Arriving" if k == "subject" else None
+        )
+
+        # Email 2: Ordered
+        msg_ordered = MagicMock()
+        msg_ordered.get.side_effect = (
+            lambda k: date.today().strftime("%Y-%m-%d")
+            if k == "Date"
+            else AMAZON_ORDERED_SUBJECT[0]
+            if k == "subject"
+            else None
+        )
+        msg_ordered.__getitem__.side_effect = (
+            lambda k: AMAZON_ORDERED_SUBJECT[0] if k == "subject" else None
+        )
+
+        # Email 3: Delivered with order in body
+        msg_deliv = MagicMock()
+        msg_deliv.get.side_effect = (
+            lambda k: date.today().strftime("%Y-%m-%d")
+            if k == "Date"
+            else AMAZON_DELIVERED_SUBJECT[0]
+            if k == "subject"
+            else None
+        )
+        msg_deliv.__getitem__.side_effect = (
+            lambda k: AMAZON_DELIVERED_SUBJECT[0] if k == "subject" else None
+        )
+
+        # Email 4: Arriving
+        msg_arr = MagicMock()
+        msg_arr.get.side_effect = (
+            lambda k: date.today().strftime("%Y-%m-%d")
+            if k == "Date"
+            else AMAZON_TIME_PATTERN[0]
+            if k == "subject"
+            else None
+        )
+        msg_arr.__getitem__.side_effect = (
+            lambda k: AMAZON_TIME_PATTERN[0] if k == "subject" else None
+        )
+
+        mock_from_bytes.side_effect = [
+            msg_old,
+            msg_ordered,
+            msg_deliv,
+            msg_arr,
+            msg_old,
+            msg_ordered,
+            msg_deliv,
+            msg_arr,
+        ]
+
+        # param="arriving" skip check (2605)
+        with patch(
+            "custom_components.mail_and_packages.helpers._get_email_body",
+            MagicMock(return_value=""),
+        ):
+            await get_items(mock_account, param="arriving")
+            # msg_old skipped.
+
+        # mock_from_bytes side_effect is already set for 8 more calls
+        with patch(
+            "custom_components.mail_and_packages.helpers._get_email_body",
+            MagicMock(side_effect=["", "111-1234567-1234567", "body"]),
+        ):
+            result = await get_items(mock_account, param="count")
+            # msg_ordered: skipped (2636)
+            # msg_deliv: delivered (2646)
+            # msg_arr: arriving no order (2676)
+            assert result == 1
+
+
+@pytest.mark.asyncio
+async def test_generate_delivery_gif_coverage(caplog):
+    """Test generate_delivery_gif success and EXIF transpose."""
+    mock_img = MagicMock()
+    with (
+        patch(
+            "custom_components.mail_and_packages.helpers.Image.open",
+            return_value=mock_img,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.ImageOps.exif_transpose",
+            return_value=mock_img,
+        ) as mock_transpose,
+    ):
+        result = generate_delivery_gif(["img1.jpg", "img2.jpg"], "out.gif")
+        assert result is True
+        assert mock_transpose.call_count == 2
+        mock_img.save.assert_called_once()
+
+    # Error case (2735)
+    with patch(
+        "custom_components.mail_and_packages.helpers.Image.open",
+        side_effect=OSError("Boom"),
+    ):
+        result = generate_delivery_gif(["img1.jpg"], "out.gif")
+        assert result is False
+        assert "Error creating animated GIF" in caplog.text
