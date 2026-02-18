@@ -354,8 +354,10 @@ class MailCam(CoordinatorEntity, Camera):
             all_image_keys,
         )
 
-        if Path(coordinator_file_path).exists() and os.access(
-            coordinator_file_path, os.R_OK
+        if await self.hass.async_add_executor_job(
+            os.path.exists, coordinator_file_path
+        ) and await self.hass.async_add_executor_job(
+            os.access, coordinator_file_path, os.R_OK
         ):
             self._file_path = coordinator_file_path
             _LOGGER.debug(
@@ -463,7 +465,7 @@ class MailCam(CoordinatorEntity, Camera):
 
         """
         # Extract base name from camera type (e.g., "amazon_camera" -> "amazon")
-        base_name = camera_type.split("_")[0]
+        base_name = camera_type.split("_", maxsplit=1)[0]
 
         # Special case for USPS (uses usps_mail instead of usps_delivered)
         if base_name == "usps":

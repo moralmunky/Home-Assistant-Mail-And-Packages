@@ -166,7 +166,23 @@ async def test_sensor(hass, mock_update):
     assert state.state == "7"
 
 
-async def test_image_path_sensor_urls(hass):
+@pytest.mark.parametrize(
+    ("external_url", "internal_url", "expected_url"),
+    [
+        (
+            "https://external.hass.url",
+            None,
+            "https://external.hass.url/local/mail_and_packages/test_image.gif",
+        ),
+        (
+            None,
+            "http://internal.hass.url",
+            "http://internal.hass.url/local/mail_and_packages/test_image.gif",
+        ),
+        (None, None, None),
+    ],
+)
+async def test_image_path_sensor_urls(hass, external_url, internal_url, expected_url):
     """Test ImagePathSensors URL generation logic."""
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -182,43 +198,16 @@ async def test_image_path_sensor_urls(hass):
     coordinator = MagicMock()
     coordinator.data = {"image_name": "test_image.gif", "image_path": "images/"}
 
-    # 1. Test with External URL
-    hass.config.external_url = "https://external.hass.url"
-    sensor = ImagePathSensors(
-        hass,
-        entry,
-        MagicMock(key="usps_mail_image_url", name="Mail Image URL"),
-        coordinator,
-    )
-    assert (
-        sensor.native_value
-        == "https://external.hass.url/local/mail_and_packages/test_image.gif"
-    )
+    hass.config.external_url = external_url
+    hass.config.internal_url = internal_url
 
-    # 2. Test with Internal URL only
-    hass.config.external_url = None
-    hass.config.internal_url = "http://internal.hass.url"
     sensor = ImagePathSensors(
         hass,
         entry,
         MagicMock(key="usps_mail_image_url", name="Mail Image URL"),
         coordinator,
     )
-    assert (
-        sensor.native_value
-        == "http://internal.hass.url/local/mail_and_packages/test_image.gif"
-    )
-
-    # 3. Test with NO URL set
-    hass.config.external_url = None
-    hass.config.internal_url = None
-    sensor = ImagePathSensors(
-        hass,
-        entry,
-        MagicMock(key="usps_mail_image_url", name="Mail Image URL"),
-        coordinator,
-    )
-    assert sensor.native_value is None
+    assert sensor.native_value == expected_url
 
 
 async def test_mail_updated_sensor_string_conversion(hass):
