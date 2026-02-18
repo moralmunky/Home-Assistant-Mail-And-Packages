@@ -179,12 +179,17 @@ async def login(
     await account.wait_hello_from_server()
 
     if account.protocol.state == NONAUTH:
-        if security == "startTLS":
-            await account.starttls(ssl_context=ssl_context)
-        await account.login(user, pwd)
+        try:
+            # Only call starttls on a non-SSL IMAP4 instance; IMAP4_SSL does not expose starttls.
+            if security == "startTLS" and isinstance(account, IMAP4):
+                await account.starttls(ssl_context=ssl_context)
+            await account.login(user, pwd)
+        except (AioImapException, OSError) as err:
+            _LOGGER.error("Error logging in to IMAP Server: %s", err)
+            raise InvalidAuth from err
 
     if account.protocol.state not in {AUTH, SELECTED}:
-        _LOGGER.error("Error loggging in to IMAP Server")
+        _LOGGER.error("Error logging in to IMAP Server")
         raise InvalidAuth
     return account
 
@@ -287,16 +292,17 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # n
 
         # Handle Directory
         shipper_path = f"{base_image_path}{name}/"
-        if not Path(shipper_path).is_dir():
-            try:
-                Path(shipper_path).mkdir(parents=True)
-                _LOGGER.debug("Created %s directory: %s", name.title(), shipper_path)
-            except OSError as err:
-                _LOGGER.error("Error creating %s directory: %s", name.title(), err)
+        try:
+            await hass.async_add_executor_job(
+                partial(os.makedirs, shipper_path, exist_ok=True)
+            )
+            _LOGGER.debug("Created %s directory: %s", name.title(), shipper_path)
+        except OSError as err:
+            _LOGGER.error("Error creating %s directory: %s", name.title(), err)
 
         # Handle Default Image
         full_img_path = f"{shipper_path}{img_name}"
-        if not Path(full_img_path).exists():
+        if not await hass.async_add_executor_job(os.path.exists, full_img_path):
             _LOGGER.debug(
                 "%s image file does not exist, creating default: %s",
                 name.title(),
@@ -351,12 +357,12 @@ def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
     # Clean up the destination directory
     for path in paths:
         # Path check
-        if not Path(path).exists():
-            try:
-                Path(path).mkdir(parents=True)
-            except OSError as err:
-                _LOGGER.error("Problem creating: %s, error returned: %s", path, err)
-                return
+        try:
+            Path(path).mkdir(parents=True, exist_ok=True)
+        except OSError as err:
+            _LOGGER.error("Problem creating: %s, error returned: %s", path, err)
+            return
+
         cleanup_images(path)
 
     try:
@@ -467,12 +473,11 @@ def image_file_name(  # noqa: C901
     image_name = os.path.split(mail_none)[1]
 
     # Path check
-    if not Path(path).exists():
-        try:
-            Path(path).mkdir(parents=True)
-        except OSError as err:
-            _LOGGER.error("Problem creating: %s, error returned: %s", path, err)
-            return image_name
+    try:
+        Path(path).mkdir(parents=True, exist_ok=True)
+    except OSError as err:
+        _LOGGER.error("Problem creating: %s, error returned: %s", path, err)
+        return image_name
 
     # SHA1 file hash check
     try:
@@ -580,12 +585,8 @@ async def fetch(  # noqa: C901
     )
 
     # Conditional variables
-    nomail = (
-        config.get(CONF_CUSTOM_IMG_FILE) if config.get(CONF_CUSTOM_IMG_FILE) else None
-    )
-    amazon_domain = (
-        config.get(CONF_AMAZON_DOMAIN) if config.get(CONF_AMAZON_DOMAIN) else None
-    )
+    nomail = config.get(CONF_CUSTOM_IMG_FILE) or None
+    amazon_domain = config.get(CONF_AMAZON_DOMAIN) or None
 
     count = {}
 
@@ -868,7 +869,7 @@ async def get_mails(  # noqa: C901
         return image_count
 
     # Check to see if the path exists, if not make it
-    if not Path(image_output_path).is_dir():
+    if not await hass.async_add_executor_job(os.path.isdir, image_output_path):
         try:
             # Fixed: Run mkdir in executor
             await hass.async_add_executor_job(
@@ -1388,7 +1389,7 @@ async def get_count(  # noqa: C901
 
         # Create directory if needed (use absolute path)
         shipper_path_obj = Path(absolute_shipper_path)
-        if not shipper_path_obj.is_dir():
+        if not await hass.async_add_executor_job(shipper_path_obj.is_dir):
             try:
                 await hass.async_add_executor_job(
                     partial(shipper_path_obj.mkdir, parents=True, exist_ok=True)
@@ -1491,8 +1492,14 @@ async def get_count(  # noqa: C901
                             expected_path_obj = Path(expected_file_path)
 
                             # If we get a result and the file exists, then we can save the image
-                            if extraction_result and expected_path_obj.exists():
-                                file_size = expected_path_obj.stat().st_size
+                            if extraction_result and await hass.async_add_executor_job(
+                                expected_path_obj.exists
+                            ):
+                                file_size = (
+                                    await hass.async_add_executor_job(
+                                        expected_path_obj.stat
+                                    )
+                                ).st_size
                                 _LOGGER.debug(
                                     "%s - File verified on disk: %s (%d bytes)",
                                     shipper_name,
@@ -1593,13 +1600,13 @@ async def get_count(  # noqa: C901
         if count == 0 and not new_image_saved and no_delivery_image_file:
             # Clean up image directory before setting default (use absolute path)
             # Only clean up if directory exists
-            if Path(absolute_shipper_path).is_dir():
+            if await hass.async_add_executor_job(os.path.isdir, absolute_shipper_path):
                 await hass.async_add_executor_job(cleanup_images, absolute_shipper_path)
 
             try:
                 # Ensure directory exists before copying (use absolute path)
                 shipper_dir = Path(absolute_shipper_path)
-                if not shipper_dir.is_dir():
+                if not await hass.async_add_executor_job(shipper_dir.is_dir):
                     await hass.async_add_executor_job(
                         partial(shipper_dir.mkdir, parents=True, exist_ok=True)
                     )

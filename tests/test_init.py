@@ -283,7 +283,7 @@ async def test_coordinator_binary_sensor_update_usps_hash_comparison():
         # Mock async_add_executor_job to return mtimes AND hashes
         # Order: mtime(img), hash(img), mtime(none), hash(none)
         mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[100.0, "hash1", 100.0, "hash2"]
+            side_effect=[True, 100.0, "hash1", 100.0, "hash2"]
         )
 
         with (
@@ -320,7 +320,7 @@ async def test_coordinator_binary_sensor_update_amazon_hash_comparison():
         # Mock async_add_executor_job to return mtimes AND hashes
         # Order: mtime(img), hash(img), mtime(none), hash(none)
         mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[100.0, "hash1", 100.0, "hash2"]
+            side_effect=[True, 100.0, "hash1", 100.0, "hash2"]
         )
 
         with (
@@ -357,7 +357,7 @@ async def test_coordinator_binary_sensor_update_ups_hash_comparison():
         # Mock async_add_executor_job to return mtimes AND hashes
         # Order: mtime(img), hash(img), mtime(none), hash(none)
         mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[100.0, "hash1", 100.0, "hash2"]
+            side_effect=[True, 100.0, "hash1", 100.0, "hash2"]
         )
 
         with (
@@ -394,7 +394,7 @@ async def test_coordinator_binary_sensor_update_same_hashes():
         # Mock async_add_executor_job to return mtimes AND hashes
         # Order: mtime(img), hash(img), mtime(none), hash(none)
         mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[100.0, "same_hash", 100.0, "same_hash"]
+            side_effect=[True, 100.0, "same_hash", 100.0, "same_hash"]
         )
 
         with (

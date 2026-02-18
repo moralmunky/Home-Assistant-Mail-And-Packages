@@ -458,7 +458,7 @@ async def test_get_mails_makedirs_error(
     """Test error handling when creating mail directories fails."""
     # Fix: Patch pathlib.Path.is_dir and pathlib.Path.mkdir
     with (
-        patch("pathlib.Path.is_dir", return_value=False),
+        patch("os.path.isdir", return_value=False),
         patch("pathlib.Path.mkdir", side_effect=OSError("Permission denied")),
     ):
         await get_mails(hass, mock_imap_no_email, "./", "5", "mail_today.gif", False)
@@ -1480,7 +1480,7 @@ async def test_login_error(hass, mock_imap_login_error, caplog):
     with pytest.raises(InvalidAuth):
         await login(hass, "localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
     assert (
-        "Error loggging in to IMAP Server" in caplog.text
+        "Error logging in to IMAP Server" in caplog.text
         or "Error testing login to IMAP Server" in caplog.text
     )
 
@@ -2352,7 +2352,7 @@ async def test_walmart_delivering_email_processing(hass):
             "custom_components.mail_and_packages.helpers.email_fetch"
         ) as mock_email_fetch:
             # Read the actual test email content
-            test_email_content = Path(
+            test_email_content = Path(  # noqa: ASYNC240
                 "tests/test_emails/walmart_delivery.eml"
             ).read_text(encoding="utf-8")
 
@@ -2389,7 +2389,7 @@ async def test_walmart_image_extraction(hass):
     image_name = "test_walmart.jpg"
 
     # Read the actual test email content
-    test_email_content = Path("tests/test_emails/walmart_delivered.eml").read_text(
+    test_email_content = Path("tests/test_emails/walmart_delivered.eml").read_text(  # noqa: ASYNC240
         encoding="utf-8"
     )
 
@@ -2668,7 +2668,7 @@ async def test_walmart_order_tracking():
 async def test_get_walmart_image_with_real_email():
     """Test get_walmart_image function with real Walmart delivery email."""
     # Read the actual Walmart delivery email
-    test_email = Path("tests/test_emails/walmart_delivery.eml").read_text(
+    test_email = Path("tests/test_emails/walmart_delivery.eml").read_text(  # noqa: ASYNC240
         encoding="utf-8"
     )
 
@@ -2859,7 +2859,7 @@ iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAA
 async def test_walmart_email_with_order_number():
     """Test that Walmart emails contain order numbers that can be extracted."""
     # Read the actual Walmart delivery email
-    test_email = Path("tests/test_emails/walmart_delivery.eml").read_text(
+    test_email = Path("tests/test_emails/walmart_delivery.eml").read_text(  # noqa: ASYNC240
         encoding="utf-8"
     )
 
@@ -2886,7 +2886,7 @@ async def test_walmart_email_with_order_number():
 async def test_walmart_delivered_email_with_real_data():
     """Test Walmart delivered email processing with real email data."""
     # Read the actual Walmart delivered email
-    test_email = Path("tests/test_emails/walmart_delivered.eml").read_text(
+    test_email = Path("tests/test_emails/walmart_delivered.eml").read_text(  # noqa: ASYNC240
         encoding="utf-8"
     )
 
@@ -2972,7 +2972,7 @@ async def test_fedex_image_extraction(hass):
     image_name = "test_fedex.jpg"
 
     # Read the actual test email content
-    test_email_content = Path("tests/test_emails/fedex_delivered.eml").read_text(
+    test_email_content = Path("tests/test_emails/fedex_delivered.eml").read_text(  # noqa: ASYNC240
         encoding="utf-8"
     )
 
@@ -3125,7 +3125,7 @@ async def test_process_emails_ups_directory_creation_error(hass, caplog):
             "custom_components.mail_and_packages.helpers.image_file_name",
             return_value="test_image.jpg",
         ),
-        patch("pathlib.Path.is_dir", return_value=False),
+        patch("os.path.isdir", return_value=False),
         patch("pathlib.Path.exists", return_value=False),
         patch("pathlib.Path.mkdir") as mock_mkdir,
         patch("custom_components.mail_and_packages.helpers.copyfile"),
@@ -3277,8 +3277,35 @@ async def test_login_starttls_security(hass):
         mock_acc = AsyncMock()
         mock_imap.return_value = mock_acc
 
+    class MockIMAP4(AsyncMock):
+        """Mock IMAP4 class that behaves like an AsyncMock."""
+
+        _initialized = False
+
+        def __new__(cls, *args, **kwargs):
+            return super().__new__(cls)
+
+        def __init__(self, *args, **kwargs):
+            if not self._initialized:
+                super().__init__()
+                self._initialized = True
+
+    # Pre-create the instance we want to use/configure
+    mock_acc = MockIMAP4()
+    mock_acc.protocol.state = aioimaplib.NONAUTH
+
+    # Override __new__ to always return our shared instance
+    def new_mock(cls, *args, **kwargs):
+        return mock_acc
+
+    MockIMAP4.__new__ = new_mock
+
+    # Patch IMAP4 directly since 'aioimaplib' module is not exposed in helpers
+    with patch(
+        "custom_components.mail_and_packages.helpers.IMAP4", new=MockIMAP4
+    ) as mock_imap:
         # Initial state must be NONAUTH to trigger the login logic in the helper
-        mock_acc.protocol.state = aioimaplib.NONAUTH
+        # mock_acc.protocol.state = aioimaplib.NONAUTH # Already set above
 
         # Simulate state change to AUTH upon login to pass the final validation check
         async def login_side_effect(*args, **kwargs):
@@ -3969,7 +3996,7 @@ async def test_process_emails_fedex_dir_creation_error(hass, integration, caplog
 
     # Simulate error during mkdir
     with (
-        patch("pathlib.Path.is_dir", side_effect=is_dir_side_effect, autospec=True),
+        patch("os.path.isdir", side_effect=is_dir_side_effect),
         patch("pathlib.Path.mkdir", side_effect=OSError("Permission denied")),
         patch("custom_components.mail_and_packages.helpers.copyfile"),
         patch(
@@ -4409,7 +4436,7 @@ async def test_process_emails_shipper_mkdir_error(hass, caplog):
             new_callable=AsyncMock,
             return_value=True,
         ),
-        patch("pathlib.Path.is_dir", return_value=False),
+        patch("os.path.isdir", return_value=False),
         patch("pathlib.Path.mkdir", side_effect=OSError("Read-only file system")),
     ):
         await process_emails(hass, config)

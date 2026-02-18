@@ -3181,7 +3181,7 @@ async def test_walmart_custom_image_validation():
 
     finally:
         # Clean up temp file
-        Path(temp_file_path).unlink(missing_ok=True)
+        Path(temp_file_path).unlink(missing_ok=True)  # noqa: ASYNC240
 
     # Test 2: Invalid Walmart custom image file (doesn't exist)
     user_input = {
@@ -3359,7 +3359,7 @@ async def test_generic_custom_image_validation(hass: HomeAssistant, mock_imap_no
 
     finally:
         # Clean up temp file
-        Path(temp_file_path).unlink(missing_ok=True)
+        Path(temp_file_path).unlink(missing_ok=True)  # noqa: ASYNC240
 
 
 async def test_generic_custom_image_in_config_flow(
@@ -3581,7 +3581,7 @@ async def test_walmart_config_flow_integration():
 
     finally:
         # Clean up temp file
-        Path(temp_file_path).unlink(missing_ok=True)
+        Path(temp_file_path).unlink(missing_ok=True)  # noqa: ASYNC240
 
     # Test 2: Validate Walmart custom image file does not exist
     user_input = {

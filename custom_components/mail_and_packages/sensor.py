@@ -62,7 +62,7 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         self,
         config: ConfigEntry,
         sensor_description: SensorEntityDescription,
-        coordinator: str,
+        coordinator: Any,
     ):
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -163,7 +163,7 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
         hass: HomeAssistant,
         config: ConfigEntry,
         sensor_description: SensorEntityDescription,
-        coordinator: str,
+        coordinator: Any,
     ):
         """Initialize the sensor."""
         super().__init__(coordinator)

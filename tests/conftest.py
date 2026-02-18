@@ -107,79 +107,53 @@ def mock_update():
         yield mock_update
 
 
-@pytest.fixture(name="integration")
-async def integration_fixture(hass):
-    """Set up the mail_and_packages integration."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
-        version=CONFIG_VER,
-    )
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+@pytest.fixture(name="integration_factory")
+async def integration_factory_fixture(hass):
+    """Return a factory to set up the mail_and_packages integration."""
 
-    return entry
+    async def _setup(data, version=CONFIG_VER):
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            title="imap.test.email",
+            data=data,
+            version=version,
+        )
+        entry.add_to_hass(hass)
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        return entry
+
+    return _setup
+
+
+@pytest.fixture(name="integration")
+async def integration_fixture(integration_factory):
+    """Set up the mail_and_packages integration."""
+    return await integration_factory(FAKE_CONFIG_DATA)
 
 
 @pytest.fixture(name="integration_no_amazon")
-async def integration_fixture_no_amazon(hass):
+async def integration_fixture_no_amazon(integration_factory):
     """Set up integration with no Amazon sensors and no custom images."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_NO_AMAZON,
-        version=CONFIG_VER,
-    )
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    return entry
+    return await integration_factory(FAKE_CONFIG_DATA_NO_AMAZON)
 
 
 @pytest.fixture(name="integration_no_path")
-async def integration_fixture_2(hass):
+async def integration_fixture_2(integration_factory):
     """Set up the mail_and_packages integration."""
-    entry = MockConfigEntry(
-        domain=DOMAIN, title="imap.test.email", data=FAKE_CONFIG_DATA_NO_PATH, version=3
-    )
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    return entry
+    return await integration_factory(FAKE_CONFIG_DATA_NO_PATH, 3)
 
 
 @pytest.fixture(name="integration_no_timeout")
-async def integration_fixture_3(hass):
+async def integration_fixture_3(integration_factory):
     """Set up the mail_and_packages integration."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_MISSING_TIMEOUT,
-        version=3,
-    )
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    return entry
+    return await integration_factory(FAKE_CONFIG_DATA_MISSING_TIMEOUT, 3)
 
 
 @pytest.fixture(name="integration_fwd_string")
-async def integration_fixture_4(hass, caplog):
+async def integration_fixture_4(integration_factory, caplog):
     """Set up the mail_and_packages integration."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_AMAZON_FWD_STRING,
-        version=3,
-    )
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = await integration_factory(FAKE_CONFIG_DATA_AMAZON_FWD_STRING, 3)
 
     assert "Migrating from version 3" in caplog.text
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
@@ -190,81 +164,33 @@ async def integration_fixture_4(hass, caplog):
 
 
 @pytest.fixture(name="integration_custom_img")
-async def integration_fixture_5(hass):
+async def integration_fixture_5(integration_factory):
     """Set up the mail_and_packages integration."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
-    )
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    return entry
+    return await integration_factory(FAKE_CONFIG_DATA_CUSTOM_IMG)
 
 
 @pytest.fixture(name="integration_fake_external")
-async def integration_fixture_6(hass):
+async def integration_fixture_6(integration_factory):
     """Set up the mail_and_packages integration."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_EXTERNAL,
-    )
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    return entry
+    return await integration_factory(FAKE_CONFIG_DATA_EXTERNAL)
 
 
 @pytest.fixture(name="integration_v4_migration")
-async def integration_fixture_7(hass):
+async def integration_fixture_7(integration_factory):
     """Set up the mail_and_packages integration."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_V4_MIGRATE,
-        version=4,
-    )
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    return entry
+    return await integration_factory(FAKE_CONFIG_DATA_V4_MIGRATE, 4)
 
 
 @pytest.fixture(name="integration_capost")
-async def integration_fixture_8(hass):
+async def integration_fixture_8(integration_factory):
     """Set up the mail_and_packages integration."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_CAPOST,
-        version=CONFIG_VER,
-    )
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    return entry
+    return await integration_factory(FAKE_CONFIG_DATA_CAPOST)
 
 
 @pytest.fixture(name="integration_forwarded_emails_no_amazon")
-async def integration_fixture_9(hass):
+async def integration_fixture_9(integration_factory):
     """Set up the mail_and_packages integration."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_FORWARDED_EMAILS_NO_AMAZON,
-        version=CONFIG_VER,
-    )
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    return entry
+    return await integration_factory(FAKE_CONFIG_DATA_FORWARDED_EMAILS_NO_AMAZON)
 
 
 @pytest.fixture
