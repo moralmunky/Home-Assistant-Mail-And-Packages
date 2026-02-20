@@ -2075,7 +2075,7 @@ async def amazon_search(
             _LOGGER.debug("Email IDs found: %s", data[0])
 
             image_found = (
-                await get_amazon_image(
+                get_amazon_image(
                     data[0],
                     account,
                     image_path,

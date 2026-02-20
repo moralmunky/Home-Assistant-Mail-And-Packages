@@ -158,6 +158,7 @@ AMAZON_SHIPMENT_TRACKING = [
 AMAZON_SHIPMENT_SUBJECT = [
     "Shipped:",
     "Enviado:",
+    "Out for delivery:",
 ]
 AMAZON_ORDERED_SUBJECT = ["Ordered:", "Pedido efetuado:"]
 AMAZON_EMAIL = ["order-update@", "update-bestelling@", "versandbestaetigung@"]
