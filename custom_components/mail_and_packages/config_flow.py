@@ -1,4 +1,5 @@
 """Adds config flow for Mail and Packages."""
+from __future__ import annotations
 
 import logging
 from os import path
@@ -7,6 +8,11 @@ from typing import Any
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
+
+try:
+    from homeassistant.config_entries import ConfigFlowResult
+except ImportError:
+    from homeassistant.data_entry_flow import FlowResult as ConfigFlowResult
 from homeassistant.const import (
     CONF_HOST,
     CONF_PASSWORD,
@@ -379,7 +385,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self._data = {}
         self._errors = {}
 
-    async def async_step_user(self, user_input=None):
+    async def async_step_user(self, user_input=None) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
         self._errors = {}
 
@@ -401,7 +407,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_form(user_input)
 
-    async def _show_config_form(self, user_input):
+    async def _show_config_form(self, user_input) -> ConfigFlowResult:
         """Show the configuration form to edit configuration data."""
         # Defaults
         defaults = {
@@ -414,12 +420,12 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
-    async def async_step_reauth(self, entry_data: dict[str, Any] | None = None):
+    async def async_step_reauth(self, entry_data: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle reauthorization flow triggered by auth failure."""
         self._data = dict(entry_data) if entry_data else {}
         return await self.async_step_reauth_confirm()
 
-    async def async_step_reauth_confirm(self, user_input=None):
+    async def async_step_reauth_confirm(self, user_input=None) -> ConfigFlowResult:
         """Handle reauth credentials input."""
         self._errors = {}
 
@@ -460,7 +466,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
-    async def async_step_config_2(self, user_input=None):
+    async def async_step_config_2(self, user_input=None) -> ConfigFlowResult:
         """Configure form step 2."""
         self._errors = {}
         if user_input is not None:
@@ -478,7 +484,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_2(user_input)
 
-    async def _show_config_2(self, user_input):
+    async def _show_config_2(self, user_input) -> ConfigFlowResult:
         """Step 2 setup."""
         # Defaults
         defaults = {
@@ -501,7 +507,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
-    async def async_step_config_advanced(self, user_input=None):
+    async def async_step_config_advanced(self, user_input=None) -> ConfigFlowResult:
         """Configure advanced tracking features."""
         self._errors = {}
         if user_input is not None:
@@ -516,7 +522,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_advanced(user_input)
 
-    async def _show_config_advanced(self, user_input):
+    async def _show_config_advanced(self, user_input) -> ConfigFlowResult:
         """Show advanced tracking configuration form."""
         defaults = {
             CONF_TRACKING_SERVICE: DEFAULT_TRACKING_SERVICE,
@@ -537,7 +543,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
-    async def async_step_config_3(self, user_input=None):
+    async def async_step_config_3(self, user_input=None) -> ConfigFlowResult:
         """Configure form step 3."""
         self._errors = {}
         if user_input is not None:
@@ -551,7 +557,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_3(user_input)
 
-    async def _show_config_3(self, user_input):
+    async def _show_config_3(self, user_input) -> ConfigFlowResult:
         """Step 3 setup."""
         # Defaults
         defaults = {
@@ -579,7 +585,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         self._data = {}
         self._errors = {}
 
-    async def async_step_init(self, user_input=None):
+    async def async_step_init(self, user_input=None) -> ConfigFlowResult:
         """Manage Mail and Packages options."""
         if not self._data:
             self._data = dict(self.config_entry.options)
@@ -602,7 +608,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
         return await self._show_options_form(user_input)
 
-    async def _show_options_form(self, user_input):
+    async def _show_options_form(self, user_input) -> ConfigFlowResult:
         """Show the configuration form to edit location data."""
         return self.async_show_form(
             step_id="init",
@@ -610,7 +616,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             errors=self._errors,
         )
 
-    async def async_step_options_2(self, user_input=None):
+    async def async_step_options_2(self, user_input=None) -> ConfigFlowResult:
         """Configure form step 2."""
         self._errors = {}
         if user_input is not None:
@@ -625,7 +631,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             return await self._show_step_options_2(user_input)
         return await self._show_step_options_2(user_input)
 
-    async def _show_step_options_2(self, user_input):
+    async def _show_step_options_2(self, user_input) -> ConfigFlowResult:
         """Step 2 of options."""
         # Defaults
         defaults = {
@@ -660,7 +666,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             errors=self._errors,
         )
 
-    async def async_step_options_advanced(self, user_input=None):
+    async def async_step_options_advanced(self, user_input=None) -> ConfigFlowResult:
         """Configure advanced tracking features in options flow."""
         self._errors = {}
         if user_input is not None:
@@ -673,7 +679,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
         return await self._show_step_options_advanced(user_input)
 
-    async def _show_step_options_advanced(self, user_input):
+    async def _show_step_options_advanced(self, user_input) -> ConfigFlowResult:
         """Show advanced tracking options form."""
         defaults = {
             CONF_TRACKING_SERVICE: self._data.get(CONF_TRACKING_SERVICE)
@@ -704,7 +710,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             errors=self._errors,
         )
 
-    async def async_step_options_3(self, user_input=None):
+    async def async_step_options_3(self, user_input=None) -> ConfigFlowResult:
         """Configure form step 3."""
         self._errors = {}
         if user_input is not None:
@@ -716,7 +722,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
         return await self._show_step_options_3(user_input)
 
-    async def _show_step_options_3(self, user_input):
+    async def _show_step_options_3(self, user_input) -> ConfigFlowResult:
         """Step 3 setup."""
         # Defaults
         defaults = {

@@ -1,11 +1,14 @@
 """Mail and Packages Integration."""
+from __future__ import annotations
+
 import logging
+from dataclasses import dataclass, field
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_RESOURCES, CONF_USERNAME
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -37,7 +40,6 @@ from .const import (
     CONF_TRACKING_FORWARD_ENABLED,
     CONF_TRACKING_SERVICE,
     CONF_TRACKING_SERVICE_ENTRY_ID,
-    COORDINATOR,
     DEFAULT_AMAZON_DAYS,
     DEFAULT_IMAP_TIMEOUT,
     DOMAIN,
@@ -57,6 +59,14 @@ from .helpers import (
 _LOGGER = logging.getLogger(__name__)
 
 
+@dataclass
+class MailAndPackagesData:
+    """Runtime data for the Mail and Packages integration."""
+
+    coordinator: MailDataUpdateCoordinator
+    cameras: list = field(default_factory=list)
+
+
 async def async_setup(
     hass: HomeAssistant, config_entry: ConfigEntry
 ):  # pylint: disable=unused-argument
@@ -71,7 +81,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         VERSION,
         ISSUE_URL,
     )
-    hass.data.setdefault(DOMAIN, {})
     updated_config = config_entry.data.copy()
 
     # Set amazon fwd blank if missing
@@ -154,19 +163,15 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     interval = config.get(CONF_SCAN_INTERVAL)
 
     # Setup the data coordinator
-    coordinator = MailDataUpdateCoordinator(hass, host, the_timeout, interval, config)
+    coordinator = MailDataUpdateCoordinator(
+        hass, host, the_timeout, interval, config, config_entry
+    )
 
     # Fetch initial data so we have data when entities subscribe
-    await coordinator.async_refresh()
+    # Raises ConfigEntryNotReady automatically if first refresh fails
+    await coordinator.async_config_entry_first_refresh()
 
-    # Raise ConfEntryNotReady if coordinator didn't update
-    if not coordinator.last_update_success:
-        _LOGGER.error("Error updating sensor data: %s", coordinator.last_exception)
-        raise ConfigEntryNotReady
-
-    hass.data[DOMAIN][config_entry.entry_id] = {
-        COORDINATOR: coordinator,
-    }
+    config_entry.runtime_data = MailAndPackagesData(coordinator=coordinator)
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
@@ -183,7 +188,6 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 
     if unload_ok:
         _LOGGER.debug("Successfully removed sensors from the %s integration", DOMAIN)
-        hass.data[DOMAIN].pop(config_entry.entry_id)
 
     return unload_ok
 
@@ -323,17 +327,24 @@ async def async_migrate_entry(hass, config_entry):
 class MailDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching mail data."""
 
-    def __init__(self, hass, host, the_timeout, interval, config):
+    def __init__(self, hass, host, the_timeout, interval, config, config_entry=None):
         """Initialize."""
         self.interval = timedelta(minutes=interval)
         self.name = f"Mail and Packages ({host})"
         self.timeout = the_timeout
         self.config = config
-        self.hass = hass
+        self._tracking_forwarded: set = set()
 
         _LOGGER.debug("Data will be updated every %s", self.interval)
 
-        super().__init__(hass, _LOGGER, name=self.name, update_interval=self.interval)
+        # Pass config_entry if the base class supports it (HA 2024.4+)
+        kwargs = {"name": self.name, "update_interval": self.interval}
+        import inspect
+
+        if "config_entry" in inspect.signature(DataUpdateCoordinator.__init__).parameters:
+            kwargs["config_entry"] = config_entry
+
+        super().__init__(hass, _LOGGER, **kwargs)
 
     async def _async_update_data(self):
         """Fetch data."""
@@ -401,12 +412,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                     carrier_map,
                     already_forwarded,
                 )
-                # Update the persistent forwarded set
-                domain_data = self.hass.data.get(DOMAIN, {})
-                forwarded_key = "_tracking_forwarded_set"
-                if forwarded_key not in domain_data:
-                    domain_data[forwarded_key] = set()
-                domain_data[forwarded_key].update(newly_forwarded)
+                # Update the persistent forwarded set on coordinator
+                self._tracking_forwarded.update(newly_forwarded)
                 data["tracking_service_forwarded"] = len(newly_forwarded)
 
         # LLM email analysis (opt-in, privacy-sensitive)
@@ -480,17 +487,13 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                             t["number"]: t.get("carrier", "Amazon")
                             for t in amazon_result.get("orders", [])
                         }
-                        domain_data = self.hass.data.get(DOMAIN, {})
-                        already = domain_data.get(
-                            "_tracking_forwarded_set", set()
-                        )
                         await forward_to_tracking_service(
                             self.hass,
                             service_key,
                             entry_id,
                             amazon_result[ATTR_TRACKING],
                             carrier_map,
-                            already,
+                            self._tracking_forwarded,
                         )
 
         # Clean up internal config keys from data before it reaches sensors

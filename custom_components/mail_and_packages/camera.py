@@ -14,11 +14,9 @@ from .const import (
     ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
-    CAMERA,
     CAMERA_DATA,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
-    COORDINATOR,
     DOMAIN,
     SENSOR_NAME,
     VERSION,
@@ -30,10 +28,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config, async_add_entities):
     """Set up the Camera that works with local files."""
-    if CAMERA not in hass.data[DOMAIN][config.entry_id]:
-        hass.data[DOMAIN][config.entry_id][CAMERA] = []
-
-    coordinator = hass.data[DOMAIN][config.entry_id][COORDINATOR]
+    coordinator = config.runtime_data.coordinator
     camera = []
     if not config.data.get(CONF_CUSTOM_IMG):
         file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
@@ -43,12 +38,12 @@ async def async_setup_entry(hass, config, async_add_entities):
     for variable in CAMERA_DATA:
         temp_cam = MailCam(hass, variable, config, coordinator, file_path)
         camera.append(temp_cam)
-        hass.data[DOMAIN][config.entry_id][CAMERA].append(temp_cam)
+        config.runtime_data.cameras.append(temp_cam)
 
     async def _update_image(service: ServiceCall) -> None:
         """Refresh camera image."""
         _LOGGER.debug("Updating image: %s", service)
-        cameras = hass.data[DOMAIN][config.entry_id][CAMERA]
+        cameras = config.runtime_data.cameras
         entity_id = None
 
         if ATTR_ENTITY_ID in service.data.keys():

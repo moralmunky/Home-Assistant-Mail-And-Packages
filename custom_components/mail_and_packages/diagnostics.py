@@ -13,8 +13,6 @@ from homeassistant.helpers.device_registry import DeviceEntry
 from .const import (
     CONF_AMAZON_COOKIES,
     CONF_LLM_API_KEY,
-    COORDINATOR,
-    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,7 +37,7 @@ async def async_get_device_diagnostics(
     device: DeviceEntry,  # pylint: disable=unused-argument
 ) -> dict[str, Any]:
     """Return diagnostics for a device."""
-    coordinator = hass.data[DOMAIN][config_entry.entry_id][COORDINATOR]
+    coordinator = config_entry.runtime_data.coordinator
 
     # Build a per-call redaction set (don't mutate module-level state)
     redact_keys = set(_BASE_REDACT_KEYS)

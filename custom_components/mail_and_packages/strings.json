@@ -87,7 +87,7 @@
       "amazon_domain": "Invalid forwarding email address.",
       "file_not_found": "Image file not found",
       "scan_too_low": "Scan interval too low (minimum 5)",
-      "timeout_too_low": "IMAP timeout too low (minumim 10)"
+      "timeout_too_low": "IMAP timeout too low (minimum 10)"
     },
     "step": {
       "init": {

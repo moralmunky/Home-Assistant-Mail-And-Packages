@@ -13,10 +13,8 @@ ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["camera", "sensor"]
 DATA = "data"
-COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
 SERVICE_UPDATE_FILE_PATH = "update_file_path"
-CAMERA = "cameras"
 
 # Attributes
 ATTR_AMAZON_IMAGE = "amazon_image"
@@ -209,57 +207,62 @@ AMAZON_LANGS = [
 ]
 
 # Universal tracking number patterns (for scanning all emails)
-# These are more specific than per-carrier patterns to reduce false positives
-# when scanning arbitrary emails
+# These are deliberately MORE SPECIFIC than per-carrier patterns to reduce
+# false positives when scanning arbitrary emails. Carriers with overly generic
+# patterns (pure digit sequences < 20 digits) are excluded or tightened.
 UNIVERSAL_TRACKING_PATTERNS: Final[dict[str, dict[str, str]]] = {
     "usps": {
+        # USPS: starts with 92/93/94/95, 17-28 digits total (distinctive prefix)
         "pattern": r"(?:^|\b)(9[2345]\d{15,26})(?:\b|$)",
         "name": "USPS",
     },
     "ups": {
+        # UPS: starts with 1Z followed by 16 alphanumeric chars (very distinctive)
         "pattern": r"(?:^|\b)(1Z[0-9A-Z]{16})(?:\b|$)",
         "name": "UPS",
     },
     "fedex": {
-        "pattern": r"(?:^|\b)(\d{12}(?:\d{0,8}))(?:\b|$)",
+        # FedEx: exactly 12, 15, or 20 digits (not a range to avoid matching
+        # credit card numbers, phone numbers, etc.)
+        "pattern": r"(?:^|\b)(\d{12}|\d{15}|\d{20})(?:\b|$)",
         "name": "FedEx",
     },
     "dhl": {
-        "pattern": r"(?:^|\b)(\d{10,11})(?:\b|$)",
+        # DHL Express: JJD/JD prefix followed by digits (distinctive prefix avoids
+        # matching arbitrary 10-11 digit numbers like phone numbers)
+        "pattern": r"(?:^|\b)((?:JJD|JD)\d{8,18})(?:\b|$)",
         "name": "DHL",
     },
-    "hermes": {
-        "pattern": r"(?:^|\b)(\d{16})(?:\b|$)",
-        "name": "Hermes",
-    },
     "royal_mail": {
+        # Royal Mail: 2 letters + 9 digits + GB suffix (very distinctive)
         "pattern": r"(?:^|\b)([A-Za-z]{2}[0-9]{9}GB)(?:\b|$)",
         "name": "Royal Mail",
     },
-    "canada_post": {
-        "pattern": r"(?:^|\b)(\d{16})(?:\b|$)",
-        "name": "Canada Post",
-    },
     "australia_post": {
+        # Australia Post: 2 letters + 9 digits + AU suffix (very distinctive)
         "pattern": r"(?:^|\b)([A-Za-z]{2}[0-9]{9}AU)(?:\b|$)",
         "name": "Australia Post",
     },
     "poczta_polska": {
+        # Poczta Polska: exactly 20 digits (long enough to be distinctive)
         "pattern": r"(?:^|\b)(\d{20})(?:\b|$)",
         "name": "Poczta Polska",
     },
     "inpost": {
+        # InPost: exactly 24 digits (very long, very distinctive)
         "pattern": r"(?:^|\b)(\d{24})(?:\b|$)",
         "name": "InPost",
     },
     "dpd": {
+        # DPD: 13 digits + 1-2 alphanumeric chars (mixed format is distinctive)
         "pattern": r"(?:^|\b)(\d{13}[A-Z0-9]{1,2})(?:\b|$)",
         "name": "DPD",
     },
-    "gls": {
-        "pattern": r"(?:^|\b)(\d{11})(?:\b|$)",
-        "name": "GLS",
-    },
+    # NOTE: Hermes (\d{16}), Canada Post (\d{16}), and GLS (\d{11}) are
+    # intentionally excluded from universal scanning because their patterns
+    # (pure digit sequences) match credit card numbers, phone numbers, and
+    # other common numeric strings. These carriers are still detected via
+    # their sender-specific email matching in SENSOR_DATA.
 }
 
 # Sensor Data
