@@ -239,7 +239,16 @@ def _process_emails_inner(
 
     # Only update sensors we're intrested in
     for sensor in resources:
-        fetch(hass, config, account, data, sensor)
+        try:
+            fetch(hass, config, account, data, sensor)
+        except Exception as err:
+            _LOGGER.error(
+                "Error processing sensor %s: %s: %s",
+                sensor,
+                type(err).__name__,
+                err,
+            )
+            data[sensor] = 0
 
     # --- Advanced Tracking Features (all opt-in) ---
 
@@ -248,14 +257,22 @@ def _process_emails_inner(
 
     # Universal email scanning (opt-in, local-only)
     if config.get(CONF_SCAN_ALL_EMAILS, False):
-        _LOGGER.debug("Universal email scanning enabled")
-        universal_result = scan_all_emails_for_tracking(account, known_tracking)
-        data["email_tracking_numbers"] = universal_result[ATTR_COUNT]
-        data[ATTR_UNIVERSAL_TRACKING] = universal_result[ATTR_TRACKING]
-        data["universal_carrier_map"] = universal_result.get("carrier_map", {})
+        try:
+            _LOGGER.debug("Universal email scanning enabled")
+            universal_result = scan_all_emails_for_tracking(account, known_tracking)
+            data["email_tracking_numbers"] = universal_result[ATTR_COUNT]
+            data[ATTR_UNIVERSAL_TRACKING] = universal_result[ATTR_TRACKING]
+            data["universal_carrier_map"] = universal_result.get("carrier_map", {})
 
-        # Add universal findings to known tracking for dedup downstream
-        known_tracking.extend(universal_result[ATTR_TRACKING])
+            # Add universal findings to known tracking for dedup downstream
+            known_tracking.extend(universal_result[ATTR_TRACKING])
+        except Exception as err:
+            _LOGGER.error(
+                "Error in universal email scanning: %s: %s",
+                type(err).__name__,
+                err,
+            )
+            data["email_tracking_numbers"] = 0
 
     # Tracking service forwarding (opt-in, supports 17track/AfterShip/AliExpress)
     # Also supports legacy CONF_17TRACK_ENABLED for backward compat
@@ -264,35 +281,43 @@ def _process_emails_inner(
         config.get(CONF_17TRACK_ENABLED, False),
     )
     if forward_enabled:
-        service_key = config.get(CONF_TRACKING_SERVICE, "seventeentrack")
-        entry_id = config.get(
-            CONF_TRACKING_SERVICE_ENTRY_ID,
-            config.get(CONF_17TRACK_ENTRY_ID, ""),
-        )
+        try:
+            service_key = config.get(CONF_TRACKING_SERVICE, "seventeentrack")
+            entry_id = config.get(
+                CONF_TRACKING_SERVICE_ENTRY_ID,
+                config.get(CONF_17TRACK_ENTRY_ID, ""),
+            )
 
-        # Gather all tracking numbers to forward
-        all_to_forward = list(data.get(ATTR_UNIVERSAL_TRACKING, []))
-        carrier_map = data.get("universal_carrier_map", {})
+            # Gather all tracking numbers to forward
+            all_to_forward = list(data.get(ATTR_UNIVERSAL_TRACKING, []))
+            carrier_map = data.get("universal_carrier_map", {})
 
-        # Also include carrier-specific tracking numbers
-        for key, value in data.items():
-            if key.endswith("_tracking") and isinstance(value, list):
-                for num in value:
-                    if num not in all_to_forward:
-                        all_to_forward.append(num)
-                        carrier_prefix = key.replace("_tracking", "")
-                        if num not in carrier_map:
-                            carrier_map[num] = carrier_prefix.upper()
+            # Also include carrier-specific tracking numbers
+            for key, value in data.items():
+                if key.endswith("_tracking") and isinstance(value, list):
+                    for num in value:
+                        if num not in all_to_forward:
+                            all_to_forward.append(num)
+                            carrier_prefix = key.replace("_tracking", "")
+                            if num not in carrier_map:
+                                carrier_map[num] = carrier_prefix.upper()
 
-        # Get previously forwarded (stored in hass.data)
-        already_forwarded = _get_forwarded_set(hass, config)
+            # Get previously forwarded (stored in hass.data)
+            already_forwarded = _get_forwarded_set(hass, config)
 
-        data["tracking_service_forwarded"] = len(all_to_forward)
-        data[ATTR_17TRACK_FORWARDED] = all_to_forward
-        data["_tracking_service_key"] = service_key
-        data["_tracking_entry_id"] = entry_id
-        data["_tracking_carrier_map"] = carrier_map
-        data["_tracking_already_forwarded"] = already_forwarded
+            data["tracking_service_forwarded"] = len(all_to_forward)
+            data[ATTR_17TRACK_FORWARDED] = all_to_forward
+            data["_tracking_service_key"] = service_key
+            data["_tracking_entry_id"] = entry_id
+            data["_tracking_carrier_map"] = carrier_map
+            data["_tracking_already_forwarded"] = already_forwarded
+        except Exception as err:
+            _LOGGER.error(
+                "Error in tracking service forwarding: %s: %s",
+                type(err).__name__,
+                err,
+            )
+            data["tracking_service_forwarded"] = 0
 
     # LLM analysis is handled async in the coordinator (see __init__.py)
     # We store the config flags so the coordinator can pick them up
@@ -529,6 +554,11 @@ def fetch(
         info = amazon_exception(account, amazon_fwds)
         count[sensor] = info[ATTR_COUNT]
         count[AMAZON_EXCEPTION_ORDER] = info[ATTR_ORDER]
+    elif sensor == "amazon_cookie_packages":
+        # Handled async in coordinator, just return existing value
+        if sensor in data:
+            return data[sensor]
+        count[sensor] = 0
     elif "_packages" in sensor:
         prefix = sensor.replace("_packages", "")
         delivering = fetch(hass, config, account, data, f"{prefix}_delivering")
@@ -560,11 +590,6 @@ def fetch(
         count[sensor] = 0
     elif sensor == "tracking_service_forwarded":
         # Handled in process_emails, just return existing value
-        if sensor in data:
-            return data[sensor]
-        count[sensor] = 0
-    elif sensor == "amazon_cookie_packages":
-        # Handled async in coordinator, just return existing value
         if sensor in data:
             return data[sensor]
         count[sensor] = 0
@@ -1048,8 +1073,13 @@ def get_count(
         return result
 
     # Bail out if unknown sensor type
+    if sensor_type not in SENSOR_DATA:
+        _LOGGER.warning("Sensor type not found in SENSOR_DATA: %s", sensor_type)
+        result[ATTR_COUNT] = count
+        result[ATTR_TRACKING] = ""
+        return result
     if ATTR_EMAIL not in SENSOR_DATA[sensor_type]:
-        _LOGGER.debug("Unknown sensor type: %s", str(sensor_type))
+        _LOGGER.debug("No email config for sensor type: %s", sensor_type)
         result[ATTR_COUNT] = count
         result[ATTR_TRACKING] = ""
         return result

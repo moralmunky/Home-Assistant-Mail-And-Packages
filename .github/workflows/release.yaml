@@ -10,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
 
       - name: Get Version
         id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}        
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
 
       - name: "Set version numbmer"
         run: |
@@ -26,7 +26,7 @@ jobs:
           cd ${{ github.workspace }}/custom_components/mail_and_packages
           zip mail_and_packages.zip -r ./
       - name: Upload zip to release
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ github.workspace }}/custom_components/mail_and_packages/mail_and_packages.zip

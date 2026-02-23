@@ -361,7 +361,12 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                         f"IMAP authentication failed: {error}"
                     ) from error
                 except Exception as error:
-                    _LOGGER.error("Problem updating sensors: %s", error)
+                    _LOGGER.error(
+                        "Problem updating sensors: %s: %s",
+                        type(error).__name__,
+                        error,
+                        exc_info=True,
+                    )
                     raise UpdateFailed(error) from error
         except asyncio.TimeoutError as error:
             raise UpdateFailed(

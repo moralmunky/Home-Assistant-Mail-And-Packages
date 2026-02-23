@@ -17,9 +17,39 @@ from custom_components.mail_and_packages.const import (
 from custom_components.mail_and_packages.helpers import _check_ffmpeg, _test_login
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
 
+# Common resource list used across tests
+RESOURCE_LIST = [
+    "amazon_packages",
+    "fedex_delivered",
+    "fedex_delivering",
+    "fedex_packages",
+    "mail_updated",
+    "ups_delivered",
+    "ups_delivering",
+    "ups_packages",
+    "usps_delivered",
+    "usps_delivering",
+    "usps_mail",
+    "usps_packages",
+    "zpackages_delivered",
+    "zpackages_transit",
+    "dhl_delivered",
+    "dhl_delivering",
+    "dhl_packages",
+    "amazon_delivered",
+    "auspost_delivered",
+    "auspost_delivering",
+    "auspost_packages",
+    "poczta_polska_delivering",
+    "poczta_polska_packages",
+    "inpost_pl_delivered",
+    "inpost_pl_delivering",
+    "inpost_pl_packages",
+]
+
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
+    "input_1,input_sensors,input_scanning,input_images,input_features,input_custom_img,title,data",
     [
         (
             {
@@ -28,47 +58,23 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "config_2",
             {
-                "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
-                "custom_img": True,
                 "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
-            "config_3",
+            {
+                "scan_interval": 20,
+                "imap_timeout": 30,
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
+                "amazon_days": 3,
+            },
+            {
+                "gif_duration": 5,
+                "generate_mp4": False,
+                "allow_external": False,
+                "custom_img": True,
+            },
+            {},
             {
                 "custom_img_file": "images/test.gif",
             },
@@ -88,44 +94,18 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_BAD
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
         ),
     ],
 )
 async def test_form(
     input_1,
-    step_id_2,
-    input_2,
-    step_id_3,
-    input_3,
+    input_sensors,
+    input_scanning,
+    input_images,
+    input_features,
+    input_custom_img,
     title,
     data,
     hass,
@@ -138,7 +118,6 @@ async def test_form(
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
@@ -159,21 +138,39 @@ async def test_form(
             result["flow_id"], input_1
         )
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "config_2"
 
         result3 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
         )
-
         assert result3["type"] == "form"
-        assert result3["step_id"] == step_id_3
+        assert result3["step_id"] == "config_3"
+
         result4 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"], input_scanning
+        )
+        assert result4["type"] == "form"
+        assert result4["step_id"] == "config_4"
+
+        result5 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_images
+        )
+        assert result5["type"] == "form"
+        assert result5["step_id"] == "config_5"
+
+        result6 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_features
+        )
+        assert result6["type"] == "form"
+        assert result6["step_id"] == "config_6"
+
+        result7 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_custom_img
         )
 
-    assert result4["type"] == "create_entry"
-    assert result4["title"] == title
-    assert result4["data"] == data
+    assert result7["type"] == "create_entry"
+    assert result7["title"] == title
+    assert result7["data"] == data
 
     await hass.async_block_till_done()
     assert len(mock_setup.mock_calls) == 1
@@ -181,7 +178,7 @@ async def test_form(
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
+    "input_1,input_sensors,input_scanning,input_images,input_features,input_custom_img,title,data",
     [
         (
             {
@@ -190,47 +187,23 @@ async def test_form(
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "config_2",
             {
-                "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
-                "custom_img": True,
                 "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
-            "config_3",
+            {
+                "scan_interval": 20,
+                "imap_timeout": 30,
+                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
+                "amazon_days": 3,
+            },
+            {
+                "gif_duration": 5,
+                "generate_mp4": False,
+                "allow_external": False,
+                "custom_img": True,
+            },
+            {},
             {
                 "custom_img_file": "images/test.gif",
             },
@@ -250,44 +223,18 @@ async def test_form(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
         ),
     ],
 )
 async def test_form_invalid_custom_img_path(
     input_1,
-    step_id_2,
-    input_2,
-    step_id_3,
-    input_3,
+    input_sensors,
+    input_scanning,
+    input_images,
+    input_features,
+    input_custom_img,
     title,
     data,
     hass,
@@ -300,7 +247,6 @@ async def test_form_invalid_custom_img_path(
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
@@ -318,21 +264,39 @@ async def test_form_invalid_custom_img_path(
             result["flow_id"], input_1
         )
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "config_2"
 
         result3 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
         )
-
         assert result3["type"] == "form"
-        assert result3["step_id"] == step_id_3
+        assert result3["step_id"] == "config_3"
+
         result4 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"], input_scanning
+        )
+        assert result4["type"] == "form"
+        assert result4["step_id"] == "config_4"
+
+        result5 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_images
+        )
+        assert result5["type"] == "form"
+        assert result5["step_id"] == "config_5"
+
+        result6 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_features
+        )
+        assert result6["type"] == "form"
+        assert result6["step_id"] == "config_6"
+
+        result7 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_custom_img
         )
 
-    assert result4["type"] == "form"
-    assert result4["step_id"] == step_id_3
-    assert result4["errors"] == {"custom_img_file": "file_not_found"}
+    assert result7["type"] == "form"
+    assert result7["step_id"] == "config_6"
+    assert result7["errors"] == {"custom_img_file": "file_not_found"}
 
 
 @pytest.mark.parametrize(
@@ -381,7 +345,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,input_sensors,input_scanning,input_images,title,data",
     [
         (
             {
@@ -390,44 +354,21 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "config_2",
             {
-                "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
                 "folder": '"INBOX"',
-                "generate_mp4": True,
-                "gif_duration": 5,
-                "imap_timeout": 30,
+                "resources": RESOURCE_LIST,
+            },
+            {
                 "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "imap_timeout": 30,
+                "amazon_fwds": "",
+                "amazon_days": 3,
+            },
+            {
+                "gif_duration": 5,
+                "generate_mp4": True,
+                "allow_external": False,
+                "custom_img": False,
             },
             "imap.test.email",
             {
@@ -442,40 +383,13 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap):
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
         ),
     ],
 )
 async def test_form_invalid_ffmpeg(
-    input_1, step_id_2, input_2, title, data, hass, mock_imap
+    input_1, input_sensors, input_scanning, input_images, title, data, hass, mock_imap
 ):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
@@ -484,7 +398,6 @@ async def test_form_invalid_ffmpeg(
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login",
@@ -503,19 +416,31 @@ async def test_form_invalid_ffmpeg(
             result["flow_id"], input_1
         )
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "config_2"
 
         result3 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
+        )
+        assert result3["type"] == "form"
+        assert result3["step_id"] == "config_3"
+
+        result4 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_scanning
+        )
+        assert result4["type"] == "form"
+        assert result4["step_id"] == "config_4"
+
+        result5 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_images
         )
 
-    assert result3["type"] == "form"
-    assert result3["step_id"] == step_id_2
-    assert result3["errors"] == {CONF_GENERATE_MP4: "ffmpeg_not_found"}
+    assert result5["type"] == "form"
+    assert result5["step_id"] == "config_4"
+    assert result5["errors"] == {CONF_GENERATE_MP4: "ffmpeg_not_found"}
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,input_sensors,input_scanning,input_images,input_features,title,data",
     [
         (
             {
@@ -524,46 +449,23 @@ async def test_form_invalid_ffmpeg(
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "config_2",
             {
+                "folder": '"INBOX"',
+                "resources": RESOURCE_LIST,
+            },
+            {
+                "scan_interval": 20,
+                "imap_timeout": 30,
+                "amazon_fwds": "",
+                "amazon_days": 3,
+            },
+            {
+                "gif_duration": 5,
+                "generate_mp4": False,
                 "allow_external": False,
                 "custom_img": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
-                "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
             },
+            {},
             "imap.test.email",
             {
                 "allow_external": False,
@@ -579,42 +481,17 @@ async def test_form_invalid_ffmpeg(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
         ),
     ],
 )
 async def test_form_index_error(
     input_1,
-    step_id_2,
-    input_2,
+    input_sensors,
+    input_scanning,
+    input_images,
+    input_features,
     title,
     data,
     hass,
@@ -627,7 +504,6 @@ async def test_form_index_error(
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
@@ -645,15 +521,33 @@ async def test_form_index_error(
             result["flow_id"], input_1
         )
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "config_2"
 
         result3 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
+        )
+        assert result3["type"] == "form"
+        assert result3["step_id"] == "config_3"
+
+        result4 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_scanning
+        )
+        assert result4["type"] == "form"
+        assert result4["step_id"] == "config_4"
+
+        result5 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_images
+        )
+        assert result5["type"] == "form"
+        assert result5["step_id"] == "config_5"
+
+        result6 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_features
         )
 
-    assert result3["type"] == "create_entry"
-    assert result3["title"] == title
-    assert result3["data"] == data
+    assert result6["type"] == "create_entry"
+    assert result6["title"] == title
+    assert result6["data"] == data
 
     await hass.async_block_till_done()
     assert len(mock_setup.mock_calls) == 1
@@ -661,7 +555,7 @@ async def test_form_index_error(
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,input_sensors,input_scanning,input_images,input_features,title,data",
     [
         (
             {
@@ -670,46 +564,23 @@ async def test_form_index_error(
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "config_2",
             {
-                "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
-                "custom_img": False,
                 "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
+            {
+                "scan_interval": 20,
+                "imap_timeout": 30,
+                "amazon_fwds": "",
+                "amazon_days": 3,
+            },
+            {
+                "gif_duration": 5,
+                "generate_mp4": False,
+                "allow_external": False,
+                "custom_img": False,
+            },
+            {},
             "imap.test.email",
             {
                 "allow_external": False,
@@ -725,42 +596,17 @@ async def test_form_index_error(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
         ),
     ],
 )
 async def test_form_index_error_2(
     input_1,
-    step_id_2,
-    input_2,
+    input_sensors,
+    input_scanning,
+    input_images,
+    input_features,
     title,
     data,
     hass,
@@ -773,7 +619,6 @@ async def test_form_index_error_2(
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
@@ -791,15 +636,33 @@ async def test_form_index_error_2(
             result["flow_id"], input_1
         )
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "config_2"
 
         result3 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
+        )
+        assert result3["type"] == "form"
+        assert result3["step_id"] == "config_3"
+
+        result4 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_scanning
+        )
+        assert result4["type"] == "form"
+        assert result4["step_id"] == "config_4"
+
+        result5 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_images
+        )
+        assert result5["type"] == "form"
+        assert result5["step_id"] == "config_5"
+
+        result6 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_features
         )
 
-    assert result3["type"] == "create_entry"
-    assert result3["title"] == title
-    assert result3["data"] == data
+    assert result6["type"] == "create_entry"
+    assert result6["title"] == title
+    assert result6["data"] == data
 
     await hass.async_block_till_done()
     assert len(mock_setup.mock_calls) == 1
@@ -807,7 +670,7 @@ async def test_form_index_error_2(
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,input_sensors,input_scanning,input_images,input_features,title,data",
     [
         (
             {
@@ -816,45 +679,23 @@ async def test_form_index_error_2(
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "config_2",
             {
-                "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
                 "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
+            {
+                "scan_interval": 20,
+                "imap_timeout": 30,
+                "amazon_fwds": "",
+                "amazon_days": 3,
+            },
+            {
+                "gif_duration": 5,
+                "generate_mp4": False,
+                "allow_external": False,
+                "custom_img": False,
+            },
+            {},
             "imap.test.email",
             {
                 "allow_external": False,
@@ -870,42 +711,17 @@ async def test_form_index_error_2(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
         ),
     ],
 )
 async def test_form_mailbox_format2(
     input_1,
-    step_id_2,
-    input_2,
+    input_sensors,
+    input_scanning,
+    input_images,
+    input_features,
     title,
     data,
     hass,
@@ -918,7 +734,6 @@ async def test_form_mailbox_format2(
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
@@ -936,15 +751,33 @@ async def test_form_mailbox_format2(
             result["flow_id"], input_1
         )
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "config_2"
 
         result3 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
+        )
+        assert result3["type"] == "form"
+        assert result3["step_id"] == "config_3"
+
+        result4 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_scanning
+        )
+        assert result4["type"] == "form"
+        assert result4["step_id"] == "config_4"
+
+        result5 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_images
+        )
+        assert result5["type"] == "form"
+        assert result5["step_id"] == "config_5"
+
+        result6 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_features
         )
 
-    assert result3["type"] == "create_entry"
-    assert result3["title"] == title
-    assert result3["data"] == data
+    assert result6["type"] == "create_entry"
+    assert result6["title"] == title
+    assert result6["data"] == data
 
     await hass.async_block_till_done()
     assert len(mock_setup.mock_calls) == 1
@@ -979,7 +812,7 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
+    "input_1,input_sensors,input_scanning,input_images,input_features,input_custom_img,title,data",
     [
         (
             {
@@ -988,47 +821,23 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "options_2",
             {
-                "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
-                "custom_img": True,
                 "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 30,
-                "scan_interval": 15,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
-            "options_3",
+            {
+                "scan_interval": 15,
+                "imap_timeout": 30,
+                "amazon_fwds": "",
+                "amazon_days": 3,
+            },
+            {
+                "gif_duration": 5,
+                "generate_mp4": False,
+                "allow_external": False,
+                "custom_img": True,
+            },
+            {},
             {
                 "custom_img_file": "images/test.gif",
             },
@@ -1051,44 +860,18 @@ async def test_imap_login_error(mock_imap_login_error, caplog):
                 "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 15,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
         ),
     ],
 )
 async def test_options_flow(
     input_1,
-    step_id_2,
-    input_2,
-    step_id_3,
-    input_3,
+    input_sensors,
+    input_scanning,
+    input_images,
+    input_features,
+    input_custom_img,
     title,
     data,
     hass,
@@ -1112,7 +895,6 @@ async def test_options_flow(
 
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
@@ -1135,27 +917,52 @@ async def test_options_flow(
         await hass.async_block_till_done()
 
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "options_2"
 
         result3 = await hass.config_entries.options.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
         )
         await hass.async_block_till_done()
 
         assert result3["type"] == "form"
-        assert result3["step_id"] == step_id_3
+        assert result3["step_id"] == "options_3"
+
         result4 = await hass.config_entries.options.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"], input_scanning
         )
         await hass.async_block_till_done()
-        assert result4["type"] == "create_entry"
+
+        assert result4["type"] == "form"
+        assert result4["step_id"] == "options_4"
+
+        result5 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_images
+        )
+        await hass.async_block_till_done()
+
+        assert result5["type"] == "form"
+        assert result5["step_id"] == "options_5"
+
+        result6 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_features
+        )
+        await hass.async_block_till_done()
+
+        assert result6["type"] == "form"
+        assert result6["step_id"] == "options_6"
+
+        result7 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_custom_img
+        )
+        await hass.async_block_till_done()
+        assert result7["type"] == "create_entry"
         assert data == entry.options.copy()
 
         await hass.async_block_till_done()
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,step_id_3,input_3,title,data",
+    "input_1,input_sensors,input_scanning,input_images,input_features,input_custom_img,title,data",
     [
         (
             {
@@ -1164,47 +971,23 @@ async def test_options_flow(
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "options_2",
             {
-                "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
-                "custom_img": True,
                 "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 30,
-                "scan_interval": 15,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
-            "options_3",
+            {
+                "scan_interval": 15,
+                "imap_timeout": 30,
+                "amazon_fwds": "",
+                "amazon_days": 3,
+            },
+            {
+                "gif_duration": 5,
+                "generate_mp4": False,
+                "allow_external": False,
+                "custom_img": True,
+            },
+            {},
             {
                 "custom_img_file": "images/test.gif",
             },
@@ -1227,44 +1010,18 @@ async def test_options_flow(
                 "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 15,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
         ),
     ],
 )
 async def test_options_flow_invalid_custom_img_path(
     input_1,
-    step_id_2,
-    input_2,
-    step_id_3,
-    input_3,
+    input_sensors,
+    input_scanning,
+    input_images,
+    input_features,
+    input_custom_img,
     title,
     data,
     hass,
@@ -1288,7 +1045,6 @@ async def test_options_flow_invalid_custom_img_path(
 
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
@@ -1308,22 +1064,47 @@ async def test_options_flow_invalid_custom_img_path(
         await hass.async_block_till_done()
 
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "options_2"
 
         result3 = await hass.config_entries.options.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
         )
         await hass.async_block_till_done()
 
         assert result3["type"] == "form"
-        assert result3["step_id"] == step_id_3
+        assert result3["step_id"] == "options_3"
+
         result4 = await hass.config_entries.options.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"], input_scanning
         )
+        await hass.async_block_till_done()
 
         assert result4["type"] == "form"
-        assert result4["step_id"] == step_id_3
-        assert result4["errors"] == {"custom_img_file": "file_not_found"}
+        assert result4["step_id"] == "options_4"
+
+        result5 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_images
+        )
+        await hass.async_block_till_done()
+
+        assert result5["type"] == "form"
+        assert result5["step_id"] == "options_5"
+
+        result6 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_features
+        )
+        await hass.async_block_till_done()
+
+        assert result6["type"] == "form"
+        assert result6["step_id"] == "options_6"
+
+        result7 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_custom_img
+        )
+
+        assert result7["type"] == "form"
+        assert result7["step_id"] == "options_6"
+        assert result7["errors"] == {"custom_img_file": "file_not_found"}
 
 
 @pytest.mark.parametrize(
@@ -1384,7 +1165,7 @@ async def test_options_flow_connection_error(
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,input_sensors,input_scanning,input_images,title,data",
     [
         (
             {
@@ -1393,45 +1174,21 @@ async def test_options_flow_connection_error(
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "options_2",
             {
-                "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
-                "custom_img": False,
                 "folder": '"INBOX"',
-                "generate_mp4": True,
-                "gif_duration": 5,
-                "imap_timeout": 30,
+                "resources": RESOURCE_LIST,
+            },
+            {
                 "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "imap_timeout": 30,
+                "amazon_fwds": "",
+                "amazon_days": 3,
+            },
+            {
+                "gif_duration": 5,
+                "generate_mp4": True,
+                "allow_external": False,
+                "custom_img": False,
             },
             "imap.test.email",
             {
@@ -1448,42 +1205,16 @@ async def test_options_flow_connection_error(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
         ),
     ],
 )
 async def test_options_flow_invalid_ffmpeg(
     input_1,
-    step_id_2,
-    input_2,
+    input_sensors,
+    input_scanning,
+    input_images,
     title,
     data,
     hass,
@@ -1503,7 +1234,6 @@ async def test_options_flow_invalid_ffmpeg(
 
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
@@ -1521,18 +1251,30 @@ async def test_options_flow_invalid_ffmpeg(
             result["flow_id"], input_1
         )
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "options_2"
 
         result3 = await hass.config_entries.options.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
+        )
+        assert result3["type"] == "form"
+        assert result3["step_id"] == "options_3"
+
+        result4 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_scanning
+        )
+        assert result4["type"] == "form"
+        assert result4["step_id"] == "options_4"
+
+        result5 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_images
         )
 
-    assert result3["type"] == "form"
-    assert result3["errors"] == {CONF_GENERATE_MP4: "ffmpeg_not_found"}
+    assert result5["type"] == "form"
+    assert result5["errors"] == {CONF_GENERATE_MP4: "ffmpeg_not_found"}
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,input_sensors,input_scanning,input_images,input_features,title,data",
     [
         (
             {
@@ -1541,46 +1283,23 @@ async def test_options_flow_invalid_ffmpeg(
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "options_2",
             {
-                "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
-                "custom_img": False,
                 "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
+            {
+                "scan_interval": 20,
+                "imap_timeout": 30,
+                "amazon_fwds": "",
+                "amazon_days": 3,
+            },
+            {
+                "gif_duration": 5,
+                "generate_mp4": False,
+                "allow_external": False,
+                "custom_img": False,
+            },
+            {},
             "imap.test.email",
             {
                 "allow_external": False,
@@ -1596,42 +1315,17 @@ async def test_options_flow_invalid_ffmpeg(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
         ),
     ],
 )
 async def test_options_flow_index_error(
     input_1,
-    step_id_2,
-    input_2,
+    input_sensors,
+    input_scanning,
+    input_images,
+    input_features,
     title,
     data,
     hass,
@@ -1651,7 +1345,6 @@ async def test_options_flow_index_error(
 
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
@@ -1669,19 +1362,37 @@ async def test_options_flow_index_error(
             result["flow_id"], input_1
         )
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "options_2"
 
         result3 = await hass.config_entries.options.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
+        )
+        assert result3["type"] == "form"
+        assert result3["step_id"] == "options_3"
+
+        result4 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_scanning
+        )
+        assert result4["type"] == "form"
+        assert result4["step_id"] == "options_4"
+
+        result5 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_images
+        )
+        assert result5["type"] == "form"
+        assert result5["step_id"] == "options_5"
+
+        result6 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_features
         )
 
-    assert result3["type"] == "create_entry"
+    assert result6["type"] == "create_entry"
     assert entry.options == data
     await hass.async_block_till_done()
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,input_sensors,input_scanning,input_images,input_features,title,data",
     [
         (
             {
@@ -1690,46 +1401,23 @@ async def test_options_flow_index_error(
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "options_2",
             {
-                "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
-                "custom_img": False,
                 "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
+            {
+                "scan_interval": 20,
+                "imap_timeout": 30,
+                "amazon_fwds": "",
+                "amazon_days": 3,
+            },
+            {
+                "gif_duration": 5,
+                "generate_mp4": False,
+                "allow_external": False,
+                "custom_img": False,
+            },
+            {},
             "imap.test.email",
             {
                 "allow_external": False,
@@ -1745,42 +1433,17 @@ async def test_options_flow_index_error(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
         ),
     ],
 )
 async def test_options_flow_index_error_2(
     input_1,
-    step_id_2,
-    input_2,
+    input_sensors,
+    input_scanning,
+    input_images,
+    input_features,
     title,
     data,
     hass,
@@ -1800,7 +1463,6 @@ async def test_options_flow_index_error_2(
 
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
@@ -1818,19 +1480,37 @@ async def test_options_flow_index_error_2(
             result["flow_id"], input_1
         )
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "options_2"
 
         result3 = await hass.config_entries.options.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
+        )
+        assert result3["type"] == "form"
+        assert result3["step_id"] == "options_3"
+
+        result4 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_scanning
+        )
+        assert result4["type"] == "form"
+        assert result4["step_id"] == "options_4"
+
+        result5 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_images
+        )
+        assert result5["type"] == "form"
+        assert result5["step_id"] == "options_5"
+
+        result6 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_features
         )
 
-    assert result3["type"] == "create_entry"
+    assert result6["type"] == "create_entry"
     assert entry.options == data
     await hass.async_block_till_done()
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,input_sensors,input_scanning,input_images,input_features,title,data",
     [
         (
             {
@@ -1839,46 +1519,23 @@ async def test_options_flow_index_error_2(
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "options_2",
             {
-                "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
-                "custom_img": False,
                 "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
+            {
+                "scan_interval": 20,
+                "imap_timeout": 30,
+                "amazon_fwds": "",
+                "amazon_days": 3,
+            },
+            {
+                "gif_duration": 5,
+                "generate_mp4": False,
+                "allow_external": False,
+                "custom_img": False,
+            },
+            {},
             "imap.test.email",
             {
                 "allow_external": False,
@@ -1894,42 +1551,17 @@ async def test_options_flow_index_error_2(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
         ),
     ],
 )
 async def test_options_flow_mailbox_format2(
     input_1,
-    step_id_2,
-    input_2,
+    input_sensors,
+    input_scanning,
+    input_images,
+    input_features,
     title,
     data,
     hass,
@@ -1949,7 +1581,6 @@ async def test_options_flow_mailbox_format2(
 
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
@@ -1967,19 +1598,37 @@ async def test_options_flow_mailbox_format2(
             result["flow_id"], input_1
         )
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "options_2"
 
         result3 = await hass.config_entries.options.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
+        )
+        assert result3["type"] == "form"
+        assert result3["step_id"] == "options_3"
+
+        result4 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_scanning
+        )
+        assert result4["type"] == "form"
+        assert result4["step_id"] == "options_4"
+
+        result5 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_images
+        )
+        assert result5["type"] == "form"
+        assert result5["step_id"] == "options_5"
+
+        result6 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_features
         )
 
-    assert result3["type"] == "create_entry"
+    assert result6["type"] == "create_entry"
     assert entry.options == data
     await hass.async_block_till_done()
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2,title,data",
+    "input_1,input_sensors,input_scanning,input_images,input_features,title,data",
     [
         (
             {
@@ -1988,44 +1637,23 @@ async def test_options_flow_mailbox_format2(
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "options_2",
             {
+                "folder": '"INBOX"',
+                "resources": RESOURCE_LIST,
+            },
+            {
+                "scan_interval": 15,
+                "imap_timeout": 30,
+                "amazon_fwds": "",
+                "amazon_days": 3,
+            },
+            {
+                "gif_duration": 5,
+                "generate_mp4": False,
                 "allow_external": False,
                 "custom_img": False,
-                "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 30,
-                "scan_interval": 15,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
             },
+            {},
             "imap.test.email",
             {
                 "allow_external": False,
@@ -2044,42 +1672,17 @@ async def test_options_flow_mailbox_format2(
                 "image_security": True,
                 "imap_timeout": 30,
                 "scan_interval": 15,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "resources": RESOURCE_LIST,
             },
         ),
     ],
 )
 async def test_options_flow_bad(
     input_1,
-    step_id_2,
-    input_2,
+    input_sensors,
+    input_scanning,
+    input_images,
+    input_features,
     title,
     data,
     hass,
@@ -2103,7 +1706,6 @@ async def test_options_flow_bad(
 
     assert result["type"] == "form"
     assert result["errors"] == {}
-    # assert result["title"] == title_1
 
     with patch(
         "custom_components.mail_and_packages.config_flow._test_login", return_value=True
@@ -2123,19 +1725,43 @@ async def test_options_flow_bad(
         await hass.async_block_till_done()
 
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "options_2"
 
         result3 = await hass.config_entries.options.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
         )
         await hass.async_block_till_done()
 
-    assert result3["type"] == "create_entry"
+        assert result3["type"] == "form"
+        assert result3["step_id"] == "options_3"
+
+        result4 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_scanning
+        )
+        await hass.async_block_till_done()
+
+        assert result4["type"] == "form"
+        assert result4["step_id"] == "options_4"
+
+        result5 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_images
+        )
+        await hass.async_block_till_done()
+
+        assert result5["type"] == "form"
+        assert result5["step_id"] == "options_5"
+
+        result6 = await hass.config_entries.options.async_configure(
+            result["flow_id"], input_features
+        )
+        await hass.async_block_till_done()
+
+    assert result6["type"] == "create_entry"
     assert data == entry.options.copy()
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2",
+    "input_1,input_sensors,input_scanning",
     [
         (
             {
@@ -2144,53 +1770,23 @@ async def test_options_flow_bad(
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "config_2",
             {
-                "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "testemail@amazon.com",
-                "custom_img": False,
                 "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 30,
+                "resources": RESOURCE_LIST,
+            },
+            {
                 "scan_interval": 20,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "imap_timeout": 30,
+                "amazon_fwds": "testemail@amazon.com",
+                "amazon_days": 3,
             },
         ),
     ],
 )
 async def test_form_amazon_error(
     input_1,
-    step_id_2,
-    input_2,
+    input_sensors,
+    input_scanning,
     mock_imap,
     hass,
 ):
@@ -2218,18 +1814,24 @@ async def test_form_amazon_error(
             result["flow_id"], input_1
         )
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "config_2"
 
         result3 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
         )
         assert result3["type"] == "form"
-        assert result3["step_id"] == step_id_2
-        assert result3["errors"] == {CONF_AMAZON_FWDS: "amazon_domain"}
+        assert result3["step_id"] == "config_3"
+
+        result4 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_scanning
+        )
+        assert result4["type"] == "form"
+        assert result4["step_id"] == "config_3"
+        assert result4["errors"] == {CONF_AMAZON_FWDS: "amazon_domain"}
 
 
 @pytest.mark.parametrize(
-    "input_1,step_id_2,input_2",
+    "input_1,input_sensors,input_scanning",
     [
         (
             {
@@ -2238,53 +1840,23 @@ async def test_form_amazon_error(
                 "username": "test@test.email",
                 "password": "notarealpassword",
             },
-            "config_2",
             {
-                "allow_external": False,
-                "amazon_days": 3,
-                "amazon_fwds": "",
-                "custom_img": False,
                 "folder": '"INBOX"',
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 9,
+                "resources": RESOURCE_LIST,
+            },
+            {
                 "scan_interval": 1,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
+                "imap_timeout": 9,
+                "amazon_fwds": "",
+                "amazon_days": 3,
             },
         ),
     ],
 )
 async def test_form_interval_low(
     input_1,
-    step_id_2,
-    input_2,
+    input_sensors,
+    input_scanning,
     mock_imap,
     hass,
 ):
@@ -2312,14 +1884,20 @@ async def test_form_interval_low(
             result["flow_id"], input_1
         )
         assert result2["type"] == "form"
-        assert result2["step_id"] == step_id_2
+        assert result2["step_id"] == "config_2"
 
         result3 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"], input_sensors
         )
         assert result3["type"] == "form"
-        assert result3["step_id"] == step_id_2
-        assert result3["errors"] == {
+        assert result3["step_id"] == "config_3"
+
+        result4 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], input_scanning
+        )
+        assert result4["type"] == "form"
+        assert result4["step_id"] == "config_3"
+        assert result4["errors"] == {
             CONF_SCAN_INTERVAL: "scan_too_low",
             CONF_IMAP_TIMEOUT: "timeout_too_low",
         }
