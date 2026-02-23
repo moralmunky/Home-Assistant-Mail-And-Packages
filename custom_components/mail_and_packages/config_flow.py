@@ -91,7 +91,7 @@ async def _check_amazon_forwards(forwards: str) -> tuple:
         amazon_forwards_list = forwards.split(",")
 
     # If only one address append it to the list
-    elif forwards != "" or forwards:
+    elif forwards:
         amazon_forwards_list.append(forwards)
 
     if len(errors) == 0:
@@ -118,7 +118,7 @@ async def _validate_user_input(user_input: dict) -> tuple:
 
     # Check for ffmpeg if option enabled
     if user_input[CONF_GENERATE_MP4]:
-        valid = await _check_ffmpeg()
+        valid = _check_ffmpeg()
     else:
         valid = True
 
@@ -149,23 +149,33 @@ def _get_mailboxes(host: str, port: int, user: str, pwd: str) -> list:
     """Get list of mailbox folders from mail server."""
     account = login(host, port, user, pwd)
 
-    status, folderlist = account.list()
-    mailboxes = []
-    if status != "OK":
-        _LOGGER.error("Error listing mailboxes ... using default")
-        mailboxes.append(DEFAULT_FOLDER)
-    else:
-        try:
-            for i in folderlist:
-                mailboxes.append(i.decode().split(' "/" ')[1])
-        except IndexError:
-            _LOGGER.error("Error creating folder array trying period")
+    if not account:
+        _LOGGER.error("Login failed, cannot list mailboxes ... using default")
+        return [DEFAULT_FOLDER]
+
+    try:
+        status, folderlist = account.list()
+        mailboxes = []
+        if status != "OK":
+            _LOGGER.error("Error listing mailboxes ... using default")
+            mailboxes.append(DEFAULT_FOLDER)
+        else:
             try:
                 for i in folderlist:
-                    mailboxes.append(i.decode().split(' "." ')[1])
+                    mailboxes.append(i.decode().split(' "/" ')[1])
             except IndexError:
-                _LOGGER.error("Error creating folder array, using INBOX")
-                mailboxes.append(DEFAULT_FOLDER)
+                _LOGGER.error("Error creating folder array trying period")
+                try:
+                    for i in folderlist:
+                        mailboxes.append(i.decode().split(' "." ')[1])
+                except IndexError:
+                    _LOGGER.error("Error creating folder array, using INBOX")
+                    mailboxes.append(DEFAULT_FOLDER)
+    finally:
+        try:
+            account.logout()
+        except Exception:
+            pass
 
     return mailboxes
 
@@ -359,12 +369,10 @@ def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
     )
 
 
-@config_entries.HANDLERS.register(DOMAIN)
 class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Mail and Packages."""
 
     VERSION = 6
-    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
         """Initialize."""
@@ -378,6 +386,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._data.update(user_input)
             valid = await _test_login(
+                self.hass,
                 user_input[CONF_HOST],
                 user_input[CONF_PORT],
                 user_input[CONF_USERNAME],
@@ -402,6 +411,59 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user",
             data_schema=_get_schema_step_1(user_input, defaults),
+            errors=self._errors,
+        )
+
+    async def async_step_reauth(self, entry_data: dict[str, Any] | None = None):
+        """Handle reauthorization flow triggered by auth failure."""
+        self._data = dict(entry_data) if entry_data else {}
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(self, user_input=None):
+        """Handle reauth credentials input."""
+        self._errors = {}
+
+        if user_input is not None:
+            # Merge new credentials with existing data
+            self._data[CONF_HOST] = user_input[CONF_HOST]
+            self._data[CONF_PORT] = user_input[CONF_PORT]
+            self._data[CONF_USERNAME] = user_input[CONF_USERNAME]
+            self._data[CONF_PASSWORD] = user_input[CONF_PASSWORD]
+
+            valid = await _test_login(
+                self.hass,
+                user_input[CONF_HOST],
+                user_input[CONF_PORT],
+                user_input[CONF_USERNAME],
+                user_input[CONF_PASSWORD],
+            )
+            if valid:
+                # Update the config entry with new credentials
+                existing_entry = self.hass.config_entries.async_get_entry(
+                    self.context["entry_id"]
+                )
+                if existing_entry:
+                    self.hass.config_entries.async_update_entry(
+                        existing_entry, data=self._data
+                    )
+                    await self.hass.config_entries.async_reload(
+                        existing_entry.entry_id
+                    )
+                    return self.async_abort(reason="reauth_successful")
+            else:
+                self._errors["base"] = "communication"
+
+        # Show the reauth form with current credentials pre-filled
+        defaults = {
+            CONF_HOST: self._data.get(CONF_HOST, ""),
+            CONF_PORT: self._data.get(CONF_PORT, DEFAULT_PORT),
+            CONF_USERNAME: self._data.get(CONF_USERNAME, ""),
+            CONF_PASSWORD: self._data.get(CONF_PASSWORD, ""),
+        }
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=_get_schema_step_1(None, defaults),
             errors=self._errors,
         )
 
@@ -531,6 +593,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             self._data.update(user_input)
 
             valid = await _test_login(
+                self.hass,
                 user_input[CONF_HOST],
                 user_input[CONF_PORT],
                 user_input[CONF_USERNAME],

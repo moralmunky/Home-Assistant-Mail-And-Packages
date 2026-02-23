@@ -111,15 +111,20 @@ class MailCam(Camera):
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return image response."""
-        try:
-            with open(self._file_path, "rb") as file:
-                return file.read()
-        except FileNotFoundError:
-            _LOGGER.warning(
-                "Could not read camera %s image from file: %s",
-                self._name,
-                self._file_path,
-            )
+
+        def _read_image() -> bytes | None:
+            try:
+                with open(self._file_path, "rb") as file:
+                    return file.read()
+            except FileNotFoundError:
+                _LOGGER.warning(
+                    "Could not read camera %s image from file: %s",
+                    self._name,
+                    self._file_path,
+                )
+                return None
+
+        return await self.hass.async_add_executor_job(_read_image)
 
     def check_file_path_access(self, file_path: str) -> None:
         """Check that filepath given is readable."""
@@ -134,7 +139,7 @@ class MailCam(Camera):
         _LOGGER.debug("Custom No Mail: %s", self._no_mail)
 
         if not self._coordinator.last_update_success:
-            _LOGGER.warning("Update to update camera image. Unavailable.")
+            _LOGGER.warning("Unable to update camera image. Unavailable.")
             return
 
         if self._coordinator.data is None:

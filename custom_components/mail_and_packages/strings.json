@@ -1,7 +1,8 @@
 {
   "config": {
     "abort": {
-      "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed."
+      "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed.",
+      "reauth_successful": "Re-authentication was successful."
     },
     "error": {
       "communication": "Unable to connect or login to the mail server. Please check the log for details.",
@@ -10,7 +11,7 @@
       "amazon_domain": "Invalid forwarding email address.",
       "file_not_found": "Image file not found",
       "scan_too_low": "Scan interval too low (minimum 5)",
-      "timeout_too_low": "IMAP timeout too low (minumim 10)"
+      "timeout_too_low": "IMAP timeout too low (minimum 10)"
     },
     "step": {
       "user": {
@@ -22,6 +23,16 @@
         },
         "description": "Please enter the connection information of your mail server.",
         "title": "Mail and Packages (Step 1 of 2)"
+      },
+      "reauth_confirm": {
+        "data": {
+          "host": "Host",
+          "password": "Password",
+          "port": "Port",
+          "username": "Username"
+        },
+        "description": "The IMAP mail server credentials are no longer valid. Please re-enter your credentials to continue receiving mail and package updates.",
+        "title": "Mail and Packages - Re-authenticate"
       },
       "config_2": {
         "data": {

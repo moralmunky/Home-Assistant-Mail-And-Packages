@@ -68,6 +68,8 @@ from .const import (
     ATTR_TRACKING,
     ATTR_UNIVERSAL_TRACKING,
     ATTR_USPS_MAIL,
+    CONF_17TRACK_ENABLED,
+    CONF_17TRACK_ENTRY_ID,
     CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_COOKIES,
     CONF_AMAZON_COOKIES_ENABLED,
@@ -115,16 +117,16 @@ def get_resources() -> dict:
     return known_available_resources
 
 
-async def _check_ffmpeg() -> bool:
+def _check_ffmpeg() -> bool:
     """Check if ffmpeg is installed.
 
-    Returns boolean
+    Returns True if ffmpeg is found, False otherwise.
     """
-    return which("ffmpeg")
+    return which("ffmpeg") is not None
 
 
-async def _test_login(host: str, port: int, user: str, pwd: str) -> bool:
-    """Test IMAP login to specified server.
+def _test_login_sync(host: str, port: int, user: str, pwd: str) -> bool:
+    """Test IMAP login to specified server (blocking).
 
     Returns success boolean
     """
@@ -137,10 +139,23 @@ async def _test_login(host: str, port: int, user: str, pwd: str) -> bool:
     # Validate we can login to mail server
     try:
         account.login(user, pwd)
+        account.logout()
         return True
     except Exception as err:
         _LOGGER.error("Error logging into IMAP Server: %s", str(err))
+        try:
+            account.logout()
+        except Exception:
+            pass
         return False
+
+
+async def _test_login(hass: HomeAssistant, host: str, port: int, user: str, pwd: str) -> bool:
+    """Test IMAP login to specified server without blocking the event loop.
+
+    Returns success boolean
+    """
+    return await hass.async_add_executor_job(_test_login_sync, host, port, user, pwd)
 
 
 # Email Data helpers
@@ -179,6 +194,27 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     if not account:
         return data
 
+    try:
+        return _process_emails_inner(hass, config, account, folder, resources, data)
+    finally:
+        try:
+            account.logout()
+        except Exception:
+            pass
+
+
+def _process_emails_inner(
+    hass: HomeAssistant,
+    config: ConfigEntry,
+    account: Any,
+    folder: str,
+    resources: list,
+    data: dict,
+) -> dict:
+    """Inner email processing logic (called within IMAP session).
+
+    Returns dict containing sensor data
+    """
     if not selectfolder(account, folder):
         # Bail out on error
         return data
@@ -544,12 +580,17 @@ def fetch(
     return count[sensor]
 
 
+class IMAPAuthError(Exception):
+    """Raised when IMAP authentication fails."""
+
+
 def login(
     host: str, port: int, user: str, pwd: str
 ) -> Union[bool, Type[imaplib.IMAP4_SSL]]:
     """Login to IMAP server.
 
-    Returns account object
+    Returns account object or False on network error.
+    Raises IMAPAuthError on authentication failure.
     """
     # Catch invalid mail server / host names
     try:
@@ -559,9 +600,12 @@ def login(
         _LOGGER.error("Network error while connecting to server: %s", str(err))
         return False
 
-    # If login fails give error message
+    # If login fails, raise auth error for credential issues
     try:
         account.login(user, pwd)
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("IMAP authentication failed: %s", str(err))
+        raise IMAPAuthError(f"Authentication failed: {err}") from err
     except Exception as err:
         _LOGGER.error("Error logging into IMAP Server: %s", str(err))
         return False
@@ -757,7 +801,7 @@ def get_mails(
         _LOGGER.debug("Informed Delivery email found processing...")
         for num in data[0].split():
             msg = email.message_from_string(
-                email_fetch(account, num, "(RFC822)")[1][0][1].decode("utf-8")
+                email_fetch(account, num, "(RFC822)")[1][0][1].decode("utf-8", "ignore")
             )
 
             # walking through the email parts to find images
@@ -769,14 +813,31 @@ def get_mails(
 
                 _LOGGER.debug("Extracting image from email")
 
+                # Sanitize filename to prevent path traversal attacks
+                raw_filename = part.get_filename()
+                if not raw_filename:
+                    continue
+                # Strip directory components - only keep the basename
+                safe_filename = os.path.basename(raw_filename)
+                if not safe_filename:
+                    continue
+                filepath = os.path.join(image_output_path, safe_filename)
+                # Verify the resolved path is within the output directory
+                if not os.path.realpath(filepath).startswith(
+                    os.path.realpath(image_output_path)
+                ):
+                    _LOGGER.warning(
+                        "Skipping attachment with suspicious filename: %s",
+                        raw_filename,
+                    )
+                    continue
+
                 # Log error message if we are unable to open the filepath for
                 # some reason
                 try:
-                    with open(
-                        image_output_path + part.get_filename(), "wb"
-                    ) as the_file:
+                    with open(filepath, "wb") as the_file:
                         the_file.write(part.get_payload(decode=True))
-                        images.append(image_output_path + part.get_filename())
+                        images.append(filepath)
                         image_count = image_count + 1
                 except Exception as err:
                     _LOGGER.critical("Error opening filepath: %s", str(err))
@@ -870,26 +931,29 @@ def _generate_mp4(path: str, image_file: str) -> None:
     filecheck = os.path.isfile(mp4_file)
     _LOGGER.debug("Generating mp4: %s", mp4_file)
     if filecheck:
-        cleanup_images(os.path.split(mp4_file))
+        cleanup_images(*os.path.split(mp4_file))
         _LOGGER.debug("Removing old mp4: %s", mp4_file)
 
-    # TODO: find a way to call ffmpeg the right way from HA
-    subprocess.call(
-        [
-            "ffmpeg",
-            "-f",
-            "gif",
-            "-i",
-            gif_image,
-            "-pix_fmt",
-            "yuv420p",
-            "-filter:v",
-            "crop='floor(in_w/2)*2:floor(in_h/2)*2'",
-            mp4_file,
-        ],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    try:
+        subprocess.call(
+            [
+                "ffmpeg",
+                "-f",
+                "gif",
+                "-i",
+                gif_image,
+                "-pix_fmt",
+                "yuv420p",
+                "-filter:v",
+                "crop='floor(in_w/2)*2:floor(in_h/2)*2'",
+                mp4_file,
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=120,
+        )
+    except subprocess.TimeoutExpired:
+        _LOGGER.warning("ffmpeg MP4 generation timed out after 120 seconds")
 
 
 def resize_images(images: list, width: int, height: int) -> list:
@@ -925,7 +989,8 @@ def resize_images(images: list, width: int, height: int) -> list:
 def copy_overlays(path: str) -> None:
     """Copy overlay images to image output path."""
     overlays = OVERLAY
-    check = all(item in overlays for item in os.listdir(path))
+    existing_files = os.listdir(path) if os.path.isdir(path) else []
+    check = all(item in existing_files for item in overlays)
 
     # Copy files if they are missing
     if not check:
@@ -1203,7 +1268,7 @@ def get_amazon_image(
 
     if img_url is not None:
         # Download the image we found
-        hass.add_job(download_img(img_url, image_path, image_name))
+        hass.async_create_task(download_img(img_url, image_path, image_name))
 
 
 async def download_img(img_url: str, img_path: str, img_name: str) -> None:
@@ -1318,7 +1383,7 @@ def amazon_exception(
     tfmt = get_formatted_date()
     count = 0
     info = {}
-    domains = AMAZON_DOMAINS
+    domains = list(AMAZON_DOMAINS)  # Copy to avoid mutating module-level list
     if isinstance(fwds, list):
         for fwd in fwds:
             if fwd and fwd != '""' and fwd not in domains:
@@ -1466,6 +1531,8 @@ def get_items(
                             time_format = None
                             new_arrive_date = None
 
+                            # Save and restore locale to avoid affecting other threads
+                            saved_locale = locale.getlocale(locale.LC_TIME)
                             for lang in AMAZON_LANGS:
                                 try:
                                     locale.setlocale(locale.LC_TIME, lang)
@@ -1503,6 +1570,12 @@ def get_items(
                                     and dateobj.month == datetime.date.today().month
                                 ):
                                     deliveries_today.append("Amazon Order")
+
+                            # Restore original locale
+                            try:
+                                locale.setlocale(locale.LC_TIME, saved_locale)
+                            except Exception:
+                                pass
 
     value = None
     if param == "count":
@@ -1743,11 +1816,42 @@ async def analyze_email_with_llm(
     return []
 
 
+def _validate_llm_endpoint(endpoint: str) -> bool:
+    """Validate LLM endpoint URL to prevent SSRF attacks.
+
+    Only allows http/https schemes and rejects obviously internal targets.
+    """
+    from urllib.parse import urlparse
+
+    try:
+        parsed = urlparse(endpoint)
+    except Exception:
+        return False
+
+    if parsed.scheme not in ("http", "https"):
+        return False
+
+    # Block metadata endpoints and common internal services
+    blocked_hosts = {
+        "metadata.google.internal",
+        "169.254.169.254",
+        "metadata.azure.com",
+    }
+    hostname = parsed.hostname or ""
+    if hostname in blocked_hosts:
+        return False
+
+    return True
+
+
 async def _llm_ollama(endpoint: str, model: str, prompt: str) -> list:
     """Query local Ollama instance for tracking numbers.
 
     Ollama runs locally - no data leaves the user's network.
     """
+    if not _validate_llm_endpoint(endpoint):
+        _LOGGER.error("Invalid Ollama endpoint URL: %s", endpoint)
+        return []
     url = f"{endpoint.rstrip('/')}/api/generate"
     payload = {
         "model": model or "llama3.2",
@@ -1807,6 +1911,9 @@ async def _llm_openai(
     WARNING: Sends data to OpenAI's cloud API (or compatible endpoint).
     """
     if endpoint:
+        if not _validate_llm_endpoint(endpoint):
+            _LOGGER.error("Invalid OpenAI endpoint URL: %s", endpoint)
+            return []
         url = f"{endpoint.rstrip('/')}/v1/chat/completions"
     else:
         url = "https://api.openai.com/v1/chat/completions"
@@ -1961,6 +2068,13 @@ async def scrape_amazon_tracking(
     """
     _LOGGER.debug("Starting Amazon cookie-based tracking scrape")
     tracking_info = []
+
+    # Validate Amazon domain to prevent SSRF
+    import re as _re
+
+    if not _re.match(r"^amazon\.[a-z.]{2,10}$", domain):
+        _LOGGER.error("Invalid Amazon domain: %s", domain)
+        return {ATTR_COUNT: 0, ATTR_TRACKING: [], "orders": []}
 
     cookie_jar = _parse_cookies(cookies_str, domain)
     if not cookie_jar:

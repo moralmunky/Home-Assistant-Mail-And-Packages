@@ -18,7 +18,10 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-REDACT_KEYS = {CONF_PASSWORD, CONF_USERNAME, CONF_LLM_API_KEY, CONF_AMAZON_COOKIES}
+# Base set of keys to always redact (immutable frozenset)
+_BASE_REDACT_KEYS = frozenset(
+    {CONF_PASSWORD, CONF_USERNAME, CONF_LLM_API_KEY, CONF_AMAZON_COOKIES}
+)
 
 
 async def async_get_config_entry_diagnostics(
@@ -27,7 +30,7 @@ async def async_get_config_entry_diagnostics(
     """Return diagnostics for a config entry."""
     diag: dict[str, Any] = {}
     diag["config"] = config_entry.as_dict()
-    return async_redact_data(diag, REDACT_KEYS)
+    return async_redact_data(diag, _BASE_REDACT_KEYS)
 
 
 async def async_get_device_diagnostics(
@@ -38,11 +41,13 @@ async def async_get_device_diagnostics(
     """Return diagnostics for a device."""
     coordinator = hass.data[DOMAIN][config_entry.entry_id][COORDINATOR]
 
+    # Build a per-call redaction set (don't mutate module-level state)
+    redact_keys = set(_BASE_REDACT_KEYS)
     for variable in coordinator.data:
         if "tracking" in variable or "order" in variable:
-            _LOGGER.debug("Atempting to add: %s for redaction.", variable)
-            REDACT_KEYS.add(variable)
+            _LOGGER.debug("Attempting to add: %s for redaction.", variable)
+            redact_keys.add(variable)
 
-    _LOGGER.debug("Redacted keys: %s", REDACT_KEYS)
+    _LOGGER.debug("Redacted keys: %s", redact_keys)
 
-    return async_redact_data(coordinator.data, REDACT_KEYS)
+    return async_redact_data(coordinator.data, redact_keys)

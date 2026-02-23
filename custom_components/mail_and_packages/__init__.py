@@ -1,13 +1,11 @@
 """Mail and Packages Integration."""
-import asyncio
 import logging
 from datetime import timedelta
 
-from async_timeout import timeout
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_RESOURCES, CONF_USERNAME
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -48,6 +46,7 @@ from .const import (
     VERSION,
 )
 from .helpers import (
+    IMAPAuthError,
     default_image_path,
     forward_to_tracking_service,
     llm_scan_emails,
@@ -143,7 +142,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     config_entry.add_update_listener(update_listener)
 
-    config_entry.options = config_entry.data
+    # Use a copy for options to avoid shared reference
+    hass.config_entries.async_update_entry(
+        config_entry, options=dict(config_entry.data)
+    )
     config = config_entry.data
 
     # Variables for data coordinator
@@ -166,10 +168,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         COORDINATOR: coordinator,
     }
 
-    for platform in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(config_entry, platform)
-        )
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
     return True
 
@@ -178,13 +177,8 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
     """Handle removal of an entry."""
     _LOGGER.debug("Attempting to unload sensors from the %s integration", DOMAIN)
 
-    unload_ok = all(
-        await asyncio.gather(
-            *[
-                hass.config_entries.async_forward_entry_unload(config_entry, platform)
-                for platform in PLATFORMS
-            ]
-        )
+    unload_ok = await hass.config_entries.async_unload_platforms(
+        config_entry, PLATFORMS
     )
 
     if unload_ok:
@@ -198,11 +192,12 @@ async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry) -> Non
     """Update listener."""
     _LOGGER.debug("Attempting to reload sensors from the %s integration", DOMAIN)
 
-    if config_entry.data == config_entry.options:
+    # Options flow stores new settings in options; sync them to data
+    if dict(config_entry.data) == dict(config_entry.options):
         _LOGGER.debug("No changes detected not reloading sensors.")
         return
 
-    new_data = config_entry.options.copy()
+    new_data = dict(config_entry.options)
 
     hass.config_entries.async_update_entry(
         entry=config_entry,
@@ -336,20 +331,31 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self.config = config
         self.hass = hass
 
-        _LOGGER.debug("Data will be update every %s", self.interval)
+        _LOGGER.debug("Data will be updated every %s", self.interval)
 
         super().__init__(hass, _LOGGER, name=self.name, update_interval=self.interval)
 
     async def _async_update_data(self):
         """Fetch data."""
-        async with timeout(self.timeout):
-            try:
-                data = await self.hass.async_add_executor_job(
-                    process_emails, self.hass, self.config
-                )
-            except Exception as error:
-                _LOGGER.error("Problem updating sensors: %s", error)
-                raise UpdateFailed(error) from error
+        import asyncio
+
+        try:
+            async with asyncio.timeout(self.timeout):
+                try:
+                    data = await self.hass.async_add_executor_job(
+                        process_emails, self.hass, self.config
+                    )
+                except IMAPAuthError as error:
+                    raise ConfigEntryAuthFailed(
+                        f"IMAP authentication failed: {error}"
+                    ) from error
+                except Exception as error:
+                    _LOGGER.error("Problem updating sensors: %s", error)
+                    raise UpdateFailed(error) from error
+        except asyncio.TimeoutError as error:
+            raise UpdateFailed(
+                f"Timeout communicating with IMAP server after {self.timeout}s"
+            ) from error
 
         # Run async advanced tracking features outside the main timeout
         # These are opt-in and may take additional time
@@ -425,27 +431,32 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                     config.get(CONF_PASSWORD),
                 )
                 if account:
-                    folder = config.get(CONF_FOLDER, '"INBOX"')
-                    if await self.hass.async_add_executor_job(
-                        selectfolder, account, folder
-                    ):
-                        llm_result = await llm_scan_emails(
-                            account,
-                            llm_config.get("known_tracking", []),
-                            llm_config["provider"],
-                            llm_config["endpoint"],
-                            llm_config["api_key"],
-                            llm_config["model"],
-                        )
-                        data[ATTR_LLM_ANALYZED] = llm_result[ATTR_TRACKING]
+                    try:
+                        folder = config.get(CONF_FOLDER, '"INBOX"')
+                        if await self.hass.async_add_executor_job(
+                            selectfolder, account, folder
+                        ):
+                            llm_result = await llm_scan_emails(
+                                account,
+                                llm_config.get("known_tracking", []),
+                                llm_config["provider"],
+                                llm_config["endpoint"],
+                                llm_config["api_key"],
+                                llm_config["model"],
+                            )
+                            data[ATTR_LLM_ANALYZED] = llm_result[ATTR_TRACKING]
 
-                        # Merge LLM findings into universal tracking
-                        existing = data.get(ATTR_UNIVERSAL_TRACKING, [])
-                        for num in llm_result[ATTR_TRACKING]:
-                            if num not in existing:
-                                existing.append(num)
-                        data[ATTR_UNIVERSAL_TRACKING] = existing
-                        data["email_tracking_numbers"] = len(existing)
+                            # Merge LLM findings into universal tracking
+                            existing = data.get(ATTR_UNIVERSAL_TRACKING, [])
+                            for num in llm_result[ATTR_TRACKING]:
+                                if num not in existing:
+                                    existing.append(num)
+                            data[ATTR_UNIVERSAL_TRACKING] = existing
+                            data["email_tracking_numbers"] = len(existing)
+                    finally:
+                        await self.hass.async_add_executor_job(
+                            account.logout
+                        )
 
         # Amazon cookie scraping (opt-in)
         if config.get(CONF_AMAZON_COOKIES_ENABLED, False):

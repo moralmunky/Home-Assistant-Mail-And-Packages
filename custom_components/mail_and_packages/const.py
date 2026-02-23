@@ -509,7 +509,7 @@ SENSOR_DATA = {
         "subject": ["is on its way", "is coming today"],
     },
     "auspost_packages": {},
-    "auspost_tracking": {"pattern": ["\\d{7,10,12}|[A-Za-z]{2}[0-9]{9}AU "]},
+    "auspost_tracking": {"pattern": ["\\d{7,12}|[A-Za-z]{2}[0-9]{9}AU"]},
 }
 
 # Sensor definitions
@@ -784,7 +784,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         name="Mail GLS Delivered",
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant",
-        key="dpd_com_pl_delivered",
+        key="gls_delivered",
     ),
     "gls_packages": SensorEntityDescription(
         name="Mail GLS Packages",
