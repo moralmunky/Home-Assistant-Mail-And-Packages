@@ -111,6 +111,11 @@ async def _validate_user_input(user_input: dict) -> tuple:
 
     Returns tuple with error messages and modified user_input.
     Only validates fields present in user_input.
+
+    For non-critical failures (ffmpeg, custom image), the validation
+    auto-disables the broken feature and returns the error so the user
+    sees what happened. The form re-shows with the feature already
+    turned off, so they can just submit again to proceed.
     """
     errors = {}
 
@@ -131,7 +136,13 @@ async def _validate_user_input(user_input: dict) -> tuple:
     if CONF_GENERATE_MP4 in user_input and user_input[CONF_GENERATE_MP4]:
         valid = _check_ffmpeg()
         if not valid:
+            # Auto-disable MP4 so user can just submit again to proceed
+            user_input[CONF_GENERATE_MP4] = False
             errors[CONF_GENERATE_MP4] = "ffmpeg_not_found"
+            _LOGGER.warning(
+                "ffmpeg not found - MP4 generation has been disabled. "
+                "Install ffmpeg and re-enable in options if needed."
+            )
 
     # Validate custom file exists
     if (
@@ -143,11 +154,11 @@ async def _validate_user_input(user_input: dict) -> tuple:
         if not valid:
             errors[CONF_CUSTOM_IMG_FILE] = "file_not_found"
 
-    # Validate scan interval
+    # Validate scan interval (blocking - too-low values cause server issues)
     if CONF_SCAN_INTERVAL in user_input and user_input[CONF_SCAN_INTERVAL] < 5:
         errors[CONF_SCAN_INTERVAL] = "scan_too_low"
 
-    # Validate imap timeout
+    # Validate imap timeout (blocking - too-low values cause timeouts)
     if CONF_IMAP_TIMEOUT in user_input and user_input[CONF_IMAP_TIMEOUT] < 10:
         errors[CONF_IMAP_TIMEOUT] = "timeout_too_low"
 
@@ -707,6 +718,19 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(
                     title=self._data[CONF_HOST], data=self._data
                 )
+            # If custom image file not found, disable custom_img and
+            # create entry anyway so user isn't stuck (no back button)
+            if CONF_CUSTOM_IMG_FILE in self._errors:
+                _LOGGER.warning(
+                    "Custom image file '%s' not found. "
+                    "Disabling custom image and continuing setup. "
+                    "You can set a valid path later in options.",
+                    self._data.get(CONF_CUSTOM_IMG_FILE, ""),
+                )
+                self._data[CONF_CUSTOM_IMG] = False
+                return self.async_create_entry(
+                    title=self._data[CONF_HOST], data=self._data
+                )
             return await self._show_config_6(user_input)
 
         return await self._show_config_6(user_input)
@@ -741,12 +765,48 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         self._data = {}
         self._errors = {}
 
+    def _ensure_complete_data(self) -> None:
+        """Ensure _data has all expected keys with safe defaults.
+
+        This prevents KeyError or missing form defaults when
+        reconfiguring an integration that was set up with an older
+        version or is missing fields. Uses internal representations
+        (e.g. list for AMAZON_FWDS, not the form display string).
+        """
+        defaults = {
+            CONF_FOLDER: DEFAULT_FOLDER,
+            CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
+            CONF_IMAP_TIMEOUT: DEFAULT_IMAP_TIMEOUT,
+            CONF_AMAZON_FWDS: [],  # Internal representation is list
+            CONF_AMAZON_DAYS: DEFAULT_AMAZON_DAYS,
+            CONF_DURATION: DEFAULT_GIF_DURATION,
+            CONF_GENERATE_MP4: False,
+            CONF_ALLOW_EXTERNAL: DEFAULT_ALLOW_EXTERNAL,
+            CONF_CUSTOM_IMG: DEFAULT_CUSTOM_IMG,
+            CONF_CUSTOM_IMG_FILE: DEFAULT_CUSTOM_IMG_FILE,
+            CONF_SCAN_ALL_EMAILS: DEFAULT_SCAN_ALL_EMAILS,
+            CONF_TRACKING_FORWARD_ENABLED: DEFAULT_TRACKING_FORWARD_ENABLED,
+            CONF_TRACKING_SERVICE: DEFAULT_TRACKING_SERVICE,
+            CONF_TRACKING_SERVICE_ENTRY_ID: DEFAULT_TRACKING_SERVICE_ENTRY_ID,
+            CONF_LLM_ENABLED: DEFAULT_LLM_ENABLED,
+            CONF_LLM_PROVIDER: DEFAULT_LLM_PROVIDER,
+            CONF_LLM_ENDPOINT: DEFAULT_LLM_ENDPOINT,
+            CONF_LLM_API_KEY: DEFAULT_LLM_API_KEY,
+            CONF_LLM_MODEL: DEFAULT_LLM_MODEL,
+            CONF_AMAZON_COOKIES_ENABLED: DEFAULT_AMAZON_COOKIES_ENABLED,
+            CONF_AMAZON_COOKIES: DEFAULT_AMAZON_COOKIES,
+            CONF_AMAZON_COOKIE_DOMAIN: DEFAULT_AMAZON_COOKIE_DOMAIN,
+        }
+        for key, default_val in defaults.items():
+            self._data.setdefault(key, default_val)
+
     # Step 1: IMAP Connection
 
     async def async_step_init(self, user_input=None) -> ConfigFlowResult:
         """Manage Mail and Packages options."""
         if not self._data:
             self._data = dict(self.config_entry.options)
+            self._ensure_complete_data()
         if user_input is not None:
             self._data.update(user_input)
 
@@ -814,14 +874,21 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
     async def _show_step_options_3(self, user_input) -> ConfigFlowResult:
         """Show scanning & Amazon settings form."""
+        # Convert list back to comma-separated string for form display
+        fwds = self._data.get(CONF_AMAZON_FWDS, [])
+        if isinstance(fwds, list):
+            fwds = ", ".join(fwds) if fwds else ""
         defaults = {
-            CONF_SCAN_INTERVAL: self._data.get(CONF_SCAN_INTERVAL),
-            CONF_IMAP_TIMEOUT: self._data.get(CONF_IMAP_TIMEOUT)
-            or DEFAULT_IMAP_TIMEOUT,
-            CONF_AMAZON_FWDS: self._data.get(CONF_AMAZON_FWDS)
-            or DEFAULT_AMAZON_FWDS,
-            CONF_AMAZON_DAYS: self._data.get(CONF_AMAZON_DAYS)
-            or DEFAULT_AMAZON_DAYS,
+            CONF_SCAN_INTERVAL: self._data.get(
+                CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+            ),
+            CONF_IMAP_TIMEOUT: self._data.get(
+                CONF_IMAP_TIMEOUT, DEFAULT_IMAP_TIMEOUT
+            ),
+            CONF_AMAZON_FWDS: fwds,
+            CONF_AMAZON_DAYS: self._data.get(
+                CONF_AMAZON_DAYS, DEFAULT_AMAZON_DAYS
+            ),
         }
 
         return self.async_show_form(
@@ -846,11 +913,12 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
     async def _show_step_options_4(self, user_input) -> ConfigFlowResult:
         """Show image settings form."""
         defaults = {
-            CONF_DURATION: self._data.get(CONF_DURATION),
-            CONF_GENERATE_MP4: self._data.get(CONF_GENERATE_MP4),
-            CONF_ALLOW_EXTERNAL: self._data.get(CONF_ALLOW_EXTERNAL),
-            CONF_CUSTOM_IMG: self._data.get(CONF_CUSTOM_IMG)
-            or DEFAULT_CUSTOM_IMG,
+            CONF_DURATION: self._data.get(CONF_DURATION, DEFAULT_GIF_DURATION),
+            CONF_GENERATE_MP4: self._data.get(CONF_GENERATE_MP4, False),
+            CONF_ALLOW_EXTERNAL: self._data.get(
+                CONF_ALLOW_EXTERNAL, DEFAULT_ALLOW_EXTERNAL
+            ),
+            CONF_CUSTOM_IMG: self._data.get(CONF_CUSTOM_IMG, DEFAULT_CUSTOM_IMG),
         }
 
         return self.async_show_form(
@@ -876,18 +944,18 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
     async def _show_step_options_5(self, user_input) -> ConfigFlowResult:
         """Show advanced feature toggles form."""
         defaults = {
-            CONF_SCAN_ALL_EMAILS: self._data.get(CONF_SCAN_ALL_EMAILS)
-            or DEFAULT_SCAN_ALL_EMAILS,
+            CONF_SCAN_ALL_EMAILS: self._data.get(
+                CONF_SCAN_ALL_EMAILS, DEFAULT_SCAN_ALL_EMAILS
+            ),
             CONF_TRACKING_FORWARD_ENABLED: self._data.get(
-                CONF_TRACKING_FORWARD_ENABLED
-            )
-            or DEFAULT_TRACKING_FORWARD_ENABLED,
-            CONF_LLM_ENABLED: self._data.get(CONF_LLM_ENABLED)
-            or DEFAULT_LLM_ENABLED,
+                CONF_TRACKING_FORWARD_ENABLED, DEFAULT_TRACKING_FORWARD_ENABLED
+            ),
+            CONF_LLM_ENABLED: self._data.get(
+                CONF_LLM_ENABLED, DEFAULT_LLM_ENABLED
+            ),
             CONF_AMAZON_COOKIES_ENABLED: self._data.get(
-                CONF_AMAZON_COOKIES_ENABLED
-            )
-            or DEFAULT_AMAZON_COOKIES_ENABLED,
+                CONF_AMAZON_COOKIES_ENABLED, DEFAULT_AMAZON_COOKIES_ENABLED
+            ),
         }
 
         return self.async_show_form(
@@ -916,26 +984,30 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
     ) -> ConfigFlowResult:
         """Show advanced tracking options form."""
         defaults = {
-            CONF_TRACKING_SERVICE: self._data.get(CONF_TRACKING_SERVICE)
-            or DEFAULT_TRACKING_SERVICE,
+            CONF_TRACKING_SERVICE: self._data.get(
+                CONF_TRACKING_SERVICE, DEFAULT_TRACKING_SERVICE
+            ),
             CONF_TRACKING_SERVICE_ENTRY_ID: self._data.get(
-                CONF_TRACKING_SERVICE_ENTRY_ID
-            )
-            or DEFAULT_TRACKING_SERVICE_ENTRY_ID,
-            CONF_LLM_PROVIDER: self._data.get(CONF_LLM_PROVIDER)
-            or DEFAULT_LLM_PROVIDER,
-            CONF_LLM_ENDPOINT: self._data.get(CONF_LLM_ENDPOINT)
-            or DEFAULT_LLM_ENDPOINT,
-            CONF_LLM_API_KEY: self._data.get(CONF_LLM_API_KEY)
-            or DEFAULT_LLM_API_KEY,
-            CONF_LLM_MODEL: self._data.get(CONF_LLM_MODEL)
-            or DEFAULT_LLM_MODEL,
-            CONF_AMAZON_COOKIES: self._data.get(CONF_AMAZON_COOKIES)
-            or DEFAULT_AMAZON_COOKIES,
+                CONF_TRACKING_SERVICE_ENTRY_ID, DEFAULT_TRACKING_SERVICE_ENTRY_ID
+            ),
+            CONF_LLM_PROVIDER: self._data.get(
+                CONF_LLM_PROVIDER, DEFAULT_LLM_PROVIDER
+            ),
+            CONF_LLM_ENDPOINT: self._data.get(
+                CONF_LLM_ENDPOINT, DEFAULT_LLM_ENDPOINT
+            ),
+            CONF_LLM_API_KEY: self._data.get(
+                CONF_LLM_API_KEY, DEFAULT_LLM_API_KEY
+            ),
+            CONF_LLM_MODEL: self._data.get(
+                CONF_LLM_MODEL, DEFAULT_LLM_MODEL
+            ),
+            CONF_AMAZON_COOKIES: self._data.get(
+                CONF_AMAZON_COOKIES, DEFAULT_AMAZON_COOKIES
+            ),
             CONF_AMAZON_COOKIE_DOMAIN: self._data.get(
-                CONF_AMAZON_COOKIE_DOMAIN
-            )
-            or DEFAULT_AMAZON_COOKIE_DOMAIN,
+                CONF_AMAZON_COOKIE_DOMAIN, DEFAULT_AMAZON_COOKIE_DOMAIN
+            ),
         }
 
         return self.async_show_form(
@@ -956,6 +1028,17 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
                 return self.async_create_entry(title="", data=self._data)
+            # If custom image file not found, disable custom_img and
+            # save anyway so user isn't stuck (no back button)
+            if CONF_CUSTOM_IMG_FILE in self._errors:
+                _LOGGER.warning(
+                    "Custom image file '%s' not found. "
+                    "Disabling custom image. You can set a valid "
+                    "path later in options.",
+                    self._data.get(CONF_CUSTOM_IMG_FILE, ""),
+                )
+                self._data[CONF_CUSTOM_IMG] = False
+                return self.async_create_entry(title="", data=self._data)
             return await self._show_step_options_6(user_input)
 
         return await self._show_step_options_6(user_input)
@@ -963,8 +1046,9 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
     async def _show_step_options_6(self, user_input) -> ConfigFlowResult:
         """Show custom image path form."""
         defaults = {
-            CONF_CUSTOM_IMG_FILE: self._data.get(CONF_CUSTOM_IMG_FILE)
-            or DEFAULT_CUSTOM_IMG_FILE,
+            CONF_CUSTOM_IMG_FILE: self._data.get(
+                CONF_CUSTOM_IMG_FILE, DEFAULT_CUSTOM_IMG_FILE
+            ),
         }
 
         return self.async_show_form(
