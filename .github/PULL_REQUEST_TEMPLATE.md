@@ -31,6 +31,18 @@
 - [ ] Documentation update
 - [ ] Adds a new shipper
 - [ ] Update existing shipper
+- [ ] Advanced tracking feature (universal scan, LLM, tracking service, Amazon cookies)
+- [ ] Security fix
+
+## Privacy checklist
+
+<!--
+  All changes must adhere to the privacy-first principle.
+-->
+
+- [ ] No data is sent to external services by default
+- [ ] Any new external communication is opt-in and disabled by default
+- [ ] Privacy notices are shown where applicable during configuration
 
 ## Additional information
 

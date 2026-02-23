@@ -5,53 +5,59 @@ It may contain bugs or break functionality in addition to adding new features an
 {% endif %}
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/moralmunky/Home-Assistant-Mail-And-Packages)
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
 ![GitHub contributors](https://img.shields.io/github/contributors/moralmunky/Home-Assistant-Mail-And-Packages)
-![Maintenance](https://img.shields.io/maintenance/yes/2022)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/moralmunky/Home-Assistant-Mail-And-Packages)
-![GitHub commits since tagged version](https://img.shields.io/github/commits-since/moralmunky/Home-Assistant-Mail-And-Packages/0.3.3-2/dev)
 ![GitHub last commit](https://img.shields.io/github/last-commit/moralmunky/Home-Assistant-Mail-And-Packages/dev)
 
-## About Mail and Packages integration
+## About Mail and Packages
 
-The [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) creates sensors for [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements) to show a snapshot of mail and **packages that are scheduled to be delivered the current day**. For the packages that are scheduled for delivery the current day a count of in transit and delivered packages will be provided. It also generates the number of USPS mail pieces and provides a rotating GIF of the USPS provided images of the mail, if available, for the current day.
+The [Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) integration creates sensors for supported carriers to show a snapshot of mail and **packages that are scheduled to be delivered the current day**. It provides counts of in-transit and delivered packages, generates rotating GIFs from USPS Informed Delivery mail images, and optionally scans all emails for tracking numbers.
 
-## Credits:
+### Supported Carriers
 
-- Huge contributions from [@firstof9](https://github.com/firstof9) moving the project forward and keeping it active!
-<br/>
+USPS, UPS, FedEx, Amazon, DHL, Canada Post, Hermes, Royal Mail, Australia Post, Poczta Polska, InPost, DPD, and GLS.
+
+### Key Features
+
+- **Email-based tracking** - Monitors your IMAP inbox for shipping notifications from 13 carriers
+- **USPS Mail Images** - Animated GIF/MP4 from Informed Delivery with camera entity
+- **Amazon Hub Lockers** - Detects Hub deliveries and extracts pickup codes
+- **Universal email scanning** - Regex-based tracking number discovery across all emails (opt-in)
+- **Tracking service forwarding** - Forward numbers to 17track, AfterShip, or AliExpress (opt-in)
+- **AI/LLM analysis** - Use Ollama (local), Anthropic, or OpenAI to find tracking numbers in emails (opt-in)
+- **Amazon cookie tracking** - Poll Amazon orders directly via browser cookies (opt-in)
+- **Automatic reauth** - Detects credential failures and guides you through re-authentication
+
+### Privacy First
+
+All core processing happens locally on your Home Assistant instance. No data is sent to external services unless you explicitly enable optional advanced features. When using Ollama for AI analysis, even that stays on your local network.
+
+## How It Works
+
+The integration connects to your IMAP email account and reviews the subject lines (and optionally body text) of the current day's emails from supported carriers. It counts matches against known shipping notification patterns to determine delivery counts and statuses. For USPS Informed Delivery, it extracts mail images and combines them into a rotating GIF.
+
+_**Important:** Emails must not be deleted until the next day._ You can use email filters to route shipping notifications into a dedicated folder.
+
+### Privacy / Security Note
+
+Files stored in the Home Assistant `www` folder are [publicly accessible](https://www.home-assistant.io/integrations/http/#hosting-files) unless you have taken additional security measures. Image filenames use random UUIDs to prevent enumeration. Two sensors provide paths for use in notifications:
+
+- `sensor.mail_image_system_path` - Local filesystem path
+- `sensor.mail_image_url` - Web-accessible URL (requires External/Internal URL configured in HA)
+
+## Credits
+
+- **[@moralmunky](https://github.com/moralmunky)** - Creator and maintainer
+- **[@firstof9](https://github.com/firstof9)** - Major contributor
+- **[@brandon-claps](https://github.com/brandon-claps)** - Advanced tracking features, security hardening
+
 <a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" height="51px" width="217px" /></a>
 
-
-## How it works
-
-From your instance of HASS, the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) connects to the email account you supply where your shipment notifications are sent. It reviews at the subject lines of the current day's emails from the [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements) and counts the subject lines that match known language from the [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements) about their transit status. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF. 
-See the WIKI [information on how this works](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki).
-
-_**The email can not be deleted until the next day**_. You can have your email filtered into a folder and have the integration watch that folder.
-
-The image will revert back to the no mail graphic after the first email check after midnight, local time.
-
-* **All procedures are done locally on your machine.**
-* **No external services are used to process your email.**
-* **No data is sent outside of your local instance of Home Assistant**
-
-##### *Privacy / Security Note
-Please note that files stored in the `www` Home Assistant folder are [publicly accessible](https://www.home-assistant.io/integrations/http/#hosting-files) unless you have taken security measures outside of Home Assistant to secure it. For increased security and simplicity the USPS Informed Delivery image name is random by default and no longer has the option to turn it on/off. Two new sensors have been created that provide the local file path or a web accessible url for use in displaying or sending in various Home Assistant notification methods.
-
-* `sensor.mail_image_system_path`
-* `sensor.mail_image_url` - Requires that either `External_URL` or `Internal_URL` is defined in the general configuration options in Home Assistant.
-
 ## Support
-[Configuration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings)
 
-[Troubleshooting](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
-
-[Supported Shipper Requirements](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements)
-
-## Template and Examples
-[USPS Informed Delivery Image](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
-
-[Text Summary](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
-
-[Notificaions](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
+- [Configuration & Email Settings](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings)
+- [Supported Shipper Requirements](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements)
+- [Troubleshooting](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
+- [USPS Informed Delivery Image](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/USPS-Informed-Delivery-Image)
+- [Notifications](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Notifications)
