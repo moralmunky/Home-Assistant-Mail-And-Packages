@@ -1,14 +1,24 @@
 """Mail and Packages Integration."""
+
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
 from datetime import timedelta
 
+import voluptuous as vol
+
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_RESOURCES, CONF_USERNAME
-from homeassistant.core import HomeAssistant
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_PASSWORD,
+    CONF_PORT,
+    CONF_RESOURCES,
+    CONF_USERNAME,
+)
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -39,6 +49,9 @@ from .const import (
     CONF_LLM_MODEL,
     CONF_LLM_PROVIDER,
     CONF_PATH,
+    CONF_REGISTRY_DELIVERED_DAYS,
+    CONF_REGISTRY_DETECTED_DAYS,
+    CONF_REGISTRY_ENABLED,
     CONF_SCAN_ALL_EMAILS,
     CONF_SCAN_INTERVAL,
     CONF_TRACKING_FORWARD_ENABLED,
@@ -49,6 +62,8 @@ from .const import (
     DEFAULT_FOLDER,
     DEFAULT_GIF_DURATION,
     DEFAULT_IMAP_TIMEOUT,
+    DEFAULT_REGISTRY_DELIVERED_DAYS,
+    DEFAULT_REGISTRY_DETECTED_DAYS,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     ISSUE_URL,
@@ -61,8 +76,11 @@ from .helpers import (
     forward_to_tracking_service,
     llm_scan_emails,
     process_emails,
+    reconcile_registry,
+    scan_emails_for_registry,
     scrape_amazon_tracking,
 )
+from .registry import PackageRegistry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -72,6 +90,7 @@ class MailAndPackagesData:
     """Runtime data for the Mail and Packages integration."""
 
     coordinator: MailDataUpdateCoordinator
+    registry: PackageRegistry | None = None
     cameras: list = field(default_factory=list)
 
 
@@ -112,6 +131,15 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # Image path is always computed
     updated_config[CONF_PATH] = default_image_path(hass, config_entry)
 
+    # Package registry defaults
+    updated_config.setdefault(CONF_REGISTRY_ENABLED, False)
+    updated_config.setdefault(
+        CONF_REGISTRY_DELIVERED_DAYS, DEFAULT_REGISTRY_DELIVERED_DAYS
+    )
+    updated_config.setdefault(
+        CONF_REGISTRY_DETECTED_DAYS, DEFAULT_REGISTRY_DETECTED_DAYS
+    )
+
     # Advanced tracking defaults (all disabled by default, never overwrites)
     updated_config.setdefault(CONF_SCAN_ALL_EMAILS, False)
     # Backward compat: check legacy 17track keys first
@@ -149,9 +177,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(config_entry, data=updated_config)
 
-    config_entry.async_on_unload(
-        config_entry.add_update_listener(update_listener)
-    )
+    config_entry.async_on_unload(config_entry.add_update_listener(update_listener))
 
     # Use a copy for options to avoid shared reference
     hass.config_entries.async_update_entry(
@@ -173,11 +199,126 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # Raises ConfigEntryNotReady automatically if first refresh fails
     await coordinator.async_config_entry_first_refresh()
 
-    config_entry.runtime_data = MailAndPackagesData(coordinator=coordinator)
+    # Initialize package registry if enabled
+    registry = None
+    if config.get(CONF_REGISTRY_ENABLED, False):
+        registry = PackageRegistry(hass, config_entry.entry_id)
+        await registry.async_load()
+        coordinator.registry = registry
+
+    config_entry.runtime_data = MailAndPackagesData(
+        coordinator=coordinator, registry=registry
+    )
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
+    # Register services (once per domain, not per entry)
+    await _async_register_services(hass)
+
     return True
+
+
+async def _async_register_services(hass: HomeAssistant) -> None:
+    """Register package registry services."""
+    if hass.services.has_service(DOMAIN, "clear_package"):
+        return  # Already registered
+
+    async def handle_clear_package(call: ServiceCall) -> None:
+        """Handle clear_package service call."""
+        tracking = call.data["tracking_number"]
+        for entry in hass.config_entries.async_entries(DOMAIN):
+            if not hasattr(entry, "runtime_data"):
+                continue
+            reg = entry.runtime_data.registry
+            if reg and reg.clear_package(tracking):
+                await reg.async_save()
+                await entry.runtime_data.coordinator.async_request_refresh()
+
+    async def handle_clear_all_delivered(call: ServiceCall) -> None:
+        """Handle clear_all_delivered service call."""
+        for entry in hass.config_entries.async_entries(DOMAIN):
+            if not hasattr(entry, "runtime_data"):
+                continue
+            reg = entry.runtime_data.registry
+            if reg:
+                count = reg.clear_all_delivered()
+                if count > 0:
+                    await reg.async_save()
+                    await entry.runtime_data.coordinator.async_request_refresh()
+
+    async def handle_mark_delivered(call: ServiceCall) -> None:
+        """Handle mark_delivered service call."""
+        tracking = call.data["tracking_number"]
+        for entry in hass.config_entries.async_entries(DOMAIN):
+            if not hasattr(entry, "runtime_data"):
+                continue
+            reg = entry.runtime_data.registry
+            if reg and reg.mark_delivered(tracking):
+                await reg.async_save()
+                _fire_registry_event(hass, "package_delivered", tracking, reg)
+                await entry.runtime_data.coordinator.async_request_refresh()
+
+    async def handle_add_package(call: ServiceCall) -> None:
+        """Handle add_package service call."""
+        tracking = call.data["tracking_number"]
+        carrier = call.data.get("carrier", "unknown")
+        for entry in hass.config_entries.async_entries(DOMAIN):
+            if not hasattr(entry, "runtime_data"):
+                continue
+            reg = entry.runtime_data.registry
+            if reg and reg.add_package(tracking, carrier):
+                await reg.async_save()
+                _fire_registry_event(hass, "package_detected", tracking, reg)
+                await entry.runtime_data.coordinator.async_request_refresh()
+
+    hass.services.async_register(
+        DOMAIN,
+        "clear_package",
+        handle_clear_package,
+        schema=vol.Schema({vol.Required("tracking_number"): cv.string}),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "clear_all_delivered",
+        handle_clear_all_delivered,
+        schema=vol.Schema({}),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "mark_delivered",
+        handle_mark_delivered,
+        schema=vol.Schema({vol.Required("tracking_number"): cv.string}),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "add_package",
+        handle_add_package,
+        schema=vol.Schema(
+            {
+                vol.Required("tracking_number"): cv.string,
+                vol.Optional("carrier", default="unknown"): cv.string,
+            }
+        ),
+    )
+
+
+def _fire_registry_event(
+    hass: HomeAssistant,
+    event_type: str,
+    tracking_number: str,
+    registry: PackageRegistry,
+) -> None:
+    """Fire a Home Assistant event for a registry status change."""
+    pkg = registry.packages.get(tracking_number, {})
+    hass.bus.async_fire(
+        f"{DOMAIN}_{event_type}",
+        {
+            "tracking_number": tracking_number,
+            "carrier": pkg.get("carrier", "unknown"),
+            "status": pkg.get("status", "unknown"),
+            "source": pkg.get("source", "unknown"),
+        },
+    )
 
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
@@ -192,6 +333,13 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
         _LOGGER.debug("Successfully removed sensors from the %s integration", DOMAIN)
 
     return unload_ok
+
+
+async def async_remove_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+    """Handle removal of a config entry (cleanup registry storage)."""
+    registry = PackageRegistry(hass, config_entry.entry_id)
+    await registry.async_remove()
+    _LOGGER.debug("Removed package registry for entry %s", config_entry.entry_id)
 
 
 async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
@@ -340,6 +488,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self.name = f"Mail and Packages ({host})"
         self.timeout = the_timeout
         self.config = config
+        self.registry: PackageRegistry | None = None
         self._tracking_forwarded: set = set()
 
         _LOGGER.debug("Data will be updated every %s", self.interval)
@@ -445,9 +594,11 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                     "LLM email analysis enabled (provider: %s). "
                     "Email content will be sent to: %s",
                     llm_config.get("provider"),
-                    "local Ollama"
-                    if llm_config.get("provider") == "ollama"
-                    else llm_config.get("provider") + " cloud API",
+                    (
+                        "local Ollama"
+                        if llm_config.get("provider") == "ollama"
+                        else llm_config.get("provider") + " cloud API"
+                    ),
                 )
                 from .helpers import login, selectfolder
 
@@ -482,9 +633,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                             data[ATTR_UNIVERSAL_TRACKING] = existing
                             data["email_tracking_numbers"] = len(existing)
                     finally:
-                        await self.hass.async_add_executor_job(
-                            account.logout
-                        )
+                        await self.hass.async_add_executor_job(account.logout)
 
         # Amazon cookie scraping (opt-in)
         if config.get(CONF_AMAZON_COOKIES_ENABLED, False):
@@ -499,9 +648,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
                 # Also forward Amazon tracking to chosen service if enabled
                 if forward_enabled:
-                    service_key = config.get(
-                        CONF_TRACKING_SERVICE, "seventeentrack"
-                    )
+                    service_key = config.get(CONF_TRACKING_SERVICE, "seventeentrack")
                     entry_id = config.get(CONF_TRACKING_SERVICE_ENTRY_ID, "")
                     if amazon_result[ATTR_TRACKING]:
                         carrier_map = {
@@ -517,7 +664,93 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                             self._tracking_forwarded,
                         )
 
+        # Package registry reconciliation (opt-in, all local)
+        if self.registry is not None:
+            try:
+                await self._reconcile_registry(data)
+            except Exception as error:
+                _LOGGER.warning("Error in registry reconciliation: %s", error)
+
         # Clean up internal config keys from data before it reaches sensors
         for key in list(data.keys()):
             if key.startswith("_"):
                 del data[key]
+
+    async def _reconcile_registry(self, data: dict) -> None:
+        """Reconcile scan results with the package registry.
+
+        Runs context-aware universal scan, then reconciles carrier sensor
+        tracking numbers and universal findings with the persistent registry.
+        Fires HA events for status transitions. All processing is local.
+        """
+        registry = self.registry
+        config = self.config
+
+        # Run context-aware universal scan for registry
+        universal_findings = {}
+        if config.get(CONF_SCAN_ALL_EMAILS, False):
+            from .helpers import login, selectfolder
+
+            account = await self.hass.async_add_executor_job(
+                login,
+                config.get(CONF_HOST),
+                config.get(CONF_PORT),
+                config.get(CONF_USERNAME),
+                config.get(CONF_PASSWORD),
+            )
+            if account:
+                try:
+                    folder = config.get(CONF_FOLDER, '"INBOX"')
+                    if await self.hass.async_add_executor_job(
+                        selectfolder, account, folder
+                    ):
+                        universal_findings = await self.hass.async_add_executor_job(
+                            scan_emails_for_registry,
+                            account,
+                            registry,
+                        )
+                finally:
+                    try:
+                        await self.hass.async_add_executor_job(account.logout)
+                    except Exception:
+                        pass
+
+        # Reconcile all findings with registry
+        transitions = reconcile_registry(registry, data, universal_findings)
+
+        # Fire events for status changes
+        event_map = {
+            "detected": "package_detected",
+            "in_transit": "package_in_transit",
+            "out_for_delivery": "package_in_transit",
+            "delivered": "package_delivered",
+        }
+        for tracking_num, _old_status, new_status in transitions:
+            event_type = event_map.get(new_status)
+            if event_type:
+                _fire_registry_event(self.hass, event_type, tracking_num, registry)
+
+        # Auto-expire old entries
+        delivered_days = config.get(
+            CONF_REGISTRY_DELIVERED_DAYS, DEFAULT_REGISTRY_DELIVERED_DAYS
+        )
+        detected_days = config.get(
+            CONF_REGISTRY_DETECTED_DAYS, DEFAULT_REGISTRY_DETECTED_DAYS
+        )
+        registry.auto_expire(
+            delivered_days=delivered_days,
+            detected_days=detected_days,
+        )
+        registry.expire_processed_uids()
+
+        # Populate registry sensor data
+        counts = registry.get_counts()
+        data["registry_tracked"] = counts["tracked"]
+        data["registry_in_transit"] = counts["in_transit"]
+        data["registry_delivered"] = counts["delivered"]
+        data["registry_packages_list"] = registry.get_packages_list()
+        data["registry_in_transit_list"] = registry.get_packages_list("in_transit")
+        data["registry_delivered_list"] = registry.get_packages_list("delivered")
+
+        # Save updated registry
+        await registry.async_save()

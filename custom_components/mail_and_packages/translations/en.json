@@ -64,16 +64,19 @@
             },
             "config_5": {
                 "data": {
+                    "registry_enabled": "Enable Package Tracking Registry",
                     "scan_all_emails": "Scan All Emails for Tracking Numbers",
                     "tracking_forward_enabled": "Forward Tracking Numbers to a Service",
                     "llm_enabled": "Use AI/LLM to Analyze Emails",
                     "amazon_cookies_enabled": "Track Amazon Orders via Cookies"
                 },
-                "description": "Enable optional advanced features. All are disabled by default and all processing is local unless otherwise noted.\n\n**Scan all emails**: Searches all emails (not just known carriers) for tracking number patterns. Runs locally.\n\n**Forward tracking**: Sends discovered tracking numbers to a tracking service like 17track, AfterShip, or AliExpress. Requires internet access.\n\n**AI/LLM analysis**: Uses an AI model to identify tracking numbers in emails. Ollama runs locally; other providers send data externally.\n\n**Amazon cookies**: Tracks Amazon orders directly using browser session cookies instead of email parsing.",
+                "description": "Enable optional advanced features. All are disabled by default and all processing is local unless otherwise noted.\n\n**Package registry**: Tracks packages end-to-end across their lifecycle (detected → in transit → delivered). Persists across restarts and doesn't reset at midnight. Runs locally.\n\n**Scan all emails**: Searches all emails (not just known carriers) for tracking number patterns. Runs locally.\n\n**Forward tracking**: Sends discovered tracking numbers to a tracking service like 17track, AfterShip, or AliExpress. Requires internet access.\n\n**AI/LLM analysis**: Uses an AI model to identify tracking numbers in emails. Ollama runs locally; other providers send data externally.\n\n**Amazon cookies**: Tracks Amazon orders directly using browser session cookies instead of email parsing.",
                 "title": "Mail and Packages - Advanced Features"
             },
             "config_advanced": {
                 "data": {
+                    "registry_delivered_days": "Auto-clear Delivered Packages After (days)",
+                    "registry_detected_days": "Auto-expire Unconfirmed Packages After (days)",
                     "tracking_service": "Tracking Service",
                     "tracking_service_entry_id": "Tracking Service Config Entry ID",
                     "llm_provider": "AI/LLM Provider",
@@ -147,6 +150,7 @@
             },
             "options_5": {
                 "data": {
+                    "registry_enabled": "Enable Package Tracking Registry",
                     "scan_all_emails": "Scan All Emails for Tracking Numbers",
                     "tracking_forward_enabled": "Forward Tracking Numbers to a Service",
                     "llm_enabled": "Use AI/LLM to Analyze Emails",
@@ -157,6 +161,8 @@
             },
             "options_advanced": {
                 "data": {
+                    "registry_delivered_days": "Auto-clear Delivered Packages After (days)",
+                    "registry_detected_days": "Auto-expire Unconfirmed Packages After (days)",
                     "tracking_service": "Tracking Service",
                     "tracking_service_entry_id": "Tracking Service Config Entry ID",
                     "llm_provider": "AI/LLM Provider",
