@@ -9,7 +9,7 @@ from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.4.0-beta.1"  # Now updated by release workflow
+VERSION = "1.0.0-beta.1"  # Now updated by release workflow
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["camera", "sensor"]
