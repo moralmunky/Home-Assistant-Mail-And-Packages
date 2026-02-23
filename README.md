@@ -130,7 +130,41 @@ Only shown if you enabled any advanced tracking features in Step 2.
 
 **Amazon Cookie Tracking:**
 
-Paste your Amazon session cookies from your browser's developer tools. Supports multiple Amazon domains (amazon.com, .co.uk, .ca, .de, .it, .in, .com.au, .pl).
+This feature lets the integration check your Amazon order history directly for tracking numbers, without relying on email notifications. It works by using your Amazon session cookies to access your order pages.
+
+**How to get your Amazon cookies (step-by-step):**
+
+1. Open your web browser (Chrome, Firefox, Edge, etc.) and go to [amazon.com](https://www.amazon.com) (or your regional Amazon site)
+2. **Log in** to your Amazon account if you aren't already
+3. **Open Developer Tools:**
+   - **Chrome/Edge:** Press `F12` or `Ctrl+Shift+I` (Windows/Linux) / `Cmd+Option+I` (Mac)
+   - **Firefox:** Press `F12` or `Ctrl+Shift+I` (Windows/Linux) / `Cmd+Option+I` (Mac)
+   - **Safari:** Enable "Develop" menu in Preferences > Advanced, then press `Cmd+Option+I`
+4. In Developer Tools, click the **"Application"** tab (Chrome/Edge) or **"Storage"** tab (Firefox)
+5. In the left sidebar, expand **"Cookies"** and click on `https://www.amazon.com`
+6. You'll see a table of cookies. You need to copy them in `name=value; name2=value2` format. The key cookies are:
+   - `session-id`
+   - `session-id-time`
+   - `ubid-main` (or `ubid-acbxx` for non-US)
+   - `at-main` (or regional variant)
+   - `sess-at-main` (or regional variant)
+   - `x-main`
+   - `csm-hit`
+
+   **Quick method:** In the browser console (Console tab), paste this and press Enter:
+   ```javascript
+   document.cookie
+   ```
+   This prints all cookies as a single string you can copy directly.
+
+7. Paste the full cookie string into the **"Amazon browser cookies"** field in the integration setup
+8. Set the **"Amazon domain"** to match your region (e.g., `amazon.com`, `amazon.co.uk`, `amazon.de`)
+
+**Important notes:**
+- Amazon cookies **expire periodically** (typically every few weeks). When they expire, the integration will log a warning and you'll need to repeat the process
+- This feature **only accesses your Amazon order pages** - no other Amazon data is accessed
+- All processing happens locally on your Home Assistant instance
+- Supports: amazon.com, .ca, .co.uk, .de, .it, .in, .com.au, .pl
 
 ## Sensors
 
@@ -157,12 +191,12 @@ For each enabled carrier, the integration creates:
 ### Image Sensors
 
 - `sensor.mail_image_system_path` - Local filesystem path to the mail GIF
-- `sensor.mail_image_url` - Web-accessible URL (requires External/Internal URL configured)
+- `sensor.mail_image_url` - URL to the mail image. By default, this uses the **authenticated** camera proxy URL (`/api/camera_proxy/camera.mail_usps_camera`) which requires Home Assistant login. If you enable "Copy images to www/ folder", it uses the `/local/` URL instead (publicly accessible without authentication).
 
 ### Camera Entities
 
-- `camera.mail_usps_camera` - Displays the USPS Informed Delivery mail image GIF
-- `camera.mail_amazon_camera` - Displays Amazon delivery images
+- `camera.mail_usps_camera` - Displays the USPS Informed Delivery mail image GIF (served through HA's authenticated API)
+- `camera.mail_amazon_camera` - Displays Amazon delivery images (served through HA's authenticated API)
 
 ### Services
 
@@ -179,13 +213,22 @@ If your IMAP credentials become invalid (password change, token expiration, etc.
 
 ## Security
 
+### Image Privacy
+
+By default, mail images are stored in a **private directory** inside the integration folder and are only accessible through Home Assistant's **authenticated camera proxy API**. This means images require a valid HA login to view.
+
+The "Copy images to www/ folder" option (`allow_external`) is **disabled by default**. If enabled, images are copied to the `www/mail_and_packages/` directory, which is [publicly accessible](https://www.home-assistant.io/integrations/http/#hosting-files) without authentication via `/local/` URLs. Only enable this if you specifically need unauthenticated access (e.g., for legacy notification apps that can't use HA authentication).
+
+**For notification apps:** Most modern HA notification services (Companion App, Telegram, etc.) can use the camera entity directly via `camera.mail_usps_camera`. You do **not** need to enable the www copy for notifications.
+
+### Other Security Measures
+
 - **Path traversal protection** on all file operations (image extraction, custom images)
 - **SSRF prevention** on LLM endpoints and Amazon cookie domains
 - **IMAP connection lifecycle management** with guaranteed cleanup (try/finally)
 - **UUID-based image filenames** to prevent enumeration attacks
 - **Credential redaction** in diagnostics output
 - **Endpoint validation** blocks known cloud metadata endpoints (AWS, Azure, GCP)
-- Files in the `www` folder are [publicly accessible](https://www.home-assistant.io/integrations/http/#hosting-files) by default. The random image filename helps mitigate this.
 
 ## Troubleshooting
 

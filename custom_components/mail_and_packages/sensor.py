@@ -25,6 +25,7 @@ from .const import (
     ATTR_ORDER,
     ATTR_TRACKING_NUM,
     ATTR_UNIVERSAL_TRACKING,
+    CONF_ALLOW_EXTERNAL,
     CONF_PATH,
     DOMAIN,
     IMAGE_SENSORS,
@@ -203,18 +204,28 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
             _LOGGER.debug("Updating system image path to: %s", path)
             the_path = f"{self.hass.config.path()}/{path}{image}"
         elif self.type == "usps_mail_image_url":
-            if (
-                self.hass.config.external_url is None
-                and self.hass.config.internal_url is None
-            ):
-                the_path = None
-            elif self.hass.config.external_url is None:
-                _LOGGER.warning("External URL not set in configuration.")
-                url = self.hass.config.internal_url
-                the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
+            # Use authenticated camera proxy URL by default (private).
+            # Only use /local/ (unauthenticated) if allow_external is enabled,
+            # since that copies images to www/ for public access.
+            if self._config.data.get(CONF_ALLOW_EXTERNAL):
+                url = (
+                    self.hass.config.external_url
+                    or self.hass.config.internal_url
+                )
+                if url:
+                    the_path = (
+                        f"{url.rstrip('/')}/local/mail_and_packages/{image}"
+                    )
             else:
-                url = self.hass.config.external_url
-                the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
+                url = (
+                    self.hass.config.external_url
+                    or self.hass.config.internal_url
+                )
+                if url:
+                    the_path = (
+                        f"{url.rstrip('/')}"
+                        f"/api/camera_proxy/camera.mail_usps_camera"
+                    )
         return the_path
 
     @property
