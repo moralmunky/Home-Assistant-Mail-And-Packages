@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Mail and Packages is a Home Assistant custom integration (HACS-compatible) that creates sensors for mail and package tracking. It connects to an IMAP email server, parses shipping notification emails from supported carriers (USPS, UPS, FedEx, Amazon, DHL, Canada Post, Hermes, Royal Mail, Australia Post, and several Polish carriers), and creates sensors showing delivery counts and statuses. It also generates animated GIFs from USPS Informed Delivery mail images.
 
+## Privacy-First Principle (CRITICAL)
+
+All processing MUST be local by default. No data (email content, images, tracking numbers, personal information) may ever be sent to the internet, external services, or AI unless the user is fully informed and explicitly opts in. This is a non-negotiable requirement for every code change. When adding any feature that could involve external communication, it must be off by default and require clear user consent to enable.
+
 ## Build & Test Commands
 
 **Run all tests via tox:**
