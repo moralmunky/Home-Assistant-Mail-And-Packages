@@ -48,6 +48,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
     resources = entry.data[CONF_RESOURCES]
 
     for variable in resources:
+        if variable in REGISTRY_SENSORS:
+            continue  # Registry sensors are handled separately below
         sensors.append(PackagesSensor(entry, SENSOR_TYPES[variable], coordinator))
 
     for variable, value in IMAGE_SENSORS.items():
