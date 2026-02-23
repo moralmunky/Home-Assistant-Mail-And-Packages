@@ -1,7 +1,8 @@
 {
     "config": {
         "abort": {
-            "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed."
+            "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed.",
+            "reauth_successful": "Re-authentication was successful."
         },
         "error": {
             "communication": "Unable to connect or login to the mail server. Please check the log for details.",
@@ -23,6 +24,16 @@
                 "description": "Please enter the connection information of your mail server.",
                 "title": "Mail and Packages (Step 1 of 2)"
             },
+            "reauth_confirm": {
+                "data": {
+                    "host": "Host",
+                    "password": "Password",
+                    "port": "Port",
+                    "username": "Username"
+                },
+                "description": "The IMAP mail server credentials are no longer valid. Please re-enter your credentials to continue receiving mail and package updates.",
+                "title": "Mail and Packages - Re-authenticate"
+            },
             "config_2": {
                 "data": {
                     "folder": "Mail Folder",
@@ -33,13 +44,31 @@
                     "generate_mp4": "Create mp4 from images",
                     "resources": "Sensors List",
                     "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-                    "amazon_fwds": "Amazon fowarded email addresses",
-                    "allow_external": "Create image for notification apps",
+                    "amazon_fwds": "Amazon forwarded email addresses",
+                    "allow_external": "Copy images to www/ folder (publicly accessible, for legacy notification apps)",
                     "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
+                    "custom_img": "Use custom 'no image' image?",
+                    "scan_all_emails": "Scan all emails for tracking numbers (local only)",
+                    "tracking_forward_enabled": "Forward tracking numbers to a tracking service",
+                    "llm_enabled": "Use AI/LLM to analyze emails for tracking numbers",
+                    "amazon_cookies_enabled": "Track Amazon orders via browser cookies"
                 },
-                "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.",
+                "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\n**Advanced Tracking** (bottom of form): Enable optional features to scan all emails for tracking numbers, forward to a tracking service (17track, AfterShip, AliExpress), use AI analysis, or track Amazon orders directly.",
                 "title": "Mail and Packages (Step 2 of 2)"
+            },
+            "config_advanced": {
+                "data": {
+                    "tracking_service": "Tracking service (17track, AfterShip, AliExpress)",
+                    "tracking_service_entry_id": "Tracking service config entry ID (if required)",
+                    "llm_provider": "AI/LLM Provider",
+                    "llm_endpoint": "LLM API endpoint URL (Ollama: http://localhost:11434)",
+                    "llm_api_key": "LLM API key (for Anthropic/OpenAI)",
+                    "llm_model": "LLM model name (e.g. llama3.2, claude-haiku-4-5-20251001, gpt-4o-mini)",
+                    "amazon_cookies": "Amazon browser cookies (key=value; key2=value2 format)",
+                    "amazon_cookie_domain": "Amazon domain (e.g. amazon.com, amazon.co.uk)"
+                },
+                "description": "Configure the advanced tracking features you enabled.\n\n**Tracking Service**: Select which tracking service to forward discovered tracking numbers to. Supported: 17track, AfterShip, AliExpress Package Tracker. For 17track, enter the config entry ID (Settings > Devices & Services > 17Track > three-dot menu > Copy entry ID). AfterShip and AliExpress do not require an entry ID.\n\n**AI/LLM Analysis**: 'ollama' runs locally (no data leaves your network). 'anthropic' and 'openai' send email content to their cloud APIs.\n\n**PRIVACY NOTICE**: If using Anthropic or OpenAI, your email content will be sent to their servers. Only use this if you understand and accept this. Ollama keeps everything local.\n\n**Amazon Cookies**: Paste your Amazon session cookies from your browser to poll order tracking directly.",
+                "title": "Mail and Packages - Advanced Tracking"
             },
             "options_3": {
                 "data": {
@@ -83,12 +112,30 @@
                     "resources": "Sensors List",
                     "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
                     "amazon_fwds": "Amazon forwarded email addresses",
-                    "allow_external": "Create image for notification apps",
+                    "allow_external": "Copy images to www/ folder (publicly accessible, for legacy notification apps)",
                     "amazon_days": "Days back to check for Amazon emails",
-                    "custom_img": "Use custom 'no image' image?"
+                    "custom_img": "Use custom 'no image' image?",
+                    "scan_all_emails": "Scan all emails for tracking numbers (local only)",
+                    "tracking_forward_enabled": "Forward tracking numbers to a tracking service",
+                    "llm_enabled": "Use AI/LLM to analyze emails for tracking numbers",
+                    "amazon_cookies_enabled": "Track Amazon orders via browser cookies"
                 },
-                "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.",
+                "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\n**Advanced Tracking** (bottom of form): Enable optional features to scan all emails for tracking numbers, forward to a tracking service (17track, AfterShip, AliExpress), use AI analysis, or track Amazon orders directly.",
                 "title": "Mail and Packages (Step 2 of 2)"
+            },
+            "options_advanced": {
+                "data": {
+                    "tracking_service": "Tracking service (17track, AfterShip, AliExpress)",
+                    "tracking_service_entry_id": "Tracking service config entry ID (if required)",
+                    "llm_provider": "AI/LLM Provider",
+                    "llm_endpoint": "LLM API endpoint URL (Ollama: http://localhost:11434)",
+                    "llm_api_key": "LLM API key (for Anthropic/OpenAI)",
+                    "llm_model": "LLM model name (e.g. llama3.2, claude-haiku-4-5-20251001, gpt-4o-mini)",
+                    "amazon_cookies": "Amazon browser cookies (key=value; key2=value2 format)",
+                    "amazon_cookie_domain": "Amazon domain (e.g. amazon.com, amazon.co.uk)"
+                },
+                "description": "Configure the advanced tracking features you enabled.\n\n**Tracking Service**: Select which tracking service to forward discovered tracking numbers to. Supported: 17track, AfterShip, AliExpress Package Tracker. For 17track, enter the config entry ID. AfterShip and AliExpress do not require an entry ID.\n\n**AI/LLM Analysis**: 'ollama' runs locally (no data leaves your network). 'anthropic' and 'openai' send email content to their cloud APIs.\n\n**PRIVACY NOTICE**: If using Anthropic or OpenAI, your email content will be sent to their servers. Ollama keeps everything local.\n\n**Amazon Cookies**: Paste your Amazon session cookies from your browser.",
+                "title": "Mail and Packages - Advanced Tracking"
             },
             "options_3": {
                 "data": {

@@ -1,4 +1,5 @@
 """Adds config flow for Mail and Packages."""
+from __future__ import annotations
 
 import logging
 from os import path
@@ -7,6 +8,11 @@ from typing import Any
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
+
+try:
+    from homeassistant.config_entries import ConfigFlowResult
+except ImportError:
+    from homeassistant.data_entry_flow import FlowResult as ConfigFlowResult
 from homeassistant.const import (
     CONF_HOST,
     CONF_PASSWORD,
@@ -18,6 +24,9 @@ from homeassistant.core import callback
 
 from .const import (
     CONF_ALLOW_EXTERNAL,
+    CONF_AMAZON_COOKIES,
+    CONF_AMAZON_COOKIES_ENABLED,
+    CONF_AMAZON_COOKIE_DOMAIN,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_FWDS,
     CONF_CUSTOM_IMG,
@@ -27,9 +36,21 @@ from .const import (
     CONF_GENERATE_MP4,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_TIMEOUT,
+    CONF_LLM_API_KEY,
+    CONF_LLM_ENABLED,
+    CONF_LLM_ENDPOINT,
+    CONF_LLM_MODEL,
+    CONF_LLM_PROVIDER,
     CONF_PATH,
+    CONF_SCAN_ALL_EMAILS,
     CONF_SCAN_INTERVAL,
+    CONF_TRACKING_FORWARD_ENABLED,
+    CONF_TRACKING_SERVICE,
+    CONF_TRACKING_SERVICE_ENTRY_ID,
     DEFAULT_ALLOW_EXTERNAL,
+    DEFAULT_AMAZON_COOKIES,
+    DEFAULT_AMAZON_COOKIES_ENABLED,
+    DEFAULT_AMAZON_COOKIE_DOMAIN,
     DEFAULT_AMAZON_DAYS,
     DEFAULT_AMAZON_FWDS,
     DEFAULT_CUSTOM_IMG,
@@ -38,10 +59,21 @@ from .const import (
     DEFAULT_GIF_DURATION,
     DEFAULT_IMAGE_SECURITY,
     DEFAULT_IMAP_TIMEOUT,
+    DEFAULT_LLM_API_KEY,
+    DEFAULT_LLM_ENABLED,
+    DEFAULT_LLM_ENDPOINT,
+    DEFAULT_LLM_MODEL,
+    DEFAULT_LLM_PROVIDER,
     DEFAULT_PATH,
     DEFAULT_PORT,
+    DEFAULT_SCAN_ALL_EMAILS,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_TRACKING_FORWARD_ENABLED,
+    DEFAULT_TRACKING_SERVICE,
+    DEFAULT_TRACKING_SERVICE_ENTRY_ID,
     DOMAIN,
+    LLM_PROVIDERS,
+    TRACKING_SERVICE_OPTIONS,
 )
 from .helpers import _check_ffmpeg, _test_login, get_resources, login
 
@@ -65,7 +97,7 @@ async def _check_amazon_forwards(forwards: str) -> tuple:
         amazon_forwards_list = forwards.split(",")
 
     # If only one address append it to the list
-    elif forwards != "" or forwards:
+    elif forwards:
         amazon_forwards_list.append(forwards)
 
     if len(errors) == 0:
@@ -92,7 +124,7 @@ async def _validate_user_input(user_input: dict) -> tuple:
 
     # Check for ffmpeg if option enabled
     if user_input[CONF_GENERATE_MP4]:
-        valid = await _check_ffmpeg()
+        valid = _check_ffmpeg()
     else:
         valid = True
 
@@ -123,23 +155,33 @@ def _get_mailboxes(host: str, port: int, user: str, pwd: str) -> list:
     """Get list of mailbox folders from mail server."""
     account = login(host, port, user, pwd)
 
-    status, folderlist = account.list()
-    mailboxes = []
-    if status != "OK":
-        _LOGGER.error("Error listing mailboxes ... using default")
-        mailboxes.append(DEFAULT_FOLDER)
-    else:
-        try:
-            for i in folderlist:
-                mailboxes.append(i.decode().split(' "/" ')[1])
-        except IndexError:
-            _LOGGER.error("Error creating folder array trying period")
+    if not account:
+        _LOGGER.error("Login failed, cannot list mailboxes ... using default")
+        return [DEFAULT_FOLDER]
+
+    try:
+        status, folderlist = account.list()
+        mailboxes = []
+        if status != "OK":
+            _LOGGER.error("Error listing mailboxes ... using default")
+            mailboxes.append(DEFAULT_FOLDER)
+        else:
             try:
                 for i in folderlist:
-                    mailboxes.append(i.decode().split(' "." ')[1])
+                    mailboxes.append(i.decode().split(' "/" ')[1])
             except IndexError:
-                _LOGGER.error("Error creating folder array, using INBOX")
-                mailboxes.append(DEFAULT_FOLDER)
+                _LOGGER.error("Error creating folder array trying period")
+                try:
+                    for i in folderlist:
+                        mailboxes.append(i.decode().split(' "." ')[1])
+                except IndexError:
+                    _LOGGER.error("Error creating folder array, using INBOX")
+                    mailboxes.append(DEFAULT_FOLDER)
+    finally:
+        try:
+            account.logout()
+        except Exception:
+            pass
 
     return mailboxes
 
@@ -205,8 +247,113 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
                 CONF_ALLOW_EXTERNAL, default=_get_default(CONF_ALLOW_EXTERNAL)
             ): bool,
             vol.Optional(CONF_CUSTOM_IMG, default=_get_default(CONF_CUSTOM_IMG)): bool,
+            # Advanced Tracking toggles (all off by default)
+            vol.Optional(
+                CONF_SCAN_ALL_EMAILS,
+                default=_get_default(CONF_SCAN_ALL_EMAILS, DEFAULT_SCAN_ALL_EMAILS),
+            ): bool,
+            vol.Optional(
+                CONF_TRACKING_FORWARD_ENABLED,
+                default=_get_default(
+                    CONF_TRACKING_FORWARD_ENABLED, DEFAULT_TRACKING_FORWARD_ENABLED
+                ),
+            ): bool,
+            vol.Optional(
+                CONF_LLM_ENABLED,
+                default=_get_default(CONF_LLM_ENABLED, DEFAULT_LLM_ENABLED),
+            ): bool,
+            vol.Optional(
+                CONF_AMAZON_COOKIES_ENABLED,
+                default=_get_default(
+                    CONF_AMAZON_COOKIES_ENABLED, DEFAULT_AMAZON_COOKIES_ENABLED
+                ),
+            ): bool,
         }
     )
+
+
+def _has_advanced_tracking(data: dict) -> bool:
+    """Check if any advanced tracking feature is enabled."""
+    return (
+        data.get(CONF_TRACKING_FORWARD_ENABLED, False)
+        or data.get(CONF_LLM_ENABLED, False)
+        or data.get(CONF_AMAZON_COOKIES_ENABLED, False)
+    )
+
+
+def _get_schema_advanced_tracking(user_input: list, default_dict: list, data: dict) -> Any:
+    """Build schema for advanced tracking configuration step."""
+    if user_input is None:
+        user_input = {}
+
+    def _get_default(key: str, fallback_default: Any = None) -> None:
+        """Get default value for key."""
+        return user_input.get(key, default_dict.get(key, fallback_default))
+
+    schema = {}
+
+    # Tracking service forwarding configuration
+    if data.get(CONF_TRACKING_FORWARD_ENABLED, False):
+        schema[
+            vol.Required(
+                CONF_TRACKING_SERVICE,
+                default=_get_default(CONF_TRACKING_SERVICE, DEFAULT_TRACKING_SERVICE),
+            )
+        ] = vol.In(TRACKING_SERVICE_OPTIONS)
+        schema[
+            vol.Optional(
+                CONF_TRACKING_SERVICE_ENTRY_ID,
+                default=_get_default(
+                    CONF_TRACKING_SERVICE_ENTRY_ID, DEFAULT_TRACKING_SERVICE_ENTRY_ID
+                ),
+            )
+        ] = str
+
+    # LLM configuration (with privacy implications)
+    if data.get(CONF_LLM_ENABLED, False):
+        schema[
+            vol.Required(
+                CONF_LLM_PROVIDER,
+                default=_get_default(CONF_LLM_PROVIDER, DEFAULT_LLM_PROVIDER),
+            )
+        ] = vol.In(LLM_PROVIDERS)
+        schema[
+            vol.Optional(
+                CONF_LLM_ENDPOINT,
+                default=_get_default(CONF_LLM_ENDPOINT, DEFAULT_LLM_ENDPOINT),
+            )
+        ] = str
+        schema[
+            vol.Optional(
+                CONF_LLM_API_KEY,
+                default=_get_default(CONF_LLM_API_KEY, DEFAULT_LLM_API_KEY),
+            )
+        ] = str
+        schema[
+            vol.Optional(
+                CONF_LLM_MODEL,
+                default=_get_default(CONF_LLM_MODEL, DEFAULT_LLM_MODEL),
+            )
+        ] = str
+
+    # Amazon cookie configuration
+    if data.get(CONF_AMAZON_COOKIES_ENABLED, False):
+        schema[
+            vol.Required(
+                CONF_AMAZON_COOKIE_DOMAIN,
+                default=_get_default(
+                    CONF_AMAZON_COOKIE_DOMAIN, DEFAULT_AMAZON_COOKIE_DOMAIN
+                ),
+            )
+        ] = str
+        schema[
+            vol.Required(
+                CONF_AMAZON_COOKIES,
+                default=_get_default(CONF_AMAZON_COOKIES, DEFAULT_AMAZON_COOKIES),
+            )
+        ] = str
+
+    return vol.Schema(schema)
 
 
 def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
@@ -228,25 +375,24 @@ def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
     )
 
 
-@config_entries.HANDLERS.register(DOMAIN)
 class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Mail and Packages."""
 
-    VERSION = 4
-    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
+    VERSION = 6
 
     def __init__(self):
         """Initialize."""
         self._data = {}
         self._errors = {}
 
-    async def async_step_user(self, user_input=None):
+    async def async_step_user(self, user_input=None) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
         self._errors = {}
 
         if user_input is not None:
             self._data.update(user_input)
             valid = await _test_login(
+                self.hass,
                 user_input[CONF_HOST],
                 user_input[CONF_PORT],
                 user_input[CONF_USERNAME],
@@ -261,7 +407,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_form(user_input)
 
-    async def _show_config_form(self, user_input):
+    async def _show_config_form(self, user_input) -> ConfigFlowResult:
         """Show the configuration form to edit configuration data."""
         # Defaults
         defaults = {
@@ -274,13 +420,61 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
-    async def async_step_config_2(self, user_input=None):
+    async def async_step_reauth(self, entry_data: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Handle reauthorization flow triggered by auth failure."""
+        self._data = dict(entry_data) if entry_data else {}
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(self, user_input=None) -> ConfigFlowResult:
+        """Handle reauth credentials input."""
+        self._errors = {}
+
+        if user_input is not None:
+            # Merge new credentials with existing data
+            self._data[CONF_HOST] = user_input[CONF_HOST]
+            self._data[CONF_PORT] = user_input[CONF_PORT]
+            self._data[CONF_USERNAME] = user_input[CONF_USERNAME]
+            self._data[CONF_PASSWORD] = user_input[CONF_PASSWORD]
+
+            valid = await _test_login(
+                self.hass,
+                user_input[CONF_HOST],
+                user_input[CONF_PORT],
+                user_input[CONF_USERNAME],
+                user_input[CONF_PASSWORD],
+            )
+            if valid:
+                # Use modern reauth helper to update, reload, and abort
+                return self.async_update_reload_and_abort(
+                    self._get_reauth_entry(),
+                    data_updates=self._data,
+                )
+            else:
+                self._errors["base"] = "communication"
+
+        # Show the reauth form with current credentials pre-filled
+        defaults = {
+            CONF_HOST: self._data.get(CONF_HOST, ""),
+            CONF_PORT: self._data.get(CONF_PORT, DEFAULT_PORT),
+            CONF_USERNAME: self._data.get(CONF_USERNAME, ""),
+            CONF_PASSWORD: self._data.get(CONF_PASSWORD, ""),
+        }
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=_get_schema_step_1(None, defaults),
+            errors=self._errors,
+        )
+
+    async def async_step_config_2(self, user_input=None) -> ConfigFlowResult:
         """Configure form step 2."""
         self._errors = {}
         if user_input is not None:
             self._errors, user_input = await _validate_user_input(user_input)
             self._data.update(user_input)
             if len(self._errors) == 0:
+                if _has_advanced_tracking(self._data):
+                    return await self.async_step_config_advanced()
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_config_3()
                 return self.async_create_entry(
@@ -290,7 +484,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_2(user_input)
 
-    async def _show_config_2(self, user_input):
+    async def _show_config_2(self, user_input) -> ConfigFlowResult:
         """Step 2 setup."""
         # Defaults
         defaults = {
@@ -313,8 +507,44 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
-    async def async_step_config_3(self, user_input=None):
-        """Configure form step 2."""
+    async def async_step_config_advanced(self, user_input=None) -> ConfigFlowResult:
+        """Configure advanced tracking features."""
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            if len(self._errors) == 0:
+                if self._data.get(CONF_CUSTOM_IMG, False):
+                    return await self.async_step_config_3()
+                return self.async_create_entry(
+                    title=self._data[CONF_HOST], data=self._data
+                )
+            return await self._show_config_advanced(user_input)
+
+        return await self._show_config_advanced(user_input)
+
+    async def _show_config_advanced(self, user_input) -> ConfigFlowResult:
+        """Show advanced tracking configuration form."""
+        defaults = {
+            CONF_TRACKING_SERVICE: DEFAULT_TRACKING_SERVICE,
+            CONF_TRACKING_SERVICE_ENTRY_ID: DEFAULT_TRACKING_SERVICE_ENTRY_ID,
+            CONF_LLM_PROVIDER: DEFAULT_LLM_PROVIDER,
+            CONF_LLM_ENDPOINT: DEFAULT_LLM_ENDPOINT,
+            CONF_LLM_API_KEY: DEFAULT_LLM_API_KEY,
+            CONF_LLM_MODEL: DEFAULT_LLM_MODEL,
+            CONF_AMAZON_COOKIES: DEFAULT_AMAZON_COOKIES,
+            CONF_AMAZON_COOKIE_DOMAIN: DEFAULT_AMAZON_COOKIE_DOMAIN,
+        }
+
+        return self.async_show_form(
+            step_id="config_advanced",
+            data_schema=_get_schema_advanced_tracking(
+                user_input, defaults, self._data
+            ),
+            errors=self._errors,
+        )
+
+    async def async_step_config_3(self, user_input=None) -> ConfigFlowResult:
+        """Configure form step 3."""
         self._errors = {}
         if user_input is not None:
             self._data.update(user_input)
@@ -327,7 +557,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_3(user_input)
 
-    async def _show_config_3(self, user_input):
+    async def _show_config_3(self, user_input) -> ConfigFlowResult:
         """Step 3 setup."""
         # Defaults
         defaults = {
@@ -344,24 +574,26 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry):
         """Redirect to options flow."""
-        return MailAndPackagesOptionsFlow(config_entry)
+        return MailAndPackagesOptionsFlow()
 
 
 class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
     """Options flow for Mail and Packages."""
 
-    def __init__(self, config_entry):
+    def __init__(self):
         """Initialize."""
-        self.config = config_entry
-        self._data = dict(config_entry.options)
+        self._data = {}
         self._errors = {}
 
-    async def async_step_init(self, user_input=None):
+    async def async_step_init(self, user_input=None) -> ConfigFlowResult:
         """Manage Mail and Packages options."""
+        if not self._data:
+            self._data = dict(self.config_entry.options)
         if user_input is not None:
             self._data.update(user_input)
 
             valid = await _test_login(
+                self.hass,
                 user_input[CONF_HOST],
                 user_input[CONF_PORT],
                 user_input[CONF_USERNAME],
@@ -376,7 +608,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
         return await self._show_options_form(user_input)
 
-    async def _show_options_form(self, user_input):
+    async def _show_options_form(self, user_input) -> ConfigFlowResult:
         """Show the configuration form to edit location data."""
         return self.async_show_form(
             step_id="init",
@@ -384,20 +616,22 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             errors=self._errors,
         )
 
-    async def async_step_options_2(self, user_input=None):
+    async def async_step_options_2(self, user_input=None) -> ConfigFlowResult:
         """Configure form step 2."""
         self._errors = {}
         if user_input is not None:
             self._errors, user_input = await _validate_user_input(user_input)
             self._data.update(user_input)
             if len(self._errors) == 0:
+                if _has_advanced_tracking(self._data):
+                    return await self.async_step_options_advanced()
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_options_3()
                 return self.async_create_entry(title="", data=self._data)
             return await self._show_step_options_2(user_input)
         return await self._show_step_options_2(user_input)
 
-    async def _show_step_options_2(self, user_input):
+    async def _show_step_options_2(self, user_input) -> ConfigFlowResult:
         """Step 2 of options."""
         # Defaults
         defaults = {
@@ -414,6 +648,16 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             CONF_ALLOW_EXTERNAL: self._data.get(CONF_ALLOW_EXTERNAL),
             CONF_RESOURCES: self._data.get(CONF_RESOURCES),
             CONF_CUSTOM_IMG: self._data.get(CONF_CUSTOM_IMG) or DEFAULT_CUSTOM_IMG,
+            CONF_SCAN_ALL_EMAILS: self._data.get(CONF_SCAN_ALL_EMAILS)
+            or DEFAULT_SCAN_ALL_EMAILS,
+            CONF_TRACKING_FORWARD_ENABLED: self._data.get(
+                CONF_TRACKING_FORWARD_ENABLED
+            )
+            or DEFAULT_TRACKING_FORWARD_ENABLED,
+            CONF_LLM_ENABLED: self._data.get(CONF_LLM_ENABLED)
+            or DEFAULT_LLM_ENABLED,
+            CONF_AMAZON_COOKIES_ENABLED: self._data.get(CONF_AMAZON_COOKIES_ENABLED)
+            or DEFAULT_AMAZON_COOKIES_ENABLED,
         }
 
         return self.async_show_form(
@@ -422,7 +666,51 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             errors=self._errors,
         )
 
-    async def async_step_options_3(self, user_input=None):
+    async def async_step_options_advanced(self, user_input=None) -> ConfigFlowResult:
+        """Configure advanced tracking features in options flow."""
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            if len(self._errors) == 0:
+                if self._data.get(CONF_CUSTOM_IMG, False):
+                    return await self.async_step_options_3()
+                return self.async_create_entry(title="", data=self._data)
+            return await self._show_step_options_advanced(user_input)
+
+        return await self._show_step_options_advanced(user_input)
+
+    async def _show_step_options_advanced(self, user_input) -> ConfigFlowResult:
+        """Show advanced tracking options form."""
+        defaults = {
+            CONF_TRACKING_SERVICE: self._data.get(CONF_TRACKING_SERVICE)
+            or DEFAULT_TRACKING_SERVICE,
+            CONF_TRACKING_SERVICE_ENTRY_ID: self._data.get(
+                CONF_TRACKING_SERVICE_ENTRY_ID
+            )
+            or DEFAULT_TRACKING_SERVICE_ENTRY_ID,
+            CONF_LLM_PROVIDER: self._data.get(CONF_LLM_PROVIDER)
+            or DEFAULT_LLM_PROVIDER,
+            CONF_LLM_ENDPOINT: self._data.get(CONF_LLM_ENDPOINT)
+            or DEFAULT_LLM_ENDPOINT,
+            CONF_LLM_API_KEY: self._data.get(CONF_LLM_API_KEY)
+            or DEFAULT_LLM_API_KEY,
+            CONF_LLM_MODEL: self._data.get(CONF_LLM_MODEL)
+            or DEFAULT_LLM_MODEL,
+            CONF_AMAZON_COOKIES: self._data.get(CONF_AMAZON_COOKIES)
+            or DEFAULT_AMAZON_COOKIES,
+            CONF_AMAZON_COOKIE_DOMAIN: self._data.get(CONF_AMAZON_COOKIE_DOMAIN)
+            or DEFAULT_AMAZON_COOKIE_DOMAIN,
+        }
+
+        return self.async_show_form(
+            step_id="options_advanced",
+            data_schema=_get_schema_advanced_tracking(
+                user_input, defaults, self._data
+            ),
+            errors=self._errors,
+        )
+
+    async def async_step_options_3(self, user_input=None) -> ConfigFlowResult:
         """Configure form step 3."""
         self._errors = {}
         if user_input is not None:
@@ -434,7 +722,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
         return await self._show_step_options_3(user_input)
 
-    async def _show_step_options_3(self, user_input):
+    async def _show_step_options_3(self, user_input) -> ConfigFlowResult:
         """Step 3 setup."""
         # Defaults
         defaults = {

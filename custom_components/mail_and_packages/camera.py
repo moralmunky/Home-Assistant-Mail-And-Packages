@@ -14,11 +14,9 @@ from .const import (
     ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
-    CAMERA,
     CAMERA_DATA,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
-    COORDINATOR,
     DOMAIN,
     SENSOR_NAME,
     VERSION,
@@ -30,10 +28,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config, async_add_entities):
     """Set up the Camera that works with local files."""
-    if CAMERA not in hass.data[DOMAIN][config.entry_id]:
-        hass.data[DOMAIN][config.entry_id][CAMERA] = []
-
-    coordinator = hass.data[DOMAIN][config.entry_id][COORDINATOR]
+    coordinator = config.runtime_data.coordinator
     camera = []
     if not config.data.get(CONF_CUSTOM_IMG):
         file_path = f"{os.path.dirname(__file__)}/mail_none.gif"
@@ -43,12 +38,12 @@ async def async_setup_entry(hass, config, async_add_entities):
     for variable in CAMERA_DATA:
         temp_cam = MailCam(hass, variable, config, coordinator, file_path)
         camera.append(temp_cam)
-        hass.data[DOMAIN][config.entry_id][CAMERA].append(temp_cam)
+        config.runtime_data.cameras.append(temp_cam)
 
     async def _update_image(service: ServiceCall) -> None:
         """Refresh camera image."""
         _LOGGER.debug("Updating image: %s", service)
-        cameras = hass.data[DOMAIN][config.entry_id][CAMERA]
+        cameras = config.runtime_data.cameras
         entity_id = None
 
         if ATTR_ENTITY_ID in service.data.keys():
@@ -111,15 +106,20 @@ class MailCam(Camera):
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return image response."""
-        try:
-            with open(self._file_path, "rb") as file:
-                return file.read()
-        except FileNotFoundError:
-            _LOGGER.warning(
-                "Could not read camera %s image from file: %s",
-                self._name,
-                self._file_path,
-            )
+
+        def _read_image() -> bytes | None:
+            try:
+                with open(self._file_path, "rb") as file:
+                    return file.read()
+            except FileNotFoundError:
+                _LOGGER.warning(
+                    "Could not read camera %s image from file: %s",
+                    self._name,
+                    self._file_path,
+                )
+                return None
+
+        return await self.hass.async_add_executor_job(_read_image)
 
     def check_file_path_access(self, file_path: str) -> None:
         """Check that filepath given is readable."""
@@ -134,7 +134,7 @@ class MailCam(Camera):
         _LOGGER.debug("Custom No Mail: %s", self._no_mail)
 
         if not self._coordinator.last_update_success:
-            _LOGGER.warning("Update to update camera image. Unavailable.")
+            _LOGGER.warning("Unable to update camera image. Unavailable.")
             return
 
         if self._coordinator.data is None:

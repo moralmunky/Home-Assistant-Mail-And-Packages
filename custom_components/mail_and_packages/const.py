@@ -1,22 +1,20 @@
 """Constants for Mail and Packages."""
 from __future__ import annotations
 
-from typing import Final
+from typing import Any, Final
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription
 from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.0.0-dev"  # Now updated by release workflow
+VERSION = "0.4.0-beta.1"  # Now updated by release workflow
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["camera", "sensor"]
 DATA = "data"
-COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
 SERVICE_UPDATE_FILE_PATH = "update_file_path"
-CAMERA = "cameras"
 
 # Attributes
 ATTR_AMAZON_IMAGE = "amazon_image"
@@ -35,6 +33,12 @@ ATTR_BODY = "body"
 ATTR_PATTERN = "pattern"
 ATTR_USPS_MAIL = "usps_mail"
 
+# Advanced tracking attributes
+ATTR_UNIVERSAL_TRACKING = "universal_tracking"
+ATTR_17TRACK_FORWARDED = "forwarded_to_17track"
+ATTR_AMAZON_COOKIE_TRACKING = "amazon_cookie_tracking"
+ATTR_LLM_ANALYZED = "llm_analyzed"
+
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"
 CONF_CAMERA_NAME = "camera_name"
@@ -49,6 +53,30 @@ CONF_IMAP_TIMEOUT = "imap_timeout"
 CONF_GENERATE_MP4 = "generate_mp4"
 CONF_AMAZON_FWDS = "amazon_fwds"
 CONF_AMAZON_DAYS = "amazon_days"
+
+# Advanced Tracking - Universal Email Scanner
+CONF_SCAN_ALL_EMAILS = "scan_all_emails"
+
+# Advanced Tracking - Tracking Service Forwarding (generic, supports multiple backends)
+CONF_TRACKING_FORWARD_ENABLED = "tracking_forward_enabled"
+CONF_TRACKING_SERVICE = "tracking_service"
+CONF_TRACKING_SERVICE_ENTRY_ID = "tracking_service_entry_id"
+
+# Legacy aliases (backward compat with v5 configs)
+CONF_17TRACK_ENABLED = "seventeen_track_enabled"
+CONF_17TRACK_ENTRY_ID = "seventeen_track_entry_id"
+
+# Advanced Tracking - LLM Analysis (privacy: off by default, explicit opt-in)
+CONF_LLM_ENABLED = "llm_enabled"
+CONF_LLM_PROVIDER = "llm_provider"
+CONF_LLM_ENDPOINT = "llm_endpoint"
+CONF_LLM_API_KEY = "llm_api_key"
+CONF_LLM_MODEL = "llm_model"
+
+# Advanced Tracking - Amazon Cookie Scraping
+CONF_AMAZON_COOKIES_ENABLED = "amazon_cookies_enabled"
+CONF_AMAZON_COOKIES = "amazon_cookies"
+CONF_AMAZON_COOKIE_DOMAIN = "amazon_cookie_domain"
 
 # Defaults
 DEFAULT_CAMERA_NAME = "Mail USPS Camera"
@@ -66,6 +94,61 @@ DEFAULT_ALLOW_EXTERNAL = False
 DEFAULT_CUSTOM_IMG = False
 DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
 DEFAULT_AMAZON_DAYS = 3
+
+# Advanced Tracking Defaults
+DEFAULT_SCAN_ALL_EMAILS = False
+DEFAULT_TRACKING_FORWARD_ENABLED = False
+DEFAULT_TRACKING_SERVICE = "seventeentrack"
+DEFAULT_TRACKING_SERVICE_ENTRY_ID = ""
+# Legacy defaults (backward compat)
+DEFAULT_17TRACK_ENABLED = False
+DEFAULT_17TRACK_ENTRY_ID = ""
+DEFAULT_LLM_ENABLED = False
+DEFAULT_LLM_PROVIDER = "ollama"
+DEFAULT_LLM_ENDPOINT = "http://localhost:11434"
+DEFAULT_LLM_API_KEY = ""
+DEFAULT_LLM_MODEL = ""
+DEFAULT_AMAZON_COOKIES_ENABLED = False
+DEFAULT_AMAZON_COOKIES = ""
+DEFAULT_AMAZON_COOKIE_DOMAIN = "amazon.com"
+LLM_PROVIDERS = ["ollama", "anthropic", "openai"]
+
+# Supported tracking service integrations for forwarding
+# Each entry defines how to call the integration's add-tracking service
+TRACKING_SERVICES: Final[dict[str, dict[str, Any]]] = {
+    "seventeentrack": {
+        "name": "17track",
+        "domain": "seventeentrack",
+        "service": "add_package",
+        "needs_entry_id": True,
+        "params": {
+            "entry_id_key": "config_entry_id",
+            "tracking_key": "package_tracking_number",
+            "name_key": "package_friendly_name",
+        },
+    },
+    "aftership": {
+        "name": "AfterShip",
+        "domain": "aftership",
+        "service": "add_tracking",
+        "needs_entry_id": False,
+        "params": {
+            "tracking_key": "tracking_number",
+            "name_key": "title",
+        },
+    },
+    "aliexpress_package_tracker": {
+        "name": "AliExpress Package Tracker",
+        "domain": "aliexpress_package_tracker",
+        "service": "add_tracking",
+        "needs_entry_id": False,
+        "params": {
+            "tracking_key": "tracking_number",
+            "name_key": "title",
+        },
+    },
+}
+TRACKING_SERVICE_OPTIONS = list(TRACKING_SERVICES.keys())
 
 # Amazon
 AMAZON_DOMAINS = [
@@ -122,6 +205,65 @@ AMAZON_LANGS = [
     "de_DE.UTF-8",
     "",
 ]
+
+# Universal tracking number patterns (for scanning all emails)
+# These are deliberately MORE SPECIFIC than per-carrier patterns to reduce
+# false positives when scanning arbitrary emails. Carriers with overly generic
+# patterns (pure digit sequences < 20 digits) are excluded or tightened.
+UNIVERSAL_TRACKING_PATTERNS: Final[dict[str, dict[str, str]]] = {
+    "usps": {
+        # USPS: starts with 92/93/94/95, 17-28 digits total (distinctive prefix)
+        "pattern": r"(?:^|\b)(9[2345]\d{15,26})(?:\b|$)",
+        "name": "USPS",
+    },
+    "ups": {
+        # UPS: starts with 1Z followed by 16 alphanumeric chars (very distinctive)
+        "pattern": r"(?:^|\b)(1Z[0-9A-Z]{16})(?:\b|$)",
+        "name": "UPS",
+    },
+    "fedex": {
+        # FedEx: exactly 12, 15, or 20 digits (not a range to avoid matching
+        # credit card numbers, phone numbers, etc.)
+        "pattern": r"(?:^|\b)(\d{12}|\d{15}|\d{20})(?:\b|$)",
+        "name": "FedEx",
+    },
+    "dhl": {
+        # DHL Express: JJD/JD prefix followed by digits (distinctive prefix avoids
+        # matching arbitrary 10-11 digit numbers like phone numbers)
+        "pattern": r"(?:^|\b)((?:JJD|JD)\d{8,18})(?:\b|$)",
+        "name": "DHL",
+    },
+    "royal_mail": {
+        # Royal Mail: 2 letters + 9 digits + GB suffix (very distinctive)
+        "pattern": r"(?:^|\b)([A-Za-z]{2}[0-9]{9}GB)(?:\b|$)",
+        "name": "Royal Mail",
+    },
+    "australia_post": {
+        # Australia Post: 2 letters + 9 digits + AU suffix (very distinctive)
+        "pattern": r"(?:^|\b)([A-Za-z]{2}[0-9]{9}AU)(?:\b|$)",
+        "name": "Australia Post",
+    },
+    "poczta_polska": {
+        # Poczta Polska: exactly 20 digits (long enough to be distinctive)
+        "pattern": r"(?:^|\b)(\d{20})(?:\b|$)",
+        "name": "Poczta Polska",
+    },
+    "inpost": {
+        # InPost: exactly 24 digits (very long, very distinctive)
+        "pattern": r"(?:^|\b)(\d{24})(?:\b|$)",
+        "name": "InPost",
+    },
+    "dpd": {
+        # DPD: 13 digits + 1-2 alphanumeric chars (mixed format is distinctive)
+        "pattern": r"(?:^|\b)(\d{13}[A-Z0-9]{1,2})(?:\b|$)",
+        "name": "DPD",
+    },
+    # NOTE: Hermes (\d{16}), Canada Post (\d{16}), and GLS (\d{11}) are
+    # intentionally excluded from universal scanning because their patterns
+    # (pure digit sequences) match credit card numbers, phone numbers, and
+    # other common numeric strings. These carriers are still detected via
+    # their sender-specific email matching in SENSOR_DATA.
+}
 
 # Sensor Data
 SENSOR_DATA = {
@@ -370,7 +512,7 @@ SENSOR_DATA = {
         "subject": ["is on its way", "is coming today"],
     },
     "auspost_packages": {},
-    "auspost_tracking": {"pattern": ["\\d{7,10,12}|[A-Za-z]{2}[0-9]{9}AU "]},
+    "auspost_tracking": {"pattern": ["\\d{7,12}|[A-Za-z]{2}[0-9]{9}AU"]},
 }
 
 # Sensor definitions
@@ -645,13 +787,34 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         name="Mail GLS Delivered",
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant",
-        key="dpd_com_pl_delivered",
+        key="gls_delivered",
     ),
     "gls_packages": SensorEntityDescription(
         name="Mail GLS Packages",
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="gls_packages",
+    ),
+    # Universal Email Tracking (opt-in)
+    "email_tracking_numbers": SensorEntityDescription(
+        name="Mail Email Tracking Numbers",
+        native_unit_of_measurement="tracking #(s)",
+        icon="mdi:email-search",
+        key="email_tracking_numbers",
+    ),
+    # Tracking Service Forwarded (opt-in, supports 17track/AfterShip/AliExpress)
+    "tracking_service_forwarded": SensorEntityDescription(
+        name="Mail Tracking Forwarded",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed-plus",
+        key="tracking_service_forwarded",
+    ),
+    # Amazon Order Tracking via cookies (opt-in)
+    "amazon_cookie_packages": SensorEntityDescription(
+        name="Mail Amazon Order Tracking",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package",
+        key="amazon_cookie_packages",
     ),
     ###
     # !!! Insert new sensors above these two !!!

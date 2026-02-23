@@ -4,7 +4,7 @@ from unittest.mock import mock_open, patch
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.mail_and_packages.const import CAMERA, DOMAIN
+from custom_components.mail_and_packages.const import DOMAIN
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_CUSTOM_IMG
 
 _LOGGER = logging.getLogger(__name__)
@@ -151,7 +151,7 @@ async def test_async_camera_image(
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         m_open = mock_open()
         with patch("builtins.open", m_open, create=True):
             image = await cameras[0].async_camera_image()
@@ -192,7 +192,7 @@ async def test_async_camera_image_file_error(
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         m_open = mock_open()
         with patch("builtins.open", m_open, create=True):
             m_open.side_effect = FileNotFoundError
@@ -228,7 +228,7 @@ async def test_async_on_demand_update(
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         m_open = mock_open()
         with patch("builtins.open", m_open, create=True):
             image = await cameras[0].async_on_demand_update()

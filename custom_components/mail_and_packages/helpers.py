@@ -4,6 +4,7 @@ import datetime
 import email
 import hashlib
 import imaplib
+import json
 import locale
 import logging
 import os
@@ -51,6 +52,8 @@ from .const import (
     AMAZON_PATTERN,
     AMAZON_SHIPMENT_TRACKING,
     AMAZON_TIME_PATTERN,
+    ATTR_17TRACK_FORWARDED,
+    ATTR_AMAZON_COOKIE_TRACKING,
     ATTR_AMAZON_IMAGE,
     ATTR_BODY,
     ATTR_CODE,
@@ -58,12 +61,19 @@ from .const import (
     ATTR_EMAIL,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
+    ATTR_LLM_ANALYZED,
     ATTR_ORDER,
     ATTR_PATTERN,
     ATTR_SUBJECT,
     ATTR_TRACKING,
+    ATTR_UNIVERSAL_TRACKING,
     ATTR_USPS_MAIL,
+    CONF_17TRACK_ENABLED,
+    CONF_17TRACK_ENTRY_ID,
     CONF_ALLOW_EXTERNAL,
+    CONF_AMAZON_COOKIES,
+    CONF_AMAZON_COOKIES_ENABLED,
+    CONF_AMAZON_COOKIE_DOMAIN,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_FWDS,
     CONF_CUSTOM_IMG,
@@ -71,12 +81,23 @@ from .const import (
     CONF_DURATION,
     CONF_FOLDER,
     CONF_GENERATE_MP4,
+    CONF_LLM_API_KEY,
+    CONF_LLM_ENABLED,
+    CONF_LLM_ENDPOINT,
+    CONF_LLM_MODEL,
+    CONF_LLM_PROVIDER,
     CONF_PATH,
+    CONF_SCAN_ALL_EMAILS,
+    CONF_TRACKING_FORWARD_ENABLED,
+    CONF_TRACKING_SERVICE,
+    CONF_TRACKING_SERVICE_ENTRY_ID,
     DEFAULT_AMAZON_DAYS,
     OVERLAY,
     SENSOR_DATA,
     SENSOR_TYPES,
     SHIPPERS,
+    TRACKING_SERVICES,
+    UNIVERSAL_TRACKING_PATTERNS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -96,16 +117,16 @@ def get_resources() -> dict:
     return known_available_resources
 
 
-async def _check_ffmpeg() -> bool:
+def _check_ffmpeg() -> bool:
     """Check if ffmpeg is installed.
 
-    Returns boolean
+    Returns True if ffmpeg is found, False otherwise.
     """
-    return which("ffmpeg")
+    return which("ffmpeg") is not None
 
 
-async def _test_login(host: str, port: int, user: str, pwd: str) -> bool:
-    """Test IMAP login to specified server.
+def _test_login_sync(host: str, port: int, user: str, pwd: str) -> bool:
+    """Test IMAP login to specified server (blocking).
 
     Returns success boolean
     """
@@ -118,10 +139,23 @@ async def _test_login(host: str, port: int, user: str, pwd: str) -> bool:
     # Validate we can login to mail server
     try:
         account.login(user, pwd)
+        account.logout()
         return True
     except Exception as err:
         _LOGGER.error("Error logging into IMAP Server: %s", str(err))
+        try:
+            account.logout()
+        except Exception:
+            pass
         return False
+
+
+async def _test_login(hass: HomeAssistant, host: str, port: int, user: str, pwd: str) -> bool:
+    """Test IMAP login to specified server without blocking the event loop.
+
+    Returns success boolean
+    """
+    return await hass.async_add_executor_job(_test_login_sync, host, port, user, pwd)
 
 
 # Email Data helpers
@@ -160,6 +194,27 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     if not account:
         return data
 
+    try:
+        return _process_emails_inner(hass, config, account, folder, resources, data)
+    finally:
+        try:
+            account.logout()
+        except Exception:
+            pass
+
+
+def _process_emails_inner(
+    hass: HomeAssistant,
+    config: ConfigEntry,
+    account: Any,
+    folder: str,
+    resources: list,
+    data: dict,
+) -> dict:
+    """Inner email processing logic (called within IMAP session).
+
+    Returns dict containing sensor data
+    """
     if not selectfolder(account, folder):
         # Bail out on error
         return data
@@ -186,11 +241,109 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     for sensor in resources:
         fetch(hass, config, account, data, sensor)
 
+    # --- Advanced Tracking Features (all opt-in) ---
+
+    # Collect all known tracking numbers from carrier-specific sensors
+    known_tracking = _collect_known_tracking(data)
+
+    # Universal email scanning (opt-in, local-only)
+    if config.get(CONF_SCAN_ALL_EMAILS, False):
+        _LOGGER.debug("Universal email scanning enabled")
+        universal_result = scan_all_emails_for_tracking(account, known_tracking)
+        data["email_tracking_numbers"] = universal_result[ATTR_COUNT]
+        data[ATTR_UNIVERSAL_TRACKING] = universal_result[ATTR_TRACKING]
+        data["universal_carrier_map"] = universal_result.get("carrier_map", {})
+
+        # Add universal findings to known tracking for dedup downstream
+        known_tracking.extend(universal_result[ATTR_TRACKING])
+
+    # Tracking service forwarding (opt-in, supports 17track/AfterShip/AliExpress)
+    # Also supports legacy CONF_17TRACK_ENABLED for backward compat
+    forward_enabled = config.get(
+        CONF_TRACKING_FORWARD_ENABLED,
+        config.get(CONF_17TRACK_ENABLED, False),
+    )
+    if forward_enabled:
+        service_key = config.get(CONF_TRACKING_SERVICE, "seventeentrack")
+        entry_id = config.get(
+            CONF_TRACKING_SERVICE_ENTRY_ID,
+            config.get(CONF_17TRACK_ENTRY_ID, ""),
+        )
+
+        # Gather all tracking numbers to forward
+        all_to_forward = list(data.get(ATTR_UNIVERSAL_TRACKING, []))
+        carrier_map = data.get("universal_carrier_map", {})
+
+        # Also include carrier-specific tracking numbers
+        for key, value in data.items():
+            if key.endswith("_tracking") and isinstance(value, list):
+                for num in value:
+                    if num not in all_to_forward:
+                        all_to_forward.append(num)
+                        carrier_prefix = key.replace("_tracking", "")
+                        if num not in carrier_map:
+                            carrier_map[num] = carrier_prefix.upper()
+
+        # Get previously forwarded (stored in hass.data)
+        already_forwarded = _get_forwarded_set(hass, config)
+
+        data["tracking_service_forwarded"] = len(all_to_forward)
+        data[ATTR_17TRACK_FORWARDED] = all_to_forward
+        data["_tracking_service_key"] = service_key
+        data["_tracking_entry_id"] = entry_id
+        data["_tracking_carrier_map"] = carrier_map
+        data["_tracking_already_forwarded"] = already_forwarded
+
+    # LLM analysis is handled async in the coordinator (see __init__.py)
+    # We store the config flags so the coordinator can pick them up
+    if config.get(CONF_LLM_ENABLED, False):
+        data["_llm_config"] = {
+            "provider": config.get(CONF_LLM_PROVIDER, "ollama"),
+            "endpoint": config.get(CONF_LLM_ENDPOINT, ""),
+            "api_key": config.get(CONF_LLM_API_KEY, ""),
+            "model": config.get(CONF_LLM_MODEL, ""),
+            "known_tracking": known_tracking,
+        }
+
+    # Amazon cookie scraping is handled async in the coordinator
+    if config.get(CONF_AMAZON_COOKIES_ENABLED, False):
+        data["_amazon_cookie_config"] = {
+            "cookies": config.get(CONF_AMAZON_COOKIES, ""),
+            "domain": config.get(CONF_AMAZON_COOKIE_DOMAIN, "amazon.com"),
+        }
+
     # Copy image file to www directory if enabled
     if config.get(CONF_ALLOW_EXTERNAL):
         copy_images(hass, config)
 
     return data
+
+
+def _collect_known_tracking(data: dict) -> list:
+    """Collect all tracking numbers already found by carrier-specific sensors.
+
+    Returns flat list of all known tracking numbers.
+    """
+    known = []
+    for key, value in data.items():
+        if key.endswith("_tracking") and isinstance(value, list):
+            known.extend(value)
+    return known
+
+
+def _get_forwarded_set(hass: HomeAssistant, config: ConfigEntry) -> set:
+    """Get the set of tracking numbers already forwarded to a tracking service.
+
+    Stored in hass.data to persist across updates within a session.
+    Returns set of tracking number strings.
+    """
+    from .const import DOMAIN  # avoid circular at module level
+
+    domain_data = hass.data.get(DOMAIN, {})
+    forwarded_key = "_tracking_forwarded_set"
+    if forwarded_key not in domain_data:
+        domain_data[forwarded_key] = set()
+    return domain_data[forwarded_key]
 
 
 def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
@@ -400,6 +553,21 @@ def fetch(
             if delivering in data and delivering != sensor:
                 total += fetch(hass, config, account, data, delivering)
         count[sensor] = max(0, total)
+    elif sensor == "email_tracking_numbers":
+        # Handled in process_emails, just return existing value
+        if sensor in data:
+            return data[sensor]
+        count[sensor] = 0
+    elif sensor == "tracking_service_forwarded":
+        # Handled in process_emails, just return existing value
+        if sensor in data:
+            return data[sensor]
+        count[sensor] = 0
+    elif sensor == "amazon_cookie_packages":
+        # Handled async in coordinator, just return existing value
+        if sensor in data:
+            return data[sensor]
+        count[sensor] = 0
     elif sensor == "mail_updated":
         count[sensor] = update_time()
     else:
@@ -412,12 +580,17 @@ def fetch(
     return count[sensor]
 
 
+class IMAPAuthError(Exception):
+    """Raised when IMAP authentication fails."""
+
+
 def login(
     host: str, port: int, user: str, pwd: str
 ) -> Union[bool, Type[imaplib.IMAP4_SSL]]:
     """Login to IMAP server.
 
-    Returns account object
+    Returns account object or False on network error.
+    Raises IMAPAuthError on authentication failure.
     """
     # Catch invalid mail server / host names
     try:
@@ -427,9 +600,12 @@ def login(
         _LOGGER.error("Network error while connecting to server: %s", str(err))
         return False
 
-    # If login fails give error message
+    # If login fails, raise auth error for credential issues
     try:
         account.login(user, pwd)
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("IMAP authentication failed: %s", str(err))
+        raise IMAPAuthError(f"Authentication failed: {err}") from err
     except Exception as err:
         _LOGGER.error("Error logging into IMAP Server: %s", str(err))
         return False
@@ -625,7 +801,7 @@ def get_mails(
         _LOGGER.debug("Informed Delivery email found processing...")
         for num in data[0].split():
             msg = email.message_from_string(
-                email_fetch(account, num, "(RFC822)")[1][0][1].decode("utf-8")
+                email_fetch(account, num, "(RFC822)")[1][0][1].decode("utf-8", "ignore")
             )
 
             # walking through the email parts to find images
@@ -637,14 +813,31 @@ def get_mails(
 
                 _LOGGER.debug("Extracting image from email")
 
+                # Sanitize filename to prevent path traversal attacks
+                raw_filename = part.get_filename()
+                if not raw_filename:
+                    continue
+                # Strip directory components - only keep the basename
+                safe_filename = os.path.basename(raw_filename)
+                if not safe_filename:
+                    continue
+                filepath = os.path.join(image_output_path, safe_filename)
+                # Verify the resolved path is within the output directory
+                if not os.path.realpath(filepath).startswith(
+                    os.path.realpath(image_output_path)
+                ):
+                    _LOGGER.warning(
+                        "Skipping attachment with suspicious filename: %s",
+                        raw_filename,
+                    )
+                    continue
+
                 # Log error message if we are unable to open the filepath for
                 # some reason
                 try:
-                    with open(
-                        image_output_path + part.get_filename(), "wb"
-                    ) as the_file:
+                    with open(filepath, "wb") as the_file:
                         the_file.write(part.get_payload(decode=True))
-                        images.append(image_output_path + part.get_filename())
+                        images.append(filepath)
                         image_count = image_count + 1
                 except Exception as err:
                     _LOGGER.critical("Error opening filepath: %s", str(err))
@@ -738,26 +931,29 @@ def _generate_mp4(path: str, image_file: str) -> None:
     filecheck = os.path.isfile(mp4_file)
     _LOGGER.debug("Generating mp4: %s", mp4_file)
     if filecheck:
-        cleanup_images(os.path.split(mp4_file))
+        cleanup_images(*os.path.split(mp4_file))
         _LOGGER.debug("Removing old mp4: %s", mp4_file)
 
-    # TODO: find a way to call ffmpeg the right way from HA
-    subprocess.call(
-        [
-            "ffmpeg",
-            "-f",
-            "gif",
-            "-i",
-            gif_image,
-            "-pix_fmt",
-            "yuv420p",
-            "-filter:v",
-            "crop='floor(in_w/2)*2:floor(in_h/2)*2'",
-            mp4_file,
-        ],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    try:
+        subprocess.call(
+            [
+                "ffmpeg",
+                "-f",
+                "gif",
+                "-i",
+                gif_image,
+                "-pix_fmt",
+                "yuv420p",
+                "-filter:v",
+                "crop='floor(in_w/2)*2:floor(in_h/2)*2'",
+                mp4_file,
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=120,
+        )
+    except subprocess.TimeoutExpired:
+        _LOGGER.warning("ffmpeg MP4 generation timed out after 120 seconds")
 
 
 def resize_images(images: list, width: int, height: int) -> list:
@@ -793,7 +989,8 @@ def resize_images(images: list, width: int, height: int) -> list:
 def copy_overlays(path: str) -> None:
     """Copy overlay images to image output path."""
     overlays = OVERLAY
-    check = all(item in overlays for item in os.listdir(path))
+    existing_files = os.listdir(path) if os.path.isdir(path) else []
+    check = all(item in existing_files for item in overlays)
 
     # Copy files if they are missing
     if not check:
@@ -1071,7 +1268,7 @@ def get_amazon_image(
 
     if img_url is not None:
         # Download the image we found
-        hass.add_job(download_img(img_url, image_path, image_name))
+        hass.async_create_task(download_img(img_url, image_path, image_name))
 
 
 async def download_img(img_url: str, img_path: str, img_name: str) -> None:
@@ -1186,7 +1383,7 @@ def amazon_exception(
     tfmt = get_formatted_date()
     count = 0
     info = {}
-    domains = AMAZON_DOMAINS
+    domains = list(AMAZON_DOMAINS)  # Copy to avoid mutating module-level list
     if isinstance(fwds, list):
         for fwd in fwds:
             if fwd and fwd != '""' and fwd not in domains:
@@ -1334,6 +1531,8 @@ def get_items(
                             time_format = None
                             new_arrive_date = None
 
+                            # Save and restore locale to avoid affecting other threads
+                            saved_locale = locale.getlocale(locale.LC_TIME)
                             for lang in AMAZON_LANGS:
                                 try:
                                     locale.setlocale(locale.LC_TIME, lang)
@@ -1372,6 +1571,12 @@ def get_items(
                                 ):
                                     deliveries_today.append("Amazon Order")
 
+                            # Restore original locale
+                            try:
+                                locale.setlocale(locale.LC_TIME, saved_locale)
+                            except Exception:
+                                pass
+
     value = None
     if param == "count":
         _LOGGER.debug("Amazon Count: %s", str(len(deliveries_today)))
@@ -1384,3 +1589,659 @@ def get_items(
         value = order_number
 
     return value
+
+
+# =============================================================================
+# Advanced Tracking: Universal Email Scanner
+# =============================================================================
+
+
+def scan_all_emails_for_tracking(
+    account: Type[imaplib.IMAP4_SSL],
+    known_tracking: list,
+) -> dict:
+    """Scan all emails in folder for tracking numbers not found by carrier sensors.
+
+    This searches ALL emails from today using known carrier tracking number
+    regex patterns. It deduplicates against tracking numbers already found
+    by the standard carrier-specific sensors.
+
+    All processing is local. No data is sent externally.
+
+    Returns dict with count, tracking list, and carrier mapping.
+    """
+    _LOGGER.debug("Starting universal email tracking scan")
+    today = get_formatted_date()
+    all_found = {}  # {tracking_number: carrier_name}
+
+    # Search for ALL emails from today
+    try:
+        result = account.search(None, f"(SINCE {today})")
+    except Exception as err:
+        _LOGGER.error("Error searching all emails: %s", str(err))
+        return {ATTR_COUNT: 0, ATTR_TRACKING: [], "carrier_map": {}}
+
+    if result[0] != "OK" or result[1][0] is None:
+        return {ATTR_COUNT: 0, ATTR_TRACKING: [], "carrier_map": {}}
+
+    mail_ids = result[1][0].split()
+    _LOGGER.debug("Universal scan: found %s emails to scan", len(mail_ids))
+
+    # Compile all tracking patterns once
+    compiled_patterns = {}
+    for carrier, info in UNIVERSAL_TRACKING_PATTERNS.items():
+        try:
+            compiled_patterns[carrier] = {
+                "regex": re.compile(info["pattern"]),
+                "name": info["name"],
+            }
+        except re.error as err:
+            _LOGGER.warning("Invalid pattern for %s: %s", carrier, err)
+
+    for mail_id in mail_ids:
+        try:
+            data = email_fetch(account, mail_id, "(RFC822)")[1]
+        except Exception as err:
+            _LOGGER.debug("Error fetching email %s: %s", mail_id, err)
+            continue
+
+        for response_part in data:
+            if not isinstance(response_part, tuple):
+                continue
+
+            try:
+                msg = email.message_from_bytes(response_part[1])
+            except Exception as err:
+                _LOGGER.debug("Error parsing email: %s", err)
+                continue
+
+            # Collect text from subject and body
+            text_parts = []
+            subject = msg.get("subject", "")
+            if subject:
+                text_parts.append(subject)
+
+            for part in msg.walk():
+                content_type = part.get_content_type()
+                if content_type not in ["text/html", "text/plain"]:
+                    continue
+                try:
+                    payload = part.get_payload(decode=True)
+                    if payload:
+                        text_parts.append(payload.decode("utf-8", "ignore"))
+                except Exception:
+                    continue
+
+            full_text = "\n".join(text_parts)
+
+            # Apply each carrier pattern
+            for carrier, pinfo in compiled_patterns.items():
+                matches = pinfo["regex"].findall(full_text)
+                for match in matches:
+                    if match and match not in all_found:
+                        all_found[match] = pinfo["name"]
+
+    # Deduplicate: remove tracking numbers already found by carrier sensors
+    known_set = set(known_tracking) if known_tracking else set()
+    new_tracking = {
+        num: carrier for num, carrier in all_found.items() if num not in known_set
+    }
+
+    tracking_list = list(new_tracking.keys())
+    _LOGGER.debug(
+        "Universal scan complete: %s new tracking numbers found (after dedup)",
+        len(tracking_list),
+    )
+
+    return {
+        ATTR_COUNT: len(tracking_list),
+        ATTR_TRACKING: tracking_list,
+        "carrier_map": new_tracking,
+    }
+
+
+# =============================================================================
+# Advanced Tracking: Tracking Service Forwarding
+# Supports: 17track (seventeentrack), AfterShip, AliExpress Package Tracker
+# =============================================================================
+
+
+async def forward_to_tracking_service(
+    hass: Any,
+    service_key: str,
+    entry_id: str,
+    tracking_numbers: list,
+    carrier_map: dict,
+    already_forwarded: set,
+) -> list:
+    """Forward new tracking numbers to a tracking service via HA service call.
+
+    Supports multiple backends defined in TRACKING_SERVICES (const.py):
+    - seventeentrack (17track) - core HA integration
+    - aftership (AfterShip) - core HA integration, 490+ carriers
+    - aliexpress_package_tracker - HACS integration
+
+    Only forwards tracking numbers not previously sent. The user must have
+    the chosen tracking integration already configured in Home Assistant.
+
+    Returns list of newly forwarded tracking numbers.
+    """
+    service_def = TRACKING_SERVICES.get(service_key)
+    if not service_def:
+        _LOGGER.error("Unknown tracking service: %s", service_key)
+        return []
+
+    domain = service_def["domain"]
+    service = service_def["service"]
+    params_def = service_def["params"]
+    service_name = service_def["name"]
+    newly_forwarded = []
+
+    for number in tracking_numbers:
+        if number in already_forwarded:
+            continue
+
+        carrier_name = carrier_map.get(number, "Unknown")
+        friendly_name = f"Mail & Packages: {carrier_name} - {number[:8]}..."
+
+        # Build service call data based on the service's parameter schema
+        service_data = {
+            params_def["tracking_key"]: number,
+        }
+        if "name_key" in params_def:
+            service_data[params_def["name_key"]] = friendly_name
+        if "entry_id_key" in params_def and entry_id:
+            service_data[params_def["entry_id_key"]] = entry_id
+
+        try:
+            await hass.services.async_call(
+                domain,
+                service,
+                service_data,
+                blocking=True,
+            )
+            newly_forwarded.append(number)
+            _LOGGER.info(
+                "Forwarded tracking %s to %s", number, service_name
+            )
+        except Exception as err:
+            _LOGGER.warning(
+                "Failed to forward %s to %s: %s", number, service_name, err
+            )
+
+    return newly_forwarded
+
+
+# =============================================================================
+# Advanced Tracking: LLM Analysis (privacy-first, opt-in only)
+# =============================================================================
+
+
+async def analyze_email_with_llm(
+    email_text: str,
+    provider: str,
+    endpoint: str,
+    api_key: str,
+    model: str,
+) -> list:
+    """Send email text to LLM to extract tracking numbers.
+
+    PRIVACY WARNING: This function sends email content to an external service.
+    It must ONLY be called when the user has explicitly opted in and is fully
+    informed about data leaving their system.
+
+    For 'ollama': sends to local instance (no internet required).
+    For 'anthropic'/'openai': sends to cloud API (requires internet).
+
+    Returns list of extracted tracking numbers.
+    """
+    prompt = (
+        "Extract any package tracking numbers from this email. "
+        "Return ONLY a JSON array of tracking numbers found. "
+        "If no tracking numbers are found, return an empty array []. "
+        "Do not include any other text, just the JSON array.\n\n"
+        f"Email content:\n{email_text[:4000]}"
+    )
+
+    try:
+        if provider == "ollama":
+            return await _llm_ollama(endpoint, model, prompt)
+        elif provider == "anthropic":
+            return await _llm_anthropic(api_key, model, prompt)
+        elif provider == "openai":
+            return await _llm_openai(endpoint, api_key, model, prompt)
+    except Exception as err:
+        _LOGGER.error("LLM analysis error (%s): %s", provider, err)
+
+    return []
+
+
+def _validate_llm_endpoint(endpoint: str) -> bool:
+    """Validate LLM endpoint URL to prevent SSRF attacks.
+
+    Only allows http/https schemes and rejects obviously internal targets.
+    """
+    from urllib.parse import urlparse
+
+    try:
+        parsed = urlparse(endpoint)
+    except Exception:
+        return False
+
+    if parsed.scheme not in ("http", "https"):
+        return False
+
+    # Block metadata endpoints and common internal services
+    blocked_hosts = {
+        "metadata.google.internal",
+        "169.254.169.254",
+        "metadata.azure.com",
+    }
+    hostname = parsed.hostname or ""
+    if hostname in blocked_hosts:
+        return False
+
+    return True
+
+
+async def _llm_ollama(endpoint: str, model: str, prompt: str) -> list:
+    """Query local Ollama instance for tracking numbers.
+
+    Ollama runs locally - no data leaves the user's network.
+    """
+    if not _validate_llm_endpoint(endpoint):
+        _LOGGER.error("Invalid Ollama endpoint URL: %s", endpoint)
+        return []
+    url = f"{endpoint.rstrip('/')}/api/generate"
+    payload = {
+        "model": model or "llama3.2",
+        "prompt": prompt,
+        "stream": False,
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            url, json=payload, timeout=aiohttp.ClientTimeout(total=60)
+        ) as resp:
+            if resp.status != 200:
+                _LOGGER.error("Ollama returned status %s", resp.status)
+                return []
+            result = await resp.json()
+            response_text = result.get("response", "[]")
+            return _parse_llm_tracking_response(response_text)
+
+
+async def _llm_anthropic(api_key: str, model: str, prompt: str) -> list:
+    """Query Anthropic API for tracking numbers.
+
+    WARNING: Sends data to Anthropic's cloud API.
+    """
+    url = "https://api.anthropic.com/v1/messages"
+    headers = {
+        "x-api-key": api_key,
+        "content-type": "application/json",
+        "anthropic-version": "2023-06-01",
+    }
+    payload = {
+        "model": model or "claude-haiku-4-5-20251001",
+        "max_tokens": 256,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            url,
+            json=payload,
+            headers=headers,
+            timeout=aiohttp.ClientTimeout(total=30),
+        ) as resp:
+            if resp.status != 200:
+                _LOGGER.error("Anthropic API returned status %s", resp.status)
+                return []
+            result = await resp.json()
+            text = result.get("content", [{}])[0].get("text", "[]")
+            return _parse_llm_tracking_response(text)
+
+
+async def _llm_openai(
+    endpoint: str, api_key: str, model: str, prompt: str
+) -> list:
+    """Query OpenAI-compatible API for tracking numbers.
+
+    WARNING: Sends data to OpenAI's cloud API (or compatible endpoint).
+    """
+    if endpoint:
+        if not _validate_llm_endpoint(endpoint):
+            _LOGGER.error("Invalid OpenAI endpoint URL: %s", endpoint)
+            return []
+        url = f"{endpoint.rstrip('/')}/v1/chat/completions"
+    else:
+        url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": model or "gpt-4o-mini",
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 256,
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            url,
+            json=payload,
+            headers=headers,
+            timeout=aiohttp.ClientTimeout(total=30),
+        ) as resp:
+            if resp.status != 200:
+                _LOGGER.error("OpenAI API returned status %s", resp.status)
+                return []
+            result = await resp.json()
+            text = result["choices"][0]["message"]["content"]
+            return _parse_llm_tracking_response(text)
+
+
+def _parse_llm_tracking_response(text: str) -> list:
+    """Parse LLM response to extract tracking number array.
+
+    Returns list of tracking numbers.
+    """
+    text = text.strip()
+    start = text.find("[")
+    end = text.rfind("]")
+    if start != -1 and end != -1 and end > start:
+        try:
+            result = json.loads(text[start : end + 1])
+            if isinstance(result, list):
+                return [str(item) for item in result if item]
+        except json.JSONDecodeError:
+            pass
+
+    _LOGGER.debug(
+        "Could not parse LLM response as tracking numbers: %s", text[:200]
+    )
+    return []
+
+
+async def llm_scan_emails(
+    account: Type[imaplib.IMAP4_SSL],
+    known_tracking: list,
+    provider: str,
+    endpoint: str,
+    api_key: str,
+    model: str,
+) -> dict:
+    """Scan emails with LLM for tracking numbers not found by regex.
+
+    PRIVACY: Only called when user has explicitly opted in.
+    Sends email content to the configured LLM provider.
+
+    Returns dict with count and tracking numbers found.
+    """
+    _LOGGER.debug("Starting LLM email analysis (provider: %s)", provider)
+    today = get_formatted_date()
+    llm_found = []
+
+    try:
+        result = account.search(None, f"(SINCE {today})")
+    except Exception as err:
+        _LOGGER.error("Error searching emails for LLM analysis: %s", err)
+        return {ATTR_COUNT: 0, ATTR_TRACKING: []}
+
+    if result[0] != "OK" or result[1][0] is None:
+        return {ATTR_COUNT: 0, ATTR_TRACKING: []}
+
+    mail_ids = result[1][0].split()
+    known_set = set(known_tracking) if known_tracking else set()
+
+    for mail_id in mail_ids:
+        try:
+            data = email_fetch(account, mail_id, "(RFC822)")[1]
+        except Exception:
+            continue
+
+        for response_part in data:
+            if not isinstance(response_part, tuple):
+                continue
+
+            try:
+                msg = email.message_from_bytes(response_part[1])
+            except Exception:
+                continue
+
+            # Collect email text
+            text_parts = []
+            subject = msg.get("subject", "")
+            if subject:
+                text_parts.append(f"Subject: {subject}")
+
+            for part in msg.walk():
+                if part.get_content_type() == "text/plain":
+                    try:
+                        payload = part.get_payload(decode=True)
+                        if payload:
+                            text_parts.append(
+                                payload.decode("utf-8", "ignore")
+                            )
+                    except Exception:
+                        continue
+
+            if not text_parts:
+                continue
+
+            email_text = "\n".join(text_parts)
+
+            # Skip very short emails unlikely to contain tracking info
+            if len(email_text) < 50:
+                continue
+
+            found = await analyze_email_with_llm(
+                email_text, provider, endpoint, api_key, model
+            )
+            for num in found:
+                if num not in known_set and num not in llm_found:
+                    llm_found.append(num)
+
+    _LOGGER.debug("LLM analysis found %s new tracking numbers", len(llm_found))
+    return {ATTR_COUNT: len(llm_found), ATTR_TRACKING: llm_found}
+
+
+# =============================================================================
+# Advanced Tracking: Amazon Cookie Scraping
+# =============================================================================
+
+
+async def scrape_amazon_tracking(
+    cookies_str: str,
+    domain: str,
+) -> dict:
+    """Scrape Amazon order pages for tracking numbers using stored cookies.
+
+    This uses undocumented Amazon web endpoints with the user's own
+    session cookies. The user must provide their Amazon cookies and
+    explicitly opt in to this feature.
+
+    All data retrieved is processed locally.
+
+    Returns dict with count and tracking info.
+    """
+    _LOGGER.debug("Starting Amazon cookie-based tracking scrape")
+    tracking_info = []
+
+    # Validate Amazon domain to prevent SSRF
+    import re as _re
+
+    if not _re.match(r"^amazon\.[a-z.]{2,10}$", domain):
+        _LOGGER.error("Invalid Amazon domain: %s", domain)
+        return {ATTR_COUNT: 0, ATTR_TRACKING: [], "orders": []}
+
+    cookie_jar = _parse_cookies(cookies_str, domain)
+    if not cookie_jar:
+        _LOGGER.warning("No valid cookies provided for Amazon scraping")
+        return {ATTR_COUNT: 0, ATTR_TRACKING: [], "orders": []}
+
+    base_url = f"https://www.{domain}"
+    orders_url = f"{base_url}/gp/your-account/order-history?orderFilter=last30"
+
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/120.0.0.0 Safari/537.36"
+        ),
+        "Accept": (
+            "text/html,application/xhtml+xml,"
+            "application/xml;q=0.9,*/*;q=0.8"
+        ),
+        "Accept-Language": "en-US,en;q=0.5",
+    }
+
+    try:
+        async with aiohttp.ClientSession(
+            cookies=cookie_jar,
+            headers=headers,
+        ) as session:
+            async with session.get(
+                orders_url,
+                timeout=aiohttp.ClientTimeout(total=30),
+                allow_redirects=True,
+            ) as resp:
+                if resp.status != 200:
+                    _LOGGER.warning(
+                        "Amazon order page returned status %s", resp.status
+                    )
+                    return {ATTR_COUNT: 0, ATTR_TRACKING: [], "orders": []}
+
+                html = await resp.text()
+
+            # Redirected to sign-in means cookies are expired
+            if "ap/signin" in str(resp.url) or "sign-in" in html[:1000].lower():
+                _LOGGER.warning(
+                    "Amazon cookies appear expired - redirected to sign-in"
+                )
+                return {ATTR_COUNT: 0, ATTR_TRACKING: [], "orders": []}
+
+            # Extract order IDs
+            order_pattern = re.compile(r"(\d{3}-\d{7}-\d{7})")
+            order_ids = list(set(order_pattern.findall(html)))
+            _LOGGER.debug("Found %s Amazon order IDs", len(order_ids))
+
+            for order_id in order_ids[:20]:
+                tracking = await _get_amazon_order_tracking(
+                    session, base_url, order_id
+                )
+                if tracking:
+                    tracking_info.extend(tracking)
+
+    except aiohttp.ClientError as err:
+        _LOGGER.error("Network error during Amazon scraping: %s", err)
+    except Exception as err:
+        _LOGGER.error("Error during Amazon scraping: %s", err)
+
+    _LOGGER.debug(
+        "Amazon cookie scrape found %s tracking entries", len(tracking_info)
+    )
+    return {
+        ATTR_COUNT: len(tracking_info),
+        ATTR_TRACKING: [t["number"] for t in tracking_info],
+        "orders": tracking_info,
+    }
+
+
+async def _get_amazon_order_tracking(
+    session: aiohttp.ClientSession,
+    base_url: str,
+    order_id: str,
+) -> list:
+    """Get tracking info for a specific Amazon order.
+
+    Returns list of dicts with tracking number and carrier.
+    """
+    tracking_url = f"{base_url}/gp/your-account/ship-track?orderId={order_id}"
+
+    try:
+        async with session.get(
+            tracking_url,
+            timeout=aiohttp.ClientTimeout(total=15),
+            allow_redirects=True,
+        ) as resp:
+            if resp.status != 200:
+                return []
+            html = await resp.text()
+    except Exception as err:
+        _LOGGER.debug(
+            "Error fetching tracking for order %s: %s", order_id, err
+        )
+        return []
+
+    results = []
+
+    tracking_patterns = [
+        re.compile(
+            r"(?:tracking\s*(?:id|number|#)\s*[:\s]*)([\w\d]{8,30})",
+            re.IGNORECASE,
+        ),
+        re.compile(r"(1Z[0-9A-Z]{16})"),  # UPS
+        re.compile(r"(\b9[2345]\d{15,26}\b)"),  # USPS
+        re.compile(r"(?:fedex|FedEx).*?(\d{12,20})"),  # FedEx
+    ]
+
+    carrier = "Unknown"
+    carrier_patterns = [
+        (
+            re.compile(
+                r"(?:shipped\s+with|carrier[:\s]+)([\w\s]+)", re.IGNORECASE
+            ),
+            1,
+        ),
+        (
+            re.compile(
+                r"(USPS|UPS|FedEx|DHL|AMZL|Amazon Logistics)", re.IGNORECASE
+            ),
+            1,
+        ),
+    ]
+
+    for cp, group in carrier_patterns:
+        match = cp.search(html)
+        if match:
+            carrier = match.group(group).strip()
+            break
+
+    for pattern in tracking_patterns:
+        matches = pattern.findall(html)
+        for match in matches:
+            if match and len(match) >= 8:
+                results.append(
+                    {
+                        "number": match,
+                        "carrier": carrier,
+                        "order_id": order_id,
+                    }
+                )
+
+    return results
+
+
+def _parse_cookies(cookies_str: str, domain: str) -> dict:
+    """Parse cookie string into dict for aiohttp.
+
+    Accepts cookies in 'key=value; key2=value2' format (from browser).
+
+    Returns dict of cookies.
+    """
+    cookies = {}
+    if not cookies_str:
+        return cookies
+
+    try:
+        for item in cookies_str.split(";"):
+            item = item.strip()
+            if "=" in item:
+                key, value = item.split("=", 1)
+                cookies[key.strip()] = value.strip()
+    except Exception as err:
+        _LOGGER.error("Error parsing Amazon cookies: %s", err)
+
+    return cookies

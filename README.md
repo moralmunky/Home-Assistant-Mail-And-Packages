@@ -6,52 +6,308 @@
 ![CodeQL](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/workflows/CodeQL/badge.svg?branch=master)
 ![Validate with hassfest](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/workflows/Validate%20with%20hassfest/badge.svg?branch=master)
 
-![GitHub contributors](https://img.shields.io/github/contributors/moralmunky/Home-Assistant-Mail-And-Packages)
-![Maintenance](https://img.shields.io/maintenance/yes/2022)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/y/moralmunky/Home-Assistant-Mail-And-Packages)
-![GitHub commits since tagged version](https://img.shields.io/github/commits-since/moralmunky/Home-Assistant-Mail-And-Packages/0.3.3-2/dev)
-![GitHub last commit](https://img.shields.io/github/last-commit/moralmunky/Home-Assistant-Mail-And-Packages/dev)
-![Codecov branch](https://img.shields.io/codecov/c/github/moralmunky/Home-Assistant-Mail-And-Packages/master)
+# Mail and Packages
 
-## About Mail and Packages integration
+A [Home Assistant](https://www.home-assistant.io/) custom integration that creates sensors for mail and package tracking. It connects to your IMAP email server, parses shipping notification emails from supported carriers, and creates sensors showing delivery counts and statuses. It also generates animated GIFs from USPS Informed Delivery mail images.
 
-The [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) creates sensors for [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements) to show a snapshot of mail and **packages that are scheduled to be delivered the current day**. For the packages that are scheduled for delivery the current day a count of in transit and delivered packages will be provided. It also generates the number of USPS mail pieces and provides a rotating GIF of the USPS provided images of the mail, if available, for the current day.
+## Features
 
-## Credits:
+- **13 supported carriers** with automatic email parsing
+- **USPS Informed Delivery** mail image GIF/MP4 generation
+- **Amazon delivery images** and Hub Locker pickup codes
+- **Universal email scanning** for tracking numbers across all emails
+- **Tracking service forwarding** to 17track, AfterShip, or AliExpress
+- **AI/LLM analysis** of emails for tracking numbers (Ollama, Anthropic, OpenAI)
+- **Amazon cookie-based tracking** for direct order status polling
+- **Reauth flow** with automatic credential failure detection and notification
+- **HACS compatible** with guided setup wizard
 
-- Huge contributions from [@firstof9](https://github.com/firstof9) moving the project forward and keeping it active!
-  <br/>
-  <a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" height="51px" width="217px" /></a>
+## Privacy-First Design
 
-## How it works
+**All core processing is local by default. No data ever leaves your network unless you explicitly enable an optional feature.**
 
-From your instance of HASS, the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) connects to the email account you supply where your shipment notifications are sent. It reviews at the subject lines of the current day's emails from the [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements) and counts the subject lines that match known language from the [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements) about their transit status. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF. 
-See the WIKI [information on how this works](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki).
+- Core email parsing, image processing, and regex matching all happen locally
+- Advanced features (LLM cloud APIs, tracking service forwarding) are **disabled by default** and require explicit opt-in
+- When using Ollama for LLM analysis, everything stays on your local network
+- Clear privacy notices are shown during setup when configuring cloud-based features
 
-_**The email can not be deleted until the next day**_. You can have your email filtered into a folder and have the integration watch that folder.
+## Supported Carriers
 
-The image will revert back to the no mail graphic after the first email check after midnight, local time.
+| Carrier | Delivered | In Transit | Exceptions | Tracking Numbers |
+|---------|:---------:|:----------:|:----------:|:----------------:|
+| USPS | X | X | | X |
+| UPS | X | X | | X |
+| FedEx | X | X | | X |
+| Amazon | X | | X | X |
+| DHL | X | X | | X |
+| Canada Post | X | X | | |
+| Hermes (UK) | X | X | | |
+| Royal Mail | X | X | | |
+| Australia Post | X | X | | |
+| Poczta Polska | | X | | |
+| InPost (PL) | X | X | | X |
+| DPD (PL) | X | X | | X |
+| GLS | X | X | | X |
 
-* **All procedures are done locally on your machine.**
-* **No external services are used to process your email.**
-* **No data is sent outside of your local instance of Home Assistant**
+**Aggregate sensors:** Total packages delivered and in transit across all carriers.
 
-##### *Privacy / Security Note
-Please note that files stored in the `www` Home Assistant folder are [publicly accessible](https://www.home-assistant.io/integrations/http/#hosting-files) unless you have taken security measures outside of Home Assistant to secure it. For increased security and simplicity the USPS Informed Delivery image name is random by default and no longer has the option to turn it on/off. Two new sensors have been created that provide the local file path or a web accessible url for use in displaying or sending in various Home Assistant notification methods.
+## Installation
 
-* `sensor.mail_image_system_path`
-* `sensor.mail_image_url` - Requires that either `External_URL` or `Internal_URL` is defined in the general configuration options in Home Assistant.
+### HACS (Recommended)
 
-## Support
-[Configuration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings)
+1. Open HACS in your Home Assistant instance
+2. Go to **Integrations**
+3. Click the **+** button and search for "Mail and Packages"
+4. Click **Install**
+5. Restart Home Assistant
 
-[Troubleshooting](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
+### Manual
 
-[Supported Shipper Requirements](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements)
+1. Copy the `custom_components/mail_and_packages` directory to your Home Assistant `config/custom_components/` directory
+2. Restart Home Assistant
 
-## Template and Examples
-[USPS Informed Delivery Image](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/USPS-Informed-Delivery-Image)
+## Configuration
 
-[Text Summary](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Mail-Summary-Message)
+Configuration is done entirely through the UI. No YAML configuration is needed.
 
-[Notificaions](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Notifications)
+1. Go to **Settings > Devices & Services > Add Integration**
+2. Search for **Mail and Packages**
+3. Follow the setup wizard
+
+### Step 1: IMAP Credentials
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| Host | IMAP server address | *required* |
+| Port | IMAP port (SSL) | 993 |
+| Username | Email account username | *required* |
+| Password | Email account password | *required* |
+
+### Step 2: Sensors & Email Processing
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| Mail Folder | IMAP folder to monitor | INBOX |
+| Sensors List | Which carrier sensors to enable | *select* |
+| Scan Interval | Minutes between email checks (min: 5) | 5 |
+| IMAP Timeout | Connection timeout in seconds (min: 10) | 30 |
+| Image Path | Where to store mail images | /config/www/mail_and_packages/ |
+| GIF Duration | Seconds per frame in mail GIF | 5 |
+| Generate MP4 | Create MP4 video from mail images (requires ffmpeg) | Off |
+| Create External Image | Copy images to www folder for notifications | Off |
+| Amazon Forwarded Emails | Comma-separated forwarding addresses | *blank* |
+| Amazon Days | Days back to search for Amazon emails | 3 |
+| Custom Image | Use a custom "no mail" placeholder image | Off |
+
+**Advanced Tracking Options** (all disabled by default):
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| Scan All Emails | Scan today's emails for tracking numbers using regex | Off |
+| Forward to Tracking Service | Send discovered numbers to a tracking service | Off |
+| AI/LLM Analysis | Use AI to extract tracking numbers from emails | Off |
+| Amazon Cookie Tracking | Poll Amazon orders directly via session cookies | Off |
+
+### Step 3: Advanced Tracking Configuration
+
+Only shown if you enabled any advanced tracking features in Step 2.
+
+**Tracking Service Forwarding:**
+
+| Service | Entry ID Required | Notes |
+|---------|:-----------------:|-------|
+| 17track | Yes | Enter config entry ID from Settings > Devices & Services |
+| AfterShip | No | Uses HA AfterShip integration |
+| AliExpress | No | Requires HACS AliExpress Package Tracker |
+
+**AI/LLM Providers:**
+
+| Provider | Local | API Key | Notes |
+|----------|:-----:|:-------:|-------|
+| Ollama | Yes | No | Runs on your network, no data leaves. Default: `llama3.2` |
+| Anthropic | No | Yes | Sends email content to Anthropic servers. Default: `claude-haiku-4-5-20251001` |
+| OpenAI | No | Yes | Sends email content to OpenAI servers. Default: `gpt-4o-mini` |
+
+**Amazon Cookie Tracking:**
+
+This feature lets the integration check your Amazon order history directly for tracking numbers, without relying on email notifications. It works by using your Amazon session cookies to access your order pages.
+
+**How to get your Amazon cookies (step-by-step):**
+
+1. Open your web browser (Chrome, Firefox, Edge, etc.) and go to [amazon.com](https://www.amazon.com) (or your regional Amazon site)
+2. **Log in** to your Amazon account if you aren't already
+3. **Open Developer Tools:**
+   - **Chrome/Edge:** Press `F12` or `Ctrl+Shift+I` (Windows/Linux) / `Cmd+Option+I` (Mac)
+   - **Firefox:** Press `F12` or `Ctrl+Shift+I` (Windows/Linux) / `Cmd+Option+I` (Mac)
+   - **Safari:** Enable "Develop" menu in Preferences > Advanced, then press `Cmd+Option+I`
+4. In Developer Tools, click the **"Application"** tab (Chrome/Edge) or **"Storage"** tab (Firefox)
+5. In the left sidebar, expand **"Cookies"** and click on `https://www.amazon.com`
+6. You'll see a table of cookies. You need to copy them in `name=value; name2=value2` format. The key cookies are:
+   - `session-id`
+   - `session-id-time`
+   - `ubid-main` (or `ubid-acbxx` for non-US)
+   - `at-main` (or regional variant)
+   - `sess-at-main` (or regional variant)
+   - `x-main`
+   - `csm-hit`
+
+   **Quick method:** In the browser console (Console tab), paste this and press Enter:
+   ```javascript
+   document.cookie
+   ```
+   This prints all cookies as a single string you can copy directly.
+
+7. Paste the full cookie string into the **"Amazon browser cookies"** field in the integration setup
+8. Set the **"Amazon domain"** to match your region (e.g., `amazon.com`, `amazon.co.uk`, `amazon.de`)
+
+**Important notes:**
+- Amazon cookies **expire periodically** (typically every few weeks). When they expire, the integration will log a warning and you'll need to repeat the process
+- This feature **only accesses your Amazon order pages** - no other Amazon data is accessed
+- All processing happens locally on your Home Assistant instance
+- Supports: amazon.com, .ca, .co.uk, .de, .it, .in, .com.au, .pl
+
+## Sensors
+
+### Package Sensors
+
+For each enabled carrier, the integration creates:
+- `sensor.mail_{carrier}_delivered` - Packages delivered today
+- `sensor.mail_{carrier}_delivering` - Packages in transit
+- `sensor.mail_{carrier}_packages` - Total active packages
+
+### Aggregate Sensors
+
+- `sensor.mail_packages_delivered` - Total delivered across all carriers
+- `sensor.mail_packages_in_transit` - Total in transit across all carriers
+- `sensor.mail_updated` - Timestamp of last email scan
+
+### Amazon-Specific Sensors
+
+- `sensor.mail_amazon_packages` - Total Amazon packages
+- `sensor.mail_amazon_delivered` - Delivered Amazon packages
+- `sensor.mail_amazon_exception` - Amazon delivery exceptions
+- `sensor.mail_amazon_hub` - Packages at Amazon Hub Lockers (includes pickup code)
+
+### Image Sensors
+
+- `sensor.mail_image_system_path` - Local filesystem path to the mail GIF
+- `sensor.mail_image_url` - URL to the mail image. By default, this uses the **authenticated** camera proxy URL (`/api/camera_proxy/camera.mail_usps_camera`) which requires Home Assistant login. If you enable "Copy images to www/ folder", it uses the `/local/` URL instead (publicly accessible without authentication).
+
+### Camera Entities
+
+- `camera.mail_usps_camera` - Displays the USPS Informed Delivery mail image GIF (served through HA's authenticated API)
+- `camera.mail_amazon_camera` - Displays Amazon delivery images (served through HA's authenticated API)
+
+### Services
+
+- `mail_and_packages.update_image` - Force refresh camera images on demand
+
+## Re-authentication
+
+If your IMAP credentials become invalid (password change, token expiration, etc.), the integration will automatically:
+
+1. Detect the authentication failure during the next scan
+2. Show a notification in Home Assistant that re-authentication is needed
+3. Guide you through a reauth flow to enter updated credentials
+4. Resume normal operation after successful re-authentication
+
+## Security
+
+### Image Privacy
+
+By default, mail images are stored in a **private directory** inside the integration folder and are only accessible through Home Assistant's **authenticated camera proxy API**. This means images require a valid HA login to view.
+
+The "Copy images to www/ folder" option (`allow_external`) is **disabled by default**. If enabled, images are copied to the `www/mail_and_packages/` directory, which is [publicly accessible](https://www.home-assistant.io/integrations/http/#hosting-files) without authentication via `/local/` URLs. Only enable this if you specifically need unauthenticated access (e.g., for legacy notification apps that can't use HA authentication).
+
+**For notification apps:** Most modern HA notification services (Companion App, Telegram, etc.) can use the camera entity directly via `camera.mail_usps_camera`. You do **not** need to enable the www copy for notifications.
+
+### Other Security Measures
+
+- **Path traversal protection** on all file operations (image extraction, custom images)
+- **SSRF prevention** on LLM endpoints and Amazon cookie domains
+- **IMAP connection lifecycle management** with guaranteed cleanup (try/finally)
+- **UUID-based image filenames** to prevent enumeration attacks
+- **Credential redaction** in diagnostics output
+- **Endpoint validation** blocks known cloud metadata endpoints (AWS, Azure, GCP)
+
+## Troubleshooting
+
+1. **Enable debug logging** by adding to `configuration.yaml`:
+   ```yaml
+   logger:
+     default: warning
+     logs:
+       custom_components.mail_and_packages: debug
+   ```
+
+2. **Check diagnostics**: Go to the device page and download diagnostics. Sensitive data (credentials, tracking numbers) is automatically redacted.
+
+3. **Common issues**:
+   - Ensure your email provider allows IMAP access (Gmail requires App Passwords)
+   - Email must not be deleted until the next day
+   - Use a dedicated folder with email filters for best results
+   - Scan interval minimum is 5 minutes to avoid rate limiting
+
+## Development
+
+### Requirements
+
+- Python 3.12+
+- Home Assistant 2024.3+
+
+### Running Tests
+
+```bash
+# Full test suite via tox
+tox
+
+# Direct pytest
+pytest --timeout=30 --cov=custom_components/mail_and_packages/ --cov-report=xml
+
+# Single test file
+pytest tests/test_helpers.py -v
+
+# Single test
+pytest tests/test_helpers.py::test_function_name -v
+```
+
+### Linting
+
+```bash
+# All linters via tox
+tox -e lint
+
+# Individual tools
+black --check custom_components/mail_and_packages/
+flake8 custom_components/mail_and_packages/
+pylint custom_components/mail_and_packages/
+isort --check custom_components/mail_and_packages/
+```
+
+### Code Style
+
+- **Formatter:** [black](https://github.com/psf/black) (88 character line length)
+- **Import sorting:** [isort](https://pycqa.github.io/isort/) (black-compatible profile)
+- **PR titles:** Follow [Conventional Commits](https://www.conventionalcommits.org/)
+- **Branch PRs** from `dev`, not `master`
+
+## Credits
+
+- **[@moralmunky](https://github.com/moralmunky)** - Creator and maintainer
+- **[@firstof9](https://github.com/firstof9)** - Major contributor, keeping the project active
+- **[@brandon-claps](https://github.com/brandon-claps)** - Advanced tracking features (universal email scanning, tracking service forwarding, LLM analysis, Amazon cookie tracking), security hardening, HA modern patterns conformance
+
+<a href="https://www.buymeacoffee.com/Moralmunky" target="_blank"><img src="/docs/coffee.png" alt="Buy Us A Coffee" height="51px" width="217px" /></a>
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Links
+
+- [Configuration Wiki](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings)
+- [Supported Shipper Requirements](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements)
+- [Troubleshooting Wiki](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
+- [USPS Informed Delivery Image Examples](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/USPS-Informed-Delivery-Image)
+- [Notification Examples](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Notifications)
+- [Issue Tracker](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/issues)

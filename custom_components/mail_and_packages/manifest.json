@@ -9,10 +9,11 @@
     "@firstof9"
   ],
   "config_flow": true,
+  "integration_type": "hub",
   "requirements": [
     "imageio>=2.9.0",
     "python-resize-image>=1.1.19"
   ],
   "iot_class": "cloud_polling",
-  "version": "0.0.0-dev"
+  "version": "0.4.0-beta.1"
 }

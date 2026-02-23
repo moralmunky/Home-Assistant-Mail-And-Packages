@@ -17,13 +17,16 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     AMAZON_EXCEPTION_ORDER,
     AMAZON_ORDER,
+    ATTR_17TRACK_FORWARDED,
+    ATTR_AMAZON_COOKIE_TRACKING,
     ATTR_IMAGE,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
     ATTR_ORDER,
     ATTR_TRACKING_NUM,
+    ATTR_UNIVERSAL_TRACKING,
+    CONF_ALLOW_EXTERNAL,
     CONF_PATH,
-    COORDINATOR,
     DOMAIN,
     IMAGE_SENSORS,
     SENSOR_TYPES,
@@ -35,7 +38,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the sensor entities."""
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     sensors = []
     resources = entry.data[CONF_RESOURCES]
 
@@ -131,7 +134,17 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
             attr[ATTR_IMAGE] = data[ATTR_IMAGE_NAME]
         elif "_delivering" in self.type and tracking in self.data.keys():
             attr[ATTR_TRACKING_NUM] = data[tracking]
-            # TODO: Add Tracking URL when applicable
+        elif self.type == "email_tracking_numbers":
+            if ATTR_UNIVERSAL_TRACKING in data:
+                attr[ATTR_TRACKING_NUM] = data[ATTR_UNIVERSAL_TRACKING]
+            if "universal_carrier_map" in data:
+                attr["carrier_map"] = data["universal_carrier_map"]
+        elif self.type == "tracking_service_forwarded":
+            if ATTR_17TRACK_FORWARDED in data:
+                attr[ATTR_TRACKING_NUM] = data[ATTR_17TRACK_FORWARDED]
+        elif self.type == "amazon_cookie_packages":
+            if ATTR_AMAZON_COOKIE_TRACKING in data:
+                attr[ATTR_TRACKING_NUM] = data[ATTR_AMAZON_COOKIE_TRACKING]
         return attr
 
 
@@ -191,18 +204,28 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
             _LOGGER.debug("Updating system image path to: %s", path)
             the_path = f"{self.hass.config.path()}/{path}{image}"
         elif self.type == "usps_mail_image_url":
-            if (
-                self.hass.config.external_url is None
-                and self.hass.config.internal_url is None
-            ):
-                the_path = None
-            elif self.hass.config.external_url is None:
-                _LOGGER.warning("External URL not set in configuration.")
-                url = self.hass.config.internal_url
-                the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
+            # Use authenticated camera proxy URL by default (private).
+            # Only use /local/ (unauthenticated) if allow_external is enabled,
+            # since that copies images to www/ for public access.
+            if self._config.data.get(CONF_ALLOW_EXTERNAL):
+                url = (
+                    self.hass.config.external_url
+                    or self.hass.config.internal_url
+                )
+                if url:
+                    the_path = (
+                        f"{url.rstrip('/')}/local/mail_and_packages/{image}"
+                    )
             else:
-                url = self.hass.config.external_url
-                the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
+                url = (
+                    self.hass.config.external_url
+                    or self.hass.config.internal_url
+                )
+                if url:
+                    the_path = (
+                        f"{url.rstrip('/')}"
+                        f"/api/camera_proxy/camera.mail_usps_camera"
+                    )
         return the_path
 
     @property
