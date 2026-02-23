@@ -16,6 +16,7 @@ A [Home Assistant](https://www.home-assistant.io/) custom integration that creat
 - **USPS Informed Delivery** mail image GIF/MP4 generation
 - **Amazon delivery images** and Hub Locker pickup codes
 - **Universal email scanning** for tracking numbers across all emails
+- **Package Tracking Registry** for persistent end-to-end package lifecycle tracking
 - **Tracking service forwarding** to 17track, AfterShip, or AliExpress
 - **AI/LLM analysis** of emails for tracking numbers (Ollama, Anthropic, OpenAI)
 - **Amazon cookie-based tracking** for direct order status polling
@@ -104,6 +105,7 @@ Configuration is done entirely through the UI. No YAML configuration is needed.
 | Option | Description | Default |
 |--------|-------------|---------|
 | Scan All Emails | Scan today's emails for tracking numbers using regex | Off |
+| Package Registry | Persistent package lifecycle tracking with deduplication | Off |
 | Forward to Tracking Service | Send discovered numbers to a tracking service | Off |
 | AI/LLM Analysis | Use AI to extract tracking numbers from emails | Off |
 | Amazon Cookie Tracking | Poll Amazon orders directly via session cookies | Off |
@@ -166,6 +168,70 @@ This feature lets the integration check your Amazon order history directly for t
 - All processing happens locally on your Home Assistant instance
 - Supports: amazon.com, .ca, .co.uk, .de, .it, .in, .com.au, .pl
 
+### Package Tracking Registry
+
+The Package Tracking Registry provides persistent, end-to-end package lifecycle tracking that goes beyond the daily email count sensors. When enabled, it:
+
+- **Tracks packages across their full lifecycle:** detected → in_transit → out_for_delivery → delivered
+- **Deduplicates automatically:** A tracking number found in a forwarded email and later in a carrier notification is recognized as the same package
+- **Persists across restarts:** Package state is stored on disk via Home Assistant's `Store` API and survives reboots
+- **Context-aware scanning:** Uses keyword proximity matching to reduce false positives when scanning email bodies for tracking numbers
+- **Auto-expires stale entries:** Delivered packages clear after 3 days (configurable), unconfirmed detections after 14 days, cleared packages after 30 days
+- **Fires events for automations:** Each status transition fires a `mail_and_packages_package_*` event you can use in HA automations
+
+**How it works:**
+
+Each scan cycle, the registry:
+1. Scans unprocessed emails for tracking numbers (using carrier regex patterns with context-aware matching)
+2. Reconciles carrier sensor data (delivered/in-transit counts) with registry entries
+3. Advances package statuses forward only (a package can't go from "delivered" back to "in_transit")
+4. Fires HA events for any status transitions
+5. Auto-expires old entries based on configurable thresholds
+
+**Configuration options** (shown in Advanced Tracking when registry is enabled):
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| Package Registry | Enable persistent package lifecycle tracking | Off |
+| Auto-clear delivered (days) | Days after delivery before auto-clearing a package | 3 |
+| Auto-expire detected (days) | Days before removing unconfirmed tracking numbers | 14 |
+
+**Status lifecycle:**
+
+| Status | Meaning |
+|--------|---------|
+| `detected` | Tracking number found in email, not yet confirmed by carrier |
+| `in_transit` | Carrier confirms package is in transit |
+| `out_for_delivery` | Carrier reports out for delivery |
+| `delivered` | Carrier confirms delivery |
+| `cleared` | Manually or automatically cleared (hidden from counts, prevents re-detection) |
+
+**Automation events:**
+
+The registry fires events on the Home Assistant event bus when package statuses change:
+
+- `mail_and_packages_package_detected` - New tracking number discovered
+- `mail_and_packages_package_in_transit` - Package confirmed in transit
+- `mail_and_packages_package_out_for_delivery` - Package out for delivery
+- `mail_and_packages_package_delivered` - Package delivered
+
+Each event includes `tracking_number`, `carrier`, `status`, `source`, and `previous_status` in the event data.
+
+**Example automation:**
+
+```yaml
+automation:
+  - alias: "Notify on package delivery"
+    trigger:
+      - platform: event
+        event_type: mail_and_packages_package_delivered
+    action:
+      - service: notify.mobile_app
+        data:
+          title: "Package Delivered"
+          message: "{{ trigger.event.data.carrier | upper }} package {{ trigger.event.data.tracking_number }} has been delivered."
+```
+
 ## Sensors
 
 ### Package Sensors
@@ -193,6 +259,14 @@ For each enabled carrier, the integration creates:
 - `sensor.mail_image_system_path` - Local filesystem path to the mail GIF
 - `sensor.mail_image_url` - URL to the mail image. By default, this uses the **authenticated** camera proxy URL (`/api/camera_proxy/camera.mail_usps_camera`) which requires Home Assistant login. If you enable "Copy images to www/ folder", it uses the `/local/` URL instead (publicly accessible without authentication).
 
+### Registry Sensors (when Package Registry is enabled)
+
+- `sensor.mail_registry_tracked` - Total active packages being tracked (all statuses except cleared)
+- `sensor.mail_registry_in_transit` - Packages in transit (detected, in_transit, or out_for_delivery)
+- `sensor.mail_registry_delivered` - Packages delivered (not yet cleared)
+
+Each registry sensor includes a `packages` attribute with a list of package details (tracking number, carrier, status, source, timestamps, exception flag).
+
 ### Camera Entities
 
 - `camera.mail_usps_camera` - Displays the USPS Informed Delivery mail image GIF (served through HA's authenticated API)
@@ -201,6 +275,15 @@ For each enabled carrier, the integration creates:
 ### Services
 
 - `mail_and_packages.update_image` - Force refresh camera images on demand
+
+**Registry Services** (available when Package Registry is enabled):
+
+| Service | Description | Fields |
+|---------|-------------|--------|
+| `mail_and_packages.clear_package` | Clear a tracked package by tracking number | `tracking_number` (required) |
+| `mail_and_packages.clear_all_delivered` | Clear all packages with "delivered" status | *none* |
+| `mail_and_packages.mark_delivered` | Manually mark a package as delivered | `tracking_number` (required) |
+| `mail_and_packages.add_package` | Manually add a tracking number to the registry | `tracking_number` (required), `carrier` (optional, default: "unknown") |
 
 ## Re-authentication
 

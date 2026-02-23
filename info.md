@@ -24,6 +24,7 @@ USPS, UPS, FedEx, Amazon, DHL, Canada Post, Hermes, Royal Mail, Australia Post, 
 - **USPS Mail Images** - Animated GIF/MP4 from Informed Delivery with camera entity
 - **Amazon Hub Lockers** - Detects Hub deliveries and extracts pickup codes
 - **Universal email scanning** - Regex-based tracking number discovery across all emails (opt-in)
+- **Package Tracking Registry** - Persistent end-to-end package lifecycle tracking with deduplication, auto-expiry, manual management services, and automation events (opt-in)
 - **Tracking service forwarding** - Forward numbers to 17track, AfterShip, or AliExpress (opt-in)
 - **AI/LLM analysis** - Use Ollama (local), Anthropic, or OpenAI to find tracking numbers in emails (opt-in)
 - **Amazon cookie tracking** - Poll Amazon orders directly via browser cookies (opt-in)
