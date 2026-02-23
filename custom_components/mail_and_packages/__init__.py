@@ -533,10 +533,17 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                         exc_info=True,
                     )
                     raise UpdateFailed(error) from error
-        except asyncio.TimeoutError as error:
+        except asyncio.TimeoutError:
+            if self.data is not None:
+                _LOGGER.warning(
+                    "Timeout communicating with IMAP server after %ss, "
+                    "keeping previous sensor values",
+                    self.timeout,
+                )
+                return self.data
             raise UpdateFailed(
                 f"Timeout communicating with IMAP server after {self.timeout}s"
-            ) from error
+            )
 
         # Run async advanced tracking features outside the main timeout
         # These are opt-in and may take additional time
