@@ -26,7 +26,11 @@ from .const import (
     CONF_AMAZON_COOKIE_DOMAIN,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_FWDS,
+    CONF_CUSTOM_IMG,
+    CONF_CUSTOM_IMG_FILE,
+    CONF_DURATION,
     CONF_FOLDER,
+    CONF_GENERATE_MP4,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_TIMEOUT,
     CONF_LLM_API_KEY,
@@ -41,7 +45,11 @@ from .const import (
     CONF_TRACKING_SERVICE,
     CONF_TRACKING_SERVICE_ENTRY_ID,
     DEFAULT_AMAZON_DAYS,
+    DEFAULT_CUSTOM_IMG_FILE,
+    DEFAULT_FOLDER,
+    DEFAULT_GIF_DURATION,
     DEFAULT_IMAP_TIMEOUT,
+    DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     ISSUE_URL,
     PLATFORMS,
@@ -83,55 +91,47 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     )
     updated_config = config_entry.data.copy()
 
-    # Set amazon fwd blank if missing
-    if CONF_AMAZON_FWDS not in updated_config.keys():
-        updated_config[CONF_AMAZON_FWDS] = []
+    # --- Backfill ALL expected config keys with safe defaults ---
+    # This ensures old configs (from any version) get new fields without
+    # losing existing values. Uses setdefault() so existing values are
+    # NEVER overwritten.
 
-    # Set default timeout if missing
-    if CONF_IMAP_TIMEOUT not in updated_config.keys():
-        updated_config[CONF_IMAP_TIMEOUT] = DEFAULT_IMAP_TIMEOUT
+    # Core settings
+    updated_config.setdefault(CONF_FOLDER, DEFAULT_FOLDER)
+    updated_config.setdefault(CONF_AMAZON_FWDS, [])
+    updated_config.setdefault(CONF_IMAP_TIMEOUT, DEFAULT_IMAP_TIMEOUT)
+    updated_config.setdefault(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    updated_config.setdefault(CONF_AMAZON_DAYS, DEFAULT_AMAZON_DAYS)
+    updated_config.setdefault(CONF_ALLOW_EXTERNAL, False)
+    updated_config.setdefault(CONF_IMAGE_SECURITY, True)
+    updated_config.setdefault(CONF_DURATION, DEFAULT_GIF_DURATION)
+    updated_config.setdefault(CONF_GENERATE_MP4, False)
+    updated_config.setdefault(CONF_CUSTOM_IMG, False)
+    updated_config.setdefault(CONF_CUSTOM_IMG_FILE, DEFAULT_CUSTOM_IMG_FILE)
 
-    # Set external path off by default
-    if CONF_ALLOW_EXTERNAL not in config_entry.data.keys():
-        updated_config[CONF_ALLOW_EXTERNAL] = False
-
+    # Image path is always computed
     updated_config[CONF_PATH] = default_image_path(hass, config_entry)
 
-    # Set image security always on
-    if CONF_IMAGE_SECURITY not in config_entry.data.keys():
-        updated_config[CONF_IMAGE_SECURITY] = True
-
-    # Set advanced tracking defaults if missing
-    if CONF_SCAN_ALL_EMAILS not in updated_config.keys():
-        updated_config[CONF_SCAN_ALL_EMAILS] = False
-    if CONF_TRACKING_FORWARD_ENABLED not in updated_config.keys():
-        # Backward compat: check legacy 17track key
+    # Advanced tracking defaults (all disabled by default, never overwrites)
+    updated_config.setdefault(CONF_SCAN_ALL_EMAILS, False)
+    # Backward compat: check legacy 17track keys first
+    if CONF_TRACKING_FORWARD_ENABLED not in updated_config:
         updated_config[CONF_TRACKING_FORWARD_ENABLED] = updated_config.get(
             CONF_17TRACK_ENABLED, False
         )
-    if CONF_TRACKING_SERVICE not in updated_config.keys():
-        updated_config[CONF_TRACKING_SERVICE] = "seventeentrack"
-    if CONF_TRACKING_SERVICE_ENTRY_ID not in updated_config.keys():
-        # Backward compat: check legacy 17track entry ID
+    updated_config.setdefault(CONF_TRACKING_SERVICE, "seventeentrack")
+    if CONF_TRACKING_SERVICE_ENTRY_ID not in updated_config:
         updated_config[CONF_TRACKING_SERVICE_ENTRY_ID] = updated_config.get(
             CONF_17TRACK_ENTRY_ID, ""
         )
-    if CONF_LLM_ENABLED not in updated_config.keys():
-        updated_config[CONF_LLM_ENABLED] = False
-    if CONF_LLM_PROVIDER not in updated_config.keys():
-        updated_config[CONF_LLM_PROVIDER] = "ollama"
-    if CONF_LLM_ENDPOINT not in updated_config.keys():
-        updated_config[CONF_LLM_ENDPOINT] = "http://localhost:11434"
-    if CONF_LLM_API_KEY not in updated_config.keys():
-        updated_config[CONF_LLM_API_KEY] = ""
-    if CONF_LLM_MODEL not in updated_config.keys():
-        updated_config[CONF_LLM_MODEL] = ""
-    if CONF_AMAZON_COOKIES_ENABLED not in updated_config.keys():
-        updated_config[CONF_AMAZON_COOKIES_ENABLED] = False
-    if CONF_AMAZON_COOKIES not in updated_config.keys():
-        updated_config[CONF_AMAZON_COOKIES] = ""
-    if CONF_AMAZON_COOKIE_DOMAIN not in updated_config.keys():
-        updated_config[CONF_AMAZON_COOKIE_DOMAIN] = "amazon.com"
+    updated_config.setdefault(CONF_LLM_ENABLED, False)
+    updated_config.setdefault(CONF_LLM_PROVIDER, "ollama")
+    updated_config.setdefault(CONF_LLM_ENDPOINT, "http://localhost:11434")
+    updated_config.setdefault(CONF_LLM_API_KEY, "")
+    updated_config.setdefault(CONF_LLM_MODEL, "")
+    updated_config.setdefault(CONF_AMAZON_COOKIES_ENABLED, False)
+    updated_config.setdefault(CONF_AMAZON_COOKIES, "")
+    updated_config.setdefault(CONF_AMAZON_COOKIE_DOMAIN, "amazon.com")
 
     # Sort the resources
     updated_config[CONF_RESOURCES] = sorted(updated_config[CONF_RESOURCES])
@@ -149,7 +149,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(config_entry, data=updated_config)
 
-    config_entry.add_update_listener(update_listener)
+    config_entry.async_on_unload(
+        config_entry.add_update_listener(update_listener)
+    )
 
     # Use a copy for options to avoid shared reference
     hass.config_entries.async_update_entry(
@@ -212,12 +214,20 @@ async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry) -> Non
 
 
 async def async_migrate_entry(hass, config_entry):
-    """Migrate an old config entry."""
-    version = config_entry.version
+    """Migrate an old config entry.
+
+    Uses config_entry.version (not a local variable) so cascading
+    migrations execute in a single pass (e.g. 1 -> 4 -> 6).
+    """
+    _LOGGER.info(
+        "Migrating config entry from version %s to %s",
+        config_entry.version,
+        6,
+    )
 
     # 1 -> 4: Migrate format
-    if version == 1:
-        _LOGGER.debug("Migrating from version %s", version)
+    if config_entry.version == 1:
+        _LOGGER.debug("Migrating from version 1")
         updated_config = config_entry.data.copy()
 
         if CONF_AMAZON_FWDS in updated_config.keys():
@@ -229,59 +239,57 @@ async def async_migrate_entry(hass, config_entry):
                 updated_config[CONF_AMAZON_FWDS] = []
         else:
             _LOGGER.warning("Missing configuration data: %s", CONF_AMAZON_FWDS)
+            updated_config[CONF_AMAZON_FWDS] = []
 
         # Force path change
         updated_config[CONF_PATH] = "images/mail_and_packages/"
 
         # Always on image security
-        if not config_entry.data[CONF_IMAGE_SECURITY]:
+        if not updated_config.get(CONF_IMAGE_SECURITY, False):
             updated_config[CONF_IMAGE_SECURITY] = True
 
         # Add default Amazon Days configuration
-        updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
+        updated_config.setdefault(CONF_AMAZON_DAYS, DEFAULT_AMAZON_DAYS)
 
-        if updated_config != config_entry.data:
-            hass.config_entries.async_update_entry(config_entry, data=updated_config)
-
-        config_entry.version = 4
-        _LOGGER.debug("Migration to version %s complete", config_entry.version)
+        hass.config_entries.async_update_entry(
+            config_entry, data=updated_config, version=4
+        )
+        _LOGGER.debug("Migration to version 4 complete")
 
     # 2 -> 4
-    if version == 2:
-        _LOGGER.debug("Migrating from version %s", version)
+    if config_entry.version == 2:
+        _LOGGER.debug("Migrating from version 2")
         updated_config = config_entry.data.copy()
 
         # Force path change
         updated_config[CONF_PATH] = "images/mail_and_packages/"
 
         # Always on image security
-        if not config_entry.data[CONF_IMAGE_SECURITY]:
+        if not updated_config.get(CONF_IMAGE_SECURITY, False):
             updated_config[CONF_IMAGE_SECURITY] = True
 
         # Add default Amazon Days configuration
-        updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
+        updated_config.setdefault(CONF_AMAZON_DAYS, DEFAULT_AMAZON_DAYS)
 
-        if updated_config != config_entry.data:
-            hass.config_entries.async_update_entry(config_entry, data=updated_config)
+        hass.config_entries.async_update_entry(
+            config_entry, data=updated_config, version=4
+        )
+        _LOGGER.debug("Migration to version 4 complete")
 
-        config_entry.version = 4
-        _LOGGER.debug("Migration to version %s complete", config_entry.version)
-
-    if version == 3:
-        _LOGGER.debug("Migrating from version %s", version)
+    if config_entry.version == 3:
+        _LOGGER.debug("Migrating from version 3")
         updated_config = config_entry.data.copy()
 
         # Add default Amazon Days configuration
-        updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
+        updated_config.setdefault(CONF_AMAZON_DAYS, DEFAULT_AMAZON_DAYS)
 
-        if updated_config != config_entry.data:
-            hass.config_entries.async_update_entry(config_entry, data=updated_config)
+        hass.config_entries.async_update_entry(
+            config_entry, data=updated_config, version=4
+        )
+        _LOGGER.debug("Migration to version 4 complete")
 
-        config_entry.version = 4
-        _LOGGER.debug("Migration to version %s complete", config_entry.version)
-
-    if version == 4:
-        _LOGGER.debug("Migrating from version %s", version)
+    if config_entry.version == 4:
+        _LOGGER.debug("Migrating from version 4")
         updated_config = config_entry.data.copy()
 
         # Add advanced tracking defaults (all disabled by default)
@@ -298,14 +306,13 @@ async def async_migrate_entry(hass, config_entry):
         updated_config.setdefault(CONF_AMAZON_COOKIES, "")
         updated_config.setdefault(CONF_AMAZON_COOKIE_DOMAIN, "amazon.com")
 
-        if updated_config != config_entry.data:
-            hass.config_entries.async_update_entry(config_entry, data=updated_config)
+        hass.config_entries.async_update_entry(
+            config_entry, data=updated_config, version=6
+        )
+        _LOGGER.debug("Migration to version 6 complete")
 
-        config_entry.version = 6
-        _LOGGER.debug("Migration to version %s complete", config_entry.version)
-
-    if version == 5:
-        _LOGGER.debug("Migrating from version %s", version)
+    if config_entry.version == 5:
+        _LOGGER.debug("Migrating from version 5")
         updated_config = config_entry.data.copy()
 
         # Migrate 17track-specific config to generic tracking service config
@@ -315,12 +322,12 @@ async def async_migrate_entry(hass, config_entry):
         updated_config.setdefault(CONF_TRACKING_SERVICE, "seventeentrack")
         updated_config.setdefault(CONF_TRACKING_SERVICE_ENTRY_ID, old_entry_id)
 
-        if updated_config != config_entry.data:
-            hass.config_entries.async_update_entry(config_entry, data=updated_config)
+        hass.config_entries.async_update_entry(
+            config_entry, data=updated_config, version=6
+        )
+        _LOGGER.debug("Migration to version 6 complete")
 
-        config_entry.version = 6
-        _LOGGER.debug("Migration to version %s complete", config_entry.version)
-
+    _LOGGER.info("Migration complete, now at version %s", config_entry.version)
     return True
 
 
@@ -337,14 +344,23 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
         _LOGGER.debug("Data will be updated every %s", self.interval)
 
-        # Pass config_entry if the base class supports it (HA 2024.4+)
-        kwargs = {"name": self.name, "update_interval": self.interval}
-        import inspect
-
-        if "config_entry" in inspect.signature(DataUpdateCoordinator.__init__).parameters:
-            kwargs["config_entry"] = config_entry
-
-        super().__init__(hass, _LOGGER, **kwargs)
+        # Pass config_entry to DataUpdateCoordinator (required in HA 2025.11+,
+        # supported since HA 2024.4). Use try/except for backward compat.
+        try:
+            super().__init__(
+                hass,
+                _LOGGER,
+                name=self.name,
+                update_interval=self.interval,
+                config_entry=config_entry,
+            )
+        except TypeError:
+            super().__init__(
+                hass,
+                _LOGGER,
+                name=self.name,
+                update_interval=self.interval,
+            )
 
     async def _async_update_data(self):
         """Fetch data."""
@@ -361,7 +377,12 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                         f"IMAP authentication failed: {error}"
                     ) from error
                 except Exception as error:
-                    _LOGGER.error("Problem updating sensors: %s", error)
+                    _LOGGER.error(
+                        "Problem updating sensors: %s: %s",
+                        type(error).__name__,
+                        error,
+                        exc_info=True,
+                    )
                     raise UpdateFailed(error) from error
         except asyncio.TimeoutError as error:
             raise UpdateFailed(
