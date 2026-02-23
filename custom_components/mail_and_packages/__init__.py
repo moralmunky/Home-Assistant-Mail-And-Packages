@@ -149,7 +149,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     if updated_config != config_entry.data:
         hass.config_entries.async_update_entry(config_entry, data=updated_config)
 
-    config_entry.add_update_listener(update_listener)
+    config_entry.async_on_unload(
+        config_entry.add_update_listener(update_listener)
+    )
 
     # Use a copy for options to avoid shared reference
     hass.config_entries.async_update_entry(
