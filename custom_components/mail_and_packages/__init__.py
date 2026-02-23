@@ -36,6 +36,9 @@ from .const import (
     CONF_PATH,
     CONF_SCAN_ALL_EMAILS,
     CONF_SCAN_INTERVAL,
+    CONF_TRACKING_FORWARD_ENABLED,
+    CONF_TRACKING_SERVICE,
+    CONF_TRACKING_SERVICE_ENTRY_ID,
     COORDINATOR,
     DEFAULT_AMAZON_DAYS,
     DEFAULT_IMAP_TIMEOUT,
@@ -46,7 +49,7 @@ from .const import (
 )
 from .helpers import (
     default_image_path,
-    forward_to_17track,
+    forward_to_tracking_service,
     llm_scan_emails,
     process_emails,
     scrape_amazon_tracking,
@@ -93,10 +96,18 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # Set advanced tracking defaults if missing
     if CONF_SCAN_ALL_EMAILS not in updated_config.keys():
         updated_config[CONF_SCAN_ALL_EMAILS] = False
-    if CONF_17TRACK_ENABLED not in updated_config.keys():
-        updated_config[CONF_17TRACK_ENABLED] = False
-    if CONF_17TRACK_ENTRY_ID not in updated_config.keys():
-        updated_config[CONF_17TRACK_ENTRY_ID] = ""
+    if CONF_TRACKING_FORWARD_ENABLED not in updated_config.keys():
+        # Backward compat: check legacy 17track key
+        updated_config[CONF_TRACKING_FORWARD_ENABLED] = updated_config.get(
+            CONF_17TRACK_ENABLED, False
+        )
+    if CONF_TRACKING_SERVICE not in updated_config.keys():
+        updated_config[CONF_TRACKING_SERVICE] = "seventeentrack"
+    if CONF_TRACKING_SERVICE_ENTRY_ID not in updated_config.keys():
+        # Backward compat: check legacy 17track entry ID
+        updated_config[CONF_TRACKING_SERVICE_ENTRY_ID] = updated_config.get(
+            CONF_17TRACK_ENTRY_ID, ""
+        )
     if CONF_LLM_ENABLED not in updated_config.keys():
         updated_config[CONF_LLM_ENABLED] = False
     if CONF_LLM_PROVIDER not in updated_config.keys():
@@ -276,8 +287,9 @@ async def async_migrate_entry(hass, config_entry):
 
         # Add advanced tracking defaults (all disabled by default)
         updated_config.setdefault(CONF_SCAN_ALL_EMAILS, False)
-        updated_config.setdefault(CONF_17TRACK_ENABLED, False)
-        updated_config.setdefault(CONF_17TRACK_ENTRY_ID, "")
+        updated_config.setdefault(CONF_TRACKING_FORWARD_ENABLED, False)
+        updated_config.setdefault(CONF_TRACKING_SERVICE, "seventeentrack")
+        updated_config.setdefault(CONF_TRACKING_SERVICE_ENTRY_ID, "")
         updated_config.setdefault(CONF_LLM_ENABLED, False)
         updated_config.setdefault(CONF_LLM_PROVIDER, "ollama")
         updated_config.setdefault(CONF_LLM_ENDPOINT, "http://localhost:11434")
@@ -290,7 +302,24 @@ async def async_migrate_entry(hass, config_entry):
         if updated_config != config_entry.data:
             hass.config_entries.async_update_entry(config_entry, data=updated_config)
 
-        config_entry.version = 5
+        config_entry.version = 6
+        _LOGGER.debug("Migration to version %s complete", config_entry.version)
+
+    if version == 5:
+        _LOGGER.debug("Migrating from version %s", version)
+        updated_config = config_entry.data.copy()
+
+        # Migrate 17track-specific config to generic tracking service config
+        old_enabled = updated_config.pop(CONF_17TRACK_ENABLED, False)
+        old_entry_id = updated_config.pop(CONF_17TRACK_ENTRY_ID, "")
+        updated_config.setdefault(CONF_TRACKING_FORWARD_ENABLED, old_enabled)
+        updated_config.setdefault(CONF_TRACKING_SERVICE, "seventeentrack")
+        updated_config.setdefault(CONF_TRACKING_SERVICE_ENTRY_ID, old_entry_id)
+
+        if updated_config != config_entry.data:
+            hass.config_entries.async_update_entry(config_entry, data=updated_config)
+
+        config_entry.version = 6
         _LOGGER.debug("Migration to version %s complete", config_entry.version)
 
     return True
@@ -339,25 +368,40 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         """
         config = self.config
 
-        # 17track forwarding (requires async HA service call)
-        if config.get(CONF_17TRACK_ENABLED, False):
-            entry_id = config.get(CONF_17TRACK_ENTRY_ID, "")
+        # Tracking service forwarding (17track, AfterShip, AliExpress, etc.)
+        forward_enabled = config.get(
+            CONF_TRACKING_FORWARD_ENABLED,
+            config.get(CONF_17TRACK_ENABLED, False),
+        )
+        if forward_enabled:
+            service_key = data.get(
+                "_tracking_service_key",
+                config.get(CONF_TRACKING_SERVICE, "seventeentrack"),
+            )
+            entry_id = data.get(
+                "_tracking_entry_id",
+                config.get(CONF_TRACKING_SERVICE_ENTRY_ID, ""),
+            )
             all_to_forward = data.get(ATTR_17TRACK_FORWARDED, [])
-            carrier_map = data.get("_17track_carrier_map", {})
-            already_forwarded = data.get("_17track_already_forwarded", set())
+            carrier_map = data.get("_tracking_carrier_map", {})
+            already_forwarded = data.get("_tracking_already_forwarded", set())
 
-            if entry_id and all_to_forward:
-                newly_forwarded = await forward_to_17track(
-                    self.hass, entry_id, all_to_forward,
-                    carrier_map, already_forwarded,
+            if all_to_forward:
+                newly_forwarded = await forward_to_tracking_service(
+                    self.hass,
+                    service_key,
+                    entry_id,
+                    all_to_forward,
+                    carrier_map,
+                    already_forwarded,
                 )
                 # Update the persistent forwarded set
                 domain_data = self.hass.data.get(DOMAIN, {})
-                forwarded_key = "_17track_forwarded_set"
+                forwarded_key = "_tracking_forwarded_set"
                 if forwarded_key not in domain_data:
                     domain_data[forwarded_key] = set()
                 domain_data[forwarded_key].update(newly_forwarded)
-                data["seventeentrack_forwarded"] = len(newly_forwarded)
+                data["tracking_service_forwarded"] = len(newly_forwarded)
 
         # LLM email analysis (opt-in, privacy-sensitive)
         if config.get(CONF_LLM_ENABLED, False):
@@ -367,12 +411,12 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                     "LLM email analysis enabled (provider: %s). "
                     "Email content will be sent to: %s",
                     llm_config.get("provider"),
-                    "local Ollama" if llm_config.get("provider") == "ollama"
+                    "local Ollama"
+                    if llm_config.get("provider") == "ollama"
                     else llm_config.get("provider") + " cloud API",
                 )
-                # LLM needs the IMAP account - reconnect for async use
-                # For now, store results from a separate scan
                 from .helpers import login, selectfolder
+
                 account = await self.hass.async_add_executor_job(
                     login,
                     config.get(CONF_HOST),
@@ -414,20 +458,28 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 data["amazon_cookie_packages"] = amazon_result[ATTR_COUNT]
                 data[ATTR_AMAZON_COOKIE_TRACKING] = amazon_result[ATTR_TRACKING]
 
-                # Also forward Amazon tracking to 17track if enabled
-                if config.get(CONF_17TRACK_ENABLED, False):
-                    entry_id = config.get(CONF_17TRACK_ENTRY_ID, "")
-                    if entry_id and amazon_result[ATTR_TRACKING]:
+                # Also forward Amazon tracking to chosen service if enabled
+                if forward_enabled:
+                    service_key = config.get(
+                        CONF_TRACKING_SERVICE, "seventeentrack"
+                    )
+                    entry_id = config.get(CONF_TRACKING_SERVICE_ENTRY_ID, "")
+                    if amazon_result[ATTR_TRACKING]:
                         carrier_map = {
                             t["number"]: t.get("carrier", "Amazon")
                             for t in amazon_result.get("orders", [])
                         }
                         domain_data = self.hass.data.get(DOMAIN, {})
-                        already = domain_data.get("_17track_forwarded_set", set())
-                        await forward_to_17track(
-                            self.hass, entry_id,
+                        already = domain_data.get(
+                            "_tracking_forwarded_set", set()
+                        )
+                        await forward_to_tracking_service(
+                            self.hass,
+                            service_key,
+                            entry_id,
                             amazon_result[ATTR_TRACKING],
-                            carrier_map, already,
+                            carrier_map,
+                            already,
                         )
 
         # Clean up internal config keys from data before it reaches sensors

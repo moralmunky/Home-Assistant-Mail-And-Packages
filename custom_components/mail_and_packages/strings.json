@@ -38,16 +38,17 @@
           "allow_external": "Create image for notification apps",
           "custom_img": "Use custom 'no image' image?",
           "scan_all_emails": "Scan all emails for tracking numbers (local only)",
-          "seventeen_track_enabled": "Forward tracking numbers to 17track",
+          "tracking_forward_enabled": "Forward tracking numbers to a tracking service",
           "llm_enabled": "Use AI/LLM to analyze emails for tracking numbers",
           "amazon_cookies_enabled": "Track Amazon orders via browser cookies"
         },
-        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.\n\n**Advanced Tracking** (bottom of form): Enable optional features to scan all emails for tracking numbers, integrate with 17track, use AI analysis, or track Amazon orders directly.",
+        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.\n\n**Advanced Tracking** (bottom of form): Enable optional features to scan all emails for tracking numbers, forward to a tracking service (17track, AfterShip, AliExpress), use AI analysis, or track Amazon orders directly.",
         "title": "Mail and Packages (Step 2 of 2)"
       },
       "config_advanced": {
         "data": {
-          "seventeen_track_entry_id": "17track integration config entry ID",
+          "tracking_service": "Tracking service (17track, AfterShip, AliExpress)",
+          "tracking_service_entry_id": "Tracking service config entry ID (if required)",
           "llm_provider": "AI/LLM Provider",
           "llm_endpoint": "LLM API endpoint URL (Ollama: http://localhost:11434)",
           "llm_api_key": "LLM API key (for Anthropic/OpenAI)",
@@ -55,7 +56,7 @@
           "amazon_cookies": "Amazon browser cookies (key=value; key2=value2 format)",
           "amazon_cookie_domain": "Amazon domain (e.g. amazon.com, amazon.co.uk)"
         },
-        "description": "Configure the advanced tracking features you enabled.\n\n**17track**: Enter the config entry ID from your 17track integration (Settings > Devices & Services > 17Track > three-dot menu > Copy entry ID).\n\n**AI/LLM Analysis**: Choose a provider to analyze emails that might contain tracking numbers. 'ollama' runs locally (no data leaves your network). 'anthropic' and 'openai' send email content to their cloud APIs.\n\n**PRIVACY NOTICE**: If using Anthropic or OpenAI, your email content will be sent to their servers. Only use this if you understand and accept this. Ollama keeps everything local.\n\n**Amazon Cookies**: Paste your Amazon session cookies from your browser to poll order tracking directly.",
+        "description": "Configure the advanced tracking features you enabled.\n\n**Tracking Service**: Select which tracking service to forward discovered tracking numbers to. Supported: 17track, AfterShip, AliExpress Package Tracker. For 17track, enter the config entry ID (Settings > Devices & Services > 17Track > three-dot menu > Copy entry ID). AfterShip and AliExpress do not require an entry ID.\n\n**AI/LLM Analysis**: Choose a provider to analyze emails that might contain tracking numbers. 'ollama' runs locally (no data leaves your network). 'anthropic' and 'openai' send email content to their cloud APIs.\n\n**PRIVACY NOTICE**: If using Anthropic or OpenAI, your email content will be sent to their servers. Only use this if you understand and accept this. Ollama keeps everything local.\n\n**Amazon Cookies**: Paste your Amazon session cookies from your browser to poll order tracking directly.",
         "title": "Mail and Packages - Advanced Tracking"
       },
       "options_3": {
@@ -103,16 +104,17 @@
           "allow_external": "Create image for notification apps",
           "custom_img": "Use custom 'no image' image?",
           "scan_all_emails": "Scan all emails for tracking numbers (local only)",
-          "seventeen_track_enabled": "Forward tracking numbers to 17track",
+          "tracking_forward_enabled": "Forward tracking numbers to a tracking service",
           "llm_enabled": "Use AI/LLM to analyze emails for tracking numbers",
           "amazon_cookies_enabled": "Track Amazon orders via browser cookies"
         },
-        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.\n\n**Advanced Tracking** (bottom of form): Enable optional features to scan all emails for tracking numbers, integrate with 17track, use AI analysis, or track Amazon orders directly.",
+        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.\n\n**Advanced Tracking** (bottom of form): Enable optional features to scan all emails for tracking numbers, forward to a tracking service (17track, AfterShip, AliExpress), use AI analysis, or track Amazon orders directly.",
         "title": "Mail and Packages (Step 2 of 2)"
       },
       "options_advanced": {
         "data": {
-          "seventeen_track_entry_id": "17track integration config entry ID",
+          "tracking_service": "Tracking service (17track, AfterShip, AliExpress)",
+          "tracking_service_entry_id": "Tracking service config entry ID (if required)",
           "llm_provider": "AI/LLM Provider",
           "llm_endpoint": "LLM API endpoint URL (Ollama: http://localhost:11434)",
           "llm_api_key": "LLM API key (for Anthropic/OpenAI)",
@@ -120,7 +122,7 @@
           "amazon_cookies": "Amazon browser cookies (key=value; key2=value2 format)",
           "amazon_cookie_domain": "Amazon domain (e.g. amazon.com, amazon.co.uk)"
         },
-        "description": "Configure the advanced tracking features you enabled.\n\n**17track**: Enter the config entry ID from your 17track integration.\n\n**AI/LLM Analysis**: 'ollama' runs locally (no data leaves your network). 'anthropic' and 'openai' send email content to their cloud APIs.\n\n**PRIVACY NOTICE**: If using Anthropic or OpenAI, your email content will be sent to their servers. Ollama keeps everything local.\n\n**Amazon Cookies**: Paste your Amazon session cookies from your browser.",
+        "description": "Configure the advanced tracking features you enabled.\n\n**Tracking Service**: Select which tracking service to forward discovered tracking numbers to. Supported: 17track, AfterShip, AliExpress Package Tracker. For 17track, enter the config entry ID. AfterShip and AliExpress do not require an entry ID.\n\n**AI/LLM Analysis**: 'ollama' runs locally (no data leaves your network). 'anthropic' and 'openai' send email content to their cloud APIs.\n\n**PRIVACY NOTICE**: If using Anthropic or OpenAI, your email content will be sent to their servers. Ollama keeps everything local.\n\n**Amazon Cookies**: Paste your Amazon session cookies from your browser.",
         "title": "Mail and Packages - Advanced Tracking"
       },
       "options_3": {

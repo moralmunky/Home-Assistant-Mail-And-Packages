@@ -17,8 +17,6 @@ from homeassistant.const import (
 from homeassistant.core import callback
 
 from .const import (
-    CONF_17TRACK_ENABLED,
-    CONF_17TRACK_ENTRY_ID,
     CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_COOKIES,
     CONF_AMAZON_COOKIES_ENABLED,
@@ -40,8 +38,9 @@ from .const import (
     CONF_PATH,
     CONF_SCAN_ALL_EMAILS,
     CONF_SCAN_INTERVAL,
-    DEFAULT_17TRACK_ENABLED,
-    DEFAULT_17TRACK_ENTRY_ID,
+    CONF_TRACKING_FORWARD_ENABLED,
+    CONF_TRACKING_SERVICE,
+    CONF_TRACKING_SERVICE_ENTRY_ID,
     DEFAULT_ALLOW_EXTERNAL,
     DEFAULT_AMAZON_COOKIES,
     DEFAULT_AMAZON_COOKIES_ENABLED,
@@ -63,8 +62,12 @@ from .const import (
     DEFAULT_PORT,
     DEFAULT_SCAN_ALL_EMAILS,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_TRACKING_FORWARD_ENABLED,
+    DEFAULT_TRACKING_SERVICE,
+    DEFAULT_TRACKING_SERVICE_ENTRY_ID,
     DOMAIN,
     LLM_PROVIDERS,
+    TRACKING_SERVICE_OPTIONS,
 )
 from .helpers import _check_ffmpeg, _test_login, get_resources, login
 
@@ -234,8 +237,10 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
                 default=_get_default(CONF_SCAN_ALL_EMAILS, DEFAULT_SCAN_ALL_EMAILS),
             ): bool,
             vol.Optional(
-                CONF_17TRACK_ENABLED,
-                default=_get_default(CONF_17TRACK_ENABLED, DEFAULT_17TRACK_ENABLED),
+                CONF_TRACKING_FORWARD_ENABLED,
+                default=_get_default(
+                    CONF_TRACKING_FORWARD_ENABLED, DEFAULT_TRACKING_FORWARD_ENABLED
+                ),
             ): bool,
             vol.Optional(
                 CONF_LLM_ENABLED,
@@ -254,7 +259,7 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
 def _has_advanced_tracking(data: dict) -> bool:
     """Check if any advanced tracking feature is enabled."""
     return (
-        data.get(CONF_17TRACK_ENABLED, False)
+        data.get(CONF_TRACKING_FORWARD_ENABLED, False)
         or data.get(CONF_LLM_ENABLED, False)
         or data.get(CONF_AMAZON_COOKIES_ENABLED, False)
     )
@@ -271,12 +276,20 @@ def _get_schema_advanced_tracking(user_input: list, default_dict: list, data: di
 
     schema = {}
 
-    # 17track configuration
-    if data.get(CONF_17TRACK_ENABLED, False):
+    # Tracking service forwarding configuration
+    if data.get(CONF_TRACKING_FORWARD_ENABLED, False):
         schema[
             vol.Required(
-                CONF_17TRACK_ENTRY_ID,
-                default=_get_default(CONF_17TRACK_ENTRY_ID, DEFAULT_17TRACK_ENTRY_ID),
+                CONF_TRACKING_SERVICE,
+                default=_get_default(CONF_TRACKING_SERVICE, DEFAULT_TRACKING_SERVICE),
+            )
+        ] = vol.In(TRACKING_SERVICE_OPTIONS)
+        schema[
+            vol.Optional(
+                CONF_TRACKING_SERVICE_ENTRY_ID,
+                default=_get_default(
+                    CONF_TRACKING_SERVICE_ENTRY_ID, DEFAULT_TRACKING_SERVICE_ENTRY_ID
+                ),
             )
         ] = str
 
@@ -350,7 +363,7 @@ def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
 class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Mail and Packages."""
 
-    VERSION = 5
+    VERSION = 6
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
@@ -451,7 +464,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def _show_config_advanced(self, user_input):
         """Show advanced tracking configuration form."""
         defaults = {
-            CONF_17TRACK_ENTRY_ID: DEFAULT_17TRACK_ENTRY_ID,
+            CONF_TRACKING_SERVICE: DEFAULT_TRACKING_SERVICE,
+            CONF_TRACKING_SERVICE_ENTRY_ID: DEFAULT_TRACKING_SERVICE_ENTRY_ID,
             CONF_LLM_PROVIDER: DEFAULT_LLM_PROVIDER,
             CONF_LLM_ENDPOINT: DEFAULT_LLM_ENDPOINT,
             CONF_LLM_API_KEY: DEFAULT_LLM_API_KEY,
@@ -573,8 +587,10 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             CONF_CUSTOM_IMG: self._data.get(CONF_CUSTOM_IMG) or DEFAULT_CUSTOM_IMG,
             CONF_SCAN_ALL_EMAILS: self._data.get(CONF_SCAN_ALL_EMAILS)
             or DEFAULT_SCAN_ALL_EMAILS,
-            CONF_17TRACK_ENABLED: self._data.get(CONF_17TRACK_ENABLED)
-            or DEFAULT_17TRACK_ENABLED,
+            CONF_TRACKING_FORWARD_ENABLED: self._data.get(
+                CONF_TRACKING_FORWARD_ENABLED
+            )
+            or DEFAULT_TRACKING_FORWARD_ENABLED,
             CONF_LLM_ENABLED: self._data.get(CONF_LLM_ENABLED)
             or DEFAULT_LLM_ENABLED,
             CONF_AMAZON_COOKIES_ENABLED: self._data.get(CONF_AMAZON_COOKIES_ENABLED)
@@ -603,8 +619,12 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
     async def _show_step_options_advanced(self, user_input):
         """Show advanced tracking options form."""
         defaults = {
-            CONF_17TRACK_ENTRY_ID: self._data.get(CONF_17TRACK_ENTRY_ID)
-            or DEFAULT_17TRACK_ENTRY_ID,
+            CONF_TRACKING_SERVICE: self._data.get(CONF_TRACKING_SERVICE)
+            or DEFAULT_TRACKING_SERVICE,
+            CONF_TRACKING_SERVICE_ENTRY_ID: self._data.get(
+                CONF_TRACKING_SERVICE_ENTRY_ID
+            )
+            or DEFAULT_TRACKING_SERVICE_ENTRY_ID,
             CONF_LLM_PROVIDER: self._data.get(CONF_LLM_PROVIDER)
             or DEFAULT_LLM_PROVIDER,
             CONF_LLM_ENDPOINT: self._data.get(CONF_LLM_ENDPOINT)

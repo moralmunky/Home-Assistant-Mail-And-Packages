@@ -68,8 +68,6 @@ from .const import (
     ATTR_TRACKING,
     ATTR_UNIVERSAL_TRACKING,
     ATTR_USPS_MAIL,
-    CONF_17TRACK_ENABLED,
-    CONF_17TRACK_ENTRY_ID,
     CONF_ALLOW_EXTERNAL,
     CONF_AMAZON_COOKIES,
     CONF_AMAZON_COOKIES_ENABLED,
@@ -88,11 +86,15 @@ from .const import (
     CONF_LLM_PROVIDER,
     CONF_PATH,
     CONF_SCAN_ALL_EMAILS,
+    CONF_TRACKING_FORWARD_ENABLED,
+    CONF_TRACKING_SERVICE,
+    CONF_TRACKING_SERVICE_ENTRY_ID,
     DEFAULT_AMAZON_DAYS,
     OVERLAY,
     SENSOR_DATA,
     SENSOR_TYPES,
     SHIPPERS,
+    TRACKING_SERVICES,
     UNIVERSAL_TRACKING_PATTERNS,
 )
 
@@ -219,32 +221,42 @@ def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
         # Add universal findings to known tracking for dedup downstream
         known_tracking.extend(universal_result[ATTR_TRACKING])
 
-    # 17track forwarding (opt-in, calls HA service)
-    if config.get(CONF_17TRACK_ENABLED, False):
-        entry_id = config.get(CONF_17TRACK_ENTRY_ID, "")
-        if entry_id:
-            # Gather all tracking numbers to forward
-            all_to_forward = list(data.get(ATTR_UNIVERSAL_TRACKING, []))
-            carrier_map = data.get("universal_carrier_map", {})
+    # Tracking service forwarding (opt-in, supports 17track/AfterShip/AliExpress)
+    # Also supports legacy CONF_17TRACK_ENABLED for backward compat
+    forward_enabled = config.get(
+        CONF_TRACKING_FORWARD_ENABLED,
+        config.get(CONF_17TRACK_ENABLED, False),
+    )
+    if forward_enabled:
+        service_key = config.get(CONF_TRACKING_SERVICE, "seventeentrack")
+        entry_id = config.get(
+            CONF_TRACKING_SERVICE_ENTRY_ID,
+            config.get(CONF_17TRACK_ENTRY_ID, ""),
+        )
 
-            # Also include carrier-specific tracking numbers
-            for key, value in data.items():
-                if key.endswith("_tracking") and isinstance(value, list):
-                    for num in value:
-                        if num not in all_to_forward:
-                            all_to_forward.append(num)
-                            # Map carrier name from sensor key
-                            carrier_prefix = key.replace("_tracking", "")
-                            if num not in carrier_map:
-                                carrier_map[num] = carrier_prefix.upper()
+        # Gather all tracking numbers to forward
+        all_to_forward = list(data.get(ATTR_UNIVERSAL_TRACKING, []))
+        carrier_map = data.get("universal_carrier_map", {})
 
-            # Get previously forwarded (stored in hass.data)
-            already_forwarded = _get_forwarded_set(hass, config)
+        # Also include carrier-specific tracking numbers
+        for key, value in data.items():
+            if key.endswith("_tracking") and isinstance(value, list):
+                for num in value:
+                    if num not in all_to_forward:
+                        all_to_forward.append(num)
+                        carrier_prefix = key.replace("_tracking", "")
+                        if num not in carrier_map:
+                            carrier_map[num] = carrier_prefix.upper()
 
-            data["seventeentrack_forwarded"] = len(all_to_forward)
-            data[ATTR_17TRACK_FORWARDED] = all_to_forward
-            data["_17track_carrier_map"] = carrier_map
-            data["_17track_already_forwarded"] = already_forwarded
+        # Get previously forwarded (stored in hass.data)
+        already_forwarded = _get_forwarded_set(hass, config)
+
+        data["tracking_service_forwarded"] = len(all_to_forward)
+        data[ATTR_17TRACK_FORWARDED] = all_to_forward
+        data["_tracking_service_key"] = service_key
+        data["_tracking_entry_id"] = entry_id
+        data["_tracking_carrier_map"] = carrier_map
+        data["_tracking_already_forwarded"] = already_forwarded
 
     # LLM analysis is handled async in the coordinator (see __init__.py)
     # We store the config flags so the coordinator can pick them up
@@ -284,7 +296,7 @@ def _collect_known_tracking(data: dict) -> list:
 
 
 def _get_forwarded_set(hass: HomeAssistant, config: ConfigEntry) -> set:
-    """Get the set of tracking numbers already forwarded to 17track.
+    """Get the set of tracking numbers already forwarded to a tracking service.
 
     Stored in hass.data to persist across updates within a session.
     Returns set of tracking number strings.
@@ -292,7 +304,7 @@ def _get_forwarded_set(hass: HomeAssistant, config: ConfigEntry) -> set:
     from .const import DOMAIN  # avoid circular at module level
 
     domain_data = hass.data.get(DOMAIN, {})
-    forwarded_key = "_17track_forwarded_set"
+    forwarded_key = "_tracking_forwarded_set"
     if forwarded_key not in domain_data:
         domain_data[forwarded_key] = set()
     return domain_data[forwarded_key]
@@ -510,7 +522,7 @@ def fetch(
         if sensor in data:
             return data[sensor]
         count[sensor] = 0
-    elif sensor == "seventeentrack_forwarded":
+    elif sensor == "tracking_service_forwarded":
         # Handled in process_emails, just return existing value
         if sensor in data:
             return data[sensor]
@@ -1616,24 +1628,40 @@ def scan_all_emails_for_tracking(
 
 
 # =============================================================================
-# Advanced Tracking: 17track Integration
+# Advanced Tracking: Tracking Service Forwarding
+# Supports: 17track (seventeentrack), AfterShip, AliExpress Package Tracker
 # =============================================================================
 
 
-async def forward_to_17track(
+async def forward_to_tracking_service(
     hass: Any,
-    config_entry_id: str,
+    service_key: str,
+    entry_id: str,
     tracking_numbers: list,
     carrier_map: dict,
     already_forwarded: set,
 ) -> list:
-    """Forward new tracking numbers to 17track via Home Assistant service call.
+    """Forward new tracking numbers to a tracking service via HA service call.
 
-    Only forwards tracking numbers not previously sent. Requires the user
-    to have the 17track (seventeentrack) integration configured.
+    Supports multiple backends defined in TRACKING_SERVICES (const.py):
+    - seventeentrack (17track) - core HA integration
+    - aftership (AfterShip) - core HA integration, 490+ carriers
+    - aliexpress_package_tracker - HACS integration
+
+    Only forwards tracking numbers not previously sent. The user must have
+    the chosen tracking integration already configured in Home Assistant.
 
     Returns list of newly forwarded tracking numbers.
     """
+    service_def = TRACKING_SERVICES.get(service_key)
+    if not service_def:
+        _LOGGER.error("Unknown tracking service: %s", service_key)
+        return []
+
+    domain = service_def["domain"]
+    service = service_def["service"]
+    params_def = service_def["params"]
+    service_name = service_def["name"]
     newly_forwarded = []
 
     for number in tracking_numbers:
@@ -1643,21 +1671,30 @@ async def forward_to_17track(
         carrier_name = carrier_map.get(number, "Unknown")
         friendly_name = f"Mail & Packages: {carrier_name} - {number[:8]}..."
 
+        # Build service call data based on the service's parameter schema
+        service_data = {
+            params_def["tracking_key"]: number,
+        }
+        if "name_key" in params_def:
+            service_data[params_def["name_key"]] = friendly_name
+        if "entry_id_key" in params_def and entry_id:
+            service_data[params_def["entry_id_key"]] = entry_id
+
         try:
             await hass.services.async_call(
-                "seventeentrack",
-                "add_package",
-                {
-                    "config_entry_id": config_entry_id,
-                    "package_tracking_number": number,
-                    "package_friendly_name": friendly_name,
-                },
+                domain,
+                service,
+                service_data,
                 blocking=True,
             )
             newly_forwarded.append(number)
-            _LOGGER.info("Forwarded tracking %s to 17track", number)
+            _LOGGER.info(
+                "Forwarded tracking %s to %s", number, service_name
+            )
         except Exception as err:
-            _LOGGER.warning("Failed to forward %s to 17track: %s", number, err)
+            _LOGGER.warning(
+                "Failed to forward %s to %s: %s", number, service_name, err
+            )
 
     return newly_forwarded
 

@@ -1,7 +1,7 @@
 """Constants for Mail and Packages."""
 from __future__ import annotations
 
-from typing import Final
+from typing import Any, Final
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription
 from homeassistant.helpers.entity import EntityCategory
@@ -59,7 +59,12 @@ CONF_AMAZON_DAYS = "amazon_days"
 # Advanced Tracking - Universal Email Scanner
 CONF_SCAN_ALL_EMAILS = "scan_all_emails"
 
-# Advanced Tracking - 17track Integration
+# Advanced Tracking - Tracking Service Forwarding (generic, supports multiple backends)
+CONF_TRACKING_FORWARD_ENABLED = "tracking_forward_enabled"
+CONF_TRACKING_SERVICE = "tracking_service"
+CONF_TRACKING_SERVICE_ENTRY_ID = "tracking_service_entry_id"
+
+# Legacy aliases (backward compat with v5 configs)
 CONF_17TRACK_ENABLED = "seventeen_track_enabled"
 CONF_17TRACK_ENTRY_ID = "seventeen_track_entry_id"
 
@@ -94,6 +99,10 @@ DEFAULT_AMAZON_DAYS = 3
 
 # Advanced Tracking Defaults
 DEFAULT_SCAN_ALL_EMAILS = False
+DEFAULT_TRACKING_FORWARD_ENABLED = False
+DEFAULT_TRACKING_SERVICE = "seventeentrack"
+DEFAULT_TRACKING_SERVICE_ENTRY_ID = ""
+# Legacy defaults (backward compat)
 DEFAULT_17TRACK_ENABLED = False
 DEFAULT_17TRACK_ENTRY_ID = ""
 DEFAULT_LLM_ENABLED = False
@@ -105,6 +114,43 @@ DEFAULT_AMAZON_COOKIES_ENABLED = False
 DEFAULT_AMAZON_COOKIES = ""
 DEFAULT_AMAZON_COOKIE_DOMAIN = "amazon.com"
 LLM_PROVIDERS = ["ollama", "anthropic", "openai"]
+
+# Supported tracking service integrations for forwarding
+# Each entry defines how to call the integration's add-tracking service
+TRACKING_SERVICES: Final[dict[str, dict[str, Any]]] = {
+    "seventeentrack": {
+        "name": "17track",
+        "domain": "seventeentrack",
+        "service": "add_package",
+        "needs_entry_id": True,
+        "params": {
+            "entry_id_key": "config_entry_id",
+            "tracking_key": "package_tracking_number",
+            "name_key": "package_friendly_name",
+        },
+    },
+    "aftership": {
+        "name": "AfterShip",
+        "domain": "aftership",
+        "service": "add_tracking",
+        "needs_entry_id": False,
+        "params": {
+            "tracking_key": "tracking_number",
+            "name_key": "title",
+        },
+    },
+    "aliexpress_package_tracker": {
+        "name": "AliExpress Package Tracker",
+        "domain": "aliexpress_package_tracker",
+        "service": "add_tracking",
+        "needs_entry_id": False,
+        "params": {
+            "tracking_key": "tracking_number",
+            "name_key": "title",
+        },
+    },
+}
+TRACKING_SERVICE_OPTIONS = list(TRACKING_SERVICES.keys())
 
 # Amazon
 AMAZON_DOMAINS = [
@@ -753,12 +799,12 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:email-search",
         key="email_tracking_numbers",
     ),
-    # 17track Forwarded (opt-in)
-    "seventeentrack_forwarded": SensorEntityDescription(
-        name="Mail 17track Forwarded",
+    # Tracking Service Forwarded (opt-in, supports 17track/AfterShip/AliExpress)
+    "tracking_service_forwarded": SensorEntityDescription(
+        name="Mail Tracking Forwarded",
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed-plus",
-        key="seventeentrack_forwarded",
+        key="tracking_service_forwarded",
     ),
     # Amazon Order Tracking via cookies (opt-in)
     "amazon_cookie_packages": SensorEntityDescription(

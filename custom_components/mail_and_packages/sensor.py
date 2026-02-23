@@ -139,7 +139,7 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
                 attr[ATTR_TRACKING_NUM] = data[ATTR_UNIVERSAL_TRACKING]
             if "universal_carrier_map" in data:
                 attr["carrier_map"] = data["universal_carrier_map"]
-        elif self.type == "seventeentrack_forwarded":
+        elif self.type == "tracking_service_forwarded":
             if ATTR_17TRACK_FORWARDED in data:
                 attr[ATTR_TRACKING_NUM] = data[ATTR_17TRACK_FORWARDED]
         elif self.type == "amazon_cookie_packages":
