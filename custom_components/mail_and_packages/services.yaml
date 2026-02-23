@@ -11,3 +11,51 @@ update_image:
         entity:
           domain: camera
           integration: mail_and_packages
+
+clear_package:
+  name: Clear Package
+  description: Clear a tracked package from the registry by its tracking number.
+  fields:
+    tracking_number:
+      name: Tracking Number
+      description: The tracking number of the package to clear.
+      required: true
+      example: "1Z999AA10123456784"
+      selector:
+        text:
+
+clear_all_delivered:
+  name: Clear All Delivered
+  description: Clear all packages with 'delivered' status from the registry.
+
+mark_delivered:
+  name: Mark Delivered
+  description: Manually mark a package as delivered by its tracking number.
+  fields:
+    tracking_number:
+      name: Tracking Number
+      description: The tracking number of the package to mark as delivered.
+      required: true
+      example: "1Z999AA10123456784"
+      selector:
+        text:
+
+add_package:
+  name: Add Package
+  description: Manually add a tracking number to the registry.
+  fields:
+    tracking_number:
+      name: Tracking Number
+      description: The tracking number to add.
+      required: true
+      example: "1Z999AA10123456784"
+      selector:
+        text:
+    carrier:
+      name: Carrier
+      description: The shipping carrier (e.g., ups, fedex, usps).
+      required: false
+      default: "unknown"
+      example: "ups"
+      selector:
+        text:

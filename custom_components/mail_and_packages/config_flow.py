@@ -1,4 +1,5 @@
 """Adds config flow for Mail and Packages."""
+
 from __future__ import annotations
 
 import logging
@@ -42,6 +43,9 @@ from .const import (
     CONF_LLM_MODEL,
     CONF_LLM_PROVIDER,
     CONF_PATH,
+    CONF_REGISTRY_DELIVERED_DAYS,
+    CONF_REGISTRY_DETECTED_DAYS,
+    CONF_REGISTRY_ENABLED,
     CONF_SCAN_ALL_EMAILS,
     CONF_SCAN_INTERVAL,
     CONF_TRACKING_FORWARD_ENABLED,
@@ -66,6 +70,9 @@ from .const import (
     DEFAULT_LLM_PROVIDER,
     DEFAULT_PATH,
     DEFAULT_PORT,
+    DEFAULT_REGISTRY_DELIVERED_DAYS,
+    DEFAULT_REGISTRY_DETECTED_DAYS,
+    DEFAULT_REGISTRY_ENABLED,
     DEFAULT_SCAN_ALL_EMAILS,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TRACKING_FORWARD_ENABLED,
@@ -120,12 +127,8 @@ async def _validate_user_input(user_input: dict) -> tuple:
     errors = {}
 
     # Validate amazon forwarding email addresses
-    if CONF_AMAZON_FWDS in user_input and isinstance(
-        user_input[CONF_AMAZON_FWDS], str
-    ):
-        status, amazon_list = await _check_amazon_forwards(
-            user_input[CONF_AMAZON_FWDS]
-        )
+    if CONF_AMAZON_FWDS in user_input and isinstance(user_input[CONF_AMAZON_FWDS], str):
+        status, amazon_list = await _check_amazon_forwards(user_input[CONF_AMAZON_FWDS])
         if status[0] == "ok":
             user_input[CONF_AMAZON_FWDS] = amazon_list
         else:
@@ -268,9 +271,7 @@ def _get_schema_scanning(user_input: list, default_dict: list) -> Any:
             vol.Optional(
                 CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS, "")
             ): str,
-            vol.Optional(
-                CONF_AMAZON_DAYS, default=_get_default(CONF_AMAZON_DAYS)
-            ): int,
+            vol.Optional(CONF_AMAZON_DAYS, default=_get_default(CONF_AMAZON_DAYS)): int,
         }
     )
 
@@ -295,9 +296,7 @@ def _get_schema_images(user_input: list, default_dict: list) -> Any:
             vol.Optional(
                 CONF_ALLOW_EXTERNAL, default=_get_default(CONF_ALLOW_EXTERNAL)
             ): bool,
-            vol.Optional(
-                CONF_CUSTOM_IMG, default=_get_default(CONF_CUSTOM_IMG)
-            ): bool,
+            vol.Optional(CONF_CUSTOM_IMG, default=_get_default(CONF_CUSTOM_IMG)): bool,
         }
     )
 
@@ -314,10 +313,12 @@ def _get_schema_features(user_input: list, default_dict: list) -> Any:
     return vol.Schema(
         {
             vol.Optional(
+                CONF_REGISTRY_ENABLED,
+                default=_get_default(CONF_REGISTRY_ENABLED, DEFAULT_REGISTRY_ENABLED),
+            ): bool,
+            vol.Optional(
                 CONF_SCAN_ALL_EMAILS,
-                default=_get_default(
-                    CONF_SCAN_ALL_EMAILS, DEFAULT_SCAN_ALL_EMAILS
-                ),
+                default=_get_default(CONF_SCAN_ALL_EMAILS, DEFAULT_SCAN_ALL_EMAILS),
             ): bool,
             vol.Optional(
                 CONF_TRACKING_FORWARD_ENABLED,
@@ -343,7 +344,8 @@ def _get_schema_features(user_input: list, default_dict: list) -> Any:
 def _has_advanced_tracking(data: dict) -> bool:
     """Check if any advanced tracking feature is enabled."""
     return (
-        data.get(CONF_TRACKING_FORWARD_ENABLED, False)
+        data.get(CONF_REGISTRY_ENABLED, False)
+        or data.get(CONF_TRACKING_FORWARD_ENABLED, False)
         or data.get(CONF_LLM_ENABLED, False)
         or data.get(CONF_AMAZON_COOKIES_ENABLED, False)
     )
@@ -362,14 +364,31 @@ def _get_schema_advanced_tracking(
 
     schema = {}
 
+    # Package registry configuration
+    if data.get(CONF_REGISTRY_ENABLED, False):
+        schema[
+            vol.Optional(
+                CONF_REGISTRY_DELIVERED_DAYS,
+                default=_get_default(
+                    CONF_REGISTRY_DELIVERED_DAYS, DEFAULT_REGISTRY_DELIVERED_DAYS
+                ),
+            )
+        ] = vol.All(vol.Coerce(int), vol.Range(min=1))
+        schema[
+            vol.Optional(
+                CONF_REGISTRY_DETECTED_DAYS,
+                default=_get_default(
+                    CONF_REGISTRY_DETECTED_DAYS, DEFAULT_REGISTRY_DETECTED_DAYS
+                ),
+            )
+        ] = vol.All(vol.Coerce(int), vol.Range(min=1))
+
     # Tracking service forwarding configuration
     if data.get(CONF_TRACKING_FORWARD_ENABLED, False):
         schema[
             vol.Required(
                 CONF_TRACKING_SERVICE,
-                default=_get_default(
-                    CONF_TRACKING_SERVICE, DEFAULT_TRACKING_SERVICE
-                ),
+                default=_get_default(CONF_TRACKING_SERVICE, DEFAULT_TRACKING_SERVICE),
             )
         ] = vol.In(TRACKING_SERVICE_OPTIONS)
         schema[
@@ -387,17 +406,13 @@ def _get_schema_advanced_tracking(
         schema[
             vol.Required(
                 CONF_LLM_PROVIDER,
-                default=_get_default(
-                    CONF_LLM_PROVIDER, DEFAULT_LLM_PROVIDER
-                ),
+                default=_get_default(CONF_LLM_PROVIDER, DEFAULT_LLM_PROVIDER),
             )
         ] = vol.In(LLM_PROVIDERS)
         schema[
             vol.Optional(
                 CONF_LLM_ENDPOINT,
-                default=_get_default(
-                    CONF_LLM_ENDPOINT, DEFAULT_LLM_ENDPOINT
-                ),
+                default=_get_default(CONF_LLM_ENDPOINT, DEFAULT_LLM_ENDPOINT),
             )
         ] = str
         schema[
@@ -426,9 +441,7 @@ def _get_schema_advanced_tracking(
         schema[
             vol.Required(
                 CONF_AMAZON_COOKIES,
-                default=_get_default(
-                    CONF_AMAZON_COOKIES, DEFAULT_AMAZON_COOKIES
-                ),
+                default=_get_default(CONF_AMAZON_COOKIES, DEFAULT_AMAZON_COOKIES),
             )
         ] = str
 
@@ -448,9 +461,7 @@ def _get_schema_custom_img(user_input: list, default_dict: list) -> Any:
         {
             vol.Optional(
                 CONF_CUSTOM_IMG_FILE,
-                default=_get_default(
-                    CONF_CUSTOM_IMG_FILE, DEFAULT_CUSTOM_IMG_FILE
-                ),
+                default=_get_default(CONF_CUSTOM_IMG_FILE, DEFAULT_CUSTOM_IMG_FILE),
             ): str,
         }
     )
@@ -518,9 +529,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self._data = dict(entry_data) if entry_data else {}
         return await self.async_step_reauth_confirm()
 
-    async def async_step_reauth_confirm(
-        self, user_input=None
-    ) -> ConfigFlowResult:
+    async def async_step_reauth_confirm(self, user_input=None) -> ConfigFlowResult:
         """Handle reauth credentials input."""
         self._errors = {}
 
@@ -577,9 +586,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="config_2",
-            data_schema=_get_schema_sensors(
-                self._data, user_input, defaults
-            ),
+            data_schema=_get_schema_sensors(self._data, user_input, defaults),
             errors=self._errors,
         )
 
@@ -652,9 +659,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 return await self.async_step_config_advanced()
             if self._data.get(CONF_CUSTOM_IMG, False):
                 return await self.async_step_config_6()
-            return self.async_create_entry(
-                title=self._data[CONF_HOST], data=self._data
-            )
+            return self.async_create_entry(title=self._data[CONF_HOST], data=self._data)
 
         return await self._show_config_5(user_input)
 
@@ -670,18 +675,14 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     # Conditional: Advanced Tracking Configuration
 
-    async def async_step_config_advanced(
-        self, user_input=None
-    ) -> ConfigFlowResult:
+    async def async_step_config_advanced(self, user_input=None) -> ConfigFlowResult:
         """Configure advanced tracking features."""
         self._errors = {}
         if user_input is not None:
             self._data.update(user_input)
             if self._data.get(CONF_CUSTOM_IMG, False):
                 return await self.async_step_config_6()
-            return self.async_create_entry(
-                title=self._data[CONF_HOST], data=self._data
-            )
+            return self.async_create_entry(title=self._data[CONF_HOST], data=self._data)
 
         return await self._show_config_advanced(user_input)
 
@@ -700,9 +701,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="config_advanced",
-            data_schema=_get_schema_advanced_tracking(
-                user_input, defaults, self._data
-            ),
+            data_schema=_get_schema_advanced_tracking(user_input, defaults, self._data),
             errors=self._errors,
         )
 
@@ -784,6 +783,9 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             CONF_ALLOW_EXTERNAL: DEFAULT_ALLOW_EXTERNAL,
             CONF_CUSTOM_IMG: DEFAULT_CUSTOM_IMG,
             CONF_CUSTOM_IMG_FILE: DEFAULT_CUSTOM_IMG_FILE,
+            CONF_REGISTRY_ENABLED: DEFAULT_REGISTRY_ENABLED,
+            CONF_REGISTRY_DELIVERED_DAYS: DEFAULT_REGISTRY_DELIVERED_DAYS,
+            CONF_REGISTRY_DETECTED_DAYS: DEFAULT_REGISTRY_DETECTED_DAYS,
             CONF_SCAN_ALL_EMAILS: DEFAULT_SCAN_ALL_EMAILS,
             CONF_TRACKING_FORWARD_ENABLED: DEFAULT_TRACKING_FORWARD_ENABLED,
             CONF_TRACKING_SERVICE: DEFAULT_TRACKING_SERVICE,
@@ -853,9 +855,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="options_2",
-            data_schema=_get_schema_sensors(
-                self._data, user_input, defaults
-            ),
+            data_schema=_get_schema_sensors(self._data, user_input, defaults),
             errors=self._errors,
         )
 
@@ -882,13 +882,9 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             CONF_SCAN_INTERVAL: self._data.get(
                 CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
             ),
-            CONF_IMAP_TIMEOUT: self._data.get(
-                CONF_IMAP_TIMEOUT, DEFAULT_IMAP_TIMEOUT
-            ),
+            CONF_IMAP_TIMEOUT: self._data.get(CONF_IMAP_TIMEOUT, DEFAULT_IMAP_TIMEOUT),
             CONF_AMAZON_FWDS: fwds,
-            CONF_AMAZON_DAYS: self._data.get(
-                CONF_AMAZON_DAYS, DEFAULT_AMAZON_DAYS
-            ),
+            CONF_AMAZON_DAYS: self._data.get(CONF_AMAZON_DAYS, DEFAULT_AMAZON_DAYS),
         }
 
         return self.async_show_form(
@@ -944,15 +940,16 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
     async def _show_step_options_5(self, user_input) -> ConfigFlowResult:
         """Show advanced feature toggles form."""
         defaults = {
+            CONF_REGISTRY_ENABLED: self._data.get(
+                CONF_REGISTRY_ENABLED, DEFAULT_REGISTRY_ENABLED
+            ),
             CONF_SCAN_ALL_EMAILS: self._data.get(
                 CONF_SCAN_ALL_EMAILS, DEFAULT_SCAN_ALL_EMAILS
             ),
             CONF_TRACKING_FORWARD_ENABLED: self._data.get(
                 CONF_TRACKING_FORWARD_ENABLED, DEFAULT_TRACKING_FORWARD_ENABLED
             ),
-            CONF_LLM_ENABLED: self._data.get(
-                CONF_LLM_ENABLED, DEFAULT_LLM_ENABLED
-            ),
+            CONF_LLM_ENABLED: self._data.get(CONF_LLM_ENABLED, DEFAULT_LLM_ENABLED),
             CONF_AMAZON_COOKIES_ENABLED: self._data.get(
                 CONF_AMAZON_COOKIES_ENABLED, DEFAULT_AMAZON_COOKIES_ENABLED
             ),
@@ -966,9 +963,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
     # Conditional: Advanced Tracking Configuration
 
-    async def async_step_options_advanced(
-        self, user_input=None
-    ) -> ConfigFlowResult:
+    async def async_step_options_advanced(self, user_input=None) -> ConfigFlowResult:
         """Configure advanced tracking features in options flow."""
         self._errors = {}
         if user_input is not None:
@@ -979,29 +974,25 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
         return await self._show_step_options_advanced(user_input)
 
-    async def _show_step_options_advanced(
-        self, user_input
-    ) -> ConfigFlowResult:
+    async def _show_step_options_advanced(self, user_input) -> ConfigFlowResult:
         """Show advanced tracking options form."""
         defaults = {
+            CONF_REGISTRY_DELIVERED_DAYS: self._data.get(
+                CONF_REGISTRY_DELIVERED_DAYS, DEFAULT_REGISTRY_DELIVERED_DAYS
+            ),
+            CONF_REGISTRY_DETECTED_DAYS: self._data.get(
+                CONF_REGISTRY_DETECTED_DAYS, DEFAULT_REGISTRY_DETECTED_DAYS
+            ),
             CONF_TRACKING_SERVICE: self._data.get(
                 CONF_TRACKING_SERVICE, DEFAULT_TRACKING_SERVICE
             ),
             CONF_TRACKING_SERVICE_ENTRY_ID: self._data.get(
                 CONF_TRACKING_SERVICE_ENTRY_ID, DEFAULT_TRACKING_SERVICE_ENTRY_ID
             ),
-            CONF_LLM_PROVIDER: self._data.get(
-                CONF_LLM_PROVIDER, DEFAULT_LLM_PROVIDER
-            ),
-            CONF_LLM_ENDPOINT: self._data.get(
-                CONF_LLM_ENDPOINT, DEFAULT_LLM_ENDPOINT
-            ),
-            CONF_LLM_API_KEY: self._data.get(
-                CONF_LLM_API_KEY, DEFAULT_LLM_API_KEY
-            ),
-            CONF_LLM_MODEL: self._data.get(
-                CONF_LLM_MODEL, DEFAULT_LLM_MODEL
-            ),
+            CONF_LLM_PROVIDER: self._data.get(CONF_LLM_PROVIDER, DEFAULT_LLM_PROVIDER),
+            CONF_LLM_ENDPOINT: self._data.get(CONF_LLM_ENDPOINT, DEFAULT_LLM_ENDPOINT),
+            CONF_LLM_API_KEY: self._data.get(CONF_LLM_API_KEY, DEFAULT_LLM_API_KEY),
+            CONF_LLM_MODEL: self._data.get(CONF_LLM_MODEL, DEFAULT_LLM_MODEL),
             CONF_AMAZON_COOKIES: self._data.get(
                 CONF_AMAZON_COOKIES, DEFAULT_AMAZON_COOKIES
             ),
@@ -1012,9 +1003,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="options_advanced",
-            data_schema=_get_schema_advanced_tracking(
-                user_input, defaults, self._data
-            ),
+            data_schema=_get_schema_advanced_tracking(user_input, defaults, self._data),
             errors=self._errors,
         )
 

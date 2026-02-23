@@ -3,6 +3,7 @@
 https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
+
 import datetime
 from datetime import timezone
 import logging
@@ -27,6 +28,7 @@ from .const import (
     ATTR_UNIVERSAL_TRACKING,
     CONF_ALLOW_EXTERNAL,
     CONF_PATH,
+    CONF_REGISTRY_ENABLED,
     DOMAIN,
     IMAGE_SENSORS,
     SENSOR_TYPES,
@@ -34,6 +36,9 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+REGISTRY_SENSORS = ("registry_tracked", "registry_in_transit", "registry_delivered")
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -47,6 +52,11 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     for variable, value in IMAGE_SENSORS.items():
         sensors.append(ImagePathSensors(hass, entry, value, coordinator))
+
+    # Add registry sensors if package registry is enabled
+    if entry.data.get(CONF_REGISTRY_ENABLED, False):
+        for key in REGISTRY_SENSORS:
+            sensors.append(RegistrySensor(entry, SENSOR_TYPES[key], coordinator))
 
     async_add_entities(sensors, False)
 
@@ -208,19 +218,11 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
             # Only use /local/ (unauthenticated) if allow_external is enabled,
             # since that copies images to www/ for public access.
             if self._config.data.get(CONF_ALLOW_EXTERNAL):
-                url = (
-                    self.hass.config.external_url
-                    or self.hass.config.internal_url
-                )
+                url = self.hass.config.external_url or self.hass.config.internal_url
                 if url:
-                    the_path = (
-                        f"{url.rstrip('/')}/local/mail_and_packages/{image}"
-                    )
+                    the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
             else:
-                url = (
-                    self.hass.config.external_url
-                    or self.hass.config.internal_url
-                )
+                url = self.hass.config.external_url or self.hass.config.internal_url
                 if url:
                     the_path = (
                         f"{url.rstrip('/')}"
@@ -237,3 +239,78 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
     def available(self) -> bool:
         """Return if entity is available."""
         return self.coordinator.last_update_success
+
+
+class RegistrySensor(CoordinatorEntity, SensorEntity):
+    """Sensor backed by the persistent package registry."""
+
+    def __init__(
+        self,
+        config: ConfigEntry,
+        sensor_description: SensorEntityDescription,
+        coordinator: str,
+    ):
+        """Initialize the registry sensor."""
+        super().__init__(coordinator)
+        self.entity_description = sensor_description
+        self.coordinator = coordinator
+        self._config = config
+        self._name = sensor_description.name
+        self.type = sensor_description.key
+        self._host = config.data[CONF_HOST]
+        self._unique_id = self._config.entry_id
+
+    @property
+    def device_info(self) -> dict:
+        """Return device information about the mailbox."""
+        return {
+            "connections": {(DOMAIN, self._unique_id)},
+            "name": self._host,
+            "manufacturer": "IMAP E-Mail",
+            "sw_version": VERSION,
+        }
+
+    @property
+    def unique_id(self) -> str:
+        """Return a unique, Home Assistant friendly identifier for this entity."""
+        return f"{self._host}_{self._name}_{self._unique_id}"
+
+    @property
+    def name(self) -> str:
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
+    def native_value(self) -> Any:
+        """Return the state of the sensor."""
+        if self.coordinator.data and self.type in self.coordinator.data:
+            return self.coordinator.data[self.type]
+        return 0
+
+    @property
+    def should_poll(self) -> bool:
+        """No need to poll. Coordinator notifies entity of updates."""
+        return False
+
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return self.coordinator.last_update_success
+
+    @property
+    def extra_state_attributes(self) -> Optional[dict]:
+        """Return detailed package list as attributes."""
+        data = self.coordinator.data
+        if data is None:
+            return {}
+
+        attr_key_map = {
+            "registry_tracked": "registry_packages_list",
+            "registry_in_transit": "registry_in_transit_list",
+            "registry_delivered": "registry_delivered_list",
+        }
+
+        attr_key = attr_key_map.get(self.type)
+        if attr_key and attr_key in data:
+            return {"packages": data[attr_key]}
+        return {}

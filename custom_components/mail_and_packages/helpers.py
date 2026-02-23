@@ -94,8 +94,10 @@ from .const import (
     DEFAULT_AMAZON_DAYS,
     OVERLAY,
     SENSOR_DATA,
+    SENSOR_STATUS_MAP,
     SENSOR_TYPES,
     SHIPPERS,
+    TRACKING_CONTEXT_KEYWORDS,
     TRACKING_SERVICES,
     UNIVERSAL_TRACKING_PATTERNS,
 )
@@ -150,7 +152,9 @@ def _test_login_sync(host: str, port: int, user: str, pwd: str) -> bool:
         return False
 
 
-async def _test_login(hass: HomeAssistant, host: str, port: int, user: str, pwd: str) -> bool:
+async def _test_login(
+    hass: HomeAssistant, host: str, port: int, user: str, pwd: str
+) -> bool:
     """Test IMAP login to specified server without blocking the event loop.
 
     Returns success boolean
@@ -755,7 +759,7 @@ def email_search(
 
     _LOGGER.debug("DEBUG email_search value: %s", value)
 
-    (check, new_value) = value
+    check, new_value = value
     if new_value[0] is None:
         _LOGGER.warning("DEBUG email_search value was invalid: None")
         value = (check, [b""])
@@ -796,7 +800,7 @@ def get_mails(
     _LOGGER.debug("Attempting to find Informed Delivery mail")
     _LOGGER.debug("Informed delivery search date: %s", get_formatted_date())
 
-    (server_response, data) = email_search(
+    server_response, data = email_search(
         account,
         SENSOR_DATA[ATTR_USPS_MAIL][ATTR_EMAIL],
         get_formatted_date(),
@@ -1093,7 +1097,7 @@ def get_count(
             subject,
         )
 
-        (server_response, data) = email_search(
+        server_response, data = email_search(
             account, SENSOR_DATA[sensor_type][ATTR_EMAIL], today, subject
         )
         if server_response == "OK" and data[0] is not None:
@@ -1247,9 +1251,7 @@ def amazon_search(
             email_address = AMAZON_EMAIL + domain
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
 
-            (server_response, data) = email_search(
-                account, email_address, today, subject
-            )
+            server_response, data = email_search(account, email_address, today, subject)
 
             if server_response == "OK" and data[0] is not None:
                 count += len(data[0].split())
@@ -1350,7 +1352,7 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
     _LOGGER.debug("[Hub] Amazon email list: %s", str(email_addresses))
 
     for address in email_addresses:
-        (server_response, sdata) = email_search(
+        server_response, sdata = email_search(
             account, address, today, subject=AMAZON_HUB_SUBJECT
         )
 
@@ -1431,7 +1433,7 @@ def amazon_exception(
             email_address.append(f"{AMAZON_EMAIL}{domain}")
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
 
-        (server_response, sdata) = email_search(
+        server_response, sdata = email_search(
             account, email_address, tfmt, AMAZON_EXCEPTION_SUBJECT
         )
 
@@ -1483,7 +1485,7 @@ def get_items(
                 email_address.append(f"{address}@{domain}")
             _LOGGER.debug("Amazon email search address: %s", str(email_address))
 
-        (server_response, sdata) = email_search(account, email_address, tfmt)
+        server_response, sdata = email_search(account, email_address, tfmt)
 
         if server_response == "OK":
             mail_ids = sdata[0]
@@ -1730,6 +1732,254 @@ def scan_all_emails_for_tracking(
     }
 
 
+def _has_tracking_context(text: str, match_start: int, window: int = 500) -> bool:
+    """Check if tracking context keywords appear near a regex match.
+
+    Looks in a window around the match position for words like
+    'tracking', 'shipment', 'delivery', etc. to reduce false positives
+    when scanning non-carrier emails.
+
+    Returns True if context keywords are found nearby.
+    """
+    start = max(0, match_start - window)
+    end = min(len(text), match_start + window)
+    snippet = text[start:end].lower()
+    return any(kw in snippet for kw in TRACKING_CONTEXT_KEYWORDS)
+
+
+def scan_emails_for_registry(
+    account: Type[imaplib.IMAP4_SSL],
+    registry: Any,
+    lookback_days: int = 1,
+) -> dict:
+    """Scan all emails for tracking numbers with context-aware matching.
+
+    Unlike scan_all_emails_for_tracking(), this function:
+    - Uses context keywords to reduce false positives
+    - Tracks processed email UIDs to avoid re-processing
+    - Returns source information (from address, subject) for each find
+    - Supports lookback beyond just today
+
+    All processing is local. No data is sent externally.
+
+    Returns dict with tracking numbers and their metadata.
+    """
+    _LOGGER.debug("Starting registry email scan")
+    today = datetime.datetime.today()
+    since_date = (today - datetime.timedelta(days=lookback_days)).strftime("%d-%b-%Y")
+    found_packages = {}  # {tracking_number: {carrier, source_from, description}}
+
+    try:
+        result = account.search(None, f"(SINCE {since_date})")
+    except Exception as err:
+        _LOGGER.error("Error searching emails for registry scan: %s", str(err))
+        return found_packages
+
+    if result[0] != "OK" or result[1][0] is None:
+        return found_packages
+
+    mail_ids = result[1][0].split()
+    _LOGGER.debug("Registry scan: %s emails to check", len(mail_ids))
+
+    # Compile patterns
+    compiled_patterns = {}
+    for carrier, info in UNIVERSAL_TRACKING_PATTERNS.items():
+        try:
+            compiled_patterns[carrier] = {
+                "regex": re.compile(info["pattern"]),
+                "name": info["name"],
+            }
+        except re.error as err:
+            _LOGGER.warning("Invalid pattern for %s: %s", carrier, err)
+
+    for mail_id in mail_ids:
+        uid_str = (
+            mail_id.decode("utf-8", "ignore")
+            if isinstance(mail_id, bytes)
+            else str(mail_id)
+        )
+
+        # Skip already-processed emails
+        if registry and registry.is_uid_processed(uid_str):
+            continue
+
+        try:
+            data = email_fetch(account, mail_id, "(RFC822)")[1]
+        except Exception as err:
+            _LOGGER.debug("Error fetching email %s: %s", mail_id, err)
+            continue
+
+        for response_part in data:
+            if not isinstance(response_part, tuple):
+                continue
+
+            try:
+                msg = email.message_from_bytes(response_part[1])
+            except Exception as err:
+                _LOGGER.debug("Error parsing email: %s", err)
+                continue
+
+            source_from = msg.get("from", "")
+            subject = msg.get("subject", "")
+
+            # Collect text
+            text_parts = []
+            if subject:
+                text_parts.append(subject)
+
+            for part in msg.walk():
+                content_type = part.get_content_type()
+                if content_type not in ["text/html", "text/plain"]:
+                    continue
+                try:
+                    payload = part.get_payload(decode=True)
+                    if payload:
+                        text_parts.append(payload.decode("utf-8", "ignore"))
+                except Exception:
+                    continue
+
+            full_text = "\n".join(text_parts)
+
+            # Check each carrier pattern with context awareness
+            for carrier, pinfo in compiled_patterns.items():
+                for match in pinfo["regex"].finditer(full_text):
+                    tracking_num = match.group(1) if match.lastindex else match.group(0)
+                    if not tracking_num or tracking_num in found_packages:
+                        continue
+
+                    # Context check: require tracking keywords nearby
+                    if _has_tracking_context(full_text, match.start()):
+                        found_packages[tracking_num] = {
+                            "carrier": pinfo["name"].lower(),
+                            "source_from": source_from,
+                            "description": subject[:100] if subject else "",
+                        }
+
+        # Mark email as processed
+        if registry:
+            registry.mark_uid_processed(uid_str)
+
+    _LOGGER.debug(
+        "Registry scan complete: %s tracking numbers found",
+        len(found_packages),
+    )
+    return found_packages
+
+
+def reconcile_registry(
+    registry: Any,
+    data: dict,
+    universal_findings: dict,
+) -> list:
+    """Reconcile email scan results with the package registry.
+
+    Processes:
+    1. Carrier-specific sensor tracking numbers -> update status
+    2. Universal scan findings -> register new packages
+    3. Exception sensors -> set exception flags
+
+    Returns list of (tracking_number, old_status, new_status) transitions
+    for firing HA events.
+    """
+    transitions = []
+
+    # 1. Process carrier-specific tracking numbers
+    for key, value in data.items():
+        if not isinstance(value, list):
+            continue
+
+        # Find which status this sensor represents
+        for suffix, status in SENSOR_STATUS_MAP.items():
+            if not key.endswith(suffix + "_tracking") and suffix not in key:
+                continue
+
+            # Determine carrier prefix
+            carrier = key
+            for s in ("_tracking", "_delivered", "_delivering", "_exception"):
+                carrier = carrier.replace(s, "")
+
+            for tracking_num in value:
+                if not tracking_num or not isinstance(tracking_num, str):
+                    continue
+
+                if status == "exception":
+                    # Set exception flag rather than status
+                    registry.set_exception(tracking_num, True)
+                    continue
+
+                # Map delivering sensor to appropriate registry status
+                reg_status = status
+                if "_delivering" in key:
+                    reg_status = "in_transit"
+
+                old_pkg = registry.packages.get(tracking_num)
+                old_status = old_pkg.get("status") if old_pkg else None
+
+                changed = registry.register_package(
+                    tracking_number=tracking_num,
+                    carrier=carrier,
+                    status=reg_status,
+                    source="carrier_email",
+                )
+                if changed:
+                    new_status = registry.packages[tracking_num]["status"]
+                    if old_status != new_status:
+                        transitions.append((tracking_num, old_status, new_status))
+
+    # Also check _delivered sensors directly
+    for shipper in SHIPPERS:
+        delivered_key = f"{shipper}_delivered"
+        if delivered_key not in data:
+            continue
+
+        tracking_key = f"{shipper}_tracking"
+        tracking_nums = data.get(tracking_key, [])
+        if not isinstance(tracking_nums, list):
+            continue
+
+        for tracking_num in tracking_nums:
+            if not tracking_num or not isinstance(tracking_num, str):
+                continue
+
+            old_pkg = registry.packages.get(tracking_num)
+            old_status = old_pkg.get("status") if old_pkg else None
+
+            changed = registry.register_package(
+                tracking_number=tracking_num,
+                carrier=shipper,
+                status="delivered",
+                source="carrier_email",
+            )
+            if changed:
+                new_status = registry.packages[tracking_num]["status"]
+                if old_status != new_status:
+                    transitions.append((tracking_num, old_status, new_status))
+
+    # 2. Process universal scan findings (new package detection)
+    for tracking_num, info in universal_findings.items():
+        if tracking_num in registry.packages:
+            # Already tracked - just confirm carrier if not yet confirmed
+            existing = registry.packages[tracking_num]
+            if not existing.get("carrier_confirmed"):
+                existing["source_from"] = info.get("source_from", "")
+                existing["description"] = info.get("description", "")
+            continue
+
+        old_status = None
+        changed = registry.register_package(
+            tracking_number=tracking_num,
+            carrier=info.get("carrier", "unknown"),
+            status="detected",
+            source="universal_scan",
+            source_from=info.get("source_from", ""),
+            description=info.get("description", ""),
+        )
+        if changed:
+            transitions.append((tracking_num, old_status, "detected"))
+
+    return transitions
+
+
 # =============================================================================
 # Advanced Tracking: Tracking Service Forwarding
 # Supports: 17track (seventeentrack), AfterShip, AliExpress Package Tracker
@@ -1791,13 +2041,9 @@ async def forward_to_tracking_service(
                 blocking=True,
             )
             newly_forwarded.append(number)
-            _LOGGER.info(
-                "Forwarded tracking %s to %s", number, service_name
-            )
+            _LOGGER.info("Forwarded tracking %s to %s", number, service_name)
         except Exception as err:
-            _LOGGER.warning(
-                "Failed to forward %s to %s: %s", number, service_name, err
-            )
+            _LOGGER.warning("Failed to forward %s to %s: %s", number, service_name, err)
 
     return newly_forwarded
 
@@ -1933,9 +2179,7 @@ async def _llm_anthropic(api_key: str, model: str, prompt: str) -> list:
             return _parse_llm_tracking_response(text)
 
 
-async def _llm_openai(
-    endpoint: str, api_key: str, model: str, prompt: str
-) -> list:
+async def _llm_openai(endpoint: str, api_key: str, model: str, prompt: str) -> list:
     """Query OpenAI-compatible API for tracking numbers.
 
     WARNING: Sends data to OpenAI's cloud API (or compatible endpoint).
@@ -1988,9 +2232,7 @@ def _parse_llm_tracking_response(text: str) -> list:
         except json.JSONDecodeError:
             pass
 
-    _LOGGER.debug(
-        "Could not parse LLM response as tracking numbers: %s", text[:200]
-    )
+    _LOGGER.debug("Could not parse LLM response as tracking numbers: %s", text[:200])
     return []
 
 
@@ -2051,9 +2293,7 @@ async def llm_scan_emails(
                     try:
                         payload = part.get_payload(decode=True)
                         if payload:
-                            text_parts.append(
-                                payload.decode("utf-8", "ignore")
-                            )
+                            text_parts.append(payload.decode("utf-8", "ignore"))
                     except Exception:
                         continue
 
@@ -2121,8 +2361,7 @@ async def scrape_amazon_tracking(
             "Chrome/120.0.0.0 Safari/537.36"
         ),
         "Accept": (
-            "text/html,application/xhtml+xml,"
-            "application/xml;q=0.9,*/*;q=0.8"
+            "text/html,application/xhtml+xml," "application/xml;q=0.9,*/*;q=0.8"
         ),
         "Accept-Language": "en-US,en;q=0.5",
     }
@@ -2138,18 +2377,14 @@ async def scrape_amazon_tracking(
                 allow_redirects=True,
             ) as resp:
                 if resp.status != 200:
-                    _LOGGER.warning(
-                        "Amazon order page returned status %s", resp.status
-                    )
+                    _LOGGER.warning("Amazon order page returned status %s", resp.status)
                     return {ATTR_COUNT: 0, ATTR_TRACKING: [], "orders": []}
 
                 html = await resp.text()
 
             # Redirected to sign-in means cookies are expired
             if "ap/signin" in str(resp.url) or "sign-in" in html[:1000].lower():
-                _LOGGER.warning(
-                    "Amazon cookies appear expired - redirected to sign-in"
-                )
+                _LOGGER.warning("Amazon cookies appear expired - redirected to sign-in")
                 return {ATTR_COUNT: 0, ATTR_TRACKING: [], "orders": []}
 
             # Extract order IDs
@@ -2158,9 +2393,7 @@ async def scrape_amazon_tracking(
             _LOGGER.debug("Found %s Amazon order IDs", len(order_ids))
 
             for order_id in order_ids[:20]:
-                tracking = await _get_amazon_order_tracking(
-                    session, base_url, order_id
-                )
+                tracking = await _get_amazon_order_tracking(session, base_url, order_id)
                 if tracking:
                     tracking_info.extend(tracking)
 
@@ -2169,9 +2402,7 @@ async def scrape_amazon_tracking(
     except Exception as err:
         _LOGGER.error("Error during Amazon scraping: %s", err)
 
-    _LOGGER.debug(
-        "Amazon cookie scrape found %s tracking entries", len(tracking_info)
-    )
+    _LOGGER.debug("Amazon cookie scrape found %s tracking entries", len(tracking_info))
     return {
         ATTR_COUNT: len(tracking_info),
         ATTR_TRACKING: [t["number"] for t in tracking_info],
@@ -2200,9 +2431,7 @@ async def _get_amazon_order_tracking(
                 return []
             html = await resp.text()
     except Exception as err:
-        _LOGGER.debug(
-            "Error fetching tracking for order %s: %s", order_id, err
-        )
+        _LOGGER.debug("Error fetching tracking for order %s: %s", order_id, err)
         return []
 
     results = []
@@ -2220,15 +2449,11 @@ async def _get_amazon_order_tracking(
     carrier = "Unknown"
     carrier_patterns = [
         (
-            re.compile(
-                r"(?:shipped\s+with|carrier[:\s]+)([\w\s]+)", re.IGNORECASE
-            ),
+            re.compile(r"(?:shipped\s+with|carrier[:\s]+)([\w\s]+)", re.IGNORECASE),
             1,
         ),
         (
-            re.compile(
-                r"(USPS|UPS|FedEx|DHL|AMZL|Amazon Logistics)", re.IGNORECASE
-            ),
+            re.compile(r"(USPS|UPS|FedEx|DHL|AMZL|Amazon Logistics)", re.IGNORECASE),
             1,
         ),
     ]

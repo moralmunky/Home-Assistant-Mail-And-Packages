@@ -1,4 +1,5 @@
 """Constants for Mail and Packages."""
+
 from __future__ import annotations
 
 from typing import Any, Final
@@ -8,7 +9,7 @@ from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.4.0-beta.1"  # Now updated by release workflow
+VERSION = "1.0.0-beta.1"  # Now updated by release workflow
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["camera", "sensor"]
@@ -54,6 +55,11 @@ CONF_GENERATE_MP4 = "generate_mp4"
 CONF_AMAZON_FWDS = "amazon_fwds"
 CONF_AMAZON_DAYS = "amazon_days"
 
+# Package Tracking Registry
+CONF_REGISTRY_ENABLED = "registry_enabled"
+CONF_REGISTRY_DELIVERED_DAYS = "registry_delivered_days"
+CONF_REGISTRY_DETECTED_DAYS = "registry_detected_days"
+
 # Advanced Tracking - Universal Email Scanner
 CONF_SCAN_ALL_EMAILS = "scan_all_emails"
 
@@ -94,6 +100,11 @@ DEFAULT_ALLOW_EXTERNAL = False
 DEFAULT_CUSTOM_IMG = False
 DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
 DEFAULT_AMAZON_DAYS = 3
+
+# Package Tracking Registry Defaults
+DEFAULT_REGISTRY_ENABLED = False
+DEFAULT_REGISTRY_DELIVERED_DAYS = 3
+DEFAULT_REGISTRY_DETECTED_DAYS = 14
 
 # Advanced Tracking Defaults
 DEFAULT_SCAN_ALL_EMAILS = False
@@ -264,6 +275,35 @@ UNIVERSAL_TRACKING_PATTERNS: Final[dict[str, dict[str, str]]] = {
     # other common numeric strings. These carriers are still detected via
     # their sender-specific email matching in SENSOR_DATA.
 }
+
+# Context keywords for reducing false positives in universal email scanning.
+# A tracking number candidate from a non-carrier email is only accepted if
+# one of these keywords appears nearby in the email text.
+TRACKING_CONTEXT_KEYWORDS: Final[list[str]] = [
+    "tracking",
+    "track your",
+    "shipment",
+    "shipped",
+    "shipping",
+    "delivery",
+    "deliver",
+    "package",
+    "parcel",
+    "carrier",
+    "in transit",
+    "out for delivery",
+    "dispatched",
+    "consignment",
+    "przesyłka",
+    "nadanie",
+    "wysłano",
+    "śledzenie",
+    "paczka",
+    "zustellung",
+    "sendungsverfolgung",
+    "spedizione",
+    "tracciamento",
+]
 
 # Sensor Data
 SENSOR_DATA = {
@@ -816,6 +856,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package",
         key="amazon_cookie_packages",
     ),
+    # Package Tracking Registry sensors (opt-in)
+    "registry_tracked": SensorEntityDescription(
+        name="Mail Packages Tracked",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed-check",
+        key="registry_tracked",
+    ),
+    "registry_in_transit": SensorEntityDescription(
+        name="Mail Packages In Transit (Registry)",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="registry_in_transit",
+    ),
+    "registry_delivered": SensorEntityDescription(
+        name="Mail Packages Delivered (Registry)",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="registry_delivered",
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -860,6 +919,13 @@ SENSOR_UNIT = 1
 SENSOR_ICON = 2
 
 # For sensors with delivering and delivered statuses
+# Maps carrier sensor suffix to registry status for reconciliation
+SENSOR_STATUS_MAP: Final[dict[str, str]] = {
+    "_delivered": "delivered",
+    "_delivering": "in_transit",
+    "_exception": "exception",
+}
+
 SHIPPERS = [
     "capost",
     "dhl",
