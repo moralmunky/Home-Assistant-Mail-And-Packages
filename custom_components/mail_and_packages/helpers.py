@@ -110,10 +110,15 @@ _LOGGER = logging.getLogger(__name__)
 def get_resources() -> dict:
     """Resource selection schema.
 
-    Returns dict of user selected sensors
+    Returns dict of user selected sensors.
+    Registry sensors are excluded — they are managed automatically
+    via the CONF_REGISTRY_ENABLED toggle.
     """
+    _registry_keys = {"registry_tracked", "registry_in_transit", "registry_delivered"}
     known_available_resources = {
-        sensor_id: sensor.name for sensor_id, sensor in SENSOR_TYPES.items()
+        sensor_id: sensor.name
+        for sensor_id, sensor in SENSOR_TYPES.items()
+        if sensor_id not in _registry_keys
     }
 
     return known_available_resources
