@@ -35,6 +35,12 @@ ATTR_BODY = "body"
 ATTR_PATTERN = "pattern"
 ATTR_USPS_MAIL = "usps_mail"
 
+# Advanced tracking attributes
+ATTR_UNIVERSAL_TRACKING = "universal_tracking"
+ATTR_17TRACK_FORWARDED = "forwarded_to_17track"
+ATTR_AMAZON_COOKIE_TRACKING = "amazon_cookie_tracking"
+ATTR_LLM_ANALYZED = "llm_analyzed"
+
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"
 CONF_CAMERA_NAME = "camera_name"
@@ -49,6 +55,25 @@ CONF_IMAP_TIMEOUT = "imap_timeout"
 CONF_GENERATE_MP4 = "generate_mp4"
 CONF_AMAZON_FWDS = "amazon_fwds"
 CONF_AMAZON_DAYS = "amazon_days"
+
+# Advanced Tracking - Universal Email Scanner
+CONF_SCAN_ALL_EMAILS = "scan_all_emails"
+
+# Advanced Tracking - 17track Integration
+CONF_17TRACK_ENABLED = "seventeen_track_enabled"
+CONF_17TRACK_ENTRY_ID = "seventeen_track_entry_id"
+
+# Advanced Tracking - LLM Analysis (privacy: off by default, explicit opt-in)
+CONF_LLM_ENABLED = "llm_enabled"
+CONF_LLM_PROVIDER = "llm_provider"
+CONF_LLM_ENDPOINT = "llm_endpoint"
+CONF_LLM_API_KEY = "llm_api_key"
+CONF_LLM_MODEL = "llm_model"
+
+# Advanced Tracking - Amazon Cookie Scraping
+CONF_AMAZON_COOKIES_ENABLED = "amazon_cookies_enabled"
+CONF_AMAZON_COOKIES = "amazon_cookies"
+CONF_AMAZON_COOKIE_DOMAIN = "amazon_cookie_domain"
 
 # Defaults
 DEFAULT_CAMERA_NAME = "Mail USPS Camera"
@@ -66,6 +91,20 @@ DEFAULT_ALLOW_EXTERNAL = False
 DEFAULT_CUSTOM_IMG = False
 DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
 DEFAULT_AMAZON_DAYS = 3
+
+# Advanced Tracking Defaults
+DEFAULT_SCAN_ALL_EMAILS = False
+DEFAULT_17TRACK_ENABLED = False
+DEFAULT_17TRACK_ENTRY_ID = ""
+DEFAULT_LLM_ENABLED = False
+DEFAULT_LLM_PROVIDER = "ollama"
+DEFAULT_LLM_ENDPOINT = "http://localhost:11434"
+DEFAULT_LLM_API_KEY = ""
+DEFAULT_LLM_MODEL = ""
+DEFAULT_AMAZON_COOKIES_ENABLED = False
+DEFAULT_AMAZON_COOKIES = ""
+DEFAULT_AMAZON_COOKIE_DOMAIN = "amazon.com"
+LLM_PROVIDERS = ["ollama", "anthropic", "openai"]
 
 # Amazon
 AMAZON_DOMAINS = [
@@ -122,6 +161,60 @@ AMAZON_LANGS = [
     "de_DE.UTF-8",
     "",
 ]
+
+# Universal tracking number patterns (for scanning all emails)
+# These are more specific than per-carrier patterns to reduce false positives
+# when scanning arbitrary emails
+UNIVERSAL_TRACKING_PATTERNS: Final[dict[str, dict[str, str]]] = {
+    "usps": {
+        "pattern": r"(?:^|\b)(9[2345]\d{15,26})(?:\b|$)",
+        "name": "USPS",
+    },
+    "ups": {
+        "pattern": r"(?:^|\b)(1Z[0-9A-Z]{16})(?:\b|$)",
+        "name": "UPS",
+    },
+    "fedex": {
+        "pattern": r"(?:^|\b)(\d{12}(?:\d{0,8}))(?:\b|$)",
+        "name": "FedEx",
+    },
+    "dhl": {
+        "pattern": r"(?:^|\b)(\d{10,11})(?:\b|$)",
+        "name": "DHL",
+    },
+    "hermes": {
+        "pattern": r"(?:^|\b)(\d{16})(?:\b|$)",
+        "name": "Hermes",
+    },
+    "royal_mail": {
+        "pattern": r"(?:^|\b)([A-Za-z]{2}[0-9]{9}GB)(?:\b|$)",
+        "name": "Royal Mail",
+    },
+    "canada_post": {
+        "pattern": r"(?:^|\b)(\d{16})(?:\b|$)",
+        "name": "Canada Post",
+    },
+    "australia_post": {
+        "pattern": r"(?:^|\b)([A-Za-z]{2}[0-9]{9}AU)(?:\b|$)",
+        "name": "Australia Post",
+    },
+    "poczta_polska": {
+        "pattern": r"(?:^|\b)(\d{20})(?:\b|$)",
+        "name": "Poczta Polska",
+    },
+    "inpost": {
+        "pattern": r"(?:^|\b)(\d{24})(?:\b|$)",
+        "name": "InPost",
+    },
+    "dpd": {
+        "pattern": r"(?:^|\b)(\d{13}[A-Z0-9]{1,2})(?:\b|$)",
+        "name": "DPD",
+    },
+    "gls": {
+        "pattern": r"(?:^|\b)(\d{11})(?:\b|$)",
+        "name": "GLS",
+    },
+}
 
 # Sensor Data
 SENSOR_DATA = {
@@ -652,6 +745,27 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="gls_packages",
+    ),
+    # Universal Email Tracking (opt-in)
+    "email_tracking_numbers": SensorEntityDescription(
+        name="Mail Email Tracking Numbers",
+        native_unit_of_measurement="tracking #(s)",
+        icon="mdi:email-search",
+        key="email_tracking_numbers",
+    ),
+    # 17track Forwarded (opt-in)
+    "seventeentrack_forwarded": SensorEntityDescription(
+        name="Mail 17track Forwarded",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed-plus",
+        key="seventeentrack_forwarded",
+    ),
+    # Amazon Order Tracking via cookies (opt-in)
+    "amazon_cookie_packages": SensorEntityDescription(
+        name="Mail Amazon Order Tracking",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package",
+        key="amazon_cookie_packages",
     ),
     ###
     # !!! Insert new sensors above these two !!!

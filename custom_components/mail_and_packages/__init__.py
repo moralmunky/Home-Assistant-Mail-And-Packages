@@ -5,18 +5,36 @@ from datetime import timedelta
 
 from async_timeout import timeout
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_RESOURCES
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_RESOURCES, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
+    ATTR_17TRACK_FORWARDED,
+    ATTR_AMAZON_COOKIE_TRACKING,
+    ATTR_COUNT,
+    ATTR_LLM_ANALYZED,
+    ATTR_TRACKING,
+    ATTR_UNIVERSAL_TRACKING,
+    CONF_17TRACK_ENABLED,
+    CONF_17TRACK_ENTRY_ID,
     CONF_ALLOW_EXTERNAL,
+    CONF_AMAZON_COOKIES,
+    CONF_AMAZON_COOKIES_ENABLED,
+    CONF_AMAZON_COOKIE_DOMAIN,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_FWDS,
+    CONF_FOLDER,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_TIMEOUT,
+    CONF_LLM_API_KEY,
+    CONF_LLM_ENABLED,
+    CONF_LLM_ENDPOINT,
+    CONF_LLM_MODEL,
+    CONF_LLM_PROVIDER,
     CONF_PATH,
+    CONF_SCAN_ALL_EMAILS,
     CONF_SCAN_INTERVAL,
     COORDINATOR,
     DEFAULT_AMAZON_DAYS,
@@ -26,7 +44,13 @@ from .const import (
     PLATFORMS,
     VERSION,
 )
-from .helpers import default_image_path, process_emails
+from .helpers import (
+    default_image_path,
+    forward_to_17track,
+    llm_scan_emails,
+    process_emails,
+    scrape_amazon_tracking,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -65,6 +89,30 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # Set image security always on
     if CONF_IMAGE_SECURITY not in config_entry.data.keys():
         updated_config[CONF_IMAGE_SECURITY] = True
+
+    # Set advanced tracking defaults if missing
+    if CONF_SCAN_ALL_EMAILS not in updated_config.keys():
+        updated_config[CONF_SCAN_ALL_EMAILS] = False
+    if CONF_17TRACK_ENABLED not in updated_config.keys():
+        updated_config[CONF_17TRACK_ENABLED] = False
+    if CONF_17TRACK_ENTRY_ID not in updated_config.keys():
+        updated_config[CONF_17TRACK_ENTRY_ID] = ""
+    if CONF_LLM_ENABLED not in updated_config.keys():
+        updated_config[CONF_LLM_ENABLED] = False
+    if CONF_LLM_PROVIDER not in updated_config.keys():
+        updated_config[CONF_LLM_PROVIDER] = "ollama"
+    if CONF_LLM_ENDPOINT not in updated_config.keys():
+        updated_config[CONF_LLM_ENDPOINT] = "http://localhost:11434"
+    if CONF_LLM_API_KEY not in updated_config.keys():
+        updated_config[CONF_LLM_API_KEY] = ""
+    if CONF_LLM_MODEL not in updated_config.keys():
+        updated_config[CONF_LLM_MODEL] = ""
+    if CONF_AMAZON_COOKIES_ENABLED not in updated_config.keys():
+        updated_config[CONF_AMAZON_COOKIES_ENABLED] = False
+    if CONF_AMAZON_COOKIES not in updated_config.keys():
+        updated_config[CONF_AMAZON_COOKIES] = ""
+    if CONF_AMAZON_COOKIE_DOMAIN not in updated_config.keys():
+        updated_config[CONF_AMAZON_COOKIE_DOMAIN] = "amazon.com"
 
     # Sort the resources
     updated_config[CONF_RESOURCES] = sorted(updated_config[CONF_RESOURCES])
@@ -222,6 +270,29 @@ async def async_migrate_entry(hass, config_entry):
         config_entry.version = 4
         _LOGGER.debug("Migration to version %s complete", config_entry.version)
 
+    if version == 4:
+        _LOGGER.debug("Migrating from version %s", version)
+        updated_config = config_entry.data.copy()
+
+        # Add advanced tracking defaults (all disabled by default)
+        updated_config.setdefault(CONF_SCAN_ALL_EMAILS, False)
+        updated_config.setdefault(CONF_17TRACK_ENABLED, False)
+        updated_config.setdefault(CONF_17TRACK_ENTRY_ID, "")
+        updated_config.setdefault(CONF_LLM_ENABLED, False)
+        updated_config.setdefault(CONF_LLM_PROVIDER, "ollama")
+        updated_config.setdefault(CONF_LLM_ENDPOINT, "http://localhost:11434")
+        updated_config.setdefault(CONF_LLM_API_KEY, "")
+        updated_config.setdefault(CONF_LLM_MODEL, "")
+        updated_config.setdefault(CONF_AMAZON_COOKIES_ENABLED, False)
+        updated_config.setdefault(CONF_AMAZON_COOKIES, "")
+        updated_config.setdefault(CONF_AMAZON_COOKIE_DOMAIN, "amazon.com")
+
+        if updated_config != config_entry.data:
+            hass.config_entries.async_update_entry(config_entry, data=updated_config)
+
+        config_entry.version = 5
+        _LOGGER.debug("Migration to version %s complete", config_entry.version)
+
     return True
 
 
@@ -250,4 +321,116 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             except Exception as error:
                 _LOGGER.error("Problem updating sensors: %s", error)
                 raise UpdateFailed(error) from error
-            return data
+
+        # Run async advanced tracking features outside the main timeout
+        # These are opt-in and may take additional time
+        try:
+            await self._process_advanced_tracking(data)
+        except Exception as error:
+            _LOGGER.warning("Error in advanced tracking: %s", error)
+
+        return data
+
+    async def _process_advanced_tracking(self, data: dict) -> None:
+        """Handle async advanced tracking operations.
+
+        Processes 17track forwarding, LLM analysis, and Amazon cookie
+        scraping. All features are opt-in and disabled by default.
+        """
+        config = self.config
+
+        # 17track forwarding (requires async HA service call)
+        if config.get(CONF_17TRACK_ENABLED, False):
+            entry_id = config.get(CONF_17TRACK_ENTRY_ID, "")
+            all_to_forward = data.get(ATTR_17TRACK_FORWARDED, [])
+            carrier_map = data.get("_17track_carrier_map", {})
+            already_forwarded = data.get("_17track_already_forwarded", set())
+
+            if entry_id and all_to_forward:
+                newly_forwarded = await forward_to_17track(
+                    self.hass, entry_id, all_to_forward,
+                    carrier_map, already_forwarded,
+                )
+                # Update the persistent forwarded set
+                domain_data = self.hass.data.get(DOMAIN, {})
+                forwarded_key = "_17track_forwarded_set"
+                if forwarded_key not in domain_data:
+                    domain_data[forwarded_key] = set()
+                domain_data[forwarded_key].update(newly_forwarded)
+                data["seventeentrack_forwarded"] = len(newly_forwarded)
+
+        # LLM email analysis (opt-in, privacy-sensitive)
+        if config.get(CONF_LLM_ENABLED, False):
+            llm_config = data.get("_llm_config", {})
+            if llm_config:
+                _LOGGER.info(
+                    "LLM email analysis enabled (provider: %s). "
+                    "Email content will be sent to: %s",
+                    llm_config.get("provider"),
+                    "local Ollama" if llm_config.get("provider") == "ollama"
+                    else llm_config.get("provider") + " cloud API",
+                )
+                # LLM needs the IMAP account - reconnect for async use
+                # For now, store results from a separate scan
+                from .helpers import login, selectfolder
+                account = await self.hass.async_add_executor_job(
+                    login,
+                    config.get(CONF_HOST),
+                    config.get(CONF_PORT),
+                    config.get(CONF_USERNAME),
+                    config.get(CONF_PASSWORD),
+                )
+                if account:
+                    folder = config.get(CONF_FOLDER, '"INBOX"')
+                    if await self.hass.async_add_executor_job(
+                        selectfolder, account, folder
+                    ):
+                        llm_result = await llm_scan_emails(
+                            account,
+                            llm_config.get("known_tracking", []),
+                            llm_config["provider"],
+                            llm_config["endpoint"],
+                            llm_config["api_key"],
+                            llm_config["model"],
+                        )
+                        data[ATTR_LLM_ANALYZED] = llm_result[ATTR_TRACKING]
+
+                        # Merge LLM findings into universal tracking
+                        existing = data.get(ATTR_UNIVERSAL_TRACKING, [])
+                        for num in llm_result[ATTR_TRACKING]:
+                            if num not in existing:
+                                existing.append(num)
+                        data[ATTR_UNIVERSAL_TRACKING] = existing
+                        data["email_tracking_numbers"] = len(existing)
+
+        # Amazon cookie scraping (opt-in)
+        if config.get(CONF_AMAZON_COOKIES_ENABLED, False):
+            cookie_config = data.get("_amazon_cookie_config", {})
+            if cookie_config and cookie_config.get("cookies"):
+                amazon_result = await scrape_amazon_tracking(
+                    cookie_config["cookies"],
+                    cookie_config["domain"],
+                )
+                data["amazon_cookie_packages"] = amazon_result[ATTR_COUNT]
+                data[ATTR_AMAZON_COOKIE_TRACKING] = amazon_result[ATTR_TRACKING]
+
+                # Also forward Amazon tracking to 17track if enabled
+                if config.get(CONF_17TRACK_ENABLED, False):
+                    entry_id = config.get(CONF_17TRACK_ENTRY_ID, "")
+                    if entry_id and amazon_result[ATTR_TRACKING]:
+                        carrier_map = {
+                            t["number"]: t.get("carrier", "Amazon")
+                            for t in amazon_result.get("orders", [])
+                        }
+                        domain_data = self.hass.data.get(DOMAIN, {})
+                        already = domain_data.get("_17track_forwarded_set", set())
+                        await forward_to_17track(
+                            self.hass, entry_id,
+                            amazon_result[ATTR_TRACKING],
+                            carrier_map, already,
+                        )
+
+        # Clean up internal config keys from data before it reaches sensors
+        for key in list(data.keys()):
+            if key.startswith("_"):
+                del data[key]

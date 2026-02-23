@@ -36,18 +36,35 @@
           "amazon_fwds": "Amazon forwarded email addresses",
           "amazon_days": "Days back to check for Amazon emails",
           "allow_external": "Create image for notification apps",
-          "custom_img": "Use custom 'no image' image?"    
+          "custom_img": "Use custom 'no image' image?",
+          "scan_all_emails": "Scan all emails for tracking numbers (local only)",
+          "seventeen_track_enabled": "Forward tracking numbers to 17track",
+          "llm_enabled": "Use AI/LLM to analyze emails for tracking numbers",
+          "amazon_cookies_enabled": "Track Amazon orders via browser cookies"
         },
-        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.",
+        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.\n\n**Advanced Tracking** (bottom of form): Enable optional features to scan all emails for tracking numbers, integrate with 17track, use AI analysis, or track Amazon orders directly.",
         "title": "Mail and Packages (Step 2 of 2)"
+      },
+      "config_advanced": {
+        "data": {
+          "seventeen_track_entry_id": "17track integration config entry ID",
+          "llm_provider": "AI/LLM Provider",
+          "llm_endpoint": "LLM API endpoint URL (Ollama: http://localhost:11434)",
+          "llm_api_key": "LLM API key (for Anthropic/OpenAI)",
+          "llm_model": "LLM model name (e.g. llama3.2, claude-haiku-4-5-20251001, gpt-4o-mini)",
+          "amazon_cookies": "Amazon browser cookies (key=value; key2=value2 format)",
+          "amazon_cookie_domain": "Amazon domain (e.g. amazon.com, amazon.co.uk)"
+        },
+        "description": "Configure the advanced tracking features you enabled.\n\n**17track**: Enter the config entry ID from your 17track integration (Settings > Devices & Services > 17Track > three-dot menu > Copy entry ID).\n\n**AI/LLM Analysis**: Choose a provider to analyze emails that might contain tracking numbers. 'ollama' runs locally (no data leaves your network). 'anthropic' and 'openai' send email content to their cloud APIs.\n\n**PRIVACY NOTICE**: If using Anthropic or OpenAI, your email content will be sent to their servers. Only use this if you understand and accept this. Ollama keeps everything local.\n\n**Amazon Cookies**: Paste your Amazon session cookies from your browser to poll order tracking directly.",
+        "title": "Mail and Packages - Advanced Tracking"
       },
       "options_3": {
         "data": {
           "custom_img_file": "Path to custom image: (ie: images/my_custom_no_mail.jpg)"
         },
         "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-        "title": "Mail and Packages (Step 3 of 3)"        
-      }       
+        "title": "Mail and Packages (Step 3 of 3)"
+      }
     }
   },
   "options": {
@@ -58,7 +75,7 @@
       "amazon_domain": "Invalid forwarding email address.",
       "file_not_found": "Image file not found",
       "scan_too_low": "Scan interval too low (minimum 5)",
-      "timeout_too_low": "IMAP timeout too low (minumim 10)"      
+      "timeout_too_low": "IMAP timeout too low (minumim 10)"
     },
     "step": {
       "init": {
@@ -84,18 +101,35 @@
           "amazon_fwds": "Amazon forwarded email addresses",
           "amazon_days": "Days back to check for Amazon emails",
           "allow_external": "Create image for notification apps",
-          "custom_img": "Use custom 'no image' image?"      
+          "custom_img": "Use custom 'no image' image?",
+          "scan_all_emails": "Scan all emails for tracking numbers (local only)",
+          "seventeen_track_enabled": "Forward tracking numbers to 17track",
+          "llm_enabled": "Use AI/LLM to analyze emails for tracking numbers",
+          "amazon_cookies_enabled": "Track Amazon orders via browser cookies"
         },
-        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.",
+        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please seperate each address with a comma.\n\n**Advanced Tracking** (bottom of form): Enable optional features to scan all emails for tracking numbers, integrate with 17track, use AI analysis, or track Amazon orders directly.",
         "title": "Mail and Packages (Step 2 of 2)"
+      },
+      "options_advanced": {
+        "data": {
+          "seventeen_track_entry_id": "17track integration config entry ID",
+          "llm_provider": "AI/LLM Provider",
+          "llm_endpoint": "LLM API endpoint URL (Ollama: http://localhost:11434)",
+          "llm_api_key": "LLM API key (for Anthropic/OpenAI)",
+          "llm_model": "LLM model name (e.g. llama3.2, claude-haiku-4-5-20251001, gpt-4o-mini)",
+          "amazon_cookies": "Amazon browser cookies (key=value; key2=value2 format)",
+          "amazon_cookie_domain": "Amazon domain (e.g. amazon.com, amazon.co.uk)"
+        },
+        "description": "Configure the advanced tracking features you enabled.\n\n**17track**: Enter the config entry ID from your 17track integration.\n\n**AI/LLM Analysis**: 'ollama' runs locally (no data leaves your network). 'anthropic' and 'openai' send email content to their cloud APIs.\n\n**PRIVACY NOTICE**: If using Anthropic or OpenAI, your email content will be sent to their servers. Ollama keeps everything local.\n\n**Amazon Cookies**: Paste your Amazon session cookies from your browser.",
+        "title": "Mail and Packages - Advanced Tracking"
       },
       "options_3": {
         "data": {
           "custom_img_file": "Path to custom image: (ie: images/my_custom_no_mail.jpg)"
         },
         "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
-        "title": "Mail and Packages (Step 3 of 3)"          
-      }      
+        "title": "Mail and Packages (Step 3 of 3)"
+      }
     }
   }
 }

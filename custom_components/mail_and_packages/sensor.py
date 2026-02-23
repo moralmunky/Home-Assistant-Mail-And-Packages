@@ -17,11 +17,14 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     AMAZON_EXCEPTION_ORDER,
     AMAZON_ORDER,
+    ATTR_17TRACK_FORWARDED,
+    ATTR_AMAZON_COOKIE_TRACKING,
     ATTR_IMAGE,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
     ATTR_ORDER,
     ATTR_TRACKING_NUM,
+    ATTR_UNIVERSAL_TRACKING,
     CONF_PATH,
     COORDINATOR,
     DOMAIN,
@@ -131,7 +134,17 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
             attr[ATTR_IMAGE] = data[ATTR_IMAGE_NAME]
         elif "_delivering" in self.type and tracking in self.data.keys():
             attr[ATTR_TRACKING_NUM] = data[tracking]
-            # TODO: Add Tracking URL when applicable
+        elif self.type == "email_tracking_numbers":
+            if ATTR_UNIVERSAL_TRACKING in data:
+                attr[ATTR_TRACKING_NUM] = data[ATTR_UNIVERSAL_TRACKING]
+            if "universal_carrier_map" in data:
+                attr["carrier_map"] = data["universal_carrier_map"]
+        elif self.type == "seventeentrack_forwarded":
+            if ATTR_17TRACK_FORWARDED in data:
+                attr[ATTR_TRACKING_NUM] = data[ATTR_17TRACK_FORWARDED]
+        elif self.type == "amazon_cookie_packages":
+            if ATTR_AMAZON_COOKIE_TRACKING in data:
+                attr[ATTR_TRACKING_NUM] = data[ATTR_AMAZON_COOKIE_TRACKING]
         return attr
 
 

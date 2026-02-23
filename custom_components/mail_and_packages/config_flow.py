@@ -17,7 +17,12 @@ from homeassistant.const import (
 from homeassistant.core import callback
 
 from .const import (
+    CONF_17TRACK_ENABLED,
+    CONF_17TRACK_ENTRY_ID,
     CONF_ALLOW_EXTERNAL,
+    CONF_AMAZON_COOKIES,
+    CONF_AMAZON_COOKIES_ENABLED,
+    CONF_AMAZON_COOKIE_DOMAIN,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_FWDS,
     CONF_CUSTOM_IMG,
@@ -27,9 +32,20 @@ from .const import (
     CONF_GENERATE_MP4,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_TIMEOUT,
+    CONF_LLM_API_KEY,
+    CONF_LLM_ENABLED,
+    CONF_LLM_ENDPOINT,
+    CONF_LLM_MODEL,
+    CONF_LLM_PROVIDER,
     CONF_PATH,
+    CONF_SCAN_ALL_EMAILS,
     CONF_SCAN_INTERVAL,
+    DEFAULT_17TRACK_ENABLED,
+    DEFAULT_17TRACK_ENTRY_ID,
     DEFAULT_ALLOW_EXTERNAL,
+    DEFAULT_AMAZON_COOKIES,
+    DEFAULT_AMAZON_COOKIES_ENABLED,
+    DEFAULT_AMAZON_COOKIE_DOMAIN,
     DEFAULT_AMAZON_DAYS,
     DEFAULT_AMAZON_FWDS,
     DEFAULT_CUSTOM_IMG,
@@ -38,10 +54,17 @@ from .const import (
     DEFAULT_GIF_DURATION,
     DEFAULT_IMAGE_SECURITY,
     DEFAULT_IMAP_TIMEOUT,
+    DEFAULT_LLM_API_KEY,
+    DEFAULT_LLM_ENABLED,
+    DEFAULT_LLM_ENDPOINT,
+    DEFAULT_LLM_MODEL,
+    DEFAULT_LLM_PROVIDER,
     DEFAULT_PATH,
     DEFAULT_PORT,
+    DEFAULT_SCAN_ALL_EMAILS,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    LLM_PROVIDERS,
 )
 from .helpers import _check_ffmpeg, _test_login, get_resources, login
 
@@ -205,8 +228,103 @@ def _get_schema_step_2(data: list, user_input: list, default_dict: list) -> Any:
                 CONF_ALLOW_EXTERNAL, default=_get_default(CONF_ALLOW_EXTERNAL)
             ): bool,
             vol.Optional(CONF_CUSTOM_IMG, default=_get_default(CONF_CUSTOM_IMG)): bool,
+            # Advanced Tracking toggles (all off by default)
+            vol.Optional(
+                CONF_SCAN_ALL_EMAILS,
+                default=_get_default(CONF_SCAN_ALL_EMAILS, DEFAULT_SCAN_ALL_EMAILS),
+            ): bool,
+            vol.Optional(
+                CONF_17TRACK_ENABLED,
+                default=_get_default(CONF_17TRACK_ENABLED, DEFAULT_17TRACK_ENABLED),
+            ): bool,
+            vol.Optional(
+                CONF_LLM_ENABLED,
+                default=_get_default(CONF_LLM_ENABLED, DEFAULT_LLM_ENABLED),
+            ): bool,
+            vol.Optional(
+                CONF_AMAZON_COOKIES_ENABLED,
+                default=_get_default(
+                    CONF_AMAZON_COOKIES_ENABLED, DEFAULT_AMAZON_COOKIES_ENABLED
+                ),
+            ): bool,
         }
     )
+
+
+def _has_advanced_tracking(data: dict) -> bool:
+    """Check if any advanced tracking feature is enabled."""
+    return (
+        data.get(CONF_17TRACK_ENABLED, False)
+        or data.get(CONF_LLM_ENABLED, False)
+        or data.get(CONF_AMAZON_COOKIES_ENABLED, False)
+    )
+
+
+def _get_schema_advanced_tracking(user_input: list, default_dict: list, data: dict) -> Any:
+    """Build schema for advanced tracking configuration step."""
+    if user_input is None:
+        user_input = {}
+
+    def _get_default(key: str, fallback_default: Any = None) -> None:
+        """Get default value for key."""
+        return user_input.get(key, default_dict.get(key, fallback_default))
+
+    schema = {}
+
+    # 17track configuration
+    if data.get(CONF_17TRACK_ENABLED, False):
+        schema[
+            vol.Required(
+                CONF_17TRACK_ENTRY_ID,
+                default=_get_default(CONF_17TRACK_ENTRY_ID, DEFAULT_17TRACK_ENTRY_ID),
+            )
+        ] = str
+
+    # LLM configuration (with privacy implications)
+    if data.get(CONF_LLM_ENABLED, False):
+        schema[
+            vol.Required(
+                CONF_LLM_PROVIDER,
+                default=_get_default(CONF_LLM_PROVIDER, DEFAULT_LLM_PROVIDER),
+            )
+        ] = vol.In(LLM_PROVIDERS)
+        schema[
+            vol.Optional(
+                CONF_LLM_ENDPOINT,
+                default=_get_default(CONF_LLM_ENDPOINT, DEFAULT_LLM_ENDPOINT),
+            )
+        ] = str
+        schema[
+            vol.Optional(
+                CONF_LLM_API_KEY,
+                default=_get_default(CONF_LLM_API_KEY, DEFAULT_LLM_API_KEY),
+            )
+        ] = str
+        schema[
+            vol.Optional(
+                CONF_LLM_MODEL,
+                default=_get_default(CONF_LLM_MODEL, DEFAULT_LLM_MODEL),
+            )
+        ] = str
+
+    # Amazon cookie configuration
+    if data.get(CONF_AMAZON_COOKIES_ENABLED, False):
+        schema[
+            vol.Required(
+                CONF_AMAZON_COOKIE_DOMAIN,
+                default=_get_default(
+                    CONF_AMAZON_COOKIE_DOMAIN, DEFAULT_AMAZON_COOKIE_DOMAIN
+                ),
+            )
+        ] = str
+        schema[
+            vol.Required(
+                CONF_AMAZON_COOKIES,
+                default=_get_default(CONF_AMAZON_COOKIES, DEFAULT_AMAZON_COOKIES),
+            )
+        ] = str
+
+    return vol.Schema(schema)
 
 
 def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
@@ -232,7 +350,7 @@ def _get_schema_step_3(user_input: list, default_dict: list) -> Any:
 class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Mail and Packages."""
 
-    VERSION = 4
+    VERSION = 5
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
@@ -281,6 +399,8 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self._errors, user_input = await _validate_user_input(user_input)
             self._data.update(user_input)
             if len(self._errors) == 0:
+                if _has_advanced_tracking(self._data):
+                    return await self.async_step_config_advanced()
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_config_3()
                 return self.async_create_entry(
@@ -313,8 +433,43 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
+    async def async_step_config_advanced(self, user_input=None):
+        """Configure advanced tracking features."""
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            if len(self._errors) == 0:
+                if self._data.get(CONF_CUSTOM_IMG, False):
+                    return await self.async_step_config_3()
+                return self.async_create_entry(
+                    title=self._data[CONF_HOST], data=self._data
+                )
+            return await self._show_config_advanced(user_input)
+
+        return await self._show_config_advanced(user_input)
+
+    async def _show_config_advanced(self, user_input):
+        """Show advanced tracking configuration form."""
+        defaults = {
+            CONF_17TRACK_ENTRY_ID: DEFAULT_17TRACK_ENTRY_ID,
+            CONF_LLM_PROVIDER: DEFAULT_LLM_PROVIDER,
+            CONF_LLM_ENDPOINT: DEFAULT_LLM_ENDPOINT,
+            CONF_LLM_API_KEY: DEFAULT_LLM_API_KEY,
+            CONF_LLM_MODEL: DEFAULT_LLM_MODEL,
+            CONF_AMAZON_COOKIES: DEFAULT_AMAZON_COOKIES,
+            CONF_AMAZON_COOKIE_DOMAIN: DEFAULT_AMAZON_COOKIE_DOMAIN,
+        }
+
+        return self.async_show_form(
+            step_id="config_advanced",
+            data_schema=_get_schema_advanced_tracking(
+                user_input, defaults, self._data
+            ),
+            errors=self._errors,
+        )
+
     async def async_step_config_3(self, user_input=None):
-        """Configure form step 2."""
+        """Configure form step 3."""
         self._errors = {}
         if user_input is not None:
             self._data.update(user_input)
@@ -391,6 +546,8 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             self._errors, user_input = await _validate_user_input(user_input)
             self._data.update(user_input)
             if len(self._errors) == 0:
+                if _has_advanced_tracking(self._data):
+                    return await self.async_step_options_advanced()
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_options_3()
                 return self.async_create_entry(title="", data=self._data)
@@ -414,11 +571,59 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
             CONF_ALLOW_EXTERNAL: self._data.get(CONF_ALLOW_EXTERNAL),
             CONF_RESOURCES: self._data.get(CONF_RESOURCES),
             CONF_CUSTOM_IMG: self._data.get(CONF_CUSTOM_IMG) or DEFAULT_CUSTOM_IMG,
+            CONF_SCAN_ALL_EMAILS: self._data.get(CONF_SCAN_ALL_EMAILS)
+            or DEFAULT_SCAN_ALL_EMAILS,
+            CONF_17TRACK_ENABLED: self._data.get(CONF_17TRACK_ENABLED)
+            or DEFAULT_17TRACK_ENABLED,
+            CONF_LLM_ENABLED: self._data.get(CONF_LLM_ENABLED)
+            or DEFAULT_LLM_ENABLED,
+            CONF_AMAZON_COOKIES_ENABLED: self._data.get(CONF_AMAZON_COOKIES_ENABLED)
+            or DEFAULT_AMAZON_COOKIES_ENABLED,
         }
 
         return self.async_show_form(
             step_id="options_2",
             data_schema=_get_schema_step_2(self._data, user_input, defaults),
+            errors=self._errors,
+        )
+
+    async def async_step_options_advanced(self, user_input=None):
+        """Configure advanced tracking features in options flow."""
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            if len(self._errors) == 0:
+                if self._data.get(CONF_CUSTOM_IMG, False):
+                    return await self.async_step_options_3()
+                return self.async_create_entry(title="", data=self._data)
+            return await self._show_step_options_advanced(user_input)
+
+        return await self._show_step_options_advanced(user_input)
+
+    async def _show_step_options_advanced(self, user_input):
+        """Show advanced tracking options form."""
+        defaults = {
+            CONF_17TRACK_ENTRY_ID: self._data.get(CONF_17TRACK_ENTRY_ID)
+            or DEFAULT_17TRACK_ENTRY_ID,
+            CONF_LLM_PROVIDER: self._data.get(CONF_LLM_PROVIDER)
+            or DEFAULT_LLM_PROVIDER,
+            CONF_LLM_ENDPOINT: self._data.get(CONF_LLM_ENDPOINT)
+            or DEFAULT_LLM_ENDPOINT,
+            CONF_LLM_API_KEY: self._data.get(CONF_LLM_API_KEY)
+            or DEFAULT_LLM_API_KEY,
+            CONF_LLM_MODEL: self._data.get(CONF_LLM_MODEL)
+            or DEFAULT_LLM_MODEL,
+            CONF_AMAZON_COOKIES: self._data.get(CONF_AMAZON_COOKIES)
+            or DEFAULT_AMAZON_COOKIES,
+            CONF_AMAZON_COOKIE_DOMAIN: self._data.get(CONF_AMAZON_COOKIE_DOMAIN)
+            or DEFAULT_AMAZON_COOKIE_DOMAIN,
+        }
+
+        return self.async_show_form(
+            step_id="options_advanced",
+            data_schema=_get_schema_advanced_tracking(
+                user_input, defaults, self._data
+            ),
             errors=self._errors,
         )
 
