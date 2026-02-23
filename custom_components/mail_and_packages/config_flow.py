@@ -438,18 +438,11 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input[CONF_PASSWORD],
             )
             if valid:
-                # Update the config entry with new credentials
-                existing_entry = self.hass.config_entries.async_get_entry(
-                    self.context["entry_id"]
+                # Use modern reauth helper to update, reload, and abort
+                return self.async_update_reload_and_abort(
+                    self._get_reauth_entry(),
+                    data_updates=self._data,
                 )
-                if existing_entry:
-                    self.hass.config_entries.async_update_entry(
-                        existing_entry, data=self._data
-                    )
-                    await self.hass.config_entries.async_reload(
-                        existing_entry.entry_id
-                    )
-                    return self.async_abort(reason="reauth_successful")
             else:
                 self._errors["base"] = "communication"
 
@@ -575,20 +568,21 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry):
         """Redirect to options flow."""
-        return MailAndPackagesOptionsFlow(config_entry)
+        return MailAndPackagesOptionsFlow()
 
 
 class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
     """Options flow for Mail and Packages."""
 
-    def __init__(self, config_entry):
+    def __init__(self):
         """Initialize."""
-        self.config = config_entry
-        self._data = dict(config_entry.options)
+        self._data = {}
         self._errors = {}
 
     async def async_step_init(self, user_input=None):
         """Manage Mail and Packages options."""
+        if not self._data:
+            self._data = dict(self.config_entry.options)
         if user_input is not None:
             self._data.update(user_input)
 
