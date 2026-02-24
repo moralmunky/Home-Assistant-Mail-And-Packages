@@ -4958,7 +4958,8 @@ async def test_get_count_calculates_correctly(hass):
     count = await get_count(
         mock_account,
         "amazon_delivered",
-        "/test/images/",
+        False,
+        "./",
         hass=hass,
         amazon_domain="amazon.com",
     )
