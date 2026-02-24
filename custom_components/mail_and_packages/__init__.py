@@ -195,11 +195,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         hass, host, the_timeout, interval, config, config_entry
     )
 
-    # Fetch initial data so we have data when entities subscribe
-    # Raises ConfigEntryNotReady automatically if first refresh fails
-    await coordinator.async_config_entry_first_refresh()
-
-    # Initialize package registry if enabled
+    # Initialize package registry if enabled (fast — just loads JSON from disk)
     registry = None
     if config.get(CONF_REGISTRY_ENABLED, False):
         registry = PackageRegistry(hass, config_entry.entry_id)
@@ -214,6 +210,13 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Register services (once per domain, not per entry)
     await _async_register_services(hass)
+
+    # Schedule first data fetch in the background — email processing
+    # can be slow and may exceed HA's config entry setup timeout.
+    # Entities will show as "unavailable" briefly until the first scan completes.
+    config_entry.async_create_background_task(
+        hass, coordinator.async_refresh(), "mail_and_packages_first_refresh"
+    )
 
     return True
 
