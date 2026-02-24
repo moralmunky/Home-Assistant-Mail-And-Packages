@@ -106,15 +106,15 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         """Return the state of the sensor."""
-        value = None
+        if self.coordinator.data is None:
+            return None
 
-        if self.type in self.coordinator.data.keys():
+        if self.type in self.coordinator.data:
             value = self.coordinator.data[self.type]
             if self.type == "mail_updated":
                 value = datetime.datetime.now(timezone.utc)
-        else:
-            value = None
-        return value
+            return value
+        return None
 
     @property
     def should_poll(self) -> bool:
@@ -134,7 +134,7 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         data = self.coordinator.data
 
         # Catch no data entries
-        if self.data is None:
+        if data is None:
             return attr
 
         if "Amazon" in self._name:
@@ -204,10 +204,15 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> Optional[str]:
         """Return the state of the sensor."""
-        image = self.coordinator.data[ATTR_IMAGE_NAME]
+        if self.coordinator.data is None:
+            return None
+
+        image = self.coordinator.data.get(ATTR_IMAGE_NAME)
+        if image is None:
+            return None
         the_path = None
 
-        if ATTR_IMAGE_PATH in self.coordinator.data.keys():
+        if ATTR_IMAGE_PATH in self.coordinator.data:
             path = self.coordinator.data[ATTR_IMAGE_PATH]
         else:
             path = self._config.data[CONF_PATH]
