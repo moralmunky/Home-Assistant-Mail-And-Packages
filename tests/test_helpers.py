@@ -1901,6 +1901,9 @@ async def test_get_resourcs(hass):
         "auspost_delivered": "Mail AusPost Delivered",
         "auspost_delivering": "Mail AusPost Delivering",
         "auspost_packages": "Mail AusPost Packages",
+        "bolcom_delivered": "Mail bol.com Delivered",
+        "bolcom_delivering": "Mail bol.com Delivering",
+        "bolcom_packages": "Mail bol.com Packages",
         "bonshaw_distribution_network_delivered": "Mail Bonshaw Distribution Network Delivered",
         "bonshaw_distribution_network_delivering": "Mail Bonshaw Distribution Network Delivering",
         "bonshaw_distribution_network_packages": "Mail Bonshaw Distribution Network Packages",
@@ -1918,6 +1921,9 @@ async def test_get_resourcs(hass):
         "dpd_com_pl_delivered": "Mail DPD.com.pl Delivered",
         "dpd_com_pl_delivering": "Mail DPD.com.pl Delivering",
         "dpd_com_pl_packages": "Mail DPD.com.pl Packages",
+        "dpd_nl_delivered": "Mail DPD NL Delivered",
+        "dpd_nl_delivering": "Mail DPD NL Delivering",
+        "dpd_nl_packages": "Mail DPD NL Packages",
         "dpd_delivered": "Mail DPD Delivered",
         "dpd_delivering": "Mail DPD Delivering",
         "dpd_packages": "Mail DPD Packages",
@@ -6120,54 +6126,50 @@ async def test_get_items_more_coverage(hass, caplog):
     ):
         # Email 1: old arriving
         msg_old = MagicMock()
-        msg_old.get.side_effect = (
-            lambda k: "2020-01-01"
-            if k == "Date"
-            else "Arriving"
-            if k == "subject"
-            else None
+        msg_old.get.side_effect = lambda k: (
+            "2020-01-01" if k == "Date" else "Arriving" if k == "subject" else None
         )
-        msg_old.__getitem__.side_effect = (
-            lambda k: "Arriving" if k == "subject" else None
+        msg_old.__getitem__.side_effect = lambda k: (
+            "Arriving" if k == "subject" else None
         )
 
         # Email 2: Ordered
         msg_ordered = MagicMock()
-        msg_ordered.get.side_effect = (
-            lambda k: date.today().strftime("%Y-%m-%d")
+        msg_ordered.get.side_effect = lambda k: (
+            date.today().strftime("%Y-%m-%d")
             if k == "Date"
             else AMAZON_ORDERED_SUBJECT[0]
             if k == "subject"
             else None
         )
-        msg_ordered.__getitem__.side_effect = (
-            lambda k: AMAZON_ORDERED_SUBJECT[0] if k == "subject" else None
+        msg_ordered.__getitem__.side_effect = lambda k: (
+            AMAZON_ORDERED_SUBJECT[0] if k == "subject" else None
         )
 
         # Email 3: Delivered with order in body
         msg_deliv = MagicMock()
-        msg_deliv.get.side_effect = (
-            lambda k: date.today().strftime("%Y-%m-%d")
+        msg_deliv.get.side_effect = lambda k: (
+            date.today().strftime("%Y-%m-%d")
             if k == "Date"
             else AMAZON_DELIVERED_SUBJECT[0]
             if k == "subject"
             else None
         )
-        msg_deliv.__getitem__.side_effect = (
-            lambda k: AMAZON_DELIVERED_SUBJECT[0] if k == "subject" else None
+        msg_deliv.__getitem__.side_effect = lambda k: (
+            AMAZON_DELIVERED_SUBJECT[0] if k == "subject" else None
         )
 
         # Email 4: Arriving
         msg_arr = MagicMock()
-        msg_arr.get.side_effect = (
-            lambda k: date.today().strftime("%Y-%m-%d")
+        msg_arr.get.side_effect = lambda k: (
+            date.today().strftime("%Y-%m-%d")
             if k == "Date"
             else AMAZON_TIME_PATTERN[0]
             if k == "subject"
             else None
         )
-        msg_arr.__getitem__.side_effect = (
-            lambda k: AMAZON_TIME_PATTERN[0] if k == "subject" else None
+        msg_arr.__getitem__.side_effect = lambda k: (
+            AMAZON_TIME_PATTERN[0] if k == "subject" else None
         )
 
         mock_from_bytes.side_effect = [
