@@ -180,12 +180,17 @@ async def login(
     await account.wait_hello_from_server()
 
     if account.protocol.state == NONAUTH:
-        if security == "startTLS":
-            await account.starttls(ssl_context=ssl_context)
-        await account.login(user, pwd)
+        try:
+            # Only call starttls on a non-SSL IMAP4 instance; IMAP4_SSL does not expose starttls.
+            if security == "startTLS" and isinstance(account, IMAP4):
+                await account.starttls(ssl_context=ssl_context)
+            await account.login(user, pwd)
+        except (AioImapException, OSError) as err:
+            _LOGGER.error("Error logging in to IMAP Server: %s", err)
+            raise InvalidAuth from err
 
     if account.protocol.state not in {AUTH, SELECTED}:
-        _LOGGER.error("Error loggging in to IMAP Server")
+        _LOGGER.error("Error logging in to IMAP Server")
         raise InvalidAuth
     return account
 
@@ -352,12 +357,12 @@ def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
     # Clean up the destination directory
     for path in paths:
         # Path check
-        if not Path(path).exists():
-            try:
-                Path(path).mkdir(parents=True)
-            except OSError as err:
-                _LOGGER.error("Problem creating: %s, error returned: %s", path, err)
-                return
+        try:
+            Path(path).mkdir(parents=True, exist_ok=True)
+        except OSError as err:
+            _LOGGER.error("Problem creating: %s, error returned: %s", path, err)
+            return
+
         cleanup_images(path)
 
     try:
@@ -468,12 +473,11 @@ def image_file_name(  # noqa: C901
     image_name = os.path.split(mail_none)[1]
 
     # Path check
-    if not Path(path).exists():
-        try:
-            Path(path).mkdir(parents=True)
-        except OSError as err:
-            _LOGGER.error("Problem creating: %s, error returned: %s", path, err)
-            return image_name
+    try:
+        Path(path).mkdir(parents=True, exist_ok=True)
+    except OSError as err:
+        _LOGGER.error("Problem creating: %s, error returned: %s", path, err)
+        return image_name
 
     # SHA1 file hash check
     try:

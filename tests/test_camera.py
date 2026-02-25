@@ -32,7 +32,7 @@ async def test_update_file_path(
     entries = hass.config_entries.async_entries(DOMAIN)
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
@@ -78,7 +78,7 @@ async def test_update_file_path(
     await hass.async_block_till_done()
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
@@ -115,7 +115,7 @@ async def test_ups_camera(
     entries = hass.config_entries.async_entries(DOMAIN)
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_ups_camera")
@@ -152,7 +152,7 @@ async def test_ups_camera(
     await hass.async_block_till_done()
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_ups_camera")
@@ -181,7 +181,7 @@ async def test_ups_camera(
 #     caplog,
 # ):
 #     """Test check_file_path_access function."""
-#     with patch("os.path.isfile", return_value=True), patch(
+#     with patch("os.path.exists", return_value=True), patch(
 #         "os.access", return_value=False
 #     ):
 #         entry = integration
@@ -204,7 +204,7 @@ async def test_async_camera_image(
     """Test async_camera_image function."""
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=False),
     ):
         entry = integration
@@ -239,7 +239,7 @@ async def test_async_camera_image_file_error(
     """Test async_camera_image function."""
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=False),
     ):
         entry = integration
@@ -269,7 +269,7 @@ async def test_async_on_demand_update(
     """Test async_camera_image function."""
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=False),
     ):
         entry = integration
@@ -309,7 +309,7 @@ async def test_amazon_camera_custom_img(
     await hass.async_block_till_done()
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_amazon_delivery_camera_2")
@@ -348,7 +348,7 @@ async def test_ups_camera_with_image_data(
     }
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
@@ -398,7 +398,7 @@ async def test_amazon_camera_with_image_data(
     }
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
@@ -456,7 +456,7 @@ async def test_ups_camera_with_custom_image(
     await hass.async_block_till_done()
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_ups_camera")
@@ -503,7 +503,7 @@ async def test_amazon_camera_with_custom_image(
     await hass.async_block_till_done()
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_amazon_delivery_camera")
@@ -532,7 +532,7 @@ async def test_ups_camera_default_image_path(
 ):
     """Test UPS camera uses correct default image path."""
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_ups_camera")
@@ -568,7 +568,7 @@ async def test_amazon_camera_default_image_path(
 ):
     """Test Amazon camera uses correct default image path."""
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_amazon_delivery_camera")
@@ -649,7 +649,7 @@ async def test_camera_image_update_service(
 
     for camera_entity in cameras_to_test:
         with (
-            patch("os.path.isfile", side_effect=isfile_side_effect),
+            patch("os.path.exists", side_effect=isfile_side_effect),
             patch("os.access", return_value=True),
             patch("pathlib.Path.exists", return_value=True),
         ):
@@ -683,7 +683,7 @@ async def test_generic_camera(
     entries = hass.config_entries.async_entries(DOMAIN)
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
@@ -720,7 +720,7 @@ async def test_generic_camera(
     await hass.async_block_till_done()
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
@@ -760,7 +760,7 @@ async def test_generic_camera_with_delivery_images(
     }
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
@@ -810,7 +810,7 @@ async def test_generic_camera_with_ups_delivery_images(
     }
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
@@ -860,7 +860,7 @@ async def test_generic_camera_with_walmart_delivery_images(
     }
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
@@ -910,7 +910,7 @@ async def test_generic_camera_with_usps_delivery_images_manual(
     }
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
@@ -968,7 +968,7 @@ async def test_generic_camera_with_all_delivery_types(
     }
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
@@ -1064,7 +1064,7 @@ async def test_generic_camera_filters_no_mail_images(
     }
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
@@ -1183,7 +1183,7 @@ async def test_generic_camera_respects_enabled_sensors(
             break
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
@@ -1274,7 +1274,7 @@ async def test_generic_camera_with_custom_image(
     await hass.async_block_till_done()
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
@@ -1303,7 +1303,7 @@ async def test_generic_camera_default_image_path(
 ):
     """Test Generic camera uses correct default image path."""
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
@@ -1351,7 +1351,7 @@ async def test_generic_camera_with_usps_delivery_images(
     }
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
@@ -1423,7 +1423,7 @@ async def test_generic_camera_with_multiple_delivery_images(
     }
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
@@ -1494,7 +1494,7 @@ async def test_walmart_camera(
     entries = hass.config_entries.async_entries(DOMAIN)
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_walmart_delivery_camera")
@@ -1531,7 +1531,7 @@ async def test_walmart_camera(
     await hass.async_block_till_done()
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_walmart_delivery_camera")
@@ -1569,7 +1569,7 @@ async def test_walmart_camera_with_image_data(
     }
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
@@ -1627,7 +1627,7 @@ async def test_walmart_camera_with_custom_image(
     await hass.async_block_till_done()
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_walmart_delivery_camera")
@@ -1657,7 +1657,7 @@ async def test_walmart_camera_default_image_path(
 ):
     """Test Walmart camera uses correct default image path."""
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_walmart_delivery_camera")
@@ -1698,7 +1698,7 @@ async def test_fedex_camera(
     entries = hass.config_entries.async_entries(DOMAIN)
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_fedex_delivery_camera")
@@ -1735,7 +1735,7 @@ async def test_fedex_camera(
     await hass.async_block_till_done()
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_fedex_delivery_camera")
@@ -1774,7 +1774,7 @@ async def test_fedex_camera_with_image_data(
     }
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
@@ -1833,7 +1833,7 @@ async def test_fedex_camera_with_custom_image(
     await hass.async_block_till_done()
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_fedex_delivery_camera")
@@ -1863,7 +1863,7 @@ async def test_fedex_camera_default_image_path(
 ):
     """Test FedEx camera uses correct default image path."""
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
         state = hass.states.get("camera.mail_fedex_delivery_camera")
@@ -2060,18 +2060,17 @@ async def test_camera_fallback_to_recent_file(
     f2.is_file.return_value = True
     f2.stat.return_value.st_mtime = 2000
 
-    def mock_path_exists(self):
-        if "missing_file.jpg" in str(self):
+    def mock_path_exists(path):
+        if "missing_file.jpg" in str(path):
             return False
         # The parent directory exists
-        if "amazon" in str(self) and "images" in str(self):
+        if "amazon" in str(path) and "images" in str(path):
             return True
         return False
 
     with (
-        patch("os.path.isfile", return_value=True),
+        patch("os.path.exists", side_effect=mock_path_exists),
         patch("os.access", return_value=True),
-        patch("pathlib.Path.exists", side_effect=mock_path_exists, autospec=True),
         patch("pathlib.Path.iterdir", return_value=[f1, f2], autospec=True),
     ):
         # Trigger update

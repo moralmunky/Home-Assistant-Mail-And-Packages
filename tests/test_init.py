@@ -283,7 +283,7 @@ async def test_coordinator_binary_sensor_update_usps_hash_comparison():
         # Mock async_add_executor_job to return mtimes AND hashes
         # Order: mtime(img), hash(img), mtime(none), hash(none)
         mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[100.0, "hash1", 100.0, "hash2"]
+            side_effect=[True, 100.0, "hash1", 100.0, "hash2"]
         )
 
         with (
@@ -320,7 +320,7 @@ async def test_coordinator_binary_sensor_update_amazon_hash_comparison():
         # Mock async_add_executor_job to return mtimes AND hashes
         # Order: mtime(img), hash(img), mtime(none), hash(none)
         mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[100.0, "hash1", 100.0, "hash2"]
+            side_effect=[True, 100.0, "hash1", 100.0, "hash2"]
         )
 
         with (
@@ -357,7 +357,7 @@ async def test_coordinator_binary_sensor_update_ups_hash_comparison():
         # Mock async_add_executor_job to return mtimes AND hashes
         # Order: mtime(img), hash(img), mtime(none), hash(none)
         mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[100.0, "hash1", 100.0, "hash2"]
+            side_effect=[True, 100.0, "hash1", 100.0, "hash2"]
         )
 
         with (
@@ -394,7 +394,7 @@ async def test_coordinator_binary_sensor_update_same_hashes():
         # Mock async_add_executor_job to return mtimes AND hashes
         # Order: mtime(img), hash(img), mtime(none), hash(none)
         mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[100.0, "same_hash", 100.0, "same_hash"]
+            side_effect=[True, 100.0, "same_hash", 100.0, "same_hash"]
         )
 
         with (
@@ -502,3 +502,50 @@ async def test_async_migrate_entry_missing_amazon_fwds(hass):
 
     result = await async_migrate_entry(hass, mock_entry)
     assert result is True
+
+
+@pytest.mark.asyncio
+async def test_get_file_hash_cache_hit():
+    """Test the file hash cache in MailDataUpdateCoordinator."""
+    mock_hass = MagicMock()
+    mock_config = FAKE_CONFIG_DATA.copy()
+
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+
+        file_path = "test.gif"
+        mtime = 100.0
+        file_hash = "abc123"
+
+        # First call: populate cache
+        mock_hass.async_add_executor_job = AsyncMock(side_effect=[mtime, file_hash])
+        result1 = await coordinator._get_file_hash_if_changed(file_path)  # noqa: SLF001
+        assert result1 == file_hash
+        assert mock_hass.async_add_executor_job.call_count == 2
+
+        # Second call: same mtime, should hit cache (line 271)
+        mock_hass.async_add_executor_job = AsyncMock(return_value=mtime)
+        result2 = await coordinator._get_file_hash_if_changed(file_path)  # noqa: SLF001
+        assert result2 == file_hash
+        assert mock_hass.async_add_executor_job.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_binary_sensor_update_missing_image_attr(hass, tmp_path):
+    """Test _binary_sensor_update when an image attribute is missing (Line 335)."""
+    mock_config = FAKE_CONFIG_DATA.copy()
+    coordinator = MailDataUpdateCoordinator(hass, mock_config)
+
+    # Mock data with a fake camera that doesn't have an ATTR_*_IMAGE constant
+    coordinator._data = {  # noqa: SLF001
+        "nonexistent_image": "test.jpg",
+        "image_path": str(tmp_path),
+    }
+
+    with patch(
+        "custom_components.mail_and_packages.const.CAMERA_DATA",
+        {"nonexistent_camera": ["Nonexistent Camera"]},
+    ):
+        # This should hit line 335 and continue without error
+        await coordinator._binary_sensor_update()  # noqa: SLF001
+        assert "nonexistent_update" not in coordinator._data  # noqa: SLF001
