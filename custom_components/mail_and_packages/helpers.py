@@ -875,6 +875,7 @@ async def get_mails(  # noqa: C901
             await anyio.Path(image_output_path).mkdir(parents=True, exist_ok=True)
         except OSError as err:
             _LOGGER.error("Error creating directory: %s", err)
+            return image_count
 
     # Clean up image directory
     _LOGGER.debug("Cleaning up image directory: %s", image_output_path)

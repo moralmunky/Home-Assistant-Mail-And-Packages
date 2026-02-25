@@ -3150,15 +3150,26 @@ async def test_process_emails_ups_directory_creation_error(hass, caplog):
             "custom_components.mail_and_packages.helpers.image_file_name",
             return_value="test_image.jpg",
         ),
-        patch("os.path.isdir", return_value=False),
-        patch("pathlib.Path.exists", return_value=False),
-        patch("pathlib.Path.mkdir") as mock_mkdir,
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.is_dir",
+            new_callable=AsyncMock,
+            return_value=False,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.exists",
+            new_callable=AsyncMock,
+            return_value=False,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.mkdir",
+            new_callable=AsyncMock,
+        ) as mock_mkdir,
         patch("custom_components.mail_and_packages.helpers.copyfile"),
     ):
         mock_mkdir.side_effect = OSError("UPS directory creation error")
         result = await process_emails(hass, config)
         assert isinstance(result, dict)
-        assert "Error creating Ups directory" in caplog.text
+        assert "Error creating directory:" in caplog.text
         mock_account.logout.assert_called_once()
 
 
@@ -3206,9 +3217,20 @@ async def test_process_emails_directory_creation_error(hass):
             "custom_components.mail_and_packages.helpers.login",
             return_value=mock_account,
         ),
-        patch("pathlib.Path.is_dir", return_value=False),
-        patch("pathlib.Path.exists", return_value=False),
-        patch("pathlib.Path.mkdir") as mock_mkdir,
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.is_dir",
+            new_callable=AsyncMock,
+            return_value=False,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.exists",
+            new_callable=AsyncMock,
+            return_value=False,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.mkdir",
+            new_callable=AsyncMock,
+        ) as mock_mkdir,
         patch(
             "custom_components.mail_and_packages.helpers.copyfile",
             side_effect=OSError("File copy error"),
@@ -4013,16 +4035,23 @@ async def test_process_emails_fedex_dir_creation_error(hass, integration, caplog
     mock_account.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b""]))
     mock_account.logout = AsyncMock()
 
-    def is_dir_side_effect(self):
-        # We target the fedex directory specifically
-        if "fedex" in str(self):
-            return False
-        return True
+    def path_side_effect(path_str, *args, **kwargs):
+        mock_p = AsyncMock()
+        # FedEx directory
+        if "fedex" in str(path_str):
+            mock_p.is_dir = AsyncMock(return_value=False)
+            mock_p.mkdir = AsyncMock(side_effect=OSError("Permission denied"))
+        else:
+            mock_p.is_dir = AsyncMock(return_value=True)
+            mock_p.exists = AsyncMock(return_value=True)
+        return mock_p
 
     # Simulate error during mkdir
     with (
-        patch("os.path.isdir", side_effect=is_dir_side_effect),
-        patch("pathlib.Path.mkdir", side_effect=OSError("Permission denied")),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path",
+            side_effect=path_side_effect,
+        ),
         patch("custom_components.mail_and_packages.helpers.copyfile"),
         patch(
             "custom_components.mail_and_packages.helpers.login",
@@ -4037,12 +4066,11 @@ async def test_process_emails_fedex_dir_creation_error(hass, integration, caplog
             "custom_components.mail_and_packages.helpers.image_file_name",
             return_value="test.gif",
         ),
-        patch("pathlib.Path.exists", return_value=True),
     ):
         await process_emails(hass, config)
 
         # Verify the specific error log is captured
-        assert "Error creating Fedex directory" in caplog.text
+        assert "Error creating directory:" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -4468,13 +4496,21 @@ async def test_process_emails_shipper_mkdir_error(hass, caplog):
             new_callable=AsyncMock,
             return_value=True,
         ),
-        patch("os.path.isdir", return_value=False),
-        patch("pathlib.Path.mkdir", side_effect=OSError("Read-only file system")),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.is_dir",
+            new_callable=AsyncMock,
+            return_value=False,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.mkdir",
+            new_callable=AsyncMock,
+            side_effect=OSError("Read-only file system"),
+        ),
     ):
         await process_emails(hass, config)
 
         # Verify the OSError during directory creation is caught and logged
-        assert "Error creating Ups directory" in caplog.text
+        assert "Error creating directory:" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -5872,11 +5908,14 @@ async def test_get_count_additional_coverage(hass, tmp_path, caplog):
             "custom_components.mail_and_packages.helpers._generic_delivery_image_extraction",
             AsyncMock(return_value=True),
         ),
-        patch("custom_components.mail_and_packages.helpers.Path") as mock_path,
+        patch("custom_components.mail_and_packages.helpers.anyio.Path") as mock_path,
     ):
-        mock_path.return_value.exists.return_value = True
-        mock_path.return_value.stat.return_value.st_size = 100
-        mock_path.return_value.is_dir.return_value = True
+        mock_path.return_value.exists = AsyncMock(return_value=True)
+        # Mock stat() to return an object with st_size attribute
+        mock_stat = MagicMock()
+        mock_stat.st_size = 100
+        mock_path.return_value.stat = AsyncMock(return_value=mock_stat)
+        mock_path.return_value.is_dir = AsyncMock(return_value=True)
 
         hass.async_add_executor_job = AsyncMock(
             side_effect=lambda f, *args: f(*args) if callable(f) else f
