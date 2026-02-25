@@ -20,6 +20,7 @@ from shutil import copyfile, copytree, which
 from typing import Any
 
 import aiohttp
+import anyio
 import dateparser
 import homeassistant.helpers.config_validation as cv
 from aioimaplib import AUTH, IMAP4, IMAP4_SSL, NONAUTH, SELECTED, AioImapException
@@ -287,16 +288,16 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # n
 
         # Handle Directory
         shipper_path = f"{base_image_path}{name}/"
-        if not Path(shipper_path).is_dir():
+        if not await anyio.Path(shipper_path).is_dir():
             try:
-                Path(shipper_path).mkdir(parents=True)
+                await anyio.Path(shipper_path).mkdir(parents=True)
                 _LOGGER.debug("Created %s directory: %s", name.title(), shipper_path)
             except OSError as err:
                 _LOGGER.error("Error creating %s directory: %s", name.title(), err)
 
         # Handle Default Image
         full_img_path = f"{shipper_path}{img_name}"
-        if not Path(full_img_path).exists():
+        if not await anyio.Path(full_img_path).exists():
             _LOGGER.debug(
                 "%s image file does not exist, creating default: %s",
                 name.title(),
@@ -580,12 +581,8 @@ async def fetch(  # noqa: C901
     )
 
     # Conditional variables
-    nomail = (
-        config.get(CONF_CUSTOM_IMG_FILE) if config.get(CONF_CUSTOM_IMG_FILE) else None
-    )
-    amazon_domain = (
-        config.get(CONF_AMAZON_DOMAIN) if config.get(CONF_AMAZON_DOMAIN) else None
-    )
+    nomail = config.get(CONF_CUSTOM_IMG_FILE) or None
+    amazon_domain = config.get(CONF_AMAZON_DOMAIN) or None
 
     count = {}
 
@@ -868,12 +865,10 @@ async def get_mails(  # noqa: C901
         return image_count
 
     # Check to see if the path exists, if not make it
-    if not Path(image_output_path).is_dir():
+    if not await anyio.Path(image_output_path).is_dir():
         try:
-            # Fixed: Run mkdir in executor
-            await hass.async_add_executor_job(
-                partial(Path(image_output_path).mkdir, parents=True, exist_ok=True)
-            )
+            # Run mkdir directly with anyio
+            await anyio.Path(image_output_path).mkdir(parents=True, exist_ok=True)
         except OSError as err:
             _LOGGER.critical("Error creating directory: %s", err)
 
@@ -1387,12 +1382,10 @@ async def get_count(  # noqa: C901
         )
 
         # Create directory if needed (use absolute path)
-        shipper_path_obj = Path(absolute_shipper_path)
-        if not shipper_path_obj.is_dir():
+        shipper_path_obj = anyio.Path(absolute_shipper_path)
+        if not await shipper_path_obj.is_dir():
             try:
-                await hass.async_add_executor_job(
-                    partial(shipper_path_obj.mkdir, parents=True, exist_ok=True)
-                )
+                await shipper_path_obj.mkdir(parents=True, exist_ok=True)
             except OSError as err:
                 _LOGGER.critical("Error creating directory: %s", err)
                 result[ATTR_COUNT] = count
@@ -1488,11 +1481,12 @@ async def get_count(  # noqa: C901
                                 extraction_result,
                             )
                             expected_file_path = f"{absolute_shipper_path}{image_name}"
-                            expected_path_obj = Path(expected_file_path)
+                            expected_path_obj = anyio.Path(expected_file_path)
 
                             # If we get a result and the file exists, then we can save the image
-                            if extraction_result and expected_path_obj.exists():
-                                file_size = expected_path_obj.stat().st_size
+                            if extraction_result and await expected_path_obj.exists():
+                                stat_info = await expected_path_obj.stat()
+                                file_size = stat_info.st_size
                                 _LOGGER.debug(
                                     "%s - File verified on disk: %s (%d bytes)",
                                     shipper_name,
@@ -1593,16 +1587,14 @@ async def get_count(  # noqa: C901
         if count == 0 and not new_image_saved and no_delivery_image_file:
             # Clean up image directory before setting default (use absolute path)
             # Only clean up if directory exists
-            if Path(absolute_shipper_path).is_dir():
+            if await anyio.Path(absolute_shipper_path).is_dir():
                 await hass.async_add_executor_job(cleanup_images, absolute_shipper_path)
 
             try:
                 # Ensure directory exists before copying (use absolute path)
-                shipper_dir = Path(absolute_shipper_path)
-                if not shipper_dir.is_dir():
-                    await hass.async_add_executor_job(
-                        partial(shipper_dir.mkdir, parents=True, exist_ok=True)
-                    )
+                shipper_dir = anyio.Path(absolute_shipper_path)
+                if not await shipper_dir.is_dir():
+                    await shipper_dir.mkdir(parents=True, exist_ok=True)
 
                 await hass.async_add_executor_job(
                     copyfile, no_delivery_image_file, absolute_shipper_path + image_name

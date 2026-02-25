@@ -176,6 +176,9 @@ ignore = [
   "PLE0605",
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ASYNC240"]
+
 [tool.pytest.ini_options]
 testpaths = [
     "tests",

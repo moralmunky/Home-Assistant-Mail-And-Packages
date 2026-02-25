@@ -4961,6 +4961,7 @@ async def test_get_count_calculates_correctly(hass):
         False,
         "./",
         hass=hass,
+        amazon_image_name="test_amazon.jpg",
         amazon_domain="amazon.com",
     )
 
@@ -5550,20 +5551,16 @@ async def test_get_mails_coverage_cases(hass, caplog):
             "custom_components.mail_and_packages.helpers.email_search",
             return_value=("OK", [b"1"]),
         ),
-        patch("custom_components.mail_and_packages.helpers.Path") as mock_path,
+        patch("custom_components.mail_and_packages.helpers.anyio.Path") as mock_path,
     ):
         # Force is_dir() -> False to trigger creation attempt
-        mock_path.return_value.is_dir.return_value = False
+        # anyio.Path.is_dir is async
+        mock_path.return_value.is_dir = AsyncMock(return_value=False)
 
-        # We need to control hass.async_add_executor_job to raise OSError
-        # We use a side_effect that checks if the target function is the mkdir partial
-        async def executor_side_effect(target, *args, **kwargs):
-            # Check if target is a partial and wraps the specific mock method
-            # We use hasattr to avoid AttributeError on standard functions
-            if hasattr(target, "func") and target.func == mock_path.return_value.mkdir:
-                raise OSError("Permission denied")
-
-        hass.async_add_executor_job = MagicMock(side_effect=executor_side_effect)
+        # anyio.Path.mkdir is async, so we mock it to raise OSError
+        mock_path.return_value.mkdir = AsyncMock(
+            side_effect=OSError("Permission denied")
+        )
 
         # Explicitly return empty lines from fetch to ensure the loop finishes safely
         # without needing to mock email_fetch entirely.
@@ -5612,10 +5609,10 @@ async def test_get_mails_coverage_cases(hass, caplog):
             "custom_components.mail_and_packages.helpers.email.message_from_bytes",
             return_value=mock_msg,
         ),
-        patch("custom_components.mail_and_packages.helpers.Path") as mock_path,
+        patch("custom_components.mail_and_packages.helpers.anyio.Path") as mock_path,
         patch("custom_components.mail_and_packages.helpers.BeautifulSoup") as mock_bs,
     ):
-        mock_path.return_value.is_dir.return_value = True
+        mock_path.return_value.is_dir = AsyncMock(return_value=True)
         mock_tag = MagicMock()
         mock_tag.__getitem__.return_value = "http://bad.com"
         mock_bs.return_value.find_all.return_value = [mock_tag]
