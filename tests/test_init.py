@@ -52,7 +52,7 @@ async def test_setup_entry(
     mock_getctime_today,
     mock_update,
 ):
-    """Test settting up entities."""
+    """Test setting up entities."""
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 48
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
@@ -72,7 +72,7 @@ async def test_no_path_no_sec(
     mock_getctime_today,
     mock_update,
 ):
-    """Test settting up entities."""
+    """Test setting up entities."""
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 43
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
@@ -92,7 +92,7 @@ async def test_missing_imap_timeout(
     mock_getctime_today,
     mock_update,
 ):
-    """Test settting up entities."""
+    """Test setting up entities."""
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 42
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
@@ -112,7 +112,7 @@ async def test_amazon_fwds_string(
     mock_getctime_today,
     mock_update,
 ):
-    """Test settting up entities."""
+    """Test setting up entities."""
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 42
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
@@ -132,7 +132,7 @@ async def test_custom_img(
     mock_getctime_today,
     mock_update,
 ):
-    """Test settting up entities."""
+    """Test setting up entities."""
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 45
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
@@ -152,7 +152,7 @@ async def test_v4_migration(
     mock_getctime_today,
     mock_update,
 ):
-    """Test settting up entities."""
+    """Test setting up entities."""
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 42
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1

@@ -25,7 +25,7 @@ The [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant
 
 ## How it works
 
-From your instance of HASS, the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) connects to the email account you supply where your shipment notifications are sent. It reviews at the subject lines of the current day's emails from the [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements) and counts the subject lines that match known language from the [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements) about their transit status. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF. 
+From your instance of HASS, the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages) connects to the email account you supply where your shipment notifications are sent. It reviews at the subject lines of the current day's emails from the [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements) and counts the subject lines that match known language from the [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements) about their transit status. For USPS Informed delivery emails, it also downloads the mail images to combine them into a rotating GIF.
 See the WIKI [information on how this works](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki).
 
 _**The email can not be deleted until the next day**_. You can have your email filtered into a folder and have the integration watch that folder.
@@ -54,4 +54,4 @@ Please note that files stored in the `www` Home Assistant folder are [publicly a
 
 [Text Summary](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
 
-[Notificaions](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)
+[Notifications](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Troubleshooting)

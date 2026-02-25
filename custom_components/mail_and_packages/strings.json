@@ -48,7 +48,10 @@
           "fedex_custom_img": "Use custom 'no FedEx delivery' image?",
           "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
         },
-        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please separate each address with a comma.",
+        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the Mail and Packages integration options review the configuration, templates, and automations section on GitHub: {more_info}\n\nIf using Amazon forwarded emails please separate each address with a comma.",
+        "description_placeholders": {
+          "more_info": "[Configuration and Email Settings](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)"
+        },
         "title": "Mail and Packages (Step 2 of 2)"
       },
       "config_3": {
@@ -65,10 +68,10 @@
       "config_amazon": {
         "data": {
           "amazon_domain": "Amazon domain",
-          "amazon_fwds": "Amazon fowarded email addresses",
+          "amazon_fwds": "Amazon forwarded email addresses",
           "amazon_days": "Days back to check for Amazon emails"
         },
-        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please seperate each address with a comma or enter (none) to clear this setting.",
+        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
         "title": "Amazon Settings"
       },
       "config_forwarded_emails": {
@@ -109,7 +112,10 @@
           "fedex_custom_img": "Use custom 'no FedEx delivery' image?",
           "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
         },
-        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) options review the [configuration, templates, and automations section](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) on GitHub.\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
+        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nFor details on the Mail and Packages integration options review the configuration, templates, and automations section on GitHub: {more_info}\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
+        "description_placeholders": {
+          "more_info": "[Configuration and Email Settings](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)"
+        },
         "title": "Mail and Packages (Step 2 of 2)"
       },
       "reconfig_3": {
@@ -126,10 +132,10 @@
       "reconfig_amazon": {
         "data": {
           "amazon_domain": "Amazon domain",
-          "amazon_fwds": "Amazon fowarded email addresses",
+          "amazon_fwds": "Amazon forwarded email addresses",
           "amazon_days": "Days back to check for Amazon emails"
         },
-        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please seperate each address with a comma or enter (none) to clear this setting.",
+        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
         "title": "Amazon Settings"
       },
       "config_storage": {
@@ -139,7 +145,6 @@
         "description": "Please enter the directory you'd like your images to be stored in.\nThe default is auto populated.",
         "title": "Image storage location"
       },
-
       "reconfig_storage": {
         "data": {
           "storage": "Directory to store images"

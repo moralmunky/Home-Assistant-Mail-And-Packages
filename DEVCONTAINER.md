@@ -61,4 +61,3 @@ For more information, look at [the Remote Python Debugger integration documentat
 
 If you get an error 128 when running the container, you may need to change git to use HTTPs
 ```git config --global url.https://github.com/.insteadOf git://github.com/```
-

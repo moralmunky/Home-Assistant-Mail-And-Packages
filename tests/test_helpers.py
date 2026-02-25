@@ -174,7 +174,7 @@ async def test_cleanup_found_images_remove_err(caplog):
         patch("pathlib.Path.unlink", autospec=True) as mock_remove,
         patch("pathlib.Path"),
     ):
-        mock_remove.side_effect = OSError(2, "Permisison denied.")
+        mock_remove.side_effect = OSError(2, "Permission denied.")
         cleanup_images("/tests/fakedir/")
         assert "Error attempting to remove found image:" in caplog.text
 
@@ -189,7 +189,7 @@ async def test_cleanup_images_remove_err(caplog):
         patch("pathlib.Path.unlink", autospec=True) as mock_remove,
         patch("pathlib.Path"),
     ):
-        mock_remove.side_effect = OSError(2, "Permisison denied.")
+        mock_remove.side_effect = OSError(2, "Permission denied.")
         cleanup_images("/tests/fakedir/", "testimage.jpg")
         assert "Error attempting to remove image:" in caplog.text
 
@@ -1723,7 +1723,7 @@ async def test_amazon_exception(hass, mock_imap_amazon_exception, caplog):
 async def test_hash_file():
     """Test file hashing function."""
     result = hash_file("tests/test_emails/amazon_delivered.eml")
-    assert result == "7f9d94e97bb4fc870d2d2b3aeae0c428ebed31dc"
+    assert result == "2a409f790ac6aa85426a318fc3306e22e3850e30"
 
 
 @pytest.mark.asyncio

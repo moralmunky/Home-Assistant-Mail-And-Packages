@@ -4,13 +4,13 @@ To: my_email_address@gmail.com
 Subject: Your House of Fraser parcel is now with your local Hermes courier
  for delivery
 MIME-Version: 1.0
-Content-Type: multipart/mixed; 
+Content-Type: multipart/mixed;
 	boundary="----=_Part_1455490_1688856740.1605180344394"
 extra_params: {"trackOpens":true,"extraparams":{"authkey":"12a3cd31-afab-4349-9f87-590342f53444","x_req_origin_time":"2020-11-12 11:25:44.309","channel":19,"destination":"my_email_address@gmail.com","templateId":"0","main_tid":"fe8b466b-74f4-4660-92e4-59c12b9cce33","userid":102310,"tid":"fe8b466b-74f4-4660-92e4-59c12b9cce33","sid":"6941_5286","report_info":{"request_source":3,"source_tid":"65bcd54b-e1ac-422f-a629-ebe5bf2a7118"},"routerName":"","outbound_notification_events":"","routerId":"","teamid":2112,"noOfMessages":1,"_nodetid":"fe8b466b-74f4-4660-92e4-59c12b9cce33","destinationType":"email","messagePriority":1,"groupid":1389,"sfeSessionInfo":"transid::65bcd54b-e1ac-422f-a629-ebe5bf2a7118_9620_16344","api_version":"V1","sourceTid":"65bcd54b-e1ac-422f-a629-ebe5bf2a7118","sfe_dr":1,"mt_trans_date":"2020-11-12 11:25:44.310","evtid":"9","servicekey":"ed0ab118-10b4-11e8-bf0b-0213261164bb","corelationid":"255281454","apiDestination":"my_email_address@gmail.com","flowid":"5286","txn_log_level":0},"clientId":848,"appId":"a_636543150571540036","channel":"email","serviceKey":"ed0ab118-10b4-11e8-bf0b-0213261164bb","trackClicks":false,"serviceId":6941,"tid":"fe8b466b-74f4-4660-92e4-59c12b9cce33","status":1,"ts":"2020-11-12T11:25:44.394Z"}
 Date: Thu, 12 Nov 2020 11:25:44 +0000
 
 ------=_Part_1455490_1688856740.1605180344394
-Content-Type: multipart/alternative; 
+Content-Type: multipart/alternative;
 	boundary="----=_Part_1455489_1513746881.1605180344394"
 
 ------=_Part_1455489_1513746881.1605180344394
