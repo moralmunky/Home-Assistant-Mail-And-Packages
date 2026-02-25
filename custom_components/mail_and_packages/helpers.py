@@ -298,7 +298,7 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # n
                 await anyio.Path(shipper_path).mkdir(parents=True)
                 _LOGGER.debug("Created %s directory: %s", name.title(), shipper_path)
             except OSError as err:
-                _LOGGER.error("Error creating %s directory: %s", name.title(), err)
+                _LOGGER.error("Error creating directory: %s", err)
 
         # Handle Default Image
         full_img_path = f"{shipper_path}{img_name}"
@@ -360,7 +360,7 @@ def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
         try:
             Path(path).mkdir(parents=True, exist_ok=True)
         except OSError as err:
-            _LOGGER.error("Problem creating: %s, error returned: %s", path, err)
+            _LOGGER.error("Error creating directory: %s", err)
             return
 
         cleanup_images(path)
@@ -476,7 +476,7 @@ def image_file_name(  # noqa: C901
     try:
         Path(path).mkdir(parents=True, exist_ok=True)
     except OSError as err:
-        _LOGGER.error("Problem creating: %s, error returned: %s", path, err)
+        _LOGGER.error("Error creating directory: %s", err)
         return image_name
 
     # SHA1 file hash check
@@ -874,7 +874,7 @@ async def get_mails(  # noqa: C901
             # Run mkdir directly with anyio
             await anyio.Path(image_output_path).mkdir(parents=True, exist_ok=True)
         except OSError as err:
-            _LOGGER.critical("Error creating directory: %s", err)
+            _LOGGER.error("Error creating directory: %s", err)
 
     # Clean up image directory
     _LOGGER.debug("Cleaning up image directory: %s", image_output_path)
@@ -1391,7 +1391,7 @@ async def get_count(  # noqa: C901
             try:
                 await shipper_path_obj.mkdir(parents=True, exist_ok=True)
             except OSError as err:
-                _LOGGER.critical("Error creating directory: %s", err)
+                _LOGGER.error("Error creating directory: %s", err)
                 result[ATTR_COUNT] = count
                 result[ATTR_TRACKING] = ""
                 return result
@@ -1594,12 +1594,15 @@ async def get_count(  # noqa: C901
             if await anyio.Path(absolute_shipper_path).is_dir():
                 await hass.async_add_executor_job(cleanup_images, absolute_shipper_path)
 
-            try:
-                # Ensure directory exists before copying (use absolute path)
-                shipper_dir = anyio.Path(absolute_shipper_path)
-                if not await shipper_dir.is_dir():
+            # Ensure directory exists before copying (use absolute path)
+            shipper_dir = anyio.Path(absolute_shipper_path)
+            if not await shipper_dir.is_dir():
+                try:
                     await shipper_dir.mkdir(parents=True, exist_ok=True)
+                except OSError as err:
+                    _LOGGER.error("Error creating directory: %s", err)
 
+            try:
                 await hass.async_add_executor_job(
                     copyfile, no_delivery_image_file, absolute_shipper_path + image_name
                 )
@@ -1821,7 +1824,11 @@ def _save_image_data_to_disk(shipper_name: str, path: str, image_data: bytes) ->
         directory = Path(path).parent
         if not directory.is_dir():
             _LOGGER.debug("%s - Creating directory: %s", shipper_name, directory)
-            directory.mkdir(parents=True, exist_ok=True)
+            try:
+                directory.mkdir(parents=True, exist_ok=True)
+            except OSError as err:
+                _LOGGER.error("Error creating directory: %s", err)
+                return False
 
         _LOGGER.debug(
             "%s - Writing %d bytes to file: %s", shipper_name, len(image_data), path
