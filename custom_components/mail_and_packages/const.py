@@ -238,7 +238,7 @@ AMAZON_TIME_PATTERN_REGEX = [
     "Arrivée (\\w+ \\d*)",
     "Chega ((\\w+(-\\w+)?))",
 ]
-AMAZON_EXCEPTION_SUBJECT = ["Delivery update:", "Bezorgupdate:"]
+AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
 AMAZON_EXCEPTION = "amazon_exception"
 AMAZON_EXCEPTION_ORDER = "amazon_exception_order"
