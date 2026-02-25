@@ -5,7 +5,7 @@ To: email@gmail.com
 Subject: FedEx Shipment 286548999999: Your packages are now out for delivery
  today
 MIME-Version: 1.0
-Content-Type: multipart/mixed; 
+Content-Type: multipart/mixed;
 	boundary="----=_Part_6974041_1805770234.1638353157452"
 ------=_Part_6974041_1805770234.1638353157452
 Content-Type: text/html; charset=UTF-8
@@ -17,7 +17,7 @@ Content-Transfer-Encoding: 8bit
 <meta content="IE=edge" http-equiv="X-UA-Compatible"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>FedEx</title>
-				
+
 				  <!--[if gte mso 9]>
 							<xml>
 				 <o:OfficeDocumentSettings>
@@ -25,17 +25,17 @@ Content-Transfer-Encoding: 8bit
 				  <o:PixelsPerInch>96</o:PixelsPerInch>
 				 </o:OfficeDocumentSettings>
 				</xml>
-				<![endif]--> 
-				
+				<![endif]-->
+
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700"/>
-					
+
 					<!--[if mso]>
 					<style>
 					 body, table, td, span, a {font-family: Arial, Helvetica, sans-serif !important;}
 					  sup { font-size: 100% !important; }
-					</style> 
-				 <![endif]--> 
-				  
+					</style>
+				 <![endif]-->
+
 <style type="text/css">
                     body .showonmobile {
                     display: none;
@@ -794,7 +794,7 @@ Content-Transfer-Encoding: 8bit
 <td style="font-family: Roboto, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 22px; font-weight: 300; color: #333;" align="left" valign="top">
 <img border="0" style="display:inline-block" alt="email" height="11" width="15" src="https://www.fedex.com/content/dam/fedex-com/ens/envelope_icon.jpg"/>
 						&nbsp;
-						
+
 						Please do not respond to this message. This email was sent from an unattended mailbox. This report was generated at approximately 4:05 AM CST 12/01/2021.<br/>
 <br/>All weights are estimated.
 <br/>
@@ -822,5 +822,3 @@ Content-Transfer-Encoding: 8bit
 </html>
 
 ------=_Part_6974041_1805770234.1638353157452--
-
-

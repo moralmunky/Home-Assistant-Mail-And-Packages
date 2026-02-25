@@ -324,7 +324,7 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # n
     _image[ATTR_IMAGE_PATH] = image_path
     data.update(_image)
 
-    # Only update sensors we're intrested in
+    # Only update sensors we're interested in
     _LOGGER.debug("Starting email sensor fetch.")
     for sensor in resources:
         try:
@@ -1084,7 +1084,7 @@ def _generate_mp4(path: str, image_file: str) -> None:
     """Generate mp4 from gif.
 
     use a subprocess so we don't lock up the thread
-    comamnd: ffmpeg -f gif -i infile.gif outfile.mp4
+    command: ffmpeg -f gif -i infile.gif outfile.mp4
     """
     base_path = Path(path)
     gif_image = base_path / image_file
@@ -1119,7 +1119,7 @@ def generate_grid_img(path: str, image_file: str, count: int) -> None:
     """Generate png grid from gif.
 
     use a subprocess so we don't lock up the thread
-    comamnd: ffmpeg -f gif -i infile.gif outfile.mp4
+    command: ffmpeg -f gif -i infile.gif outfile.mp4
     """
     count = max(count, 1)
     if count % 2 == 0:
@@ -1199,7 +1199,7 @@ def copy_overlays(path: str) -> None:
 def cleanup_images(path: str, image: str | None = None) -> None:  # noqa: C901
     """Clean up image storage directory.
 
-    Only supose to delete .gif, .mp4, and .jpg files
+    Only suppose to delete .gif, .mp4, and .jpg files
     """
     _LOGGER.debug("=== cleanup_images CALLED === path: %s, image: %s", path, image)
 

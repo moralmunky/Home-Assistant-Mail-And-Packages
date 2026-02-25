@@ -350,6 +350,6 @@ try:
         sys.exit(1)
 
 except Exception as e:
-    print("Error occured while either processing email.")
+    print("Error occurred while either processing email.")
     print(str(e))
     sys.exit(1)

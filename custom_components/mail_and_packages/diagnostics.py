@@ -37,7 +37,7 @@ async def async_get_device_diagnostics(
 
     for variable in coordinator.data:
         if "tracking" in variable or "order" in variable:
-            _LOGGER.debug("Atempting to add: %s for redaction.", variable)
+            _LOGGER.debug("Attempting to add: %s for redaction.", variable)
             REDACT_KEYS.add(variable)
 
     _LOGGER.debug("Redacted keys: %s", REDACT_KEYS)

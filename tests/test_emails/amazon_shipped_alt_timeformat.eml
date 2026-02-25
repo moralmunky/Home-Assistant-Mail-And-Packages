@@ -3,7 +3,7 @@ Reply-To: no-reply@amazon.com
 To: testuser@fake.email
 Subject: Your Amazon.com order #321-1234567-1234567 has shipped
 MIME-Version: 1.0
-Content-Type: multipart/alternative; 
+Content-Type: multipart/alternative;
 	boundary="----=_Part_7831437_2083578504.1599743694862"
 Date: Thu, 10 Sep 2020 13:14:54 +0000
 ------=_Part_7831437_2083578504.1599743694862
@@ -28,7 +28,7 @@ On the way:
 Order #321-1234567-1234567
 
 
-An Amazon driver may contact you by text message or call you for help on the day of delivery.    
+An Amazon driver may contact you by text message or call you for help on the day of delivery.
 
 Ship to:
     TestUser

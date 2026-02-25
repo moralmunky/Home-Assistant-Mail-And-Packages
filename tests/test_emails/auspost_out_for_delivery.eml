@@ -79,7 +79,7 @@ Content-Transfer-Encoding: 8bit
    </o:OfficeDocumentSettings>
   </xml>
   <style>.vml-p {margin:0;font-size:0;line-height:0} v\\:* {behavior:url(#default#VML)}li{text-indent:-1em}</style>
-  <![endif]-->  
+  <![endif]-->
   <style>
    table, td, th {border-collapse:collapse; padding:0; text-align:left; border-spacing:0}
    .table { display:table !important }
@@ -91,7 +91,7 @@ Content-Transfer-Encoding: 8bit
    @media (max-width:620px), (max-device-width:620px) {
    .full {width:100% !important; min-width:320px !important}
    .wrap {display:inline-block; width:100% !important}
-    
+
    .hidden {display:none !important}
    .mobile {display:block !important}
    .left { text-align:left !important }
@@ -100,7 +100,7 @@ Content-Transfer-Encoding: 8bit
    .pad-t-20 { padding-top:20px !important }
    .pad-t-0 { padding-top:0 !important }
    .pad-b-20 { padding-bottom:15px !important }
-   .pad-h-20 { padding:0 20px !important } 
+   .pad-h-20 { padding:0 20px !important }
    .pad-v-20 { padding:20px 0 !important }
    .pad-20 { padding:20px !important }
    .pad-0 { padding:0 !important }
@@ -115,36 +115,36 @@ Content-Transfer-Encoding: 8bit
    html, body {background-color:#f3f4f5; width:100%; min-height:100%; text-align:center; margin:0px auto !important; padding:0 !important; border:0px}
    body > div, body > div > div {margin:0px}
    * {margin:0px; border:0px; -webkit-text-size-adjust:none !important; mso-line-height-rule:exactly}
-   table, td, th {text-align:left; mso-table-lspace:0pt; mso-table-rspace:0pt} 
+   table, td, th {text-align:left; mso-table-lspace:0pt; mso-table-rspace:0pt}
    .mobile {mso-hide:all}
-   .al a, .al span {color:inherit !important; text-decoration:none !important; border:none !important} 
+   .al a, .al span {color:inherit !important; text-decoration:none !important; border:none !important}
   </style>
   <style data-embed>
    html, body {background-color:#f3f4f5; width:100%; min-height:100%; text-align:center; margin:0px auto !important; padding:0 !important; border:0px}
    body > div, body > div > div {margin:0px}
    * {margin:0px; border:0px; -webkit-text-size-adjust:none !important; mso-line-height-rule:exactly}
-   table, td, th {text-align:left; mso-table-lspace:0pt; mso-table-rspace:0pt} 
+   table, td, th {text-align:left; mso-table-lspace:0pt; mso-table-rspace:0pt}
    .mobile {mso-hide:all}
-   .al a, .al span {color:inherit !important; text-decoration:none !important; border:none !important} 
+   .al a, .al span {color:inherit !important; text-decoration:none !important; border:none !important}
   </style>
-  
-  
- 
-  
+
+
+
+
  </head>
 
 
- 
- 
+
+
 <body style="background:#f3f4f5; font:16px Arial, sans-serif; color:#4a4a4a">
-  
+
     <!-- BEGIN Google Script -->
- 
-  
-    
-  
- 
- 
+
+
+
+
+
+
   <div itemscope itemtype="http://schema.org/EmailMessage">
   <div itemprop="potentialAction" itemscope itemtype="http://schema.org/ViewAction">
     <link itemprop="target" href="https://auspost.com.au/mypost/track/#/article/4600647?token=e77bd1f3-0b38-4c3e-8bcb-07ceee28c85e&iedm=edm-sfmc-mypost-day-of-delivery-track-your-delivery"/>
@@ -153,15 +153,15 @@ Content-Transfer-Encoding: 8bit
   </div>
   <meta itemprop="description" content="Want more info?"/>
 </div>
-  
-  
-     
-  
- 
+
+
+
+
+
 <table style="width:100%">
  <tr>
   <td align="center" style="text-align:center" class="bg-grey">
-   
+
 <!-- 20170918 BEGIN 51. pre-header -->
 
 <table style="margin:0 auto; width:620px" class="hidden">
@@ -176,7 +176,7 @@ Content-Transfer-Encoding: 8bit
          <table style="width:380px" class="full">
           <tr>
            <td style="text-align:left; font-size:0px; line-height:0; color:#f3f4f5">
-            Please make sure we have safe access to your property 
+            Please make sure we have safe access to your property
            </td>
           </tr>
          </table>
@@ -189,7 +189,7 @@ Content-Transfer-Encoding: 8bit
   </td>
  </tr>
 </table>
-<!-- 20170918 END 51. pre-header -->   
+<!-- 20170918 END 51. pre-header -->
 
 <!-- BEGIN 2. header logo module -->
 <table style="margin:0 auto; width:620px" class="full">
@@ -234,8 +234,8 @@ Content-Transfer-Encoding: 8bit
   </td>
  </tr>
 </table>
-<!-- 20170918 END 49. top rounded corner -->     
-   
+<!-- 20170918 END 49. top rounded corner -->
+
 
 <!-- BEGIN 15. status 1 -->
 <table style="margin:0 auto; width:620px" class="full">
@@ -264,7 +264,7 @@ Content-Transfer-Encoding: 8bit
  </tr>
 </table>
 <!-- END 15. status 1 -->
-     
+
 <!-- BEGIN 30. milestone 1 -->
 <table style="margin:0 auto; width:620px" class="full">
  <tr>
@@ -298,17 +298,17 @@ Content-Transfer-Encoding: 8bit
  </tr>
 </table>
 <!-- END 30. milestone 1 -->
-     
+
 
 
 
 <!-- BEGIN 23. delivery details 2 -->
 
-<!-- END 23. delivery details 2 -->  
+<!-- END 23. delivery details 2 -->
 
 
-<!-- END 23. delivery details 2 -->  
-   
+<!-- END 23. delivery details 2 -->
+
 <!-- BEGIN 23. delivery details 2 -->
 <table style="margin:0 auto; width:620px" class="full">
  <tr>
@@ -324,7 +324,7 @@ Content-Transfer-Encoding: 8bit
            <td style="text-align:left; color:#4a4a4a; font:16px/22px Arial, sans-serif; ">
             Tracking number <a target="_blank" href="https://click.notifications.auspost.com.au/?qs=445e43224e83854a4fdb7eff78e1f056971d9992b53992a5e7a17abcf295bbb6676d19d7c93faa5c78089c9b0a08a61716c235a2484bcaceeaccc625676459fb" style="color:#4a4a4a; font-weight:bold">4600647</a>
            </td>
-          </tr>            
+          </tr>
 
          </table>
         </td>
@@ -336,11 +336,11 @@ Content-Transfer-Encoding: 8bit
   </td>
  </tr>
 </table>
-<!-- END 23. delivery details 2 --> 
-   
+<!-- END 23. delivery details 2 -->
 
-   
-   
+
+
+
 <!-- BEGIN 36. additional information module 1 -->
 <table style="margin:0 auto; width:620px" class="full">
  <tr>
@@ -392,8 +392,8 @@ Content-Transfer-Encoding: 8bit
 </table>
 
 <!-- END 36. additional information module 1 -->
-     
-    
+
+
 
 
 <table style="margin:0 auto; width:620px" class="full">
@@ -408,11 +408,11 @@ Content-Transfer-Encoding: 8bit
          <table style="width:100%">
           <tr>
            <td style="text-align:left; color:#4a4a4a; font:16px/22px Arial, sans-serif; padding:0 0 0px" class="pad-b-20">
-           
-            
+
+
             If nobody&rsquo;s home to receive your delivery, we&rsquo;ll leave it in a safe place. If there isn&rsquo;t one, we&rsquo;ll take it to a local Post Office and email you when it&rsquo;s available to pick up.
            </td>
-          </tr> 
+          </tr>
          </table>
         </td>
        </tr>
@@ -426,30 +426,30 @@ Content-Transfer-Encoding: 8bit
 
 
 
- 
-<!--END 5. delivery option 3 --> 
-        
-     
+
+<!--END 5. delivery option 3 -->
+
+
 <!-- BEGIN 5. delivery option 3 -->
 
-     
-    
-    
-     
-<!-- BEGIN 11. delivery option 9 -->
-
-<!-- END 11. delivery option 9 -->  
 
 
 
-<!-- END 11. delivery option 9 -->      
-    
-    
+
 <!-- BEGIN 11. delivery option 9 -->
 
 <!-- END 11. delivery option 9 -->
-    
-     
+
+
+
+<!-- END 11. delivery option 9 -->
+
+
+<!-- BEGIN 11. delivery option 9 -->
+
+<!-- END 11. delivery option 9 -->
+
+
 
 <!-- BEGIN 37. additional information module 2 -->
 
@@ -542,7 +542,7 @@ Content-Transfer-Encoding: 8bit
     </tr>
       </table>
      </td>
-    </tr>                
+    </tr>
    </table>
   </td>
  </tr>
@@ -563,7 +563,7 @@ Content-Transfer-Encoding: 8bit
       <table style="width:100%">
        <tr>
         <td style="text-align:left; color:#4a4a4a; font:14px/18px Arial, sans-serif">&nbsp;
-           
+
         </td>
        </tr>
       </table>
@@ -607,17 +607,17 @@ Content-Transfer-Encoding: 8bit
             <table style="width:100%">
              <tr>
               <td style="text-align:left; color:#9b9b9b; font:11px/13px Arial, sans-serif">
-              
-      
-   
+
+
+
                <sup>#</sup> Terms and conditions apply. Collection time limits apply. Post Office collect service only available at participating Post Offices.
-             
+
                <br /><br />
-       
+
                This email was sent by <a href="https://click.notifications.auspost.com.au/?qs=dd8c77eb9e0ba684a0bcf4a5935c6a7348c0f7ed17462aa0cae2589c55808bb8c60d4963eb0e95cf351467c4a78b7ee8ce7b69708fa7a8980efb464cc673d15b" style="color:#9b9b9b">Australia Post</a>, <span class="al">111 Bourke Street, MELBOURNE VIC 3000</span>. If you have any concerns, or don&rsquo;t think you should have received this email, please call us on <span class="al">13 13 18</span>. Visit <a href="https://click.notifications.auspost.com.au/?qs=dd8c77eb9e0ba684a0bcf4a5935c6a7348c0f7ed17462aa0cae2589c55808bb8c60d4963eb0e95cf351467c4a78b7ee8ce7b69708fa7a8980efb464cc673d15b" style="color:#9b9b9b">auspost.com.au</a> for further information on our online <a href="https://click.notifications.auspost.com.au/?qs=6cb8e531f02a0a4268c870bb13488a71f8879bb383cfa4ce69620aa75baec371c1917d6571c3e83e1faf0379d126740ac3bd1b2ab41f371619d4f4484898df5e" style="color:#9b9b9b">security</a>.
-               
+
                <br /><br />
-               Please note that this is an automatically generated email, replies will not be answered. <a href="https://click.notifications.auspost.com.au/?qs=5eac9cc7bb973735f5de41a42202aa4c8ee5b0c563838f24e592e193f6665aa5cb178a4ea24624679a895f255e23e4712f7d3174f031f2469e5aeadd0ad5b9f5" style="color:#9b9b9b">Unsubscribe</a> if you don’t wish to receive any further emails about this delivery. We may still send you emails if this delivery is waiting to be collected at an Australia Post retail outlet or Parcel Locker and emails about future deliveries. Australia Post does not represent, warrant or guarantee that the integrity of this email communication has been maintained nor that the communication is free of errors, viruses or interference.                  
+               Please note that this is an automatically generated email, replies will not be answered. <a href="https://click.notifications.auspost.com.au/?qs=5eac9cc7bb973735f5de41a42202aa4c8ee5b0c563838f24e592e193f6665aa5cb178a4ea24624679a895f255e23e4712f7d3174f031f2469e5aeadd0ad5b9f5" style="color:#9b9b9b">Unsubscribe</a> if you don’t wish to receive any further emails about this delivery. We may still send you emails if this delivery is waiting to be collected at an Australia Post retail outlet or Parcel Locker and emails about future deliveries. Australia Post does not represent, warrant or guarantee that the integrity of this email communication has been maintained nor that the communication is free of errors, viruses or interference.
               </td>
              </tr>
             </table>
@@ -634,7 +634,7 @@ Content-Transfer-Encoding: 8bit
  </tr>
 </table>
 <!-- END 45. terms & conditions 5 -->
-   
+
 <!-- BEGIN 48. footer -->
 <table style="margin:0 auto; width:620px;" class="full">
  <tr>

@@ -9,7 +9,7 @@ on:
     # Only following types are handled by the action, but one can default to all as well
     types: [opened, reopened, synchronize]
   pull_request_target:
-    types: [opened, synchronize, reopened]    
+    types: [opened, synchronize, reopened]
 
 jobs:
   update_release_draft:

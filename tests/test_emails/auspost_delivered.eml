@@ -78,7 +78,7 @@ Content-Transfer-Encoding: 8bit
    </o:OfficeDocumentSettings>
   </xml>
   <style>.vml-p {margin:0;font-size:0;line-height:0} v\\:* {behavior:url(#default#VML)}li{text-indent:-1em}</style>
-  <![endif]-->  
+  <![endif]-->
   <style>
    table, td, th {border-collapse:collapse; padding:0; text-align:left; border-spacing:0}
    .table { display:table !important }
@@ -90,7 +90,7 @@ Content-Transfer-Encoding: 8bit
    @media (max-width:620px), (max-device-width:620px) {
    .full {width:100% !important; min-width:320px !important}
    .wrap {display:inline-block; width:100% !important}
-    
+
    .hidden {display:none !important}
    .mobile {display:block !important}
    .left { text-align:left !important }
@@ -99,7 +99,7 @@ Content-Transfer-Encoding: 8bit
    .pad-t-20 { padding-top:20px !important }
    .pad-t-0 { padding-top:0 !important }
    .pad-b-20 { padding-bottom:15px !important }
-   .pad-h-20 { padding:0 20px !important } 
+   .pad-h-20 { padding:0 20px !important }
    .pad-v-20 { padding:20px 0 !important }
    .pad-20 { padding:20px !important }
    .pad-0 { padding:0 !important }
@@ -114,32 +114,32 @@ Content-Transfer-Encoding: 8bit
    html, body {background-color:#f3f4f5; width:100%; min-height:100%; text-align:center; margin:0px auto !important; padding:0 !important; border:0px}
    body > div, body > div > div {margin:0px}
    * {margin:0px; border:0px; -webkit-text-size-adjust:none !important; mso-line-height-rule:exactly}
-   table, td, th {text-align:left; mso-table-lspace:0pt; mso-table-rspace:0pt} 
+   table, td, th {text-align:left; mso-table-lspace:0pt; mso-table-rspace:0pt}
    .mobile {mso-hide:all}
-   .al a, .al span {color:inherit !important; text-decoration:none !important; border:none !important} 
+   .al a, .al span {color:inherit !important; text-decoration:none !important; border:none !important}
   </style>
   <style data-embed>
    html, body {background-color:#f3f4f5; width:100%; min-height:100%; text-align:center; margin:0px auto !important; padding:0 !important; border:0px}
    body > div, body > div > div {margin:0px}
    * {margin:0px; border:0px; -webkit-text-size-adjust:none !important; mso-line-height-rule:exactly}
-   table, td, th {text-align:left; mso-table-lspace:0pt; mso-table-rspace:0pt} 
+   table, td, th {text-align:left; mso-table-lspace:0pt; mso-table-rspace:0pt}
    .mobile {mso-hide:all}
-   .al a, .al span {color:inherit !important; text-decoration:none !important; border:none !important} 
+   .al a, .al span {color:inherit !important; text-decoration:none !important; border:none !important}
   </style>
-  
 
-    
-    
+
+
+
  </head>
- 
+
 <body style="background:#f3f4f5; font:16px Arial, sans-serif; color:#4a4a4a">
- 
- 
- 
+
+
+
 <table style="width:100%">
  <tr>
   <td align="center" style="text-align:center" class="bg-grey">
-  
+
 <!-- 20170918 BEGIN 51. pre-header -->
 
 <table style="margin:0 auto; width:620px" class="hidden">
@@ -154,7 +154,7 @@ Content-Transfer-Encoding: 8bit
          <table style="width:380px" class="full">
           <tr>
            <td style="text-align:left; font-size:0px; line-height:0; color:#f3f4f5">
-            Delivered to 2101        
+            Delivered to 2101
            </td>
           </tr>
          </table>
@@ -167,8 +167,8 @@ Content-Transfer-Encoding: 8bit
   </td>
  </tr>
 </table>
-<!-- 20170918 END 51. pre-header --> 
-   
+<!-- 20170918 END 51. pre-header -->
+
 
 <!-- BEGIN 2. header logo module -->
 <table style="margin:0 auto; width:620px" class="full">
@@ -214,8 +214,8 @@ Content-Transfer-Encoding: 8bit
   </td>
  </tr>
 </table>
-<!-- 20170918 END 49. top rounded corner -->     
-   
+<!-- 20170918 END 49. top rounded corner -->
+
 
 <!-- BEGIN 15. status 1 delivery method is IP -->
 <table style="margin:0 auto; width:620px" class="full">
@@ -244,7 +244,7 @@ Content-Transfer-Encoding: 8bit
  </tr>
 </table>
 <!-- END 15. status 1 -->
-     
+
 <!-- BEGIN 30. milestone 1 -->
 <table style="margin:0 auto; width:620px" class="full">
  <tr>
@@ -278,16 +278,16 @@ Content-Transfer-Encoding: 8bit
  </tr>
 </table>
 <!-- END 30. milestone 1 -->
-     
+
 
 
 
 <!-- BEGIN 23. delivery details 2 -->
 
-<!-- END 23. delivery details 2 -->  
- 
+<!-- END 23. delivery details 2 -->
 
-<!-- END 23. delivery details 2 --> 
+
+<!-- END 23. delivery details 2 -->
 
 <!-- BEGIN 23. delivery details 2 -->
 <table style="margin:0 auto; width:620px" class="full">
@@ -304,7 +304,7 @@ Content-Transfer-Encoding: 8bit
            <td style="text-align:left; color:#4a4a4a; font:16px/22px Arial, sans-serif; ">
             Tracking number <a target="_blank" href="https://click.notifications.auspost.com.au/?qs=5a361eb46cbe186a0e6309455e819c7878af9db3dab74304fa4fc42be620bd97af39f0a8a2ff6764cf2ae855d125d12e9eef5e2f074845c7ea9e6f3d0e4283ab" style="color:#4a4a4a; font-weight:bold">997053641168</a>
            </td>
-          </tr>            
+          </tr>
 
          </table>
         </td>
@@ -318,16 +318,16 @@ Content-Transfer-Encoding: 8bit
 </table>
 
 <!-- END 23. delivery details 2 -->
- 
-      
+
+
 <!-- BEGIN 15. status 1 -->
 
-<!-- END 23. delivery details 2 --> 
+<!-- END 23. delivery details 2 -->
 
-            
+
 <!-- BEGIN 15. status 1 -->
 
-<!-- END 23. delivery details 2 -->                  
+<!-- END 23. delivery details 2 -->
 
 
 
@@ -371,9 +371,9 @@ Content-Transfer-Encoding: 8bit
   </td>
  </tr>
 </table>
-<!-- END 52. app icons -->       
+<!-- END 52. app icons -->
 
-                    
+
 <!-- BEGIN 39. security message -->
 <table style="margin:0 auto; width:620px" class="full">
  <tr>
@@ -446,11 +446,11 @@ Content-Transfer-Encoding: 8bit
             <table style="width:100%">
              <tr>
               <td style="text-align:left; color:#9b9b9b; font:11px/13px Arial, sans-serif">
-                        
+
                This email was sent by <a href="https://click.notifications.auspost.com.au/?qs=9debf6fe3bb389114c9af452081439c2ee10f50c6a18d9cdfe5eb737ce77a6c126cef983cb7116531840937d80d09fc3557c5f424f3de2d9" style="color:#9b9b9b">Australia Post</a>, <span class="al">111 Bourke Street, MELBOURNE VIC 3000</span>. If you have any concerns, or don&rsquo;t think you should have received this email, please call us on <span class="al">13 13 18</span>. Visit <a href="https://click.notifications.auspost.com.au/?qs=9debf6fe3bb389114c9af452081439c2ee10f50c6a18d9cdfe5eb737ce77a6c126cef983cb7116531840937d80d09fc3557c5f424f3de2d9" style="color:#9b9b9b">auspost.com.au</a> for further information on our online <a href="https://click.notifications.auspost.com.au/?qs=6653553dac7f6b9e57949ede96178fcb82476869db9907a3790886263346f49e8ead932ee1b24c16ed7826d28487affe9eb1311f202f3e75" style="color:#9b9b9b">security</a>.
-               
+
                <br /><br />
-               Please note that this is an automatically generated email, replies will not be answered. Australia Post does not represent, warrant or guarantee that the integrity of this email communication has been maintained nor that the communication is free of errors, viruses or interference.       
+               Please note that this is an automatically generated email, replies will not be answered. Australia Post does not represent, warrant or guarantee that the integrity of this email communication has been maintained nor that the communication is free of errors, viruses or interference.
               </td>
              </tr>
             </table>
@@ -467,7 +467,7 @@ Content-Transfer-Encoding: 8bit
  </tr>
 </table>
 <!-- END 45. terms & conditions 5 -->
-   
+
 <!-- BEGIN 48. footer -->
 <table style="margin:0 auto; width:620px;" class="full">
  <tr>
