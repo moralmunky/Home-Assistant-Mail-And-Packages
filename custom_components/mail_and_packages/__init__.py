@@ -6,6 +6,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+import anyio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
@@ -302,9 +303,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             path = default_image_path(self.hass, self.config)
             usps_image = f"{path}/{image}"
             usps_none = f"{Path(__file__).parent}/mail_none.gif"
-            usps_check = await self.hass.async_add_executor_job(
-                os.path.exists, usps_image
-            )
+            usps_check = await anyio.Path(usps_image).exists()
             _LOGGER.debug("USPS Check: %s", usps_check)
             if usps_check:
                 # Optimized: Use _get_file_hash_if_changed
@@ -368,9 +367,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                         f"{Path(__file__).parent}/no_deliveries_{base_name}.jpg"
                     )
 
-                image_check = await self.hass.async_add_executor_job(
-                    os.path.exists, delivery_image
-                )
+                image_check = await anyio.Path(delivery_image).exists()
                 _LOGGER.debug("%s Check: %s", base_name.title(), image_check)
                 if image_check:
                     # Optimized: Use _get_file_hash_if_changed

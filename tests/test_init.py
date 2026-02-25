@@ -283,7 +283,7 @@ async def test_coordinator_binary_sensor_update_usps_hash_comparison():
         # Mock async_add_executor_job to return mtimes AND hashes
         # Order: mtime(img), hash(img), mtime(none), hash(none)
         mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[True, 100.0, "hash1", 100.0, "hash2"]
+            side_effect=[100.0, "hash1", 100.0, "hash2"]
         )
 
         with (
@@ -291,7 +291,11 @@ async def test_coordinator_binary_sensor_update_usps_hash_comparison():
                 "custom_components.mail_and_packages.default_image_path",
                 return_value="custom_components/mail_and_packages/images/",
             ),
-            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "custom_components.mail_and_packages.anyio.Path.exists",
+                new_callable=AsyncMock,
+                return_value=True,
+            ),
             patch(
                 "custom_components.mail_and_packages.hash_file",
                 side_effect=["hash1", "hash2"],
@@ -320,7 +324,7 @@ async def test_coordinator_binary_sensor_update_amazon_hash_comparison():
         # Mock async_add_executor_job to return mtimes AND hashes
         # Order: mtime(img), hash(img), mtime(none), hash(none)
         mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[True, 100.0, "hash1", 100.0, "hash2"]
+            side_effect=[100.0, "hash1", 100.0, "hash2"]
         )
 
         with (
@@ -328,7 +332,11 @@ async def test_coordinator_binary_sensor_update_amazon_hash_comparison():
                 "custom_components.mail_and_packages.default_image_path",
                 return_value="custom_components/mail_and_packages/images/",
             ),
-            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "custom_components.mail_and_packages.anyio.Path.exists",
+                new_callable=AsyncMock,
+                return_value=True,
+            ),
             patch(
                 "custom_components.mail_and_packages.hash_file",
                 side_effect=["hash1", "hash2"],
@@ -357,7 +365,7 @@ async def test_coordinator_binary_sensor_update_ups_hash_comparison():
         # Mock async_add_executor_job to return mtimes AND hashes
         # Order: mtime(img), hash(img), mtime(none), hash(none)
         mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[True, 100.0, "hash1", 100.0, "hash2"]
+            side_effect=[100.0, "hash1", 100.0, "hash2"]
         )
 
         with (
@@ -365,7 +373,11 @@ async def test_coordinator_binary_sensor_update_ups_hash_comparison():
                 "custom_components.mail_and_packages.default_image_path",
                 return_value="custom_components/mail_and_packages/images/",
             ),
-            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "custom_components.mail_and_packages.anyio.Path.exists",
+                new_callable=AsyncMock,
+                return_value=True,
+            ),
             patch(
                 "custom_components.mail_and_packages.hash_file",
                 side_effect=["hash1", "hash2"],
@@ -394,7 +406,7 @@ async def test_coordinator_binary_sensor_update_same_hashes():
         # Mock async_add_executor_job to return mtimes AND hashes
         # Order: mtime(img), hash(img), mtime(none), hash(none)
         mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[True, 100.0, "same_hash", 100.0, "same_hash"]
+            side_effect=[100.0, "same_hash", 100.0, "same_hash"]
         )
 
         with (
@@ -402,7 +414,11 @@ async def test_coordinator_binary_sensor_update_same_hashes():
                 "custom_components.mail_and_packages.default_image_path",
                 return_value="custom_components/mail_and_packages/images/",
             ),
-            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "custom_components.mail_and_packages.anyio.Path.exists",
+                new_callable=AsyncMock,
+                return_value=True,
+            ),
             patch(
                 "custom_components.mail_and_packages.hash_file",
                 side_effect=["same_hash", "same_hash"],
@@ -440,7 +456,11 @@ async def test_coordinator_binary_sensor_update_amazon_same_hashes():
                 "custom_components.mail_and_packages.default_image_path",
                 return_value="custom_components/mail_and_packages/images/",
             ),
-            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "custom_components.mail_and_packages.anyio.Path.exists",
+                new_callable=AsyncMock,
+                return_value=True,
+            ),
             patch(
                 "custom_components.mail_and_packages.hash_file",
                 side_effect=["same_hash", "same_hash"],

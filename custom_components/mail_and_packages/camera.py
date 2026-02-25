@@ -6,6 +6,7 @@ import logging
 import os
 from pathlib import Path
 
+import anyio
 import voluptuous as vol
 from homeassistant.components.camera import Camera
 from homeassistant.config_entries import ConfigEntry
@@ -354,10 +355,8 @@ class MailCam(CoordinatorEntity, Camera):
             all_image_keys,
         )
 
-        if await self.hass.async_add_executor_job(
-            os.path.exists, coordinator_file_path
-        ) and await self.hass.async_add_executor_job(
-            os.access, coordinator_file_path, os.R_OK
+        if await anyio.Path(coordinator_file_path).exists() and os.access(
+            coordinator_file_path, os.R_OK
         ):
             self._file_path = coordinator_file_path
             _LOGGER.debug(

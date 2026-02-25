@@ -475,8 +475,16 @@ async def test_get_mails_makedirs_error(
     """Test error handling when creating mail directories fails."""
     # Fix: Patch pathlib.Path.is_dir and pathlib.Path.mkdir
     with (
-        patch("os.path.isdir", return_value=False),
-        patch("pathlib.Path.mkdir", side_effect=OSError("Permission denied")),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.is_dir",
+            new_callable=AsyncMock,
+            return_value=False,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.mkdir",
+            new_callable=AsyncMock,
+            side_effect=OSError("Permission denied"),
+        ),
     ):
         await get_mails(hass, mock_imap_no_email, "./", "5", "mail_today.gif", False)
         assert "Error creating directory:" in caplog.text
@@ -1615,7 +1623,7 @@ async def test_image_file_name_path_error(hass, caplog):
     ):
         result = image_file_name(hass, config)
         assert result == "mail_none.gif"
-        assert "Problem creating:" in caplog.text
+        assert "Error creating directory:" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -3142,15 +3150,26 @@ async def test_process_emails_ups_directory_creation_error(hass, caplog):
             "custom_components.mail_and_packages.helpers.image_file_name",
             return_value="test_image.jpg",
         ),
-        patch("os.path.isdir", return_value=False),
-        patch("pathlib.Path.exists", return_value=False),
-        patch("pathlib.Path.mkdir") as mock_mkdir,
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.is_dir",
+            new_callable=AsyncMock,
+            return_value=False,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.exists",
+            new_callable=AsyncMock,
+            return_value=False,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.mkdir",
+            new_callable=AsyncMock,
+        ) as mock_mkdir,
         patch("custom_components.mail_and_packages.helpers.copyfile"),
     ):
         mock_mkdir.side_effect = OSError("UPS directory creation error")
         result = await process_emails(hass, config)
         assert isinstance(result, dict)
-        assert "Error creating Ups directory" in caplog.text
+        assert "Error creating directory:" in caplog.text
         mock_account.logout.assert_called_once()
 
 
@@ -3198,9 +3217,20 @@ async def test_process_emails_directory_creation_error(hass):
             "custom_components.mail_and_packages.helpers.login",
             return_value=mock_account,
         ),
-        patch("pathlib.Path.is_dir", return_value=False),
-        patch("pathlib.Path.exists", return_value=False),
-        patch("pathlib.Path.mkdir") as mock_mkdir,
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.is_dir",
+            new_callable=AsyncMock,
+            return_value=False,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.exists",
+            new_callable=AsyncMock,
+            return_value=False,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.mkdir",
+            new_callable=AsyncMock,
+        ) as mock_mkdir,
         patch(
             "custom_components.mail_and_packages.helpers.copyfile",
             side_effect=OSError("File copy error"),
@@ -4005,16 +4035,23 @@ async def test_process_emails_fedex_dir_creation_error(hass, integration, caplog
     mock_account.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b""]))
     mock_account.logout = AsyncMock()
 
-    def is_dir_side_effect(self):
-        # We target the fedex directory specifically
-        if "fedex" in str(self):
-            return False
-        return True
+    def path_side_effect(path_str, *args, **kwargs):
+        mock_p = AsyncMock()
+        # FedEx directory
+        if "fedex" in str(path_str):
+            mock_p.is_dir = AsyncMock(return_value=False)
+            mock_p.mkdir = AsyncMock(side_effect=OSError("Permission denied"))
+        else:
+            mock_p.is_dir = AsyncMock(return_value=True)
+            mock_p.exists = AsyncMock(return_value=True)
+        return mock_p
 
     # Simulate error during mkdir
     with (
-        patch("os.path.isdir", side_effect=is_dir_side_effect),
-        patch("pathlib.Path.mkdir", side_effect=OSError("Permission denied")),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path",
+            side_effect=path_side_effect,
+        ),
         patch("custom_components.mail_and_packages.helpers.copyfile"),
         patch(
             "custom_components.mail_and_packages.helpers.login",
@@ -4029,12 +4066,11 @@ async def test_process_emails_fedex_dir_creation_error(hass, integration, caplog
             "custom_components.mail_and_packages.helpers.image_file_name",
             return_value="test.gif",
         ),
-        patch("pathlib.Path.exists", return_value=True),
     ):
         await process_emails(hass, config)
 
         # Verify the specific error log is captured
-        assert "Error creating Fedex directory" in caplog.text
+        assert "Error creating directory:" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -4226,7 +4262,7 @@ async def test_copy_images_mkdir_error(hass, caplog):
         patch("pathlib.Path.mkdir", side_effect=OSError("Disk Full")),
     ):
         copy_images(hass, config)
-        assert "Problem creating:" in caplog.text
+        assert "Error creating directory:" in caplog.text
         assert "Disk Full" in caplog.text
 
 
@@ -4460,13 +4496,21 @@ async def test_process_emails_shipper_mkdir_error(hass, caplog):
             new_callable=AsyncMock,
             return_value=True,
         ),
-        patch("os.path.isdir", return_value=False),
-        patch("pathlib.Path.mkdir", side_effect=OSError("Read-only file system")),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.is_dir",
+            new_callable=AsyncMock,
+            return_value=False,
+        ),
+        patch(
+            "custom_components.mail_and_packages.helpers.anyio.Path.mkdir",
+            new_callable=AsyncMock,
+            side_effect=OSError("Read-only file system"),
+        ),
     ):
         await process_emails(hass, config)
 
         # Verify the OSError during directory creation is caught and logged
-        assert "Error creating Ups directory" in caplog.text
+        assert "Error creating directory:" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -5009,7 +5053,10 @@ async def test_get_count_calculates_correctly(hass):
     count = await get_count(
         mock_account,
         "amazon_delivered",
+        False,
+        "./",
         hass=hass,
+        amazon_image_name="test_amazon.jpg",
         amazon_domain="amazon.com",
     )
 
@@ -5564,14 +5611,14 @@ async def test_amazon_otp():
 
 
 @pytest.mark.asyncio
-async def test_get_mails_coverage_cases(hass, caplog):
+async def test_get_mails_coverage_cases(hass, caplog, tmp_path):
     """Test get_mails coverage for search failures, dir errors, and parsing edge cases."""
 
     # Use AsyncMock so await account.fetch() works
     mock_account = AsyncMock()
 
     # Use pathlib for platform-independent path construction (Fixes PTH118)
-    tmp_path = str(Path(tempfile.gettempdir()) / "images")
+    tmp_path_str = str(tmp_path / "images")
 
     # Setup SENSOR_DATA for get_mails to read defaults
     if ATTR_USPS_MAIL not in SENSOR_DATA:
@@ -5587,7 +5634,7 @@ async def test_get_mails_coverage_cases(hass, caplog):
         "custom_components.mail_and_packages.helpers.email_search",
         return_value=("BAD", None),
     ):
-        count = await get_mails(hass, mock_account, tmp_path, 5, "mail.gif")
+        count = await get_mails(hass, mock_account, tmp_path_str, 5, "mail.gif")
         assert count == 0
 
     # -------------------------------------------------------------------------
@@ -5599,26 +5646,22 @@ async def test_get_mails_coverage_cases(hass, caplog):
             "custom_components.mail_and_packages.helpers.email_search",
             return_value=("OK", [b"1"]),
         ),
-        patch("custom_components.mail_and_packages.helpers.Path") as mock_path,
+        patch("custom_components.mail_and_packages.helpers.anyio.Path") as mock_path,
     ):
         # Force is_dir() -> False to trigger creation attempt
-        mock_path.return_value.is_dir.return_value = False
+        # anyio.Path.is_dir is async
+        mock_path.return_value.is_dir = AsyncMock(return_value=False)
 
-        # We need to control hass.async_add_executor_job to raise OSError
-        # We use a side_effect that checks if the target function is the mkdir partial
-        async def executor_side_effect(target, *args, **kwargs):
-            # Check if target is a partial and wraps the specific mock method
-            # We use hasattr to avoid AttributeError on standard functions
-            if hasattr(target, "func") and target.func == mock_path.return_value.mkdir:
-                raise OSError("Permission denied")
-
-        hass.async_add_executor_job = MagicMock(side_effect=executor_side_effect)
+        # anyio.Path.mkdir is async, so we mock it to raise OSError
+        mock_path.return_value.mkdir = AsyncMock(
+            side_effect=OSError("Permission denied")
+        )
 
         # Explicitly return empty lines from fetch to ensure the loop finishes safely
         # without needing to mock email_fetch entirely.
         mock_account.fetch.return_value = MagicMock(result="OK", lines=[])
 
-        await get_mails(hass, mock_account, tmp_path, 5, "mail.gif")
+        await get_mails(hass, mock_account, tmp_path_str, 5, "mail.gif")
 
         assert "Error creating directory: Permission denied" in caplog.text
 
@@ -5661,10 +5704,10 @@ async def test_get_mails_coverage_cases(hass, caplog):
             "custom_components.mail_and_packages.helpers.email.message_from_bytes",
             return_value=mock_msg,
         ),
-        patch("custom_components.mail_and_packages.helpers.Path") as mock_path,
+        patch("custom_components.mail_and_packages.helpers.anyio.Path") as mock_path,
         patch("custom_components.mail_and_packages.helpers.BeautifulSoup") as mock_bs,
     ):
-        mock_path.return_value.is_dir.return_value = True
+        mock_path.return_value.is_dir = AsyncMock(return_value=True)
         mock_tag = MagicMock()
         mock_tag.__getitem__.return_value = "http://bad.com"
         mock_bs.return_value.find_all.return_value = [mock_tag]
@@ -5672,17 +5715,17 @@ async def test_get_mails_coverage_cases(hass, caplog):
         # Reset executor to simple success (using AsyncMock to allow await)
         hass.async_add_executor_job = AsyncMock(return_value=None)
 
-        await get_mails(hass, mock_account, tmp_path, 5, "mail.gif")
+        await get_mails(hass, mock_account, tmp_path_str, 5, "mail.gif")
 
         assert "Unexpected html format found." in caplog.text
         assert "Discarding unnamed attachment." in caplog.text
 
 
 @pytest.mark.asyncio
-async def test_get_mails_additional_coverage(hass, caplog):
+async def test_get_mails_additional_coverage(hass, caplog, tmp_path):
     """Test remaining uncovered lines in get_mails."""
     mock_account = AsyncMock()
-    tmp_path = str(Path(tempfile.gettempdir()) / "images_additional")
+    tmp_path_str = str(tmp_path / "images_additional")
 
     if ATTR_USPS_MAIL not in SENSOR_DATA:
         SENSOR_DATA[ATTR_USPS_MAIL] = {
@@ -5724,7 +5767,7 @@ async def test_get_mails_additional_coverage(hass, caplog):
         mock_path.return_value.is_dir.return_value = True
         hass.async_add_executor_job = AsyncMock(return_value=None)
 
-        await get_mails(hass, mock_account, tmp_path, 5, "mail.gif")
+        await get_mails(hass, mock_account, tmp_path_str, 5, "mail.gif")
 
     # 3. OSError on io_save_file during HTML extraction (936-938)
     mock_msg_save_err = MagicMock()
@@ -5759,7 +5802,7 @@ async def test_get_mails_additional_coverage(hass, caplog):
 
         hass.async_add_executor_job = AsyncMock(side_effect=executor_save_err)
 
-        count = await get_mails(hass, mock_account, tmp_path, 5, "mail.gif")
+        count = await get_mails(hass, mock_account, tmp_path_str, 5, "mail.gif")
         assert count == 0
         assert "Error opening filepath: Disk Full" in caplog.text
 
@@ -5776,7 +5819,7 @@ async def test_get_mails_additional_coverage(hass, caplog):
         hass.async_add_executor_job = AsyncMock(return_value=None)
 
         await get_mails(
-            hass, mock_account, tmp_path, 5, "mail.gif", custom_img="custom.gif"
+            hass, mock_account, tmp_path_str, 5, "mail.gif", custom_img="custom.gif"
         )
 
         cleanup_called = False
@@ -5865,11 +5908,14 @@ async def test_get_count_additional_coverage(hass, tmp_path, caplog):
             "custom_components.mail_and_packages.helpers._generic_delivery_image_extraction",
             AsyncMock(return_value=True),
         ),
-        patch("custom_components.mail_and_packages.helpers.Path") as mock_path,
+        patch("custom_components.mail_and_packages.helpers.anyio.Path") as mock_path,
     ):
-        mock_path.return_value.exists.return_value = True
-        mock_path.return_value.stat.return_value.st_size = 100
-        mock_path.return_value.is_dir.return_value = True
+        mock_path.return_value.exists = AsyncMock(return_value=True)
+        # Mock stat() to return an object with st_size attribute
+        mock_stat = MagicMock()
+        mock_stat.st_size = 100
+        mock_path.return_value.stat = AsyncMock(return_value=mock_stat)
+        mock_path.return_value.is_dir = AsyncMock(return_value=True)
 
         hass.async_add_executor_job = AsyncMock(
             side_effect=lambda f, *args: f(*args) if callable(f) else f
@@ -6120,54 +6166,50 @@ async def test_get_items_more_coverage(hass, caplog):
     ):
         # Email 1: old arriving
         msg_old = MagicMock()
-        msg_old.get.side_effect = (
-            lambda k: "2020-01-01"
-            if k == "Date"
-            else "Arriving"
-            if k == "subject"
-            else None
+        msg_old.get.side_effect = lambda k: (
+            "2020-01-01" if k == "Date" else "Arriving" if k == "subject" else None
         )
-        msg_old.__getitem__.side_effect = (
-            lambda k: "Arriving" if k == "subject" else None
+        msg_old.__getitem__.side_effect = lambda k: (
+            "Arriving" if k == "subject" else None
         )
 
         # Email 2: Ordered
         msg_ordered = MagicMock()
-        msg_ordered.get.side_effect = (
-            lambda k: date.today().strftime("%Y-%m-%d")
+        msg_ordered.get.side_effect = lambda k: (
+            date.today().strftime("%Y-%m-%d")
             if k == "Date"
             else AMAZON_ORDERED_SUBJECT[0]
             if k == "subject"
             else None
         )
-        msg_ordered.__getitem__.side_effect = (
-            lambda k: AMAZON_ORDERED_SUBJECT[0] if k == "subject" else None
+        msg_ordered.__getitem__.side_effect = lambda k: (
+            AMAZON_ORDERED_SUBJECT[0] if k == "subject" else None
         )
 
         # Email 3: Delivered with order in body
         msg_deliv = MagicMock()
-        msg_deliv.get.side_effect = (
-            lambda k: date.today().strftime("%Y-%m-%d")
+        msg_deliv.get.side_effect = lambda k: (
+            date.today().strftime("%Y-%m-%d")
             if k == "Date"
             else AMAZON_DELIVERED_SUBJECT[0]
             if k == "subject"
             else None
         )
-        msg_deliv.__getitem__.side_effect = (
-            lambda k: AMAZON_DELIVERED_SUBJECT[0] if k == "subject" else None
+        msg_deliv.__getitem__.side_effect = lambda k: (
+            AMAZON_DELIVERED_SUBJECT[0] if k == "subject" else None
         )
 
         # Email 4: Arriving
         msg_arr = MagicMock()
-        msg_arr.get.side_effect = (
-            lambda k: date.today().strftime("%Y-%m-%d")
+        msg_arr.get.side_effect = lambda k: (
+            date.today().strftime("%Y-%m-%d")
             if k == "Date"
             else AMAZON_TIME_PATTERN[0]
             if k == "subject"
             else None
         )
-        msg_arr.__getitem__.side_effect = (
-            lambda k: AMAZON_TIME_PATTERN[0] if k == "subject" else None
+        msg_arr.__getitem__.side_effect = lambda k: (
+            AMAZON_TIME_PATTERN[0] if k == "subject" else None
         )
 
         mock_from_bytes.side_effect = [
