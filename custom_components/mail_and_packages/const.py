@@ -196,15 +196,12 @@ AMAZON_TIME_PATTERN = [
     "Arriverà:",
     "arriving:",
     "Arriving ",
-    "Arriving tomorrow",
     "Dostawa:",
     "Entrega:",
     "A chegar:",
     "Arrivée :",
     "Chega ",
     "Verwachte bezorgdatum:",
-    "Wordt bezorgd op",
-    "Wordt vandaag bezorgd",
     "Votre date de livraison prévue est :",
 ]
 AMAZON_TIME_PATTERN_END = [
@@ -237,6 +234,10 @@ AMAZON_TIME_PATTERN_REGEX = [
     "Arrivée (\\w+ \\d+)",
     "Arrivée (\\w+ \\d*)",
     "Chega ((\\w+(-\\w+)?))",
+    "Arriving (tomorrow)",
+    "Wordt bezorgd op (\\w+ \\d+ \\w+)",
+    "Wordt bezorgd op (\\w+ \\d+)",
+    "Wordt (vandaag) bezorgd",
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
@@ -258,8 +259,6 @@ AMAZON_LANGS = [
     "pt_BR.UTF-8",
     "fr_CA",
     "fr_CA.UTF-8",
-    "nl_NL",
-    "nl_NL.UTF-8",
     "",
 ]
 AMAZON_OTP = "amazon_otp"
