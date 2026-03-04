@@ -445,6 +445,7 @@ SENSOR_DATA = {
             "bezorging vandaag",
             "staan vandaag voor de deur",
             "staan vanavond voor de deur",
+            "komen we bij je langs",
         ],
         "body": [
             "scheduled for delivery TODAY",
@@ -458,12 +459,13 @@ SENSOR_DATA = {
             "staan vanavond voor de deur",
             "wordt vandaag bezorgd",
             "bezorger onderweg",
+            "komen we bij je langs",
         ],
     },
     "dhl_packages": {},
     "dhl_tracking": {
         "pattern": [
-            "(?:JJD\\d{18}|JVGL\\d{20}|00\\d{18}|(?<![0-9])\\d{10,11}(?![0-9]))"
+            "(?:JJD\\d{18}|JVGL\\d{20}|MDP[A-Z0-9]{5,15}|00\\d{18}|(?<![0-9])\\d{10,11}(?![0-9]))"
         ]
     },
     # Hermes.co.uk
