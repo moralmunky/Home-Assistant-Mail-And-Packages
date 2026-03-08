@@ -334,8 +334,8 @@ def _get_schema_step_1(user_input: list, default_dict: list) -> Any:
             vol.Required(
                 CONF_IMAP_SECURITY, default=_get_default(CONF_IMAP_SECURITY)
             ): vol.In(IMAP_SECURITY),
-            vol.Required(
-                CONF_VERIFY_SSL, default=_get_default(CONF_VERIFY_SSL)
+            vol.Optional(
+                CONF_VERIFY_SSL, default=_get_default(CONF_VERIFY_SSL, False)
             ): cv.boolean,
         }
     )
@@ -622,7 +622,7 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         defaults = {
             CONF_PORT: DEFAULT_PORT,
             CONF_IMAP_SECURITY: "SSL",
-            CONF_VERIFY_SSL: True,
+            CONF_VERIFY_SSL: False,
         }
 
         return self.async_show_form(
