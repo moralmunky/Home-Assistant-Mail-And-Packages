@@ -87,7 +87,7 @@ from .helpers import (
 )
 
 ERROR_MAILBOX_FAIL = "Problem getting mailbox listing using 'INBOX' message"
-IMAP_SECURITY = ["none", "startTLS", "SSL"]
+IMAP_SECURITY = ["none", "SSL"]
 AMAZON_SENSORS = ["amazon_packages", "amazon_delivered", "amazon_exception"]
 _LOGGER = logging.getLogger(__name__)
 AMAZON_EMAIL_ERROR = (

@@ -1494,9 +1494,7 @@ async def test_connection_error(hass, mock_imap_connect_error):
     with pytest.raises(ConnectionRefusedError):
         await login(hass, "localhost", 993, "fakeuser", "suchfakemuchpassword", "SSL")
     with pytest.raises(ConnectionRefusedError):
-        await login(
-            hass, "localhost", 143, "fakeuser", "suchfakemuchpassword", "startTLS"
-        )
+        await login(hass, "localhost", 143, "fakeuser", "suchfakemuchpassword", "none")
 
 
 @pytest.mark.asyncio
@@ -3323,60 +3321,6 @@ async def test_image_file_name_copy_error(hass, integration):
 
 
 @pytest.mark.asyncio
-async def test_login_starttls_security(hass):
-    """Test login with startTLS security using aioimaplib."""
-    # Patch IMAP4 directly since 'aioimaplib' module is not exposed in helpers
-    with patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap:
-        mock_acc = AsyncMock()
-        mock_imap.return_value = mock_acc
-
-    class MockIMAP4(AsyncMock):
-        """Mock IMAP4 class that behaves like an AsyncMock."""
-
-        _initialized = False
-
-        def __new__(cls, *args, **kwargs):
-            return super().__new__(cls)
-
-        def __init__(self, *args, **kwargs):
-            if not self._initialized:
-                super().__init__()
-                self._initialized = True
-
-    # Pre-create the instance we want to use/configure
-    mock_acc = MockIMAP4()
-    mock_acc.protocol.state = aioimaplib.NONAUTH
-
-    # Override __new__ to always return our shared instance
-    def new_mock(cls, *args, **kwargs):
-        return mock_acc
-
-    MockIMAP4.__new__ = new_mock
-
-    # Patch IMAP4 directly since 'aioimaplib' module is not exposed in helpers
-    with patch(
-        "custom_components.mail_and_packages.helpers.IMAP4", new=MockIMAP4
-    ) as mock_imap:
-        # Initial state must be NONAUTH to trigger the login logic in the helper
-        # mock_acc.protocol.state = aioimaplib.NONAUTH # Already set above
-
-        # Simulate state change to AUTH upon login to pass the final validation check
-        async def login_side_effect(*args, **kwargs):
-            mock_acc.protocol.state = aioimaplib.AUTH
-            return MagicMock(result="OK")
-
-        mock_acc.login.side_effect = login_side_effect
-
-        result = await login(
-            hass, "imap.test.com", 143, "user", "pass", "startTLS", True
-        )
-
-        assert result == mock_acc
-        mock_acc.starttls.assert_called_once()
-        mock_acc.login.assert_called_once_with("user", "pass")
-
-
-@pytest.mark.asyncio
 async def test_login_no_ssl_security():
     """Test login with no SSL security."""
     with (
@@ -4677,7 +4621,6 @@ async def test_login_no_security():
         result = await login(None, "host", 143, "user", "pwd", "None", True)
 
         assert result == mock_acc
-        mock_acc.starttls.assert_not_called()
         # Verify login was called with the correct credentials
         mock_acc.login.assert_called_once_with("user", "pwd")
 
