@@ -3321,6 +3321,62 @@ async def test_image_file_name_copy_error(hass, integration):
 
 
 @pytest.mark.asyncio
+async def test_login_ssl_security():
+    """Test login with SSL security."""
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap4_ssl,
+        patch("homeassistant.util.ssl.client_context") as mock_ssl_context,
+    ):
+        mock_account = AsyncMock()
+        mock_imap4_ssl.return_value = mock_account
+        mock_ssl_context.return_value = MagicMock()
+
+        # Initial state NONAUTH to trigger login attempts
+        mock_account.protocol.state = aioimaplib.NONAUTH
+        mock_account.wait_hello_from_server = AsyncMock()
+
+        # Simulate successful login changing state to AUTH
+        async def login_side_effect(*args, **kwargs):
+            mock_account.protocol.state = aioimaplib.AUTH
+            return MagicMock(result="OK")
+
+        mock_account.login.side_effect = login_side_effect
+
+        result = await login(None, "imap.test.com", 993, "user", "pass", "SSL", True)
+
+        assert result == mock_account
+        mock_imap4_ssl.assert_called_once()
+        mock_account.login.assert_called_once_with("user", "pass")
+
+
+@pytest.mark.asyncio
+async def test_login_ssl_security_no_verify():
+    """Test login with SSL security and no verify."""
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap4_ssl,
+        patch("homeassistant.util.ssl.create_no_verify_ssl_context") as mock_ssl_context,
+    ):
+        mock_account = AsyncMock()
+        mock_imap4_ssl.return_value = mock_account
+        mock_ssl_context.return_value = MagicMock()
+
+        mock_account.protocol.state = aioimaplib.NONAUTH
+        mock_account.wait_hello_from_server = AsyncMock()
+
+        async def login_side_effect(*args, **kwargs):
+            mock_account.protocol.state = aioimaplib.AUTH
+            return MagicMock(result="OK")
+
+        mock_account.login.side_effect = login_side_effect
+
+        result = await login(None, "imap.test.com", 993, "user", "pass", "SSL", False)
+
+        assert result == mock_account
+        mock_imap4_ssl.assert_called_once()
+        mock_account.login.assert_called_once_with("user", "pass")
+
+
+@pytest.mark.asyncio
 async def test_login_no_ssl_security():
     """Test login with no SSL security."""
     with (
