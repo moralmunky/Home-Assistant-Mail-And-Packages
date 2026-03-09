@@ -592,3 +592,66 @@ async def test_binary_sensor_update_missing_image_attr(hass, tmp_path):
         # This should hit line 335 and continue without error
         await coordinator._binary_sensor_update()  # noqa: SLF001
         assert "nonexistent_update" not in coordinator._data  # noqa: SLF001
+
+
+@pytest.mark.asyncio
+async def test_coordinator_exponential_backoff(hass):
+    """Test coordinator exponential backoff logic."""
+    mock_config = FAKE_CONFIG_DATA.copy()
+    coordinator = MailDataUpdateCoordinator(hass, mock_config)
+
+    assert coordinator.update_interval == coordinator.base_interval
+    assert coordinator._update_fails == 0
+
+    with patch(
+        "custom_components.mail_and_packages.process_emails",
+        side_effect=Exception("Test error"),
+    ):
+        # First failure
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
+        assert coordinator._update_fails == 1
+        assert coordinator.update_interval == coordinator.base_interval * 1
+
+        # Second failure
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
+        assert coordinator._update_fails == 2
+        assert coordinator.update_interval == coordinator.base_interval * 2
+
+        # Third failure
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
+        assert coordinator._update_fails == 3
+        assert coordinator.update_interval == coordinator.base_interval * 4
+
+        # Simulate many failures to hit the cap (72x)
+        for _ in range(10):
+            try:
+                await coordinator._async_update_data()
+            except UpdateFailed:
+                pass
+        
+        assert coordinator._update_fails == 13
+        assert coordinator.update_interval == coordinator.base_interval * 72
+
+
+@pytest.mark.asyncio
+async def test_coordinator_backoff_reset(hass):
+    """Test coordinator resets backoff after success."""
+    mock_config = FAKE_CONFIG_DATA.copy()
+    coordinator = MailDataUpdateCoordinator(hass, mock_config)
+
+    # Force a failure state
+    coordinator._update_fails = 3
+    coordinator.update_interval = coordinator.base_interval * 4
+
+    with patch(
+        "custom_components.mail_and_packages.process_emails",
+        return_value={"image_name": "test.png", "image_path": "/test/"},
+    ):
+        with patch.object(coordinator, "_binary_sensor_update", new_callable=AsyncMock):
+            await coordinator._async_update_data()
+
+    assert coordinator._update_fails == 0
+    assert coordinator.update_interval == coordinator.base_interval
