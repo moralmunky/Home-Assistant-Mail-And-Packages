@@ -273,6 +273,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self._file_mtime_cache = {}
         self._hash_cache = {}
 
+        self.base_interval = self.interval
+        self._update_fails = 0
+
         _LOGGER.debug("Data will be update every %s", self.interval)
 
         super().__init__(hass, _LOGGER, name=self.name, update_interval=self.interval)
@@ -302,8 +305,20 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             try:
                 data = await process_emails(self.hass, self.config)
             except Exception as error:
-                _LOGGER.error("Problem updating sensors: %s", error)
+                self._update_fails += 1
+                multiplier = 2 ** (self._update_fails - 1)
+                multiplier = min(multiplier, 72)
+                self.update_interval = self.base_interval * multiplier
+                _LOGGER.error(
+                    "Error updating data: %s, backing off, next update in %s",
+                    error,
+                    self.update_interval,
+                )
                 raise UpdateFailed(error) from error
+
+            if self._update_fails > 0:
+                self._update_fails = 0
+                self.update_interval = self.base_interval
 
             if data:
                 self._data = data

@@ -1,5 +1,6 @@
 """Tests for init."""
 
+import contextlib
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -286,7 +287,7 @@ async def test_coordinator_async_refresh_error(hass):
         ),
         pytest.raises(UpdateFailed),
     ):
-        await coordinator._async_update_data()  # noqa: SLF001
+        await coordinator._async_update_data()
 
 
 @pytest.mark.asyncio
@@ -298,7 +299,7 @@ async def test_coordinator_binary_sensor_update_usps_hash_comparison():
     # Patch frame.report_usage to avoid "Frame helper not set up" error
     with patch("homeassistant.helpers.frame.report_usage"):
         coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
-        coordinator._data = {  # noqa: SLF001
+        coordinator._data = {
             "image_name": "test_image.gif",
             "image_path": "custom_components/mail_and_packages/images/",
         }
@@ -324,10 +325,10 @@ async def test_coordinator_binary_sensor_update_usps_hash_comparison():
                 side_effect=["hash1", "hash2"],
             ),
         ):
-            await coordinator._binary_sensor_update()  # noqa: SLF001
+            await coordinator._binary_sensor_update()
 
             # Should set usps_update to True since hashes are different
-            assert coordinator._data["usps_update"] is True  # noqa: SLF001
+            assert coordinator._data["usps_update"] is True
 
 
 @pytest.mark.asyncio
@@ -339,7 +340,7 @@ async def test_coordinator_binary_sensor_update_amazon_hash_comparison():
     # Patch frame.report_usage to avoid "Frame helper not set up" error
     with patch("homeassistant.helpers.frame.report_usage"):
         coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
-        coordinator._data = {  # noqa: SLF001
+        coordinator._data = {
             "amazon_image": "test_amazon.jpg",
             "image_path": "custom_components/mail_and_packages/images/",
         }
@@ -365,10 +366,10 @@ async def test_coordinator_binary_sensor_update_amazon_hash_comparison():
                 side_effect=["hash1", "hash2"],
             ),
         ):
-            await coordinator._binary_sensor_update()  # noqa: SLF001
+            await coordinator._binary_sensor_update()
 
             # Should set amazon_update to True since hashes are different
-            assert coordinator._data["amazon_update"] is True  # noqa: SLF001
+            assert coordinator._data["amazon_update"] is True
 
 
 @pytest.mark.asyncio
@@ -380,7 +381,7 @@ async def test_coordinator_binary_sensor_update_ups_hash_comparison():
     # Patch frame.report_usage to avoid "Frame helper not set up" error
     with patch("homeassistant.helpers.frame.report_usage"):
         coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
-        coordinator._data = {  # noqa: SLF001
+        coordinator._data = {
             "ups_image": "test_ups.jpg",
             "image_path": "custom_components/mail_and_packages/images/",
         }
@@ -406,10 +407,10 @@ async def test_coordinator_binary_sensor_update_ups_hash_comparison():
                 side_effect=["hash1", "hash2"],
             ),
         ):
-            await coordinator._binary_sensor_update()  # noqa: SLF001
+            await coordinator._binary_sensor_update()
 
             # Should set ups_update to True since hashes are different
-            assert coordinator._data["ups_update"] is True  # noqa: SLF001
+            assert coordinator._data["ups_update"] is True
 
 
 @pytest.mark.asyncio
@@ -421,7 +422,7 @@ async def test_coordinator_binary_sensor_update_same_hashes():
     # Patch frame.report_usage to avoid "Frame helper not set up" error
     with patch("homeassistant.helpers.frame.report_usage"):
         coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
-        coordinator._data = {  # noqa: SLF001
+        coordinator._data = {
             "image_name": "test_image.gif",
             "image_path": "custom_components/mail_and_packages/images/",
         }
@@ -447,10 +448,10 @@ async def test_coordinator_binary_sensor_update_same_hashes():
                 side_effect=["same_hash", "same_hash"],
             ),
         ):
-            await coordinator._binary_sensor_update()  # noqa: SLF001
+            await coordinator._binary_sensor_update()
 
             # Should set usps_update to False since hashes are the same
-            assert coordinator._data["usps_update"] is False  # noqa: SLF001
+            assert coordinator._data["usps_update"] is False
 
 
 @pytest.mark.asyncio
@@ -462,7 +463,7 @@ async def test_coordinator_binary_sensor_update_amazon_same_hashes():
     # Patch frame.report_usage to avoid "Frame helper not set up" error
     with patch("homeassistant.helpers.frame.report_usage"):
         coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
-        coordinator._data = {  # noqa: SLF001
+        coordinator._data = {
             "amazon_image": "test_amazon.jpg",
             "image_path": "custom_components/mail_and_packages/images/",
         }
@@ -489,10 +490,10 @@ async def test_coordinator_binary_sensor_update_amazon_same_hashes():
                 side_effect=["same_hash", "same_hash"],
             ),
         ):
-            await coordinator._binary_sensor_update()  # noqa: SLF001
+            await coordinator._binary_sensor_update()
 
             # Should set amazon_update to False since hashes are the same
-            assert coordinator._data["amazon_update"] is False  # noqa: SLF001
+            assert coordinator._data["amazon_update"] is False
 
 
 @pytest.mark.asyncio
@@ -562,13 +563,13 @@ async def test_get_file_hash_cache_hit():
 
         # First call: populate cache
         mock_hass.async_add_executor_job = AsyncMock(side_effect=[mtime, file_hash])
-        result1 = await coordinator._get_file_hash_if_changed(file_path)  # noqa: SLF001
+        result1 = await coordinator._get_file_hash_if_changed(file_path)
         assert result1 == file_hash
         assert mock_hass.async_add_executor_job.call_count == 2
 
         # Second call: same mtime, should hit cache (line 271)
         mock_hass.async_add_executor_job = AsyncMock(return_value=mtime)
-        result2 = await coordinator._get_file_hash_if_changed(file_path)  # noqa: SLF001
+        result2 = await coordinator._get_file_hash_if_changed(file_path)
         assert result2 == file_hash
         assert mock_hass.async_add_executor_job.call_count == 1
 
@@ -580,7 +581,7 @@ async def test_binary_sensor_update_missing_image_attr(hass, tmp_path):
     coordinator = MailDataUpdateCoordinator(hass, mock_config)
 
     # Mock data with a fake camera that doesn't have an ATTR_*_IMAGE constant
-    coordinator._data = {  # noqa: SLF001
+    coordinator._data = {
         "nonexistent_image": "test.jpg",
         "image_path": str(tmp_path),
     }
@@ -590,5 +591,68 @@ async def test_binary_sensor_update_missing_image_attr(hass, tmp_path):
         {"nonexistent_camera": ["Nonexistent Camera"]},
     ):
         # This should hit line 335 and continue without error
-        await coordinator._binary_sensor_update()  # noqa: SLF001
-        assert "nonexistent_update" not in coordinator._data  # noqa: SLF001
+        await coordinator._binary_sensor_update()
+        assert "nonexistent_update" not in coordinator._data
+
+
+@pytest.mark.asyncio
+async def test_coordinator_exponential_backoff(hass):
+    """Test coordinator exponential backoff logic."""
+    mock_config = FAKE_CONFIG_DATA.copy()
+    coordinator = MailDataUpdateCoordinator(hass, mock_config)
+
+    assert coordinator.update_interval == coordinator.base_interval
+    assert coordinator._update_fails == 0
+
+    with patch(
+        "custom_components.mail_and_packages.process_emails",
+        side_effect=Exception("Test error"),
+    ):
+        # First failure
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
+        assert coordinator._update_fails == 1
+        assert coordinator.update_interval == coordinator.base_interval * 1
+
+        # Second failure
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
+        assert coordinator._update_fails == 2
+        assert coordinator.update_interval == coordinator.base_interval * 2
+
+        # Third failure
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
+        assert coordinator._update_fails == 3
+        assert coordinator.update_interval == coordinator.base_interval * 4
+
+        # Simulate many failures to hit the cap (72x)
+        for _ in range(10):
+            with contextlib.suppress(UpdateFailed):
+                await coordinator._async_update_data()
+
+        assert coordinator._update_fails == 13
+        assert coordinator.update_interval == coordinator.base_interval * 72
+
+
+@pytest.mark.asyncio
+async def test_coordinator_backoff_reset(hass):
+    """Test coordinator resets backoff after success."""
+    mock_config = FAKE_CONFIG_DATA.copy()
+    coordinator = MailDataUpdateCoordinator(hass, mock_config)
+
+    # Force a failure state
+    coordinator._update_fails = 3
+    coordinator.update_interval = coordinator.base_interval * 4
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.process_emails",
+            return_value={"image_name": "test.png", "image_path": "/test/"},
+        ),
+        patch.object(coordinator, "_binary_sensor_update", new_callable=AsyncMock),
+    ):
+        await coordinator._async_update_data()
+
+    assert coordinator._update_fails == 0
+    assert coordinator.update_interval == coordinator.base_interval
