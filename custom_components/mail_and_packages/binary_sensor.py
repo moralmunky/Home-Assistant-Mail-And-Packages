@@ -6,7 +6,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -15,6 +14,7 @@ from homeassistant.helpers.update_coordinator import (
 
 from .const import COORDINATOR, DOMAIN, VERSION
 from .entity import MailandPackagesBinarySensorEntityDescription
+from . import MailAndPackagesConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,9 +42,11 @@ BINARY_SENSORS = {
 }
 
 
-async def async_setup_entry(hass, entry, async_add_devices):
+async def async_setup_entry(
+    hass, entry: MailAndPackagesConfigEntry, async_add_devices
+):
     """Initialize binary_sensor platform."""
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
 
     binary_sensors = [
         PackagesBinarySensor(value, coordinator, entry)
@@ -60,7 +62,7 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
         self,
         sensor_description: MailandPackagesBinarySensorEntityDescription,
         coordinator: DataUpdateCoordinator,
-        config: ConfigEntry,
+        config: MailAndPackagesConfigEntry,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)

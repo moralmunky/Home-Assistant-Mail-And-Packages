@@ -119,8 +119,12 @@ async def integration_factory_fixture(hass):
             version=version,
         )
         entry.add_to_hass(hass)
-        await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
+        with patch(
+            "custom_components.mail_and_packages.process_emails",
+            return_value=FAKE_UPDATE_DATA,
+        ):
+            await hass.config_entries.async_setup(entry.entry_id)
+            await hass.async_block_till_done()
         return entry
 
     return _setup
