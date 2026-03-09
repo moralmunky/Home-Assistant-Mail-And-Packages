@@ -181,9 +181,6 @@ async def login(
 
     if account.protocol.state == NONAUTH:
         try:
-            # Only call starttls on a non-SSL IMAP4 instance; IMAP4_SSL does not expose starttls.
-            if security == "startTLS" and isinstance(account, IMAP4):
-                await account.starttls(ssl_context=ssl_context)
             await account.login(user, pwd)
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error logging in to IMAP Server: %s", err)

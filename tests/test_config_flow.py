@@ -1,13 +1,14 @@
 """Test Mail and Packages config flow."""
 
+import contextlib
 import logging
 import ssl
 import tempfile
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aioimaplib import AioImapException
+from anyio import Path
 from homeassistant import config_entries, setup
 from homeassistant.const import CONF_RESOURCES
 from homeassistant.core import HomeAssistant
@@ -3181,7 +3182,8 @@ async def test_walmart_custom_image_validation():
 
     finally:
         # Clean up temp file
-        Path(temp_file_path).unlink(missing_ok=True)
+        with contextlib.suppress(OSError):
+            await Path(temp_file_path).unlink(missing_ok=True)
 
     # Test 2: Invalid Walmart custom image file (doesn't exist)
     user_input = {
@@ -3359,7 +3361,8 @@ async def test_generic_custom_image_validation(hass: HomeAssistant, mock_imap_no
 
     finally:
         # Clean up temp file
-        Path(temp_file_path).unlink(missing_ok=True)
+        with contextlib.suppress(OSError):
+            await Path(temp_file_path).unlink(missing_ok=True)
 
 
 async def test_generic_custom_image_in_config_flow(
@@ -3581,7 +3584,8 @@ async def test_walmart_config_flow_integration():
 
     finally:
         # Clean up temp file
-        Path(temp_file_path).unlink(missing_ok=True)
+        with contextlib.suppress(OSError):
+            await Path(temp_file_path).unlink(missing_ok=True)
 
     # Test 2: Validate Walmart custom image file does not exist
     user_input = {
