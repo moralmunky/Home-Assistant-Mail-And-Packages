@@ -3324,7 +3324,9 @@ async def test_image_file_name_copy_error(hass, integration):
 async def test_login_ssl_security():
     """Test login with SSL security."""
     with (
-        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap4_ssl,
+        patch(
+            "custom_components.mail_and_packages.helpers.IMAP4_SSL"
+        ) as mock_imap4_ssl,
         patch("homeassistant.util.ssl.client_context") as mock_ssl_context,
     ):
         mock_account = AsyncMock()
@@ -3353,8 +3355,12 @@ async def test_login_ssl_security():
 async def test_login_ssl_security_no_verify():
     """Test login with SSL security and no verify."""
     with (
-        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap4_ssl,
-        patch("homeassistant.util.ssl.create_no_verify_ssl_context") as mock_ssl_context,
+        patch(
+            "custom_components.mail_and_packages.helpers.IMAP4_SSL"
+        ) as mock_imap4_ssl,
+        patch(
+            "homeassistant.util.ssl.create_no_verify_ssl_context"
+        ) as mock_ssl_context,
     ):
         mock_account = AsyncMock()
         mock_imap4_ssl.return_value = mock_account
