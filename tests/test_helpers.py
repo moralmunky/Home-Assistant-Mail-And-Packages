@@ -4582,7 +4582,7 @@ async def test_get_amazon_image_ignored_domain(hass):
 
 
 @pytest.mark.asyncio
-async def test_parse_amazon_arrival_date_weekday():
+async def test_parse_amazon_arrival_date_weekday(hass):
     """Test parsing arrival dates that are just a weekday name."""
     email_date = date(2025, 10, 27)
     email_msg = "Arriving Wednesday"
@@ -4597,7 +4597,7 @@ async def test_parse_amazon_arrival_date_weekday():
             return_value="Wednesday",
         ),
     ):
-        result = _parse_amazon_arrival_date(email_msg, email_date)
+        result = await _parse_amazon_arrival_date(hass, email_msg, email_date)
         assert result == email_date + timedelta(days=2)
 
 
@@ -5199,7 +5199,7 @@ async def test_get_email_body(caplog):
 
 
 @pytest.mark.asyncio
-async def test_parse_amazon_arrival_date_variations():
+async def test_parse_amazon_arrival_date_variations(hass):
     """Test various scenarios for _parse_amazon_arrival_date."""
     # Base email date: Wednesday, Oct 25, 2023
     email_date = date(2023, 10, 25)
@@ -5217,7 +5217,7 @@ async def test_parse_amazon_arrival_date_variations():
             return_value="tomorrow",
         ),
     ):
-        result = _parse_amazon_arrival_date("Arriving tomorrow", email_date)
+        result = await _parse_amazon_arrival_date(hass, "Arriving tomorrow", email_date)
         assert result == date(2023, 10, 26)
 
     # Scenario 2: String Slicing with explicit date
@@ -5238,7 +5238,7 @@ async def test_parse_amazon_arrival_date_variations():
             return_value=len(msg),
         ),
     ):
-        result = _parse_amazon_arrival_date(msg, email_date)
+        result = await _parse_amazon_arrival_date(hass, msg, email_date)
         assert result == date(2023, 10, 27)
 
     # Scenario 3: Weekday logic - Past date check
@@ -5267,7 +5267,7 @@ async def test_parse_amazon_arrival_date_variations():
             return_value=date(2023, 11, 1),
         ),
     ):
-        result = _parse_amazon_arrival_date(msg_weekday, email_date)
+        result = await _parse_amazon_arrival_date(hass, msg_weekday, email_date)
         assert result is None
 
 
@@ -5284,7 +5284,8 @@ async def test_get_items_logic(hass):
         ) as mock_search,
         patch("custom_components.mail_and_packages.helpers.email_fetch") as mock_fetch,
         patch(
-            "custom_components.mail_and_packages.helpers._parse_amazon_arrival_date"
+            "custom_components.mail_and_packages.helpers._parse_amazon_arrival_date",
+            new_callable=AsyncMock,
         ) as mock_parse_date,
         patch(
             "custom_components.mail_and_packages.helpers.AMAZON_DELIVERED_SUBJECT",
@@ -5298,6 +5299,7 @@ async def test_get_items_logic(hass):
         # Mock parsing to return today's date (so items are counted as arriving)
         # This simulates the body text saying "Arriving today" or similar
         mock_parse_date.return_value = today_date
+        mock_parse_date.side_effect = None
 
         # Mock Search Results: 3 unique emails found
         # 1. Shipped, arriving today (Order 111)
@@ -5390,7 +5392,10 @@ async def test_get_items_subject_decoding_logic(caplog):
             "custom_components.mail_and_packages.helpers.decode_header"
         ) as mock_decode_header,
         patch("custom_components.mail_and_packages.helpers.get_today"),
-        patch("custom_components.mail_and_packages.helpers._parse_amazon_arrival_date"),
+        patch(
+            "custom_components.mail_and_packages.helpers._parse_amazon_arrival_date",
+            new_callable=AsyncMock,
+        ),
     ):
         # 1. Setup a dummy email response
         # The content doesn't matter much because we mock decode_header,
@@ -6136,12 +6141,12 @@ async def test_amazon_parsing_more_coverage(hass, caplog):
     assert "fwd@amazon.com" in addresses
     assert "shipment-tracking@amazon.com" in addresses  # from amazon.com domain
 
-    # 3. _parse_amazon_arrival_date with email_date=None (2539)
+    # 3. _parse_amazon_arrival_date with email_date=None (now async, uses executor)
     with patch(
         "custom_components.mail_and_packages.helpers.dateparser.parse",
         return_value=datetime(2026, 1, 1),
     ):
-        result = _parse_amazon_arrival_date("Arriving Tomorrow", None)
+        result = await _parse_amazon_arrival_date(hass, "Arriving Tomorrow", None)
         assert result == date(2026, 1, 1)
 
 
@@ -6168,6 +6173,7 @@ async def test_get_items_more_coverage(hass, caplog):
         ) as mock_from_bytes,
         patch(
             "custom_components.mail_and_packages.helpers._parse_amazon_arrival_date",
+            new_callable=AsyncMock,
             return_value=date.today(),
         ),
         patch(
