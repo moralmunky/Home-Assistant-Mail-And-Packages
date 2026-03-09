@@ -91,6 +91,11 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
         return False
 
     @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return self.coordinator.data is not None
+
+    @property
     def is_on(self) -> bool:
         """Return True if the image is updated."""
         if self._type in self.coordinator.data:
