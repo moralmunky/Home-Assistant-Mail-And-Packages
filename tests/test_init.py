@@ -202,6 +202,29 @@ async def test_migration_from_version_11_to_12():
     # So we're testing that the migration function completes successfully
 
 
+async def test_migration_from_version_14_to_15():
+    """Test migration from version 14 to 15."""
+
+    # Mock config entry with version 14
+    mock_config_entry = MagicMock()
+    mock_config_entry.version = 14
+    mock_config_entry.data = {
+        "imap_security": "startTLS",
+    }
+
+    # Mock hass
+    mock_hass = MagicMock()
+
+    # Should migrate successfully
+    result = await async_migrate_entry(mock_hass, mock_config_entry)
+    assert result is True
+
+    # Verify that the async_update_entry was called to update the imap_security to SSL
+    args, kwargs = mock_hass.config_entries.async_update_entry.call_args
+    assert kwargs["data"]["imap_security"] == "SSL"
+    assert kwargs["version"] == 15
+
+
 async def test_setup_entry_coordinator_failure():
     """Test setup_entry when coordinator fails to update."""
     mock_hass = MagicMock()

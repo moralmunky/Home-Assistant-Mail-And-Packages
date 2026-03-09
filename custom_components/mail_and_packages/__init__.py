@@ -195,6 +195,10 @@ async def async_migrate_entry(hass, config_entry):  # noqa: C901
         if CONF_AMAZON_DOMAIN not in updated_config:
             updated_config[CONF_AMAZON_DOMAIN] = "amazon.com"
 
+    if version <= 15:
+        if updated_config.get(CONF_IMAP_SECURITY) == "startTLS":
+            updated_config[CONF_IMAP_SECURITY] = "SSL"
+
     # Require configs on all migration paths
 
     if CONF_PATH not in updated_config:
