@@ -631,7 +631,7 @@ async def test_coordinator_exponential_backoff(hass):
                 await coordinator._async_update_data()
             except UpdateFailed:
                 pass
-        
+
         assert coordinator._update_fails == 13
         assert coordinator.update_interval == coordinator.base_interval * 72
 
@@ -646,12 +646,14 @@ async def test_coordinator_backoff_reset(hass):
     coordinator._update_fails = 3
     coordinator.update_interval = coordinator.base_interval * 4
 
-    with patch(
-        "custom_components.mail_and_packages.process_emails",
-        return_value={"image_name": "test.png", "image_path": "/test/"},
+    with (
+        patch(
+            "custom_components.mail_and_packages.process_emails",
+            return_value={"image_name": "test.png", "image_path": "/test/"},
+        ),
+        patch.object(coordinator, "_binary_sensor_update", new_callable=AsyncMock),
     ):
-        with patch.object(coordinator, "_binary_sensor_update", new_callable=AsyncMock):
-            await coordinator._async_update_data()
+        await coordinator._async_update_data()
 
     assert coordinator._update_fails == 0
     assert coordinator.update_interval == coordinator.base_interval
