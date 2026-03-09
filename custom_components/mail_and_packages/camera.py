@@ -14,16 +14,13 @@ from homeassistant.const import ATTR_ENTITY_ID, CONF_HOST
 from homeassistant.core import ServiceCall
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import const
-from . import MailAndPackagesConfigEntry
+from . import MailAndPackagesConfigEntry, const
 from .const import (
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
-    CAMERA,
     CAMERA_DATA,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
-    COORDINATOR,
     DOMAIN,
     SENSOR_NAME,
     VERSION,

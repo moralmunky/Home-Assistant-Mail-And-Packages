@@ -27,7 +27,6 @@ from .const import (
     ATTR_ORDER,
     ATTR_TRACKING_NUM,
     CONF_PATH,
-    COORDINATOR,
     DOMAIN,
     IMAGE_SENSORS,
     SENSOR_TYPES,

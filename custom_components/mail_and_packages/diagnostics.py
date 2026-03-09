@@ -10,8 +10,8 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
 
-from .const import CONF_AMAZON_FWDS, COORDINATOR, DOMAIN
 from . import MailAndPackagesConfigEntry
+from .const import CONF_AMAZON_FWDS
 
 _LOGGER = logging.getLogger(__name__)
 REDACT_KEYS = {CONF_PASSWORD, CONF_USERNAME, CONF_AMAZON_FWDS}

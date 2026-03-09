@@ -3,11 +3,11 @@
 import asyncio
 import logging
 import os
+from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 
 import anyio
-from dataclasses import dataclass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
@@ -40,7 +40,6 @@ from .const import (
     CONF_WALMART_CUSTOM_IMG,
     CONF_WALMART_CUSTOM_IMG_FILE,
     CONFIG_VER,
-    COORDINATOR,
     DEFAULT_AMAZON_CUSTOM_IMG_FILE,
     DEFAULT_AMAZON_DAYS,
     DEFAULT_FEDEX_CUSTOM_IMG_FILE,
@@ -105,9 +104,7 @@ async def async_setup_entry(
         _LOGGER.error("Error updating sensor data: %s", coordinator.last_exception)
         raise ConfigEntryNotReady
 
-    config_entry.runtime_data = MailAndPackagesData(
-        coordinator=coordinator, cameras=[]
-    )
+    config_entry.runtime_data = MailAndPackagesData(coordinator=coordinator, cameras=[])
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
     return True

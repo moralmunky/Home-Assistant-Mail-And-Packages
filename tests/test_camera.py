@@ -11,8 +11,6 @@ from custom_components.mail_and_packages.camera import MailCam
 from custom_components.mail_and_packages.const import (
     ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_PATH,
-    CAMERA,
-    COORDINATOR,
     DOMAIN,
 )
 from tests.const import FAKE_CONFIG_DATA_CUSTOM_IMG
