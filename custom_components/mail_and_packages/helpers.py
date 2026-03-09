@@ -609,6 +609,7 @@ async def fetch(  # noqa: C901
             forwarded_emails,
             amazon_days,
             amazon_domain,
+            hass,
         )
         count[AMAZON_ORDER] = await get_items(
             account,
@@ -616,6 +617,7 @@ async def fetch(  # noqa: C901
             amazon_fwds,
             amazon_days,
             amazon_domain,
+            hass,
         )
     elif sensor == AMAZON_HUB:
         value = await amazon_hub(
@@ -2490,8 +2492,8 @@ def _extract_order_numbers(text: str, pattern: re.Pattern) -> list[str]:
     return pattern.findall(text)
 
 
-def _parse_amazon_arrival_date(
-    email_msg: str, email_date: datetime.date
+async def _parse_amazon_arrival_date(
+    hass: HomeAssistant, email_msg: str, email_date: datetime.date
 ) -> datetime.date | None:
     """Determine the arrival date from the email body."""
     today_date = get_today()
@@ -2532,19 +2534,25 @@ def _parse_amazon_arrival_date(
 
             return arrive_date_obj
 
-        # Parse date string
+        # Parse date string — run in executor to avoid blocking the event loop
+        # (dateparser reads timezone files and imports language modules on first use)
         if email_date is None:
-            dateobj = dateparser.parse(arrive_date_clean)
+            dateobj = await hass.async_add_executor_job(
+                dateparser.parse, arrive_date_clean
+            )
         else:
-            dateobj = dateparser.parse(
-                arrive_date_clean,
-                settings={
-                    "PREFER_DATES_FROM": "future",
-                    "RELATIVE_BASE": datetime.datetime.combine(
-                        email_date, datetime.time()
-                    ),
-                    "RETURN_AS_TIMEZONE_AWARE": False,
-                },
+            dateobj = await hass.async_add_executor_job(
+                partial(
+                    dateparser.parse,
+                    arrive_date_clean,
+                    settings={
+                        "PREFER_DATES_FROM": "future",
+                        "RELATIVE_BASE": datetime.datetime.combine(
+                            email_date, datetime.time()
+                        ),
+                        "RETURN_AS_TIMEZONE_AWARE": False,
+                    },
+                )
             )
 
         if dateobj is not None:
@@ -2561,6 +2569,7 @@ async def get_items(  # noqa: C901
     fwds: str | None = None,
     days: int = DEFAULT_AMAZON_DAYS,
     the_domain: str | None = None,
+    hass: HomeAssistant | None = None,
 ) -> list[str] | int:
     """Parse Amazon emails for delivery date and order number."""
     _LOGGER.debug("Attempting to find Amazon email with item list ...")
@@ -2590,11 +2599,16 @@ async def get_items(  # noqa: C901
 
             msg = email.message_from_bytes(response_part)
 
-            # Parse Date
+            # Parse Date — run in executor to avoid blocking the event loop
             email_date_str = msg.get("Date")
             email_date = None
             if email_date_str:
-                parsed_date = dateparser.parse(email_date_str)
+                if hass is not None:
+                    parsed_date = await hass.async_add_executor_job(
+                        dateparser.parse, email_date_str
+                    )
+                else:
+                    parsed_date = dateparser.parse(email_date_str)
                 if parsed_date:
                     email_date = parsed_date.date()
 
@@ -2663,7 +2677,9 @@ async def get_items(  # noqa: C901
                 all_shipped_orders.add(order_id)
 
             if email_msg:
-                parsed_arrival = _parse_amazon_arrival_date(email_msg, email_date)
+                parsed_arrival = await _parse_amazon_arrival_date(
+                    hass, email_msg, email_date
+                )
 
                 if parsed_arrival == today_date:
                     if order_id:
