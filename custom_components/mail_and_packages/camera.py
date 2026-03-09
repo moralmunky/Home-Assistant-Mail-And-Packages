@@ -507,6 +507,11 @@ class MailCam(CoordinatorEntity, Camera):
         """
         return True
 
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return self.coordinator.data is not None
+
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         _LOGGER.debug(

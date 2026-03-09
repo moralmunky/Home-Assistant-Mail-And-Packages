@@ -124,6 +124,11 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         return False
 
     @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return self.coordinator.data is not None
+
+    @property
     def extra_state_attributes(self) -> str | None:
         """Return device specific state attributes."""
         attr = {}
@@ -241,4 +246,4 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return self.coordinator.last_update_success
+        return self.coordinator.data is not None
