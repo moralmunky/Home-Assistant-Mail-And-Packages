@@ -14,6 +14,7 @@ from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from . import MailAndPackagesConfigEntry
 from .const import (
     AMAZON_DELIVERED,
     AMAZON_EXCEPTION,
@@ -26,7 +27,6 @@ from .const import (
     ATTR_ORDER,
     ATTR_TRACKING_NUM,
     CONF_PATH,
-    COORDINATOR,
     DOMAIN,
     IMAGE_SENSORS,
     SENSOR_TYPES,
@@ -36,9 +36,11 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(
+    hass, entry: MailAndPackagesConfigEntry, async_add_entities
+):
     """Set up the sensor entities."""
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     resources = entry.data.get(CONF_RESOURCES, [])
 
     sensors = [

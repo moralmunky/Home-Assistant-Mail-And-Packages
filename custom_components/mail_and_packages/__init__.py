@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import os
+from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 
@@ -39,7 +40,6 @@ from .const import (
     CONF_WALMART_CUSTOM_IMG,
     CONF_WALMART_CUSTOM_IMG_FILE,
     CONFIG_VER,
-    COORDINATOR,
     DEFAULT_AMAZON_CUSTOM_IMG_FILE,
     DEFAULT_AMAZON_DAYS,
     DEFAULT_FEDEX_CUSTOM_IMG_FILE,
@@ -56,12 +56,25 @@ from .helpers import default_image_path, hash_file, process_emails
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(hass: HomeAssistant, config_entry: ConfigEntry):  # pylint: disable=unused-argument
+@dataclass
+class MailAndPackagesData:
+    """Data for Mail and Packages integration."""
+
+    coordinator: "MailDataUpdateCoordinator"
+    cameras: list
+
+
+type MailAndPackagesConfigEntry = ConfigEntry[MailAndPackagesData]
+
+
+async def async_setup(hass: HomeAssistant, config_entry: MailAndPackagesConfigEntry):  # pylint: disable=unused-argument
     """Disallow configuration via YAML."""
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+async def async_setup_entry(
+    hass: HomeAssistant, config_entry: MailAndPackagesConfigEntry
+) -> bool:
     """Load the saved entities."""
     _LOGGER.info(
         "Version %s is starting, if you have any issues please report them here: %s",
@@ -91,9 +104,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         _LOGGER.error("Error updating sensor data: %s", coordinator.last_exception)
         raise ConfigEntryNotReady
 
-    hass.data[DOMAIN][config_entry.entry_id] = {
-        COORDINATOR: coordinator,
-    }
+    config_entry.runtime_data = MailAndPackagesData(coordinator=coordinator, cameras=[])
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
     return True
@@ -111,7 +122,9 @@ async def async_remove_config_entry_device(  # pylint: disable-next=unused-argum
     )
 
 
-async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+async def async_unload_entry(
+    hass: HomeAssistant, config_entry: MailAndPackagesConfigEntry
+) -> bool:
     """Handle removal of an entry."""
     _LOGGER.debug("Attempting to unload sensors from the %s integration", DOMAIN)
 
@@ -126,7 +139,6 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 
     if unload_ok:
         _LOGGER.debug("Successfully removed sensors from the %s integration", DOMAIN)
-        hass.data[DOMAIN].pop(config_entry.entry_id)
 
     return unload_ok
 

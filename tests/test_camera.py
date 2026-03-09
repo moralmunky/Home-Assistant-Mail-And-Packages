@@ -11,8 +11,6 @@ from custom_components.mail_and_packages.camera import MailCam
 from custom_components.mail_and_packages.const import (
     ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_PATH,
-    CAMERA,
-    COORDINATOR,
     DOMAIN,
 )
 from tests.const import FAKE_CONFIG_DATA_CUSTOM_IMG
@@ -209,7 +207,7 @@ async def test_async_camera_image(
     ):
         entry = integration
 
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         m_open = mock_open()
         with patch("builtins.open", m_open, create=True):
             await cameras[0].async_camera_image()
@@ -244,7 +242,7 @@ async def test_async_camera_image_file_error(
     ):
         entry = integration
 
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         m_open = mock_open()
         with patch("builtins.open", m_open, create=True):
             m_open.side_effect = FileNotFoundError
@@ -274,7 +272,7 @@ async def test_async_on_demand_update(
     ):
         entry = integration
 
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         m_open = mock_open()
         with patch("builtins.open", m_open, create=True):
             image = await cameras[0].async_on_demand_update()
@@ -341,7 +339,7 @@ async def test_ups_camera_with_image_data(
     entry = integration
 
     # Mock coordinator data with UPS image
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     coordinator.data = {
         "ups_image": "test_ups_image.jpg",
         "image_path": "custom_components/mail_and_packages/images/",
@@ -356,7 +354,7 @@ async def test_ups_camera_with_image_data(
         assert state.attributes.get("friendly_name") == "Mail UPS Camera"
 
         # Update the camera to use the new data
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         ups_camera = None
         for camera in cameras:
             if camera._type == "ups_camera":  # noqa: SLF001
@@ -391,7 +389,7 @@ async def test_amazon_camera_with_image_data(
     entry = integration
 
     # Mock coordinator data with Amazon image directly
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     coordinator.data = {
         "amazon_image": "test_amazon_image.jpg",
         "image_path": "custom_components/mail_and_packages/images/",
@@ -406,7 +404,7 @@ async def test_amazon_camera_with_image_data(
         assert state.attributes.get("friendly_name") == "Mail Amazon Delivery Camera"
 
         # Update the camera to use the new data
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         amazon_camera = None
         for camera in cameras:
             if camera._type == "amazon_camera":  # noqa: SLF001
@@ -752,7 +750,7 @@ async def test_generic_camera_with_delivery_images(
     entry = integration
 
     # Mock coordinator data with Amazon delivery image
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     coordinator.data = {
         "amazon_image": "test_amazon_delivery.jpg",
         "image_path": "custom_components/mail_and_packages/images/",
@@ -768,7 +766,7 @@ async def test_generic_camera_with_delivery_images(
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
 
         # Update the camera to use the new data
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         generic_camera = None
         for camera in cameras:
             if camera._type == "generic_camera":  # noqa: SLF001
@@ -802,7 +800,7 @@ async def test_generic_camera_with_ups_delivery_images(
     entry = integration
 
     # Mock coordinator data with UPS delivery image
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     coordinator.data = {
         "ups_image": "test_ups_delivery.jpg",
         "image_path": "custom_components/mail_and_packages/images/",
@@ -818,7 +816,7 @@ async def test_generic_camera_with_ups_delivery_images(
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
 
         # Update the camera to use the new data
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         generic_camera = None
         for camera in cameras:
             if camera._type == "generic_camera":  # noqa: SLF001
@@ -852,7 +850,7 @@ async def test_generic_camera_with_walmart_delivery_images(
     entry = integration
 
     # Mock coordinator data with Walmart delivery image
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     coordinator.data = {
         "walmart_image": "test_walmart_delivery.jpg",
         "image_path": "custom_components/mail_and_packages/images/",
@@ -868,7 +866,7 @@ async def test_generic_camera_with_walmart_delivery_images(
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
 
         # Update the camera to use the new data
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         generic_camera = None
         for camera in cameras:
             if camera._type == "generic_camera":  # noqa: SLF001
@@ -902,7 +900,7 @@ async def test_generic_camera_with_usps_delivery_images_manual(
     entry = integration
 
     # Mock coordinator data with USPS delivery image
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     coordinator.data = {
         "image_name": "test_usps_delivery.gif",
         "usps_delivered": 1,  # Even if USPS is delivered, generic camera should ignore it
@@ -918,7 +916,7 @@ async def test_generic_camera_with_usps_delivery_images_manual(
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
 
         # Update the camera to use the new data
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         generic_camera = None
         for camera in cameras:
             if camera._type == "generic_camera":  # noqa: SLF001
@@ -952,7 +950,7 @@ async def test_generic_camera_with_all_delivery_types(
     entry = integration
 
     # Mock coordinator data with all delivery types (excluding USPS)
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     coordinator.data = {
         # Amazon delivery
         "amazon_image": "test_amazon_delivery.jpg",
@@ -1004,7 +1002,7 @@ async def test_generic_camera_with_all_delivery_types(
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
 
         # Update the camera to use the new data
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         generic_camera = None
         for camera in cameras:
             if camera._type == "generic_camera":  # noqa: SLF001
@@ -1045,7 +1043,7 @@ async def test_generic_camera_filters_no_mail_images(
     entry = integration
 
     # Mock coordinator data with mix of delivery and "no mail" images
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     coordinator.data = {
         # Amazon - actual delivery
         "amazon_image": "test_amazon_delivery.jpg",
@@ -1103,7 +1101,7 @@ async def test_generic_camera_filters_no_mail_images(
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
 
         # Update the camera to use the new data
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         generic_camera = None
         for camera in cameras:
             if camera._type == "generic_camera":  # noqa: SLF001
@@ -1144,7 +1142,7 @@ async def test_generic_camera_respects_enabled_sensors(
     entry = integration
 
     # Mock coordinator data with all delivery types
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     coordinator.data = {
         # Amazon delivery
         "amazon_image": "test_amazon_delivery.jpg",
@@ -1175,7 +1173,7 @@ async def test_generic_camera_respects_enabled_sensors(
     await hass.async_block_till_done()
 
     # Get the camera reference before patching
-    cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+    cameras = entry.runtime_data.cameras
     generic_camera = None
     for camera in cameras:
         if camera._type == "generic_camera":  # noqa: SLF001
@@ -1341,7 +1339,7 @@ async def test_generic_camera_with_usps_delivery_images(
     entry = integration
 
     # Mock coordinator data with USPS delivery
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     coordinator.data = {
         # USPS delivery
         "image_name": "test_usps_delivery.gif",
@@ -1356,7 +1354,7 @@ async def test_generic_camera_with_usps_delivery_images(
         patch("pathlib.Path.exists", return_value=True),
     ):
         # Update the camera to use the new data
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         generic_camera = None
         for camera in cameras:
             if camera._type == "generic_camera":  # noqa: SLF001
@@ -1407,7 +1405,7 @@ async def test_generic_camera_with_multiple_delivery_images(
     entry = integration
 
     # Mock coordinator data with multiple delivery types
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     coordinator.data = {
         # Amazon delivery
         "amazon_image": "test_amazon_delivery.jpg",
@@ -1562,7 +1560,7 @@ async def test_walmart_camera_with_image_data(
     entry = integration
 
     # Mock coordinator data with Walmart image
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     coordinator.data = {
         "walmart_image": "test_walmart_image.jpg",
         "image_path": "custom_components/mail_and_packages/images/",
@@ -1577,7 +1575,7 @@ async def test_walmart_camera_with_image_data(
         assert state.attributes.get("friendly_name") == "Mail Walmart Delivery Camera"
 
         # Update the camera to use the new data
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         walmart_camera = None
         for camera in cameras:
             if camera._type == "walmart_camera":  # noqa: SLF001
@@ -1767,7 +1765,7 @@ async def test_fedex_camera_with_image_data(
     entry = integration
 
     # Mock coordinator data with FedEx image
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     coordinator.data = {
         "fedex_image": "test_fedex_image.jpg",
         "image_path": "custom_components/mail_and_packages/images/",
@@ -1782,7 +1780,7 @@ async def test_fedex_camera_with_image_data(
         assert state.attributes.get("friendly_name") == "Mail FedEx Delivery Camera"
 
         # Update the camera to use the new data
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         fedex_camera = None
         for camera in cameras:
             if camera._type == "fedex_camera":  # noqa: SLF001
@@ -2034,7 +2032,7 @@ async def test_camera_fallback_to_recent_file(
     entry = integration
 
     # Setup coordinator data with a file that "doesn't exist"
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     coordinator.data = {
         "amazon_image": "missing_file.jpg",
         "image_path": "custom_components/mail_and_packages/images/",
@@ -2074,7 +2072,7 @@ async def test_camera_fallback_to_recent_file(
         patch("pathlib.Path.iterdir", return_value=[f1, f2], autospec=True),
     ):
         # Trigger update
-        cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+        cameras = entry.runtime_data.cameras
         amazon_camera = next(
             c
             for c in cameras
@@ -2098,7 +2096,7 @@ async def test_camera_service_update_specific_explicit(
     entry = integration
 
     # Get the Amazon camera object from hass data
-    cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+    cameras = entry.runtime_data.cameras
     amazon_cam = next(c for c in cameras if "amazon" in c.entity_id)
     target_entity_id = amazon_cam.entity_id
 
@@ -2165,7 +2163,7 @@ async def test_camera_service_update_multiple_entities(
 ):
     """Test updating multiple specific cameras via service."""
     entry = integration
-    cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+    cameras = entry.runtime_data.cameras
 
     # Select two cameras to update
     target_ids = [cameras[0].entity_id, cameras[1].entity_id]
@@ -2185,7 +2183,7 @@ async def test_camera_update_coordinator_failed(
 ):
     """Test camera update early exit on coordinator failure (Line 197)."""
     entry = integration
-    cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+    cameras = entry.runtime_data.cameras
     target_camera = cameras[0]
 
     # Simulate a failed update state
@@ -2203,7 +2201,7 @@ async def test_is_custom_no_mail_file_not_exists_fixed(
 ):
     """Custom path configured but file missing on disk."""
     entry = integration
-    camera = hass.data[DOMAIN][entry.entry_id][CAMERA][0]
+    camera = entry.runtime_data.cameras[0]
 
     # Use a fake config object to bypass ConfigEntry data protection
     fake_config = MagicMock()
@@ -2235,7 +2233,7 @@ async def test_find_alternative_image_oserror_fixed(
 ):
     """Handle OSError during directory iteration."""
     entry = integration
-    camera = hass.data[DOMAIN][entry.entry_id][CAMERA][0]
+    camera = entry.runtime_data.cameras[0]
     with (
         patch("pathlib.Path.exists", return_value=True),
         patch("pathlib.Path.iterdir", side_effect=OSError("Permission Denied")),
@@ -2250,7 +2248,7 @@ async def test_find_alternative_image_oserror_fixed(
 async def test_update_file_path_no_data(hass, mock_imap_no_email, integration, caplog):
     """Early exit when coordinator data is missing."""
     entry = integration
-    camera = hass.data[DOMAIN][entry.entry_id][CAMERA][0]
+    camera = entry.runtime_data.cameras[0]
     camera.coordinator.data = None
 
     await camera.update_file_path()
@@ -2262,7 +2260,7 @@ async def test_usps_camera_custom_no_mail(hass, mock_imap_no_email, integration)
     entry = integration
     camera = next(
         c
-        for c in hass.data[DOMAIN][entry.entry_id][CAMERA]
+        for c in entry.runtime_data.cameras
         if c._type == "usps_camera"  # noqa: SLF001
     )
 
@@ -2281,7 +2279,7 @@ async def test_collect_generic_delivery_images_skip_no_attr(
     entry = integration
     camera = next(
         c
-        for c in hass.data[DOMAIN][entry.entry_id][CAMERA]
+        for c in entry.runtime_data.cameras
         if c._type == "generic_camera"  # noqa: SLF001
     )
 
@@ -2297,7 +2295,7 @@ async def test_collect_generic_delivery_images_skip_no_attr(
 async def test_update_standard_camera_no_attr(hass, mock_imap_no_email, integration):
     """Early exit when attribute mapping is missing."""
     entry = integration
-    cameras = hass.data[DOMAIN][entry.entry_id][CAMERA]
+    cameras = entry.runtime_data.cameras
     # Use a real camera instance already initialized in CAMERA_DATA
     camera = next(c for c in cameras if c._type == "amazon_camera")  # noqa: SLF001
 
@@ -2311,7 +2309,7 @@ async def test_update_standard_camera_no_attr(hass, mock_imap_no_email, integrat
 async def test_get_sensor_name_usps(hass, mock_imap_no_email, integration):
     """Correct sensor mapping for USPS."""
     entry = integration
-    camera = hass.data[DOMAIN][entry.entry_id][CAMERA][0]
+    camera = entry.runtime_data.cameras[0]
     name = camera._get_sensor_name_for_camera("usps_camera")  # noqa: SLF001
     assert name == "usps_mail"
 
@@ -2321,7 +2319,7 @@ async def test_handle_coordinator_update_logic(
 ):
     """Handle incoming coordinator data updates."""
     entry = integration
-    camera = hass.data[DOMAIN][entry.entry_id][CAMERA][0]
+    camera = entry.runtime_data.cameras[0]
 
     # Directly trigger the update handler
     camera._handle_coordinator_update()  # noqa: SLF001
