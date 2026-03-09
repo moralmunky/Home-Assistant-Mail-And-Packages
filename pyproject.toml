@@ -177,6 +177,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+"tests/test_init.py" = ["SLF001"]
 
 [tool.pytest.ini_options]
 testpaths = [
