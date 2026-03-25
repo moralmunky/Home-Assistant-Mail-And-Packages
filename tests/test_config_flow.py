@@ -237,10 +237,12 @@ async def test_form(
             return_value=True,
         ) as mock_setup_entry,
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -461,10 +463,12 @@ async def test_form_no_fwds(
             return_value=True,
         ) as mock_setup_entry,
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -665,10 +669,12 @@ async def test_form_invalid_custom_img_path(
             return_value=True,
         ),
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -733,10 +739,12 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap_connect
             return_value=True,
         ),
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -899,10 +907,12 @@ async def test_form_invalid_ffmpeg(
             return_value=True,
         ),
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -1097,10 +1107,12 @@ async def test_form_index_error(
             return_value=True,
         ) as mock_setup_entry,
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -1313,10 +1325,12 @@ async def test_form_index_error_2(
             return_value=True,
         ) as mock_setup_entry,
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -1509,10 +1523,12 @@ async def test_form_storage_error(
             return_value=True,
         ),
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -1729,7 +1745,11 @@ async def test_reconfigure(
         assert reconfigure_result["type"] is FlowResultType.FORM
         assert reconfigure_result["step_id"] == "reconfigure"
 
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
+        )
         await hass.config_entries.flow.async_configure(
             reconfigure_result["flow_id"], auth_input
         )
@@ -1943,7 +1963,11 @@ async def test_reconfigure_no_amazon(
         assert reconfigure_result["type"] is FlowResultType.FORM
         assert reconfigure_result["step_id"] == "reconfigure"
 
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
+        )
         await hass.config_entries.flow.async_configure(
             reconfigure_result["flow_id"], auth_input
         )
@@ -2154,7 +2178,11 @@ async def test_reconfigure_with_default_images(
         assert reconfigure_result["type"] is FlowResultType.FORM
         assert reconfigure_result["step_id"] == "reconfigure"
 
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
+        )
         await hass.config_entries.flow.async_configure(
             reconfigure_result["flow_id"], auth_input
         )
@@ -2249,7 +2277,6 @@ async def test_config_flow_with_amazon_custom_image_only(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                
                 "host": "imap.test.email",
                 "port": "993",
                 "username": "test@test.email",
@@ -2431,7 +2458,6 @@ async def test_config_flow_with_ups_custom_image_only(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                
                 "host": "imap.test.email",
                 "port": "993",
                 "username": "test@test.email",
@@ -3116,7 +3142,11 @@ async def test_reconfig_amazon_error(
         },
     )
 
-    auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
+    auth_input = (
+        {"auth_type": input_1.pop("auth_type", "password")}
+        if isinstance(input_1, dict)
+        else {"auth_type": "password"}
+    )
     await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
     result = await hass.config_entries.flow.async_configure(result["flow_id"], input_1)
 
@@ -3218,7 +3248,11 @@ async def test_reconfig_storage_error(
         },
     )
 
-    auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
+    auth_input = (
+        {"auth_type": input_1.pop("auth_type", "password")}
+        if isinstance(input_1, dict)
+        else {"auth_type": "password"}
+    )
     await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
     result = await hass.config_entries.flow.async_configure(result["flow_id"], input_1)
 
@@ -3336,7 +3370,6 @@ async def test_walmart_custom_image_in_config_flow(hass, mock_imap_no_email):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                
                 "host": "imap.test.email",
                 "port": "993",
                 "username": "test@test.email",
@@ -3410,7 +3443,7 @@ async def test_generic_custom_image_validation(hass: HomeAssistant, mock_imap_no
     # Test with non-existent file
     user_input = {
         "auth_type": "password",
-                "host": "imap.test.email",
+        "host": "imap.test.email",
         "port": "993",
         "username": "test@test.email",
         "password": "notarealpassword",
@@ -3483,7 +3516,6 @@ async def test_generic_custom_image_in_config_flow(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                
                 "host": "imap.test.email",
                 "port": 993,
                 "username": "test@test.email",
@@ -3549,7 +3581,7 @@ async def test_migration_to_version_12(hass: HomeAssistant, mock_imap_no_email):
         title="imap.test.email",
         data={
             "auth_type": "password",
-                "host": "imap.test.email",
+            "host": "imap.test.email",
             "port": "993",
             "username": "test@test.email",
             "password": "notarealpassword",
@@ -3607,7 +3639,7 @@ async def test_migration_to_version_13(hass: HomeAssistant, mock_imap_no_email):
         title="imap.test.email",
         data={
             "auth_type": "password",
-                "host": "imap.test.email",
+            "host": "imap.test.email",
             "port": "993",
             "username": "test@test.email",
             "password": "notarealpassword",
@@ -4469,10 +4501,12 @@ async def test_form_allow_forwarded_emails(
             return_value=True,
         ) as mock_setup_entry,
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -4703,10 +4737,12 @@ async def test_form_allowed_forwarded_emails_entered_none(
             return_value=True,
         ) as mock_setup_entry,
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -4912,10 +4948,12 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
             return_value=True,
         ) as mock_setup_entry,
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -5118,10 +5156,12 @@ async def test_form_allow_forwarded_emails_without_custom_img(
             return_value=True,
         ) as mock_setup_entry,
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -5329,10 +5369,12 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
             return_value=True,
         ) as mock_setup_entry,
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -5559,10 +5601,12 @@ async def test_form_allow_forwarded_emails_none_entered(
             return_value=True,
         ) as mock_setup_entry,
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -5750,10 +5794,12 @@ async def test_form_allowed_forwards_missing_email_addresses(
             return_value=True,
         ),
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -5919,10 +5965,12 @@ async def test_form_allowed_forwards_invalid_email_address_format(
             return_value=True,
         ),
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )
@@ -6137,7 +6185,11 @@ async def test_reconfigure_allow_forwarded_emails(
         assert reconfigure_result["type"] is FlowResultType.FORM
         assert reconfigure_result["step_id"] == "reconfigure"
 
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
+        )
         await hass.config_entries.flow.async_configure(
             reconfigure_result["flow_id"], auth_input
         )
@@ -6379,10 +6431,12 @@ async def test_form_allow_forwarded_emails_using_service_address(
             return_value=True,
         ) as mock_setup_entry,
     ):
-        auth_input = {"auth_type": input_1.pop("auth_type", "password")} if isinstance(input_1, dict) else {"auth_type": "password"}
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"], auth_input
+        auth_input = (
+            {"auth_type": input_1.pop("auth_type", "password")}
+            if isinstance(input_1, dict)
+            else {"auth_type": "password"}
         )
+        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], input_1
         )

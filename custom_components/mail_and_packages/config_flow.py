@@ -23,7 +23,6 @@ from .const import (
     AUTH_TYPE_OAUTH_GOOGLE,
     AUTH_TYPE_OAUTH_MICROSOFT,
     AUTH_TYPE_PASSWORD,
-    AUTH_TYPES,
     CONF_ALLOW_EXTERNAL,
     CONF_ALLOW_FORWARDED_EMAILS,
     CONF_AMAZON_CUSTOM_IMG,
@@ -340,9 +339,17 @@ def _get_schema_auth(user_input: list, default_dict: list) -> Any:
             ): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[
-                        selector.SelectOptionDict(value=AUTH_TYPE_PASSWORD, label="Password"),
-                        selector.SelectOptionDict(value=AUTH_TYPE_OAUTH_MICROSOFT, label="OAuth2 - Microsoft (Outlook/Exchange)"),
-                        selector.SelectOptionDict(value=AUTH_TYPE_OAUTH_GOOGLE, label="OAuth2 - Google (Gmail)"),
+                        selector.SelectOptionDict(
+                            value=AUTH_TYPE_PASSWORD, label="Password"
+                        ),
+                        selector.SelectOptionDict(
+                            value=AUTH_TYPE_OAUTH_MICROSOFT,
+                            label="OAuth2 - Microsoft (Outlook/Exchange)",
+                        ),
+                        selector.SelectOptionDict(
+                            value=AUTH_TYPE_OAUTH_GOOGLE,
+                            label="OAuth2 - Google (Gmail)",
+                        ),
                     ],
                     mode=selector.SelectSelectorMode.DROPDOWN,
                     translation_key="auth_type",
@@ -369,16 +376,20 @@ def _get_schema_imap(user_input: list, default_dict: list) -> Any:
     }
 
     if auth_type == AUTH_TYPE_PASSWORD:
-        schema[vol.Required(CONF_PASSWORD, default=_get_default(CONF_PASSWORD, ""))] = cv.string
+        schema[vol.Required(CONF_PASSWORD, default=_get_default(CONF_PASSWORD, ""))] = (
+            cv.string
+        )
 
-    schema.update({
-        vol.Required(
-            CONF_IMAP_SECURITY, default=_get_default(CONF_IMAP_SECURITY)
-        ): vol.In(IMAP_SECURITY),
-        vol.Optional(
-            CONF_VERIFY_SSL, default=_get_default(CONF_VERIFY_SSL, False)
-        ): cv.boolean,
-    })
+    schema.update(
+        {
+            vol.Required(
+                CONF_IMAP_SECURITY, default=_get_default(CONF_IMAP_SECURITY)
+            ): vol.In(IMAP_SECURITY),
+            vol.Optional(
+                CONF_VERIFY_SSL, default=_get_default(CONF_VERIFY_SSL, False)
+            ): cv.boolean,
+        }
+    )
 
     return vol.Schema(schema)
 
@@ -721,11 +732,14 @@ class MailAndPackagesFlowHandler(
     async def _show_imap_form(self, user_input):
         """Show the configuration form to edit IMAP configuration data."""
         auth_type = self._data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
-        defaults = OAUTH_IMAP_DEFAULTS.get(auth_type, {
-            CONF_PORT: DEFAULT_PORT,
-            CONF_IMAP_SECURITY: "SSL",
-            CONF_VERIFY_SSL: False,
-        })
+        defaults = OAUTH_IMAP_DEFAULTS.get(
+            auth_type,
+            {
+                CONF_PORT: DEFAULT_PORT,
+                CONF_IMAP_SECURITY: "SSL",
+                CONF_VERIFY_SSL: False,
+            },
+        )
         defaults[CONF_AUTH_TYPE] = auth_type
 
         return self.async_show_form(
@@ -971,15 +985,22 @@ class MailAndPackagesFlowHandler(
     async def _show_reconfig_imap_form(self, user_input):
         """Show the configuration form to edit IMAP data."""
         auth_type = self._data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
-        defaults = OAUTH_IMAP_DEFAULTS.get(auth_type, {
-            CONF_PORT: self._entry.data.get(CONF_PORT, DEFAULT_PORT),
-            CONF_IMAP_SECURITY: self._entry.data.get(CONF_IMAP_SECURITY, "SSL"),
-            CONF_VERIFY_SSL: self._entry.data.get(CONF_VERIFY_SSL, False),
-        })
+        defaults = OAUTH_IMAP_DEFAULTS.get(
+            auth_type,
+            {
+                CONF_PORT: self._entry.data.get(CONF_PORT, DEFAULT_PORT),
+                CONF_IMAP_SECURITY: self._entry.data.get(CONF_IMAP_SECURITY, "SSL"),
+                CONF_VERIFY_SSL: self._entry.data.get(CONF_VERIFY_SSL, False),
+            },
+        )
 
         defaults[CONF_HOST] = self._entry.data.get(CONF_HOST, defaults.get(CONF_HOST))
-        defaults[CONF_USERNAME] = self._entry.data.get(CONF_USERNAME, defaults.get(CONF_USERNAME))
-        defaults[CONF_PASSWORD] = self._entry.data.get(CONF_PASSWORD, defaults.get(CONF_PASSWORD))
+        defaults[CONF_USERNAME] = self._entry.data.get(
+            CONF_USERNAME, defaults.get(CONF_USERNAME)
+        )
+        defaults[CONF_PASSWORD] = self._entry.data.get(
+            CONF_PASSWORD, defaults.get(CONF_PASSWORD)
+        )
         defaults[CONF_AUTH_TYPE] = auth_type
 
         return self.async_show_form(
