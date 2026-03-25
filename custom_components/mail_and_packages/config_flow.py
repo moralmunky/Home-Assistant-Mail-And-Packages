@@ -278,11 +278,14 @@ async def _get_mailboxes(
     pwd: str,
     security: str,
     verify: bool,
+    oauth_token: str | None = None,
 ) -> list:
     """Get list of mailbox folders from mail server."""
     _LOGGER.debug("Getting mailboxes, login...")
     try:
-        account = await login(hass, host, port, user, pwd, security, verify)
+        account = await login(
+            hass, host, port, user, pwd, security, verify, oauth_token=oauth_token
+        )
 
     except (TimeoutError, AioImapException, ConnectionRefusedError) as err:
         _LOGGER.error("Unable to connect: %s", err)
@@ -413,9 +416,10 @@ async def _get_schema_step_2(
                     data[CONF_HOST],
                     data[CONF_PORT],
                     data[CONF_USERNAME],
-                    data[CONF_PASSWORD],
+                    data.get(CONF_PASSWORD, ""),
                     data[CONF_IMAP_SECURITY],
                     data[CONF_VERIFY_SSL],
+                    data.get("token", {}).get("access_token"),
                 )
             ),
             vol.Required(
@@ -717,7 +721,7 @@ class MailAndPackagesFlowHandler(
         self, data: dict
     ) -> config_entries.ConfigFlowResult:
         """Handle OAuth2 completion — store token and continue to step 2."""
-        self._data["auth"] = data
+        self._data.update(data)
         return await self.async_step_config_2()
 
     async def _show_auth_form(self, user_input):

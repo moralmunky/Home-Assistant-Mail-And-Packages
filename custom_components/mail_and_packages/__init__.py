@@ -216,6 +216,11 @@ async def async_migrate_entry(hass, config_entry):  # noqa: C901
         if CONF_AUTH_TYPE not in updated_config:
             updated_config[CONF_AUTH_TYPE] = AUTH_TYPE_PASSWORD
 
+    if version <= 16:
+        if "auth" in updated_config:
+            auth_data = updated_config.pop("auth")
+            updated_config.update(auth_data)
+
     # Require configs on all migration paths
 
     if CONF_PATH not in updated_config:
@@ -312,6 +317,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 auth_type = config.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
                 if auth_type != AUTH_TYPE_PASSWORD and self.config_entry:
                     try:
+                        self.hass.data.setdefault(DOMAIN, {})
+                        self.hass.data[DOMAIN]["oauth_provider"] = auth_type
+
                         implementation = await config_entry_oauth2_flow.async_get_config_entry_implementation(
                             self.hass, self.config_entry
                         )
