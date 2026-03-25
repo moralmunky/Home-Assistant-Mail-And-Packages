@@ -15,18 +15,6 @@
       "path_not_found": "디렉토리를 찾을 수 없습니다"
     },
     "step": {
-      "user": {
-        "description": "메일 서버의 연결 정보를 입력해 주세요.",
-        "data": {
-          "host": "주최자",
-          "password": "암호",
-          "port": "포트",
-          "username": "사용자 이름",
-          "verify_ssl": "SSL 인증서 확인",
-          "imap_security": "IMAP 보안"
-        },
-        "title": "메일 및 패키지 (1/2 단계)"
-      },
       "config_2": {
         "data": {
           "folder": "메일 폴더",
@@ -65,18 +53,6 @@
         },
         "description": "Amazon이 이메일을 보내는 도메인을 입력해 주세요 (예: amazon.com 또는 amazon.de)\n\nAmazon에서 전달된 이메일을 사용하는 경우 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 (none)을 입력하세요.",
         "title": "아마존 설정"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "주최자",
-          "password": "암호",
-          "port": "포트",
-          "username": "사용자 이름",
-          "imap_security": "IMAP 보안",
-          "verify_ssl": "SSL 인증서 확인"
-        },
-        "description": "메일 서버의 연결 정보를 입력해 주세요.",
-        "title": "메일 및 패키지 (1/2 단계)"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "기본적으로 Mail and Packages 통합은 서비스 주소와 일치하는 메시지만 검색합니다.\n\n전달된 이메일을 사용하려면 메시지가 올 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 '(none)'을 입력하세요.",
         "title": "전달된 이메일 주소"
+      },
+      "imap_config": {
+        "description": "메일 서버의 연결 정보를 입력해 주세요.",
+        "data": {
+          "host": "주최자",
+          "password": "암호",
+          "port": "포트",
+          "username": "사용자 이름",
+          "verify_ssl": "SSL 인증서 확인",
+          "imap_security": "IMAP 보안"
+        },
+        "title": "메일 및 패키지 (1/2 단계)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "주최자",
+          "password": "암호",
+          "port": "포트",
+          "username": "사용자 이름",
+          "imap_security": "IMAP 보안",
+          "verify_ssl": "SSL 인증서 확인"
+        },
+        "description": "메일 서버의 연결 정보를 입력해 주세요.",
+        "title": "메일 및 패키지 (1/2 단계)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

@@ -3352,6 +3352,42 @@ async def test_login_ssl_security():
 
 
 @pytest.mark.asyncio
+async def test_login_xoauth2():
+    """Test login with XOAUTH2."""
+    with (
+        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap4,
+    ):
+        mock_account = AsyncMock()
+        mock_imap4.return_value = mock_account
+
+        # Initial state NONAUTH to trigger login attempts
+        mock_account.protocol.state = aioimaplib.NONAUTH
+        mock_account.wait_hello_from_server = AsyncMock()
+
+        # Simulate successful login changing state to AUTH
+        async def login_side_effect(*args, **kwargs):
+            mock_account.protocol.state = aioimaplib.AUTH
+            return MagicMock(result="OK")
+
+        mock_account.xoauth2.side_effect = login_side_effect
+
+        result = await login(
+            None,
+            "imap.test.com",
+            143,
+            "user",
+            "pass",
+            "None",
+            False,
+            oauth_token="fake_token",
+        )
+
+        assert result == mock_account
+        mock_imap4.assert_called_once()
+        mock_account.xoauth2.assert_called_once_with("user", "fake_token")
+
+
+@pytest.mark.asyncio
 async def test_login_ssl_security_no_verify():
     """Test login with SSL security and no verify."""
     with (

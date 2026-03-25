@@ -15,16 +15,6 @@
       "timeout_too_low": "IMAP timeout je příliš nízký (minimum 10)"
     },
     "step": {
-      "user": {
-        "data": {
-          "host": "Host",
-          "password": "Heslo",
-          "port": "Port",
-          "username": "Uživatelské jméno"
-        },
-        "description": "Zadejte prosím informace o připojení vašeho poštovního serveru.",
-        "title": "Mail and Packages (Krok 1 ze 3)"
-      },
       "config_2": {
         "data": {
           "folder": "Poštovní složka",
@@ -69,6 +59,30 @@
         },
         "description": "Ve výchozím nastavení integrace Mail and Packages vyhledává pouze zprávy odpovídající adrese služby.\n\nPokud chcete používat přeposílané e-maily, oddělte každou adresu, ze které budou zprávy přicházet, čárkou nebo zadejte '(none)' pro vymazání tohoto nastavení.",
         "title": "Přeposílané e-mailové adresy"
+      },
+      "imap_config": {
+        "data": {
+          "host": "Host",
+          "password": "Heslo",
+          "port": "Port",
+          "username": "Uživatelské jméno"
+        },
+        "description": "Zadejte prosím informace o připojení vašeho poštovního serveru.",
+        "title": "Mail and Packages (Krok 1 ze 3)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
       }
     },
     "title": "Mail and Packages"
@@ -127,5 +141,14 @@
       }
     }
   },
-  "title": "Mail and Packages"
+  "title": "Mail and Packages",
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
+      }
+    }
+  }
 }

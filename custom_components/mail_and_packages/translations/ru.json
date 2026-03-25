@@ -15,18 +15,6 @@
       "path_not_found": "Директория не найдена"
     },
     "step": {
-      "user": {
-        "description": "Пожалуйста, введите информацию о подключении к вашему почтовому серверу.",
-        "data": {
-          "host": "хозяин",
-          "password": "пароль",
-          "port": "порт",
-          "username": "имя пользователя",
-          "verify_ssl": "Проверить SSL-сертификат",
-          "imap_security": "Безопасность IMAP"
-        },
-        "title": "Почта и Пакеты (Шаг 1 из 2)"
-      },
       "config_2": {
         "data": {
           "folder": "Папка почты",
@@ -65,18 +53,6 @@
         },
         "description": "Пожалуйста, введите домен, с которого Amazon отправляет электронные письма (например: amazon.com или amazon.de)\n\nЕсли вы используете переадресованные электронные письма от Amazon, разделите каждый адрес запятой или введите (none), чтобы очистить эту настройку.",
         "title": "Настройки Amazon"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "хозяин",
-          "password": "пароль",
-          "port": "порт",
-          "username": "имя пользователя",
-          "imap_security": "Безопасность IMAP",
-          "verify_ssl": "Проверить SSL-сертификат"
-        },
-        "description": "Пожалуйста, введите информацию о подключении к вашему почтовому серверу.",
-        "title": "Почта и Пакеты (Шаг 1 из 2)"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "По умолчанию интеграция Mail and Packages ищет только сообщения, соответствующие адресу службы.\n\nЕсли вы хотите использовать переадресованные электронные письма, разделите каждый адрес, с которого будут приходить сообщения, запятой или введите '(none)', чтобы очистить этот параметр.",
         "title": "Переадресованные адреса электронной почты"
+      },
+      "imap_config": {
+        "description": "Пожалуйста, введите информацию о подключении к вашему почтовому серверу.",
+        "data": {
+          "host": "хозяин",
+          "password": "пароль",
+          "port": "порт",
+          "username": "имя пользователя",
+          "verify_ssl": "Проверить SSL-сертификат",
+          "imap_security": "Безопасность IMAP"
+        },
+        "title": "Почта и Пакеты (Шаг 1 из 2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "хозяин",
+          "password": "пароль",
+          "port": "порт",
+          "username": "имя пользователя",
+          "imap_security": "Безопасность IMAP",
+          "verify_ssl": "Проверить SSL-сертификат"
+        },
+        "description": "Пожалуйста, введите информацию о подключении к вашему почтовому серверу.",
+        "title": "Почта и Пакеты (Шаг 1 из 2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

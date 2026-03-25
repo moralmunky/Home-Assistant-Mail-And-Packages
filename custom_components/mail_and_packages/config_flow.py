@@ -17,8 +17,12 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_entry_oauth2_flow, selector
 
 from .const import (
+    AUTH_TYPE_OAUTH_GOOGLE,
+    AUTH_TYPE_OAUTH_MICROSOFT,
+    AUTH_TYPE_PASSWORD,
     CONF_ALLOW_EXTERNAL,
     CONF_ALLOW_FORWARDED_EMAILS,
     CONF_AMAZON_CUSTOM_IMG,
@@ -26,6 +30,7 @@ from .const import (
     CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
+    CONF_AUTH_TYPE,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
     CONF_DURATION,
@@ -76,6 +81,8 @@ from .const import (
     DEFAULT_WALMART_CUSTOM_IMG,
     DEFAULT_WALMART_CUSTOM_IMG_FILE,
     DOMAIN,
+    OAUTH_IMAP_DEFAULTS,
+    OAUTH_SCOPES,
 )
 from .helpers import (
     InvalidAuth,
@@ -271,11 +278,14 @@ async def _get_mailboxes(
     pwd: str,
     security: str,
     verify: bool,
+    oauth_token: str | None = None,
 ) -> list:
     """Get list of mailbox folders from mail server."""
     _LOGGER.debug("Getting mailboxes, login...")
     try:
-        account = await login(hass, host, port, user, pwd, security, verify)
+        account = await login(
+            hass, host, port, user, pwd, security, verify, oauth_token=oauth_token
+        )
 
     except (TimeoutError, AioImapException, ConnectionRefusedError) as err:
         _LOGGER.error("Unable to connect: %s", err)
@@ -316,21 +326,65 @@ async def _parse_folder_list(folderlist: list) -> list:
     return mailboxes
 
 
-def _get_schema_step_1(user_input: list, default_dict: list) -> Any:
-    """Get a schema using the default_dict as a backup."""
+def _get_schema_auth(user_input: list, default_dict: list) -> Any:
+    """Get the first schema for auth type."""
     if user_input is None:
         user_input = {}
 
     def _get_default(key: str, fallback_default: Any = None) -> None:
-        """Get default value for key."""
         return user_input.get(key, default_dict.get(key, fallback_default))
 
     return vol.Schema(
         {
-            vol.Required(CONF_HOST, default=_get_default(CONF_HOST)): cv.string,
-            vol.Required(CONF_PORT, default=_get_default(CONF_PORT, 993)): cv.port,
-            vol.Required(CONF_USERNAME, default=_get_default(CONF_USERNAME)): cv.string,
-            vol.Required(CONF_PASSWORD, default=_get_default(CONF_PASSWORD)): cv.string,
+            vol.Required(
+                CONF_AUTH_TYPE,
+                default=_get_default(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD),
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=[
+                        selector.SelectOptionDict(
+                            value=AUTH_TYPE_PASSWORD, label="Password"
+                        ),
+                        selector.SelectOptionDict(
+                            value=AUTH_TYPE_OAUTH_MICROSOFT,
+                            label="OAuth2 - Microsoft (Outlook/Exchange)",
+                        ),
+                        selector.SelectOptionDict(
+                            value=AUTH_TYPE_OAUTH_GOOGLE,
+                            label="OAuth2 - Google (Gmail)",
+                        ),
+                    ],
+                    mode=selector.SelectSelectorMode.DROPDOWN,
+                    translation_key="auth_type",
+                )
+            ),
+        }
+    )
+
+
+def _get_schema_imap(user_input: list, default_dict: list) -> Any:
+    """Get the secondary schema for IMAP configuration."""
+    if user_input is None:
+        user_input = {}
+
+    def _get_default(key: str, fallback_default: Any = None) -> None:
+        return user_input.get(key, default_dict.get(key, fallback_default))
+
+    # Determine if password field should be shown based on chosen auth_type
+    auth_type = _get_default(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+    schema = {
+        vol.Required(CONF_HOST, default=_get_default(CONF_HOST)): cv.string,
+        vol.Required(CONF_PORT, default=_get_default(CONF_PORT, 993)): cv.port,
+        vol.Required(CONF_USERNAME, default=_get_default(CONF_USERNAME)): cv.string,
+    }
+
+    if auth_type == AUTH_TYPE_PASSWORD:
+        schema[vol.Required(CONF_PASSWORD, default=_get_default(CONF_PASSWORD, ""))] = (
+            cv.string
+        )
+
+    schema.update(
+        {
             vol.Required(
                 CONF_IMAP_SECURITY, default=_get_default(CONF_IMAP_SECURITY)
             ): vol.In(IMAP_SECURITY),
@@ -339,6 +393,8 @@ def _get_schema_step_1(user_input: list, default_dict: list) -> Any:
             ): cv.boolean,
         }
     )
+
+    return vol.Schema(schema)
 
 
 async def _get_schema_step_2(
@@ -360,9 +416,10 @@ async def _get_schema_step_2(
                     data[CONF_HOST],
                     data[CONF_PORT],
                     data[CONF_USERNAME],
-                    data[CONF_PASSWORD],
+                    data.get(CONF_PASSWORD, ""),
                     data[CONF_IMAP_SECURITY],
                     data[CONF_VERIFY_SSL],
+                    data.get("token", {}).get("access_token"),
                 )
             ),
             vol.Required(
@@ -560,6 +617,13 @@ async def _validate_login(
     """Validate login credentials."""
     errors = {}
     _LOGGER.debug("Testing login...")
+
+    auth_type = user_input.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+
+    # Skip login validation for OAuth2 — auth happens via the OAuth flow
+    if auth_type != AUTH_TYPE_PASSWORD:
+        return errors
+
     try:
         imap_client = await login(
             hass,
@@ -587,14 +651,31 @@ async def _validate_login(
 
 
 @config_entries.HANDLERS.register(DOMAIN)
-class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+class MailAndPackagesFlowHandler(
+    config_entry_oauth2_flow.AbstractOAuth2FlowHandler,
+    domain=DOMAIN,
+):
     """Config flow for Mail and Packages."""
 
     VERSION = CONFIG_VER
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
+    DOMAIN = DOMAIN
+
+    @property
+    def logger(self) -> logging.Logger:
+        """Return logger."""
+        return _LOGGER
+
+    @property
+    def extra_authorize_data(self) -> dict:
+        """Extra data that needs to be appended to the authorize url."""
+        auth_type = self._data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+        scopes = OAUTH_SCOPES.get(auth_type, "")
+        return {"scope": scopes}
 
     def __init__(self):
         """Initialize."""
+        super().__init__()
         self._entry = {}
         self._data = {}
         self._errors = {}
@@ -605,29 +686,69 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             self._data.update(user_input)
+            return await self.async_step_imap_config()
+
+        return await self._show_auth_form(user_input)
+
+    async def async_step_imap_config(self, user_input=None):
+        """Handle IMAP config step after auth selection."""
+        self._errors = {}
+
+        if user_input is not None:
+            self._data.update(user_input)
+            auth_type = self._data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+
+            if auth_type != AUTH_TYPE_PASSWORD:
+                # OAuth2 flow: store provider and auto-fill IMAP defaults
+                self._data[CONF_VERIFY_SSL] = True
+                self.hass.data.setdefault(DOMAIN, {})
+                self.hass.data[DOMAIN]["oauth_provider"] = auth_type
+                return await self.async_step_pick_implementation()
+
+            # Password flow: validate login
             self._errors = await _validate_login(
                 self.hass,
-                user_input,
+                self._data,
             )
             if self._errors == {}:
                 return await self.async_step_config_2()
 
-            return await self._show_config_form(user_input)
+            return await self._show_imap_form(user_input)
 
-        return await self._show_config_form(user_input)
+        return await self._show_imap_form(user_input)
 
-    async def _show_config_form(self, user_input):
-        """Show the configuration form to edit configuration data."""
-        # Defaults
-        defaults = {
-            CONF_PORT: DEFAULT_PORT,
-            CONF_IMAP_SECURITY: "SSL",
-            CONF_VERIFY_SSL: False,
-        }
+    async def async_oauth_create_entry(
+        self, data: dict
+    ) -> config_entries.ConfigFlowResult:
+        """Handle OAuth2 completion — store token and continue to step 2."""
+        self._data.update(data)
+        return await self.async_step_config_2()
 
+    async def _show_auth_form(self, user_input):
+        """Show the authentication form."""
+        defaults = {CONF_AUTH_TYPE: AUTH_TYPE_PASSWORD}
         return self.async_show_form(
             step_id="user",
-            data_schema=_get_schema_step_1(user_input, defaults),
+            data_schema=_get_schema_auth(user_input, defaults),
+            errors=self._errors,
+        )
+
+    async def _show_imap_form(self, user_input):
+        """Show the configuration form to edit IMAP configuration data."""
+        auth_type = self._data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+        defaults = OAUTH_IMAP_DEFAULTS.get(
+            auth_type,
+            {
+                CONF_PORT: DEFAULT_PORT,
+                CONF_IMAP_SECURITY: "SSL",
+                CONF_VERIFY_SSL: False,
+            },
+        )
+        defaults[CONF_AUTH_TYPE] = auth_type
+
+        return self.async_show_form(
+            step_id="imap_config",
+            data_schema=_get_schema_imap(user_input, defaults),
             errors=self._errors,
         )
 
@@ -828,22 +949,67 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             self._data.update(user_input)
-            self._errors = await _validate_login(
-                self.hass,
-                user_input,
-            )
+            return await self.async_step_reconfig_imap()
+
+        return await self._show_reconfig_auth_form(user_input)
+
+    async def async_step_reconfig_imap(self, user_input=None):
+        """Handle IMAP step for reconfigure."""
+        self._errors = {}
+
+        if user_input is not None:
+            self._data.update(user_input)
+            auth_type = self._data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+
+            if auth_type != AUTH_TYPE_PASSWORD:
+                self._data[CONF_VERIFY_SSL] = True
+                self.hass.data.setdefault(DOMAIN, {})
+                self.hass.data[DOMAIN]["oauth_provider"] = auth_type
+                return await self.async_step_pick_implementation()
+
+            self._errors = await _validate_login(self.hass, self._data)
             if self._errors == {}:
                 return await self.async_step_reconfig_2()
 
-            return await self._show_reconfig_form(user_input)
+            return await self._show_reconfig_imap_form(user_input)
 
-        return await self._show_reconfig_form(user_input)
+        return await self._show_reconfig_imap_form(user_input)
 
-    async def _show_reconfig_form(self, user_input):
-        """Show the configuration form to edit configuration data."""
+    async def _show_reconfig_auth_form(self, user_input):
+        """Show the auth form for reconfigure."""
+        defaults = {
+            CONF_AUTH_TYPE: self._entry.data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+        }
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=_get_schema_step_1(user_input, self._data),
+            data_schema=_get_schema_auth(user_input, defaults),
+            errors=self._errors,
+        )
+
+    async def _show_reconfig_imap_form(self, user_input):
+        """Show the configuration form to edit IMAP data."""
+        auth_type = self._data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+        defaults = OAUTH_IMAP_DEFAULTS.get(
+            auth_type,
+            {
+                CONF_PORT: self._entry.data.get(CONF_PORT, DEFAULT_PORT),
+                CONF_IMAP_SECURITY: self._entry.data.get(CONF_IMAP_SECURITY, "SSL"),
+                CONF_VERIFY_SSL: self._entry.data.get(CONF_VERIFY_SSL, False),
+            },
+        )
+
+        defaults[CONF_HOST] = self._entry.data.get(CONF_HOST, defaults.get(CONF_HOST))
+        defaults[CONF_USERNAME] = self._entry.data.get(
+            CONF_USERNAME, defaults.get(CONF_USERNAME)
+        )
+        defaults[CONF_PASSWORD] = self._entry.data.get(
+            CONF_PASSWORD, defaults.get(CONF_PASSWORD)
+        )
+        defaults[CONF_AUTH_TYPE] = auth_type
+
+        return self.async_show_form(
+            step_id="reconfig_imap",
+            data_schema=_get_schema_imap(user_input, defaults),
             errors=self._errors,
         )
 

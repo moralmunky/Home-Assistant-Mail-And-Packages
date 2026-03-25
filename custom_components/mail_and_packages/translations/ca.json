@@ -15,18 +15,6 @@
       "missing_forwarded_emails": "Falten les adreces de correu electrònic reenviades. Podeu introduir \"(none)\" per esborrar aquesta configuració."
     },
     "step": {
-      "user": {
-        "description": "Introduïu la informació de connexió del vostre servidor de correu.",
-        "data": {
-          "host": "Amfitrió",
-          "password": "Contrasenya",
-          "port": "Port",
-          "username": "Nom d'usuari",
-          "verify_ssl": "Verifica el certificat SSL",
-          "imap_security": "Seguretat IMAP"
-        },
-        "title": "Correu i paquets (pas 1 de 2)"
-      },
       "config_2": {
         "data": {
           "folder": "Carpeta de correu",
@@ -65,18 +53,6 @@
         },
         "description": "Introduïu el domini des d'on Amazon envia correus electrònics (és a dir: amazon.com o amazon.de)\n\nSi utilitzeu correus electrònics reenviats d'Amazon, separeu cada adreça amb una coma o introduïu (none) per esborrar aquesta configuració.",
         "title": "Configuració d'Amazon"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "Amfitrió",
-          "password": "Contrasenya",
-          "port": "Port",
-          "username": "Nom d'usuari",
-          "imap_security": "Seguretat IMAP",
-          "verify_ssl": "Verifica el certificat SSL"
-        },
-        "description": "Introduïu la informació de connexió del vostre servidor de correu.",
-        "title": "Correu i paquets (pas 1 de 2)"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "Per defecte, la integració de correu i paquets només cerca missatges que coincideixen amb l'adreça d'un servei.\n\nSi voleu utilitzar correus electrònics reenviats, separeu cada adreça de les quals vindran els missatges amb una coma o introduïu \"(none)\" per esborrar aquesta configuració.",
         "title": "Adreces de correu electrònic reenviades"
+      },
+      "imap_config": {
+        "description": "Introduïu la informació de connexió del vostre servidor de correu.",
+        "data": {
+          "host": "Amfitrió",
+          "password": "Contrasenya",
+          "port": "Port",
+          "username": "Nom d'usuari",
+          "verify_ssl": "Verifica el certificat SSL",
+          "imap_security": "Seguretat IMAP"
+        },
+        "title": "Correu i paquets (pas 1 de 2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "Amfitrió",
+          "password": "Contrasenya",
+          "port": "Port",
+          "username": "Nom d'usuari",
+          "imap_security": "Seguretat IMAP",
+          "verify_ssl": "Verifica el certificat SSL"
+        },
+        "description": "Introduïu la informació de connexió del vostre servidor de correu.",
+        "title": "Correu i paquets (pas 1 de 2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

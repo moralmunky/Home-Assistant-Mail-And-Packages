@@ -6,7 +6,7 @@
     "@firstof9"
   ],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": ["application_credentials"],
   "documentation": "https://github.com/moralmunky/Home-Assistant-Mail-And-Packages",
   "integration_type": "service",
   "iot_class": "cloud_polling",

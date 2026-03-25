@@ -12,6 +12,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import config_entry_oauth2_flow
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -19,11 +20,13 @@ from . import const
 from .const import (
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
+    AUTH_TYPE_PASSWORD,
     CONF_AMAZON_CUSTOM_IMG,
     CONF_AMAZON_CUSTOM_IMG_FILE,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
+    CONF_AUTH_TYPE,
     CONF_FEDEX_CUSTOM_IMG,
     CONF_FEDEX_CUSTOM_IMG_FILE,
     CONF_GENERIC_CUSTOM_IMG,
@@ -94,7 +97,7 @@ async def async_setup_entry(
     config = config_entry.data
 
     # Setup the data coordinator
-    coordinator = MailDataUpdateCoordinator(hass, config)
+    coordinator = MailDataUpdateCoordinator(hass, config, config_entry)
 
     # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
@@ -210,6 +213,13 @@ async def async_migrate_entry(hass, config_entry):  # noqa: C901
     if version <= 15:
         if updated_config.get(CONF_IMAP_SECURITY) == "startTLS":
             updated_config[CONF_IMAP_SECURITY] = "SSL"
+        if CONF_AUTH_TYPE not in updated_config:
+            updated_config[CONF_AUTH_TYPE] = AUTH_TYPE_PASSWORD
+
+    if version <= 16:
+        if "auth" in updated_config:
+            auth_data = updated_config.pop("auth")
+            updated_config.update(auth_data)
 
     # Require configs on all migration paths
 
@@ -262,12 +272,13 @@ async def async_migrate_entry(hass, config_entry):  # noqa: C901
 class MailDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching mail data."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, config, config_entry=None):
         """Initialize."""
         self.interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
         self.name = f"Mail and Packages ({config.get(CONF_HOST)})"
         self.timeout = config.get(CONF_IMAP_TIMEOUT)
         self.config = config
+        self.config_entry = config_entry
         self.hass = hass
         self._data = {}
         self._file_mtime_cache = {}
@@ -300,7 +311,32 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         """Fetch data."""
         async with asyncio.timeout(self.timeout):
             try:
-                data = await process_emails(self.hass, self.config)
+                config = dict(self.config)
+
+                # Refresh OAuth2 token if using OAuth authentication
+                auth_type = config.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+                if auth_type != AUTH_TYPE_PASSWORD and self.config_entry:
+                    try:
+                        self.hass.data.setdefault(DOMAIN, {})
+                        self.hass.data[DOMAIN]["oauth_provider"] = auth_type
+
+                        implementation = await config_entry_oauth2_flow.async_get_config_entry_implementation(
+                            self.hass, self.config_entry
+                        )
+                        session = config_entry_oauth2_flow.OAuth2Session(
+                            self.hass, self.config_entry, implementation
+                        )
+                        await session.async_ensure_token_valid()
+                        config["oauth_token"] = session.token["access_token"]
+                    except Exception as err:
+                        _LOGGER.error("Error refreshing OAuth token: %s", err)
+                        raise UpdateFailed(
+                            f"OAuth token refresh failed: {err}"
+                        ) from err
+
+                data = await process_emails(self.hass, config)
+            except UpdateFailed:
+                raise
             except Exception as error:
                 _LOGGER.error("Problem updating sensors: %s", error)
                 raise UpdateFailed(error) from error

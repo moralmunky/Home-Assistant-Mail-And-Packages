@@ -15,18 +15,6 @@
       "path_not_found": "Répertoire non trouvé"
     },
     "step": {
-      "user": {
-        "description": "Veuillez entrer les informations de connexion de votre serveur de messagerie.",
-        "data": {
-          "host": "Hôte",
-          "password": "Mot de passe",
-          "port": "Port",
-          "username": "Nom d'utilisateur",
-          "verify_ssl": "Vérifier le certificat SSL",
-          "imap_security": "Sécurité IMAP"
-        },
-        "title": "Courrier et colis (étape 1 sur 2)"
-      },
       "config_2": {
         "data": {
           "folder": "Dossier de messagerie",
@@ -65,18 +53,6 @@
         },
         "description": "Veuillez entrer le domaine à partir duquel Amazon envoie des emails (par exemple : amazon.com ou amazon.de)\n\nSi vous utilisez des emails transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.",
         "title": "Paramètres Amazon"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "Hôte",
-          "password": "Mot de passe",
-          "port": "Port",
-          "username": "Nom d'utilisateur",
-          "imap_security": "Sécurité IMAP",
-          "verify_ssl": "Vérifier le certificat SSL"
-        },
-        "description": "Veuillez entrer les informations de connexion de votre serveur de messagerie.",
-        "title": "Courrier et colis (étape 1 sur 2)"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "Par défaut, l'intégration Mail and Packages ne recherche que les messages correspondant à l'adresse d'un service.\n\nSi vous souhaitez utiliser des e-mails transférés, veuillez séparer chaque adresse d'où proviendront les messages par une virgule ou entrez '(none)' pour effacer ce paramètre.",
         "title": "Adresses e-mail transférées"
+      },
+      "imap_config": {
+        "description": "Veuillez entrer les informations de connexion de votre serveur de messagerie.",
+        "data": {
+          "host": "Hôte",
+          "password": "Mot de passe",
+          "port": "Port",
+          "username": "Nom d'utilisateur",
+          "verify_ssl": "Vérifier le certificat SSL",
+          "imap_security": "Sécurité IMAP"
+        },
+        "title": "Courrier et colis (étape 1 sur 2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "Hôte",
+          "password": "Mot de passe",
+          "port": "Port",
+          "username": "Nom d'utilisateur",
+          "imap_security": "Sécurité IMAP",
+          "verify_ssl": "Vérifier le certificat SSL"
+        },
+        "description": "Veuillez entrer les informations de connexion de votre serveur de messagerie.",
+        "title": "Courrier et colis (étape 1 sur 2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

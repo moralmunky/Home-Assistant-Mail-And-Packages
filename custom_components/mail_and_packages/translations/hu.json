@@ -15,18 +15,6 @@
       "path_not_found": "Könyvtár nem található"
     },
     "step": {
-      "user": {
-        "description": "Kérjük, adja meg a levelezőszervere kapcsolati adatait.",
-        "data": {
-          "host": "Házigazda",
-          "password": "Jelszó",
-          "port": "Kikötő",
-          "username": "Felhasználónév",
-          "verify_ssl": "Ellenőrizze az SSL tanúsítványt",
-          "imap_security": "IMAP Biztonság"
-        },
-        "title": "Levél és csomagok (1. lépés a 2-ből)"
-      },
       "config_2": {
         "data": {
           "folder": "Mail mappa",
@@ -65,18 +53,6 @@
         },
         "description": "Kérjük, adja meg azt a domain-t, ahonnan az Amazon e-maileket küld (pl.: amazon.com vagy amazon.de)\n\nHa az Amazon továbbított e-maileket használ, kérjük, válassza el minden címet vesszővel, vagy írja be, hogy (nincs), hogy törölje ezt a beállítást.",
         "title": "Amazon beállítások"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "Házigazda",
-          "password": "Jelszó",
-          "port": "Kikötő",
-          "username": "Felhasználónév",
-          "imap_security": "IMAP Biztonság",
-          "verify_ssl": "Ellenőrizze az SSL tanúsítványt"
-        },
-        "description": "Kérjük, adja meg a levelezőszervere kapcsolati adatait.",
-        "title": "Levél és csomagok (1. lépés a 2-ből)"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "Alapértelmezés szerint a Mail and Packages integráció csak a szolgáltatás címével egyező üzeneteket keresi.\n\nHa továbbított e-maileket szeretne használni, kérjük, válassza el minden címet, ahonnan az üzenetek érkezni fognak, vesszővel, vagy írja be a '(none)' értéket a beállítás törléséhez.",
         "title": "Továbbított e-mail címek"
+      },
+      "imap_config": {
+        "description": "Kérjük, adja meg a levelezőszervere kapcsolati adatait.",
+        "data": {
+          "host": "Házigazda",
+          "password": "Jelszó",
+          "port": "Kikötő",
+          "username": "Felhasználónév",
+          "verify_ssl": "Ellenőrizze az SSL tanúsítványt",
+          "imap_security": "IMAP Biztonság"
+        },
+        "title": "Levél és csomagok (1. lépés a 2-ből)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "Házigazda",
+          "password": "Jelszó",
+          "port": "Kikötő",
+          "username": "Felhasználónév",
+          "imap_security": "IMAP Biztonság",
+          "verify_ssl": "Ellenőrizze az SSL tanúsítványt"
+        },
+        "description": "Kérjük, adja meg a levelezőszervere kapcsolati adatait.",
+        "title": "Levél és csomagok (1. lépés a 2-ből)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

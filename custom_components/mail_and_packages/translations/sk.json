@@ -15,18 +15,6 @@
       "path_not_found": "Adresár nebol nájdený"
     },
     "step": {
-      "user": {
-        "description": "Prosím, zadajte informácie o pripojení k vášmu mailovému serveru.",
-        "data": {
-          "host": "Host",
-          "password": "Heslo",
-          "port": "Port",
-          "username": "Užívateľské meno",
-          "verify_ssl": "Overiť SSL certifikát",
-          "imap_security": "Bezpečnosť IMAP"
-        },
-        "title": "Pošta a balíky (1. krok z 2)"
-      },
       "config_2": {
         "data": {
           "folder": "Priečinok pošty",
@@ -65,18 +53,6 @@
         },
         "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (žiadne) na vymazanie tohto nastavenia.",
         "title": "Nastavenia Amazon"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "Host",
-          "password": "Heslo",
-          "port": "Port",
-          "username": "Užívateľské meno",
-          "imap_security": "Bezpečnosť IMAP",
-          "verify_ssl": "Overiť SSL certifikát"
-        },
-        "description": "Prosím, zadajte informácie o pripojení k vášmu mailovému serveru.",
-        "title": "Pošta a balíky (1. krok z 2)"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "V predvolenom nastavení integrácia Mail and Packages vyhľadáva iba správy zodpovedajúce adrese služby.\n\nAk chcete používať preposielané e-maily, oddelte každú adresu, z ktorej budú správy prichádzať, čiarkou alebo zadajte '(none)' na vymazanie tohto nastavenia.",
         "title": "Preposielané e-mailové adresy"
+      },
+      "imap_config": {
+        "description": "Prosím, zadajte informácie o pripojení k vášmu mailovému serveru.",
+        "data": {
+          "host": "Host",
+          "password": "Heslo",
+          "port": "Port",
+          "username": "Užívateľské meno",
+          "verify_ssl": "Overiť SSL certifikát",
+          "imap_security": "Bezpečnosť IMAP"
+        },
+        "title": "Pošta a balíky (1. krok z 2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "Host",
+          "password": "Heslo",
+          "port": "Port",
+          "username": "Užívateľské meno",
+          "imap_security": "Bezpečnosť IMAP",
+          "verify_ssl": "Overiť SSL certifikát"
+        },
+        "description": "Prosím, zadajte informácie o pripojení k vášmu mailovému serveru.",
+        "title": "Pošta a balíky (1. krok z 2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

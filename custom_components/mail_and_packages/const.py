@@ -18,7 +18,7 @@ COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
 SERVICE_UPDATE_FILE_PATH = "update_file_path"
 CAMERA = "cameras"
-CONFIG_VER = 15
+CONFIG_VER = 17
 
 # Attributes
 ATTR_AMAZON_IMAGE = "amazon_image"
@@ -1599,3 +1599,30 @@ SHIPPERS = [
     "dpd_nl",
     "bolcom",
 ]
+
+# Authentication types
+CONF_AUTH_TYPE = "auth_type"
+AUTH_TYPE_PASSWORD = "password"
+AUTH_TYPE_OAUTH_MICROSOFT = "oauth2_microsoft"
+AUTH_TYPE_OAUTH_GOOGLE = "oauth2_google"
+AUTH_TYPES = [AUTH_TYPE_PASSWORD, AUTH_TYPE_OAUTH_MICROSOFT, AUTH_TYPE_OAUTH_GOOGLE]
+
+# OAuth2 scopes per provider
+OAUTH_SCOPES = {
+    AUTH_TYPE_OAUTH_MICROSOFT: "https://outlook.office365.com/IMAP.AccessAsUser.All offline_access",
+    AUTH_TYPE_OAUTH_GOOGLE: "https://mail.google.com/",
+}
+
+# OAuth2 provider IMAP defaults
+OAUTH_IMAP_DEFAULTS = {
+    AUTH_TYPE_OAUTH_MICROSOFT: {
+        "host": "outlook.office365.com",
+        "port": 993,
+        "imap_security": "SSL",
+    },
+    AUTH_TYPE_OAUTH_GOOGLE: {
+        "host": "imap.gmail.com",
+        "port": 993,
+        "imap_security": "SSL",
+    },
+}

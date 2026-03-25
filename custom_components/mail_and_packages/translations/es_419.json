@@ -15,18 +15,6 @@
       "path_not_found": "Directorio no encontrado"
     },
     "step": {
-      "user": {
-        "description": "Por favor, ingrese la información de conexión de su servidor de correo.",
-        "data": {
-          "host": "Anfitrión",
-          "password": "Contraseña",
-          "port": "Puerto",
-          "username": "Nombre de usuario",
-          "verify_ssl": "Verificar Certificado SSL",
-          "imap_security": "Seguridad IMAP"
-        },
-        "title": "Correo y paquetes (Paso 1 de 2)"
-      },
       "config_2": {
         "data": {
           "folder": "Carpeta de correo",
@@ -65,18 +53,6 @@
         },
         "description": "Por favor, ingrese el dominio desde el cual Amazon envía correos electrónicos (es decir: amazon.com o amazon.de)\n\nSi utiliza correos electrónicos reenviados por Amazon, separe cada dirección con una coma o ingrese (ninguno) para borrar esta configuración.",
         "title": "Configuración de Amazon"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "Anfitrión",
-          "password": "Contraseña",
-          "port": "Puerto",
-          "username": "Nombre de usuario",
-          "imap_security": "Seguridad IMAP",
-          "verify_ssl": "Verificar Certificado SSL"
-        },
-        "description": "Por favor, ingrese la información de conexión de su servidor de correo.",
-        "title": "Correo y paquetes (Paso 1 de 2)"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "Por defecto, la integración de correo y paquetes solo busca mensajes que coinciden con la dirección de un servicio.\n\nSi desea utilizar correos electrónicos reenviados, separe cada dirección de la que vendrán los mensajes con una coma o ingrese '(none)' para borrar esta configuración.",
         "title": "Direcciones de correo electrónico reenviadas"
+      },
+      "imap_config": {
+        "description": "Por favor, ingrese la información de conexión de su servidor de correo.",
+        "data": {
+          "host": "Anfitrión",
+          "password": "Contraseña",
+          "port": "Puerto",
+          "username": "Nombre de usuario",
+          "verify_ssl": "Verificar Certificado SSL",
+          "imap_security": "Seguridad IMAP"
+        },
+        "title": "Correo y paquetes (Paso 1 de 2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "Anfitrión",
+          "password": "Contraseña",
+          "port": "Puerto",
+          "username": "Nombre de usuario",
+          "imap_security": "Seguridad IMAP",
+          "verify_ssl": "Verificar Certificado SSL"
+        },
+        "description": "Por favor, ingrese la información de conexión de su servidor de correo.",
+        "title": "Correo y paquetes (Paso 1 de 2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }
