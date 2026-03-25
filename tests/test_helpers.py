@@ -4198,18 +4198,22 @@ async def test_login_exception(hass, caplog):
 
 @pytest.mark.asyncio
 async def test_email_search_unicode_error(caplog):
-    """Test email search with unicode characters failure."""
+    """Test email search with unicode characters strips non-ASCII and uses charset=None."""
     mock_imap = MagicMock()
-    # Simulate OSError during a literal search
-    mock_imap.search.side_effect = OSError("Literal search failed")
+    # Simulate OSError during search
+    mock_imap.search.side_effect = OSError("Search failed")
 
-    # Passing a non-ascii subject triggers the utf8_flag logic
+    # Passing a non-ascii subject should still work (stripped to ASCII)
     check, value = await email_search(
         mock_imap, ["test@test.com"], "01-Jan-2024", subject="Pâckage"
     )
 
     assert check == "BAD"
-    assert "Error searching emails: Literal search failed" in caplog.text
+    assert "Error searching emails: Search failed" in caplog.text
+    # Verify charset=None was used (not UTF-8)
+    mock_imap.search.assert_called_once()
+    call_kwargs = mock_imap.search.call_args
+    assert call_kwargs[1]["charset"] is None
 
 
 def test_cleanup_images_directory_missing(caplog):
@@ -4887,6 +4891,52 @@ def test_build_search_no_subject():
 
     assert utf8 is False
     assert search == '(FROM "test1@test.com" SINCE 01-Jan-2024)'
+
+
+def test_build_search_non_ascii_subject():
+    """Test build_search strips non-ASCII characters from subject."""
+    addresses = ["test@test.com"]
+    # French subject with accented character
+    utf8, search = build_search(addresses, "01-Jan-2024", subject="Livré")
+    assert utf8 is False
+    # "Livré" should be stripped to "Livr"
+    assert 'SUBJECT "Livr"' in search
+    assert "é" not in search
+
+    # Polish subject with special characters
+    utf8, search = build_search(addresses, "01-Jan-2024", subject="została doręczona")
+    assert utf8 is False
+    assert 'SUBJECT "zostaa dorczona"' in search
+
+
+def test_build_search_ascii_subject_unchanged():
+    """Test build_search does not modify ASCII-only subjects."""
+    addresses = ["test@test.com"]
+    utf8, search = build_search(addresses, "01-Jan-2024", subject="Delivered: ")
+    assert utf8 is False
+    assert 'SUBJECT "Delivered: "' in search
+
+
+@pytest.mark.asyncio
+async def test_email_search_always_uses_charset_none():
+    """Test email_search always passes charset=None to account.search()."""
+    mock_imap = MagicMock()
+    mock_res = MagicMock()
+    mock_res.result = "OK"
+    mock_res.lines = [b"1 2"]
+    mock_imap.search = AsyncMock(return_value=mock_res)
+
+    # Test with ASCII subject
+    await email_search(mock_imap, ["test@test.com"], "01-Jan-2024", subject="Delivered")
+    call_kwargs = mock_imap.search.call_args
+    assert call_kwargs[1]["charset"] is None
+
+    mock_imap.search.reset_mock()
+
+    # Test with non-ASCII subject - should still use charset=None
+    await email_search(mock_imap, ["test@test.com"], "01-Jan-2024", subject="Livré")
+    call_kwargs = mock_imap.search.call_args
+    assert call_kwargs[1]["charset"] is None
 
 
 # @pytest.mark.asyncio

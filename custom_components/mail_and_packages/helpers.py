@@ -763,10 +763,13 @@ def build_search(address: list, date: str, subject: str = "") -> tuple:
     """Build IMAP search query.
 
     Return tuple of utf8 flag and search query.
+    Non-ASCII characters are stripped from subject to ensure compatibility
+    with servers that only support US-ASCII charset (e.g. Microsoft Exchange).
+    IMAP SUBJECT performs substring matching, so stripping non-ASCII chars
+    still matches the original subject (e.g. 'Livr' matches 'Livré').
     """
     the_date = f"SINCE {date}"
     imap_search = None
-    utf8_flag = False
     prefix_list = None
     email_list = None
 
@@ -779,14 +782,12 @@ def build_search(address: list, date: str, subject: str = "") -> tuple:
     _LOGGER.debug("DEBUG subject: %s", subject)
 
     if subject is not None:
-        if not subject.isascii():
-            utf8_flag = True
+        # Strip non-ASCII characters for IMAP server compatibility
+        safe_subject = subject.encode("ascii", "ignore").decode("ascii")
         if prefix_list is not None:
-            imap_search = (
-                f'({prefix_list} FROM "{email_list}" SUBJECT "{subject}" {the_date})'
-            )
+            imap_search = f'({prefix_list} FROM "{email_list}" SUBJECT "{safe_subject}" {the_date})'
         else:
-            imap_search = f'(FROM "{email_list}" SUBJECT "{subject}" {the_date})'
+            imap_search = f'(FROM "{email_list}" SUBJECT "{safe_subject}" {the_date})'
     elif prefix_list is not None:
         imap_search = f'({prefix_list} FROM "{email_list}" {the_date})'
     else:
@@ -794,20 +795,22 @@ def build_search(address: list, date: str, subject: str = "") -> tuple:
 
     _LOGGER.debug("DEBUG imap_search: %s", imap_search)
 
-    return (utf8_flag, imap_search)
+    return (False, imap_search)
 
 
 async def email_search(
     account: IMAP4_SSL, address: list, date: str, subject: str = ""
 ) -> tuple:
-    """Search emails with from, subject, and date asynchronously."""
-    utf8_flag, search = build_search(address, date, subject)
+    """Search emails with from, subject, and date asynchronously.
+
+    Always uses charset=None to avoid sending CHARSET in the IMAP SEARCH
+    command, ensuring compatibility with servers like Microsoft Exchange
+    that only support US-ASCII.
+    """
+    _unused, search = build_search(address, date, subject)
 
     try:
-        if utf8_flag:
-            res = await account.search(search, charset="UTF-8")
-        else:
-            res = await account.search(search)
+        res = await account.search(search, charset=None)
     except (AioImapException, OSError) as err:
         _LOGGER.error("Error searching emails: %s", err)
         return ("BAD", str(err))
