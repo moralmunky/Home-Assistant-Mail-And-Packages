@@ -7184,6 +7184,7 @@ async def test_oauth_reconfig_flow_selection(hass, mock_imap_no_email, integrati
 
         handler = MailAndPackagesFlowHandler()
         handler.hass = hass
+        handler._entry = entry  # noqa: SLF001
         handler._data = {  # noqa: SLF001
             "auth_type": "oauth2_google",
             "host": "imap.test.email",
@@ -7206,7 +7207,7 @@ async def test_oauth_reconfig_flow_selection(hass, mock_imap_no_email, integrati
         ):
             result2 = await handler.async_oauth_create_entry({"access_token": "fake"})
             assert result2["type"] == "form"
-            assert result2["step_id"] == "config_2"
+            assert result2["step_id"] == "reconfig_2"
 
 
 @pytest.mark.asyncio
