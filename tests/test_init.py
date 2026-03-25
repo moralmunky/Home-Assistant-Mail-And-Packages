@@ -229,6 +229,32 @@ async def test_migration_from_version_14_to_17():
     assert kwargs["version"] == 17
 
 
+async def test_migration_from_version_16_to_17():
+    """Test migration from version 16 to 17 (flattening auth data)."""
+
+    # Mock config entry with version 16 and nested auth data
+    mock_config_entry = MagicMock()
+    mock_config_entry.version = 16
+    mock_config_entry.data = {
+        "auth": {"token": "test_token", "access_token": "test_access_token"},
+        "host": "imap.gmail.com",
+    }
+
+    # Mock hass
+    mock_hass = MagicMock()
+
+    # Should migrate successfully
+    result = await async_migrate_entry(mock_hass, mock_config_entry)
+    assert result is True
+
+    # Verify that the async_update_entry was called to flatten the auth data
+    args, kwargs = mock_hass.config_entries.async_update_entry.call_args
+    assert "auth" not in kwargs["data"]
+    assert kwargs["data"]["token"] == "test_token"
+    assert kwargs["data"]["access_token"] == "test_access_token"
+    assert kwargs["version"] == 17
+
+
 async def test_setup_entry_coordinator_failure():
     """Test setup_entry when coordinator fails to update."""
     mock_hass = MagicMock()

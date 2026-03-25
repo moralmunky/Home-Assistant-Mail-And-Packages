@@ -263,9 +263,6 @@ class MailCam(CoordinatorEntity, Camera):
             path_suffix = f"{base_name}/"
             no_mail_check = "no_deliveries"
 
-            if image_attr is None:
-                continue
-
             required_keys = {image_attr, ATTR_IMAGE_PATH}
             if not required_keys.issubset(self.coordinator.data):
                 continue
