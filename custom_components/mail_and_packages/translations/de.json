@@ -15,18 +15,6 @@
       "path_not_found": "Verzeichnis nicht gefunden"
     },
     "step": {
-      "user": {
-        "description": "Bitte geben Sie die Verbindungsinformationen Ihres Mail-Servers ein.",
-        "data": {
-          "host": "Host",
-          "password": "Passwort",
-          "port": "Port",
-          "username": "Nutzername",
-          "verify_ssl": "SSL-Zertifikat überprüfen",
-          "imap_security": "IMAP-Sicherheit"
-        },
-        "title": "Briefe und Pakete (Schritt 1 von 2)"
-      },
       "config_2": {
         "data": {
           "folder": "E-Mail-Ordner",
@@ -65,18 +53,6 @@
         },
         "description": "Bitte geben Sie die Domain ein, von der Amazon E-Mails sendet (z.B.: amazon.com oder amazon.de)\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse mit einem Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
         "title": "Amazon Einstellungen"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "Host",
-          "password": "Passwort",
-          "port": "Port",
-          "username": "Nutzername",
-          "imap_security": "IMAP-Sicherheit",
-          "verify_ssl": "SSL-Zertifikat überprüfen"
-        },
-        "description": "Bitte geben Sie die Verbindungsinformationen Ihres Mail-Servers ein.",
-        "title": "Briefe und Pakete (Schritt 1 von 2)"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "Standardmäßig sucht die Mail- und Paket-Integration nur nach Nachrichten, die mit der Adresse eines Dienstes übereinstimmen.\n\nWenn Sie weitergeleitete E-Mails verwenden möchten, trennen Sie bitte jede Adresse, von der Nachrichten kommen werden, durch ein Komma oder geben Sie '(none)' ein, um diese Einstellung zu löschen.",
         "title": "Weitergeleitete E-Mail-Adressen"
+      },
+      "imap_config": {
+        "description": "Bitte geben Sie die Verbindungsinformationen Ihres Mail-Servers ein.",
+        "data": {
+          "host": "Host",
+          "password": "Passwort",
+          "port": "Port",
+          "username": "Nutzername",
+          "verify_ssl": "SSL-Zertifikat überprüfen",
+          "imap_security": "IMAP-Sicherheit"
+        },
+        "title": "Briefe und Pakete (Schritt 1 von 2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "Host",
+          "password": "Passwort",
+          "port": "Port",
+          "username": "Nutzername",
+          "imap_security": "IMAP-Sicherheit",
+          "verify_ssl": "SSL-Zertifikat überprüfen"
+        },
+        "description": "Bitte geben Sie die Verbindungsinformationen Ihres Mail-Servers ein.",
+        "title": "Briefe und Pakete (Schritt 1 von 2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

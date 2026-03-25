@@ -15,18 +15,6 @@
       "path_not_found": "Map niet gevonden"
     },
     "step": {
-      "user": {
-        "description": "Vul de verbindingsinformatie van uw mailserver in.",
-        "data": {
-          "host": "Gastheer",
-          "password": "Wachtwoord",
-          "port": "Haven",
-          "username": "Gebruikersnaam",
-          "verify_ssl": "SSL Certificaat Verifiëren",
-          "imap_security": "IMAP-beveiliging"
-        },
-        "title": "Mail en pakketten (stap 1 van 2)"
-      },
       "config_2": {
         "data": {
           "folder": "E-mailmap",
@@ -65,18 +53,6 @@
         },
         "description": "Voer het domein in waarvan Amazon e-mails verstuurt (bijv: amazon.com of amazon.de)\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
         "title": "Amazon Instellingen"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "Gastheer",
-          "password": "Wachtwoord",
-          "port": "Haven",
-          "username": "Gebruikersnaam",
-          "imap_security": "IMAP-beveiliging",
-          "verify_ssl": "SSL Certificaat Verifiëren"
-        },
-        "description": "Vul de verbindingsinformatie van uw mailserver in.",
-        "title": "Mail en pakketten (stap 1 van 2)"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "Standaard zoekt de Mail and Packages-integratie alleen naar berichten die overeenkomen met het adres van een service.\n\nAls u doorgestuurde e-mails wilt gebruiken, scheid dan elk adres waarvan berichten zullen komen met een komma of voer '(none)' in om deze instelling te wissen.",
         "title": "Doorgestuurde e-mailadressen"
+      },
+      "imap_config": {
+        "description": "Vul de verbindingsinformatie van uw mailserver in.",
+        "data": {
+          "host": "Gastheer",
+          "password": "Wachtwoord",
+          "port": "Haven",
+          "username": "Gebruikersnaam",
+          "verify_ssl": "SSL Certificaat Verifiëren",
+          "imap_security": "IMAP-beveiliging"
+        },
+        "title": "Mail en pakketten (stap 1 van 2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "Gastheer",
+          "password": "Wachtwoord",
+          "port": "Haven",
+          "username": "Gebruikersnaam",
+          "imap_security": "IMAP-beveiliging",
+          "verify_ssl": "SSL Certificaat Verifiëren"
+        },
+        "description": "Vul de verbindingsinformatie van uw mailserver in.",
+        "title": "Mail en pakketten (stap 1 van 2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

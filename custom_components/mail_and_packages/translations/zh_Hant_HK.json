@@ -15,18 +15,6 @@
       "path_not_found": "找不到目錄"
     },
     "step": {
-      "user": {
-        "description": "請輸入您的郵件伺服器的連接資訊。",
-        "data": {
-          "host": "主辦",
-          "password": "密碼",
-          "port": "港口",
-          "username": "用戶名",
-          "verify_ssl": "驗證 SSL 證書",
-          "imap_security": "IMAP 安全性"
-        },
-        "title": "郵件和包裹（第1步，共2步）"
-      },
       "config_2": {
         "data": {
           "folder": "郵件文件夾",
@@ -65,18 +53,6 @@
         },
         "description": "請輸入亞馬遜發送電子郵件的域名（例如：amazon.com或amazon.de）\n\n如果使用亞馬遜轉發的電子郵件，請用逗號分隔每個地址，或輸入（無）以清除此設定。",
         "title": "Amazon 設定"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "主辦",
-          "password": "密碼",
-          "port": "港口",
-          "username": "用戶名",
-          "imap_security": "IMAP 安全性",
-          "verify_ssl": "驗證 SSL 證書"
-        },
-        "description": "請輸入您的郵件伺服器的連接資訊。",
-        "title": "郵件和包裹（第1步，共2步）"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "預設情況下，Mail and Packages 整合只會搜尋與服務地址相符的訊息。\n\n如果您想使用轉發的電郵，請用逗號分隔每個訊息來源的地址，或輸入 '(none)' 來清除此設定。",
         "title": "轉發的電郵地址"
+      },
+      "imap_config": {
+        "description": "請輸入您的郵件伺服器的連接資訊。",
+        "data": {
+          "host": "主辦",
+          "password": "密碼",
+          "port": "港口",
+          "username": "用戶名",
+          "verify_ssl": "驗證 SSL 證書",
+          "imap_security": "IMAP 安全性"
+        },
+        "title": "郵件和包裹（第1步，共2步）"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "主辦",
+          "password": "密碼",
+          "port": "港口",
+          "username": "用戶名",
+          "imap_security": "IMAP 安全性",
+          "verify_ssl": "驗證 SSL 證書"
+        },
+        "description": "請輸入您的郵件伺服器的連接資訊。",
+        "title": "郵件和包裹（第1步，共2步）"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

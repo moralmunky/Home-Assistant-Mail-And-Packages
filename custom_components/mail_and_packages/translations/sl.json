@@ -15,18 +15,6 @@
       "path_not_found": "Mapa ni najdena"
     },
     "step": {
-      "user": {
-        "description": "Prosimo, vnesite podatke o povezavi vašega poštnega strežnika.",
-        "data": {
-          "host": "Gostitelj",
-          "password": "Geslo",
-          "port": "Pristanišče",
-          "username": "Uporabniško ime",
-          "verify_ssl": "Preveri SSL certifikat",
-          "imap_security": "Varnost IMAP"
-        },
-        "title": "Pošta in paketi (1. korak od 2)"
-      },
       "config_2": {
         "data": {
           "folder": "Mapa mape",
@@ -65,18 +53,6 @@
         },
         "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
         "title": "Nastavitve Amazon"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "Gostitelj",
-          "password": "Geslo",
-          "port": "Pristanišče",
-          "username": "Uporabniško ime",
-          "imap_security": "Varnost IMAP",
-          "verify_ssl": "Preveri SSL certifikat"
-        },
-        "description": "Prosimo, vnesite podatke o povezavi vašega poštnega strežnika.",
-        "title": "Pošta in paketi (1. korak od 2)"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "Privzeto integracija Mail and Packages išče samo sporočila, ki ustrezajo naslovu storitve.\n\nČe želite uporabljati posredovana e-poštna sporočila, ločite vsak naslov, s katerega bodo prihajala sporočila, z vejico ali vnesite '(none)' za izbris te nastavitve.",
         "title": "Posredovani e-poštni naslovi"
+      },
+      "imap_config": {
+        "description": "Prosimo, vnesite podatke o povezavi vašega poštnega strežnika.",
+        "data": {
+          "host": "Gostitelj",
+          "password": "Geslo",
+          "port": "Pristanišče",
+          "username": "Uporabniško ime",
+          "verify_ssl": "Preveri SSL certifikat",
+          "imap_security": "Varnost IMAP"
+        },
+        "title": "Pošta in paketi (1. korak od 2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "Gostitelj",
+          "password": "Geslo",
+          "port": "Pristanišče",
+          "username": "Uporabniško ime",
+          "imap_security": "Varnost IMAP",
+          "verify_ssl": "Preveri SSL certifikat"
+        },
+        "description": "Prosimo, vnesite podatke o povezavi vašega poštnega strežnika.",
+        "title": "Pošta in paketi (1. korak od 2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

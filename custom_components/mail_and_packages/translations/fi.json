@@ -15,18 +15,6 @@
       "path_not_found": "Hakemistoa ei löydy"
     },
     "step": {
-      "user": {
-        "description": "Anna postipalvelimesi yhteystiedot.",
-        "data": {
-          "host": "isäntä",
-          "password": "Salasana",
-          "port": "portti",
-          "username": "Käyttäjätunnus",
-          "verify_ssl": "Varmenna SSL-sertifikaatti",
-          "imap_security": "IMAP-tietoturva"
-        },
-        "title": "Posti ja paketit (vaihe 1/2)"
-      },
       "config_2": {
         "data": {
           "folder": "Mail-kansio",
@@ -65,18 +53,6 @@
         },
         "description": "Anna domaini, josta Amazon lähettää sähköposteja (esim: amazon.com tai amazon.de)\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai kirjoita (none) tyhjentääksesi tämän asetuksen.",
         "title": "Amazonin asetukset"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "isäntä",
-          "password": "Salasana",
-          "port": "portti",
-          "username": "Käyttäjätunnus",
-          "imap_security": "IMAP-tietoturva",
-          "verify_ssl": "Varmenna SSL-sertifikaatti"
-        },
-        "description": "Anna postipalvelimesi yhteystiedot.",
-        "title": "Posti ja paketit (vaihe 1/2)"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "Oletuksena Mail and Packages -integraatio etsii vain viestejä, jotka vastaavat palvelun osoitetta.\n\nJos haluat käyttää edelleenlähetettyjä sähköposteja, erota jokainen osoite, josta viestit tulevat, pilkulla tai syötä '(none)' tyhjentääksesi tämän asetuksen.",
         "title": "Edelleenlähetetyt sähköpostiosoitteet"
+      },
+      "imap_config": {
+        "description": "Anna postipalvelimesi yhteystiedot.",
+        "data": {
+          "host": "isäntä",
+          "password": "Salasana",
+          "port": "portti",
+          "username": "Käyttäjätunnus",
+          "verify_ssl": "Varmenna SSL-sertifikaatti",
+          "imap_security": "IMAP-tietoturva"
+        },
+        "title": "Posti ja paketit (vaihe 1/2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "isäntä",
+          "password": "Salasana",
+          "port": "portti",
+          "username": "Käyttäjätunnus",
+          "imap_security": "IMAP-tietoturva",
+          "verify_ssl": "Varmenna SSL-sertifikaatti"
+        },
+        "description": "Anna postipalvelimesi yhteystiedot.",
+        "title": "Posti ja paketit (vaihe 1/2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

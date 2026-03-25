@@ -15,18 +15,6 @@
       "path_not_found": "Katalog nie został znaleziony"
     },
     "step": {
-      "user": {
-        "description": "Proszę wprowadzić informacje o połączeniu z serwerem pocztowym.",
-        "data": {
-          "host": "Gospodarz",
-          "password": "Hasło",
-          "port": "Port",
-          "username": "Nazwa Użytkownika",
-          "verify_ssl": "Sprawdź certyfikat SSL",
-          "imap_security": "Bezpieczeństwo IMAP"
-        },
-        "title": "Poczta i paczki (krok 1 z 2)"
-      },
       "config_2": {
         "data": {
           "folder": "Folder poczty",
@@ -65,18 +53,6 @@
         },
         "description": "Wprowadź domenę, z której Amazon wysyła e-maile (np. amazon.com lub amazon.de)\n\nJeśli korzystasz z przekierowanych e-maili od Amazon, oddziel każdy adres przecinkiem lub wpisz (brak), aby wyczyścić to ustawienie.",
         "title": "Ustawienia Amazon"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "Gospodarz",
-          "password": "Hasło",
-          "port": "Port",
-          "username": "Nazwa Użytkownika",
-          "imap_security": "Bezpieczeństwo IMAP",
-          "verify_ssl": "Sprawdź certyfikat SSL"
-        },
-        "description": "Proszę wprowadzić informacje o połączeniu z serwerem pocztowym.",
-        "title": "Poczta i paczki (krok 1 z 2)"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "Domyślnie integracja Mail and Packages wyszukuje tylko wiadomości pasujące do adresu usługi.\n\nJeśli chcesz używać przekierowanych e-maili, oddziel każdy adres, z którego będą przychodzić wiadomości, przecinkiem lub wprowadź '(none)', aby wyczyścić to ustawienie.",
         "title": "Przekierowane adresy e-mail"
+      },
+      "imap_config": {
+        "description": "Proszę wprowadzić informacje o połączeniu z serwerem pocztowym.",
+        "data": {
+          "host": "Gospodarz",
+          "password": "Hasło",
+          "port": "Port",
+          "username": "Nazwa Użytkownika",
+          "verify_ssl": "Sprawdź certyfikat SSL",
+          "imap_security": "Bezpieczeństwo IMAP"
+        },
+        "title": "Poczta i paczki (krok 1 z 2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "Gospodarz",
+          "password": "Hasło",
+          "port": "Port",
+          "username": "Nazwa Użytkownika",
+          "imap_security": "Bezpieczeństwo IMAP",
+          "verify_ssl": "Sprawdź certyfikat SSL"
+        },
+        "description": "Proszę wprowadzić informacje o połączeniu z serwerem pocztowym.",
+        "title": "Poczta i paczki (krok 1 z 2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

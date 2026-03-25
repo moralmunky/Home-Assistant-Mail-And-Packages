@@ -15,18 +15,6 @@
       "path_not_found": "Mappen ble ikke funnet"
     },
     "step": {
-      "user": {
-        "description": "Vennligst oppgi tilkoblingsinformasjonen til din e-postserver.",
-        "data": {
-          "host": "Vert",
-          "password": "Passord",
-          "port": "Havn",
-          "username": "Brukernavn",
-          "verify_ssl": "Bekreft SSL-sertifikat",
-          "imap_security": "IMAP-sikkerhet"
-        },
-        "title": "E-post og pakker (trinn 1 av 2)"
-      },
       "config_2": {
         "data": {
           "folder": "E-postmappe",
@@ -65,18 +53,6 @@
         },
         "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (ingen) for å tømme denne innstillingen.",
         "title": "Amazon-innstillinger"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "Vert",
-          "password": "Passord",
-          "port": "Havn",
-          "username": "Brukernavn",
-          "imap_security": "IMAP-sikkerhet",
-          "verify_ssl": "Bekreft SSL-sertifikat"
-        },
-        "description": "Vennligst oppgi tilkoblingsinformasjonen til din e-postserver.",
-        "title": "E-post og pakker (trinn 1 av 2)"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "Som standard søker Mail and Packages-integrasjonen bare etter meldinger som samsvarer med en tjenestes adresse.\n\nHvis du vil bruke videresendte e-poster, vennligst skill hver adresse meldingene kommer fra med et komma eller skriv inn '(none)' for å tømme denne innstillingen.",
         "title": "Videresendte e-postadresser"
+      },
+      "imap_config": {
+        "description": "Vennligst oppgi tilkoblingsinformasjonen til din e-postserver.",
+        "data": {
+          "host": "Vert",
+          "password": "Passord",
+          "port": "Havn",
+          "username": "Brukernavn",
+          "verify_ssl": "Bekreft SSL-sertifikat",
+          "imap_security": "IMAP-sikkerhet"
+        },
+        "title": "E-post og pakker (trinn 1 av 2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "Vert",
+          "password": "Passord",
+          "port": "Havn",
+          "username": "Brukernavn",
+          "imap_security": "IMAP-sikkerhet",
+          "verify_ssl": "Bekreft SSL-sertifikat"
+        },
+        "description": "Vennligst oppgi tilkoblingsinformasjonen til din e-postserver.",
+        "title": "E-post og pakker (trinn 1 av 2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

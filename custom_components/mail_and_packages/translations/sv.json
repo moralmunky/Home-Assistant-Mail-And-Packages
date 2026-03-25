@@ -15,18 +15,6 @@
       "path_not_found": "Katalogen hittades inte"
     },
     "step": {
-      "user": {
-        "description": "Vänligen ange anslutningsinformationen för din e-postserver.",
-        "data": {
-          "host": "Värd",
-          "password": "Lösenord",
-          "port": "Hamn",
-          "username": "Användarnamn",
-          "verify_ssl": "Verifiera SSL-certifikat",
-          "imap_security": "IMAP-säkerhet"
-        },
-        "title": "Mail och paket (steg 1 av 2)"
-      },
       "config_2": {
         "data": {
           "folder": "E-postmapp",
@@ -65,18 +53,6 @@
         },
         "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
         "title": "Amazon-inställningar"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "Värd",
-          "password": "Lösenord",
-          "port": "Hamn",
-          "username": "Användarnamn",
-          "imap_security": "IMAP-säkerhet",
-          "verify_ssl": "Verifiera SSL-certifikat"
-        },
-        "description": "Vänligen ange anslutningsinformationen för din e-postserver.",
-        "title": "Mail och paket (steg 1 av 2)"
       },
       "reconfig_2": {
         "data": {
@@ -144,6 +120,53 @@
         },
         "description": "Som standard söker Mail and Packages-integrationen endast efter meddelanden som matchar en tjänsts adress.\n\nOm du vill använda vidarebefordrade e-postmeddelanden, separera varje adress som meddelanden kommer från med ett kommatecken eller ange '(none)' för att rensa denna inställning.",
         "title": "Vidarebefordrade e-postadresser"
+      },
+      "imap_config": {
+        "description": "Vänligen ange anslutningsinformationen för din e-postserver.",
+        "data": {
+          "host": "Värd",
+          "password": "Lösenord",
+          "port": "Hamn",
+          "username": "Användarnamn",
+          "verify_ssl": "Verifiera SSL-certifikat",
+          "imap_security": "IMAP-säkerhet"
+        },
+        "title": "Mail och paket (steg 1 av 2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "Värd",
+          "password": "Lösenord",
+          "port": "Hamn",
+          "username": "Användarnamn",
+          "imap_security": "IMAP-säkerhet",
+          "verify_ssl": "Verifiera SSL-certifikat"
+        },
+        "description": "Vänligen ange anslutningsinformationen för din e-postserver.",
+        "title": "Mail och paket (steg 1 av 2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }
