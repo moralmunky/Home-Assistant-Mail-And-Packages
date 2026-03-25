@@ -14,7 +14,10 @@ from custom_components.mail_and_packages import (
     async_remove_config_entry_device,
     async_setup_entry,
 )
-from custom_components.mail_and_packages.const import DOMAIN
+from custom_components.mail_and_packages.const import (
+    CONF_AUTH_TYPE,
+    DOMAIN,
+)
 from tests.const import FAKE_CONFIG_DATA
 
 
@@ -593,3 +596,60 @@ async def test_binary_sensor_update_missing_image_attr(hass, tmp_path):
         # This should hit line 335 and continue without error
         await coordinator._binary_sensor_update()  # noqa: SLF001
         assert "nonexistent_update" not in coordinator._data  # noqa: SLF001
+
+
+@pytest.mark.asyncio
+async def test_update_with_oauth(hass, mock_update):
+    """Test OAuth token refresh during update."""
+
+    mock_config = FAKE_CONFIG_DATA.copy()
+    mock_config[CONF_AUTH_TYPE] = "oauth2_microsoft"
+    mock_config_entry = MockConfigEntry(domain=DOMAIN, data=mock_config)
+
+    coordinator = MailDataUpdateCoordinator(hass, mock_config)
+    coordinator.config_entry = mock_config_entry
+
+    with (
+        patch(
+            "homeassistant.helpers.config_entry_oauth2_flow.async_get_config_entry_implementation",
+            return_value=MagicMock(),
+        ),
+        patch(
+            "homeassistant.helpers.config_entry_oauth2_flow.OAuth2Session"
+        ) as mock_session_cls,
+        patch(
+            "custom_components.mail_and_packages.process_emails",
+            return_value={"test": "data"},
+        ) as mock_process_emails,
+    ):
+        mock_session = mock_session_cls.return_value
+        mock_session.async_ensure_token_valid = AsyncMock()
+        mock_session.token = {"access_token": "fake_token"}
+
+        await coordinator._async_update_data()  # noqa: SLF001
+
+        mock_session.async_ensure_token_valid.assert_called_once()
+        mock_process_emails.assert_called_once()
+        called_config = mock_process_emails.call_args[0][1]
+        assert called_config["oauth_token"] == "fake_token"
+
+
+@pytest.mark.asyncio
+async def test_update_with_oauth_error(hass, mock_update):
+    """Test OAuth token refresh fails during update."""
+
+    mock_config = FAKE_CONFIG_DATA.copy()
+    mock_config[CONF_AUTH_TYPE] = "oauth2_microsoft"
+    mock_config_entry = MockConfigEntry(domain=DOMAIN, data=mock_config)
+
+    coordinator = MailDataUpdateCoordinator(hass, mock_config)
+    coordinator.config_entry = mock_config_entry
+
+    with (
+        patch(
+            "homeassistant.helpers.config_entry_oauth2_flow.async_get_config_entry_implementation",
+            side_effect=Exception("Failed to get implementation"),
+        ),
+        pytest.raises(UpdateFailed),
+    ):
+        await coordinator._async_update_data()  # noqa: SLF001

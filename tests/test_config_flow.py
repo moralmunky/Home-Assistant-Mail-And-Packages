@@ -21,6 +21,7 @@ from custom_components.mail_and_packages.config_flow import (
     _check_forwarded_emails,
     _get_mailboxes,
     _get_schema_step_3,
+    _validate_login,
     _validate_user_input,
 )
 from custom_components.mail_and_packages.const import (
@@ -7079,3 +7080,138 @@ async def test_reconfig_storage_validation_error(hass, mock_imap_no_email, integ
     assert result["type"] == "form"
     assert result["step_id"] == "reconfig_storage"
     assert result["errors"] != {}
+
+
+@pytest.mark.asyncio
+async def test_oauth_config_flow_selection(hass, mock_imap_no_email):
+    """Test OAuth2 provider selection in config flow."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == "user"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"auth_type": "oauth2_microsoft"}
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == "imap_config"
+
+    # In imap_config step, submitting it should start OAuth config entry creation
+    with patch(
+        "homeassistant.helpers.config_entry_oauth2_flow.AbstractOAuth2FlowHandler.async_step_pick_implementation",
+        return_value={"type": "abort", "reason": "testing_oauth"},
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "imap_security": "SSL",
+            },
+        )
+        assert result["type"] == "abort"
+        assert result["reason"] == "testing_oauth"
+
+        # Now test properties (logger, extra_authorize_data)
+
+        handler = MailAndPackagesFlowHandler()
+        handler.hass = hass
+        handler._data = {  # noqa: SLF001
+            "auth_type": "oauth2_microsoft",
+            "host": "imap.test.email",
+            "port": 993,
+            "username": "test@test.email",
+            "password": "password",
+            "imap_security": "SSL",
+            "verify_ssl": True,
+        }
+
+        if hasattr(handler, "logger"):
+            assert handler.logger is not None
+        if hasattr(handler, "extra_authorize_data"):
+            auth_data = handler.extra_authorize_data
+            assert "scope" in auth_data
+
+        # And async_oauth_create_entry triggers config_2
+        # Mock _get_mailboxes to avoid network calls
+        with patch(
+            "custom_components.mail_and_packages.config_flow._get_mailboxes",
+            return_value=["INBOX"],
+        ):
+            result2 = await handler.async_oauth_create_entry({"access_token": "fake"})
+            assert result2["type"] == "form"
+            assert result2["step_id"] == "config_2"
+
+
+@pytest.mark.asyncio
+async def test_oauth_reconfig_flow_selection(hass, mock_imap_no_email, integration):
+    """Test OAuth2 provider selection in reconfigure flow."""
+    entry = integration
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
+    )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfigure"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"auth_type": "oauth2_google"}
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_imap"
+
+    with patch(
+        "homeassistant.helpers.config_entry_oauth2_flow.AbstractOAuth2FlowHandler.async_step_pick_implementation",
+        return_value={"type": "abort", "reason": "testing_oauth"},
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "imap_security": "SSL",
+            },
+        )
+        assert result["type"] == "abort"
+        assert result["reason"] == "testing_oauth"
+
+        handler = MailAndPackagesFlowHandler()
+        handler.hass = hass
+        handler._data = {  # noqa: SLF001
+            "auth_type": "oauth2_google",
+            "host": "imap.test.email",
+            "port": 993,
+            "username": "test@test.email",
+            "password": "password",
+            "imap_security": "SSL",
+            "verify_ssl": True,
+        }
+
+        if hasattr(handler, "logger"):
+            assert handler.logger is not None
+        if hasattr(handler, "extra_authorize_data"):
+            auth_data = handler.extra_authorize_data
+            assert "scope" in auth_data
+
+        with patch(
+            "custom_components.mail_and_packages.config_flow._get_mailboxes",
+            return_value=["INBOX"],
+        ):
+            result2 = await handler.async_oauth_create_entry({"access_token": "fake"})
+            assert result2["type"] == "form"
+            assert result2["step_id"] == "config_2"
+
+
+@pytest.mark.asyncio
+async def test_validate_login_oauth(hass):
+    """Test _validate_login with OAuth2."""
+    user_input = {"auth_type": "oauth2_google"}
+    errors = await _validate_login(hass, user_input)
+    assert errors == {}
