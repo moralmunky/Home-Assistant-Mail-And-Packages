@@ -17,8 +17,11 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_entry_oauth2_flow
 
 from .const import (
+    AUTH_TYPE_PASSWORD,
+    AUTH_TYPES,
     CONF_ALLOW_EXTERNAL,
     CONF_ALLOW_FORWARDED_EMAILS,
     CONF_AMAZON_CUSTOM_IMG,
@@ -26,6 +29,7 @@ from .const import (
     CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
+    CONF_AUTH_TYPE,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
     CONF_DURATION,
@@ -76,6 +80,8 @@ from .const import (
     DEFAULT_WALMART_CUSTOM_IMG,
     DEFAULT_WALMART_CUSTOM_IMG_FILE,
     DOMAIN,
+    OAUTH_IMAP_DEFAULTS,
+    OAUTH_SCOPES,
 )
 from .helpers import (
     InvalidAuth,
@@ -327,10 +333,16 @@ def _get_schema_step_1(user_input: list, default_dict: list) -> Any:
 
     return vol.Schema(
         {
+            vol.Required(
+                CONF_AUTH_TYPE,
+                default=_get_default(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD),
+            ): vol.In(AUTH_TYPES),
             vol.Required(CONF_HOST, default=_get_default(CONF_HOST)): cv.string,
             vol.Required(CONF_PORT, default=_get_default(CONF_PORT, 993)): cv.port,
             vol.Required(CONF_USERNAME, default=_get_default(CONF_USERNAME)): cv.string,
-            vol.Required(CONF_PASSWORD, default=_get_default(CONF_PASSWORD)): cv.string,
+            vol.Optional(
+                CONF_PASSWORD, default=_get_default(CONF_PASSWORD, "")
+            ): cv.string,
             vol.Required(
                 CONF_IMAP_SECURITY, default=_get_default(CONF_IMAP_SECURITY)
             ): vol.In(IMAP_SECURITY),
@@ -560,6 +572,13 @@ async def _validate_login(
     """Validate login credentials."""
     errors = {}
     _LOGGER.debug("Testing login...")
+
+    auth_type = user_input.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+
+    # Skip login validation for OAuth2 — auth happens via the OAuth flow
+    if auth_type != AUTH_TYPE_PASSWORD:
+        return errors
+
     try:
         imap_client = await login(
             hass,
@@ -587,14 +606,31 @@ async def _validate_login(
 
 
 @config_entries.HANDLERS.register(DOMAIN)
-class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+class MailAndPackagesFlowHandler(
+    config_entry_oauth2_flow.AbstractOAuth2FlowHandler,
+    domain=DOMAIN,
+):
     """Config flow for Mail and Packages."""
 
     VERSION = CONFIG_VER
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
+    DOMAIN = DOMAIN
+
+    @property
+    def logger(self) -> logging.Logger:
+        """Return logger."""
+        return _LOGGER
+
+    @property
+    def extra_authorize_data(self) -> dict:
+        """Extra data that needs to be appended to the authorize url."""
+        auth_type = self._data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+        scopes = OAUTH_SCOPES.get(auth_type, "")
+        return {"scope": scopes}
 
     def __init__(self):
         """Initialize."""
+        super().__init__()
         self._entry = {}
         self._data = {}
         self._errors = {}
@@ -605,6 +641,22 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             self._data.update(user_input)
+            auth_type = user_input.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+
+            if auth_type != AUTH_TYPE_PASSWORD:
+                # OAuth2 flow: store provider and auto-fill IMAP defaults
+                defaults = OAUTH_IMAP_DEFAULTS.get(auth_type, {})
+                self._data.update(defaults)
+                self._data[CONF_VERIFY_SSL] = True
+
+                # Store provider for application_credentials.py
+                self.hass.data.setdefault(DOMAIN, {})
+                self.hass.data[DOMAIN]["oauth_provider"] = auth_type
+
+                # Start HA's built-in OAuth2 flow
+                return await self.async_step_pick_implementation()
+
+            # Password flow: validate login
             self._errors = await _validate_login(
                 self.hass,
                 user_input,
@@ -616,10 +668,19 @@ class MailAndPackagesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_form(user_input)
 
+    async def async_oauth_create_entry(
+        self, data: dict
+    ) -> config_entries.ConfigFlowResult:
+        """Handle OAuth2 completion — store token and continue to step 2."""
+        # Store the OAuth token data
+        self._data["auth"] = data
+        return await self.async_step_config_2()
+
     async def _show_config_form(self, user_input):
         """Show the configuration form to edit configuration data."""
         # Defaults
         defaults = {
+            CONF_AUTH_TYPE: AUTH_TYPE_PASSWORD,
             CONF_PORT: DEFAULT_PORT,
             CONF_IMAP_SECURITY: "SSL",
             CONF_VERIFY_SSL: False,

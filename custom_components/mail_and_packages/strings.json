@@ -20,6 +20,7 @@
       "user": {
         "description": "Please enter the connection information of your mail server.",
         "data": {
+          "auth_type": "Authentication Type",
           "host": "Host",
           "password": "Password",
           "port": "Port",
@@ -80,6 +81,7 @@
       },
       "reconfigure": {
         "data": {
+          "auth_type": "Authentication Type",
           "host": "Host",
           "password": "Password",
           "port": "Port",

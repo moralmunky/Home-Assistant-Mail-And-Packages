@@ -165,8 +165,14 @@ async def login(
     pwd: str,
     security: str,
     verify: bool = True,
+    oauth_token: str | None = None,
 ) -> IMAP4_SSL | IMAP4:
-    """Login to IMAP server asynchronously."""
+    """Login to IMAP server asynchronously.
+
+    Supports both password and OAuth2 (XOAUTH2) authentication.
+    If oauth_token is provided, uses XOAUTH2 SASL mechanism.
+    Otherwise falls back to standard LOGIN command.
+    """
     ssl_context = (
         ssl.client_context(ssl.SSLCipherList.PYTHON_DEFAULT)
         if verify
@@ -181,7 +187,10 @@ async def login(
 
     if account.protocol.state == NONAUTH:
         try:
-            await account.login(user, pwd)
+            if oauth_token:
+                await account.xoauth2(user, oauth_token)
+            else:
+                await account.login(user, pwd)
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error logging in to IMAP Server: %s", err)
             raise InvalidAuth from err
@@ -229,13 +238,16 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:  # n
     imap_security = config.get(CONF_IMAP_SECURITY)
     verify_ssl = config.get(CONF_VERIFY_SSL)
     generate_grid = config.get(CONF_GENERATE_GRID)
+    oauth_token = config.get("oauth_token")
 
     # Create the dict container
     data = {}
 
     # Login to email server and select the folder
     _LOGGER.debug("Attempting to log in to IMAP server.")
-    account = await login(hass, host, port, user, pwd, imap_security, verify_ssl)
+    account = await login(
+        hass, host, port, user, pwd, imap_security, verify_ssl, oauth_token=oauth_token
+    )
 
     # Do not process if account returns false
     if not account:
