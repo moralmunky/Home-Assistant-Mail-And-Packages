@@ -18,9 +18,15 @@
     },
     "step": {
       "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "imap_config": {
         "description": "Please enter the connection information of your mail server.",
         "data": {
-          "auth_type": "Authentication Type",
           "host": "Host",
           "password": "Password",
           "port": "Port",
@@ -80,8 +86,14 @@
         "title": "Forwarded Email Addresses"
       },
       "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
         "data": {
-          "auth_type": "Authentication Type",
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
           "host": "Host",
           "password": "Password",
           "port": "Port",
@@ -154,6 +166,15 @@
         },
         "description": "By default, the Mail and Packages integration only searches for messages matching a service's address.\n\nIf you want to use forwarded emails, please separate each address messages will be coming from with a comma or enter '(none)' to clear this setting.",
         "title": "Forwarded Email Addresses"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }
