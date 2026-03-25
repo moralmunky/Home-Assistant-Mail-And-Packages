@@ -722,6 +722,8 @@ class MailAndPackagesFlowHandler(
     ) -> config_entries.ConfigFlowResult:
         """Handle OAuth2 completion — store token and continue to step 2."""
         self._data.update(data)
+        if self._entry:
+            return await self.async_step_reconfig_2()
         return await self.async_step_config_2()
 
     async def _show_auth_form(self, user_input):
