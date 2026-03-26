@@ -661,7 +661,9 @@ def test_invalid_ffmpeg():
 @pytest.fixture
 def mock_copyfile_exception():
     """Fixture to mock copyfile."""
-    with patch("custom_components.mail_and_packages.utils.image.copyfile") as mock_copyfile:
+    with patch(
+        "custom_components.mail_and_packages.utils.image.copyfile"
+    ) as mock_copyfile:
         mock_copyfile.side_effect = OSError("File not found")
         yield mock_copyfile
 
@@ -669,7 +671,9 @@ def mock_copyfile_exception():
 @pytest.fixture
 def mock_copyfile():
     """Fixture to mock copyfile."""
-    with patch("custom_components.mail_and_packages.utils.image.copyfile") as mock_copyfile:
+    with patch(
+        "custom_components.mail_and_packages.utils.image.copyfile"
+    ) as mock_copyfile:
         mock_copyfile.return_value = True
         yield mock_copyfile
 

@@ -93,15 +93,12 @@ async def test_process_emails_external_error(
     """Test error handling during external email processing."""
     config = FAKE_CONFIG_DATA.copy()
     config[CONF_ALLOW_EXTERNAL] = True
-    with (
-        patch(
-            "custom_components.mail_and_packages.helpers.copy_images",
-            side_effect=OSError("Mocked file system error"),
-        ),
-        patch("custom_components.mail_and_packages.coordinator._LOGGER") as mock_logger,
+    with patch(
+        "custom_components.mail_and_packages.helpers.copy_images",
+        side_effect=OSError("Mocked file system error"),
     ):
         await process_emails(hass, config)
-        mock_logger.error.assert_called()
+        assert "Error attempting to copy image" in caplog.text
 
 
 @pytest.mark.asyncio

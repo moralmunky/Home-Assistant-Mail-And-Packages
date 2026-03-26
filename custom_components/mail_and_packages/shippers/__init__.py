@@ -10,6 +10,7 @@ from .usps import USPSShipper
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
+
     from .base import Shipper
 
 SHIPPER_REGISTRY = {

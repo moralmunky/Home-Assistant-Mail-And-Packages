@@ -13,12 +13,12 @@ from custom_components.mail_and_packages import (
     async_remove_config_entry_device,
     async_setup_entry,
 )
-from custom_components.mail_and_packages.coordinator import (
-    MailDataUpdateCoordinator,
-)
 from custom_components.mail_and_packages.const import (
     CONF_AUTH_TYPE,
     DOMAIN,
+)
+from custom_components.mail_and_packages.coordinator import (
+    MailDataUpdateCoordinator,
 )
 from tests.const import FAKE_CONFIG_DATA
 

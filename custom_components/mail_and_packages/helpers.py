@@ -28,7 +28,6 @@ from .shippers.usps import USPSShipper
 from .utils.image import (
     default_image_path,
 )
-from .utils.imap import InvalidAuth
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,8 +38,6 @@ amazon_hub = AMAZON_HUB_SUBJECT
 amazon_otp = AMAZON_OTP_SUBJECT
 amazon_search_legacy = AMAZON_DELIVERED_SUBJECT
 image_file_name = "mail_today.gif"
-
-
 
 
 def _match_patterns(subject: str, patterns: list[str]) -> bool:

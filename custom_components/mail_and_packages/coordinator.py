@@ -25,11 +25,6 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from . import const
 from .const import (
-    AMAZON_DELIVERED,
-    AMAZON_EXCEPTION,
-    AMAZON_HUB,
-    AMAZON_OTP,
-    AMAZON_PACKAGES,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
     AUTH_TYPE_PASSWORD,
@@ -38,9 +33,9 @@ from .const import (
     CONF_FOLDER,
     CONF_IMAP_SECURITY,
     CONF_IMAP_TIMEOUT,
-    COORDINATOR,
     DOMAIN,
 )
+from .helpers import copy_images
 from .shippers import get_shipper_for_sensor
 from .utils.image import default_image_path, hash_file
 from .utils.imap import login, selectfolder
@@ -115,10 +110,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                         self.hass.data.setdefault(DOMAIN, {})
                         self.hass.data[DOMAIN]["oauth_provider"] = auth_type
 
-                        implementation = (
-                            await config_entry_oauth2_flow.async_get_config_entry_implementation(
-                                self.hass, self.config_entry
-                            )
+                        implementation = await config_entry_oauth2_flow.async_get_config_entry_implementation(
+                            self.hass, self.config_entry
                         )
                         session = config_entry_oauth2_flow.OAuth2Session(
                             self.hass, self.config_entry, implementation
@@ -127,7 +120,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                         config["oauth_token"] = session.token["access_token"]
                     except Exception as err:
                         _LOGGER.error("Error refreshing OAuth token: %s", err)
-                        raise UpdateFailed(f"OAuth token refresh failed: {err}") from err
+                        raise UpdateFailed(
+                            f"OAuth token refresh failed: {err}"
+                        ) from err
 
                 data = await self.process_emails(self.hass, config)
             except UpdateFailed:
@@ -143,8 +138,6 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def process_emails(self, hass: HomeAssistant, config: dict) -> dict:
         """Process emails and update sensors."""
-        _LOGGER.debug("DEBUG: Entering process_emails")
-
         # Basic data structure
         data = {
             "mail_updated": datetime.datetime.now(datetime.UTC).isoformat(),
@@ -180,50 +173,59 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         # Process sensors
         today = datetime.datetime.now().strftime("%d-%b-%Y")
         resources = config.get(CONF_RESOURCES, [])
-        shippers = {}
 
         for sensor in resources:
-            # Find appropriate shipper
-            shipper = get_shipper_for_sensor(hass, config, sensor)
-
-            if shipper:
-                try:
-                    result = await shipper.process(account, today, sensor)
-                    if isinstance(result, dict):
-                        # Some shippers return direct sensor data, others return {ATTR_COUNT: x, ...}
-                        if sensor in result:
-                            if isinstance(result[sensor], dict):
-                                data.update(result[sensor])
-                            else:
-                                data[sensor] = result[sensor]
-                        elif const.ATTR_COUNT in result:
-                            data[sensor] = result[const.ATTR_COUNT]
-                            # Merge tracking and other attributes if present
-                            for key, value in result.items():
-                                if key == const.ATTR_COUNT:
-                                    continue
-                                if key == const.ATTR_TRACKING:
-                                    tracking_key = (
-                                        f"{'_'.join(sensor.split('_')[:-1])}_tracking"
-                                    )
-                                    data[tracking_key] = value
-                                else:
-                                    data[key] = value
-                except Exception as err:
-                    _LOGGER.error("Error processing sensor %s: %s", sensor, err)
+            await self._process_sensor(account, today, sensor, data, hass, config)
 
         await account.logout()
 
         # Copy image file to www directory if enabled
         if config.get(CONF_ALLOW_EXTERNAL):
-            from .helpers import copy_images
-
             try:
                 await hass.async_add_executor_job(copy_images, hass, config)
             except (OSError, ValueError) as err:
                 _LOGGER.error("Problem creating: %s", err)
 
         return data
+
+    async def _process_sensor(
+        self,
+        account,
+        today,
+        sensor,
+        data,
+        hass,
+        config,
+    ):
+        """Process a single sensor."""
+        shipper = get_shipper_for_sensor(hass, config, sensor)
+        if not shipper:
+            return
+
+        try:
+            result = await shipper.process(account, today, sensor)
+            if isinstance(result, dict):
+                # Some shippers return direct sensor data, others return {ATTR_COUNT: x, ...}
+                if sensor in result:
+                    if isinstance(result[sensor], dict):
+                        data.update(result[sensor])
+                    else:
+                        data[sensor] = result[sensor]
+                elif const.ATTR_COUNT in result:
+                    data[sensor] = result[const.ATTR_COUNT]
+                    # Merge tracking and other attributes if present
+                    for key, value in result.items():
+                        if key == const.ATTR_COUNT:
+                            continue
+                        if key == const.ATTR_TRACKING:
+                            tracking_key = (
+                                f"{'_'.join(sensor.split('_')[:-1])}_tracking"
+                            )
+                            data[tracking_key] = value
+                        else:
+                            data[key] = value
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.error("Error processing sensor %s: %s", sensor, err)
 
     async def _binary_sensor_update(self):
         """Update binary sensor states."""
