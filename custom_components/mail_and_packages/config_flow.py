@@ -671,7 +671,15 @@ class MailAndPackagesFlowHandler(
         """Extra data that needs to be appended to the authorize url."""
         auth_type = self._data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
         scopes = OAUTH_SCOPES.get(auth_type, "")
-        return {"scope": scopes}
+        data = {"scope": scopes}
+        if auth_type == AUTH_TYPE_OAUTH_GOOGLE:
+            data.update(
+                {
+                    "access_type": "offline",
+                    "prompt": "consent",
+                }
+            )
+        return data
 
     def __init__(self):
         """Initialize."""
