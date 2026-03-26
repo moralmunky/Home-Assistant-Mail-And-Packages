@@ -45,7 +45,7 @@ async def test_informed_delivery_emails_class(
         patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
         patch(
             "custom_components.mail_and_packages.shippers.usps.io_save_file",
-            new_callable=AsyncMock,
+            new_callable=MagicMock,
         ),
         patch(
             "custom_components.mail_and_packages.shippers.usps.resize_images",
@@ -90,7 +90,7 @@ async def test_new_informed_delivery_emails_class(
         patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
         patch(
             "custom_components.mail_and_packages.shippers.usps.io_save_file",
-            new_callable=AsyncMock,
+            new_callable=MagicMock,
         ),
         patch(
             "custom_components.mail_and_packages.shippers.usps.resize_images",
@@ -186,7 +186,7 @@ async def test_informed_delivery_with_images_class(hass):
         patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
         patch(
             "custom_components.mail_and_packages.shippers.usps.io_save_file",
-            new_callable=AsyncMock,
+            new_callable=MagicMock,
         ),
         patch(
             "custom_components.mail_and_packages.shippers.usps.resize_images",
@@ -300,7 +300,7 @@ async def test_informed_delivery_announcement_filtering(hass):
         patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
         patch(
             "custom_components.mail_and_packages.shippers.usps.io_save_file",
-            new_callable=AsyncMock,
+            new_callable=MagicMock,
         ),
         patch(
             "custom_components.mail_and_packages.shippers.usps.random_filename",

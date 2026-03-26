@@ -1,7 +1,7 @@
 """Tests for camera component."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 import pytest
 from homeassistant.const import ATTR_ENTITY_ID
@@ -2054,7 +2054,10 @@ async def test_camera_fallback_to_recent_file(
     f2.is_file.return_value = True
     f2.stat.return_value.st_mtime = 2000
 
-    def mock_path_exists(path):
+    def mock_path_exists(*args, **kwargs):
+        if not args:
+            return False
+        path = args[0]
         if "missing_file.jpg" in str(path):
             return False
         # The parent directory exists
@@ -2066,6 +2069,11 @@ async def test_camera_fallback_to_recent_file(
         patch("os.path.exists", side_effect=mock_path_exists),
         patch("os.access", return_value=True),
         patch("pathlib.Path.iterdir", return_value=[f1, f2], autospec=True),
+        patch(
+            "custom_components.mail_and_packages.camera.anyio.Path.exists",
+            new_callable=AsyncMock,
+            side_effect=mock_path_exists,
+        ),
     ):
         # Trigger update
         cameras = entry.runtime_data.cameras
