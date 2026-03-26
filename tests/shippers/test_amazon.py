@@ -1,9 +1,9 @@
 """Tests for Amazon shipper utilities."""
 
 import datetime
+import re
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import re
 from unittest.mock import AsyncMock, patch
 
 import pytest

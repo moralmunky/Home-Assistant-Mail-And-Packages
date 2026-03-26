@@ -1,7 +1,7 @@
 """Tests for camera component."""
 
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, PropertyMock, mock_open, patch
+from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 import pytest
 from homeassistant.const import ATTR_ENTITY_ID
@@ -2359,7 +2359,9 @@ async def test_usps_camera_with_image_data_full(hass, mock_imap_no_email, integr
     }
 
     camera = next(
-        c for c in entry.runtime_data.cameras if c._type == "usps_camera"  # noqa: SLF001
+        c
+        for c in entry.runtime_data.cameras
+        if c._type == "usps_camera"  # noqa: SLF001
     )
     await camera.update_file_path()
 

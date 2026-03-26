@@ -469,7 +469,7 @@ async def test_cleanup_images_recursive_tuple():
         mock_path_obj.exists.return_value = True
         mock_path.side_effect = lambda *args: mock_path_obj
 
-        cleanup_images(("/path/", "image.jpg"))  # noqa: SLF001
+        cleanup_images(("/path/", "image.jpg"))
         assert mock_path_obj.unlink.called
 
 
@@ -482,7 +482,7 @@ async def test_cleanup_images_file_not_exists(caplog):
         mock_path_obj.exists.return_value = False
         mock_path.side_effect = lambda *args: mock_path_obj
 
-        cleanup_images("/path/", "missing.jpg")  # noqa: SLF001
+        cleanup_images("/path/", "missing.jpg")
         assert "cleanup_images - File does not exist" in caplog.text
 
 
@@ -496,7 +496,7 @@ async def test_cleanup_images_os_error(caplog):
         mock_path_obj.unlink.side_effect = OSError("Disk error")
         mock_path.side_effect = lambda *args: mock_path_obj
 
-        cleanup_images("/path/", "file.jpg")  # noqa: SLF001
+        cleanup_images("/path/", "file.jpg")
         assert "Error attempting to remove image" in caplog.text
 
 
@@ -510,7 +510,7 @@ async def test_cleanup_images_iterdir_os_error(caplog):
         mock_path_obj.iterdir.side_effect = OSError("IO Error")
         mock_path.side_effect = lambda *args: mock_path_obj
 
-        cleanup_images("/path/")  # noqa: SLF001
+        cleanup_images("/path/")
         assert "Error listing directory for cleanup" in caplog.text
 
 

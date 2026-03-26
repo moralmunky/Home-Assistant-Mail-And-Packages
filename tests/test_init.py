@@ -770,7 +770,7 @@ async def test_coordinator_binary_sensor_custom_images(hass):
                 return_value=True,
             ),
             patch(
-                "custom_components.mail_and_packages.coordinator.MailDataUpdateCoordinator._get_file_hash_if_changed",  # noqa: SLF001
+                "custom_components.mail_and_packages.coordinator.MailDataUpdateCoordinator._get_file_hash_if_changed",
                 side_effect=["hash1", "hash1"],
             ),
         ):
