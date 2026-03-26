@@ -66,6 +66,11 @@ class AmazonShipper(Shipper):
         """Return shipper name."""
         return "amazon"
 
+    @classmethod
+    def handles_sensor(cls, sensor_type: str) -> bool:
+        """Return True if this shipper handles the given sensor type."""
+        return sensor_type.startswith("amazon_") or sensor_type == AMAZON_PACKAGES
+
     async def process(
         self, account: IMAP4_SSL, date: str, sensor_type: str
     ) -> dict[str, Any]:

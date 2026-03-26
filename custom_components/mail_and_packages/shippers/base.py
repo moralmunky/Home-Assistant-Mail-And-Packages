@@ -22,6 +22,11 @@ class Shipper(ABC):
     def name(self) -> str:
         """Return the internal name of the shipper."""
 
+    @classmethod
+    @abstractmethod
+    def handles_sensor(cls, sensor_type: str) -> bool:
+        """Return True if this shipper handles the given sensor type."""
+
     @abstractmethod
     async def process(
         self, account: IMAP4_SSL, date: str, sensor_type: str

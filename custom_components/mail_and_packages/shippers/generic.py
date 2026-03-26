@@ -42,6 +42,11 @@ class GenericShipper(Shipper):
         """Return the internal name of the shipper."""
         return "generic"
 
+    @classmethod
+    def handles_sensor(cls, sensor_type: str) -> bool:
+        """Return True if this shipper handles the given sensor type."""
+        return sensor_type in SENSOR_DATA
+
     async def process(
         self, account: IMAP4_SSL, date: str, sensor_type: str
     ) -> dict[str, Any]:

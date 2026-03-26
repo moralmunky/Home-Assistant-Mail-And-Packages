@@ -41,7 +41,7 @@ from .const import (
     COORDINATOR,
     DOMAIN,
 )
-from .shippers import SHIPPER_REGISTRY
+from .shippers import get_shipper_for_sensor
 from .utils.image import default_image_path, hash_file
 from .utils.imap import login, selectfolder
 
@@ -183,25 +183,12 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         shippers = {}
 
         for sensor in resources:
-            # Skip non-email sensors
-            if sensor not in const.SENSOR_DATA and not sensor.startswith("amazon_"):
-                continue
-
             # Find appropriate shipper
-            shipper_name = "generic"
-            if sensor.startswith("amazon_") or sensor == AMAZON_PACKAGES:
-                shipper_name = "amazon"
-            elif sensor == "usps_mail":
-                shipper_name = "usps"
+            shipper = get_shipper_for_sensor(hass, config, sensor)
 
-            if shipper_name not in shippers:
-                shipper_class = SHIPPER_REGISTRY.get(shipper_name)
-                if shipper_class:
-                    shippers[shipper_name] = shipper_class(hass, config)
-
-            if shipper_name in shippers:
+            if shipper:
                 try:
-                    result = await shippers[shipper_name].process(account, today, sensor)
+                    result = await shipper.process(account, today, sensor)
                     if isinstance(result, dict):
                         # Some shippers return direct sensor data, others return {ATTR_COUNT: x, ...}
                         if sensor in result:

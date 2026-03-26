@@ -52,6 +52,11 @@ class USPSShipper(Shipper):
         """Return shipper name."""
         return "usps"
 
+    @classmethod
+    def handles_sensor(cls, sensor_type: str) -> bool:
+        """Return True if this shipper handles the given sensor type."""
+        return sensor_type == "usps_mail"
+
     async def process(
         self, account: IMAP4_SSL, date: str, sensor_type: str
     ) -> dict[str, Any]:
