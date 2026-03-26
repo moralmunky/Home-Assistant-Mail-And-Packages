@@ -2068,13 +2068,32 @@ async def test_camera_fallback_to_recent_file(
     with (
         patch("os.path.exists", side_effect=mock_path_exists),
         patch("os.access", return_value=True),
-        patch("pathlib.Path.iterdir", return_value=[f1, f2], autospec=True),
+        patch(
+            "custom_components.mail_and_packages.camera.Path",
+            autospec=True,
+        ) as mock_path_class,
         patch(
             "custom_components.mail_and_packages.camera.anyio.Path.exists",
             new_callable=AsyncMock,
             side_effect=mock_path_exists,
         ),
     ):
+        mock_path_instance = mock_path_class.return_value
+        # If Path(path).parent is called, return another mock or self
+        mock_path_instance.parent = MagicMock(spec=Path)
+        mock_path_instance.parent.__str__.return_value = (
+            "custom_components/mail_and_packages/images/amazon"
+        )
+        mock_path_instance.parent.exists.return_value = True
+        mock_path_instance.parent.iterdir.return_value = [f1, f2]
+        mock_path_instance.exists.side_effect = mock_path_exists
+
+        # Also mock the Path class call to return different things based on input if needed
+        # but for this test, returning mock_path_instance is mostly fine as long as we don't
+        # need different behavior for different paths.
+        # Actually, Path(__file__) is called. 
+        # Path(__file__).parent should return a path that exists.
+
         # Trigger update
         cameras = entry.runtime_data.cameras
         amazon_camera = next(
