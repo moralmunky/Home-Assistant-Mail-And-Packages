@@ -2091,7 +2091,7 @@ async def test_camera_fallback_to_recent_file(
         # Also mock the Path class call to return different things based on input if needed
         # but for this test, returning mock_path_instance is mostly fine as long as we don't
         # need different behavior for different paths.
-        # Actually, Path(__file__) is called. 
+        # Actually, Path(__file__) is called.
         # Path(__file__).parent should return a path that exists.
 
         # Trigger update
