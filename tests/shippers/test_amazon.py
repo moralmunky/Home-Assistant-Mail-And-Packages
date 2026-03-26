@@ -3,6 +3,7 @@
 import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import re
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -635,3 +636,95 @@ async def test_amazon_hub_multi(hass, mock_imap_amazon_the_hub):
         assert result["count"] == 2
         assert "123456" in result["code"]
         assert "654321" in result["code"]
+
+
+@pytest.mark.asyncio
+async def test_amazon_shipper_process_default(hass):
+    """Test AmazonShipper.process default case (Line 105)."""
+    shipper = AmazonShipper(hass, {})
+    result = await shipper.process(AsyncMock(), "today", "invalid_sensor")
+    assert result == {ATTR_COUNT: 0}
+
+
+@pytest.mark.asyncio
+async def test_process_amazon_email_non_bytes(hass):
+    """Test _process_amazon_email with non-bytes part (Line 151)."""
+    shipper = AmazonShipper(hass, {})
+    ctx = {
+        "today": datetime.date.today(),
+        "deliveries_today": [],
+        "amazon_delivered": [],
+    }
+    mock_account = AsyncMock()
+    # mock_fetch returns a list where one part is not bytes
+    with patch(
+        "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+        return_value=("OK", ["not bytes"]),
+    ):
+        await shipper._process_amazon_email(mock_account, "1", ctx)  # noqa: SLF001
+        # Should just continue and not fail
+
+
+@pytest.mark.asyncio
+async def test_handle_shipping_email_no_order_id(hass):
+    """Test _handle_shipping_email with no order ID (Line 205)."""
+    shipper = AmazonShipper(hass, {})
+    today = datetime.date(2025, 1, 1)
+    ctx = {
+        "today": today,
+        "deliveries_today": [],
+        "amazon_delivered": [],
+        "all_shipped_orders": set(),
+        "packages_arriving_today": {},
+        "order_pattern": re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}"),
+    }
+
+    # Body matches arrival date but has no order ID
+    body = "Your package is arriving today"
+    with patch(
+        "custom_components.mail_and_packages.shippers.amazon.parse_amazon_arrival_date",
+        new_callable=AsyncMock,
+        return_value=today,
+    ):
+        await shipper._handle_shipping_email("Arriving", body, today, ctx)  # noqa: SLF001
+        assert "Amazon Order" in ctx["deliveries_today"]
+
+
+@pytest.mark.asyncio
+async def test_extract_first_order_id_subject(hass):
+    """Test _extract_first_order_id from subject (Line 213)."""
+    shipper = AmazonShipper(hass, {})
+    pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
+    subject = "Order 111-1234567-1234567 shipped"
+    result = shipper._extract_first_order_id(subject, None, pattern)  # noqa: SLF001
+    assert result == "111-1234567-1234567"
+
+
+@pytest.mark.asyncio
+async def test_amazon_exception_body_match(hass):
+    """Test Amazon exception with order in body (Line 364)."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            return_value=(
+                "OK",
+                [
+                    b"RFC822",
+                    b"Subject: Late\n\nThere is a delay with order 111-1234567-1234567 running late",
+                ],
+            ),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            return_value=datetime.date.today(),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", AMAZON_EXCEPTION)
+        assert result[ATTR_COUNT] == 1
+        assert "111-1234567-1234567" in result[ATTR_ORDER]

@@ -682,3 +682,97 @@ async def test_update_with_oauth_error(hass, mock_update):
         pytest.raises(UpdateFailed),
     ):
         await coordinator._async_update_data()  # noqa: SLF001
+
+
+@pytest.mark.asyncio
+async def test_get_file_hash_os_error(hass):
+    """Test get_file_hash_if_changed when os.path.getmtime raises OSError."""
+    mock_config = FAKE_CONFIG_DATA.copy()
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, mock_config)
+
+    with patch("os.path.getmtime", side_effect=OSError):
+        result = await coordinator._get_file_hash_if_changed("test.gif")  # noqa: SLF001
+        assert result is None
+
+
+@pytest.mark.asyncio
+async def test_process_emails_folder_select_failure(hass):
+    """Test process_emails when selectfolder fails."""
+    mock_config = FAKE_CONFIG_DATA.copy()
+    mock_config["folder"] = "invalid_folder"
+
+    with (
+        patch("homeassistant.helpers.frame.report_usage"),
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=False,
+        ),
+    ):
+        coordinator = MailDataUpdateCoordinator(hass, mock_config)
+        with pytest.raises(UpdateFailed, match="Folder selection failed"):
+            await coordinator.process_emails(hass, mock_config)
+
+
+@pytest.mark.asyncio
+async def test_process_emails_copy_images_error(hass):
+    """Test process_emails when copy_images raises an error."""
+    mock_config = FAKE_CONFIG_DATA.copy()
+    mock_config["allow_external"] = True
+
+    with (
+        patch("homeassistant.helpers.frame.report_usage"),
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.copy_images",
+            side_effect=OSError("Disk full"),
+        ),
+    ):
+        coordinator = MailDataUpdateCoordinator(hass, mock_config)
+        # Should not raise, just log error
+        result = await coordinator.process_emails(hass, mock_config)
+        assert result is not None
+
+
+@pytest.mark.asyncio
+async def test_coordinator_binary_sensor_custom_images(hass):
+    """Test coordinator binary sensor update with custom image settings."""
+    mock_config = FAKE_CONFIG_DATA.copy()
+    mock_config["amazon_custom_img"] = True
+    mock_config["amazon_custom_img_file"] = "custom_amazon.jpg"
+
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, mock_config)
+        coordinator._data = {  # noqa: SLF001
+            "amazon_image": "test.jpg",
+            "image_path": "images/",
+        }
+
+        with (
+            patch(
+                "custom_components.mail_and_packages.coordinator.default_image_path",
+                return_value="images/",
+            ),
+            patch(
+                "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
+                new_callable=AsyncMock,
+                return_value=True,
+            ),
+            patch(
+                "custom_components.mail_and_packages.coordinator.MailDataUpdateCoordinator._get_file_hash_if_changed",  # noqa: SLF001
+                side_effect=["hash1", "hash1"],
+            ),
+        ):
+            await coordinator._binary_sensor_update()  # noqa: SLF001
+            assert coordinator._data["amazon_update"] is False  # noqa: SLF001

@@ -459,3 +459,76 @@ async def test_image_file_name_existing_today():
         # Result should be the existing file name because hash matches OR date matches
         result = image_file_name(mock_hass, config)
         assert result == "today_image.gif"
+
+
+@pytest.mark.asyncio
+async def test_cleanup_images_recursive_tuple():
+    """Test cleanup_images with tuple input (Line 96)."""
+    with patch("custom_components.mail_and_packages.utils.image.Path") as mock_path:
+        mock_path_obj = MagicMock()
+        mock_path_obj.exists.return_value = True
+        mock_path.side_effect = lambda *args: mock_path_obj
+
+        cleanup_images(("/path/", "image.jpg"))  # noqa: SLF001
+        assert mock_path_obj.unlink.called
+
+
+@pytest.mark.asyncio
+async def test_cleanup_images_file_not_exists(caplog):
+    """Test cleanup_images when specific file doesn't exist (Line 108)."""
+    caplog.set_level("DEBUG")
+    with patch("custom_components.mail_and_packages.utils.image.Path") as mock_path:
+        mock_path_obj = MagicMock()
+        mock_path_obj.exists.return_value = False
+        mock_path.side_effect = lambda *args: mock_path_obj
+
+        cleanup_images("/path/", "missing.jpg")  # noqa: SLF001
+        assert "cleanup_images - File does not exist" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_cleanup_images_os_error(caplog):
+    """Test cleanup_images with OSError (Line 109)."""
+    caplog.set_level("ERROR")
+    with patch("custom_components.mail_and_packages.utils.image.Path") as mock_path:
+        mock_path_obj = MagicMock()
+        mock_path_obj.exists.return_value = True
+        mock_path_obj.unlink.side_effect = OSError("Disk error")
+        mock_path.side_effect = lambda *args: mock_path_obj
+
+        cleanup_images("/path/", "file.jpg")  # noqa: SLF001
+        assert "Error attempting to remove image" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_cleanup_images_iterdir_os_error(caplog):
+    """Test cleanup_images with iterdir OSError (Line 153)."""
+    caplog.set_level("ERROR")
+    with patch("custom_components.mail_and_packages.utils.image.Path") as mock_path:
+        mock_path_obj = MagicMock()
+        mock_path_obj.is_dir.return_value = True
+        mock_path_obj.iterdir.side_effect = OSError("IO Error")
+        mock_path.side_effect = lambda *args: mock_path_obj
+
+        cleanup_images("/path/")  # noqa: SLF001
+        assert "Error listing directory for cleanup" in caplog.text
+
+
+def test_generate_grid_img_existing(caplog):
+    """Test generate_grid_img when old grid exists (Line 263)."""
+    caplog.set_level("DEBUG")
+    with (
+        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch("custom_components.mail_and_packages.utils.image.subprocess.call"),
+        patch(
+            "custom_components.mail_and_packages.utils.image.cleanup_images"
+        ) as mock_cleanup,
+    ):
+        mock_path_obj = MagicMock()
+        mock_path_obj.is_file.return_value = True
+        mock_path_obj.parent = MagicMock()
+        mock_path.return_value = mock_path_obj
+
+        generate_grid_img("/path/", "test.gif", 5)
+        assert mock_cleanup.called
+        assert "Removing old png grid" in caplog.text

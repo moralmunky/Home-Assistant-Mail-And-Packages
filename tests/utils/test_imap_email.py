@@ -346,3 +346,39 @@ async def test_email_search_error_branch(caplog):
     result = await email_search(mock_acc, ["a@b.com"], "25-Mar-2026")
     assert result[0] == "BAD"
     assert "Error searching emails" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_login_exception(caplog):
+    """Test login with exception (Line 51)."""
+    mock_hass = MagicMock()
+    caplog.set_level("ERROR")
+    with patch(
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL"
+    ) as mock_imap_ssl:
+        mock_acc = AsyncMock()
+        mock_acc.login.side_effect = OSError("Connection error")
+        mock_acc.protocol.state = NONAUTH
+        mock_imap_ssl.return_value = mock_acc
+
+        with pytest.raises(InvalidAuth):
+            await login(mock_hass, "host", 993, "user", "pass", "SSL")
+        assert "Error logging in to IMAP Server" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_login_state_fail(caplog):
+    """Test login when state doesn't change (Line 55)."""
+    mock_hass = MagicMock()
+    caplog.set_level("ERROR")
+    with patch(
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL"
+    ) as mock_imap_ssl:
+        mock_acc = AsyncMock()
+        mock_acc.login.return_value = MagicMock(result="OK", lines=[b"Logged in"])
+        mock_acc.protocol.state = NONAUTH  # Remains NONAUTH
+        mock_imap_ssl.return_value = mock_acc
+
+        with pytest.raises(InvalidAuth):
+            await login(mock_hass, "host", 993, "user", "pass", "SSL")
+        assert "Error logging in to IMAP Server" in caplog.text

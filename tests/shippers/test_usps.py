@@ -403,3 +403,134 @@ async def test_informed_delivery_resize_error(hass):
         result = await shipper.process(mock_account, "today", "usps_mail")
         # should still return count even if GIF generation fails
         assert result[ATTR_COUNT] == 1
+
+
+@pytest.mark.asyncio
+async def test_informed_delivery_forwarded_emails(hass):
+    """Test USPS Informed Delivery with forwarded emails (Line 211)."""
+    shipper = USPSShipper(hass, {"forwarded_emails": ["forward@test.com"]})
+    mock_account = AsyncMock()
+    mock_account.search.return_value = MagicMock(result="OK", lines=[])
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.usps.email_search",
+        return_value=("OK", [None]),
+    ) as mock_search:
+        await shipper.process(mock_account, "today", "usps_mail")
+        assert "forward@test.com" in mock_search.call_args[0][1]
+
+
+@pytest.mark.asyncio
+async def test_informed_delivery_gen_mp4_grid(hass):
+    """Test USPS Informed Delivery with MP4 and grid generation (Lines 106, 110)."""
+    shipper = USPSShipper(
+        hass,
+        {
+            "image_path": "test/",
+            "image_name": "test.gif",
+            "generate_mp4": True,
+            "generate_grid": True,
+        },
+    )
+    mock_account = AsyncMock()
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
+    mock_account.fetch.return_value = MagicMock(
+        result="OK", lines=[b"RFC822", b"no mail"]
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
+        patch("custom_components.mail_and_packages.shippers.usps.shutil.copyfile"),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps._generate_mp4"
+        ) as mock_mp4,
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.generate_grid_img"
+        ) as mock_grid,
+    ):
+        await shipper.process(mock_account, "today", "usps_mail")
+        mock_mp4.assert_called_once()
+        mock_grid.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_informed_delivery_extract_images_error(hass):
+    """Test USPS Informed Delivery extraction error (Lines 294-295)."""
+    shipper = USPSShipper(hass, {"image_path": "test/"})
+
+    # Mocking BeautifulSoup to trigger an error during extraction
+    html_content = '<html><body><img id="mailpiece-image-src-id" src="data:image/jpeg;base64,invalid"></body></html>'
+    part = MagicMock()
+    part.get_payload.return_value = html_content.encode()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.io_save_file",
+            side_effect=TypeError("Expected bytes"),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.random_filename",
+            return_value="test.jpg",
+        ),
+    ):
+        count, images = await shipper._extract_usps_images(  # noqa: SLF001
+            part, "test/", 0, []
+        )
+        assert count == 0
+        assert len(images) == 0
+
+
+@pytest.mark.asyncio
+async def test_extract_jpeg_attachment_no_filename(hass):
+    """Test _extract_jpeg_attachment with missing filename (Line 311)."""
+    shipper = USPSShipper(hass, {})
+    part = MagicMock()
+    part.get_filename.return_value = None
+
+    count, images = await shipper._extract_jpeg_attachment(  # noqa: SLF001
+        part, "test/", 0, []
+    )
+    assert count == 0
+    assert len(images) == 0
+
+
+@pytest.mark.asyncio
+async def test_extract_jpeg_attachment_os_error(hass):
+    """Test _extract_jpeg_attachment with OSError (Lines 324-325)."""
+    shipper = USPSShipper(hass, {})
+    part = MagicMock()
+    part.get_filename.return_value = "package.jpg"
+    part.get_payload.return_value = b"data"
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.usps.io_save_file",
+        side_effect=OSError("Permission denied"),
+    ):
+        count, images = await shipper._extract_jpeg_attachment(  # noqa: SLF001
+            part, "test/", 0, []
+        )
+        assert count == 0
+
+
+@pytest.mark.asyncio
+async def test_copy_nomail_image_mkdir(hass):
+    """Test _copy_nomail_image with mkdir (Line 179)."""
+    shipper = USPSShipper(hass, {})
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.Path.exists",
+            side_effect=[False, True],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.Path.mkdir"
+        ) as mock_mkdir,
+        patch("custom_components.mail_and_packages.shippers.usps.shutil.copyfile"),
+        patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
+    ):
+        await shipper._copy_nomail_image("test/", "test.gif", None)  # noqa: SLF001
+        mock_mkdir.assert_called_once()

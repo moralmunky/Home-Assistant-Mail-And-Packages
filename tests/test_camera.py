@@ -1,7 +1,7 @@
 """Tests for camera component."""
 
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, mock_open, patch
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, mock_open, patch
 
 import pytest
 from homeassistant.const import ATTR_ENTITY_ID
@@ -2347,3 +2347,58 @@ async def test_handle_coordinator_update_logic(
     # Directly trigger the update handler
     camera._handle_coordinator_update()  # noqa: SLF001
     assert "coordinator update received" in caplog.text
+
+
+async def test_usps_camera_with_image_data_full(hass, mock_imap_no_email, integration):
+    """Test USPS camera with image data in coordinator (covers 191-193)."""
+    entry = integration
+    coordinator = entry.runtime_data.coordinator
+    coordinator.data = {
+        "image_name": "test_usps.gif",
+        "image_path": "images/usps/",
+    }
+
+    camera = next(
+        c for c in entry.runtime_data.cameras if c._type == "usps_camera"  # noqa: SLF001
+    )
+    await camera.update_file_path()
+
+    assert "images/usps/test_usps.gif" in camera.extra_state_attributes["file_path"]
+
+
+async def test_camera_is_custom_no_mail_image(hass, mock_imap_no_email, integration):
+    """Test _is_custom_no_mail_image helper."""
+    entry = integration
+    camera = entry.runtime_data.cameras[0]
+
+    # Test USPS case
+    with (
+        patch(
+            "custom_components.mail_and_packages.camera.const.CONF_CUSTOM_IMG",
+            "custom_img",
+        ),
+        patch(
+            "custom_components.mail_and_packages.camera.const.CONF_CUSTOM_IMG_FILE",
+            "custom_img_file",
+        ),
+        patch.object(
+            camera,
+            "config",
+            new=MagicMock(data={"custom_img": True, "custom_img_file": "custom.gif"}),
+        ),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
+        assert camera._is_custom_no_mail_image("usps", "custom.gif") is True  # noqa: SLF001
+
+
+async def test_get_sensor_name_for_camera(hass, mock_imap_no_email, integration):
+    """Test _get_sensor_name_for_camera helper."""
+    entry = integration
+    camera = entry.runtime_data.cameras[0]
+
+    assert (
+        camera._get_sensor_name_for_camera("amazon_camera") == "amazon_delivered"  # noqa: SLF001
+    )
+    assert (
+        camera._get_sensor_name_for_camera("usps_camera") == "usps_mail"  # noqa: SLF001
+    )
