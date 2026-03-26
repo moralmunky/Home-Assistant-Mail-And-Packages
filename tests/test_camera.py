@@ -200,7 +200,6 @@ async def test_async_camera_image(
     mock_update,
 ):
     """Test async_camera_image function."""
-
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=False),
@@ -235,7 +234,6 @@ async def test_async_camera_image_file_error(
     caplog,
 ):
     """Test async_camera_image function."""
-
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=False),
@@ -265,7 +263,6 @@ async def test_async_on_demand_update(
     mock_update,
 ):
     """Test async_camera_image function."""
-
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=False),
@@ -601,7 +598,6 @@ async def test_camera_entity_creation(
     caplog,
 ):
     """Test that all camera entities are created correctly."""
-
     # Check that all expected camera entities exist
     expected_cameras = [
         "camera.mail_usps_camera",

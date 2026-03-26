@@ -1598,6 +1598,9 @@ SHIPPERS = [
     "rewe_lieferservice",
     "dpd_nl",
     "bolcom",
+    "poczta_polska",
+    "buildinglink",
+    "post_de",
 ]
 
 # Authentication types

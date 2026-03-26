@@ -26,7 +26,6 @@ async def test_unload_entry(
     hass, mock_imap_no_email, integration, mock_update, mock_copy_overlays
 ):
     """Test unloading entities."""
-
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 48
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
@@ -163,7 +162,6 @@ async def test_v4_migration(
 
 async def test_migration_from_version_1_to_4():
     """Test migration from version 1 to 4."""
-
     # Mock config entry with version 1
     mock_config_entry = MagicMock()
     mock_config_entry.version = 1
@@ -187,7 +185,6 @@ async def test_migration_from_version_1_to_4():
 
 async def test_migration_from_version_11_to_12():
     """Test migration from version 11 to 12."""
-
     # Mock config entry with version 11
     mock_config_entry = MagicMock()
     mock_config_entry.version = 11
@@ -207,7 +204,6 @@ async def test_migration_from_version_11_to_12():
 
 async def test_migration_from_version_14_to_17():
     """Test migration from version 14 to 17."""
-
     # Mock config entry with version 14
     mock_config_entry = MagicMock()
     mock_config_entry.version = 14
@@ -231,7 +227,6 @@ async def test_migration_from_version_14_to_17():
 
 async def test_migration_from_version_16_to_17():
     """Test migration from version 16 to 17 (flattening auth data)."""
-
     # Mock config entry with version 16 and nested auth data
     mock_config_entry = MagicMock()
     mock_config_entry.version = 16
@@ -281,7 +276,6 @@ async def test_setup_entry_coordinator_failure():
 
 async def test_async_remove_config_entry_device():
     """Test async_remove_config_entry_device function."""
-
     mock_hass = MagicMock()
     mock_config_entry = MagicMock()
     mock_device_entry = MagicMock()
@@ -627,7 +621,6 @@ async def test_binary_sensor_update_missing_image_attr(hass, tmp_path):
 @pytest.mark.asyncio
 async def test_update_with_oauth(hass, mock_update):
     """Test OAuth token refresh during update."""
-
     mock_config = FAKE_CONFIG_DATA.copy()
     mock_config[CONF_AUTH_TYPE] = "oauth2_microsoft"
     mock_config_entry = MockConfigEntry(domain=DOMAIN, data=mock_config)
@@ -663,7 +656,6 @@ async def test_update_with_oauth(hass, mock_update):
 @pytest.mark.asyncio
 async def test_update_with_oauth_error(hass, mock_update):
     """Test OAuth token refresh fails during update."""
-
     mock_config = FAKE_CONFIG_DATA.copy()
     mock_config[CONF_AUTH_TYPE] = "oauth2_microsoft"
     mock_config_entry = MockConfigEntry(domain=DOMAIN, data=mock_config)

@@ -3273,7 +3273,6 @@ async def test_reconfig_storage_error(
 
 async def test_walmart_custom_image_validation():
     """Test Walmart custom image file validation."""
-
     # Test 1: Valid Walmart custom image file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
         temp_file_path = temp_file.name
@@ -3440,7 +3439,6 @@ async def test_walmart_custom_image_in_config_flow(hass, mock_imap_no_email):
 
 async def test_generic_custom_image_validation(hass: HomeAssistant, mock_imap_no_email):
     """Test validation of generic custom image file."""
-
     # Test with non-existent file
     user_input = {
         "auth_type": "password",
@@ -3941,7 +3939,6 @@ async def test_get_mailboxes_generic_exception(hass, caplog):
 @pytest.mark.asyncio
 async def test_validate_user_input_specific_images():
     """Test validation logic for specific custom image providers."""
-
     # Common base input
     base_input = {
         CONF_GENERATE_MP4: False,
