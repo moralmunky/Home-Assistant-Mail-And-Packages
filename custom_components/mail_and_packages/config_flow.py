@@ -86,12 +86,11 @@ from .const import (
 )
 from .helpers import (
     InvalidAuth,
-    _check_ffmpeg,
-    generate_service_email_domains,
     get_resources,
-    login,
-    validate_email_address,
 )
+from .utils.email import generate_service_email_domains, validate_email_address
+from .utils.image import _check_ffmpeg
+from .utils.imap import login
 
 ERROR_MAILBOX_FAIL = "Problem getting mailbox listing using 'INBOX' message"
 IMAP_SECURITY = ["none", "SSL"]

@@ -100,7 +100,8 @@ def auto_enable_custom_integrations(request):
 def mock_update():
     """Mock email data update class values."""
     with patch(
-        "custom_components.mail_and_packages.process_emails", autospec=True
+        "custom_components.mail_and_packages.coordinator.MailDataUpdateCoordinator.process_emails",
+        autospec=True,
     ) as mock_update:
         # value = mock.Mock()
         mock_update.return_value = FAKE_UPDATE_DATA
@@ -120,7 +121,7 @@ async def integration_factory_fixture(hass):
         )
         entry.add_to_hass(hass)
         with patch(
-            "custom_components.mail_and_packages.process_emails",
+            "custom_components.mail_and_packages.coordinator.MailDataUpdateCoordinator.process_emails",
             return_value=FAKE_UPDATE_DATA,
         ):
             await hass.config_entries.async_setup(entry.entry_id)
@@ -200,13 +201,18 @@ async def integration_fixture_9(integration_factory):
 @pytest.fixture
 def mock_imap():
     """Mock aioimaplib class values."""
+    mock_imap_class = AsyncMock()
     with (
-        patch("custom_components.mail_and_packages.helpers.IMAP4_SSL") as mock_imap_ssl,
-        patch("custom_components.mail_and_packages.helpers.IMAP4") as mock_imap_plain,
+        patch(
+            "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+            return_value=mock_imap_class,
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.imap.IMAP4",
+            return_value=mock_imap_class,
+        ),
     ):
-        mock_conn = AsyncMock()
-        mock_imap_ssl.return_value = mock_conn
-        mock_imap_plain.return_value = mock_conn
+        mock_conn = mock_imap_class
         mock_conn.protocol.state = aioimaplib.AUTH
 
         # aioimaplib methods return a response object with 'result' and 'lines' attributes
@@ -639,7 +645,7 @@ def mock_imap_amazon_the_hub_2(mock_imap):
 @pytest.fixture
 def test_valid_ffmpeg():
     """Fixture to mock which."""
-    with patch("custom_components.mail_and_packages.helpers.which") as mock_which:
+    with patch("custom_components.mail_and_packages.utils.image.which") as mock_which:
         mock_which.return_value = "anything"
         yield mock_which
 
@@ -647,7 +653,7 @@ def test_valid_ffmpeg():
 @pytest.fixture
 def test_invalid_ffmpeg():
     """Fixture to mock which."""
-    with patch("custom_components.mail_and_packages.helpers.which") as mock_which:
+    with patch("custom_components.mail_and_packages.utils.image.which") as mock_which:
         mock_which.return_value = None
         yield mock_which
 
@@ -655,7 +661,7 @@ def test_invalid_ffmpeg():
 @pytest.fixture
 def mock_copyfile_exception():
     """Fixture to mock copyfile."""
-    with patch("custom_components.mail_and_packages.helpers.copyfile") as mock_copyfile:
+    with patch("custom_components.mail_and_packages.utils.image.copyfile") as mock_copyfile:
         mock_copyfile.side_effect = OSError("File not found")
         yield mock_copyfile
 
@@ -663,7 +669,7 @@ def mock_copyfile_exception():
 @pytest.fixture
 def mock_copyfile():
     """Fixture to mock copyfile."""
-    with patch("custom_components.mail_and_packages.helpers.copyfile") as mock_copyfile:
+    with patch("custom_components.mail_and_packages.utils.image.copyfile") as mock_copyfile:
         mock_copyfile.return_value = True
         yield mock_copyfile
 
@@ -764,7 +770,7 @@ def mock_os_path_splitext():
 def mock_update_time():
     """Fixture to mock update_time."""
     with patch(
-        "custom_components.mail_and_packages.helpers.update_time"
+        "custom_components.mail_and_packages.utils.date.update_time"
     ) as mock_update_time:
         mock_update_time.return_value = datetime.datetime(
             2022, 1, 6, 12, 14, 38, tzinfo=datetime.UTC
@@ -775,7 +781,7 @@ def mock_update_time():
 @pytest.fixture
 def mock_image():
     """Fixture to mock Image."""
-    with patch("custom_components.mail_and_packages.helpers.Image"):
+    with patch("custom_components.mail_and_packages.utils.image.Image"):
         yield
 
 
@@ -783,7 +789,7 @@ def mock_image():
 def mock_image_excpetion():
     """Fixture to mock Image."""
     with patch(
-        "custom_components.mail_and_packages.helpers.Image"
+        "custom_components.mail_and_packages.utils.image.Image"
     ) as mock_image_excpetion:
         mock_image_excpetion.return_value = mock.Mock(autospec=True)
         mock_image_excpetion.open.side_effect = Exception("SystemError")
@@ -794,7 +800,7 @@ def mock_image_excpetion():
 def mock_image_save_excpetion():
     """Fixture to mock Image."""
     with patch(
-        "custom_components.mail_and_packages.helpers.Image"
+        "custom_components.mail_and_packages.utils.image.Image"
     ) as mock_image_save_excpetion:
         mock_image_save_excpetion.return_value = mock.Mock(autospec=True)
         mock_image_save_excpetion.Image.save.side_effect = Exception("ValueError")
@@ -805,8 +811,8 @@ def mock_image_save_excpetion():
 def mock_resizeimage():
     """Fixture to mock splitext."""
     with (
-        patch("custom_components.mail_and_packages.helpers.Image"),
-        patch("custom_components.mail_and_packages.helpers.ImageOps"),
+        patch("custom_components.mail_and_packages.utils.image.Image"),
+        patch("custom_components.mail_and_packages.utils.image.ImageOps"),
     ):
         yield
 
@@ -860,7 +866,7 @@ def mock_subprocess_run():
 def mock_copy_overlays():
     """Fixture to mock copy_overlays."""
     with patch(
-        "custom_components.mail_and_packages.helpers.copy_overlays"
+        "custom_components.mail_and_packages.utils.image.copy_overlays"
     ) as mock_copy_overlays:
         yield mock_copy_overlays
 
@@ -869,7 +875,7 @@ def mock_copy_overlays():
 def mock_download_img():
     """Mock email data update class values."""
     with patch(
-        "custom_components.mail_and_packages.helpers.download_img",
+        "custom_components.mail_and_packages.utils.amazon.download_amazon_img",
         new_callable=mock.AsyncMock,
     ) as mock_download_img:
         mock_download_img.return_value = True
@@ -916,7 +922,7 @@ def mock_imap_royal_out_for_delivery(mock_imap):
 def mock_copyoverlays():
     """Fixture to mock copy_overlays."""
     with patch(
-        "custom_components.mail_and_packages.helpers.copy_overlays",
+        "custom_components.mail_and_packages.utils.image.copy_overlays",
     ) as mock_copyoverlays:
         mock_copyoverlays.return_value = True
         yield mock_copyoverlays
@@ -926,7 +932,7 @@ def mock_copyoverlays():
 def mock_hash_file():
     """Fixture to mock hash_file."""
     with patch(
-        "custom_components.mail_and_packages.helpers.hash_file"
+        "custom_components.mail_and_packages.utils.image.hash_file"
     ) as mock_hash_file:
         mock_hash_file.side_effect = hash_side_effect
         yield mock_hash_file
@@ -943,7 +949,7 @@ def hash_side_effect(value):
 def mock_getctime_today():
     """Fixture to mock os.path.getctime."""
     with patch(
-        "custom_components.mail_and_packages.helpers.os.path.getctime"
+        "custom_components.mail_and_packages.utils.image.os.path.getctime"
     ) as mock_getctime_today:
         mock_getctime_today.return_value = time.time()
         yield mock_getctime_today
@@ -953,7 +959,7 @@ def mock_getctime_today():
 def mock_getctime_yesterday():
     """Fixture to mock os.path.getctime."""
     with patch(
-        "custom_components.mail_and_packages.helpers.os.path.getctime"
+        "custom_components.mail_and_packages.utils.image.os.path.getctime"
     ) as mock_getctime_yesterday:
         mock_getctime_yesterday.return_value = time.time() - 86400
         yield mock_getctime_yesterday
@@ -963,7 +969,7 @@ def mock_getctime_yesterday():
 def mock_hash_file_oserr():
     """Fixture to mock hash_file."""
     with patch(
-        "custom_components.mail_and_packages.helpers.hash_file"
+        "custom_components.mail_and_packages.utils.image.hash_file"
     ) as mock_hash_file_oserr:
         mock_hash_file_oserr.side_effect = OSError(errno.EEXIST, "error")
         yield mock_hash_file_oserr
@@ -1143,7 +1149,8 @@ def mock_imap_amazon_fwd(mock_imap):
 def mock_update_amazon_image():
     """Mock email data update class values."""
     with patch(
-        "custom_components.mail_and_packages.process_emails", autospec=True
+        "custom_components.mail_and_packages.coordinator.MailDataUpdateCoordinator.process_emails",
+        autospec=True,
     ) as mock_update:
         # value = mock.Mock()
         mock_update.return_value = FAKE_UPDATE_DATA_BIN

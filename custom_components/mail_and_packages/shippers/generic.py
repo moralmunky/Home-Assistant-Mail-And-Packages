@@ -1,4 +1,5 @@
 """Generic Shipper class."""
+
 from __future__ import annotations
 
 import logging
@@ -7,7 +8,6 @@ from typing import Any
 
 from aioimaplib import IMAP4_SSL
 
-from custom_components.mail_and_packages import const
 from custom_components.mail_and_packages.const import (
     AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT,
     AMAZON_DELIVERED,
@@ -66,44 +66,9 @@ class GenericShipper(Shipper):
         found_data = []
         result = {ATTR_COUNT: 0, ATTR_TRACKING: []}
 
-        # Image extraction setup
-        shipper_name = None
-        if sensor_type.endswith("_delivered"):
-            potential_shipper = sensor_type.replace("_delivered", "")
-            camera_key = f"{potential_shipper}_camera"
-            if camera_key in CAMERA_DATA and camera_key not in (
-                "usps_camera",
-                "generic_camera",
-            ):
-                shipper_name = potential_shipper
-
         image_path = self.config.get("image_path")
-        self.config.get("image_name") # This is likely wrong for generic
-        # In helpers.py, image_name is derived from shipper_name
-
-        if shipper_name:
-            image_attr_name = f"ATTR_{shipper_name.upper()}_IMAGE"
-            getattr(const, image_attr_name, None)
-            image_name_val = f"{shipper_name}_delivery.jpg" # Default
-
-            # We need to get the actual image name from coordinator data if available
-            # but Shipper doesn't have direct access to coordinator data yet.
-            # In helpers.py, 'data' is passed to get_count.
-            # For now, let's use the default or a derived one.
-
-            extraction_config = CAMERA_EXTRACTION_CONFIG.get(shipper_name, {})
-            image_type = extraction_config.get("image_type", "jpeg")
-            cid_name = extraction_config.get("cid_name")
-            attachment_filename_pattern = extraction_config.get(
-                "attachment_filename_pattern"
-            )
-
-            absolute_image_path = image_path.rstrip("/") + "/"
-            absolute_shipper_path = f"{absolute_image_path}{shipper_name}/"
-
-            # Create directory
-            if not Path(absolute_shipper_path).exists():
-                Path(absolute_shipper_path).mkdir(parents=True, exist_ok=True)
+        # Setup image extraction
+        shipper_cfg = await self._setup_image_extraction(sensor_type, image_path)
 
         for subject in subjects:
             (server_response, sdata) = await email_search(
@@ -111,75 +76,142 @@ class GenericShipper(Shipper):
             )
             if server_response == "OK" and sdata[0]:
                 email_ids = sdata[0].split()
-                new_email_ids = []
-                for eid in email_ids:
-                    eid_str = eid.decode() if isinstance(eid, bytes) else str(eid)
-                    if eid_str not in unique_email_ids:
-                        unique_email_ids.add(eid_str)
-                        new_email_ids.append(eid)
+                new_ids = [
+                    eid
+                    for eid in email_ids
+                    if (
+                        eid_str := (
+                            eid.decode() if isinstance(eid, bytes) else str(eid)
+                        )
+                    )
+                    not in unique_email_ids
+                ]
+                for eid_str in [
+                    eid.decode() if isinstance(eid, bytes) else str(eid)
+                    for eid in new_ids
+                ]:
+                    unique_email_ids.add(eid_str)
 
-                if not new_email_ids:
+                if not new_ids:
                     continue
 
-                if ATTR_BODY in config:
-                    body_count = config.get(ATTR_BODY_COUNT, False)
-                    # find_text expects sdata as (b"ids",)
-                    mock_sdata = (b" ".join(new_email_ids),)
-                    count += await find_text(
-                        mock_sdata, account, config[ATTR_BODY], body_count
+                count = await self._process_emails_by_type(
+                    account, config, new_ids, count
+                )
+                found_data.append(b" ".join(new_ids))
+
+                if shipper_cfg:
+                    await self._extract_images_for_shipper(
+                        account, new_ids, shipper_cfg
                     )
-                else:
-                    count += len(new_email_ids)
-
-                found_data.append(b" ".join(new_email_ids))
-
-                # Image extraction
-                if shipper_name:
-                    for eid in new_email_ids:
-                        msg_parts = (await email_fetch(account, eid, "(RFC822)"))[1]
-                        for response_part in msg_parts:
-                            if isinstance(response_part, (bytes, bytearray)):
-                                if generic_delivery_image_extraction(
-                                    response_part,
-                                    absolute_image_path,
-                                    image_name_val,
-                                    shipper_name,
-                                    image_type,
-                                    cid_name,
-                                    attachment_filename_pattern,
-                                ):
-                                    _LOGGER.debug("Extracted image for %s", shipper_name)
-                                    # result[image_attr] = image_name_val
 
                 # Amazon mentions
-                if sensor_type.endswith("_delivered") and sensor_type != AMAZON_DELIVERED:
-                    mock_sdata = (b" ".join(new_email_ids),)
-                    amazon_mentions = await find_text(
-                        mock_sdata,
-                        account,
-                        AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT,
-                        False,
-                    )
-                    if amazon_mentions > 0:
-                        result["amazon_delivered_by_others"] = (
-                            result.get("amazon_delivered_by_others", 0) + amazon_mentions
-                        )
+                if (
+                    sensor_type.endswith("_delivered")
+                    and sensor_type != AMAZON_DELIVERED
+                ):
+                    await self._check_amazon_mentions(account, new_ids, result)
 
-        # Tracking numbers
-        tracking_sensor_key = f"{'_'.join(sensor_type.split('_')[:-1])}_tracking"
-        if (
-            tracking_sensor_key in SENSOR_DATA
-            and ATTR_PATTERN in SENSOR_DATA[tracking_sensor_key]
-        ):
-            track_pattern = SENSOR_DATA[tracking_sensor_key][ATTR_PATTERN][0]
-            tracking_nums = []
-            for sdata in found_data:
-                tracking_nums.extend(await get_tracking(sdata.decode(), account, track_pattern))
-
-            unique_tracking = list(dict.fromkeys(tracking_nums))
-            result[ATTR_TRACKING] = unique_tracking
-            if unique_tracking:
-                count = len(unique_tracking)
+        # Process tracking numbers
+        result[ATTR_TRACKING] = await self._process_tracking_numbers(
+            sensor_type, found_data, account
+        )
+        if result[ATTR_TRACKING]:
+            count = len(result[ATTR_TRACKING])
 
         result[ATTR_COUNT] = count
         return result
+
+    async def _process_tracking_numbers(
+        self, sensor_type: str, found_data: list, account: IMAP4_SSL
+    ) -> list:
+        """Process tracking numbers for the sensor."""
+        tracking_key = f"{'_'.join(sensor_type.split('_')[:-1])}_tracking"
+        if (
+            tracking_key not in SENSOR_DATA
+            or ATTR_PATTERN not in SENSOR_DATA[tracking_key]
+        ):
+            return []
+
+        pattern = SENSOR_DATA[tracking_key][ATTR_PATTERN][0]
+        tracking_nums = []
+        for sdata in found_data:
+            tracking_nums.extend(await get_tracking(sdata.decode(), account, pattern))
+
+        return list(dict.fromkeys(tracking_nums))
+
+    async def _setup_image_extraction(
+        self, sensor_type: str, image_path: str
+    ) -> dict | None:
+        """Set up image extraction configuration."""
+        if not sensor_type.endswith("_delivered"):
+            return None
+
+        shipper_name = sensor_type.replace("_delivered", "")
+        camera_key = f"{shipper_name}_camera"
+        if camera_key not in CAMERA_DATA or camera_key in (
+            "usps_camera",
+            "generic_camera",
+        ):
+            return None
+
+        extraction_config = CAMERA_EXTRACTION_CONFIG.get(shipper_name, {})
+        absolute_image_path = image_path.rstrip("/") + "/"
+
+        def _create_dir():
+            path = Path(absolute_image_path) / shipper_name
+            if not path.exists():
+                path.mkdir(parents=True, exist_ok=True)
+
+        await self.hass.async_add_executor_job(_create_dir)
+
+        return {
+            "name": shipper_name,
+            "image_path": absolute_image_path,
+            "image_name": f"{shipper_name}_delivery.jpg",
+            "image_type": extraction_config.get("image_type", "jpeg"),
+            "cid_name": extraction_config.get("cid_name"),
+            "pattern": extraction_config.get("attachment_filename_pattern"),
+        }
+
+    async def _process_emails_by_type(
+        self, account: IMAP4_SSL, config: dict, ids: list, current_count: int
+    ) -> int:
+        """Process emails based on body search or just count."""
+        if ATTR_BODY in config:
+            body_count = config.get(ATTR_BODY_COUNT, False)
+            mock_data = (b" ".join(ids),)
+            return current_count + await find_text(
+                mock_data, account, config[ATTR_BODY], body_count
+            )
+        return current_count + len(ids)
+
+    async def _extract_images_for_shipper(
+        self, account: IMAP4_SSL, ids: list, s_config: dict
+    ):
+        """Extract delivery images from emails."""
+        for eid in ids:
+            msg_parts = (await email_fetch(account, eid, "(RFC822)"))[1]
+            for response_part in msg_parts:
+                if isinstance(response_part, (bytes, bytearray)):
+                    if generic_delivery_image_extraction(
+                        response_part,
+                        s_config["image_path"],
+                        s_config["image_name"],
+                        s_config["name"],
+                        s_config["image_type"],
+                        s_config["cid_name"],
+                        s_config["pattern"],
+                    ):
+                        _LOGGER.debug("Extracted image for %s", s_config["name"])
+
+    async def _check_amazon_mentions(self, account: IMAP4_SSL, ids: list, result: dict):
+        """Check for Amazon mentions in emails."""
+        mock_data = (b" ".join(ids),)
+        amazon_mentions = await find_text(
+            mock_data, account, AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT, False
+        )
+        if amazon_mentions > 0:
+            result["amazon_delivered_by_others"] = (
+                result.get("amazon_delivered_by_others", 0) + amazon_mentions
+            )

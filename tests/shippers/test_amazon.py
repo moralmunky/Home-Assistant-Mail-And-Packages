@@ -1,4 +1,5 @@
 """Tests for Amazon shipper utilities."""
+
 import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -204,9 +205,13 @@ async def test_amazon_delivered_with_order_in_body(hass):
 
         async def _mock_fetch(account, email_id, parts):
             if email_id == "1":
-                content = b"Subject: Delivered: 1\n\nOrder 111-1111111-1111111 delivered."
+                content = (
+                    b"Subject: Delivered: 1\n\nOrder 111-1111111-1111111 delivered."
+                )
             else:
-                content = b"Subject: Delivered: 2\n\nOrder 111-1111111-1111111 delivered."
+                content = (
+                    b"Subject: Delivered: 2\n\nOrder 111-1111111-1111111 delivered."
+                )
             return ("OK", [bytearray(content)])
 
         mock_fetch.side_effect = _mock_fetch
@@ -366,7 +371,9 @@ async def test_amazon_parsing_more_coverage(hass, caplog):
         "custom_components.mail_and_packages.utils.amazon.dateparser.parse",
         return_value=datetime.datetime(2026, 1, 1),
     ):
-        result = await parse_amazon_arrival_date(hass, "Arriving Tomorrow", datetime.date(2025, 12, 31))
+        result = await parse_amazon_arrival_date(
+            hass, "Arriving Tomorrow", datetime.date(2025, 12, 31)
+        )
         assert result == datetime.date(2026, 1, 1)
 
 
@@ -409,7 +416,9 @@ async def test_get_items_more_coverage(hass):
         async def _mock_fetch(account, email_id, parts):
             if email_id == "1":
                 # Old arriving email (filtered out by date if param="arriving")
-                content = b"Date: Wed, 01 Jan 2020 10:00:00 +0000\nSubject: Arriving\n\nBody"
+                content = (
+                    b"Date: Wed, 01 Jan 2020 10:00:00 +0000\nSubject: Arriving\n\nBody"
+                )
             elif email_id == "2":
                 # Ordered email (skipped in package counting)
                 content = f"Date: {today.strftime('%a, %d %b %Y %H:%M:%S +0000')}\nSubject: Ordered: 1\n\nBody".encode()
@@ -481,7 +490,9 @@ async def test_amazon_search_no_emails_found(hass):
 @pytest.mark.asyncio
 async def test_amazon_search_delivered(hass, mock_imap_amazon_delivered, caplog):
     """Test Amazon search for delivered items."""
-    shipper = AmazonShipper(hass, {"image_path": "test/path/amazon/", "image_name": "testfilename.jpg"})
+    shipper = AmazonShipper(
+        hass, {"image_path": "test/path/amazon/", "image_name": "testfilename.jpg"}
+    )
     with (
         patch("custom_components.mail_and_packages.shippers.amazon.cleanup_images"),
         patch(
@@ -500,11 +511,14 @@ async def test_amazon_search_delivered(hass, mock_imap_amazon_delivered, caplog)
 @pytest.mark.asyncio
 async def test_amazon_search_delivered_it(hass, mock_imap_amazon_delivered_it):
     """Test Amazon search for delivered items (IT domain)."""
-    shipper = AmazonShipper(hass, {
-        "amazon_domain": "amazon.it",
-        "image_path": "test/path/amazon/",
-        "image_name": "testfilename.jpg"
-    })
+    shipper = AmazonShipper(
+        hass,
+        {
+            "amazon_domain": "amazon.it",
+            "image_path": "test/path/amazon/",
+            "image_name": "testfilename.jpg",
+        },
+    )
     with (
         patch("custom_components.mail_and_packages.shippers.amazon.cleanup_images"),
         patch(
@@ -515,9 +529,6 @@ async def test_amazon_search_delivered_it(hass, mock_imap_amazon_delivered_it):
             mock_imap_amazon_delivered_it, "today", AMAZON_DELIVERED
         )
         assert result[AMAZON_DELIVERED] == 10
-
-
-
 
 
 @pytest.mark.asyncio
@@ -533,14 +544,15 @@ async def test_parse_amazon_arrival_date(hass):
 @pytest.mark.asyncio
 async def test_amazon_search_no_emails_found_copy(hass):
     """Test Amazon search copies default image when no emails are found."""
-    shipper = AmazonShipper(hass, {
-        "image_path": "/fake/path/",
-        "image_name": "amazon.jpg"
-    })
+    shipper = AmazonShipper(
+        hass, {"image_path": "/fake/path/", "image_name": "amazon.jpg"}
+    )
     mock_account = AsyncMock()
     with (
         patch("custom_components.mail_and_packages.shippers.amazon.cleanup_images"),
-        patch("custom_components.mail_and_packages.shippers.amazon.copyfile") as mock_copy,
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.copyfile"
+        ) as mock_copy,
         patch(
             "custom_components.mail_and_packages.shippers.amazon.email_search",
             new_callable=AsyncMock,
@@ -564,10 +576,18 @@ async def test_amazon_packages_counts(hass, mock_imap_amazon_shipped):
         patch(
             "custom_components.mail_and_packages.shippers.amazon.email_fetch",
             new_callable=AsyncMock,
-            return_value=("OK", [b"Header", b"Subject: Shipped\nDate: Fri, 25 Sep 2020 12:00:00 +0000\n\nYour order 111-1234567-1234567 has shipped. Arriving: Saturday, September 26."]),
+            return_value=(
+                "OK",
+                [
+                    b"Header",
+                    b"Subject: Shipped\nDate: Fri, 25 Sep 2020 12:00:00 +0000\n\nYour order 111-1234567-1234567 has shipped. Arriving: Saturday, September 26.",
+                ],
+            ),
         ),
     ):
-        result = await shipper.process(mock_imap_amazon_shipped, "today", AMAZON_PACKAGES)
+        result = await shipper.process(
+            mock_imap_amazon_shipped, "today", AMAZON_PACKAGES
+        )
         assert result[AMAZON_PACKAGES] == 1
 
 
@@ -579,7 +599,13 @@ async def test_amazon_order_list(hass, mock_imap_amazon_shipped):
         patch(
             "custom_components.mail_and_packages.shippers.amazon.email_fetch",
             new_callable=AsyncMock,
-            return_value=("OK", [b"Header", b"Subject: Shipped\n\nYour order 111-1234567-1234567 has shipped."]),
+            return_value=(
+                "OK",
+                [
+                    b"Header",
+                    b"Subject: Shipped\n\nYour order 111-1234567-1234567 has shipped.",
+                ],
+            ),
         ),
     ):
         result = await shipper.process(mock_imap_amazon_shipped, "today", AMAZON_ORDER)

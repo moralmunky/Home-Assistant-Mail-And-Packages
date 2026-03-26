@@ -1,6 +1,8 @@
 """Base Shipper class."""
+
 from __future__ import annotations
 
+import datetime
 import email
 import logging
 import re
@@ -109,90 +111,119 @@ class AmazonShipper(Shipper):
     ) -> list[str] | int:
         """Parse Amazon emails for delivery date and order number."""
         today_date = get_today()
-        packages_arriving_today = {}
-        delivered_packages = {}
-        amazon_delivered = []
-        deliveries_today = []
-        all_shipped_orders = set()
-
         address_list = amazon_email_addresses(fwds, domain)
         unique_emails = await search_amazon_emails(account, address_list, days)
         order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
 
+        context = {
+            "today": today_date,
+            "packages_arriving_today": {},
+            "delivered_packages": {},
+            "amazon_delivered": [],
+            "deliveries_today": [],
+            "all_shipped_orders": set(),
+            "order_pattern": order_pattern,
+        }
+
         for email_id in unique_emails:
-            fetch_id = email_id.decode() if isinstance(email_id, bytes) else email_id
-            data = (await email_fetch(account, fetch_id, "(RFC822)"))[1]
+            await self._process_amazon_email(account, email_id, context)
 
-            for response_part in data:
-                if not isinstance(response_part, (bytes, bytearray)):
-                    continue
-
-                msg = email.message_from_bytes(response_part)
-                email_date_str = msg.get("Date")
-                email_date = None
-                if email_date_str:
-                    parsed_date = await self.hass.async_add_executor_job(
-                        dateparser.parse, email_date_str
-                    )
-                    if parsed_date:
-                        email_date = parsed_date.date()
-
-                email_subject = get_decoded_subject(msg)
-                if any(
-                    s.lower() in email_subject.lower() for s in AMAZON_ORDERED_SUBJECT
-                ):
-                    continue
-
-                email_msg = get_email_body(msg)
-
-                if any(
-                    s.lower() in email_subject.lower() for s in AMAZON_DELIVERED_SUBJECT
-                ):
-                    orders = extract_order_numbers(email_subject, order_pattern)
-                    if not orders and email_msg:
-                        orders = extract_order_numbers(email_msg, order_pattern)
-                    for o in orders:
-                        delivered_packages[o] = delivered_packages.get(o, 0) + 1
-                        if o not in amazon_delivered:
-                            amazon_delivered.append(o)
-                    continue
-
-                order_id = None
-                orders = extract_order_numbers(email_subject, order_pattern)
-                if orders:
-                    order_id = orders[0]
-                elif email_msg:
-                    orders = extract_order_numbers(email_msg, order_pattern)
-                    if orders:
-                        order_id = orders[0]
-
-                if order_id:
-                    all_shipped_orders.add(order_id)
-
-                if email_msg:
-                    parsed_arrival = await parse_amazon_arrival_date(
-                        self.hass, email_msg, email_date
-                    )
-                    if parsed_arrival == today_date:
-                        if order_id:
-                            packages_arriving_today[order_id] = (
-                                packages_arriving_today.get(order_id, 0) + 1
-                            )
-                        else:
-                            deliveries_today.append("Amazon Order")
-
-        deliveries_today = [
-            item for item in deliveries_today if item not in amazon_delivered
-        ]
-        final_count = 0
-        for order_id, arriving_count in packages_arriving_today.items():
-            delivered_count = delivered_packages.get(order_id, 0)
-            final_count += max(0, arriving_count - delivered_count)
-        final_count += len(deliveries_today)
+        final_count = self._calculate_final_count(context)
 
         if param == "count":
             return final_count
-        return list(all_shipped_orders)
+        return list(context["all_shipped_orders"])
+
+    async def _process_amazon_email(
+        self, account: IMAP4_SSL, email_id: bytes | str, ctx: dict
+    ):
+        """Process a single Amazon email."""
+        fetch_id = email_id.decode() if isinstance(email_id, bytes) else email_id
+        data = (await email_fetch(account, fetch_id, "(RFC822)"))[1]
+
+        for response_part in data:
+            if not isinstance(response_part, (bytes, bytearray)):
+                continue
+
+            msg = email.message_from_bytes(response_part)
+            email_date = await self._parse_email_date(msg)
+            email_subject = get_decoded_subject(msg)
+
+            if any(s.lower() in email_subject.lower() for s in AMAZON_ORDERED_SUBJECT):
+                continue
+
+            email_msg = get_email_body(msg)
+            if any(
+                s.lower() in email_subject.lower() for s in AMAZON_DELIVERED_SUBJECT
+            ):
+                self._handle_delivered_email(email_subject, email_msg, ctx)
+                continue
+
+            await self._handle_shipping_email(email_subject, email_msg, email_date, ctx)
+
+    async def _parse_email_date(
+        self, msg: email.message.Message
+    ) -> datetime.date | None:
+        """Parse the date from an email message."""
+        date_str = msg.get("Date")
+        if not date_str:
+            return None
+        parsed = await self.hass.async_add_executor_job(dateparser.parse, date_str)
+        return parsed.date() if parsed else None
+
+    def _handle_delivered_email(self, subject: str, body: str | None, ctx: dict):
+        """Handle an Amazon 'delivered' email."""
+        orders = extract_order_numbers(subject, ctx["order_pattern"])
+        if not orders and body:
+            orders = extract_order_numbers(body, ctx["order_pattern"])
+        for o in orders:
+            ctx["delivered_packages"][o] = ctx["delivered_packages"].get(o, 0) + 1
+            if o not in ctx["amazon_delivered"]:
+                ctx["amazon_delivered"].append(o)
+
+    async def _handle_shipping_email(
+        self, subject: str, body: str | None, date: datetime.date | None, ctx: dict
+    ):
+        """Handle an Amazon 'shipping' or 'arriving' email."""
+        order_id = self._extract_first_order_id(subject, body, ctx["order_pattern"])
+        if order_id:
+            ctx["all_shipped_orders"].add(order_id)
+
+        if body:
+            parsed_arrival = await parse_amazon_arrival_date(self.hass, body, date)
+            if parsed_arrival == ctx["today"]:
+                if order_id:
+                    ctx["packages_arriving_today"][order_id] = (
+                        ctx["packages_arriving_today"].get(order_id, 0) + 1
+                    )
+                else:
+                    ctx["deliveries_today"].append("Amazon Order")
+
+    def _extract_first_order_id(
+        self, subject: str, body: str | None, pattern: re.Pattern
+    ) -> str | None:
+        """Extract the first order number found in subject or body."""
+        orders = extract_order_numbers(subject, pattern)
+        if orders:
+            return orders[0]
+        if body:
+            orders = extract_order_numbers(body, pattern)
+            if orders:
+                return orders[0]
+        return None
+
+    def _calculate_final_count(self, ctx: dict) -> int:
+        """Calculate the final count of packages arriving today."""
+        deliveries_today = [
+            item
+            for item in ctx["deliveries_today"]
+            if item not in ctx["amazon_delivered"]
+        ]
+        final_count = 0
+        for order_id, arriving_count in ctx["packages_arriving_today"].items():
+            delivered_count = ctx["delivered_packages"].get(order_id, 0)
+            final_count += max(0, arriving_count - delivered_count)
+        return final_count + len(deliveries_today)
 
     async def _amazon_search(
         self,
@@ -225,7 +256,9 @@ class AmazonShipper(Shipper):
 
                 img_url = await get_amazon_image_url(data[0], account)
                 if img_url and image_path and amazon_image_name:
-                    await download_amazon_img(img_url, image_path, amazon_image_name, self.hass)
+                    await download_amazon_img(
+                        img_url, image_path, amazon_image_name, self.hass
+                    )
                     image_found = True
 
         if (count == 0 or not image_found) and image_path and amazon_image_name:
@@ -263,13 +296,11 @@ class AmazonShipper(Shipper):
                             msg = email.message_from_bytes(response_part)
                             actual_subject = get_decoded_subject(msg)
                             body = get_email_body(msg)
-                            if (
-                                hub_code := _extract_hub_code(
-                                    body,
-                                    AMAZON_HUB_BODY,
-                                    actual_subject,
-                                    AMAZON_HUB_SUBJECT_SEARCH,
-                                )
+                            if hub_code := _extract_hub_code(
+                                body,
+                                AMAZON_HUB_BODY,
+                                actual_subject,
+                                AMAZON_HUB_SUBJECT_SEARCH,
                             ):
                                 count += 1
                                 if hub_code not in code:

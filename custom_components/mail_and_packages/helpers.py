@@ -20,18 +20,15 @@ from .const import (
     AMAZON_OTP_SUBJECT,
     ATTR_COUNT,
     ATTR_TRACKING,
-    CONF_ALLOW_EXTERNAL,
     CONF_PATH,
-    COORDINATOR,
-    DOMAIN,
     SENSOR_TYPES,
 )
-from .coordinator import MailAndPackagesDataUpdateCoordinator
 from .shippers import SHIPPER_REGISTRY
 from .shippers.usps import USPSShipper
 from .utils.image import (
     default_image_path,
 )
+from .utils.imap import InvalidAuth
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,8 +41,6 @@ amazon_search_legacy = AMAZON_DELIVERED_SUBJECT
 image_file_name = "mail_today.gif"
 
 
-class InvalidAuth(Exception):
-    """Error to indicate there is invalid auth."""
 
 
 def _match_patterns(subject: str, patterns: list[str]) -> bool:
@@ -144,30 +139,3 @@ def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
                     copyfile(str(src), str(dest))
                 except OSError as err:
                     _LOGGER.error("Error copying image: %s", err)
-
-
-async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict[str, Any]:
-    """Process emails and update sensors."""
-    # Use the coordinator if available, otherwise mock it for tests
-    coordinator = hass.data.get(DOMAIN, {}).get(COORDINATOR)
-    if coordinator and isinstance(coordinator, MailAndPackagesDataUpdateCoordinator):
-        await coordinator.async_refresh()
-        return coordinator.data
-
-    # Legacy-style manual processing for tests that expect it
-    data = {
-        "usps_mail": 0,
-        "usps_delivered": 0,
-        "usps_delivering": 0,
-        "ups_delivered": 0,
-        "ups_delivering": 0,
-        "fedex_delivered": 0,
-        "fedex_delivering": 0,
-        "amazon_packages": 0,
-    }
-
-    # Copy image file to www directory if enabled
-    if config.get(CONF_ALLOW_EXTERNAL):
-        await hass.async_add_executor_job(copy_images, hass, config)
-
-    return data

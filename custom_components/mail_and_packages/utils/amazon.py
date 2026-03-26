@@ -1,4 +1,5 @@
 """Amazon specific utilities."""
+
 from __future__ import annotations
 
 import datetime
@@ -25,6 +26,8 @@ from custom_components.mail_and_packages.const import (
     AMAZON_SHIPMENT_SUBJECT,
     AMAZON_SHIPMENT_TRACKING,
     AMAZON_TIME_PATTERN,
+    AMAZON_TIME_PATTERN_END,
+    AMAZON_TIME_PATTERN_REGEX,
     DEFAULT_AMAZON_DAYS,
 )
 from custom_components.mail_and_packages.utils.date import get_today
@@ -86,7 +89,7 @@ async def parse_amazon_arrival_date(
             continue
 
         start = email_msg.find(search) + len(search)
-        chunk = email_msg[start:start+50]
+        chunk = email_msg[start : start + 50]
 
         dateobj = await hass.async_add_executor_job(
             partial(
@@ -95,7 +98,7 @@ async def parse_amazon_arrival_date(
                 settings={
                     "PREFER_DATES_FROM": "future",
                     "RELATIVE_BASE": datetime.datetime.combine(
-                        email_date if email_date else today_date, datetime.time()
+                        email_date or today_date, datetime.time()
                     ),
                     "RETURN_AS_TIMEZONE_AWARE": False,
                 },
@@ -164,7 +167,9 @@ async def search_amazon_emails(
     return unique_emails
 
 
-async def download_amazon_img(img_url: str, img_path: str, img_name: str, hass: Any) -> None:
+async def download_amazon_img(
+    img_url: str, img_path: str, img_name: str, hass: Any
+) -> None:
     """Download image from url."""
     img_path = Path(img_path) / "amazon"
     filepath = img_path / img_name
@@ -175,9 +180,7 @@ async def download_amazon_img(img_url: str, img_path: str, img_name: str, hass: 
                     content_type = resp.headers.get("content-type", "")
                     if "image" in content_type:
                         data = await resp.read()
-                        await hass.async_add_executor_job(
-                            io_save_file, filepath, data
-                        )
+                        await hass.async_add_executor_job(io_save_file, filepath, data)
         except aiohttp.ClientError as err:
             _LOGGER.error("Problem downloading file: %s", err)
 
@@ -207,7 +210,9 @@ async def get_amazon_image_url(
     return None
 
 
-def _extract_hub_code(body: str, hub_pattern: str, subject: str, subject_pattern: str) -> str:
+def _extract_hub_code(
+    body: str, hub_pattern: str, subject: str, subject_pattern: str
+) -> str:
     """Extract Amazon Hub code from email body or subject."""
     # Check subject first
     if (found := re.compile(subject_pattern).search(subject)) is not None:
@@ -222,7 +227,6 @@ def _extract_hub_code(body: str, hub_pattern: str, subject: str, subject_pattern
 def amazon_date_search(email_msg: str, patterns: list[str] | None = None) -> int:
     """Search for a date pattern in an email message and return its index."""
     if patterns is None:
-        from custom_components.mail_and_packages.const import AMAZON_TIME_PATTERN_END
         patterns = AMAZON_TIME_PATTERN_END
 
     for pattern in patterns:
@@ -234,7 +238,6 @@ def amazon_date_search(email_msg: str, patterns: list[str] | None = None) -> int
 def amazon_date_regex(email_msg: str, patterns: list[str] | None = None) -> str | None:
     """Search for a date pattern using regex and return the first capture group."""
     if patterns is None:
-        from custom_components.mail_and_packages.const import AMAZON_TIME_PATTERN_REGEX
         patterns = AMAZON_TIME_PATTERN_REGEX
 
     for pattern in patterns:

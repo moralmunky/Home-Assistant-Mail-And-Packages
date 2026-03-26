@@ -25,7 +25,7 @@ from .const import (
     SENSOR_NAME,
     VERSION,
 )
-from .helpers import generate_delivery_gif
+from .utils.image import generate_delivery_gif
 
 SERVICE_UPDATE_IMAGE = "update_image"
 _LOGGER = logging.getLogger(__name__)

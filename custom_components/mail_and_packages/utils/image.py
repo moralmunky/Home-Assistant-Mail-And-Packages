@@ -7,7 +7,7 @@ import os
 import subprocess  # nosec
 import uuid
 from pathlib import Path
-from shutil import copyfile
+from shutil import copyfile, which
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -36,6 +36,14 @@ from custom_components.mail_and_packages.const import (
 from .date import get_formatted_date
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def _check_ffmpeg() -> bool:
+    """Check if ffmpeg is installed.
+
+    Returns boolean
+    """
+    return which("ffmpeg")
 
 
 def default_image_path(

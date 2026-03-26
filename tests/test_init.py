@@ -9,10 +9,12 @@ from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages import (
-    MailDataUpdateCoordinator,
     async_migrate_entry,
     async_remove_config_entry_device,
     async_setup_entry,
+)
+from custom_components.mail_and_packages.coordinator import (
+    MailDataUpdateCoordinator,
 )
 from custom_components.mail_and_packages.const import (
     CONF_AUTH_TYPE,
@@ -264,9 +266,12 @@ async def test_setup_entry_coordinator_failure():
     mock_coordinator.last_exception = Exception("Connection failed")
     mock_coordinator.async_refresh = AsyncMock()
 
-    with patch(
-        "custom_components.mail_and_packages.MailDataUpdateCoordinator"
-    ) as mock_coordinator_class:
+    with (
+        patch("homeassistant.helpers.frame.report_usage"),
+        patch(
+            "custom_components.mail_and_packages.coordinator.MailDataUpdateCoordinator"
+        ) as mock_coordinator_class,
+    ):
         mock_coordinator_class.return_value = mock_coordinator
 
         # Should raise ConfigEntryNotReady
@@ -301,11 +306,12 @@ async def test_async_remove_config_entry_device():
 async def test_coordinator_async_refresh_error(hass):
     """Test coordinator update failure."""
     mock_config = FAKE_CONFIG_DATA.copy()
-    coordinator = MailDataUpdateCoordinator(hass, mock_config)
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, mock_config)
 
     with (
         patch(
-            "custom_components.mail_and_packages.process_emails",
+            "custom_components.mail_and_packages.coordinator.MailDataUpdateCoordinator.process_emails",
             side_effect=Exception("Test error"),
         ),
         pytest.raises(UpdateFailed),
@@ -335,16 +341,16 @@ async def test_coordinator_binary_sensor_update_usps_hash_comparison():
 
         with (
             patch(
-                "custom_components.mail_and_packages.default_image_path",
+                "custom_components.mail_and_packages.coordinator.default_image_path",
                 return_value="custom_components/mail_and_packages/images/",
             ),
             patch(
-                "custom_components.mail_and_packages.anyio.Path.exists",
+                "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
             patch(
-                "custom_components.mail_and_packages.hash_file",
+                "custom_components.mail_and_packages.coordinator.hash_file",
                 side_effect=["hash1", "hash2"],
             ),
         ):
@@ -376,16 +382,16 @@ async def test_coordinator_binary_sensor_update_amazon_hash_comparison():
 
         with (
             patch(
-                "custom_components.mail_and_packages.default_image_path",
+                "custom_components.mail_and_packages.coordinator.default_image_path",
                 return_value="custom_components/mail_and_packages/images/",
             ),
             patch(
-                "custom_components.mail_and_packages.anyio.Path.exists",
+                "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
             patch(
-                "custom_components.mail_and_packages.hash_file",
+                "custom_components.mail_and_packages.coordinator.hash_file",
                 side_effect=["hash1", "hash2"],
             ),
         ):
@@ -417,16 +423,16 @@ async def test_coordinator_binary_sensor_update_ups_hash_comparison():
 
         with (
             patch(
-                "custom_components.mail_and_packages.default_image_path",
+                "custom_components.mail_and_packages.coordinator.default_image_path",
                 return_value="custom_components/mail_and_packages/images/",
             ),
             patch(
-                "custom_components.mail_and_packages.anyio.Path.exists",
+                "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
             patch(
-                "custom_components.mail_and_packages.hash_file",
+                "custom_components.mail_and_packages.coordinator.hash_file",
                 side_effect=["hash1", "hash2"],
             ),
         ):
@@ -458,16 +464,16 @@ async def test_coordinator_binary_sensor_update_same_hashes():
 
         with (
             patch(
-                "custom_components.mail_and_packages.default_image_path",
+                "custom_components.mail_and_packages.coordinator.default_image_path",
                 return_value="custom_components/mail_and_packages/images/",
             ),
             patch(
-                "custom_components.mail_and_packages.anyio.Path.exists",
+                "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
             patch(
-                "custom_components.mail_and_packages.hash_file",
+                "custom_components.mail_and_packages.coordinator.hash_file",
                 side_effect=["same_hash", "same_hash"],
             ),
         ):
@@ -500,16 +506,16 @@ async def test_coordinator_binary_sensor_update_amazon_same_hashes():
 
         with (
             patch(
-                "custom_components.mail_and_packages.default_image_path",
+                "custom_components.mail_and_packages.coordinator.default_image_path",
                 return_value="custom_components/mail_and_packages/images/",
             ),
             patch(
-                "custom_components.mail_and_packages.anyio.Path.exists",
+                "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
                 new_callable=AsyncMock,
                 return_value=True,
             ),
             patch(
-                "custom_components.mail_and_packages.hash_file",
+                "custom_components.mail_and_packages.coordinator.hash_file",
                 side_effect=["same_hash", "same_hash"],
             ),
         ):
@@ -529,9 +535,12 @@ async def test_setup_entry_refresh_failure(hass):
         "resources": [],
     }
     mock_config_entry.entry_id = "test_entry"
-    with patch(
-        "custom_components.mail_and_packages.MailDataUpdateCoordinator"
-    ) as mock_coordinator_class:
+    with (
+        patch("homeassistant.helpers.frame.report_usage"),
+        patch(
+            "custom_components.mail_and_packages.coordinator.MailDataUpdateCoordinator"
+        ) as mock_coordinator_class,
+    ):
         mock_coordinator = mock_coordinator_class.return_value
         mock_coordinator.last_update_success = False
         mock_coordinator.last_exception = "IMAP Timeout"
@@ -625,7 +634,8 @@ async def test_update_with_oauth(hass, mock_update):
     mock_config[CONF_AUTH_TYPE] = "oauth2_microsoft"
     mock_config_entry = MockConfigEntry(domain=DOMAIN, data=mock_config)
 
-    coordinator = MailDataUpdateCoordinator(hass, mock_config)
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, mock_config)
     coordinator.config_entry = mock_config_entry
 
     with (
@@ -637,7 +647,7 @@ async def test_update_with_oauth(hass, mock_update):
             "homeassistant.helpers.config_entry_oauth2_flow.OAuth2Session"
         ) as mock_session_cls,
         patch(
-            "custom_components.mail_and_packages.process_emails",
+            "custom_components.mail_and_packages.coordinator.MailDataUpdateCoordinator.process_emails",
             return_value={"test": "data"},
         ) as mock_process_emails,
     ):
@@ -660,7 +670,8 @@ async def test_update_with_oauth_error(hass, mock_update):
     mock_config[CONF_AUTH_TYPE] = "oauth2_microsoft"
     mock_config_entry = MockConfigEntry(domain=DOMAIN, data=mock_config)
 
-    coordinator = MailDataUpdateCoordinator(hass, mock_config)
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, mock_config)
     coordinator.config_entry = mock_config_entry
 
     with (

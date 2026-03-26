@@ -1,4 +1,5 @@
 """Base Shipper class."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -22,5 +23,7 @@ class Shipper(ABC):
         """Return the internal name of the shipper."""
 
     @abstractmethod
-    async def process(self, account: IMAP4_SSL, date: str, sensor_type: str) -> dict[str, Any]:
+    async def process(
+        self, account: IMAP4_SSL, date: str, sensor_type: str
+    ) -> dict[str, Any]:
         """Process emails for this shipper on the given date for a specific sensor."""
