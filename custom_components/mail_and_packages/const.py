@@ -465,8 +465,8 @@ SENSOR_DATA = {
     "dhl_packages": {},
     "dhl_tracking": {
         "pattern": [
-            "(?:JJD\\d{18}|JVGL\\d{20}|MDP[A-Z0-9]{5,15}|00\\d{18}|(?<![0-9])\\d{10,11}(?![0-9]))"
-        ]
+            "(?:JJD\\d{18}|JVGL\\d{20}|MDP[A-Z0-9]{5,15}|00\\d{18}|(?<![0-9])\\d{10,11}(?![0-9]))",
+        ],
     },
     # Hermes.co.uk
     "hermes_delivered": {
@@ -509,7 +509,7 @@ SENSOR_DATA = {
     "poczta_polska_packages": {},
     "poczta_polska_tracking": {
         # http://emonitoring.poczta-polska.pl/?numer=00359007738913296666
-        "pattern": ["\\d{20}"]
+        "pattern": ["\\d{20}"],
     },
     # InPost.pl
     "inpost_pl_delivered": {
@@ -537,7 +537,7 @@ SENSOR_DATA = {
     "inpost_pl_packages": {},
     "inpost_pl_tracking": {
         # https://inpost.pl/sledzenie-przesylek?number=520113017830399002575123
-        "pattern": ["\\d{24}"]
+        "pattern": ["\\d{24}"],
     },
     # DPD Poland
     "dpd_com_pl_delivered": {
@@ -664,7 +664,7 @@ SENSOR_DATA = {
     "gls_tracking": {
         # https://gls-group.eu/GROUP/en/parcel-tracking?match=51687952111
         # https://gls-rtt.com/#/DE/de/95368751054
-        "pattern": ["\\d{11,12}"]
+        "pattern": ["\\d{11,12}"],
     },
     # Australia Post
     "auspost_delivered": {
@@ -1598,6 +1598,9 @@ SHIPPERS = [
     "rewe_lieferservice",
     "dpd_nl",
     "bolcom",
+    "poczta_polska",
+    "buildinglink",
+    "post_de",
 ]
 
 # Authentication types

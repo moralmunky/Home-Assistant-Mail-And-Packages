@@ -1,5 +1,6 @@
 """Adds config flow for Mail and Packages."""
 
+import contextlib
 import logging
 import ssl
 from pathlib import Path
@@ -84,14 +85,10 @@ from .const import (
     OAUTH_IMAP_DEFAULTS,
     OAUTH_SCOPES,
 )
-from .helpers import (
-    InvalidAuth,
-    _check_ffmpeg,
-    generate_service_email_domains,
-    get_resources,
-    login,
-    validate_email_address,
-)
+from .helpers import get_resources
+from .utils.email import generate_service_email_domains, validate_email_address
+from .utils.image import _check_ffmpeg
+from .utils.imap import InvalidAuth, login
 
 ERROR_MAILBOX_FAIL = "Problem getting mailbox listing using 'INBOX' message"
 IMAP_SECURITY = ["none", "SSL"]
@@ -159,7 +156,7 @@ async def _check_forwarded_emails(user_input: dict[str, Any]) -> list[str]:
     # No forwards
     if not forwarded_emails:
         _LOGGER.error(
-            "Allowed forwarded emails but no forwards or '(none)' were entered."
+            "Allowed forwarded emails but no forwards or '(none)' were entered.",
         )
         return ["missing_forwarded_emails"]
     if forwarded_emails == "(none)":
@@ -168,7 +165,7 @@ async def _check_forwarded_emails(user_input: dict[str, Any]) -> list[str]:
     errors = []
 
     service_email_domains = generate_service_email_domains(
-        user_input.get(CONF_AMAZON_FWDS, [])
+        user_input.get(CONF_AMAZON_FWDS, []),
     )
 
     emails = [email.strip() for email in forwarded_emails.split(",")]
@@ -240,7 +237,8 @@ async def _validate_user_input(user_input: dict) -> tuple:
     if CONF_AMAZON_FWDS in user_input:
         if isinstance(user_input[CONF_AMAZON_FWDS], str):
             status, amazon_list = await _check_amazon_forwards(
-                user_input[CONF_AMAZON_FWDS], user_input[CONF_AMAZON_DOMAIN]
+                user_input[CONF_AMAZON_FWDS],
+                user_input[CONF_AMAZON_DOMAIN],
             )
             if status[0] == "ok":
                 user_input[CONF_AMAZON_FWDS] = amazon_list
@@ -284,7 +282,14 @@ async def _get_mailboxes(
     _LOGGER.debug("Getting mailboxes, login...")
     try:
         account = await login(
-            hass, host, port, user, pwd, security, verify, oauth_token=oauth_token
+            hass,
+            host,
+            port,
+            user,
+            pwd,
+            security,
+            verify,
+            oauth_token=oauth_token,
         )
 
     except (TimeoutError, AioImapException, ConnectionRefusedError) as err:
@@ -309,15 +314,11 @@ async def _get_mailboxes(
 async def _parse_folder_list(folderlist: list) -> list:
     """Parse folder list from IMAP server response."""
     mailboxes = []
-    try:  # noqa: SIM105
+    with contextlib.suppress(IndexError):
         mailboxes.extend(i.decode().split(' "/" ')[1] for i in folderlist)
-    except IndexError:
-        pass
 
-    try:  # noqa: SIM105
+    with contextlib.suppress(IndexError):
         mailboxes.extend(i.decode().split(' "." ')[1] for i in folderlist)
-    except IndexError:
-        pass
 
     if len(mailboxes) == 0:
         _LOGGER.error("Problem reading mailbox folders, using default.")
@@ -343,7 +344,8 @@ def _get_schema_auth(user_input: list, default_dict: list) -> Any:
                 selector.SelectSelectorConfig(
                     options=[
                         selector.SelectOptionDict(
-                            value=AUTH_TYPE_PASSWORD, label="Password"
+                            value=AUTH_TYPE_PASSWORD,
+                            label="Password",
                         ),
                         selector.SelectOptionDict(
                             value=AUTH_TYPE_OAUTH_MICROSOFT,
@@ -356,9 +358,9 @@ def _get_schema_auth(user_input: list, default_dict: list) -> Any:
                     ],
                     mode=selector.SelectSelectorMode.DROPDOWN,
                     translation_key="auth_type",
-                )
+                ),
             ),
-        }
+        },
     )
 
 
@@ -386,19 +388,24 @@ def _get_schema_imap(user_input: list, default_dict: list) -> Any:
     schema.update(
         {
             vol.Required(
-                CONF_IMAP_SECURITY, default=_get_default(CONF_IMAP_SECURITY)
+                CONF_IMAP_SECURITY,
+                default=_get_default(CONF_IMAP_SECURITY),
             ): vol.In(IMAP_SECURITY),
             vol.Optional(
-                CONF_VERIFY_SSL, default=_get_default(CONF_VERIFY_SSL, False)
+                CONF_VERIFY_SSL,
+                default=_get_default(CONF_VERIFY_SSL, False),
             ): cv.boolean,
-        }
+        },
     )
 
     return vol.Schema(schema)
 
 
 async def _get_schema_step_2(
-    data: list, user_input: list, default_dict: list, hass: HomeAssistant
+    data: list,
+    user_input: list,
+    default_dict: list,
+    hass: HomeAssistant,
 ) -> Any:
     """Get a schema using the default_dict as a backup."""
     if user_input is None:
@@ -420,42 +427,51 @@ async def _get_schema_step_2(
                     data[CONF_IMAP_SECURITY],
                     data[CONF_VERIFY_SSL],
                     data.get("token", {}).get("access_token"),
-                )
+                ),
             ),
             vol.Required(
-                CONF_RESOURCES, default=_get_default(CONF_RESOURCES)
+                CONF_RESOURCES,
+                default=_get_default(CONF_RESOURCES),
             ): cv.multi_select(get_resources()),
             vol.Optional(
-                CONF_SCAN_INTERVAL, default=_get_default(CONF_SCAN_INTERVAL)
+                CONF_SCAN_INTERVAL,
+                default=_get_default(CONF_SCAN_INTERVAL),
             ): vol.All(vol.Coerce(int), vol.Range(min=5)),
             vol.Optional(
-                CONF_IMAP_TIMEOUT, default=_get_default(CONF_IMAP_TIMEOUT)
+                CONF_IMAP_TIMEOUT,
+                default=_get_default(CONF_IMAP_TIMEOUT),
             ): vol.All(vol.Coerce(int), vol.Range(min=10)),
             vol.Optional(
-                CONF_DURATION, default=_get_default(CONF_DURATION)
+                CONF_DURATION,
+                default=_get_default(CONF_DURATION),
             ): vol.Coerce(int),
             vol.Optional(
                 CONF_ALLOW_FORWARDED_EMAILS,
                 default=_get_default(CONF_ALLOW_FORWARDED_EMAILS, False),
             ): cv.boolean,
             vol.Optional(
-                CONF_GENERATE_GRID, default=_get_default(CONF_GENERATE_GRID, False)
+                CONF_GENERATE_GRID,
+                default=_get_default(CONF_GENERATE_GRID, False),
             ): cv.boolean,
             vol.Optional(
-                CONF_GENERATE_MP4, default=_get_default(CONF_GENERATE_MP4, False)
+                CONF_GENERATE_MP4,
+                default=_get_default(CONF_GENERATE_MP4, False),
             ): cv.boolean,
             vol.Optional(
-                CONF_ALLOW_EXTERNAL, default=_get_default(CONF_ALLOW_EXTERNAL, False)
+                CONF_ALLOW_EXTERNAL,
+                default=_get_default(CONF_ALLOW_EXTERNAL, False),
             ): cv.boolean,
             vol.Optional(
-                CONF_CUSTOM_IMG, default=_get_default(CONF_CUSTOM_IMG, False)
+                CONF_CUSTOM_IMG,
+                default=_get_default(CONF_CUSTOM_IMG, False),
             ): cv.boolean,
             vol.Optional(
                 CONF_AMAZON_CUSTOM_IMG,
                 default=_get_default(CONF_AMAZON_CUSTOM_IMG, False),
             ): cv.boolean,
             vol.Optional(
-                CONF_UPS_CUSTOM_IMG, default=_get_default(CONF_UPS_CUSTOM_IMG, False)
+                CONF_UPS_CUSTOM_IMG,
+                default=_get_default(CONF_UPS_CUSTOM_IMG, False),
             ): cv.boolean,
             vol.Optional(
                 CONF_WALMART_CUSTOM_IMG,
@@ -469,7 +485,7 @@ async def _get_schema_step_2(
                 CONF_GENERIC_CUSTOM_IMG,
                 default=_get_default(CONF_GENERIC_CUSTOM_IMG, False),
             ): cv.boolean,
-        }
+        },
     )
 
 
@@ -499,7 +515,8 @@ def _get_schema_step_3(user_input: dict, default_dict: dict) -> Any:
             vol.Optional(
                 CONF_AMAZON_CUSTOM_IMG_FILE,
                 default=_get_default(
-                    CONF_AMAZON_CUSTOM_IMG_FILE, DEFAULT_AMAZON_CUSTOM_IMG_FILE
+                    CONF_AMAZON_CUSTOM_IMG_FILE,
+                    DEFAULT_AMAZON_CUSTOM_IMG_FILE,
                 ),
             )
         ] = cv.string
@@ -510,7 +527,8 @@ def _get_schema_step_3(user_input: dict, default_dict: dict) -> Any:
             vol.Optional(
                 CONF_UPS_CUSTOM_IMG_FILE,
                 default=_get_default(
-                    CONF_UPS_CUSTOM_IMG_FILE, DEFAULT_UPS_CUSTOM_IMG_FILE
+                    CONF_UPS_CUSTOM_IMG_FILE,
+                    DEFAULT_UPS_CUSTOM_IMG_FILE,
                 ),
             )
         ] = cv.string
@@ -521,7 +539,8 @@ def _get_schema_step_3(user_input: dict, default_dict: dict) -> Any:
             vol.Optional(
                 CONF_WALMART_CUSTOM_IMG_FILE,
                 default=_get_default(
-                    CONF_WALMART_CUSTOM_IMG_FILE, DEFAULT_WALMART_CUSTOM_IMG_FILE
+                    CONF_WALMART_CUSTOM_IMG_FILE,
+                    DEFAULT_WALMART_CUSTOM_IMG_FILE,
                 ),
             )
         ] = cv.string
@@ -532,7 +551,8 @@ def _get_schema_step_3(user_input: dict, default_dict: dict) -> Any:
             vol.Optional(
                 CONF_FEDEX_CUSTOM_IMG_FILE,
                 default=_get_default(
-                    CONF_FEDEX_CUSTOM_IMG_FILE, DEFAULT_FEDEX_CUSTOM_IMG_FILE
+                    CONF_FEDEX_CUSTOM_IMG_FILE,
+                    DEFAULT_FEDEX_CUSTOM_IMG_FILE,
                 ),
             )
         ] = cv.string
@@ -543,7 +563,8 @@ def _get_schema_step_3(user_input: dict, default_dict: dict) -> Any:
             vol.Optional(
                 CONF_GENERIC_CUSTOM_IMG_FILE,
                 default=_get_default(
-                    CONF_GENERIC_CUSTOM_IMG_FILE, DEFAULT_GENERIC_CUSTOM_IMG_FILE
+                    CONF_GENERIC_CUSTOM_IMG_FILE,
+                    DEFAULT_GENERIC_CUSTOM_IMG_FILE,
                 ),
             )
         ] = cv.string
@@ -563,18 +584,21 @@ def _get_schema_step_amazon(user_input: list, default_dict: list) -> Any:
     return vol.Schema(
         {
             vol.Required(
-                CONF_AMAZON_DOMAIN, default=_get_default(CONF_AMAZON_DOMAIN)
+                CONF_AMAZON_DOMAIN,
+                default=_get_default(CONF_AMAZON_DOMAIN),
             ): cv.string,
             vol.Optional(
-                CONF_AMAZON_FWDS, default=_get_default(CONF_AMAZON_FWDS)
+                CONF_AMAZON_FWDS,
+                default=_get_default(CONF_AMAZON_FWDS),
             ): cv.string,
             vol.Optional(CONF_AMAZON_DAYS, default=_get_default(CONF_AMAZON_DAYS)): int,
-        }
+        },
     )
 
 
 def _get_schema_step_forwarded_emails(
-    user_input: list, default_dict: list
+    user_input: list,
+    default_dict: list,
 ) -> vol.Schema:
     """Get a schema using the default_dict as a backup."""
     if user_input is None:
@@ -587,13 +611,14 @@ def _get_schema_step_forwarded_emails(
     return vol.Schema(
         {
             vol.Required(
-                CONF_FORWARDED_EMAILS, default=_get_default(CONF_FORWARDED_EMAILS)
+                CONF_FORWARDED_EMAILS,
+                default=_get_default(CONF_FORWARDED_EMAILS),
             ): cv.string,
-        }
+        },
     )
 
 
-def _get_schema_step_storage(user_input: list, default_dict: list) -> Any:
+def _get_schema_step_storage(user_input: dict, default_dict: dict) -> Any:
     """Get a schema using the default_dict as a backup."""
     if user_input is None:
         user_input = {}
@@ -605,14 +630,16 @@ def _get_schema_step_storage(user_input: list, default_dict: list) -> Any:
     return vol.Schema(
         {
             vol.Required(
-                CONF_STORAGE, default=_get_default(CONF_STORAGE, DEFAULT_STORAGE)
+                CONF_STORAGE,
+                default=_get_default(CONF_STORAGE, DEFAULT_STORAGE),
             ): cv.string,
-        }
+        },
     )
 
 
 async def _validate_login(
-    hass: HomeAssistant, user_input: dict[str, Any]
+    hass: HomeAssistant,
+    user_input: dict[str, Any],
 ) -> dict[str, str]:
     """Validate login credentials."""
     errors = {}
@@ -726,7 +753,8 @@ class MailAndPackagesFlowHandler(
         return await self._show_imap_form(user_input)
 
     async def async_oauth_create_entry(
-        self, data: dict
+        self,
+        data: dict,
     ) -> config_entries.ConfigFlowResult:
         """Handle OAuth2 completion — store token and continue to step 2."""
         self._data.update(data)
@@ -788,7 +816,8 @@ class MailAndPackagesFlowHandler(
                     return await self.async_step_config_3()
 
                 return self.async_create_entry(
-                    title=self._data[CONF_HOST], data=self._data
+                    title=self._data[CONF_HOST],
+                    data=self._data,
                 )
             return await self._show_config_2(user_input)
 
@@ -819,7 +848,10 @@ class MailAndPackagesFlowHandler(
         return self.async_show_form(
             step_id="config_2",
             data_schema=await _get_schema_step_2(
-                self._data, user_input, defaults, self.hass
+                self._data,
+                user_input,
+                defaults,
+                self.hass,
             ),
             errors=self._errors,
         )
@@ -931,7 +963,8 @@ class MailAndPackagesFlowHandler(
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
                 return self.async_create_entry(
-                    title=self._data[CONF_HOST], data=self._data
+                    title=self._data[CONF_HOST],
+                    data=self._data,
                 )
             return await self._show_config_storage(user_input)
 
@@ -988,7 +1021,7 @@ class MailAndPackagesFlowHandler(
     async def _show_reconfig_auth_form(self, user_input):
         """Show the auth form for reconfigure."""
         defaults = {
-            CONF_AUTH_TYPE: self._entry.data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+            CONF_AUTH_TYPE: self._entry.data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD),
         }
         return self.async_show_form(
             step_id="reconfigure",
@@ -1010,10 +1043,12 @@ class MailAndPackagesFlowHandler(
 
         defaults[CONF_HOST] = self._entry.data.get(CONF_HOST, defaults.get(CONF_HOST))
         defaults[CONF_USERNAME] = self._entry.data.get(
-            CONF_USERNAME, defaults.get(CONF_USERNAME)
+            CONF_USERNAME,
+            defaults.get(CONF_USERNAME),
         )
         defaults[CONF_PASSWORD] = self._entry.data.get(
-            CONF_PASSWORD, defaults.get(CONF_PASSWORD)
+            CONF_PASSWORD,
+            defaults.get(CONF_PASSWORD),
         )
         defaults[CONF_AUTH_TYPE] = auth_type
 
@@ -1060,7 +1095,10 @@ class MailAndPackagesFlowHandler(
         return self.async_show_form(
             step_id="reconfig_2",
             data_schema=await _get_schema_step_2(
-                self._data, user_input, self._data, self.hass
+                self._data,
+                user_input,
+                self._data,
+                self.hass,
             ),
             errors=self._errors,
         )
@@ -1132,7 +1170,8 @@ class MailAndPackagesFlowHandler(
         )
 
     async def async_step_reconfig_forwarded_emails(
-        self, user_input: dict[str, Any] | None = None
+        self,
+        user_input: dict[str, Any] | None = None,
     ):
         """Configure form step forwarded emails."""
         self._errors = {}
@@ -1169,7 +1208,8 @@ class MailAndPackagesFlowHandler(
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
                 self.hass.config_entries.async_update_entry(
-                    self._entry, data=self._data
+                    self._entry,
+                    data=self._data,
                 )
                 await self.hass.config_entries.async_reload(self._entry.entry_id)
                 _LOGGER.debug("%s reconfigured.", DOMAIN)

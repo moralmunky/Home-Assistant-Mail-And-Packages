@@ -12,7 +12,9 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_USPS_DELIVERED
 
 @pytest.mark.asyncio
 async def test_binary_sensor_no_updates(
-    hass, mock_imap_no_email, entity_registry: er.EntityRegistry
+    hass,
+    mock_imap_no_email,
+    entity_registry: er.EntityRegistry,
 ):
     """Test binary sensor no updates."""
     entry = MockConfigEntry(
@@ -34,7 +36,8 @@ async def test_binary_sensor_no_updates(
     assert entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
 
     updated_entry = entity_registry.async_update_entity(
-        entity_entry.entity_id, disabled_by=None
+        entity_entry.entity_id,
+        disabled_by=None,
     )
     assert updated_entry != entity_entry
     assert updated_entry.disabled is False
@@ -54,7 +57,8 @@ async def test_binary_sensor_no_updates(
     assert entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
 
     updated_entry = entity_registry.async_update_entity(
-        entity_entry.entity_id, disabled_by=None
+        entity_entry.entity_id,
+        disabled_by=None,
     )
     assert updated_entry != entity_entry
     assert updated_entry.disabled is False
@@ -74,7 +78,8 @@ async def test_binary_sensor_no_updates(
     assert entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
 
     updated_entry = entity_registry.async_update_entity(
-        entity_entry.entity_id, disabled_by=None
+        entity_entry.entity_id,
+        disabled_by=None,
     )
     assert updated_entry != entity_entry
     assert updated_entry.disabled is False
@@ -91,7 +96,10 @@ async def test_binary_sensor_no_updates(
 
 @pytest.mark.asyncio
 async def test_binary_sensor_mail_delivered(
-    hass, mock_imap_usps_mail_delivered, entity_registry: er.EntityRegistry, caplog
+    hass,
+    mock_imap_usps_mail_delivered,
+    entity_registry: er.EntityRegistry,
+    caplog,
 ):
     """Test binary_sensor mail delivered."""
     entry = MockConfigEntry(
@@ -115,7 +123,8 @@ async def test_binary_sensor_mail_delivered(
         assert entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
 
         updated_entry = entity_registry.async_update_entity(
-            entity_entry.entity_id, disabled_by=None
+            entity_entry.entity_id,
+            disabled_by=None,
         )
         assert updated_entry != entity_entry
         assert updated_entry.disabled is False
@@ -135,7 +144,8 @@ async def test_binary_sensor_mail_delivered(
         assert entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
 
         updated_entry = entity_registry.async_update_entity(
-            entity_entry.entity_id, disabled_by=None
+            entity_entry.entity_id,
+            disabled_by=None,
         )
         assert updated_entry != entity_entry
         assert updated_entry.disabled is False
@@ -155,7 +165,8 @@ async def test_binary_sensor_mail_delivered(
         assert entity_entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
 
         updated_entry = entity_registry.async_update_entity(
-            entity_entry.entity_id, disabled_by=None
+            entity_entry.entity_id,
+            disabled_by=None,
         )
         assert updated_entry != entity_entry
         assert updated_entry.disabled is False

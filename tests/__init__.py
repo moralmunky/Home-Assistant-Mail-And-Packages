@@ -1,1 +1,1 @@
-"""Pytests init file."""
+"""Standard Mail and Packages test suite."""

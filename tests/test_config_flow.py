@@ -212,7 +212,8 @@ async def test_form(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -231,7 +232,8 @@ async def test_form(
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.async_setup", return_value=True
+            "custom_components.mail_and_packages.async_setup",
+            return_value=True,
         ) as mock_setup,
         patch(
             "custom_components.mail_and_packages.async_setup_entry",
@@ -245,30 +247,35 @@ async def test_form(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_5
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_5
+            result["flow_id"],
+            input_5,
         )
 
     assert result["type"] == "create_entry"
@@ -438,7 +445,8 @@ async def test_form_no_fwds(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -457,7 +465,8 @@ async def test_form_no_fwds(
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.async_setup", return_value=True
+            "custom_components.mail_and_packages.async_setup",
+            return_value=True,
         ) as mock_setup,
         patch(
             "custom_components.mail_and_packages.async_setup_entry",
@@ -471,29 +480,34 @@ async def test_form_no_fwds(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_5
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_5
+            result["flow_id"],
+            input_5,
         )
 
     assert result["type"] == "create_entry"
@@ -649,7 +663,8 @@ async def test_form_invalid_custom_img_path(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -677,24 +692,28 @@ async def test_form_invalid_custom_img_path(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
 
     assert result["type"] == "form"
@@ -724,7 +743,8 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap_connect
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -747,7 +767,8 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap_connect
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result2 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
     assert result2["type"] == "form"
     assert result2["step_id"] == step_id_2
@@ -891,7 +912,8 @@ async def test_form_invalid_ffmpeg(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -915,13 +937,15 @@ async def test_form_invalid_ffmpeg(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result2 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result2["type"] == "form"
         assert result2["step_id"] == step_id_2
 
         result3 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
     assert result3["type"] == "form"
@@ -1077,7 +1101,8 @@ async def test_form_index_error(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -1086,7 +1111,7 @@ async def test_form_index_error(
     # Fix: Make select an AsyncMock and return a tuple for unpacking
     mock_account.select = AsyncMock(return_value=("OK", [b"1"]))
     mock_account.list = AsyncMock(
-        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "." "INBOX"'])
+        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "." "INBOX"']),
     )
 
     with (
@@ -1101,7 +1126,8 @@ async def test_form_index_error(
         ),
         patch("pathlib.Path.exists", return_value=True),
         patch(
-            "custom_components.mail_and_packages.async_setup", return_value=True
+            "custom_components.mail_and_packages.async_setup",
+            return_value=True,
         ) as mock_setup,
         patch(
             "custom_components.mail_and_packages.async_setup_entry",
@@ -1115,25 +1141,29 @@ async def test_form_index_error(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
 
     assert "error" not in result
@@ -1294,7 +1324,8 @@ async def test_form_index_error_2(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -1304,7 +1335,7 @@ async def test_form_index_error_2(
     # Fix: Make select an AsyncMock and return a tuple for unpacking
     mock_account.select = AsyncMock(return_value=("OK", [b"1"]))
     mock_account.list = AsyncMock(
-        return_value=MagicMock(result="OK", lines=[b"GARBAGE DATA"])
+        return_value=MagicMock(result="OK", lines=[b"GARBAGE DATA"]),
     )
 
     with (
@@ -1319,7 +1350,8 @@ async def test_form_index_error_2(
         ),
         patch("pathlib.Path.exists", return_value=True),
         patch(
-            "custom_components.mail_and_packages.async_setup", return_value=True
+            "custom_components.mail_and_packages.async_setup",
+            return_value=True,
         ) as mock_setup,
         patch(
             "custom_components.mail_and_packages.async_setup_entry",
@@ -1333,25 +1365,29 @@ async def test_form_index_error_2(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
 
     assert result["type"] == "create_entry"
@@ -1508,7 +1544,8 @@ async def test_form_storage_error(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -1531,19 +1568,22 @@ async def test_form_storage_error(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
         with patch(
             "pathlib.Path.exists",
@@ -1552,7 +1592,8 @@ async def test_form_storage_error(
             assert result["type"] == "form"
             assert result["step_id"] == step_id_4
             result = await hass.config_entries.flow.async_configure(
-                result["flow_id"], input_4
+                result["flow_id"],
+                input_4,
             )
 
     assert result["type"] == "form"
@@ -1752,7 +1793,8 @@ async def test_reconfigure(
             else {"auth_type": "password"}
         )
         await hass.config_entries.flow.async_configure(
-            reconfigure_result["flow_id"], auth_input
+            reconfigure_result["flow_id"],
+            auth_input,
         )
         result = await hass.config_entries.flow.async_configure(
             reconfigure_result["flow_id"],
@@ -1762,24 +1804,28 @@ async def test_reconfigure(
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_5
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_5
+            result["flow_id"],
+            input_5,
         )
         # assert "errors" not in result
 
@@ -1970,7 +2016,8 @@ async def test_reconfigure_no_amazon(
             else {"auth_type": "password"}
         )
         await hass.config_entries.flow.async_configure(
-            reconfigure_result["flow_id"], auth_input
+            reconfigure_result["flow_id"],
+            auth_input,
         )
         result = await hass.config_entries.flow.async_configure(
             reconfigure_result["flow_id"],
@@ -1980,19 +2027,22 @@ async def test_reconfigure_no_amazon(
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
 
         assert result["type"] is FlowResultType.ABORT
@@ -2185,7 +2235,8 @@ async def test_reconfigure_with_default_images(
             else {"auth_type": "password"}
         )
         await hass.config_entries.flow.async_configure(
-            reconfigure_result["flow_id"], auth_input
+            reconfigure_result["flow_id"],
+            auth_input,
         )
         result = await hass.config_entries.flow.async_configure(
             reconfigure_result["flow_id"],
@@ -2195,19 +2246,22 @@ async def test_reconfigure_with_default_images(
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
 
         assert result["type"] is FlowResultType.ABORT
@@ -2267,13 +2321,15 @@ async def test_config_flow_with_amazon_custom_image_only(
         ),
     ):
         result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": config_entries.SOURCE_USER}
+            DOMAIN,
+            context={"source": config_entries.SOURCE_USER},
         )
         assert result["type"] is FlowResultType.FORM
         assert result["step_id"] == "user"
 
         await hass.config_entries.flow.async_configure(
-            result["flow_id"], {"auth_type": "password"}
+            result["flow_id"],
+            {"auth_type": "password"},
         )
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -2448,13 +2504,15 @@ async def test_config_flow_with_ups_custom_image_only(
         ),
     ):
         result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": config_entries.SOURCE_USER}
+            DOMAIN,
+            context={"source": config_entries.SOURCE_USER},
         )
         assert result["type"] is FlowResultType.FORM
         assert result["step_id"] == "user"
 
         await hass.config_entries.flow.async_configure(
-            result["flow_id"], {"auth_type": "password"}
+            result["flow_id"],
+            {"auth_type": "password"},
         )
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -2570,7 +2628,7 @@ async def test_config_flow_with_ups_custom_image_only(
                     "ups_packages",
                     "zpackages_delivered",
                     "zpackages_transit",
-                ]
+                ],
             ),
             "storage": ".storage/mail_and_packages/images",
             "verify_ssl": False,
@@ -2673,8 +2731,14 @@ async def integration_fixture_v10_migration(hass, caplog):
         version=10,  # Start with version 10
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    with (
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry", return_value=True
+        ),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
     # Verify migration occurred
     assert "Migration complete to version 13" in caplog.text
@@ -2747,8 +2811,14 @@ async def test_migration_from_version_10_to_11(hass, caplog):
         version=10,  # Start with version 10
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    with (
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry", return_value=True
+        ),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
     # Verify migration occurred
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
@@ -2828,8 +2898,14 @@ async def test_migration_from_version_9_to_11(hass, caplog):
         version=9,  # Start with version 9
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    with (
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry", return_value=True
+        ),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
     # Verify migration occurred
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
@@ -2908,8 +2984,14 @@ async def test_migration_from_version_11_no_changes(hass, caplog):
         version=11,  # Already at version 11
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    with (
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry", return_value=True
+        ),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
     # Migration should occur from version 11 to 12 to add Walmart and Generic fields
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
@@ -2987,8 +3069,14 @@ async def test_migration_preserves_existing_custom_image_settings(hass, caplog):
         version=10,  # Start with version 10
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    with (
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry", return_value=True
+        ),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
     # Verify migration occurred
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
@@ -3033,8 +3121,14 @@ async def test_migration_with_minimal_config(hass, caplog):
         version=1,  # Very old version
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    with (
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry", return_value=True
+        ),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
     # Verify migration occurred
     assert any(
@@ -3172,10 +3266,6 @@ async def test_reconfig_amazon_error(
         "input_3",
         "step_id_4",
         "input_4",
-        "step_id_5",
-        "input_5",
-        "title",
-        "data",
     ),
     [
         (
@@ -3212,12 +3302,8 @@ async def test_reconfig_amazon_error(
             },
             "reconfig_storage",
             {
-                "storage": "/invalid/readonly/path",  # Invalid path to trigger error
+                "storage": "invalid/readonly/path",
             },
-            None,
-            None,
-            "Mail and Packages",
-            {},
         ),
     ],
 )
@@ -3233,10 +3319,6 @@ async def test_reconfig_storage_error(
     input_3,
     step_id_4,
     input_4,
-    step_id_5,
-    input_5,
-    title,
-    data,
 ):
     """Test reconfigure flow with storage configuration error."""
     entry = hass.config_entries.async_entries(DOMAIN)[0]
@@ -3258,22 +3340,26 @@ async def test_reconfig_storage_error(
     result = await hass.config_entries.flow.async_configure(result["flow_id"], input_1)
 
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_2"
-
+    assert result["step_id"] == step_id_2
     result = await hass.config_entries.flow.async_configure(result["flow_id"], input_2)
 
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_amazon"
+    assert result["step_id"] == step_id_3
 
     result = await hass.config_entries.flow.async_configure(result["flow_id"], input_3)
 
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_amazon"
+    assert result["step_id"] == step_id_4
+
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_4)
+
+    assert result["type"] == "form"
+    assert result["step_id"] == step_id_4
+    assert result["errors"] == {"storage": "path_not_found"}
 
 
 async def test_walmart_custom_image_validation():
     """Test Walmart custom image file validation."""
-
     # Test 1: Valid Walmart custom image file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
         temp_file_path = temp_file.name
@@ -3361,12 +3447,14 @@ async def test_walmart_custom_image_in_config_flow(hass, mock_imap_no_email):
         ),
     ):
         result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": config_entries.SOURCE_USER}
+            DOMAIN,
+            context={"source": config_entries.SOURCE_USER},
         )
 
         # Complete step 1
         await hass.config_entries.flow.async_configure(
-            result["flow_id"], {"auth_type": "password"}
+            result["flow_id"],
+            {"auth_type": "password"},
         )
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -3440,7 +3528,6 @@ async def test_walmart_custom_image_in_config_flow(hass, mock_imap_no_email):
 
 async def test_generic_custom_image_validation(hass: HomeAssistant, mock_imap_no_email):
     """Test validation of generic custom image file."""
-
     # Test with non-existent file
     user_input = {
         "auth_type": "password",
@@ -3487,7 +3574,8 @@ async def test_generic_custom_image_validation(hass: HomeAssistant, mock_imap_no
 
 
 async def test_generic_custom_image_in_config_flow(
-    hass: HomeAssistant, mock_imap_no_email
+    hass: HomeAssistant,
+    mock_imap_no_email,
 ):
     """Test generic custom image configuration in full config flow."""
     with (
@@ -3505,14 +3593,16 @@ async def test_generic_custom_image_in_config_flow(
     ):
         # Start the config flow
         result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": config_entries.SOURCE_USER}
+            DOMAIN,
+            context={"source": config_entries.SOURCE_USER},
         )
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "user"
 
         # Step 1: Basic IMAP settings
         await hass.config_entries.flow.async_configure(
-            result["flow_id"], {"auth_type": "password"}
+            result["flow_id"],
+            {"auth_type": "password"},
         )
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -3774,8 +3864,9 @@ async def test_get_mailboxes_non_ok_status(hass, caplog):
     mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
     mock_conn.list = AsyncMock(
         return_value=MagicMock(
-            result="AUTH_ERROR", lines=[b"Invalid credentials or folder access"]
-        )
+            result="AUTH_ERROR",
+            lines=[b"Invalid credentials or folder access"],
+        ),
     )
     mock_conn.logout = AsyncMock()
     with patch(
@@ -3784,7 +3875,13 @@ async def test_get_mailboxes_non_ok_status(hass, caplog):
     ):
         # Test the mailbox retrieval logic
         result = await _get_mailboxes(
-            hass, "imap.test.com", 993, "user", "pass", "SSL", True
+            hass,
+            "imap.test.com",
+            993,
+            "user",
+            "pass",
+            "SSL",
+            True,
         )
 
         # Verify the flow handles the non-OK status by returning an empty list or error
@@ -3815,7 +3912,13 @@ async def test_get_mailboxes_exception(hass):
         # Only the statement that triggers the exception goes inside pytest.raises
         with pytest.raises(OSError, match="Connection lost"):
             await _get_mailboxes(
-                hass, "imap.test.com", 993, "user", "pass", "SSL", True
+                hass,
+                "imap.test.com",
+                993,
+                "user",
+                "pass",
+                "SSL",
+                True,
             )
 
         # Subsequent assertions go outside the raises block
@@ -3833,26 +3936,26 @@ async def test_get_schema_step_3_none_input():
 async def test_config_flow_step_amazon_empty_fwds():
     """Test config flow step amazon with empty amazon_fwds."""
     flow = MailAndPackagesFlowHandler()
-    flow._data = {"amazon_fwds": []}  # noqa: SLF001
+    flow._data = {"amazon_fwds": []}
 
     # Mock the async_show_form method
     with patch.object(flow, "async_show_form") as mock_show_form:
-        await flow._show_reconfig_amazon({})  # noqa: SLF001
+        await flow._show_reconfig_amazon({})
 
         # Should set amazon_fwds to "(none)" when empty
-        assert flow._data["amazon_fwds"] == "(none)"  # noqa: SLF001
+        assert flow._data["amazon_fwds"] == "(none)"
         mock_show_form.assert_called_once()
 
 
 async def test_config_flow_reconfig_storage_validation_error():
     """Test reconfig storage step with validation errors."""
     flow = MailAndPackagesFlowHandler()
-    flow._data = {}  # noqa: SLF001
-    flow._errors = {"test_error": "validation_failed"}  # noqa: SLF001
+    flow._data = {}
+    flow._errors = {"test_error": "validation_failed"}
 
     # Mock the async_show_form method
     with patch.object(flow, "async_show_form") as mock_show_form:
-        await flow._show_reconfig_storage({"test": "data"})  # noqa: SLF001
+        await flow._show_reconfig_storage({"test": "data"})
 
         # Should show form with errors
         mock_show_form.assert_called_once()
@@ -3861,12 +3964,12 @@ async def test_config_flow_reconfig_storage_validation_error():
 async def test_config_flow_reconfig_amazon_validation_error():
     """Test reconfig amazon step with validation errors."""
     flow = MailAndPackagesFlowHandler()
-    flow._data = {"amazon_fwds": ["test@example.com"]}  # noqa: SLF001
-    flow._errors = {"test_error": "validation_failed"}  # noqa: SLF001
+    flow._data = {"amazon_fwds": ["test@example.com"]}
+    flow._errors = {"test_error": "validation_failed"}
 
     # Mock the async_show_form method
     with patch.object(flow, "async_show_form") as mock_show_form:
-        await flow._show_reconfig_amazon({"test": "data"})  # noqa: SLF001
+        await flow._show_reconfig_amazon({"test": "data"})
 
         # Should show form with errors
         mock_show_form.assert_called_once()
@@ -3875,12 +3978,12 @@ async def test_config_flow_reconfig_amazon_validation_error():
 async def test_config_flow_reconfig_3_validation_error():
     """Test reconfig step 3 with validation errors."""
     flow = MailAndPackagesFlowHandler()
-    flow._data = {}  # noqa: SLF001
-    flow._errors = {"test_error": "validation_failed"}  # noqa: SLF001
+    flow._data = {}
+    flow._errors = {"test_error": "validation_failed"}
 
     # Mock the async_show_form method
     with patch.object(flow, "async_show_form") as mock_show_form:
-        await flow._show_reconfig_3({"test": "data"})  # noqa: SLF001
+        await flow._show_reconfig_3({"test": "data"})
 
         # Should show form with errors
         mock_show_form.assert_called_once()
@@ -3889,7 +3992,7 @@ async def test_config_flow_reconfig_3_validation_error():
 async def test_config_flow_reconfig_2_validation_error():
     """Test reconfig step 2 with validation errors."""
     flow = MailAndPackagesFlowHandler()
-    flow._data = {  # noqa: SLF001
+    flow._data = {
         "host": "imap.test.com",
         "port": 993,
         "username": "test@test.com",
@@ -3897,7 +4000,7 @@ async def test_config_flow_reconfig_2_validation_error():
         "imap_security": "SSL",
         "verify_ssl": True,
     }
-    flow._errors = {"test_error": "validation_failed"}  # noqa: SLF001
+    flow._errors = {"test_error": "validation_failed"}
 
     # Mock the _get_mailboxes function and async_show_form method
     with (
@@ -3907,7 +4010,7 @@ async def test_config_flow_reconfig_2_validation_error():
         ),
         patch.object(flow, "async_show_form") as mock_show_form,
     ):
-        await flow._show_reconfig_2({"test": "data"})  # noqa: SLF001
+        await flow._show_reconfig_2({"test": "data"})
 
         # Should show form with errors
         mock_show_form.assert_called_once()
@@ -3922,7 +4025,7 @@ async def test_get_mailboxes_generic_exception(hass, caplog):
     mock_response = MagicMock()
     mock_response.result = "OK"  # Change to .status if you don't change the code above
     mock_response.lines = [
-        b'(\\HasNoChildren) "." "INBOX"'
+        b'(\\HasNoChildren) "." "INBOX"',
     ]  # This will trigger the IndexError and fallback to period
     mock_conn.list = AsyncMock(return_value=mock_response)
     mock_conn.logout = AsyncMock()
@@ -3941,7 +4044,6 @@ async def test_get_mailboxes_generic_exception(hass, caplog):
 @pytest.mark.asyncio
 async def test_validate_user_input_specific_images():
     """Test validation logic for specific custom image providers."""
-
     # Common base input
     base_input = {
         CONF_GENERATE_MP4: False,
@@ -4059,11 +4161,13 @@ async def test_reconfigure_step_login_fail(hass, mock_imap_login_error, integrat
     }
 
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"auth_type": "password"}
+        result["flow_id"],
+        {"auth_type": "password"},
     )
 
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input
+        result["flow_id"],
+        user_input,
     )
 
     assert result["type"] == "form"
@@ -4097,7 +4201,8 @@ async def test_reconfigure_flow_mailbox_success(hass, mock_imap_no_email, integr
     )
 
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"auth_type": "password"}
+        result["flow_id"],
+        {"auth_type": "password"},
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
@@ -4162,7 +4267,7 @@ async def test_get_mailboxes_period_delimiter(hass):
 
     # Simulate a server that uses "." as a delimiter
     mock_conn.list = AsyncMock(
-        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "." "SENT"'])
+        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "." "SENT"']),
     )
     mock_conn.logout = AsyncMock()
 
@@ -4188,7 +4293,7 @@ async def test_validate_forwarded_emails_conflict(hass):
 
 
 @pytest.mark.asyncio
-async def test_reconfig_2_schema_validation(hass, integration):
+async def test_reconfig_2_schema_validation(hass, integration, mock_imap):
     """Test that the schema correctly rejects a scan_interval below 5."""
     entry = integration
     with (
@@ -4207,7 +4312,8 @@ async def test_reconfig_2_schema_validation(hass, integration):
 
         # Advance to step 2
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], {"auth_type": "password"}
+            result["flow_id"],
+            {"auth_type": "password"},
         )
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -4255,10 +4361,12 @@ async def test_reconfigure_flow_skip_to_storage(hass, mock_imap_no_email, integr
         },
     )
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"auth_type": "password"}
+        result["flow_id"],
+        {"auth_type": "password"},
     )
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], reconfig_login_data
+        result["flow_id"],
+        reconfig_login_data,
     )
     assert result["type"] == "form"
     assert result["step_id"] == "reconfig_2"
@@ -4476,7 +4584,8 @@ async def test_form_allow_forwarded_emails(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -4495,7 +4604,8 @@ async def test_form_allow_forwarded_emails(
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.async_setup", return_value=True
+            "custom_components.mail_and_packages.async_setup",
+            return_value=True,
         ) as mock_setup,
         patch(
             "custom_components.mail_and_packages.async_setup_entry",
@@ -4509,34 +4619,40 @@ async def test_form_allow_forwarded_emails(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_5
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_5
+            result["flow_id"],
+            input_5,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_6
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_6
+            result["flow_id"],
+            input_6,
         )
 
         assert result["type"] == "create_entry"
@@ -4712,7 +4828,8 @@ async def test_form_allowed_forwarded_emails_entered_none(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -4731,7 +4848,8 @@ async def test_form_allowed_forwarded_emails_entered_none(
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.async_setup", return_value=True
+            "custom_components.mail_and_packages.async_setup",
+            return_value=True,
         ) as mock_setup,
         patch(
             "custom_components.mail_and_packages.async_setup_entry",
@@ -4745,34 +4863,40 @@ async def test_form_allowed_forwarded_emails_entered_none(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_5
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_5
+            result["flow_id"],
+            input_5,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_6
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_6
+            result["flow_id"],
+            input_6,
         )
 
         assert result["type"] == "create_entry"
@@ -4923,7 +5047,8 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -4942,7 +5067,8 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.async_setup", return_value=True
+            "custom_components.mail_and_packages.async_setup",
+            return_value=True,
         ) as mock_setup,
         patch(
             "custom_components.mail_and_packages.async_setup_entry",
@@ -4956,24 +5082,28 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
 
         assert result["type"] == "create_entry"
@@ -5139,7 +5269,8 @@ async def test_form_allow_forwarded_emails_without_custom_img(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -5150,7 +5281,8 @@ async def test_form_allow_forwarded_emails_without_custom_img(
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.async_setup", return_value=True
+            "custom_components.mail_and_packages.async_setup",
+            return_value=True,
         ) as mock_setup,
         patch(
             "custom_components.mail_and_packages.async_setup_entry",
@@ -5164,29 +5296,34 @@ async def test_form_allow_forwarded_emails_without_custom_img(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_5
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_5
+            result["flow_id"],
+            input_5,
         )
 
     assert result["type"] == "create_entry"
@@ -5352,7 +5489,8 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -5363,7 +5501,8 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.async_setup", return_value=True
+            "custom_components.mail_and_packages.async_setup",
+            return_value=True,
         ) as mock_setup,
         patch(
             "custom_components.mail_and_packages.async_setup_entry",
@@ -5377,29 +5516,34 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_5
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_5
+            result["flow_id"],
+            input_5,
         )
 
     assert result["type"] == "create_entry"
@@ -5576,7 +5720,8 @@ async def test_form_allow_forwarded_emails_none_entered(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -5595,7 +5740,8 @@ async def test_form_allow_forwarded_emails_none_entered(
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.async_setup", return_value=True
+            "custom_components.mail_and_packages.async_setup",
+            return_value=True,
         ) as mock_setup,
         patch(
             "custom_components.mail_and_packages.async_setup_entry",
@@ -5609,34 +5755,40 @@ async def test_form_allow_forwarded_emails_none_entered(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_5
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_5
+            result["flow_id"],
+            input_5,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_6
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_6
+            result["flow_id"],
+            input_6,
         )
 
     # this gets automatically removed when set to "(none)"
@@ -5779,7 +5931,8 @@ async def test_form_allowed_forwards_missing_email_addresses(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -5802,19 +5955,22 @@ async def test_form_allowed_forwards_missing_email_addresses(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
 
         assert result["type"] == "form"
@@ -5950,7 +6106,8 @@ async def test_form_allowed_forwards_invalid_email_address_format(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -5973,19 +6130,22 @@ async def test_form_allowed_forwards_invalid_email_address_format(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
 
     assert result["type"] == "form"
@@ -6192,7 +6352,8 @@ async def test_reconfigure_allow_forwarded_emails(
             else {"auth_type": "password"}
         )
         await hass.config_entries.flow.async_configure(
-            reconfigure_result["flow_id"], auth_input
+            reconfigure_result["flow_id"],
+            auth_input,
         )
         result = await hass.config_entries.flow.async_configure(
             reconfigure_result["flow_id"],
@@ -6202,31 +6363,36 @@ async def test_reconfigure_allow_forwarded_emails(
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_5
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_5
+            result["flow_id"],
+            input_5,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_6
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_6
+            result["flow_id"],
+            input_6,
         )
 
         # assert "errors" not in result
@@ -6406,7 +6572,8 @@ async def test_form_allow_forwarded_emails_using_service_address(
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["errors"] == {}
@@ -6425,7 +6592,8 @@ async def test_form_allow_forwarded_emails_using_service_address(
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.async_setup", return_value=True
+            "custom_components.mail_and_packages.async_setup",
+            return_value=True,
         ) as mock_setup,
         patch(
             "custom_components.mail_and_packages.async_setup_entry",
@@ -6439,34 +6607,40 @@ async def test_form_allow_forwarded_emails_using_service_address(
         )
         await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_1
+            result["flow_id"],
+            input_1,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_2
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
 
         assert result["type"] == "form"
         assert result["step_id"] == step_id_3
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_3
+            result["flow_id"],
+            input_3,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_4
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_4
+            result["flow_id"],
+            input_4,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_5
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_5
+            result["flow_id"],
+            input_5,
         )
         assert result["type"] == "form"
         assert result["step_id"] == step_id_6
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_6
+            result["flow_id"],
+            input_6,
         )
 
     assert result["type"] == "create_entry"
@@ -6519,7 +6693,7 @@ async def test_get_mailboxes_fallback_delimiters(hass, caplog):
     mock_conn.logout = AsyncMock()
 
     mock_conn.list = AsyncMock(
-        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "|" "INBOX"'])
+        return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "|" "INBOX"']),
     )
 
     with patch(
@@ -6559,7 +6733,7 @@ async def test_step_config_3_validation_error(hass):
     flow = MailAndPackagesFlowHandler()
     flow.hass = hass
     # Ensure generate_mp4 is present to avoid KeyError in validation
-    flow._data = {  # noqa: SLF001
+    flow._data = {
         CONF_CUSTOM_IMG: True,
         CONF_GENERATE_MP4: False,
     }
@@ -6575,7 +6749,7 @@ async def test_step_config_3_validation_error(hass):
 
         # Should return the form again due to validation error
         mock_show_form.assert_called_once()
-        assert flow._errors[CONF_CUSTOM_IMG_FILE] == "file_not_found"  # noqa: SLF001
+        assert flow._errors[CONF_CUSTOM_IMG_FILE] == "file_not_found"
 
 
 @pytest.mark.asyncio
@@ -6584,7 +6758,7 @@ async def test_step_config_amazon_validation_error(hass):
     flow = MailAndPackagesFlowHandler()
     flow.hass = hass
     # Ensure generate_mp4 is present to avoid KeyError in validation
-    flow._data = {CONF_GENERATE_MP4: False}  # noqa: SLF001
+    flow._data = {CONF_GENERATE_MP4: False}
 
     # Simulate invalid email format
     user_input = {
@@ -6598,7 +6772,7 @@ async def test_step_config_amazon_validation_error(hass):
 
         # Should return the form again due to validation error
         mock_show_form.assert_called_once()
-        assert flow._errors[CONF_AMAZON_FWDS] == "invalid_email_format"  # noqa: SLF001
+        assert flow._errors[CONF_AMAZON_FWDS] == "invalid_email_format"
 
 
 @pytest.mark.asyncio
@@ -6607,13 +6781,13 @@ async def test_reconfig_forwarded_emails_routing_failure(hass, integration):
     entry = integration
     flow = MailAndPackagesFlowHandler()
     flow.hass = hass
-    flow._entry = entry  # noqa: SLF001
-    flow._data = dict(entry.data)  # noqa: SLF001
+    flow._entry = entry
+    flow._data = dict(entry.data)
 
     # Ensure dependencies are set to avoid KeyErrors or wrong paths
-    flow._data[CONF_RESOURCES] = ["mail_updated"]  # noqa: SLF001
-    flow._data[CONF_CUSTOM_IMG] = False  # noqa: SLF001
-    flow._data[CONF_GENERATE_MP4] = False  # noqa: SLF001
+    flow._data[CONF_RESOURCES] = ["mail_updated"]
+    flow._data[CONF_CUSTOM_IMG] = False
+    flow._data[CONF_GENERATE_MP4] = False
 
     user_input_error = {CONF_FORWARDED_EMAILS: "bad-email"}
 
@@ -6627,7 +6801,7 @@ async def test_reconfig_forwarded_emails_routing_failure(hass, integration):
         await flow.async_step_reconfig_forwarded_emails(user_input_error)
 
         mock_show_form.assert_called_once()
-        assert flow._errors[CONF_FORWARDED_EMAILS] == "invalid_email_format"  # noqa: SLF001
+        assert flow._errors[CONF_FORWARDED_EMAILS] == "invalid_email_format"
 
 
 @pytest.mark.asyncio
@@ -6636,13 +6810,13 @@ async def test_reconfig_forwarded_emails_routing_success(hass, integration):
     entry = integration
     flow = MailAndPackagesFlowHandler()
     flow.hass = hass
-    flow._entry = entry  # noqa: SLF001
-    flow._data = dict(entry.data)  # noqa: SLF001
+    flow._entry = entry
+    flow._data = dict(entry.data)
 
     # Ensure data ensures routing to storage (No Amazon sensors, No Custom Img)
-    flow._data[CONF_RESOURCES] = ["mail_updated"]  # noqa: SLF001
-    flow._data[CONF_CUSTOM_IMG] = False  # noqa: SLF001
-    flow._data[CONF_GENERATE_MP4] = False  # noqa: SLF001
+    flow._data[CONF_RESOURCES] = ["mail_updated"]
+    flow._data[CONF_CUSTOM_IMG] = False
+    flow._data[CONF_GENERATE_MP4] = False
 
     user_input_success = {CONF_FORWARDED_EMAILS: "good@email.com"}
 
@@ -6695,7 +6869,10 @@ async def test_get_mailboxes_connection_exceptions(hass, caplog):
     ],
 )
 async def test_config_flow_validate_login_errors(
-    hass, login_side_effect, select_return, expected_error
+    hass,
+    login_side_effect,
+    select_return,
+    expected_error,
 ):
     """Test config flow handling of login errors (SSL and Missing Inbox)."""
     flow = MailAndPackagesFlowHandler()
@@ -6733,10 +6910,12 @@ async def test_step_2_finish_flow(hass, mock_imap):
     """Test config flow finishes at step 2 when features are disabled (covers line 659)."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"auth_type": "password"}
+        result["flow_id"],
+        {"auth_type": "password"},
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
@@ -6771,11 +6950,13 @@ async def test_step_2_finish_flow(hass, mock_imap):
         ),
         patch("custom_components.mail_and_packages.async_setup", return_value=True),
         patch(
-            "custom_components.mail_and_packages.async_setup_entry", return_value=True
+            "custom_components.mail_and_packages.async_setup_entry",
+            return_value=True,
         ),
     ):
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], input_2
+            result["flow_id"],
+            input_2,
         )
     assert result["type"] == "create_entry"
     assert result["title"] == "imap.test.email"
@@ -6787,10 +6968,12 @@ async def test_step_2_finish_flow(hass, mock_imap):
 async def test_step_forwarded_emails_skip_amazon(hass, mock_imap):
     """Test transition from forwarded emails directly to step 3."""
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"auth_type": "password"}
+        result["flow_id"],
+        {"auth_type": "password"},
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
@@ -6842,7 +7025,8 @@ async def test_reconfig_2_validation_error(hass, mock_imap_no_email, integration
         },
     )
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"auth_type": "password"}
+        result["flow_id"],
+        {"auth_type": "password"},
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
@@ -6889,7 +7073,8 @@ async def test_reconfig_3_validation_error(hass, mock_imap_no_email, integration
     )
 
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"auth_type": "password"}
+        result["flow_id"],
+        {"auth_type": "password"},
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
@@ -6933,13 +7118,14 @@ async def test_reconfig_3_validation_error(hass, mock_imap_no_email, integration
     assert result["step_id"] == "reconfig_3"
     assert result["errors"] == {
         "custom_img_file": "file_not_found",
-        "storage": "path_not_found",
     }
 
 
 @pytest.mark.asyncio
 async def test_reconfig_forwarded_emails_to_reconfig_3(
-    hass, mock_imap_no_email, integration
+    hass,
+    mock_imap_no_email,
+    integration,
 ):
     """Test transition from reconfig forwarded emails to reconfig 3."""
     entry = integration
@@ -6951,7 +7137,8 @@ async def test_reconfig_forwarded_emails_to_reconfig_3(
         },
     )
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"auth_type": "password"}
+        result["flow_id"],
+        {"auth_type": "password"},
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
@@ -7015,7 +7202,8 @@ async def test_reconfig_storage_validation_error(hass, mock_imap_no_email, integ
     )
 
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"auth_type": "password"}
+        result["flow_id"],
+        {"auth_type": "password"},
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
@@ -7086,13 +7274,15 @@ async def test_reconfig_storage_validation_error(hass, mock_imap_no_email, integ
 async def test_oauth_config_flow_selection(hass, mock_imap_no_email):
     """Test OAuth2 provider selection in config flow."""
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
     )
     assert result["type"] == "form"
     assert result["step_id"] == "user"
 
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"auth_type": "oauth2_microsoft"}
+        result["flow_id"],
+        {"auth_type": "oauth2_microsoft"},
     )
     assert result["type"] == "form"
     assert result["step_id"] == "imap_config"
@@ -7118,7 +7308,7 @@ async def test_oauth_config_flow_selection(hass, mock_imap_no_email):
 
         handler = MailAndPackagesFlowHandler()
         handler.hass = hass
-        handler._data = {  # noqa: SLF001
+        handler._data = {
             "auth_type": "oauth2_microsoft",
             "host": "imap.test.email",
             "port": 993,
@@ -7161,7 +7351,8 @@ async def test_oauth_reconfig_flow_selection(hass, mock_imap_no_email, integrati
     assert result["step_id"] == "reconfigure"
 
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"auth_type": "oauth2_google"}
+        result["flow_id"],
+        {"auth_type": "oauth2_google"},
     )
     assert result["type"] == "form"
     assert result["step_id"] == "reconfig_imap"
@@ -7184,8 +7375,8 @@ async def test_oauth_reconfig_flow_selection(hass, mock_imap_no_email, integrati
 
         handler = MailAndPackagesFlowHandler()
         handler.hass = hass
-        handler._entry = entry  # noqa: SLF001
-        handler._data = {  # noqa: SLF001
+        handler._entry = entry
+        handler._data = {
             "auth_type": "oauth2_google",
             "host": "imap.test.email",
             "port": 993,
