@@ -33,7 +33,9 @@ async def test_ups_delivered_class(hass, mock_imap_ups_delivered):
         patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
     ):
         result = await shipper.process(
-            mock_imap_ups_delivered, "today", "ups_delivered"
+            mock_imap_ups_delivered,
+            "today",
+            "ups_delivered",
         )
         assert result[ATTR_COUNT] == 1
         assert result[ATTR_TRACKING] == ["1Z2345YY0678901234"]
@@ -58,7 +60,9 @@ async def test_fedex_delivered_class(hass, mock_imap_fedex_delivered_with_photo)
         ),
     ):
         result = await shipper.process(
-            mock_imap_fedex_delivered_with_photo, "today", "fedex_delivered"
+            mock_imap_fedex_delivered_with_photo,
+            "today",
+            "fedex_delivered",
         )
         assert result[ATTR_COUNT] == 1
         assert result[ATTR_TRACKING] == ["885814254426"]
@@ -78,7 +82,9 @@ async def test_usps_delivered_class(hass, mock_imap_usps_delivered_individual):
         patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
     ):
         result = await shipper.process(
-            mock_imap_usps_delivered_individual, "today", "usps_delivered"
+            mock_imap_usps_delivered_individual,
+            "today",
+            "usps_delivered",
         )
         assert result[ATTR_COUNT] == 1
         assert result[ATTR_TRACKING] == ["92001901755477000000000000"]
@@ -98,7 +104,9 @@ async def test_usps_exception_class(hass, mock_imap_usps_exception):
         patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
     ):
         result = await shipper.process(
-            mock_imap_usps_exception, "today", "usps_exception"
+            mock_imap_usps_exception,
+            "today",
+            "usps_exception",
         )
         assert result[ATTR_COUNT] == 1
         assert result[ATTR_TRACKING] == ["92748902410637553123456789"]
@@ -131,7 +139,8 @@ async def test_generic_with_images_and_amazon_mentions(hass):
     mock_account = AsyncMock()
     mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
     mock_account.fetch.return_value = MagicMock(
-        result="OK", lines=[b"RFC822", msg_bytes]
+        result="OK",
+        lines=[b"RFC822", msg_bytes],
     )
 
     with (
@@ -207,3 +216,26 @@ async def test_generic_multiple_emails(hass):
         result = await shipper.process(mock_account, "today", "ups_delivered")
         assert result[ATTR_COUNT] == 2
         assert result[ATTR_TRACKING] == ["1Z123", "1Z456"]
+
+
+@pytest.mark.asyncio
+async def test_process_tracking_numbers_invalid_key(hass):
+    """Test _process_tracking_numbers with invalid tracking key (Line 135-139)."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    # "non_existent_delivered" splits to "non_existent" -> "non_existent_tracking"
+    # which is not in SENSOR_DATA
+    result = await shipper._process_tracking_numbers(
+        "non_existent_delivered",
+        [b"1"],
+        mock_account,
+    )
+    assert result == []
+
+
+@pytest.mark.asyncio
+async def test_setup_image_extraction_not_delivered(hass):
+    """Test _setup_image_extraction with non-delivery sensor (Line 153)."""
+    shipper = GenericShipper(hass, {})
+    result = await shipper._setup_image_extraction("ups_exception", "/path")
+    assert result is None

@@ -52,7 +52,7 @@ async def test_informed_delivery_emails_class(
             return_value=["test/path/usps/img1.jpg"],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif"
+            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif",
         ),
         patch(
             "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
@@ -60,7 +60,9 @@ async def test_informed_delivery_emails_class(
         ),
     ):
         result = await shipper.process(
-            mock_imap_usps_informed_digest, "today", "usps_mail"
+            mock_imap_usps_informed_digest,
+            "today",
+            "usps_mail",
         )
         assert result[ATTR_COUNT] == 3
 
@@ -97,7 +99,7 @@ async def test_new_informed_delivery_emails_class(
             return_value=["test/path/usps/img1.jpg"],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif"
+            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif",
         ),
         patch(
             "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
@@ -105,7 +107,9 @@ async def test_new_informed_delivery_emails_class(
         ),
     ):
         result = await shipper.process(
-            mock_imap_usps_new_informed_digest, "today", "usps_mail"
+            mock_imap_usps_new_informed_digest,
+            "today",
+            "usps_mail",
         )
         assert result[ATTR_COUNT] == 4
 
@@ -139,7 +143,9 @@ async def test_informed_digest_no_mail_class(
         ),
     ):
         result = await shipper.process(
-            mock_imap_usps_informed_digest_no_mail, "today", "usps_mail"
+            mock_imap_usps_informed_digest_no_mail,
+            "today",
+            "usps_mail",
         )
         assert result[ATTR_COUNT] == 0
 
@@ -193,7 +199,7 @@ async def test_informed_delivery_with_images_class(hass):
             return_value=["test/path/usps/img1.jpg"],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif"
+            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif",
         ),
         patch(
             "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
@@ -226,7 +232,8 @@ async def test_informed_delivery_placeholder_image(hass):
     mock_account = AsyncMock()
     mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
     mock_account.fetch.return_value = MagicMock(
-        result="OK", lines=[b"RFC822", msg_bytes]
+        result="OK",
+        lines=[b"RFC822", msg_bytes],
     )
 
     with (
@@ -245,7 +252,7 @@ async def test_informed_delivery_placeholder_image(hass):
             return_value=["test/path/usps/img1.jpg"],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif"
+            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif",
         ),
         patch(
             "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
@@ -285,7 +292,8 @@ async def test_informed_delivery_announcement_filtering(hass):
     mock_account = AsyncMock()
     mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
     mock_account.fetch.return_value = MagicMock(
-        result="OK", lines=[b"RFC822", msg_bytes]
+        result="OK",
+        lines=[b"RFC822", msg_bytes],
     )
 
     # We want to mock random_filename to return one normal and one to-be-ignored filename
@@ -311,7 +319,7 @@ async def test_informed_delivery_announcement_filtering(hass):
             side_effect=lambda imgs, w, h: imgs,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif"
+            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif",
         ),
         patch(
             "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
@@ -373,7 +381,8 @@ async def test_informed_delivery_resize_error(hass):
     mock_account = AsyncMock()
     mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
     mock_account.fetch.return_value = MagicMock(
-        result="OK", lines=[b"RFC822", msg_bytes]
+        result="OK",
+        lines=[b"RFC822", msg_bytes],
     )
 
     with (
@@ -435,7 +444,8 @@ async def test_informed_delivery_gen_mp4_grid(hass):
     mock_account = AsyncMock()
     mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
     mock_account.fetch.return_value = MagicMock(
-        result="OK", lines=[b"RFC822", b"no mail"]
+        result="OK",
+        lines=[b"RFC822", b"no mail"],
     )
 
     with (
@@ -447,10 +457,10 @@ async def test_informed_delivery_gen_mp4_grid(hass):
         patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
         patch("custom_components.mail_and_packages.shippers.usps.shutil.copyfile"),
         patch(
-            "custom_components.mail_and_packages.shippers.usps._generate_mp4"
+            "custom_components.mail_and_packages.shippers.usps._generate_mp4",
         ) as mock_mp4,
         patch(
-            "custom_components.mail_and_packages.shippers.usps.generate_grid_img"
+            "custom_components.mail_and_packages.shippers.usps.generate_grid_img",
         ) as mock_grid,
     ):
         await shipper.process(mock_account, "today", "usps_mail")
@@ -478,9 +488,7 @@ async def test_informed_delivery_extract_images_error(hass):
             return_value="test.jpg",
         ),
     ):
-        count, images = await shipper._extract_usps_images(  # noqa: SLF001
-            part, "test/", 0, []
-        )
+        count, images = await shipper._extract_usps_images(part, "test/", 0, [])
         assert count == 0
         assert len(images) == 0
 
@@ -492,9 +500,7 @@ async def test_extract_jpeg_attachment_no_filename(hass):
     part = MagicMock()
     part.get_filename.return_value = None
 
-    count, images = await shipper._extract_jpeg_attachment(  # noqa: SLF001
-        part, "test/", 0, []
-    )
+    count, images = await shipper._extract_jpeg_attachment(part, "test/", 0, [])
     assert count == 0
     assert len(images) == 0
 
@@ -511,9 +517,7 @@ async def test_extract_jpeg_attachment_os_error(hass):
         "custom_components.mail_and_packages.shippers.usps.io_save_file",
         side_effect=OSError("Permission denied"),
     ):
-        count, images = await shipper._extract_jpeg_attachment(  # noqa: SLF001
-            part, "test/", 0, []
-        )
+        count, images = await shipper._extract_jpeg_attachment(part, "test/", 0, [])
         assert count == 0
 
 
@@ -527,10 +531,67 @@ async def test_copy_nomail_image_mkdir(hass):
             side_effect=[False, True],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.usps.Path.mkdir"
+            "custom_components.mail_and_packages.shippers.usps.Path.mkdir",
         ) as mock_mkdir,
         patch("custom_components.mail_and_packages.shippers.usps.shutil.copyfile"),
         patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
     ):
-        await shipper._copy_nomail_image("test/", "test.gif", None)  # noqa: SLF001
+        await shipper._copy_nomail_image("test/", "test.gif", None)
         mock_mkdir.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_usps_announcement_removal(hass):
+    """Test _remove_announcement_images (Lines 140, 142)."""
+
+    shipper = USPSShipper(hass, {})
+    images = [
+        "normal.jpg",
+        "mailerProvidedImage_1.jpg",
+        "ra_0.jpg",
+        "Mail Attachment.txt",
+    ]
+    result = shipper._remove_announcement_images(images)
+    assert result == ["normal.jpg"]
+
+
+@pytest.mark.asyncio
+async def test_usps_process_error(hass):
+    """Test process method with search error (Lines 215-220)."""
+
+    shipper = USPSShipper(hass, {})
+    mock_acc = AsyncMock()
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.email_search",
+            side_effect=Exception("Search Error"),
+        ),
+        pytest.raises(Exception, match="Search Error"),
+    ):
+        await shipper.process(mock_acc, "today", "usps_mail")
+
+
+@pytest.mark.asyncio
+async def test_generate_mail_image_call(hass):
+    """Test _generate_mail_image (Line 149)."""
+
+    shipper = USPSShipper(hass, {})
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.resize_images",
+            return_value=["img1.jpg"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif",
+        ),
+        patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.usps.Path") as mock_path,
+    ):
+        mock_path.return_value.__truediv__.return_value = "/path/img1.jpg"
+        await shipper._generate_mail_image(
+            ["img1.jpg"],
+            "/path",
+            "name",
+            5,
+            ["img1.jpg"],
+        )

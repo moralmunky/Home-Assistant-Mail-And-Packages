@@ -17,7 +17,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def get_tracking(
-    sdata: Any, account: type[IMAP4_SSL], the_format: str | None = None
+    sdata: Any,
+    account: type[IMAP4_SSL],
+    the_format: str | None = None,
 ) -> list:
     """Parse tracking numbers from email.
 
@@ -55,7 +57,8 @@ async def get_tracking(
 
 
 def _find_tracking_in_subject(
-    msg: email.message.Message, pattern: re.Pattern
+    msg: email.message.Message,
+    pattern: re.Pattern,
 ) -> str | None:
     """Find tracking number in email subject."""
     email_subject = msg["subject"]
@@ -68,7 +71,8 @@ def _find_tracking_in_subject(
 
 
 def _find_ups_tracking_in_raw(
-    response_part: bytes | bytearray, pattern: re.Pattern
+    response_part: bytes | bytearray,
+    pattern: re.Pattern,
 ) -> str | None:
     """UPS specific tracking search in raw email bytes."""
     try:
@@ -82,7 +86,9 @@ def _find_ups_tracking_in_raw(
 
 
 def _find_tracking_in_body(
-    msg: email.message.Message, pattern: re.Pattern, the_format: str
+    msg: email.message.Message,
+    pattern: re.Pattern,
+    the_format: str,
 ) -> str | None:
     """Search for tracking number in email body parts."""
     for part in msg.walk():
@@ -115,14 +121,20 @@ def save_image_data_to_disk(shipper_name: str, path: str, image_data: bytes) -> 
                 return False
 
         _LOGGER.debug(
-            "%s - Writing %d bytes to file: %s", shipper_name, len(image_data), path
+            "%s - Writing %d bytes to file: %s",
+            shipper_name,
+            len(image_data),
+            path,
         )
         with Path(path).open("wb") as the_file:
             the_file.write(image_data)
 
     except OSError as err:
         _LOGGER.error(
-            "Error saving %s delivery photo to %s: %s", shipper_name, path, err
+            "Error saving %s delivery photo to %s: %s",
+            shipper_name,
+            path,
+            err,
         )
         return False
     else:
@@ -171,7 +183,11 @@ def generic_delivery_image_extraction(
 
     # Pass 3: Attachment search
     return _extract_from_attachments(
-        msg, attachment_filename_pattern, shipper_name, full_path, image_type
+        msg,
+        attachment_filename_pattern,
+        shipper_name,
+        full_path,
+        image_type,
     )
 
 
@@ -189,7 +205,9 @@ def _extract_from_cid(
             content_id = part.get("Content-ID")
             if content_id and content_id.strip("<>") == cid_name:
                 return save_image_data_to_disk(
-                    shipper_name, full_path, part.get_payload(decode=True)
+                    shipper_name,
+                    full_path,
+                    part.get_payload(decode=True),
                 )
     return False
 
@@ -220,11 +238,15 @@ def _extract_from_html(
             try:
                 base64_data = matches[0].replace(" ", "").replace("=3D", "=")
                 return save_image_data_to_disk(
-                    shipper_name, full_path, base64.b64decode(base64_data)
+                    shipper_name,
+                    full_path,
+                    base64.b64decode(base64_data),
                 )
             except (OSError, ValueError, TypeError) as err:
                 _LOGGER.error(
-                    "Error saving %s delivery photo from base64: %s", shipper_name, err
+                    "Error saving %s delivery photo from base64: %s",
+                    shipper_name,
+                    err,
                 )
                 return False
 
@@ -250,7 +272,9 @@ def _extract_from_attachments(
 
             try:
                 return save_image_data_to_disk(
-                    shipper_name, full_path, part.get_payload(decode=True)
+                    shipper_name,
+                    full_path,
+                    part.get_payload(decode=True),
                 )
             except (OSError, ValueError, TypeError) as err:
                 _LOGGER.error(

@@ -220,7 +220,9 @@ async def test_mail_updated_sensor_string_conversion(hass):
     coordinator.data = {"mail_updated": "2023-10-27T10:00:00+00:00"}
 
     sensor = PackagesSensor(
-        entry, MagicMock(key="mail_updated", name="Mail Updated"), coordinator
+        entry,
+        MagicMock(key="mail_updated", name="Mail Updated"),
+        coordinator,
     )
 
     # Value should be converted to datetime object
@@ -238,7 +240,9 @@ async def test_mail_updated_sensor_invalid_date_string(hass):
     coordinator.data = {"mail_updated": "NOT_A_VALID_DATE_STRING"}
 
     sensor = PackagesSensor(
-        entry, MagicMock(key="mail_updated", name="Mail Updated"), coordinator
+        entry,
+        MagicMock(key="mail_updated", name="Mail Updated"),
+        coordinator,
     )
 
     # Should trigger ValueError handler and return current time
@@ -258,7 +262,9 @@ async def test_mail_updated_sensor_totally_invalid_date(hass):
     coordinator.data = {"mail_updated": "this is not a date"}
 
     sensor = PackagesSensor(
-        entry, MagicMock(key="mail_updated", name="Mail Updated"), coordinator
+        entry,
+        MagicMock(key="mail_updated", name="Mail Updated"),
+        coordinator,
     )
 
     # This calls native_value, triggering the exception handler

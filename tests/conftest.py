@@ -222,8 +222,9 @@ def mock_imap():
         mock_conn.logout = AsyncMock(return_value=MagicMock(result="BYE"))
         mock_conn.list = AsyncMock(
             return_value=MagicMock(
-                result="OK", lines=[b'(\\HasNoChildren) "/" "INBOX"']
-            )
+                result="OK",
+                lines=[b'(\\HasNoChildren) "/" "INBOX"'],
+            ),
         )
 
         # Search returns (result, lines)
@@ -247,7 +248,7 @@ def mock_imap_login_error(mock_imap):
 def mock_imap_connect_error(mock_imap):
     """Mock aioimaplib connection failure."""
     mock_imap.wait_hello_from_server.side_effect = ConnectionRefusedError(
-        "Unable to connect."
+        "Unable to connect.",
     )
     mock_imap.protocol.state = aioimaplib.NONAUTH
     return mock_imap
@@ -257,7 +258,8 @@ def mock_imap_connect_error(mock_imap):
 def mock_imap_select_error(mock_imap):
     """Mock folder select error."""
     mock_imap.login.return_value = MagicMock(
-        result="OK", lines=[b"user@fake.email authenticated (Success)"]
+        result="OK",
+        lines=[b"user@fake.email authenticated (Success)"],
     )
     mock_imap.select.side_effect = OSError("Invalid folder")
     return mock_imap
@@ -267,7 +269,8 @@ def mock_imap_select_error(mock_imap):
 def mock_imap_list_error(mock_imap):
     """Mock error when listing folders."""
     mock_imap.login.return_value = MagicMock(
-        result="OK", lines=[b"user@fake.email authenticated (Success)"]
+        result="OK",
+        lines=[b"user@fake.email authenticated (Success)"],
     )
     mock_imap.list.side_effect = OSError("List error")
     return mock_imap
@@ -318,7 +321,8 @@ def mock_imap_fetch_error(mock_imap):
 def mock_imap_index_error(mock_imap):
     """Mock imap class values correctly for async and wait_hello."""
     mock_imap.list.return_value = MagicMock(
-        result="OK", lines=[b'(\\HasNoChildren) "." "INBOX"']
+        result="OK",
+        lines=[b'(\\HasNoChildren) "." "INBOX"'],
     )
     mock_imap.search.return_value = MagicMock(result="OK", lines=[b"0"])
     return mock_imap
@@ -328,7 +332,8 @@ def mock_imap_index_error(mock_imap):
 def mock_imap_index_error_2(mock_imap):
     """Mock imap class values for async compatibility and wait_hello."""
     mock_imap.list.return_value = MagicMock(
-        result="OK", lines=[b'(\\HasNoChildren) ";" "INBOX"']
+        result="OK",
+        lines=[b'(\\HasNoChildren) ";" "INBOX"'],
     )
     mock_imap.search.return_value = MagicMock(result="OK", lines=[b"0"])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"0"])
@@ -339,7 +344,8 @@ def mock_imap_index_error_2(mock_imap):
 def mock_imap_mailbox_format2(mock_imap):
     """Mock imap class values for async compatibility."""
     mock_imap.list.return_value = MagicMock(
-        result="ERR", lines=[b'(\\HasNoChildren) "." "INBOX"']
+        result="ERR",
+        lines=[b'(\\HasNoChildren) "." "INBOX"'],
     )
     mock_imap.search.return_value = MagicMock(result="OK", lines=[b"0"])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"0"])
@@ -350,7 +356,8 @@ def mock_imap_mailbox_format2(mock_imap):
 def mock_imap_mailbox_format3(mock_imap):
     """Mock imap class values for async compatibility."""
     mock_imap.list.return_value = MagicMock(
-        result="ERR", lines=[b'(\\HasNoChildren) "%" "INBOX"']
+        result="ERR",
+        lines=[b'(\\HasNoChildren) "%" "INBOX"'],
     )
     mock_imap.search.return_value = MagicMock(result="OK", lines=[b"0"])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"0"])
@@ -372,7 +379,7 @@ def mock_imap_usps_new_informed_digest(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/new_informed_delivery.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -384,7 +391,7 @@ def mock_imap_usps_informed_digest_missing(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path(
-        "tests/test_emails/informed_delivery_missing_mailpiece.eml"
+        "tests/test_emails/informed_delivery_missing_mailpiece.eml",
     ).read_text(encoding="utf-8")
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -396,7 +403,7 @@ def mock_imap_usps_informed_digest_no_mail(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/informed_delivery_no_mail.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -407,7 +414,7 @@ def mock_imap_usps_mail_delivered(mock_imap):
     """Mock IMAP search returning USPS package delivered."""
     mock_imap.select.return_value = ("OK", [b""])
     email_file = Path("tests/test_emails/usps_mail_delivered.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -419,7 +426,7 @@ def mock_imap_ups_out_for_delivery(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/ups_out_for_delivery.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -431,7 +438,7 @@ def mock_imap_ups_out_for_delivery_html(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/ups_out_for_delivery_new.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -444,7 +451,7 @@ def mock_imap_dhl_out_for_delivery(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/dhl_out_for_delivery.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -457,7 +464,7 @@ def mock_imap_dhl_no_utf8(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/dhl_out_for_delivery.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -470,7 +477,7 @@ def mock_imap_fedex_out_for_delivery(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/fedex_out_for_delivery.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -482,7 +489,7 @@ def mock_imap_fedex_out_for_delivery_2(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/fedex_out_for_delivery_2.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -494,7 +501,7 @@ def mock_imap_usps_out_for_delivery(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/usps_out_for_delivery.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -506,7 +513,7 @@ def mock_imap_amazon_shipped(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/amazon_shipped.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -518,7 +525,7 @@ def mock_imap_amazon_shipped_uk(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/amazon_uk_shipped.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -529,7 +536,8 @@ def mock_imap_amazon_shipped_uk_2(mock_imap):
     """Mock imap class values for UK Amazon shipped email."""
     mock_imap.host = "imap.test.email"
     mock_imap.login.return_value = MagicMock(
-        result="OK", lines=[b"user@fake.email authenticated (Success)"]
+        result="OK",
+        lines=[b"user@fake.email authenticated (Success)"],
     )
     mock_imap.select.return_value = MagicMock(result="OK", lines=[b"1"])
 
@@ -545,7 +553,7 @@ def mock_imap_amazon_shipped_alt(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/amazon_shipped_alt.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -557,7 +565,7 @@ def mock_imap_amazon_shipped_alt_2(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/amazon_shipped_alt_2.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -569,7 +577,7 @@ def mock_imap_amazon_shipped_it(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/amazon_shipped_it.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -581,7 +589,7 @@ def mock_imap_amazon_shipped_alt_timeformat(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/amazon_shipped_alt_timeformat.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -593,7 +601,7 @@ def mock_imap_amazon_delivered(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/amazon_delivered.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     # Amazon search expects to find 10 emails in tests, so return unique IDs for 20 calls to be safe
     mock_imap.search.side_effect = _generate_search_side_effect(count=20, unique=True)
@@ -607,7 +615,7 @@ def mock_imap_amazon_delivered_it(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/amazon_delivered_it.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     # Amazon search expects to find 10 emails in tests
     mock_imap.search.side_effect = _generate_search_side_effect(count=20, unique=True)
@@ -621,7 +629,7 @@ def mock_imap_amazon_the_hub(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/amazon_hub_notice.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -632,7 +640,8 @@ def mock_imap_amazon_the_hub_2(mock_imap):
     """Mock imap class values for Amazon Hub emails."""
     mock_imap.host = "imap.test.email"
     mock_imap.login.return_value = MagicMock(
-        result="OK", lines=[b"user@fake.email authenticated (Success)"]
+        result="OK",
+        lines=[b"user@fake.email authenticated (Success)"],
     )
     mock_imap.select.return_value = MagicMock(result="OK", lines=[])
 
@@ -662,7 +671,7 @@ def test_invalid_ffmpeg():
 def mock_copyfile_exception():
     """Fixture to mock copyfile."""
     with patch(
-        "custom_components.mail_and_packages.utils.image.copyfile"
+        "custom_components.mail_and_packages.utils.image.copyfile",
     ) as mock_copyfile:
         mock_copyfile.side_effect = OSError("File not found")
         yield mock_copyfile
@@ -672,7 +681,7 @@ def mock_copyfile_exception():
 def mock_copyfile():
     """Fixture to mock copyfile."""
     with patch(
-        "custom_components.mail_and_packages.utils.image.copyfile"
+        "custom_components.mail_and_packages.utils.image.copyfile",
     ) as mock_copyfile:
         mock_copyfile.return_value = True
         yield mock_copyfile
@@ -774,10 +783,16 @@ def mock_os_path_splitext():
 def mock_update_time():
     """Fixture to mock update_time."""
     with patch(
-        "custom_components.mail_and_packages.utils.date.update_time"
+        "custom_components.mail_and_packages.utils.date.update_time",
     ) as mock_update_time:
         mock_update_time.return_value = datetime.datetime(
-            2022, 1, 6, 12, 14, 38, tzinfo=datetime.UTC
+            2022,
+            1,
+            6,
+            12,
+            14,
+            38,
+            tzinfo=datetime.UTC,
         ).isoformat(timespec="minutes")
         yield mock_update_time
 
@@ -793,7 +808,7 @@ def mock_image():
 def mock_image_excpetion():
     """Fixture to mock Image."""
     with patch(
-        "custom_components.mail_and_packages.utils.image.Image"
+        "custom_components.mail_and_packages.utils.image.Image",
     ) as mock_image_excpetion:
         mock_image_excpetion.return_value = mock.Mock(autospec=True)
         mock_image_excpetion.open.side_effect = Exception("SystemError")
@@ -804,7 +819,7 @@ def mock_image_excpetion():
 def mock_image_save_excpetion():
     """Fixture to mock Image."""
     with patch(
-        "custom_components.mail_and_packages.utils.image.Image"
+        "custom_components.mail_and_packages.utils.image.Image",
     ) as mock_image_save_excpetion:
         mock_image_save_excpetion.return_value = mock.Mock(autospec=True)
         mock_image_save_excpetion.Image.save.side_effect = Exception("ValueError")
@@ -870,7 +885,7 @@ def mock_subprocess_run():
 def mock_copy_overlays():
     """Fixture to mock copy_overlays."""
     with patch(
-        "custom_components.mail_and_packages.utils.image.copy_overlays"
+        "custom_components.mail_and_packages.utils.image.copy_overlays",
     ) as mock_copy_overlays:
         yield mock_copy_overlays
 
@@ -892,7 +907,7 @@ def mock_imap_hermes_out_for_delivery(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/hermes_out_for_delivery.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -904,7 +919,7 @@ def mock_imap_evri_out_for_delivery(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/evri_out_for_delivery.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -916,7 +931,7 @@ def mock_imap_royal_out_for_delivery(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/royal_mail_uk_out_for_delivery.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -936,7 +951,7 @@ def mock_copyoverlays():
 def mock_hash_file():
     """Fixture to mock hash_file."""
     with patch(
-        "custom_components.mail_and_packages.utils.image.hash_file"
+        "custom_components.mail_and_packages.utils.image.hash_file",
     ) as mock_hash_file:
         mock_hash_file.side_effect = hash_side_effect
         yield mock_hash_file
@@ -953,7 +968,7 @@ def hash_side_effect(value):
 def mock_getctime_today():
     """Fixture to mock os.path.getctime."""
     with patch(
-        "custom_components.mail_and_packages.utils.image.os.path.getctime"
+        "custom_components.mail_and_packages.utils.image.os.path.getctime",
     ) as mock_getctime_today:
         mock_getctime_today.return_value = time.time()
         yield mock_getctime_today
@@ -963,7 +978,7 @@ def mock_getctime_today():
 def mock_getctime_yesterday():
     """Fixture to mock os.path.getctime."""
     with patch(
-        "custom_components.mail_and_packages.utils.image.os.path.getctime"
+        "custom_components.mail_and_packages.utils.image.os.path.getctime",
     ) as mock_getctime_yesterday:
         mock_getctime_yesterday.return_value = time.time() - 86400
         yield mock_getctime_yesterday
@@ -973,7 +988,7 @@ def mock_getctime_yesterday():
 def mock_hash_file_oserr():
     """Fixture to mock hash_file."""
     with patch(
-        "custom_components.mail_and_packages.utils.image.hash_file"
+        "custom_components.mail_and_packages.utils.image.hash_file",
     ) as mock_hash_file_oserr:
         mock_hash_file_oserr.side_effect = OSError(errno.EEXIST, "error")
         yield mock_hash_file_oserr
@@ -993,7 +1008,7 @@ def mock_imap_usps_exception(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/usps_exception.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1046,7 +1061,7 @@ def mock_imap_amazon_exception(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/amazon_exception.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1058,7 +1073,7 @@ def mock_imap_auspost_out_for_delivery(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/auspost_out_for_delivery.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1070,7 +1085,7 @@ def mock_imap_auspost_delivered(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/auspost_delivered.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1082,7 +1097,7 @@ def mock_imap_poczta_polska_delivering(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/poczta_polska_delivering.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1094,7 +1109,7 @@ def mock_imap_inpost_pl_out_for_delivery(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/inpost_pl_out_for_delivery.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1104,16 +1119,18 @@ def mock_imap_inpost_pl_out_for_delivery(mock_imap):
 def mock_imap_inpost_pl_delivered(mock_imap):
     """Mock imap class values."""
     mock_imap.login.return_value = MagicMock(
-        result="OK", lines=[b"user@fake.email authenticated (Success)"]
+        result="OK",
+        lines=[b"user@fake.email authenticated (Success)"],
     )
     mock_imap.list.return_value = MagicMock(
-        result="OK", lines=[b'(\\HasNoChildren) "/" "INBOX"']
+        result="OK",
+        lines=[b'(\\HasNoChildren) "/" "INBOX"'],
     )
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     mock_imap.select.return_value = ("OK", [])
 
     email_file = Path("tests/test_emails/inpost_pl_delivered.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1125,7 +1142,7 @@ def mock_imap_dpd_com_pl_delivering(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/dpd_com_pl_delivering.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1197,7 +1214,7 @@ def mock_imap_ups_delivered_with_photo(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/ups_delivered_with_photo.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1217,7 +1234,7 @@ def mock_imap_usps_delivered_individual(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/usps_delivered.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1229,7 +1246,7 @@ def mock_imap_amazon_arriving_today(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/amazon_out_for_delivery_today.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1241,7 +1258,7 @@ def mock_imap_amazon_arriving_tomorrow(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/amazon_arriving_today2.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1253,7 +1270,7 @@ def mock_imap_walmart_delivered_with_photo(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/walmart_delivered.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1265,7 +1282,7 @@ def mock_imap_fedex_delivered_with_photo(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/fedex_delivered.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1277,7 +1294,7 @@ def mock_imap_walmart_delivering(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path("tests/test_emails/walmart_delivery.eml").read_text(
-        encoding="utf-8"
+        encoding="utf-8",
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1289,7 +1306,7 @@ def mock_imap_informed_delivery_forwarded_email(mock_imap):
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
     email_file = Path(
-        "tests/test_emails/informed_delivery_forwarded_email.eml"
+        "tests/test_emails/informed_delivery_forwarded_email.eml",
     ).read_text(encoding="utf-8")
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
@@ -1302,6 +1319,7 @@ def mock_imap_list_result_error(mock_imap):
     mock_imap.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b""]))
     # Simulate a successful connection but a failed folder list command
     mock_imap.list.return_value = MagicMock(
-        result="ERROR", lines=[b"Could not list folders"]
+        result="ERROR",
+        lines=[b"Could not list folders"],
     )
     return mock_imap

@@ -354,7 +354,7 @@ async def test_ups_camera_with_image_data(
         cameras = entry.runtime_data.cameras
         ups_camera = None
         for camera in cameras:
-            if camera._type == "ups_camera":  # noqa: SLF001
+            if camera._type == "ups_camera":
                 ups_camera = camera
                 break
 
@@ -404,7 +404,7 @@ async def test_amazon_camera_with_image_data(
         cameras = entry.runtime_data.cameras
         amazon_camera = None
         for camera in cameras:
-            if camera._type == "amazon_camera":  # noqa: SLF001
+            if camera._type == "amazon_camera":
                 amazon_camera = camera
                 break
 
@@ -765,7 +765,7 @@ async def test_generic_camera_with_delivery_images(
         cameras = entry.runtime_data.cameras
         generic_camera = None
         for camera in cameras:
-            if camera._type == "generic_camera":  # noqa: SLF001
+            if camera._type == "generic_camera":
                 generic_camera = camera
                 break
 
@@ -815,7 +815,7 @@ async def test_generic_camera_with_ups_delivery_images(
         cameras = entry.runtime_data.cameras
         generic_camera = None
         for camera in cameras:
-            if camera._type == "generic_camera":  # noqa: SLF001
+            if camera._type == "generic_camera":
                 generic_camera = camera
                 break
 
@@ -865,7 +865,7 @@ async def test_generic_camera_with_walmart_delivery_images(
         cameras = entry.runtime_data.cameras
         generic_camera = None
         for camera in cameras:
-            if camera._type == "generic_camera":  # noqa: SLF001
+            if camera._type == "generic_camera":
                 generic_camera = camera
                 break
 
@@ -915,7 +915,7 @@ async def test_generic_camera_with_usps_delivery_images_manual(
         cameras = entry.runtime_data.cameras
         generic_camera = None
         for camera in cameras:
-            if camera._type == "generic_camera":  # noqa: SLF001
+            if camera._type == "generic_camera":
                 generic_camera = camera
                 break
 
@@ -966,7 +966,7 @@ async def test_generic_camera_with_all_delivery_types(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
-            "custom_components.mail_and_packages.camera.generate_delivery_gif"
+            "custom_components.mail_and_packages.camera.generate_delivery_gif",
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
@@ -1001,7 +1001,7 @@ async def test_generic_camera_with_all_delivery_types(
         cameras = entry.runtime_data.cameras
         generic_camera = None
         for camera in cameras:
-            if camera._type == "generic_camera":  # noqa: SLF001
+            if camera._type == "generic_camera":
                 generic_camera = camera
                 break
 
@@ -1062,7 +1062,7 @@ async def test_generic_camera_filters_no_mail_images(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
-            "custom_components.mail_and_packages.camera.generate_delivery_gif"
+            "custom_components.mail_and_packages.camera.generate_delivery_gif",
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
@@ -1100,7 +1100,7 @@ async def test_generic_camera_filters_no_mail_images(
         cameras = entry.runtime_data.cameras
         generic_camera = None
         for camera in cameras:
-            if camera._type == "generic_camera":  # noqa: SLF001
+            if camera._type == "generic_camera":
                 generic_camera = camera
                 break
 
@@ -1172,7 +1172,7 @@ async def test_generic_camera_respects_enabled_sensors(
     cameras = entry.runtime_data.cameras
     generic_camera = None
     for camera in cameras:
-        if camera._type == "generic_camera":  # noqa: SLF001
+        if camera._type == "generic_camera":
             generic_camera = camera
             break
 
@@ -1181,7 +1181,7 @@ async def test_generic_camera_respects_enabled_sensors(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
-            "custom_components.mail_and_packages.camera.generate_delivery_gif"
+            "custom_components.mail_and_packages.camera.generate_delivery_gif",
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
@@ -1353,7 +1353,7 @@ async def test_generic_camera_with_usps_delivery_images(
         cameras = entry.runtime_data.cameras
         generic_camera = None
         for camera in cameras:
-            if camera._type == "generic_camera":  # noqa: SLF001
+            if camera._type == "generic_camera":
                 generic_camera = camera
                 break
 
@@ -1421,7 +1421,7 @@ async def test_generic_camera_with_multiple_delivery_images(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
-            "custom_components.mail_and_packages.camera.generate_delivery_gif"
+            "custom_components.mail_and_packages.camera.generate_delivery_gif",
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
@@ -1574,7 +1574,7 @@ async def test_walmart_camera_with_image_data(
         cameras = entry.runtime_data.cameras
         walmart_camera = None
         for camera in cameras:
-            if camera._type == "walmart_camera":  # noqa: SLF001
+            if camera._type == "walmart_camera":
                 walmart_camera = camera
                 break
 
@@ -1779,7 +1779,7 @@ async def test_fedex_camera_with_image_data(
         cameras = entry.runtime_data.cameras
         fedex_camera = None
         for camera in cameras:
-            if camera._type == "fedex_camera":  # noqa: SLF001
+            if camera._type == "fedex_camera":
                 fedex_camera = camera
                 break
 
@@ -1954,9 +1954,7 @@ async def test_camera_custom_no_mail_image():
         patch("pathlib.Path.resolve", side_effect=lambda: Path("/abs/images/test.gif")),
     ):
         # Test the _is_custom_no_mail_image method
-        result = camera._is_custom_no_mail_image(  # noqa: SLF001
-            "usps", "images/test.gif"
-        )
+        result = camera._is_custom_no_mail_image("usps", "images/test.gif")
 
         # Should return True for custom no-mail image
         assert result is True
@@ -2096,11 +2094,7 @@ async def test_camera_fallback_to_recent_file(
 
         # Trigger update
         cameras = entry.runtime_data.cameras
-        amazon_camera = next(
-            c
-            for c in cameras
-            if c._type == "amazon_camera"  # noqa: SLF001
-        )
+        amazon_camera = next(c for c in cameras if c._type == "amazon_camera")
 
         await amazon_camera.update_file_path()
         await hass.async_block_till_done()
@@ -2113,7 +2107,9 @@ async def test_camera_fallback_to_recent_file(
 
 @pytest.mark.asyncio
 async def test_camera_service_update_specific_explicit(
-    hass, mock_imap_no_email, integration
+    hass,
+    mock_imap_no_email,
+    integration,
 ):
     """Test updating a specific camera via service with explicit mock check."""
     entry = integration
@@ -2127,7 +2123,10 @@ async def test_camera_service_update_specific_explicit(
     with patch.object(amazon_cam, "update_file_path") as mock_update:
         # Call service targeting this specific entity
         await hass.services.async_call(
-            DOMAIN, "update_image", {"entity_id": target_entity_id}, blocking=True
+            DOMAIN,
+            "update_image",
+            {"entity_id": target_entity_id},
+            blocking=True,
         )
 
         # Verify the method was called, confirming lines 175-176 were hit
@@ -2142,7 +2141,7 @@ async def test_camera_file_not_found(hass, mock_update):
     mock_config.data = {"host": "test.host"}
 
     cam = MailCam(hass, "amazon_camera", mock_config, mock_coordinator)
-    cam._file_path = "/nonexistent/path.jpg"  # noqa: SLF001
+    cam._file_path = "/nonexistent/path.jpg"
 
     image = await cam.async_camera_image()
     assert image is None
@@ -2161,7 +2160,7 @@ async def test_camera_image_read_error(hass, tmp_path):
     cam = MailCam(hass, "amazon_camera", mock_config, mock_coord)
 
     # Assign the secure temporary path
-    cam._file_path = safe_file_path  # noqa: SLF001
+    cam._file_path = safe_file_path
 
     # Simulate file existing but failing to open
     with patch("builtins.open", side_effect=FileNotFoundError):
@@ -2176,13 +2175,15 @@ async def test_camera_find_alternative_image_no_dir(hass, caplog):
 
     with patch("pathlib.Path.exists", return_value=False):
         # Trigger alternative image search
-        await cam._find_alternative_image("/fake/path/image.jpg", "image.jpg")  # noqa: SLF001
+        await cam._find_alternative_image("/fake/path/image.jpg", "image.jpg")
         assert "directory does not exist" in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_camera_service_update_multiple_entities(
-    hass, mock_imap_no_email, integration
+    hass,
+    mock_imap_no_email,
+    integration,
 ):
     """Test updating multiple specific cameras via service."""
     entry = integration
@@ -2193,7 +2194,10 @@ async def test_camera_service_update_multiple_entities(
 
     with patch.object(MailCam, "update_file_path") as mock_update:
         await hass.services.async_call(
-            DOMAIN, "update_image", {ATTR_ENTITY_ID: target_ids}, blocking=True
+            DOMAIN,
+            "update_image",
+            {ATTR_ENTITY_ID: target_ids},
+            blocking=True,
         )
 
         # Verify both target cameras were updated
@@ -2202,7 +2206,10 @@ async def test_camera_service_update_multiple_entities(
 
 @pytest.mark.asyncio
 async def test_camera_update_coordinator_failed(
-    hass, mock_imap_no_email, integration, caplog
+    hass,
+    mock_imap_no_email,
+    integration,
+    caplog,
 ):
     """Test camera update early exit on coordinator failure (Line 197)."""
     entry = integration
@@ -2220,7 +2227,9 @@ async def test_camera_update_coordinator_failed(
 
 
 async def test_is_custom_no_mail_file_not_exists_fixed(
-    hass, mock_imap_no_email, integration
+    hass,
+    mock_imap_no_email,
+    integration,
 ):
     """Custom path configured but file missing on disk."""
     entry = integration
@@ -2245,14 +2254,15 @@ async def test_is_custom_no_mail_file_not_exists_fixed(
         ),
         patch("pathlib.Path.exists", return_value=False),
     ):
-        result = camera._is_custom_no_mail_image(  # noqa: SLF001
-            "amazon", "/some/path.jpg"
-        )
+        result = camera._is_custom_no_mail_image("amazon", "/some/path.jpg")
         assert result is False
 
 
 async def test_find_alternative_image_oserror_fixed(
-    hass, mock_imap_no_email, integration, caplog
+    hass,
+    mock_imap_no_email,
+    integration,
+    caplog,
 ):
     """Handle OSError during directory iteration."""
     entry = integration
@@ -2262,7 +2272,7 @@ async def test_find_alternative_image_oserror_fixed(
         patch("pathlib.Path.iterdir", side_effect=OSError("Permission Denied")),
     ):
         # Trigger the fallback logic
-        await camera._find_alternative_image("/fake/path/img.jpg", "img.jpg")  # noqa: SLF001
+        await camera._find_alternative_image("/fake/path/img.jpg", "img.jpg")
 
         # Verify the exception was caught and logged
         assert "error listing directory" in caplog.text
@@ -2281,37 +2291,31 @@ async def test_update_file_path_no_data(hass, mock_imap_no_email, integration, c
 async def test_usps_camera_custom_no_mail(hass, mock_imap_no_email, integration):
     """USPS camera using custom no-mail setting."""
     entry = integration
-    camera = next(
-        c
-        for c in entry.runtime_data.cameras
-        if c._type == "usps_camera"  # noqa: SLF001
-    )
+    camera = next(c for c in entry.runtime_data.cameras if c._type == "usps_camera")
 
     # Force state where no email data is present but custom image is set
     camera.coordinator.data = {}
-    camera._no_mail = "custom_none.gif"  # noqa: SLF001
+    camera._no_mail = "custom_none.gif"
 
-    camera._update_usps_camera()  # noqa: SLF001
-    assert camera._file_path == "custom_none.gif"  # noqa: SLF001
+    camera._update_usps_camera()
+    assert camera._file_path == "custom_none.gif"
 
 
 async def test_collect_generic_delivery_images_skip_no_attr(
-    hass, mock_imap_no_email, integration
+    hass,
+    mock_imap_no_email,
+    integration,
 ):
     """Skip cameras with no image attribute mapping."""
     entry = integration
-    camera = next(
-        c
-        for c in entry.runtime_data.cameras
-        if c._type == "generic_camera"  # noqa: SLF001
-    )
+    camera = next(c for c in entry.runtime_data.cameras if c._type == "generic_camera")
 
     # Patch CAMERA_DATA to include a fake camera that won't have an ATTR in const
     with patch(
         "custom_components.mail_and_packages.camera.CAMERA_DATA",
         {"fake_camera": {"sensor_name": "fake"}},
     ):
-        images = camera._collect_generic_delivery_images()  # noqa: SLF001
+        images = camera._collect_generic_delivery_images()
         assert len(images) == 0
 
 
@@ -2320,32 +2324,35 @@ async def test_update_standard_camera_no_attr(hass, mock_imap_no_email, integrat
     entry = integration
     cameras = entry.runtime_data.cameras
     # Use a real camera instance already initialized in CAMERA_DATA
-    camera = next(c for c in cameras if c._type == "amazon_camera")  # noqa: SLF001
+    camera = next(c for c in cameras if c._type == "amazon_camera")
 
     # Patch getattr so that it fails to find the image attribute constant
     with patch("custom_components.mail_and_packages.camera.getattr", return_value=None):
-        await camera._update_standard_camera()  # noqa: SLF001
+        await camera._update_standard_camera()
         # Ensure the default 'no deliveries' path remains set
-        assert "no_deliveries_amazon.jpg" in camera._file_path  # noqa: SLF001
+        assert "no_deliveries_amazon.jpg" in camera._file_path
 
 
 async def test_get_sensor_name_usps(hass, mock_imap_no_email, integration):
     """Correct sensor mapping for USPS."""
     entry = integration
     camera = entry.runtime_data.cameras[0]
-    name = camera._get_sensor_name_for_camera("usps_camera")  # noqa: SLF001
+    name = camera._get_sensor_name_for_camera("usps_camera")
     assert name == "usps_mail"
 
 
 async def test_handle_coordinator_update_logic(
-    hass, mock_imap_no_email, integration, caplog
+    hass,
+    mock_imap_no_email,
+    integration,
+    caplog,
 ):
     """Handle incoming coordinator data updates."""
     entry = integration
     camera = entry.runtime_data.cameras[0]
 
     # Directly trigger the update handler
-    camera._handle_coordinator_update()  # noqa: SLF001
+    camera._handle_coordinator_update()
     assert "coordinator update received" in caplog.text
 
 
@@ -2358,11 +2365,7 @@ async def test_usps_camera_with_image_data_full(hass, mock_imap_no_email, integr
         "image_path": "images/usps/",
     }
 
-    camera = next(
-        c
-        for c in entry.runtime_data.cameras
-        if c._type == "usps_camera"  # noqa: SLF001
-    )
+    camera = next(c for c in entry.runtime_data.cameras if c._type == "usps_camera")
     await camera.update_file_path()
 
     assert "images/usps/test_usps.gif" in camera.extra_state_attributes["file_path"]
@@ -2390,7 +2393,7 @@ async def test_camera_is_custom_no_mail_image(hass, mock_imap_no_email, integrat
         ),
         patch("pathlib.Path.exists", return_value=True),
     ):
-        assert camera._is_custom_no_mail_image("usps", "custom.gif") is True  # noqa: SLF001
+        assert camera._is_custom_no_mail_image("usps", "custom.gif") is True
 
 
 async def test_get_sensor_name_for_camera(hass, mock_imap_no_email, integration):
@@ -2398,9 +2401,5 @@ async def test_get_sensor_name_for_camera(hass, mock_imap_no_email, integration)
     entry = integration
     camera = entry.runtime_data.cameras[0]
 
-    assert (
-        camera._get_sensor_name_for_camera("amazon_camera") == "amazon_delivered"  # noqa: SLF001
-    )
-    assert (
-        camera._get_sensor_name_for_camera("usps_camera") == "usps_mail"  # noqa: SLF001
-    )
+    assert camera._get_sensor_name_for_camera("amazon_camera") == "amazon_delivered"
+    assert camera._get_sensor_name_for_camera("usps_camera") == "usps_mail"

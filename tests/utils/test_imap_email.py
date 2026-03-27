@@ -85,7 +85,7 @@ async def test_email_fetch_success():
     mock_res = MagicMock()
     mock_res.result = "OK"
     mock_res.lines = [
-        (b"1 (RFC822 {100}", b"From: test@example.com\nSubject: Test\n\nBody content")
+        (b"1 (RFC822 {100}", b"From: test@example.com\nSubject: Test\n\nBody content"),
     ]
     mock_imap.fetch.return_value = mock_res
 
@@ -126,7 +126,7 @@ async def test_login_success():
     """Test login success path."""
     mock_hass = MagicMock()
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL"
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = NONAUTH
@@ -148,7 +148,7 @@ async def test_login_oauth_success():
     """Test login with OAuth2 success path."""
     mock_hass = MagicMock()
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL"
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = NONAUTH
@@ -160,7 +160,13 @@ async def test_login_oauth_success():
         mock_imap_ssl.return_value = mock_acc
 
         result = await login(
-            mock_hass, "host", 993, "user", None, "SSL", oauth_token="token"
+            mock_hass,
+            "host",
+            993,
+            "user",
+            None,
+            "SSL",
+            oauth_token="token",
         )
         assert result == mock_acc
         assert mock_acc.xoauth2.called
@@ -172,7 +178,7 @@ async def test_login_no_verify():
     mock_hass = MagicMock()
     with (
         patch(
-            "custom_components.mail_and_packages.utils.imap.IMAP4_SSL"
+            "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
         ) as mock_imap_ssl,
         patch("homeassistant.util.ssl.create_no_verify_ssl_context") as mock_ssl_ctx,
     ):
@@ -204,7 +210,7 @@ async def test_login_failure_no_auth(caplog):
     mock_hass = MagicMock()
     caplog.set_level("ERROR")
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL"
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = NONAUTH
@@ -220,7 +226,7 @@ async def test_login_protocol_auth_state():
     """Test login when protocol state is already AUTH."""
     mock_hass = MagicMock()
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL"
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = AUTH
@@ -236,7 +242,7 @@ async def test_login_protocol_state_error():
     """Test login when protocol state is unexpected."""
     mock_hass = MagicMock()
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL"
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = "UNKNOWN"
@@ -354,7 +360,7 @@ async def test_login_exception(caplog):
     mock_hass = MagicMock()
     caplog.set_level("ERROR")
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL"
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.login.side_effect = OSError("Connection error")
@@ -372,7 +378,7 @@ async def test_login_state_fail(caplog):
     mock_hass = MagicMock()
     caplog.set_level("ERROR")
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL"
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.login.return_value = MagicMock(result="OK", lines=[b"Logged in"])
@@ -382,3 +388,36 @@ async def test_login_state_fail(caplog):
         with pytest.raises(InvalidAuth):
             await login(mock_hass, "host", 993, "user", "pass", "SSL")
         assert "Error logging in to IMAP Server" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_find_text_non_bytes():
+    """Test find_text with non-bytes response part (Line 106)."""
+
+    mock_acc = AsyncMock()
+    sdata = ("1",)
+    with patch(
+        "custom_components.mail_and_packages.utils.email.email_fetch",
+        new_callable=AsyncMock,
+    ) as mock_fetch:
+        mock_fetch.return_value = ("OK", ["not bytes"])
+        result = await find_text(sdata, mock_acc, ["term"], False)
+        assert result == 0
+
+
+@pytest.mark.asyncio
+async def test_find_text_decode_error():
+    """Test find_text with decoding error (Line 117-118)."""
+
+    mock_acc = AsyncMock()
+    sdata = ("1",)
+    with patch(
+        "custom_components.mail_and_packages.utils.email.email_fetch",
+        new_callable=AsyncMock,
+    ) as mock_fetch:
+        email_content = b"Content-Type: text/plain\n\nBody"
+        mock_fetch.return_value = ("OK", [email_content])
+
+        with patch("email.message.Message.get_payload", return_value=None):
+            result = await find_text(sdata, mock_acc, ["term"], False)
+            assert result == 0

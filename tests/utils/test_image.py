@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from custom_components.mail_and_packages.utils.image import (
+    _check_ffmpeg,
     _generate_mp4,
     cleanup_images,
     copy_overlays,
@@ -56,9 +57,10 @@ async def test_cleanup_images_remove_err(caplog):
         mock_path_obj.iterdir.return_value = [mock_file]
         mock_path_obj.unlink.side_effect = OSError("Permission denied")
         mock_path.side_effect = lambda *args: mock_path_obj
+        mock_path_obj.__truediv__.return_value = mock_path_obj
 
         cleanup_images("/fake/path/")
-        assert "Error attempting to remove found image" in caplog.text
+        assert "Error attempting to remove image in cleanup_images" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -79,7 +81,7 @@ async def test_resize_images_corrupt_file(caplog):
     """Test resize_images with a corrupt or non-image file."""
     caplog.set_level("ERROR")
     with patch(
-        "custom_components.mail_and_packages.utils.image.Image.open"
+        "custom_components.mail_and_packages.utils.image.Image.open",
     ) as mock_open:
         mock_open.side_effect = OSError("Corrupt image")
 
@@ -111,10 +113,10 @@ async def test_generate_delivery_gif_coverage(caplog):
     caplog.set_level("ERROR")
     with (
         patch(
-            "custom_components.mail_and_packages.utils.image.Image.open"
+            "custom_components.mail_and_packages.utils.image.Image.open",
         ) as mock_open,
         patch(
-            "custom_components.mail_and_packages.utils.image.ImageOps.exif_transpose"
+            "custom_components.mail_and_packages.utils.image.ImageOps.exif_transpose",
         ) as mock_transpose,
     ):
         mock_img1 = MagicMock()
@@ -167,7 +169,8 @@ async def test_default_image_path():
     mock_config = MagicMock()
     mock_config.get.return_value = None
     assert "custom_components/mail_and_packages/images/" in default_image_path(
-        mock_hass, mock_config
+        mock_hass,
+        mock_config,
     )
 
 
@@ -197,10 +200,10 @@ def test_generate_mp4_exists():
     with (
         patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
         patch(
-            "custom_components.mail_and_packages.utils.image.subprocess.run"
+            "custom_components.mail_and_packages.utils.image.subprocess.run",
         ) as mock_run,
         patch(
-            "custom_components.mail_and_packages.utils.image.cleanup_images"
+            "custom_components.mail_and_packages.utils.image.cleanup_images",
         ) as mock_cleanup,
     ):
         mock_path_obj = MagicMock()
@@ -293,7 +296,9 @@ async def test_image_file_name_amazon_custom():
         mock_existing_file.name = "old_amazon.jpg"
         mock_existing_file.suffix = ".jpg"
         mock_existing_file.stat.return_value.st_ctime = datetime.datetime(
-            2026, 3, 24
+            2026,
+            3,
+            24,
         ).timestamp()
 
         mock_path_obj.iterdir.return_value = [mock_existing_file]
@@ -344,7 +349,7 @@ def test_io_save_file():
         io_save_file("test.jpg", b"data")
         assert mock_path_obj.open.called
         mock_path_obj.open.return_value.__enter__.return_value.write.assert_called_with(
-            b"data"
+            b"data",
         )
 
 
@@ -353,7 +358,7 @@ def test_generate_mp4_success():
     with (
         patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
         patch(
-            "custom_components.mail_and_packages.utils.image.subprocess.run"
+            "custom_components.mail_and_packages.utils.image.subprocess.run",
         ) as mock_run,
     ):
         mock_path_obj = MagicMock()
@@ -370,7 +375,7 @@ def test_generate_mp4_fail(caplog):
     with (
         patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
         patch(
-            "custom_components.mail_and_packages.utils.image.subprocess.run"
+            "custom_components.mail_and_packages.utils.image.subprocess.run",
         ) as mock_run,
     ):
         mock_path_obj = MagicMock()
@@ -387,7 +392,7 @@ def test_generate_grid_img():
     with (
         patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
         patch(
-            "custom_components.mail_and_packages.utils.image.subprocess.call"
+            "custom_components.mail_and_packages.utils.image.subprocess.call",
         ) as mock_call,
     ):
         mock_path_obj = MagicMock()
@@ -403,10 +408,10 @@ async def test_resize_images_success():
     with (
         patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
         patch(
-            "custom_components.mail_and_packages.utils.image.Image.open"
+            "custom_components.mail_and_packages.utils.image.Image.open",
         ) as mock_open,
         patch(
-            "custom_components.mail_and_packages.utils.image.ImageOps.pad"
+            "custom_components.mail_and_packages.utils.image.ImageOps.pad",
         ) as mock_pad,
     ):
         mock_path_obj = MagicMock()
@@ -450,7 +455,9 @@ async def test_image_file_name_existing_today():
         mock_existing_file.suffix = ".gif"
         # Today's date (matched by get_formatted_date mock)
         mock_existing_file.stat.return_value.st_ctime = datetime.datetime(
-            2026, 3, 25
+            2026,
+            3,
+            25,
         ).timestamp()
 
         mock_path_obj.iterdir.return_value = [mock_existing_file]
@@ -469,6 +476,7 @@ async def test_cleanup_images_recursive_tuple():
         mock_path_obj.exists.return_value = True
         mock_path.side_effect = lambda *args: mock_path_obj
 
+        mock_path_obj.__truediv__.return_value = mock_path_obj
         cleanup_images(("/path/", "image.jpg"))
         assert mock_path_obj.unlink.called
 
@@ -482,6 +490,7 @@ async def test_cleanup_images_file_not_exists(caplog):
         mock_path_obj.exists.return_value = False
         mock_path.side_effect = lambda *args: mock_path_obj
 
+        mock_path_obj.__truediv__.return_value = mock_path_obj
         cleanup_images("/path/", "missing.jpg")
         assert "cleanup_images - File does not exist" in caplog.text
 
@@ -496,8 +505,9 @@ async def test_cleanup_images_os_error(caplog):
         mock_path_obj.unlink.side_effect = OSError("Disk error")
         mock_path.side_effect = lambda *args: mock_path_obj
 
+        mock_path_obj.__truediv__.return_value = mock_path_obj
         cleanup_images("/path/", "file.jpg")
-        assert "Error attempting to remove image" in caplog.text
+        assert "Error attempting to remove image in cleanup_images" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -521,7 +531,7 @@ def test_generate_grid_img_existing(caplog):
         patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
         patch("custom_components.mail_and_packages.utils.image.subprocess.call"),
         patch(
-            "custom_components.mail_and_packages.utils.image.cleanup_images"
+            "custom_components.mail_and_packages.utils.image.cleanup_images",
         ) as mock_cleanup,
     ):
         mock_path_obj = MagicMock()
@@ -532,3 +542,101 @@ def test_generate_grid_img_existing(caplog):
         generate_grid_img("/path/", "test.gif", 5)
         assert mock_cleanup.called
         assert "Removing old png grid" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_check_ffmpeg():
+    """Test _check_ffmpeg helper (Line 46)."""
+
+    with patch(
+        "custom_components.mail_and_packages.utils.image.which",
+        return_value="/usr/bin/ffmpeg",
+    ):
+        assert await _check_ffmpeg() == "/usr/bin/ffmpeg"
+
+
+@pytest.mark.asyncio
+async def test_cleanup_images_file_not_exist_debug(caplog):
+    """Test cleanup_images debug log for non-existent file (Line 135)."""
+    caplog.set_level("DEBUG")
+    with patch("custom_components.mail_and_packages.utils.image.Path") as mock_path:
+        mock_path_obj = MagicMock()
+        mock_path_obj.is_dir.return_value = True
+        mock_file = MagicMock()
+        mock_file.name = "test.jpg"
+        mock_path_obj.iterdir.return_value = [mock_file]
+        mock_path_obj.__truediv__.return_value = mock_path_obj
+        mock_path_obj.exists.return_value = False
+        mock_path.return_value = mock_path_obj
+
+        cleanup_images("/path/")
+        assert "cleanup_images - File does not exist" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_hash_file_os_error():
+    """Test hash_file with OSError (Line 77)."""
+    with patch("custom_components.mail_and_packages.utils.image.Path") as mock_path:
+        mock_path_obj = MagicMock()
+        mock_path_obj.open.side_effect = OSError("Access denied")
+        mock_path.return_value = mock_path_obj
+
+        with pytest.raises(OSError):
+            hash_file("test.jpg")
+
+
+@pytest.mark.asyncio
+async def test_image_file_name_stat_os_error(caplog):
+    """Test image_file_name with stat OSError (Line 452-456)."""
+    mock_hass = MagicMock()
+    config = {"custom_img": True, "custom_img_file": "mail_none.gif"}
+    caplog.set_level("ERROR")
+
+    with (
+        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch(
+            "custom_components.mail_and_packages.utils.image.hash_file",
+            return_value="abc",
+        ),
+        patch("custom_components.mail_and_packages.utils.image.copyfile"),
+    ):
+        mock_path_obj = MagicMock()
+        mock_file = MagicMock()
+        mock_file.name = "today.gif"
+        mock_file.stat.side_effect = OSError("Stat error")
+        mock_path_obj.iterdir.return_value = [mock_file]
+        # mkdir call, iterdir call
+        mock_path.side_effect = [mock_path_obj, mock_path_obj, mock_path_obj]
+
+        result = image_file_name(mock_hass, config)
+        assert "Problem accessing file" in caplog.text
+        assert result != "mail_none.gif"
+        assert result.endswith(".gif")
+        assert len(result) > 20
+
+
+@pytest.mark.asyncio
+async def test_image_file_name_copy_os_error(caplog):
+    """Test image_file_name with copy OSError (Line 484-487)."""
+    mock_hass = MagicMock()
+    config = {"custom_img": True, "custom_img_file": "mail_none.gif"}
+    caplog.set_level("ERROR")
+
+    with (
+        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch(
+            "custom_components.mail_and_packages.utils.image.hash_file",
+            return_value="abc",
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.image.copyfile",
+            side_effect=OSError("Copy failed"),
+        ),
+    ):
+        mock_path_obj = MagicMock()
+        mock_path_obj.iterdir.return_value = []
+        mock_path.side_effect = lambda *args: mock_path_obj
+
+        result = image_file_name(mock_hass, config)
+        assert "Error copying image" in caplog.text
+        assert result == "no_deliveries.gif"

@@ -21,7 +21,9 @@ SHIPPER_REGISTRY = {
 
 
 def get_shipper_for_sensor(
-    hass: HomeAssistant, config: dict, sensor_type: str
+    hass: HomeAssistant,
+    config: dict,
+    sensor_type: str,
 ) -> Shipper | None:
     """Return the appropriate shipper for the given sensor type."""
     # Check specialized shippers first

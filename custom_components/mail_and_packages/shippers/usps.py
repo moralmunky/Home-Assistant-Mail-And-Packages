@@ -58,7 +58,10 @@ class USPSShipper(Shipper):
         return sensor_type == "usps_mail"
 
     async def process(
-        self, account: IMAP4_SSL, date: str, sensor_type: str
+        self,
+        account: IMAP4_SSL,
+        date: str,
+        sensor_type: str,
     ) -> dict[str, Any]:
         """Process USPS Informed Delivery emails."""
         config = self._get_usps_config()
@@ -81,7 +84,11 @@ class USPSShipper(Shipper):
             _LOGGER.debug("Informed Delivery email found processing...")
             for num in data[0].split():
                 (image_count, images, email_content) = await self._process_usps_email(
-                    account, num, config["image_output_path"], image_count, images
+                    account,
+                    num,
+                    config["image_output_path"],
+                    image_count,
+                    images,
                 )
                 all_msg_content += email_content
 
@@ -99,16 +106,21 @@ class USPSShipper(Shipper):
             )
         elif image_count == 0:
             await self._copy_nomail_image(
-                config["image_output_path"], config["image_name"], config["custom_img"]
+                config["image_output_path"],
+                config["image_name"],
+                config["custom_img"],
             )
 
         if config["gen_mp4"]:
             await self._generate_mp4_video(
-                config["image_output_path"], config["image_name"]
+                config["image_output_path"],
+                config["image_name"],
             )
         if config["gen_grid"]:
             await self._generate_grid_image(
-                config["image_output_path"], config["image_name"], image_count
+                config["image_output_path"],
+                config["image_name"],
+                image_count,
             )
 
         return {ATTR_COUNT: image_count}
@@ -129,7 +141,7 @@ class USPSShipper(Shipper):
             if placeholder.exists():
                 images.append(str(placeholder))
                 _LOGGER.debug(
-                    "Placeholder image found using: image-no-mailpieces700.jpg."
+                    "Placeholder image found using: image-no-mailpieces700.jpg.",
                 )
 
         # Announcement images removal
@@ -147,12 +159,20 @@ class USPSShipper(Shipper):
         ]
 
     async def _generate_mail_image(
-        self, images: list, path: str, name: str, duration: int, delete_list: list
+        self,
+        images: list,
+        path: str,
+        name: str,
+        duration: int,
+        delete_list: list,
     ):
         """Generate animated GIF from mail images."""
         _LOGGER.debug("Resizing images to 724x320...")
         all_images = await self.hass.async_add_executor_job(
-            resize_images, images, 724, 320
+            resize_images,
+            images,
+            724,
+            320,
         )
         delete_list.extend(all_images)
 
@@ -160,7 +180,10 @@ class USPSShipper(Shipper):
             _LOGGER.debug("Generating animated GIF")
             gif_path = str(Path(path) / name)
             await self.hass.async_add_executor_job(
-                generate_delivery_gif, all_images, gif_path, duration * 1000
+                generate_delivery_gif,
+                all_images,
+                gif_path,
+                duration * 1000,
             )
             _LOGGER.debug("Mail image generated.")
         except (OSError, ValueError) as err:
@@ -168,7 +191,9 @@ class USPSShipper(Shipper):
 
         for image in delete_list:
             await self.hass.async_add_executor_job(
-                cleanup_images, f"{Path(image).parent}/", Path(image).name
+                cleanup_images,
+                f"{Path(image).parent}/",
+                Path(image).name,
             )
 
     async def _copy_nomail_image(self, path: str, name: str, custom_img: str | None):
@@ -252,11 +277,17 @@ class USPSShipper(Shipper):
                 for part in msg.walk():
                     if part.get_content_type() == "text/html":
                         (image_count, images) = await self._extract_usps_images(
-                            part, image_output_path, image_count, images
+                            part,
+                            image_output_path,
+                            image_count,
+                            images,
                         )
                     elif part.get_content_type() == "image/jpeg":
                         (image_count, images) = await self._extract_jpeg_attachment(
-                            part, image_output_path, image_count, images
+                            part,
+                            image_output_path,
+                            image_count,
+                            images,
                         )
         return image_count, images, all_content
 
@@ -287,7 +318,9 @@ class USPSShipper(Shipper):
             try:
                 target_path = Path(image_output_path) / filename
                 await self.hass.async_add_executor_job(
-                    io_save_file, target_path, base64.b64decode(img_data)
+                    io_save_file,
+                    target_path,
+                    base64.b64decode(img_data),
                 )
                 images.append(str(target_path))
                 image_count += 1

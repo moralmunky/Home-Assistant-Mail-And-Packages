@@ -72,7 +72,10 @@ class AmazonShipper(Shipper):
         return sensor_type.startswith("amazon_") or sensor_type == AMAZON_PACKAGES
 
     async def process(
-        self, account: IMAP4_SSL, date: str, sensor_type: str
+        self,
+        account: IMAP4_SSL,
+        date: str,
+        sensor_type: str,
     ) -> dict[str, Any]:
         """Process Amazon-specific emails."""
         fwds = cv.ensure_list_csv(self.config.get(CONF_AMAZON_FWDS))
@@ -98,7 +101,11 @@ class AmazonShipper(Shipper):
             image_path = self.config.get("image_path")
             image_name = self.config.get("image_name")
             result = await self._amazon_search(
-                account, image_path, image_name, domain, fwds
+                account,
+                image_path,
+                image_name,
+                domain,
+                fwds,
             )
             return {sensor_type: result}
 
@@ -140,7 +147,10 @@ class AmazonShipper(Shipper):
         return list(context["all_shipped_orders"])
 
     async def _process_amazon_email(
-        self, account: IMAP4_SSL, email_id: bytes | str, ctx: dict
+        self,
+        account: IMAP4_SSL,
+        email_id: bytes | str,
+        ctx: dict,
     ):
         """Process a single Amazon email."""
         fetch_id = email_id.decode() if isinstance(email_id, bytes) else email_id
@@ -167,7 +177,8 @@ class AmazonShipper(Shipper):
             await self._handle_shipping_email(email_subject, email_msg, email_date, ctx)
 
     async def _parse_email_date(
-        self, msg: email.message.Message
+        self,
+        msg: email.message.Message,
     ) -> datetime.date | None:
         """Parse the date from an email message."""
         date_str = msg.get("Date")
@@ -187,7 +198,11 @@ class AmazonShipper(Shipper):
                 ctx["amazon_delivered"].append(o)
 
     async def _handle_shipping_email(
-        self, subject: str, body: str | None, date: datetime.date | None, ctx: dict
+        self,
+        subject: str,
+        body: str | None,
+        date: datetime.date | None,
+        ctx: dict,
     ):
         """Handle an Amazon 'shipping' or 'arriving' email."""
         order_id = self._extract_first_order_id(subject, body, ctx["order_pattern"])
@@ -205,7 +220,10 @@ class AmazonShipper(Shipper):
                     ctx["deliveries_today"].append("Amazon Order")
 
     def _extract_first_order_id(
-        self, subject: str, body: str | None, pattern: re.Pattern
+        self,
+        subject: str,
+        body: str | None,
+        pattern: re.Pattern,
     ) -> str | None:
         """Extract the first order number found in subject or body."""
         orders = extract_order_numbers(subject, pattern)
@@ -246,14 +264,18 @@ class AmazonShipper(Shipper):
         image_found = False
 
         await self.hass.async_add_executor_job(
-            cleanup_images, f"{image_path or ''}amazon/"
+            cleanup_images,
+            f"{image_path or ''}amazon/",
         )
 
         address_list = amazon_email_addresses(fwds, amazon_domain)
         _LOGGER.debug("Amazon email search addresses: %s", address_list)
         for subject in subjects:
             (server_response, data) = await email_search(
-                account, address_list, today, subject
+                account,
+                address_list,
+                today,
+                subject,
             )
             if server_response == "OK" and data[0] is not None and data[0] != b"":
                 email_count = len(data[0].split())
@@ -262,7 +284,10 @@ class AmazonShipper(Shipper):
                 img_url = await get_amazon_image_url(data[0], account)
                 if img_url and image_path and amazon_image_name:
                     await download_amazon_img(
-                        img_url, image_path, amazon_image_name, self.hass
+                        img_url,
+                        image_path,
+                        amazon_image_name,
+                        self.hass,
                     )
                     image_found = True
 
@@ -270,14 +295,18 @@ class AmazonShipper(Shipper):
             nomail = f"{Path(__file__).parent.parent}/no_deliveries_amazon.jpg"
             try:
                 await self.hass.async_add_executor_job(
-                    copyfile, nomail, f"{image_path}amazon/" + amazon_image_name
+                    copyfile,
+                    nomail,
+                    f"{image_path}amazon/" + amazon_image_name,
                 )
             except OSError as err:
                 _LOGGER.error("Error attempting to copy image: %s", err)
         return count
 
     async def _amazon_hub(
-        self, account: IMAP4_SSL, fwds: list[str] | None = None
+        self,
+        account: IMAP4_SSL,
+        fwds: list[str] | None = None,
     ) -> dict[str, Any]:
         """Find Amazon Hub code."""
         _LOGGER.debug("=== AMAZON HUB SEARCH START ===")
@@ -288,7 +317,10 @@ class AmazonShipper(Shipper):
         address_list = amazon_email_addresses(fwds, "amazon.com")
         for search_subject in AMAZON_HUB_SUBJECT:
             (server_response, data) = await email_search(
-                account, address_list, today, search_subject
+                account,
+                address_list,
+                today,
+                search_subject,
             )
             if server_response == "OK" and data[0] is not None:
                 for num in data[0].split():
@@ -313,14 +345,19 @@ class AmazonShipper(Shipper):
         return {ATTR_COUNT: count, ATTR_CODE: code}
 
     async def _amazon_otp(
-        self, account: IMAP4_SSL, fwds: list[str] | None = None
+        self,
+        account: IMAP4_SSL,
+        fwds: list[str] | None = None,
     ) -> dict[str, Any]:
         """Find Amazon OTP code."""
         code = []
         today = get_today().strftime("%d-%b-%Y")
         address_list = amazon_email_addresses(fwds, "amazon.com")
         (server_response, data) = await email_search(
-            account, address_list, today, AMAZON_OTP_SUBJECT
+            account,
+            address_list,
+            today,
+            AMAZON_OTP_SUBJECT,
         )
         if server_response == "OK" and data[0] is not None:
             for num in data[0].split():
@@ -347,7 +384,10 @@ class AmazonShipper(Shipper):
         today = get_today().strftime("%d-%b-%Y")
         address_list = amazon_email_addresses(fwds, domain)
         (server_response, data) = await email_search(
-            account, address_list, today, AMAZON_EXCEPTION_SUBJECT
+            account,
+            address_list,
+            today,
+            AMAZON_EXCEPTION_SUBJECT,
         )
         if server_response == "OK" and data[0] is not None:
             order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")

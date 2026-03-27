@@ -54,7 +54,9 @@ def generate_service_email_domains(amazon_fwds: list) -> set[str]:
 
 
 def _match_patterns(
-    text: str, patterns: list[re.Pattern], body_count: bool
+    text: str,
+    patterns: list[re.Pattern],
+    body_count: bool,
 ) -> tuple[int, int | None]:
     """Apply patterns to text and return occurrence count and extracted value.
 

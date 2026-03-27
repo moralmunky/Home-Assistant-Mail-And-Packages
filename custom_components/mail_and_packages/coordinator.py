@@ -111,17 +111,20 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                         self.hass.data[DOMAIN]["oauth_provider"] = auth_type
 
                         implementation = await config_entry_oauth2_flow.async_get_config_entry_implementation(
-                            self.hass, self.config_entry
+                            self.hass,
+                            self.config_entry,
                         )
                         session = config_entry_oauth2_flow.OAuth2Session(
-                            self.hass, self.config_entry, implementation
+                            self.hass,
+                            self.config_entry,
+                            implementation,
                         )
                         await session.async_ensure_token_valid()
                         config["oauth_token"] = session.token["access_token"]
                     except Exception as err:
                         _LOGGER.error("Error refreshing OAuth token: %s", err)
                         raise UpdateFailed(
-                            f"OAuth token refresh failed: {err}"
+                            f"OAuth token refresh failed: {err}",
                         ) from err
 
                 data = await self.process_emails(self.hass, config)
@@ -267,10 +270,14 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 continue
 
             custom_img_key = getattr(
-                const, f"CONF_{base_name.upper()}_CUSTOM_IMG", None
+                const,
+                f"CONF_{base_name.upper()}_CUSTOM_IMG",
+                None,
             )
             custom_img_file_key = getattr(
-                const, f"CONF_{base_name.upper()}_CUSTOM_IMG_FILE", None
+                const,
+                f"CONF_{base_name.upper()}_CUSTOM_IMG_FILE",
+                None,
             )
             update_key = f"{base_name}_update"
 
@@ -279,7 +286,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             if set(attributes).issubset(self._data.keys()):
                 image = self._data[image_attr]
                 _LOGGER.debug(
-                    "%s image from coordinator data: %s", base_name.title(), image
+                    "%s image from coordinator data: %s",
+                    base_name.title(),
+                    image,
                 )
                 # Normalize path to avoid double slashes
                 image_path = (
@@ -290,7 +299,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 delivery_image_relative = f"{path}{image}"
                 delivery_image = f"{self.hass.config.path()}/{delivery_image_relative}"
                 _LOGGER.debug(
-                    "Full %s image path: %s", base_name.title(), delivery_image
+                    "Full %s image path: %s",
+                    base_name.title(),
+                    delivery_image,
                 )
 
                 if custom_img_key and self.config.get(custom_img_key):

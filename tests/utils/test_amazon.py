@@ -3,6 +3,7 @@
 import email
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiohttp
 import pytest
 
 from custom_components.mail_and_packages.utils.amazon import (
@@ -10,6 +11,7 @@ from custom_components.mail_and_packages.utils.amazon import (
     amazon_date_regex,
     amazon_date_search,
     amazon_email_addresses,
+    download_amazon_img,
     extract_order_numbers,
     get_amazon_image_url,
     get_decoded_subject,
@@ -132,3 +134,67 @@ async def test_get_amazon_image_url_basic():
         )
         await get_amazon_image_url("1", mock_acc)
         # Verify it doesn't crash
+
+
+def test_get_decoded_subject_non_bytes_decoded():
+    """Test get_decoded_subject where decode_header returns non-bytes (Line 51)."""
+    msg = MagicMock()
+    msg["subject"] = "Test"
+    with patch(
+        "custom_components.mail_and_packages.utils.amazon.decode_header",
+        return_value=[("String Subject", "utf-8")],
+    ):
+        assert get_decoded_subject(msg) == "String Subject"
+
+
+def test_amazon_email_addresses_various_fwds():
+    """Test amazon_email_addresses with various fwd types (Line 119)."""
+    # Test with None (triggers Line 119)
+    assert len(amazon_email_addresses(fwds=None)) >= 10
+    # Test with non-list/tuple (triggers Line 119)
+    assert len(amazon_email_addresses(fwds=123)) >= 10
+
+
+@pytest.mark.asyncio
+async def test_download_amazon_img_success(hass, tmp_path):
+    """Test download_amazon_img success path (Lines 174-185)."""
+
+    img_url = "https://example.com/test.jpg"
+    img_path = str(tmp_path)
+    img_name = "test.jpg"
+
+    # Mocking aiohttp session
+    mock_resp = AsyncMock()
+    mock_resp.status = 200
+    mock_resp.headers = {"content-type": "image/jpeg"}
+    mock_resp.read.return_value = b"image data"
+
+    mock_get = MagicMock()
+    mock_get.__aenter__.return_value = mock_resp
+
+    with (
+        patch("aiohttp.ClientSession.get", return_value=mock_get),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.io_save_file",
+        ) as mock_save,
+    ):
+        await download_amazon_img(img_url, img_path, img_name, hass)
+        assert mock_save.called
+
+
+@pytest.mark.asyncio
+async def test_download_amazon_img_client_error(hass, tmp_path, caplog):
+    """Test download_amazon_img with aiohttp error (Line 184)."""
+
+    caplog.set_level("ERROR")
+    img_url = "https://example.com/test.jpg"
+    img_path = str(tmp_path)
+    img_name = "test.jpg"
+
+    # Mocking ClientSession.get to raise ClientError when called
+    with patch(
+        "aiohttp.ClientSession.get",
+        side_effect=aiohttp.ClientError("Connection failed"),
+    ):
+        await download_amazon_img(img_url, img_path, img_name, hass)
+        assert "Problem downloading file" in caplog.text

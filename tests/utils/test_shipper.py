@@ -140,7 +140,12 @@ async def test_generic_image_extraction_errors(caplog):
         mock_msg_from_bytes.return_value = mock_msg
 
         result = generic_delivery_image_extraction(
-            sdata, "/p/", "i.jpg", "t", "jpeg", cid_name="bad"
+            sdata,
+            "/p/",
+            "i.jpg",
+            "t",
+            "jpeg",
+            cid_name="bad",
         )
         assert result is False
 
@@ -264,7 +269,12 @@ async def test_generic_image_extraction_cid():
         return_value=True,
     ) as mock_save:
         result = generic_delivery_image_extraction(
-            sdata, "/path/", "img.jpg", "test_shipper", "jpeg", cid_name="delivery_img"
+            sdata,
+            "/path/",
+            "img.jpg",
+            "test_shipper",
+            "jpeg",
+            cid_name="delivery_img",
         )
         assert result is True
         assert mock_save.called
@@ -283,7 +293,11 @@ async def test_generic_image_extraction_base64():
         return_value=True,
     ) as mock_save:
         result = generic_delivery_image_extraction(
-            sdata, "/path/", "img.jpg", "test_shipper", "jpeg"
+            sdata,
+            "/path/",
+            "img.jpg",
+            "test_shipper",
+            "jpeg",
         )
         assert result is True
         assert mock_save.called
@@ -320,3 +334,88 @@ async def test_generic_image_extraction_attachment():
         )
         assert result is True
         assert mock_save.called
+
+
+@pytest.mark.asyncio
+async def test_get_tracking_non_bytes():
+    """Test get_tracking skips non-bytes response parts (Line 35)."""
+    mock_acc = AsyncMock()
+    # mock_fetch returns (status, lines)
+    with patch(
+        "custom_components.mail_and_packages.utils.shipper.email_fetch",
+        new_callable=AsyncMock,
+    ) as mock_fetch:
+        mock_fetch.return_value = ("OK", ["not bytes"])
+        result = await get_tracking("1", mock_acc, r"(\d+)")
+        assert result == []
+
+
+@pytest.mark.asyncio
+async def test_extract_from_html_decode_error(caplog):
+    """Test _extract_from_html error handling (Line 225-229)."""
+    caplog.set_level("ERROR")
+    sdata = b'Content-Type: text/html\n\n<html><body><img src="data:image/jpeg;base64,bad-base64!"></body></html>'
+    # base64.b64decode will raise error for "bad-base64!" if padding is wrong or invalid chars
+    with patch("base64.b64decode", side_effect=TypeError("Mocked error")):
+        result = generic_delivery_image_extraction(sdata, "/p/", "i.jpg", "t", "jpeg")
+        assert result is False
+        assert "Error saving t delivery photo from base64" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_extract_from_attachments_no_filename():
+    """Test _extract_from_attachments skips part with no filename (Line 247)."""
+    sdata = b"Content-Type: image/jpeg\n\nimgdata"
+    result = generic_delivery_image_extraction(
+        sdata,
+        "/p/",
+        "i.jpg",
+        "t",
+        "jpeg",
+        attachment_filename_pattern="test",
+    )
+    assert result is False
+
+
+@pytest.mark.asyncio
+async def test_extract_from_attachments_pattern_mismatch():
+    """Test _extract_from_attachments skips part with pattern mismatch (Line 249)."""
+    sdata = (
+        b"Content-Type: image/jpeg\n"
+        b'Content-Disposition: attachment; filename="wrong.jpg"\n\n'
+        b"imgdata"
+    )
+    result = generic_delivery_image_extraction(
+        sdata,
+        "/p/",
+        "i.jpg",
+        "t",
+        "jpeg",
+        attachment_filename_pattern="right",
+    )
+    assert result is False
+
+
+@pytest.mark.asyncio
+async def test_extract_from_attachments_error(caplog):
+    """Test _extract_from_attachments error handling (Line 255-262)."""
+    caplog.set_level("ERROR")
+    sdata = (
+        b"Content-Type: image/jpeg\n"
+        b'Content-Disposition: attachment; filename="right.jpg"\n\n'
+        b"imgdata"
+    )
+    with patch(
+        "custom_components.mail_and_packages.utils.shipper.save_image_data_to_disk",
+        side_effect=OSError("Mocked error"),
+    ):
+        result = generic_delivery_image_extraction(
+            sdata,
+            "/p/",
+            "i.jpg",
+            "t",
+            "jpeg",
+            attachment_filename_pattern="right",
+        )
+        assert result is False
+        assert "Error saving t delivery photo to" in caplog.text

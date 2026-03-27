@@ -115,7 +115,10 @@ def build_search(address: list, date: str, subject: str = "") -> tuple:
 
 
 async def email_search(
-    account: IMAP4_SSL, address: list, date: str, subject: str = ""
+    account: IMAP4_SSL,
+    address: list,
+    date: str,
+    subject: str = "",
 ) -> tuple:
     """Search emails with from, subject, and date asynchronously.
 

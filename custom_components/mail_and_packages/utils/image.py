@@ -86,31 +86,21 @@ def hash_file(filename: str) -> str:
     return the_hash.hexdigest()
 
 
-def cleanup_images(path: str, image: str | None = None) -> None:  # noqa: C901
-    """Clean up image storage directory.
+def _delete_file(file_path: Path, context: str) -> bool:
+    """Delete a single file with error handling."""
+    try:
+        if file_path.exists():
+            file_path.unlink()
+            _LOGGER.debug("%s - Successfully removed: %s", context, file_path)
+            return True
+        _LOGGER.debug("%s - File does not exist: %s", context, file_path)
+    except OSError as err:
+        _LOGGER.error("Error attempting to remove image in %s: %s", context, err)
+    return False
 
-    Only suppose to delete .gif, .mp4, and .jpg files
-    """
-    _LOGGER.debug("=== cleanup_images CALLED === path: %s, image: %s", path, image)
 
-    if isinstance(path, tuple):
-        path = path[0]
-        image = path[1]
-    if image is not None:
-        full_path = path + image
-        _LOGGER.debug("cleanup_images - Removing specific file: %s", full_path)
-        try:
-            file_path_obj = Path(full_path)
-            if file_path_obj.exists():
-                file_path_obj.unlink()
-                _LOGGER.debug("cleanup_images - Successfully removed: %s", full_path)
-            else:
-                _LOGGER.debug("cleanup_images - File does not exist: %s", full_path)
-        except OSError as err:
-            _LOGGER.error("Error attempting to remove image: %s", err)
-        return
-
-    # Only clean up if directory exists
+def _cleanup_directory(path: str) -> None:
+    """Handle directory-wide cleanup."""
     if not Path(path).is_dir():
         _LOGGER.debug("cleanup_images - Directory does not exist: %s", path)
         return
@@ -118,39 +108,44 @@ def cleanup_images(path: str, image: str | None = None) -> None:  # noqa: C901
     try:
         files_before = [x.name for x in Path(path).iterdir()]
         _LOGGER.debug(
-            "cleanup_images - Files in directory BEFORE cleanup: %s", files_before
+            "cleanup_images - Files in directory BEFORE cleanup: %s",
+            files_before,
         )
         for file in files_before:
             if file.endswith((".gif", ".mp4", ".jpg", ".png")):
-                full_path = path + file
-                _LOGGER.debug("cleanup_images - Removing file: %s", full_path)
-                try:
-                    file_path_obj = Path(full_path)
-                    if file_path_obj.exists():
-                        file_path_obj.unlink()
-                        _LOGGER.debug(
-                            "cleanup_images - Successfully removed: %s", full_path
-                        )
-                    else:
-                        _LOGGER.debug(
-                            "cleanup_images - File does not exist: %s", full_path
-                        )
-                except OSError as err:
-                    _LOGGER.error("Error attempting to remove found image: %s", err)
+                full_path = Path(path) / file
+                _delete_file(full_path, "cleanup_images")
 
+        files_after = []
         if Path(path).is_dir():
             files_after = [f.name for f in Path(path).iterdir()]
-        else:
-            files_after = []
 
         _LOGGER.debug(
-            "cleanup_images - Files in directory AFTER cleanup: %s", files_after
+            "cleanup_images - Files in directory AFTER cleanup: %s",
+            files_after,
         )
     except FileNotFoundError:
-        # Directory was removed between check and listdir
         _LOGGER.debug("cleanup_images - Directory removed during cleanup: %s", path)
     except OSError as err:
         _LOGGER.error("Error listing directory for cleanup: %s", err)
+
+
+def cleanup_images(path: str, image: str | None = None) -> None:
+    """Clean up image storage directory.
+
+    Only suppose to delete .gif, .mp4, and .jpg files
+    """
+    _LOGGER.debug("=== cleanup_images CALLED === path: %s, image: %s", path, image)
+
+    if isinstance(path, tuple):
+        path, image = path
+
+    if image is not None:
+        full_path = Path(path) / image
+        _delete_file(full_path, "cleanup_images")
+        return
+
+    _cleanup_directory(path)
 
 
 def copy_overlays(path: str) -> None:
@@ -178,7 +173,9 @@ def resize_images(images: list, width: int, height: int) -> list:
                 img = Image.open(fd_img)
                 img.thumbnail((width, height), resample=Image.Resampling.LANCZOS)
                 img = ImageOps.pad(
-                    img, (width, height), method=Image.Resampling.LANCZOS
+                    img,
+                    (width, height),
+                    method=Image.Resampling.LANCZOS,
                 )
                 img = img.crop((0, 0, width, height))
                 new_image_path = img_path.with_suffix(".gif")
@@ -232,7 +229,10 @@ def _generate_mp4(path: str, image_file: str) -> None:
             str(mp4_file),
         ]
         subprocess.run(
-            cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True
+            cmd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
         )
     except subprocess.CalledProcessError as err:
         _LOGGER.error("FFmpeg failed to generate MP4: %s", err)
@@ -281,7 +281,9 @@ def generate_grid_img(path: str, image_file: str, count: int) -> None:
 
 
 def generate_delivery_gif(
-    delivery_images: list, gif_path: str, duration: int = 3000
+    delivery_images: list,
+    gif_path: str,
+    duration: int = 3000,
 ) -> bool:
     """Generate an animated GIF from delivery images.
 
@@ -325,28 +327,15 @@ def generate_delivery_gif(
         return True
 
 
-def image_file_name(  # noqa: C901
+def _get_courier_info(
     hass: HomeAssistant,
     config: ConfigEntry,
-    amazon: bool = False,
-    ups: bool = False,
-    walmart: bool = False,
-    fedex: bool = False,
-) -> str:
-    """Determine if filename is to be changed or not.
-
-    Returns filename
-    """
-    _LOGGER.debug(
-        "=== image_file_name CALLED === - amazon: %s, ups: %s, walmart: %s, fedex: %s",
-        amazon,
-        ups,
-        walmart,
-        fedex,
-    )
-
-    # Map flags to configuration keys and defaults
-    # format: (flag, custom_img_key, custom_img_file_key, default_file_const, default_local_file)
+    amazon: bool,
+    ups: bool,
+    walmart: bool,
+    fedex: bool,
+) -> tuple[str, str]:
+    """Determine the path and default image for the active courier."""
     configs = [
         (
             amazon,
@@ -383,11 +372,7 @@ def image_file_name(  # noqa: C901
     ]
 
     base_path = f"{hass.config.path()}/{default_image_path(hass, config)}"
-    mail_none = None
-    path = None
-    is_specific_courier = False
 
-    # Find which courier is active
     for (
         active,
         img_conf,
@@ -397,7 +382,6 @@ def image_file_name(  # noqa: C901
         sub_dir,
     ) in configs:
         if active:
-            is_specific_courier = True
             _LOGGER.debug("Processing %s image file name", sub_dir.title())
             if config.get(img_conf):
                 mail_none = config.get(file_conf) or default_file_conf
@@ -405,21 +389,76 @@ def image_file_name(  # noqa: C901
             else:
                 mail_none = str(Path(__file__).parent.parent / local_default)
                 _LOGGER.debug("Using default %s image: %s", sub_dir.title(), mail_none)
+            return f"{base_path}{sub_dir}", mail_none
 
-            path = f"{base_path}{sub_dir}"
-            _LOGGER.debug("%s path: %s", sub_dir.title(), path)
-            break
+    # Standard mail case
+    path = base_path.rstrip("/")
+    if config.get(CONF_CUSTOM_IMG):
+        mail_none = config.get(CONF_CUSTOM_IMG_FILE) or DEFAULT_CUSTOM_IMG_FILE
+    else:
+        mail_none = str(Path(__file__).parent.parent / "mail_none.gif")
+    return path, mail_none
 
-    # Handle standard mail case (if no specific courier flag was true)
-    if not is_specific_courier:
-        path = base_path.rstrip(
-            "/"
-        )  # remove trailing slash to be safe for os.path operations
-        if config.get(CONF_CUSTOM_IMG):
-            mail_none = config.get(CONF_CUSTOM_IMG_FILE) or DEFAULT_CUSTOM_IMG_FILE
-        else:
-            mail_none = str(Path(__file__).parent.parent / "mail_none.gif")
 
+def _get_image_name_from_directory(
+    path: str, mail_none: str, sha1: str, ext: str
+) -> str:
+    """Check existing images and return a filename."""
+    image_name = os.path.split(mail_none)[1]
+    today = get_formatted_date()
+
+    try:
+        for file_path in Path(path).iterdir():
+            if not file_path.is_file():
+                continue
+            filename = file_path.name
+            is_image_file = filename.endswith(".gif") or (
+                filename.endswith(".jpg") and ext == ".jpg"
+            )
+            if is_image_file:
+                try:
+                    created = datetime.datetime.fromtimestamp(
+                        file_path.stat().st_ctime,
+                    ).strftime("%d-%b-%Y")
+                    if sha1 != hash_file(str(file_path)) and today != created:
+                        image_name = f"{uuid.uuid4()!s}{ext}"
+                    else:
+                        image_name = filename
+                except OSError as err:
+                    _LOGGER.error("Problem accessing file %s: %s", filename, err)
+    except OSError as err:
+        _LOGGER.error("Error accessing directory %s: %s", path, err)
+
+    if image_name in mail_none:
+        image_name = f"{uuid.uuid4()!s}{ext}"
+        _LOGGER.debug("=== image_file_name GENERATED NEW UUID: %s ===", image_name)
+    else:
+        _LOGGER.debug("=== image_file_name USING EXISTING: %s ===", image_name)
+
+    return image_name
+
+
+def image_file_name(
+    hass: HomeAssistant,
+    config: ConfigEntry,
+    amazon: bool = False,
+    ups: bool = False,
+    walmart: bool = False,
+    fedex: bool = False,
+) -> str:
+    """Determine if filename is to be changed or not.
+
+    Returns filename
+    """
+    _LOGGER.debug(
+        "=== image_file_name CALLED === - amazon: %s, ups: %s, walmart: %s, fedex: %s",
+        amazon,
+        ups,
+        walmart,
+        fedex,
+    )
+
+    path, mail_none = _get_courier_info(hass, config, amazon, ups, walmart, fedex)
     image_name = os.path.split(mail_none)[1]
 
     # Path check
@@ -436,51 +475,13 @@ def image_file_name(  # noqa: C901
         _LOGGER.error("Problem accessing file: %s, error returned: %s", mail_none, err)
         return image_name
 
-    ext = None
     ext = ".jpg" if amazon or ups or walmart or fedex else ".gif"
-
-    for file_path in Path(path).iterdir():
-        filename = file_path.name
-        is_image_file = filename.endswith(".gif") or (
-            filename.endswith(".jpg") and (amazon or ups or walmart or fedex)
-        )
-        if is_image_file:
-            try:
-                created = datetime.datetime.fromtimestamp(
-                    file_path.stat().st_ctime
-                ).strftime("%d-%b-%Y")
-            except OSError as err:
-                _LOGGER.error(
-                    "Problem accessing file: %s, error returned: %s", filename, err
-                )
-                return image_name
-            today = get_formatted_date()
-            # If image isn't mail_none and not created today,
-            # return a new filename
-            if sha1 != hash_file(str(file_path)) and today != created:
-                image_name = f"{uuid.uuid4()!s}{ext}"
-            else:
-                image_name = filename
-
-    # If we find no images in the image directory generate a new filename
-    if image_name in mail_none:
-        image_name = f"{uuid.uuid4()!s}{ext}"
-        _LOGGER.debug("=== image_file_name GENERATED NEW UUID: %s ===", image_name)
-    else:
-        _LOGGER.debug("=== image_file_name USING EXISTING: %s ===", image_name)
-    _LOGGER.debug("Image Name: %s", image_name)
+    image_name = _get_image_name_from_directory(path, mail_none, sha1, ext)
 
     # Insert place holder image
     target_path = Path(path) / image_name
-
-    _LOGGER.debug("Copying %s to %s", mail_none, target_path)
-    _LOGGER.debug("Source file exists: %s", Path(mail_none).exists())
-    _LOGGER.debug("Target directory exists: %s", Path(path).exists())
-
     try:
         copyfile(mail_none, target_path)
-        _LOGGER.debug("Successfully copied image to %s", target_path)
-        _LOGGER.debug("Target file exists after copy: %s", target_path.exists())
     except OSError as err:
         _LOGGER.error("Error copying image: %s", err)
         # Return a fallback filename if copy fails

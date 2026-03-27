@@ -107,7 +107,8 @@ async def async_setup(hass: HomeAssistant, config_entry: MailAndPackagesConfigEn
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, config_entry: MailAndPackagesConfigEntry
+    hass: HomeAssistant,
+    config_entry: MailAndPackagesConfigEntry,
 ) -> bool:
     """Load the saved entities."""
     _LOGGER.info(
@@ -145,7 +146,9 @@ async def async_setup_entry(
 
 
 async def async_remove_config_entry_device(  # pylint: disable-next=unused-argument
-    hass: HomeAssistant, config_entry: ConfigEntry, device_entry: dr.DeviceEntry
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    device_entry: dr.DeviceEntry,
 ) -> bool:
     """Remove config entry from a device if its no longer present."""
     return not any(
@@ -157,7 +160,8 @@ async def async_remove_config_entry_device(  # pylint: disable-next=unused-argum
 
 
 async def async_unload_entry(
-    hass: HomeAssistant, config_entry: MailAndPackagesConfigEntry
+    hass: HomeAssistant,
+    config_entry: MailAndPackagesConfigEntry,
 ) -> bool:
     """Handle removal of an entry."""
     _LOGGER.debug("Attempting to unload sensors from the %s integration", DOMAIN)
@@ -167,8 +171,8 @@ async def async_unload_entry(
             *[
                 hass.config_entries.async_forward_entry_unload(config_entry, platform)
                 for platform in PLATFORMS
-            ]
-        )
+            ],
+        ),
     )
 
     if unload_ok:
@@ -177,7 +181,7 @@ async def async_unload_entry(
     return unload_ok
 
 
-async def async_migrate_entry(hass, config_entry):  # noqa: C901
+async def async_migrate_entry(hass, config_entry):
     """Migrate an old config entry."""
     version = config_entry.version
     new_version = CONFIG_VER
@@ -185,7 +189,29 @@ async def async_migrate_entry(hass, config_entry):  # noqa: C901
     _LOGGER.debug("Migrating from version %s", version)
     updated_config = {**config_entry.data}
 
-    # 1 -> 4: Migrate format
+    _migrate_legacy_versions(updated_config, version, config_entry)
+    _apply_default_config(updated_config)
+
+    if updated_config != config_entry.data:
+        hass.config_entries.async_update_entry(
+            config_entry,
+            data=updated_config,
+            version=new_version,
+        )
+
+    _LOGGER.debug("Migration complete to version %s", new_version)
+
+    return True
+
+
+def _migrate_legacy_versions(updated_config, version, config_entry):
+    """Handle migration of legacy versions."""
+    _migrate_versions_1_to_3(updated_config, version, config_entry)
+    _migrate_versions_4_to_16(updated_config, version)
+
+
+def _migrate_versions_1_to_3(updated_config, version, config_entry):
+    """Handle migration for versions 1 to 3."""
     if version == 1:
         if CONF_AMAZON_FWDS in updated_config:
             if not isinstance(updated_config[CONF_AMAZON_FWDS], list):
@@ -223,9 +249,18 @@ async def async_migrate_entry(hass, config_entry):  # noqa: C901
         # Add default Amazon Days configuration
         updated_config[CONF_AMAZON_DAYS] = DEFAULT_AMAZON_DAYS
 
+
+def _migrate_versions_4_to_16(updated_config, version):
+    """Handle migration for versions 4 to 16."""
+    _migrate_versions_4_to_7(updated_config, version)
+    _migrate_versions_15_to_16(updated_config, version)
+
+
+def _migrate_versions_4_to_7(updated_config, version):
+    """Handle migration for versions 4 to 7."""
     if version <= 4:
         if CONF_AMAZON_FWDS in updated_config and updated_config[CONF_AMAZON_FWDS] == [
-            '""'
+            '""',
         ]:
             updated_config[CONF_AMAZON_FWDS] = []
 
@@ -241,6 +276,9 @@ async def async_migrate_entry(hass, config_entry):  # noqa: C901
         if CONF_AMAZON_DOMAIN not in updated_config:
             updated_config[CONF_AMAZON_DOMAIN] = "amazon.com"
 
+
+def _migrate_versions_15_to_16(updated_config, version):
+    """Handle migration for versions 15 to 16."""
     if version <= 15:
         if updated_config.get(CONF_IMAP_SECURITY) == "startTLS":
             updated_config[CONF_IMAP_SECURITY] = "SSL"
@@ -252,8 +290,10 @@ async def async_migrate_entry(hass, config_entry):  # noqa: C901
             auth_data = updated_config.pop("auth")
             updated_config.update(auth_data)
 
-    # Require configs on all migration paths
 
+def _apply_default_config(updated_config):
+    """Ensure default configurations are present."""
+    # Require configs on all migration paths
     if CONF_PATH not in updated_config:
         updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
 
@@ -264,7 +304,12 @@ async def async_migrate_entry(hass, config_entry):  # noqa: C901
     if CONF_STORAGE not in updated_config:
         updated_config[CONF_STORAGE] = "custom_components/mail_and_packages/images/"
 
-    # Add default custom image configurations
+    _apply_courier_image_defaults(updated_config)
+    _apply_walmart_generic_fedex_defaults(updated_config)
+
+
+def _apply_courier_image_defaults(updated_config):
+    """Apply default Amazon and UPS custom image configurations."""
     if CONF_AMAZON_CUSTOM_IMG not in updated_config:
         updated_config[CONF_AMAZON_CUSTOM_IMG] = False
     if CONF_AMAZON_CUSTOM_IMG_FILE not in updated_config:
@@ -274,7 +319,9 @@ async def async_migrate_entry(hass, config_entry):  # noqa: C901
     if CONF_UPS_CUSTOM_IMG_FILE not in updated_config:
         updated_config[CONF_UPS_CUSTOM_IMG_FILE] = DEFAULT_UPS_CUSTOM_IMG_FILE
 
-    # Add default Walmart and Generic custom image configurations
+
+def _apply_walmart_generic_fedex_defaults(updated_config):
+    """Apply default Walmart, Generic and FedEx custom image configurations."""
     if CONF_WALMART_CUSTOM_IMG not in updated_config:
         updated_config[CONF_WALMART_CUSTOM_IMG] = False
     if CONF_WALMART_CUSTOM_IMG_FILE not in updated_config:
@@ -284,17 +331,7 @@ async def async_migrate_entry(hass, config_entry):  # noqa: C901
     if CONF_GENERIC_CUSTOM_IMG_FILE not in updated_config:
         updated_config[CONF_GENERIC_CUSTOM_IMG_FILE] = DEFAULT_GENERIC_CUSTOM_IMG_FILE
 
-    # Add default FedEx
     if CONF_FEDEX_CUSTOM_IMG not in updated_config:
         updated_config[CONF_FEDEX_CUSTOM_IMG] = False
     if CONF_FEDEX_CUSTOM_IMG_FILE not in updated_config:
         updated_config[CONF_FEDEX_CUSTOM_IMG_FILE] = DEFAULT_FEDEX_CUSTOM_IMG_FILE
-
-    if updated_config != config_entry.data:
-        hass.config_entries.async_update_entry(
-            config_entry, data=updated_config, version=new_version
-        )
-
-    _LOGGER.debug("Migration complete to version %s", new_version)
-
-    return True

@@ -80,7 +80,9 @@ def extract_order_numbers(text: str, pattern: re.Pattern | str) -> list[str]:
 
 
 async def parse_amazon_arrival_date(
-    hass: Any, email_msg: str, email_date: datetime.date
+    hass: Any,
+    email_msg: str,
+    email_date: datetime.date,
 ) -> datetime.date | None:
     """Determine arrival date from email."""
     today_date = get_today()
@@ -98,11 +100,12 @@ async def parse_amazon_arrival_date(
                 settings={
                     "PREFER_DATES_FROM": "future",
                     "RELATIVE_BASE": datetime.datetime.combine(
-                        email_date or today_date, datetime.time()
+                        email_date or today_date,
+                        datetime.time(),
                     ),
                     "RETURN_AS_TIMEZONE_AWARE": False,
                 },
-            )
+            ),
         )
         if dateobj:
             return dateobj.date()
@@ -110,7 +113,8 @@ async def parse_amazon_arrival_date(
 
 
 def amazon_email_addresses(
-    fwds: list[str] | str | None = None, domain: str | None = None
+    fwds: list[str] | str | None = None,
+    domain: str | None = None,
 ) -> list[str]:
     """Generate Amazon email addresses."""
     if isinstance(fwds, str):
@@ -138,7 +142,9 @@ def amazon_email_addresses(
 
 
 async def search_amazon_emails(
-    account: IMAP4_SSL, address_list: list[str], days: int
+    account: IMAP4_SSL,
+    address_list: list[str],
+    days: int,
 ) -> list[bytes]:
     """Search for Amazon emails."""
     if not isinstance(days, int):
@@ -155,7 +161,10 @@ async def search_amazon_emails(
     all_emails = []
     for subject in amazon_subjects:
         (server_response, sdata) = await email_search(
-            account, address_list, tfmt, subject
+            account,
+            address_list,
+            tfmt,
+            subject,
         )
         if server_response == "OK" and sdata[0] is not None:
             all_emails.extend(sdata[0].split())
@@ -168,7 +177,10 @@ async def search_amazon_emails(
 
 
 async def download_amazon_img(
-    img_url: str, img_path: str, img_name: str, hass: Any
+    img_url: str,
+    img_path: str,
+    img_name: str,
+    hass: Any,
 ) -> None:
     """Download image from url."""
     img_path = Path(img_path) / "amazon"
@@ -211,7 +223,10 @@ async def get_amazon_image_url(
 
 
 def _extract_hub_code(
-    body: str, hub_pattern: str, subject: str, subject_pattern: str
+    body: str,
+    hub_pattern: str,
+    subject: str,
+    subject_pattern: str,
 ) -> str:
     """Extract Amazon Hub code from email body or subject."""
     # Check subject first

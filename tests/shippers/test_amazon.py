@@ -373,7 +373,9 @@ async def test_amazon_parsing_more_coverage(hass, caplog):
         return_value=datetime.datetime(2026, 1, 1),
     ):
         result = await parse_amazon_arrival_date(
-            hass, "Arriving Tomorrow", datetime.date(2025, 12, 31)
+            hass,
+            "Arriving Tomorrow",
+            datetime.date(2025, 12, 31),
         )
         assert result == datetime.date(2026, 1, 1)
 
@@ -492,16 +494,19 @@ async def test_amazon_search_no_emails_found(hass):
 async def test_amazon_search_delivered(hass, mock_imap_amazon_delivered, caplog):
     """Test Amazon search for delivered items."""
     shipper = AmazonShipper(
-        hass, {"image_path": "test/path/amazon/", "image_name": "testfilename.jpg"}
+        hass,
+        {"image_path": "test/path/amazon/", "image_name": "testfilename.jpg"},
     )
     with (
         patch("custom_components.mail_and_packages.shippers.amazon.cleanup_images"),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.download_amazon_img"
+            "custom_components.mail_and_packages.shippers.amazon.download_amazon_img",
         ) as mock_download_img,
     ):
         result = await shipper.process(
-            mock_imap_amazon_delivered, "today", AMAZON_DELIVERED
+            mock_imap_amazon_delivered,
+            "today",
+            AMAZON_DELIVERED,
         )
         await hass.async_block_till_done()
         assert "Amazon email search addresses:" in caplog.text
@@ -523,11 +528,13 @@ async def test_amazon_search_delivered_it(hass, mock_imap_amazon_delivered_it):
     with (
         patch("custom_components.mail_and_packages.shippers.amazon.cleanup_images"),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.download_amazon_img"
+            "custom_components.mail_and_packages.shippers.amazon.download_amazon_img",
         ),
     ):
         result = await shipper.process(
-            mock_imap_amazon_delivered_it, "today", AMAZON_DELIVERED
+            mock_imap_amazon_delivered_it,
+            "today",
+            AMAZON_DELIVERED,
         )
         assert result[AMAZON_DELIVERED] == 10
 
@@ -546,13 +553,14 @@ async def test_parse_amazon_arrival_date(hass):
 async def test_amazon_search_no_emails_found_copy(hass):
     """Test Amazon search copies default image when no emails are found."""
     shipper = AmazonShipper(
-        hass, {"image_path": "/fake/path/", "image_name": "amazon.jpg"}
+        hass,
+        {"image_path": "/fake/path/", "image_name": "amazon.jpg"},
     )
     mock_account = AsyncMock()
     with (
         patch("custom_components.mail_and_packages.shippers.amazon.cleanup_images"),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.copyfile"
+            "custom_components.mail_and_packages.shippers.amazon.copyfile",
         ) as mock_copy,
         patch(
             "custom_components.mail_and_packages.shippers.amazon.email_search",
@@ -587,7 +595,9 @@ async def test_amazon_packages_counts(hass, mock_imap_amazon_shipped):
         ),
     ):
         result = await shipper.process(
-            mock_imap_amazon_shipped, "today", AMAZON_PACKAGES
+            mock_imap_amazon_shipped,
+            "today",
+            AMAZON_PACKAGES,
         )
         assert result[AMAZON_PACKAGES] == 1
 
@@ -661,7 +671,7 @@ async def test_process_amazon_email_non_bytes(hass):
         "custom_components.mail_and_packages.shippers.amazon.email_fetch",
         return_value=("OK", ["not bytes"]),
     ):
-        await shipper._process_amazon_email(mock_account, "1", ctx)  # noqa: SLF001
+        await shipper._process_amazon_email(mock_account, "1", ctx)
         # Should just continue and not fail
 
 
@@ -686,7 +696,7 @@ async def test_handle_shipping_email_no_order_id(hass):
         new_callable=AsyncMock,
         return_value=today,
     ):
-        await shipper._handle_shipping_email("Arriving", body, today, ctx)  # noqa: SLF001
+        await shipper._handle_shipping_email("Arriving", body, today, ctx)
         assert "Amazon Order" in ctx["deliveries_today"]
 
 
@@ -696,7 +706,7 @@ async def test_extract_first_order_id_subject(hass):
     shipper = AmazonShipper(hass, {})
     pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
     subject = "Order 111-1234567-1234567 shipped"
-    result = shipper._extract_first_order_id(subject, None, pattern)  # noqa: SLF001
+    result = shipper._extract_first_order_id(subject, None, pattern)
     assert result == "111-1234567-1234567"
 
 

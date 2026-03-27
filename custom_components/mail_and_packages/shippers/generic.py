@@ -48,7 +48,10 @@ class GenericShipper(Shipper):
         return sensor_type in SENSOR_DATA
 
     async def process(
-        self, account: IMAP4_SSL, date: str, sensor_type: str
+        self,
+        account: IMAP4_SSL,
+        date: str,
+        sensor_type: str,
     ) -> dict[str, Any]:
         """Process emails for this shipper on the given date."""
         _LOGGER.debug("Processing generic sensor: %s", sensor_type)
@@ -77,7 +80,10 @@ class GenericShipper(Shipper):
 
         for subject in subjects:
             (server_response, sdata) = await email_search(
-                account, email_addresses, date, subject
+                account,
+                email_addresses,
+                date,
+                subject,
             )
             if server_response == "OK" and sdata[0]:
                 email_ids = sdata[0].split()
@@ -101,13 +107,18 @@ class GenericShipper(Shipper):
                     continue
 
                 count = await self._process_emails_by_type(
-                    account, config, new_ids, count
+                    account,
+                    config,
+                    new_ids,
+                    count,
                 )
                 found_data.append(b" ".join(new_ids))
 
                 if shipper_cfg:
                     await self._extract_images_for_shipper(
-                        account, new_ids, shipper_cfg
+                        account,
+                        new_ids,
+                        shipper_cfg,
                     )
 
                 # Amazon mentions
@@ -119,7 +130,9 @@ class GenericShipper(Shipper):
 
         # Process tracking numbers
         result[ATTR_TRACKING] = await self._process_tracking_numbers(
-            sensor_type, found_data, account
+            sensor_type,
+            found_data,
+            account,
         )
         if result[ATTR_TRACKING]:
             count = len(result[ATTR_TRACKING])
@@ -128,7 +141,10 @@ class GenericShipper(Shipper):
         return result
 
     async def _process_tracking_numbers(
-        self, sensor_type: str, found_data: list, account: IMAP4_SSL
+        self,
+        sensor_type: str,
+        found_data: list,
+        account: IMAP4_SSL,
     ) -> list:
         """Process tracking numbers for the sensor."""
         tracking_key = f"{'_'.join(sensor_type.split('_')[:-1])}_tracking"
@@ -146,7 +162,9 @@ class GenericShipper(Shipper):
         return list(dict.fromkeys(tracking_nums))
 
     async def _setup_image_extraction(
-        self, sensor_type: str, image_path: str
+        self,
+        sensor_type: str,
+        image_path: str,
     ) -> dict | None:
         """Set up image extraction configuration."""
         if not sensor_type.endswith("_delivered"):
@@ -180,19 +198,29 @@ class GenericShipper(Shipper):
         }
 
     async def _process_emails_by_type(
-        self, account: IMAP4_SSL, config: dict, ids: list, current_count: int
+        self,
+        account: IMAP4_SSL,
+        config: dict,
+        ids: list,
+        current_count: int,
     ) -> int:
         """Process emails based on body search or just count."""
         if ATTR_BODY in config:
             body_count = config.get(ATTR_BODY_COUNT, False)
             mock_data = (b" ".join(ids),)
             return current_count + await find_text(
-                mock_data, account, config[ATTR_BODY], body_count
+                mock_data,
+                account,
+                config[ATTR_BODY],
+                body_count,
             )
         return current_count + len(ids)
 
     async def _extract_images_for_shipper(
-        self, account: IMAP4_SSL, ids: list, s_config: dict
+        self,
+        account: IMAP4_SSL,
+        ids: list,
+        s_config: dict,
     ):
         """Extract delivery images from emails."""
         for eid in ids:
@@ -214,7 +242,10 @@ class GenericShipper(Shipper):
         """Check for Amazon mentions in emails."""
         mock_data = (b" ".join(ids),)
         amazon_mentions = await find_text(
-            mock_data, account, AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT, False
+            mock_data,
+            account,
+            AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT,
+            False,
         )
         if amazon_mentions > 0:
             result["amazon_delivered_by_others"] = (

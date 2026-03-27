@@ -29,6 +29,9 @@ class Shipper(ABC):
 
     @abstractmethod
     async def process(
-        self, account: IMAP4_SSL, date: str, sensor_type: str
+        self,
+        account: IMAP4_SSL,
+        date: str,
+        sensor_type: str,
     ) -> dict[str, Any]:
         """Process emails for this shipper on the given date for a specific sensor."""

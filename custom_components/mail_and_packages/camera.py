@@ -32,7 +32,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass, config: MailAndPackagesConfigEntry, async_add_entities
+    hass,
+    config: MailAndPackagesConfigEntry,
+    async_add_entities,
 ):
     """Set up the Camera that works with local files."""
     coordinator = config.runtime_data.coordinator
@@ -70,7 +72,7 @@ async def async_setup_entry(
         schema=vol.Schema(
             {
                 vol.Optional(ATTR_ENTITY_ID): vol.Coerce(str),
-            }
+            },
         ),
     )
 
@@ -110,10 +112,14 @@ class MailCam(CoordinatorEntity, Camera):
         else:
             # Derive config key names dynamically (e.g., "amazon" -> CONF_AMAZON_CUSTOM_IMG)
             custom_img_key = getattr(
-                const, f"CONF_{base_name.upper()}_CUSTOM_IMG", None
+                const,
+                f"CONF_{base_name.upper()}_CUSTOM_IMG",
+                None,
             )
             custom_img_file_key = getattr(
-                const, f"CONF_{base_name.upper()}_CUSTOM_IMG_FILE", None
+                const,
+                f"CONF_{base_name.upper()}_CUSTOM_IMG_FILE",
+                None,
             )
             default_image = f"no_deliveries_{base_name}.jpg"
 
@@ -122,7 +128,9 @@ class MailCam(CoordinatorEntity, Camera):
         if custom_img_key and config.data.get(custom_img_key):
             self._no_mail = config.data.get(custom_img_file_key)
             _LOGGER.debug(
-                "%s camera - custom image enabled: %s", self._type, self._no_mail
+                "%s camera - custom image enabled: %s",
+                self._type,
+                self._no_mail,
             )
 
         # Set initial file path based on camera type and custom settings
@@ -137,11 +145,15 @@ class MailCam(CoordinatorEntity, Camera):
             self._file_path = f"{Path(__file__).parent}/{default_image}"
 
     async def async_camera_image(
-        self, width: int | None = None, height: int | None = None
+        self,
+        width: int | None = None,
+        height: int | None = None,
     ) -> bytes | None:
         """Return image response."""
         _LOGGER.debug(
-            "Camera %s attempting to read image from: %s", self._name, self._file_path
+            "Camera %s attempting to read image from: %s",
+            self._name,
+            self._file_path,
         )
         try:
             file = await self.hass.async_add_executor_job(open, self._file_path, "rb")
@@ -157,7 +169,9 @@ class MailCam(CoordinatorEntity, Camera):
         """Check that filepath given is readable."""
         if not os.access(file_path, os.R_OK):
             _LOGGER.debug(
-                "Could not read camera %s image from file: %s", self._name, file_path
+                "Could not read camera %s image from file: %s",
+                self._name,
+                file_path,
             )
 
     async def update_file_path(self) -> None:
@@ -214,7 +228,9 @@ class MailCam(CoordinatorEntity, Camera):
             # Generate animated GIF using helper function
             # Run in executor to avoid blocking the event loop
             gif_created = await self.hass.async_add_executor_job(
-                generate_delivery_gif, delivery_images, gif_path
+                generate_delivery_gif,
+                delivery_images,
+                gif_path,
             )
 
             if gif_created:
@@ -225,7 +241,7 @@ class MailCam(CoordinatorEntity, Camera):
                 )
             else:
                 _LOGGER.warning(
-                    "Failed to create animated GIF, using first delivery image"
+                    "Failed to create animated GIF, using first delivery image",
                 )
                 self._file_path = delivery_images[0]
         else:
@@ -272,7 +288,7 @@ class MailCam(CoordinatorEntity, Camera):
             delivery_file_path = f"{self.hass.config.path()}/{path}{image}"
 
             is_no_mail = image.startswith(
-                no_mail_check
+                no_mail_check,
             ) or self._is_custom_no_mail_image(base_name, delivery_file_path)
 
             delivery_count_key = f"{base_name}_delivered"
@@ -311,7 +327,9 @@ class MailCam(CoordinatorEntity, Camera):
         if self._no_mail:
             self._file_path = self._no_mail
             _LOGGER.debug(
-                "%s camera - using custom no mail: %s", self._type, self._file_path
+                "%s camera - using custom no mail: %s",
+                self._type,
+                self._file_path,
             )
             return
 
@@ -350,17 +368,22 @@ class MailCam(CoordinatorEntity, Camera):
         )
 
         if await anyio.Path(coordinator_file_path).exists() and os.access(
-            coordinator_file_path, os.R_OK
+            coordinator_file_path,
+            os.R_OK,
         ):
             self._file_path = coordinator_file_path
             _LOGGER.debug(
-                "%s camera - found coordinator file: %s", self._type, self._file_path
+                "%s camera - found coordinator file: %s",
+                self._type,
+                self._file_path,
             )
         else:
             await self._find_alternative_image(coordinator_file_path, image)
 
     async def _find_alternative_image(
-        self, coordinator_file_path: str, expected_image: str
+        self,
+        coordinator_file_path: str,
+        expected_image: str,
     ) -> None:
         """Attempt to find an alternative image in the directory."""
         path_dir = Path(coordinator_file_path).parent
@@ -374,7 +397,9 @@ class MailCam(CoordinatorEntity, Camera):
         def _scan_images():
             if not path_dir.exists():
                 _LOGGER.debug(
-                    "%s camera - directory does not exist: %s", self._type, path_dir
+                    "%s camera - directory does not exist: %s",
+                    self._type,
+                    path_dir,
                 )
                 return None
 
@@ -382,12 +407,12 @@ class MailCam(CoordinatorEntity, Camera):
                 found_images = []
                 for file_path in path_dir.iterdir():
                     if file_path.name.lower().endswith(
-                        (".jpg", ".jpeg", ".png", ".gif")
+                        (".jpg", ".jpeg", ".png", ".gif"),
                     ):
                         if file_path.exists() and os.access(file_path, os.R_OK):
                             if "no_deliveries" not in file_path.name:
                                 found_images.append(
-                                    (str(file_path), file_path.stat().st_mtime)
+                                    (str(file_path), file_path.stat().st_mtime),
                                 )
             except OSError as err:
                 _LOGGER.debug(

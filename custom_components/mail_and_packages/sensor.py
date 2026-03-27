@@ -37,7 +37,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass, entry: MailAndPackagesConfigEntry, async_add_entities
+    hass,
+    entry: MailAndPackagesConfigEntry,
+    async_add_entities,
 ):
     """Set up the sensor entities."""
     coordinator = entry.runtime_data.coordinator
@@ -214,7 +216,8 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
         grid_image = self.coordinator.data.get(ATTR_GRID_IMAGE_NAME)
 
         path = self.coordinator.data.get(
-            ATTR_IMAGE_PATH, self._config.data.get(CONF_PATH)
+            ATTR_IMAGE_PATH,
+            self._config.data.get(CONF_PATH),
         )
 
         if self.type == "usps_mail_image_system_path":
