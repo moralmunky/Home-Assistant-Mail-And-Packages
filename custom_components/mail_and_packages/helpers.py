@@ -40,16 +40,6 @@ amazon_search_legacy = AMAZON_DELIVERED_SUBJECT
 image_file_name = "mail_today.gif"
 
 
-def _match_patterns(subject: str, patterns: list[str]) -> bool:
-    """Check if subject matches any of the patterns."""
-    return any(p.lower() in subject.lower() for p in patterns)
-
-
-def _scan_email_for_text(body: str, patterns: list[str]) -> bool:
-    """Check if body contains any of the patterns."""
-    return any(p.lower() in body.lower() for p in patterns)
-
-
 async def get_count(
     account: IMAP4_SSL,
     sensor_type: str,

@@ -16,9 +16,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import MailAndPackagesConfigEntry
 from .const import (
-    AMAZON_DELIVERED,
     AMAZON_EXCEPTION,
-    AMAZON_EXCEPTION_ORDER,
     AMAZON_ORDER,
     ATTR_GRID_IMAGE_NAME,
     ATTR_IMAGE,
@@ -147,20 +145,13 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
             return attr
 
         if "Amazon" in self._name:
-            if self._name == AMAZON_EXCEPTION and AMAZON_EXCEPTION_ORDER in data:
-                attr[ATTR_ORDER] = data[AMAZON_EXCEPTION_ORDER]
-            elif self._name == AMAZON_DELIVERED:
-                attr[ATTR_ORDER] = data[AMAZON_DELIVERED]
+            if self.type == AMAZON_EXCEPTION and ATTR_ORDER in data:
+                attr[ATTR_ORDER] = data[ATTR_ORDER]
             elif AMAZON_ORDER in data:
                 attr[ATTR_ORDER] = data[AMAZON_ORDER]
         elif self._name == "Mail USPS Mail" and ATTR_IMAGE_NAME in data:
             attr[ATTR_IMAGE] = data[ATTR_IMAGE_NAME]
-        elif (
-            any(sensor in self.type for sensor in ["_delivering", "_delivered"])
-            and self._tracking_key in data
-        ):
-            attr[ATTR_TRACKING_NUM] = data[self._tracking_key]
-            # TODO: Add Tracking URL when applicable
+
         return attr
 
 

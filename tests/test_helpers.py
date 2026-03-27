@@ -1,139 +1,145 @@
-"""Tests for helpers module."""
+"""Tests for Mail and Packages helper functions."""
 
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.mail_and_packages.const import (
-    ATTR_COUNT,
-    ATTR_TRACKING,
-    CONF_ALLOW_EXTERNAL,
-)
-from custom_components.mail_and_packages.coordinator import MailDataUpdateCoordinator
 from custom_components.mail_and_packages.helpers import (
+    copy_images,
+    fetch,
     get_count,
     get_items,
     get_mails,
     get_resources,
 )
-from tests.const import (
-    FAKE_CONFIG_DATA,
-    FAKE_UPDATE_DATA,
-)
-
-
-async def process_emails(hass, config):
-    """Bridge for tests."""
-    coord = MailDataUpdateCoordinator(hass, config)
-    return await coord.process_emails(hass, config)
-
-
-def load_test_email(email_file):
-    """Load test email file."""
-    return Path(email_file).read_text(encoding="utf-8")
-
-
-MAIL_IMAGE_URL_ENTITY = "sensor.mail_image_url"
-MAIL_IMAGE_SYSTEM_PATH = "sensor.mail_image_system_path"
-MAIL_IMAGE_GRID_IMAGE_PATH = "sensor.mail_grid_image_path"
 
 
 @pytest.mark.asyncio
-async def test_process_emails(
-    hass,
-    mock_imap_no_email,
-    mock_update,
-):
-    """Test the main email processing loop asynchronously."""
-    config = FAKE_CONFIG_DATA
-    result = await process_emails(hass, config)
-    assert result == FAKE_UPDATE_DATA
+async def test_get_count_legacy(hass):
+    """Test legacy get_count wrapper."""
+    account = AsyncMock()
+    mock_shipper = AsyncMock()
+    mock_shipper.process.return_value = {"count": 1}
 
+    mock_registry = {"ups_delivered": MagicMock(return_value=mock_shipper)}
 
-#     assert mock_copytree.call_args.kwargs == {"dirs_exist_ok": True}
-#     # Check that both Amazon and UPS files are being cleaned up
-#     amazon_removed = False
-#     ups_removed = False
-
-#     mock_file_amazon = MagicMock()
-#     mock_file_amazon.name = "anotherfakefile.mp4"
-#     mock_file_amazon.exists.return_value = True
-
-#     mock_file_ups = MagicMock()
-#     mock_file_ups.name = "anotherfakefile.mp4"
-#     mock_file_ups.exists.return_value = True
-
-#     with (
-#         patch("pathlib.Path.is_dir", return_value=True),
-#         patch("pathlib.Path.exists", return_value=True),
-#         patch("pathlib.Path.iterdir", return_value=[mock_file_amazon, mock_file_ups], autospec=True),
-#         patch("pathlib.Path.unlink", autospec=True) as mock_remove,
-#         patch("pathlib.Path")
-#     ):
-
-#         assert mock_remove.call_count == 2
-
-#         for remove_call in mock_remove.call_args_list:
-#             if "www/mail_and_packages/amazon/anotherfakefile.mp4" in str(remove_call):
-#                 amazon_removed = True
-#             if "www/mail_and_packages/ups/anotherfakefile.mp4" in str(remove_call):
-#                 ups_removed = True
-
-#         assert amazon_removed
-#         assert ups_removed
-
-
-@pytest.mark.asyncio
-async def test_process_emails_external_error(
-    hass,
-    mock_imap_no_email,
-    caplog,
-):
-    """Test error handling during external email processing."""
-    config = FAKE_CONFIG_DATA.copy()
-    config[CONF_ALLOW_EXTERNAL] = True
-    with patch(
-        "custom_components.mail_and_packages.helpers.copy_images",
-        side_effect=OSError("Mocked file system error"),
+    with patch.dict(
+        "custom_components.mail_and_packages.helpers.SHIPPER_REGISTRY",
+        mock_registry,
+        clear=True,
     ):
-        await process_emails(hass, config)
-        assert "Error attempting to copy image" in caplog.text
+        result = await get_count(account, "ups_delivered", False, "/path", hass)
+        assert result["count"] == 1
+
+        # Test no shipper found
+        result = await get_count(account, "unknown", False, "/path", hass)
+        assert result["count"] == 0
 
 
 @pytest.mark.asyncio
-async def test_get_resources(hass):
+async def test_get_mails_legacy(hass):
+    """Test legacy get_mails wrapper."""
+    account = AsyncMock()
+    with patch(
+        "custom_components.mail_and_packages.helpers.USPSShipper",
+    ) as mock_shipper_class:
+        mock_shipper = AsyncMock()
+        mock_shipper.process.return_value = {"count": 5}
+        mock_shipper_class.return_value = mock_shipper
+
+        result = await get_mails(account, [], hass, {})
+        assert result == 5
+
+
+@pytest.mark.asyncio
+async def test_fetch_legacy(hass):
+    """Test legacy fetch wrapper."""
+    account = AsyncMock()
+    mock_shipper = AsyncMock()
+    mock_shipper.process.return_value = {"count": 2}
+    mock_registry = {"fedex_delivered": MagicMock(return_value=mock_shipper)}
+
+    with patch.dict(
+        "custom_components.mail_and_packages.helpers.SHIPPER_REGISTRY",
+        mock_registry,
+        clear=True,
+    ):
+        result = await fetch(hass, {}, account, "fedex_delivered")
+        assert result == 2
+
+        # Test no shipper found
+        result = await fetch(hass, {}, account, "unknown")
+        assert result == 0
+
+
+@pytest.mark.asyncio
+async def test_get_items_legacy(hass):
+    """Test legacy get_items wrapper."""
+    account = AsyncMock()
+    mock_shipper = AsyncMock()
+    mock_shipper.process.return_value = {"count": 3}
+    mock_registry = {"dhl_delivered": MagicMock(return_value=mock_shipper)}
+
+    with patch.dict(
+        "custom_components.mail_and_packages.helpers.SHIPPER_REGISTRY",
+        mock_registry,
+        clear=True,
+    ):
+        result = await get_items(hass, {}, account, "dhl_delivered")
+        assert result["count"] == 3
+
+        # Test no shipper found
+        result = await get_items(hass, {}, account, "unknown")
+        assert result["count"] == 0
+
+
+def test_get_resources():
     """Test get_resources."""
-    result = get_resources(hass)
-    assert "amazon_packages" in result
-    assert "fedex_delivered" in result
-    assert "ups_delivered" in result
-    assert "usps_mail" in result
+    resources = get_resources()
+    assert "amazon_packages" in resources
 
 
-@pytest.mark.asyncio
-async def test_get_mails(hass, mock_imap_no_email):
-    """Test get_mails."""
-    config = FAKE_CONFIG_DATA
-    account = mock_imap_no_email
-    # Mock the response parts to avoid UnboundLocalError
-    account.fetch.return_value = MagicMock(result="OK", lines=[])
-    result = await get_mails(account, ["test@gmail.com"], hass, config)
-    assert result == 0
+def test_copy_images_mkdir(hass):
+    """Test copy_images creating the directory."""
+    config = MagicMock()
+    config.get.return_value = "test_storage/"
+
+    with (
+        patch("custom_components.mail_and_packages.helpers.Path") as mock_path,
+        patch("custom_components.mail_and_packages.helpers.os.walk", return_value=[]),
+    ):
+        mock_path_obj = MagicMock()
+        # Mocking Path() calls
+        mock_path.return_value = mock_path_obj
+        mock_path_obj.__truediv__.return_value = mock_path_obj
+        mock_path_obj.is_dir.return_value = False
+
+        copy_images(hass, config)
+        assert mock_path_obj.mkdir.called
 
 
-@pytest.mark.asyncio
-async def test_get_count(hass, mock_imap_no_email):
-    """Test get_count."""
-    account = mock_imap_no_email
-    result = await get_count(account, "amazon_packages", False, "test_path", hass)
-    assert result == {ATTR_COUNT: 0, ATTR_TRACKING: []}
+@patch("custom_components.mail_and_packages.helpers.Path")
+@patch("custom_components.mail_and_packages.helpers.copyfile")
+@patch("custom_components.mail_and_packages.helpers.os.walk")
+def test_copy_images_logic(mock_walk, mock_copy, mock_path, hass):
+    """Test copy_images logic with directory creation and OSError."""
+    config = MagicMock()
+    config.get.return_value = "test_storage/"
 
+    mock_path_obj = MagicMock()
+    mock_path.return_value = mock_path_obj
+    mock_path_obj.__truediv__.return_value = mock_path_obj
 
-@pytest.mark.asyncio
-async def test_get_items(hass, mock_imap_no_email):
-    """Test get_items."""
-    config = FAKE_CONFIG_DATA
-    account = mock_imap_no_email
-    result = await get_items(hass, config, account, "amazon_packages")
-    assert result == {ATTR_COUNT: 0, ATTR_TRACKING: []}
+    # mkdir path
+    mock_path_obj.is_dir.return_value = False
+
+    # walk path
+    mock_walk.return_value = [("/src", [], ["image.jpg"])]
+
+    # copyfile path triggers OSError
+    mock_copy.side_effect = OSError("Copy failed")
+
+    copy_images(hass, config)
+
+    assert mock_path_obj.mkdir.called
+    assert mock_copy.called

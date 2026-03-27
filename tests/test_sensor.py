@@ -7,7 +7,12 @@ import pytest
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.mail_and_packages.const import DOMAIN
+from custom_components.mail_and_packages.const import (
+    AMAZON_EXCEPTION,
+    AMAZON_ORDER,
+    ATTR_ORDER,
+    DOMAIN,
+)
 from custom_components.mail_and_packages.sensor import ImagePathSensors, PackagesSensor
 from tests.const import FAKE_CONFIG_DATA_NO_RND
 
@@ -272,3 +277,87 @@ async def test_mail_updated_sensor_totally_invalid_date(hass):
 
     # Should return current time (roughly)
     assert isinstance(val, datetime.datetime)
+
+
+@pytest.mark.asyncio
+async def test_packages_sensor_attributes_edge_cases(hass):
+    """Test PackagesSensor attributes and native_value edge cases."""
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
+    coordinator = MagicMock()
+
+    # Line 85: Single word type
+    sensor = PackagesSensor(
+        entry,
+        MagicMock(key="packages", name="Packages"),
+        coordinator,
+    )
+    assert sensor._tracking_key == "packages_tracking"
+
+    # Line 120: mail_updated is None in data
+    coordinator.data = {}
+    sensor_updated = PackagesSensor(
+        entry,
+        MagicMock(key="mail_updated", name="Mail Updated"),
+        coordinator,
+    )
+    assert isinstance(sensor_updated.native_value, datetime.datetime)
+
+    # Line 145: extra_state_attributes when data is None
+    coord_none = MagicMock()
+    coord_none.data = None
+    sensor_none = PackagesSensor(
+        entry,
+        MagicMock(key="packages", name="Packages"),
+        coord_none,
+    )
+    assert sensor_none.extra_state_attributes == {}
+
+    # Lines 148-149: Amazon Exception attributes
+
+    coord_ex = MagicMock()
+    coord_ex.data = {
+        ATTR_ORDER: ["Error #1"],
+        AMAZON_ORDER: ["Order #123"],
+    }
+
+    sensor_ex_desc = MagicMock(key=AMAZON_EXCEPTION)
+    sensor_ex_desc.name = "Mail Amazon Exception"
+    sensor_ex = PackagesSensor(
+        entry,
+        sensor_ex_desc,
+        coord_ex,
+    )
+    attrs_ex = sensor_ex.extra_state_attributes
+    assert attrs_ex[ATTR_ORDER] == ["Error #1"]
+
+    # Line 151: Generic Amazon sensor test
+    sensor_desc = MagicMock(key="amazon_packages")
+    sensor_desc.name = "Mail Amazon Packages"
+    sensor_regular = PackagesSensor(
+        entry,
+        sensor_desc,
+        coord_ex,
+    )
+    attrs = sensor_regular.extra_state_attributes
+    assert attrs[ATTR_ORDER] == ["Order #123"]
+
+
+@pytest.mark.asyncio
+async def test_image_path_sensor_grid(hass):
+    """Test ImagePathSensors with grid image path (Lines 227-228)."""
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
+    coordinator = MagicMock()
+    coordinator.data = {
+        "image_name": "test.gif",
+        "grid_image": "test_grid.png",
+        "image_path": "images/",
+    }
+
+    sensor = ImagePathSensors(
+        hass,
+        entry,
+        MagicMock(key="usps_mail_grid_image_path", name="USPS Grid Path"),
+        coordinator,
+    )
+    expected = f"{hass.config.path()}/images/test_grid.png"
+    assert sensor.native_value == expected
