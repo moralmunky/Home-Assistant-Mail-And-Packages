@@ -8,6 +8,7 @@ from homeassistant.helpers.update_coordinator import UpdateFailed
 from custom_components.mail_and_packages.coordinator import MailDataUpdateCoordinator
 from tests.const import FAKE_CONFIG_DATA
 
+
 @pytest.mark.asyncio
 async def test_process_sensor_dict_update(hass):
     """Test _process_sensor with a nested dictionary return."""
