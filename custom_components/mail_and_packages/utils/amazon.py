@@ -197,13 +197,14 @@ async def download_amazon_img(
             _LOGGER.error("Problem downloading file: %s", err)
 
 
-async def get_amazon_image_url(
+async def get_amazon_image_urls(
     sdata: Any,
     account: IMAP4_SSL,
-) -> str | None:
-    """Find Amazon delivery image URL."""
+) -> list[str]:
+    """Find all Amazon delivery image URLs."""
     mail_list = sdata.split()
     pattern = re.compile(rf"{AMAZON_IMG_PATTERN}")
+    urls = []
     for i in mail_list:
         data = (await email_fetch(account, i, "(RFC822)"))[1]
         for response_part in data:
@@ -218,8 +219,10 @@ async def get_amazon_image_url(
                     for url in found:
                         if url[1] not in AMAZON_IMG_LIST:
                             continue
-                        return url[0] + url[1] + url[2]
-    return None
+                        full_url = url[0] + url[1] + url[2]
+                        if full_url not in urls:
+                            urls.append(full_url)
+    return urls
 
 
 def _extract_hub_code(

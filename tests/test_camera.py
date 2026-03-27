@@ -757,6 +757,14 @@ async def test_generic_camera_with_delivery_images(
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.camera.resize_images",
+            return_value=["/fake/path/amazon/res1.jpg"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.camera.generate_delivery_gif",
+            return_value=True,
+        ),
     ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
@@ -776,7 +784,7 @@ async def test_generic_camera_with_delivery_images(
         state = hass.states.get("camera.mail_generic_delivery_camera")
 
         # Check that it's using the Amazon delivery image
-        assert "test_amazon_delivery.jpg" in state.attributes.get("file_path")
+        assert "generic_deliveries.gif" in state.attributes.get("file_path")
 
 
 async def test_generic_camera_with_ups_delivery_images(
@@ -807,6 +815,14 @@ async def test_generic_camera_with_ups_delivery_images(
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.camera.resize_images",
+            return_value=["/fake/path/ups/res1.jpg"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.camera.generate_delivery_gif",
+            return_value=True,
+        ),
     ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
@@ -826,7 +842,7 @@ async def test_generic_camera_with_ups_delivery_images(
         state = hass.states.get("camera.mail_generic_delivery_camera")
 
         # Check that it's using the UPS delivery image
-        assert "test_ups_delivery.jpg" in state.attributes.get("file_path")
+        assert "generic_deliveries.gif" in state.attributes.get("file_path")
 
 
 async def test_generic_camera_with_walmart_delivery_images(
@@ -857,6 +873,14 @@ async def test_generic_camera_with_walmart_delivery_images(
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.camera.resize_images",
+            return_value=["/fake/path/test_walmart_delivery_resized.jpg"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.camera.generate_delivery_gif",
+            return_value=True,
+        ),
     ):
         state = hass.states.get("camera.mail_generic_delivery_camera")
         assert state.attributes.get("friendly_name") == "Mail Generic Delivery Camera"
@@ -876,7 +900,7 @@ async def test_generic_camera_with_walmart_delivery_images(
         state = hass.states.get("camera.mail_generic_delivery_camera")
 
         # Check that it's using the Walmart delivery image
-        assert "test_walmart_delivery.jpg" in state.attributes.get("file_path")
+        assert "generic_deliveries.gif" in state.attributes.get("file_path")
 
 
 async def test_generic_camera_with_usps_delivery_images_manual(
@@ -966,11 +990,19 @@ async def test_generic_camera_with_all_delivery_types(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
+            "custom_components.mail_and_packages.camera.resize_images",
+            return_value=[
+                "/fake/path/test_amazon_delivery_resized.jpg",
+                "/fake/path/test_ups_delivery_resized.jpg",
+                "/fake/path/test_walmart_delivery_resized.jpg",
+            ],
+        ),
+        patch(
             "custom_components.mail_and_packages.camera.generate_delivery_gif",
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
-        def mock_generate_gif_func(delivery_images, gif_path):
+        def mock_generate_gif_func(delivery_images, gif_path, duration=3000):
             # Verify we received the expected delivery images
             assert len(delivery_images) == 3, (
                 f"Expected 3 delivery images, got {len(delivery_images)}"
@@ -978,13 +1010,16 @@ async def test_generic_camera_with_all_delivery_types(
             # Verify the images are for Amazon, UPS, and Walmart
             # The paths should contain the image names from coordinator data
             assert any(
-                coordinator.data.get("amazon_image") in img for img in delivery_images
+                coordinator.data.get("amazon_image").split(".")[0] in img
+                for img in delivery_images
             ), f"Amazon image not found in {delivery_images}"
             assert any(
-                coordinator.data.get("ups_image") in img for img in delivery_images
+                coordinator.data.get("ups_image").split(".")[0] in img
+                for img in delivery_images
             ), f"UPS image not found in {delivery_images}"
             assert any(
-                coordinator.data.get("walmart_image") in img for img in delivery_images
+                coordinator.data.get("walmart_image").split(".")[0] in img
+                for img in delivery_images
             ), f"Walmart image not found in {delivery_images}"
             # Verify the gif path
             assert "generic_deliveries.gif" in gif_path, (
@@ -1062,21 +1097,30 @@ async def test_generic_camera_filters_no_mail_images(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
+            "custom_components.mail_and_packages.camera.resize_images",
+            return_value=[
+                "/fake/path/test_amazon_delivery_resized.jpg",
+                "/fake/path/test_walmart_delivery_resized.jpg",
+            ],
+        ),
+        patch(
             "custom_components.mail_and_packages.camera.generate_delivery_gif",
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
-        def mock_generate_gif_func(delivery_images, gif_path):
+        def mock_generate_gif_func(delivery_images, gif_path, duration=3000):
             # Verify we received the expected delivery images (only Amazon and Walmart, no "no mail" images)
             assert len(delivery_images) == 2, (
                 f"Expected 2 delivery images, got {len(delivery_images)}"
             )
             # Verify the images are for Amazon and Walmart (UPS and USPS "no mail" images should be filtered out)
             assert any(
-                coordinator.data.get("amazon_image") in img for img in delivery_images
+                coordinator.data.get("amazon_image").split(".")[0] in img
+                for img in delivery_images
             ), f"Amazon image not found in {delivery_images}"
             assert any(
-                coordinator.data.get("walmart_image") in img for img in delivery_images
+                coordinator.data.get("walmart_image").split(".")[0] in img
+                for img in delivery_images
             ), f"Walmart image not found in {delivery_images}"
             # Verify "no mail" images are NOT in the delivery images
             assert not any("no_deliveries" in img for img in delivery_images), (
@@ -1181,25 +1225,35 @@ async def test_generic_camera_respects_enabled_sensors(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
+            "custom_components.mail_and_packages.camera.resize_images",
+            return_value=[
+                "/fake/path/test_amazon_delivery_resized.jpg",
+                "/fake/path/test_walmart_delivery_resized.jpg",
+            ],
+        ),
+        patch(
             "custom_components.mail_and_packages.camera.generate_delivery_gif",
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
-        def mock_generate_gif_func(delivery_images, gif_path):
+        def mock_generate_gif_func(delivery_images, gif_path, duration=3000):
             # Verify we received the expected delivery images (only Amazon and Walmart)
             assert len(delivery_images) == 2, (
                 f"Expected 2 delivery images, got {len(delivery_images)}"
             )
             # Verify the images are for Amazon and Walmart (UPS and USPS should be excluded)
             assert any(
-                coordinator.data.get("amazon_image") in img for img in delivery_images
+                coordinator.data.get("amazon_image").split(".")[0] in img
+                for img in delivery_images
             ), f"Amazon image not found in {delivery_images}"
             assert any(
-                coordinator.data.get("walmart_image") in img for img in delivery_images
+                coordinator.data.get("walmart_image").split(".")[0] in img
+                for img in delivery_images
             ), f"Walmart image not found in {delivery_images}"
             # Verify UPS and USPS are NOT in the delivery images
             assert not any(
-                coordinator.data.get("ups_image") in img for img in delivery_images
+                coordinator.data.get("ups_image").split(".")[0] in img
+                for img in delivery_images
             ), f"UPS image should not be in {delivery_images}"
             # Verify the gif path
             assert "generic_deliveries.gif" in gif_path, (
@@ -1421,21 +1475,30 @@ async def test_generic_camera_with_multiple_delivery_images(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
+            "custom_components.mail_and_packages.camera.resize_images",
+            return_value=[
+                "/fake/path/test_amazon_delivery_resized.jpg",
+                "/fake/path/test_ups_delivery_resized.jpg",
+            ],
+        ),
+        patch(
             "custom_components.mail_and_packages.camera.generate_delivery_gif",
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
-        def mock_generate_gif_func(delivery_images, gif_path):
+        def mock_generate_gif_func(delivery_images, gif_path, duration=3000):
             # Verify we received the expected delivery images (Amazon and UPS, USPS excluded)
             assert len(delivery_images) == 2, (
                 f"Expected 2 delivery images, got {len(delivery_images)}"
             )
             # Verify the images are for Amazon and UPS (USPS should be excluded)
             assert any(
-                coordinator.data.get("amazon_image") in img for img in delivery_images
+                coordinator.data.get("amazon_image").split(".")[0] in img
+                for img in delivery_images
             ), f"Amazon image not found in {delivery_images}"
             assert any(
-                coordinator.data.get("ups_image") in img for img in delivery_images
+                coordinator.data.get("ups_image").split(".")[0] in img
+                for img in delivery_images
             ), f"UPS image not found in {delivery_images}"
             # Verify USPS is NOT in the delivery images
             assert not any(

@@ -17,6 +17,8 @@ from bs4 import BeautifulSoup
 from custom_components.mail_and_packages.const import (
     ATTR_COUNT,
     ATTR_EMAIL,
+    ATTR_IMAGE_NAME,
+    ATTR_IMAGE_PATH,
     ATTR_SUBJECT,
     ATTR_USPS_MAIL,
     CONF_CUSTOM_IMG_FILE,
@@ -123,7 +125,11 @@ class USPSShipper(Shipper):
                 image_count,
             )
 
-        return {ATTR_COUNT: image_count}
+        return {
+            ATTR_COUNT: image_count,
+            ATTR_IMAGE_NAME: config["image_name"],
+            ATTR_IMAGE_PATH: config["image_output_path"],
+        }
 
     async def _generate_mp4_video(self, path: str, name: str):
         """Generate MP4 video from images."""

@@ -67,3 +67,31 @@ async def test_coordinator_login_error(hass, caplog):
         await coordinator.process_emails(hass, FAKE_CONFIG_DATA)
 
     assert "Error logging into IMAP: Login failed" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_process_sensor_attribute_merge(hass):
+    """Test _process_sensor merges attributes when sensor name is key."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    mock_shipper = AsyncMock()
+    # Return both sensor count and extra attribute (e.g. image name)
+    mock_shipper.process.return_value = {
+        "test_sensor": 5,
+        "test_image": "abc.jpg",
+        "image_path": "/test/path",
+    }
+
+    data = {}
+    with patch(
+        "custom_components.mail_and_packages.coordinator.get_shipper_for_sensor",
+        return_value=mock_shipper,
+    ):
+        await coordinator._process_sensor(
+            None, "today", "test_sensor", data, hass, FAKE_CONFIG_DATA
+        )
+
+    assert data["test_sensor"] == 5
+    assert data["test_image"] == "abc.jpg"
+    assert data["image_path"] == "/test/path"

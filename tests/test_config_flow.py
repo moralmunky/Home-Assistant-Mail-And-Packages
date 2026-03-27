@@ -3266,10 +3266,6 @@ async def test_reconfig_amazon_error(
         "input_3",
         "step_id_4",
         "input_4",
-        "step_id_5",
-        "input_5",
-        "title",
-        "data",
     ),
     [
         (
@@ -3306,12 +3302,8 @@ async def test_reconfig_amazon_error(
             },
             "reconfig_storage",
             {
-                "storage": "/invalid/readonly/path",  # Invalid path to trigger error
+                "storage": "invalid/readonly/path",
             },
-            None,
-            None,
-            "Mail and Packages",
-            {},
         ),
     ],
 )
@@ -3327,10 +3319,6 @@ async def test_reconfig_storage_error(
     input_3,
     step_id_4,
     input_4,
-    step_id_5,
-    input_5,
-    title,
-    data,
 ):
     """Test reconfigure flow with storage configuration error."""
     entry = hass.config_entries.async_entries(DOMAIN)[0]
@@ -3352,17 +3340,22 @@ async def test_reconfig_storage_error(
     result = await hass.config_entries.flow.async_configure(result["flow_id"], input_1)
 
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_2"
-
+    assert result["step_id"] == step_id_2
     result = await hass.config_entries.flow.async_configure(result["flow_id"], input_2)
 
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_amazon"
+    assert result["step_id"] == step_id_3
 
     result = await hass.config_entries.flow.async_configure(result["flow_id"], input_3)
 
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_amazon"
+    assert result["step_id"] == step_id_4
+
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_4)
+
+    assert result["type"] == "form"
+    assert result["step_id"] == step_id_4
+    assert result["errors"] == {"storage": "path_not_found"}
 
 
 async def test_walmart_custom_image_validation():
@@ -7125,7 +7118,6 @@ async def test_reconfig_3_validation_error(hass, mock_imap_no_email, integration
     assert result["step_id"] == "reconfig_3"
     assert result["errors"] == {
         "custom_img_file": "file_not_found",
-        "storage": "path_not_found",
     }
 
 

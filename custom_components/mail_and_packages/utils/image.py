@@ -178,8 +178,8 @@ def resize_images(images: list, width: int, height: int) -> list:
                     method=Image.Resampling.LANCZOS,
                 )
                 img = img.crop((0, 0, width, height))
-                new_image_path = img_path.with_suffix(".gif")
-                img.save(new_image_path, img.format)
+                new_image_path = img_path.parent / f"{img_path.stem}_resized.gif"
+                img.save(new_image_path, "GIF")
                 all_images.append(str(new_image_path))
 
         except (OSError, ValueError) as err:
@@ -475,16 +475,5 @@ def image_file_name(
         _LOGGER.error("Problem accessing file: %s, error returned: %s", mail_none, err)
         return image_name
 
-    ext = ".jpg" if amazon or ups or walmart or fedex else ".gif"
-    image_name = _get_image_name_from_directory(path, mail_none, sha1, ext)
-
-    # Insert place holder image
-    target_path = Path(path) / image_name
-    try:
-        copyfile(mail_none, target_path)
-    except OSError as err:
-        _LOGGER.error("Error copying image: %s", err)
-        # Return a fallback filename if copy fails
-        return f"no_deliveries{ext}"
-
-    return image_name
+    ext = ".jpg" if ups or walmart or fedex else ".gif"
+    return _get_image_name_from_directory(path, mail_none, sha1, ext)

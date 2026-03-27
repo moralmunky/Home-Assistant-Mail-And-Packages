@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from shutil import copyfile
 from typing import Any
 
+import anyio
 from aioimaplib import IMAP4_SSL
 
 from custom_components.mail_and_packages.const import (
@@ -69,14 +71,83 @@ class GenericShipper(Shipper):
         if forwarded_emails:
             email_addresses = forwarded_emails + email_addresses
 
-        count = 0
-        unique_email_ids = set()
-        found_data = []
         result = {ATTR_COUNT: 0, ATTR_TRACKING: []}
 
         image_path = self.config.get("image_path")
         # Setup image extraction
         shipper_cfg = await self._setup_image_extraction(sensor_type, image_path)
+        image_found = False
+
+        count, found_data, image_found = await self._search_for_emails(
+            account,
+            email_addresses,
+            date,
+            subjects,
+            config,
+            shipper_cfg,
+            sensor_type,
+            result,
+        )
+
+        # Process tracking numbers
+        result[ATTR_TRACKING] = await self._process_tracking_numbers(
+            sensor_type,
+            found_data,
+            account,
+        )
+        if result[ATTR_TRACKING]:
+            count = len(result[ATTR_TRACKING])
+
+        result[ATTR_COUNT] = count
+        if shipper_cfg:
+            image_attr = f"{shipper_cfg['name']}_image"
+            result[image_attr] = shipper_cfg["image_name"]
+            result["image_path"] = image_path
+
+            if count > 0 and not image_found:
+                await self._copy_generic_placeholder(shipper_cfg)
+
+        return result
+
+    async def _copy_generic_placeholder(self, shipper_cfg: dict[str, Any]) -> None:
+        """Copy the generic placeholder for the shipper."""
+        shipper_name = shipper_cfg["name"]
+        # Try to find courier-specific placeholder
+        placeholder = Path(__file__).parent.parent / f"no_deliveries_{shipper_name}.jpg"
+        if not await anyio.Path(placeholder).exists():
+            placeholder = Path(__file__).parent.parent / "mail_none.gif"
+
+        target = (
+            Path(shipper_cfg["image_path"]) / shipper_name / shipper_cfg["image_name"]
+        )
+        _LOGGER.debug(
+            "No %s images found in emails, using placeholder: %s",
+            shipper_name,
+            placeholder.name,
+        )
+        try:
+            await self.hass.async_add_executor_job(
+                copyfile, str(placeholder), str(target)
+            )
+        except OSError as err:
+            _LOGGER.error("Error attempting to copy placeholder: %s", err)
+
+    async def _search_for_emails(
+        self,
+        account: IMAP4_SSL,
+        email_addresses: list[str],
+        date: str,
+        subjects: list[str],
+        config: dict[str, Any],
+        shipper_cfg: dict[str, Any] | None,
+        sensor_type: str,
+        result: dict[str, Any],
+    ) -> tuple[int, list[bytes], bool]:
+        """Search for and process emails."""
+        count = 0
+        unique_email_ids = set()
+        found_data = []
+        image_found = False
 
         for subject in subjects:
             (server_response, sdata) = await email_search(
@@ -115,11 +186,12 @@ class GenericShipper(Shipper):
                 found_data.append(b" ".join(new_ids))
 
                 if shipper_cfg:
-                    await self._extract_images_for_shipper(
+                    if await self._extract_images_for_shipper(
                         account,
                         new_ids,
                         shipper_cfg,
-                    )
+                    ):
+                        image_found = True
 
                 # Amazon mentions
                 if (
@@ -128,17 +200,7 @@ class GenericShipper(Shipper):
                 ):
                     await self._check_amazon_mentions(account, new_ids, result)
 
-        # Process tracking numbers
-        result[ATTR_TRACKING] = await self._process_tracking_numbers(
-            sensor_type,
-            found_data,
-            account,
-        )
-        if result[ATTR_TRACKING]:
-            count = len(result[ATTR_TRACKING])
-
-        result[ATTR_COUNT] = count
-        return result
+        return count, found_data, image_found
 
     async def _process_tracking_numbers(
         self,
@@ -191,7 +253,8 @@ class GenericShipper(Shipper):
         return {
             "name": shipper_name,
             "image_path": absolute_image_path,
-            "image_name": f"{shipper_name}_delivery.jpg",
+            "image_name": self.config.get(f"{shipper_name}_image")
+            or f"{shipper_name}_delivery.jpg",
             "image_type": extraction_config.get("image_type", "jpeg"),
             "cid_name": extraction_config.get("cid_name"),
             "pattern": extraction_config.get("attachment_filename_pattern"),
@@ -221,8 +284,9 @@ class GenericShipper(Shipper):
         account: IMAP4_SSL,
         ids: list,
         s_config: dict,
-    ):
+    ) -> bool:
         """Extract delivery images from emails."""
+        image_found = False
         for eid in ids:
             msg_parts = (await email_fetch(account, eid, "(RFC822)"))[1]
             for response_part in msg_parts:
@@ -237,6 +301,8 @@ class GenericShipper(Shipper):
                         s_config["pattern"],
                     ):
                         _LOGGER.debug("Extracted image for %s", s_config["name"])
+                        image_found = True
+        return image_found
 
     async def _check_amazon_mentions(self, account: IMAP4_SSL, ids: list, result: dict):
         """Check for Amazon mentions in emails."""

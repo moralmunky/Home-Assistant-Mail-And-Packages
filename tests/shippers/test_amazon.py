@@ -495,7 +495,7 @@ async def test_amazon_search_delivered(hass, mock_imap_amazon_delivered, caplog)
     """Test Amazon search for delivered items."""
     shipper = AmazonShipper(
         hass,
-        {"image_path": "test/path/amazon/", "image_name": "testfilename.jpg"},
+        {"image_path": "test/path/amazon/", "amazon_image": "testfilename.jpg"},
     )
     with (
         patch("custom_components.mail_and_packages.shippers.amazon.cleanup_images"),
@@ -522,7 +522,7 @@ async def test_amazon_search_delivered_it(hass, mock_imap_amazon_delivered_it):
         {
             "amazon_domain": "amazon.it",
             "image_path": "test/path/amazon/",
-            "image_name": "testfilename.jpg",
+            "amazon_image": "testfilename.jpg",
         },
     )
     with (
@@ -554,7 +554,7 @@ async def test_amazon_search_no_emails_found_copy(hass):
     """Test Amazon search copies default image when no emails are found."""
     shipper = AmazonShipper(
         hass,
-        {"image_path": "/fake/path/", "image_name": "amazon.jpg"},
+        {"image_path": "/fake/path/", "amazon_image": "amazon.jpg"},
     )
     mock_account = AsyncMock()
     with (
@@ -738,3 +738,48 @@ async def test_amazon_exception_body_match(hass):
         result = await shipper.process(mock_account, "today", AMAZON_EXCEPTION)
         assert result[ATTR_COUNT] == 1
         assert "111-1234567-1234567" in result[ATTR_ORDER]
+
+
+@pytest.mark.asyncio
+async def test_amazon_search_multiple_images_gif(hass):
+    """Test Amazon search combining multiple images into a GIF."""
+    shipper = AmazonShipper(
+        hass,
+        {"image_path": "/fake/path/", "amazon_image": "amazon.gif"},
+    )
+    mock_account = AsyncMock()
+    urls = ["http://test.com/img1.jpg", "http://test.com/img2.jpg"]
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1 2"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.get_amazon_image_urls",
+            new_callable=AsyncMock,
+            return_value=urls,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.download_amazon_img",
+            new_callable=AsyncMock,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.anyio.Path.exists",
+            new_callable=AsyncMock,
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.cleanup_images",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.resize_images",
+            return_value=["/fake/path/amazon/res1.jpg", "/fake/path/amazon/res2.jpg"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.generate_delivery_gif",
+        ) as mock_gif,
+    ):
+        await shipper.process(mock_account, "today", AMAZON_DELIVERED)
+        assert mock_gif.called

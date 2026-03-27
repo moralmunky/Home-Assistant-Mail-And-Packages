@@ -13,7 +13,7 @@ from custom_components.mail_and_packages.utils.amazon import (
     amazon_email_addresses,
     download_amazon_img,
     extract_order_numbers,
-    get_amazon_image_url,
+    get_amazon_image_urls,
     get_decoded_subject,
     get_email_body,
     search_amazon_emails,
@@ -110,8 +110,8 @@ def test_amazon_date_regex_default():
 
 
 @pytest.mark.asyncio
-async def test_get_amazon_image_url_basic():
-    """Test get_amazon_image_url basic path."""
+async def test_get_amazon_image_urls_basic():
+    """Test get_amazon_image_urls basic path."""
     mock_acc = AsyncMock()
     mock_acc.fetch.return_value = (
         "OK",
@@ -132,7 +132,8 @@ async def test_get_amazon_image_url_basic():
                 b'Content-Type: text/html\n\n<img src="https://m.media-amazon.com/images/I/test.jpg">',
             ],
         )
-        await get_amazon_image_url("1", mock_acc)
+        result = await get_amazon_image_urls("1", mock_acc)
+        assert isinstance(result, list)
         # Verify it doesn't crash
 
 

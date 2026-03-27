@@ -37,7 +37,7 @@ from .const import (
 )
 from .helpers import copy_images
 from .shippers import get_shipper_for_sensor
-from .utils.image import default_image_path, hash_file
+from .utils.image import default_image_path, hash_file, image_file_name
 from .utils.imap import login, selectfolder
 
 _LOGGER = logging.getLogger(__name__)
@@ -147,9 +147,31 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             "amazon_delivered_by_others": 0,
         }
 
-        # Initialize all potential sensors to 0
+        # Initialize all potential sensors to 0 if not already set
         for sensor in const.SENSOR_TYPES:
-            data[sensor] = 0
+            if sensor not in data:
+                data[sensor] = 0
+
+        # Generate image path and name
+        image_path = default_image_path(hass, config)
+        config["image_path"] = image_path
+
+        # Generate unique image names for each courier
+        config["amazon_image"] = await hass.async_add_executor_job(
+            image_file_name, hass, config, True, False, False, False
+        )
+        config["ups_image"] = await hass.async_add_executor_job(
+            image_file_name, hass, config, False, True, False, False
+        )
+        config["walmart_image"] = await hass.async_add_executor_job(
+            image_file_name, hass, config, False, False, True, False
+        )
+        config["fedex_image"] = await hass.async_add_executor_job(
+            image_file_name, hass, config, False, False, False, True
+        )
+        config["image_name"] = await hass.async_add_executor_job(
+            image_file_name, hass, config, False, False, False, False
+        )
 
         # Login to IMAP
         try:
@@ -207,32 +229,35 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
         try:
             result = await shipper.process(account, today, sensor)
-            if isinstance(result, dict):
-                # Some shippers return direct sensor data, others return {ATTR_COUNT: x, ...}
-                if sensor in result:
-                    if isinstance(result[sensor], dict):
-                        data.update(result[sensor])
-                    else:
-                        data[sensor] = result[sensor]
-                elif const.ATTR_COUNT in result:
-                    data[sensor] = result[const.ATTR_COUNT]
-                    # Merge tracking and other attributes if present
-                    for key, value in result.items():
-                        if key == const.ATTR_COUNT:
-                            continue
-                        if key == const.ATTR_TRACKING:
-                            tracking_key = (
-                                f"{'_'.join(sensor.split('_')[:-1])}_tracking"
-                            )
-                            data[tracking_key] = value
-                        else:
-                            data[key] = value
+            if not isinstance(result, dict):
+                return
+
+            # 1. Handle primary sensor value (sensor name or ATTR_COUNT)
+            if sensor in result:
+                if isinstance(result[sensor], dict):
+                    data.update(result[sensor])
+                else:
+                    data[sensor] = result[sensor]
+            elif const.ATTR_COUNT in result:
+                data[sensor] = result[const.ATTR_COUNT]
+
+            # 2. Merge all other attributes (metadata, images, tracking)
+            for key, value in result.items():
+                if key in (sensor, const.ATTR_COUNT):
+                    continue
+
+                if key == const.ATTR_TRACKING:
+                    tracking_key = f"{'_'.join(sensor.split('_')[:-1])}_tracking"
+                    data[tracking_key] = value
+                else:
+                    data[key] = value
         except Exception as err:  # noqa: BLE001
             _LOGGER.error("Error processing sensor %s: %s", sensor, err)
 
     async def _binary_sensor_update(self):
         """Update binary sensor states."""
         # USPS uses different attributes (ATTR_IMAGE_NAME instead of ATTR_*_IMAGE)
+        _LOGGER.debug("Data: %s", self._data)
         attributes = (ATTR_IMAGE_NAME, ATTR_IMAGE_PATH)
         if set(attributes).issubset(self._data.keys()):
             image = self._data[ATTR_IMAGE_NAME]

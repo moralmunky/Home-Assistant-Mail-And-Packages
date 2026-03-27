@@ -21,11 +21,12 @@ from .const import (
     CAMERA_DATA,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
+    CONF_DURATION,
     DOMAIN,
     SENSOR_NAME,
     VERSION,
 )
-from .utils.image import generate_delivery_gif
+from .utils.image import cleanup_images, generate_delivery_gif, resize_images
 
 SERVICE_UPDATE_IMAGE = "update_image"
 _LOGGER = logging.getLogger(__name__)
@@ -223,27 +224,44 @@ class MailCam(CoordinatorEntity, Camera):
 
         # Create animated GIF if we have multiple delivery images
         if len(delivery_images) > 0:
-            gif_path = f"{Path(__file__).parent}/generic_deliveries.gif"
+            image_path = self.coordinator.data.get(ATTR_IMAGE_PATH, "")
+            full_storage_path = Path(f"{self.hass.config.path()}/{image_path}")
+            gif_path = str(full_storage_path / "generic_deliveries.gif")
+
+            # Resize images for consistency (800x600 for 4:3 aspect ratio)
+            resized_images = await self.hass.async_add_executor_job(
+                resize_images, delivery_images, 800, 600
+            )
 
             # Generate animated GIF using helper function
             # Run in executor to avoid blocking the event loop
+            duration = self.config.data.get(CONF_DURATION, 5) * 1000
             gif_created = await self.hass.async_add_executor_job(
                 generate_delivery_gif,
-                delivery_images,
+                resized_images,
                 gif_path,
+                duration,
             )
 
             if gif_created:
                 self._file_path = gif_path
                 _LOGGER.debug(
-                    "Generic camera - created animated GIF with %d delivery images",
+                    "Generic camera - created animated GIF with %d delivery images at %s",
                     len(delivery_images),
+                    gif_path,
                 )
             else:
                 _LOGGER.warning(
                     "Failed to create animated GIF, using first delivery image",
                 )
                 self._file_path = delivery_images[0]
+
+            # Cleanup resized images
+            for img in resized_images:
+                if await anyio.Path(img).exists():
+                    await self.hass.async_add_executor_job(
+                        cleanup_images, str(Path(img).parent) + "/", Path(img).name
+                    )
         else:
             # No deliveries found, use default generic no mail image
             _LOGGER.debug(
@@ -262,14 +280,14 @@ class MailCam(CoordinatorEntity, Camera):
                 continue
 
             base_name = camera_type.replace("_camera", "")
+            delivered_key = f"{base_name}_delivered"
 
-            # Check if this camera's sensor is enabled
-            sensor_name = self._get_sensor_name_for_camera(camera_type)
-            if sensor_name and sensor_name not in enabled_resources:
+            # Check if this shipper's delivery sensor is enabled
+            if delivered_key not in enabled_resources:
                 _LOGGER.debug(
                     "Generic camera - skipping %s (sensor %s not enabled)",
                     base_name,
-                    sensor_name,
+                    delivered_key,
                 )
                 continue
 

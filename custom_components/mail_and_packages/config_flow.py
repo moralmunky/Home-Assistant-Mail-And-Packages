@@ -618,7 +618,7 @@ def _get_schema_step_forwarded_emails(
     )
 
 
-def _get_schema_step_storage(user_input: list, default_dict: list) -> Any:
+def _get_schema_step_storage(user_input: dict, default_dict: dict) -> Any:
     """Get a schema using the default_dict as a backup."""
     if user_input is None:
         user_input = {}
