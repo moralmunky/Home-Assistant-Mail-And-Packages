@@ -273,7 +273,7 @@ async def test_setup_entry_coordinator_failure():
     with (
         patch("homeassistant.helpers.frame.report_usage"),
         patch(
-            "custom_components.mail_and_packages.coordinator.MailDataUpdateCoordinator",
+            "custom_components.mail_and_packages.MailDataUpdateCoordinator",
         ) as mock_coordinator_class,
     ):
         mock_coordinator_class.return_value = mock_coordinator
@@ -546,7 +546,7 @@ async def test_setup_entry_refresh_failure(hass):
     with (
         patch("homeassistant.helpers.frame.report_usage"),
         patch(
-            "custom_components.mail_and_packages.coordinator.MailDataUpdateCoordinator",
+            "custom_components.mail_and_packages.MailDataUpdateCoordinator",
         ) as mock_coordinator_class,
     ):
         mock_coordinator = mock_coordinator_class.return_value

@@ -2731,8 +2731,12 @@ async def integration_fixture_v10_migration(hass, caplog):
         version=10,  # Start with version 10
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    with (
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch("custom_components.mail_and_packages.async_setup_entry", return_value=True),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
     # Verify migration occurred
     assert "Migration complete to version 13" in caplog.text
@@ -2805,8 +2809,12 @@ async def test_migration_from_version_10_to_11(hass, caplog):
         version=10,  # Start with version 10
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    with (
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch("custom_components.mail_and_packages.async_setup_entry", return_value=True),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
     # Verify migration occurred
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
@@ -2886,8 +2894,12 @@ async def test_migration_from_version_9_to_11(hass, caplog):
         version=9,  # Start with version 9
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    with (
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch("custom_components.mail_and_packages.async_setup_entry", return_value=True),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
     # Verify migration occurred
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
@@ -2966,8 +2978,12 @@ async def test_migration_from_version_11_no_changes(hass, caplog):
         version=11,  # Already at version 11
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    with (
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch("custom_components.mail_and_packages.async_setup_entry", return_value=True),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
     # Migration should occur from version 11 to 12 to add Walmart and Generic fields
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
@@ -3045,8 +3061,12 @@ async def test_migration_preserves_existing_custom_image_settings(hass, caplog):
         version=10,  # Start with version 10
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    with (
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch("custom_components.mail_and_packages.async_setup_entry", return_value=True),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
     # Verify migration occurred
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
@@ -3091,8 +3111,12 @@ async def test_migration_with_minimal_config(hass, caplog):
         version=1,  # Very old version
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    with (
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch("custom_components.mail_and_packages.async_setup_entry", return_value=True),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
     # Verify migration occurred
     assert any(
@@ -4264,7 +4288,7 @@ async def test_validate_forwarded_emails_conflict(hass):
 
 
 @pytest.mark.asyncio
-async def test_reconfig_2_schema_validation(hass, integration):
+async def test_reconfig_2_schema_validation(hass, integration, mock_imap):
     """Test that the schema correctly rejects a scan_interval below 5."""
     entry = integration
     with (
