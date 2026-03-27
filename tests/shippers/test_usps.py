@@ -18,6 +18,8 @@ async def test_usps_shipper_basic(hass):
     """Test USPSShipper basic initialization."""
     shipper = USPSShipper(hass, {})
     assert shipper.name == "usps"
+    assert shipper.handles_sensor("usps_mail") is True
+    assert shipper.handles_sensor("other") is False
 
 
 @pytest.mark.asyncio
@@ -510,7 +512,7 @@ async def test_extract_jpeg_attachment_os_error(hass):
     """Test _extract_jpeg_attachment with OSError (Lines 324-325)."""
     shipper = USPSShipper(hass, {})
     part = MagicMock()
-    part.get_filename.return_value = "package.jpg"
+    part.get_filename.return_value = "informed_delivery.jpg"
     part.get_payload.return_value = b"data"
 
     with patch(
@@ -533,11 +535,18 @@ async def test_copy_nomail_image_mkdir(hass):
         patch(
             "custom_components.mail_and_packages.shippers.usps.Path.mkdir",
         ) as mock_mkdir,
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.Path.is_file",
+            return_value=True,
+        ),
         patch("custom_components.mail_and_packages.shippers.usps.shutil.copyfile"),
-        patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.cleanup_images"
+        ) as mock_cleanup,
     ):
         await shipper._copy_nomail_image("test/", "test.gif", None)
         mock_mkdir.assert_called_once()
+        mock_cleanup.assert_called_with("test/", "test.gif")
 
 
 @pytest.mark.asyncio
@@ -595,3 +604,11 @@ async def test_generate_mail_image_call(hass):
             5,
             ["img1.jpg"],
         )
+
+
+@pytest.mark.asyncio
+async def test_copy_nomail_image_os_error(hass):
+    """Test _copy_nomail_image with OSError (Line 215)."""
+    shipper = USPSShipper(hass, {})
+    with patch.object(hass, "async_add_executor_job", side_effect=OSError("Disk Full")):
+        await shipper._copy_nomail_image("test/", "test.gif", None)

@@ -9,6 +9,7 @@ import pytest
 from custom_components.mail_and_packages.utils.image import (
     _check_ffmpeg,
     _generate_mp4,
+    _get_image_name_from_directory,
     cleanup_images,
     copy_overlays,
     default_image_path,
@@ -640,3 +641,88 @@ async def test_image_file_name_copy_os_error(caplog):
         result = image_file_name(mock_hass, config)
         assert "Error copying image" in caplog.text
         assert result == "no_deliveries.gif"
+
+
+def test_generate_grid_img_even_count():
+    """Test generate_grid_img with an even count (Line 249)."""
+    with (
+        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch("custom_components.mail_and_packages.utils.image.subprocess.call"),
+    ):
+        mock_path_obj = MagicMock()
+        mock_path.return_value = mock_path_obj
+        # count=2 should hit line 249
+        generate_grid_img("/path/", "test.gif", 2)
+
+
+@pytest.mark.asyncio
+async def test_get_image_name_from_directory_non_file():
+    """Test _get_image_name_from_directory with non-file items (Line 413)."""
+
+    with patch("custom_components.mail_and_packages.utils.image.Path") as mock_path:
+        mock_path_obj = MagicMock()
+        mock_dir = MagicMock()
+        mock_dir.is_file.return_value = False
+        mock_path_obj.iterdir.return_value = [mock_dir]
+        mock_path.return_value = mock_path_obj
+
+        result = _get_image_name_from_directory(
+            "/path/", "mail_none.gif", "sha1", ".gif"
+        )
+        assert result.endswith(".gif")
+
+
+@pytest.mark.asyncio
+async def test_get_image_name_from_directory_os_error(caplog):
+    """Test _get_image_name_from_directory with OSError (Line 429-430)."""
+
+    caplog.set_level("ERROR")
+    with patch("custom_components.mail_and_packages.utils.image.Path") as mock_path:
+        mock_path_obj = MagicMock()
+        mock_path_obj.iterdir.side_effect = OSError("Access denied")
+        mock_path.return_value = mock_path_obj
+
+        result = _get_image_name_from_directory(
+            "/path/", "mail_none.gif", "sha1", ".gif"
+        )
+        assert "Error accessing directory" in caplog.text
+        assert result.endswith(".gif")
+
+
+@pytest.mark.asyncio
+async def test_image_file_name_hash_os_error(caplog):
+    """Test image_file_name with hash_file OSError (Line 474-476)."""
+    mock_hass = MagicMock()
+    config = {"custom_img": True, "custom_img_file": "mail_none.gif"}
+    caplog.set_level("ERROR")
+
+    with (
+        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch(
+            "custom_components.mail_and_packages.utils.image.hash_file",
+            side_effect=OSError("Hash fail"),
+        ),
+    ):
+        mock_path_obj = MagicMock()
+        mock_path.return_value = mock_path_obj
+        mock_path_obj.mkdir.return_value = None
+
+        result = image_file_name(mock_hass, config)
+        assert "Problem accessing file" in caplog.text
+        assert result == "mail_none.gif"
+
+
+def test_copy_overlays_force_copy():
+    """Test copy_overlays when it needs to copy files (Lines 158-160)."""
+    with (
+        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch("custom_components.mail_and_packages.utils.image.copyfile") as mock_copy,
+    ):
+        mock_path_obj = MagicMock()
+        mock_file = MagicMock()
+        mock_file.name = "not_an_overlay.png"
+        mock_path_obj.iterdir.return_value = [mock_file]
+        mock_path.return_value = mock_path_obj
+
+        copy_overlays("/path/")
+        assert mock_copy.called

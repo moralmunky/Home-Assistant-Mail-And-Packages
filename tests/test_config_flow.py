@@ -2733,7 +2733,9 @@ async def integration_fixture_v10_migration(hass, caplog):
     entry.add_to_hass(hass)
     with (
         patch("custom_components.mail_and_packages.async_setup", return_value=True),
-        patch("custom_components.mail_and_packages.async_setup_entry", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry", return_value=True
+        ),
     ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -2811,7 +2813,9 @@ async def test_migration_from_version_10_to_11(hass, caplog):
     entry.add_to_hass(hass)
     with (
         patch("custom_components.mail_and_packages.async_setup", return_value=True),
-        patch("custom_components.mail_and_packages.async_setup_entry", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry", return_value=True
+        ),
     ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -2896,7 +2900,9 @@ async def test_migration_from_version_9_to_11(hass, caplog):
     entry.add_to_hass(hass)
     with (
         patch("custom_components.mail_and_packages.async_setup", return_value=True),
-        patch("custom_components.mail_and_packages.async_setup_entry", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry", return_value=True
+        ),
     ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -2980,7 +2986,9 @@ async def test_migration_from_version_11_no_changes(hass, caplog):
     entry.add_to_hass(hass)
     with (
         patch("custom_components.mail_and_packages.async_setup", return_value=True),
-        patch("custom_components.mail_and_packages.async_setup_entry", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry", return_value=True
+        ),
     ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -3063,7 +3071,9 @@ async def test_migration_preserves_existing_custom_image_settings(hass, caplog):
     entry.add_to_hass(hass)
     with (
         patch("custom_components.mail_and_packages.async_setup", return_value=True),
-        patch("custom_components.mail_and_packages.async_setup_entry", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry", return_value=True
+        ),
     ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -3113,7 +3123,9 @@ async def test_migration_with_minimal_config(hass, caplog):
     entry.add_to_hass(hass)
     with (
         patch("custom_components.mail_and_packages.async_setup", return_value=True),
-        patch("custom_components.mail_and_packages.async_setup_entry", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry", return_value=True
+        ),
     ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()

@@ -12,8 +12,15 @@ from custom_components.mail_and_packages.shippers.generic import GenericShipper
 
 
 @pytest.mark.asyncio
+async def test_generic_handles_sensor(hass):
+    """Test GenericShipper handles_sensor method (Line 48)."""
+    assert GenericShipper.handles_sensor("ups_delivered") is True
+    assert GenericShipper.handles_sensor("non_existent_sensor") is False
+
+
+@pytest.mark.asyncio
 async def test_generic_shipper_basic(hass):
-    """Test GenericShipper basic initialization."""
+    """Test GenericShipper basic initialization (Line 43)."""
     shipper = GenericShipper(hass, {})
     assert shipper.name == "generic"
 
@@ -239,3 +246,44 @@ async def test_setup_image_extraction_not_delivered(hass):
     shipper = GenericShipper(hass, {})
     result = await shipper._setup_image_extraction("ups_exception", "/path")
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_generic_forwarded_emails(hass):
+    """Test GenericShipper with forwarded emails (Line 70)."""
+    shipper = GenericShipper(
+        hass,
+        {
+            "forwarded_emails": ["forward@test.com"],
+            "image_path": "test/path/",
+        },
+    )
+    mock_acc = AsyncMock()
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_search",
+        return_value=("OK", [None]),
+    ) as mock_search:
+        await shipper.process(mock_acc, "today", "ups_delivered")
+        assert "forward@test.com" in mock_search.call_args[0][1]
+
+
+@pytest.mark.asyncio
+async def test_generic_body_search(hass):
+    """Test GenericShipper with body search (Lines 209-211)."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    mock_acc = AsyncMock()
+    mock_acc.search.return_value = MagicMock(result="OK", lines=[b"1"])
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.find_text",
+            new_callable=AsyncMock,
+            return_value=1,
+        ) as mock_find,
+        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+    ):
+        # dhl_delivered has "body" in SENSOR_DATA
+        result = await shipper.process(mock_acc, "today", "dhl_delivered")
+        assert result[ATTR_COUNT] == 1
+        # Called once for process_emails_by_type and once for check_amazon_mentions
+        assert mock_find.call_count == 2
