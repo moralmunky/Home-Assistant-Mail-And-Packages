@@ -681,6 +681,41 @@ async def test_get_image_name_from_directory_os_error(caplog):
 
 
 @pytest.mark.asyncio
+async def test_get_image_name_from_directory_new_uuid():
+    """Test _get_image_name_from_directory generates a new UUID (Line 424)."""
+    with (
+        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch(
+            "custom_components.mail_and_packages.utils.image.get_formatted_date",
+            return_value="01-Jan-2024",
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.image.hash_file",
+            return_value="different_sha1",
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.image.uuid.uuid4",
+            return_value="fake-uuid",
+        ),
+    ):
+        mock_path_obj = MagicMock()
+        mock_file = MagicMock()
+        mock_file.is_file.return_value = True
+        mock_file.name = "old_image.gif"
+        # 1-Jan-2023 12:00:00
+        old_time = 1672574400.0
+        mock_file.stat.return_value.st_ctime = old_time
+
+        mock_path_obj.iterdir.return_value = [mock_file]
+        mock_path.side_effect = lambda *args: mock_path_obj
+
+        result = _get_image_name_from_directory(
+            "/path/", "mail_none.gif", "original_sha1", ".gif"
+        )
+        assert result == "fake-uuid.gif"
+
+
+@pytest.mark.asyncio
 async def test_image_file_name_hash_os_error(caplog):
     """Test image_file_name with hash_file OSError."""
     mock_hass = MagicMock()

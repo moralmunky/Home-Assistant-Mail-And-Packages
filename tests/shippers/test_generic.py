@@ -287,3 +287,28 @@ async def test_generic_body_search(hass):
         assert result[ATTR_COUNT] == 1
         # Called once for process_emails_by_type and once for check_amazon_mentions
         assert mock_find.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_generic_placeholder_default(hass):
+    """Test _copy_generic_placeholder falls back to mail_none.gif (Line 118)."""
+    shipper = GenericShipper(hass, {})
+    shipper_cfg = {
+        "name": "non_existent_courier",
+        "image_path": "/fake/path",
+        "image_name": "test.gif",
+    }
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.anyio.Path.exists",
+            return_value=False,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.copyfile",
+        ) as mock_copy,
+        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+    ):
+        await shipper._copy_generic_placeholder(shipper_cfg)
+        # Verify that it tried to copy mail_none.gif
+        assert "mail_none.gif" in mock_copy.call_args[0][0]

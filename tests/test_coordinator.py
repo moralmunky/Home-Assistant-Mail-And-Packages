@@ -95,3 +95,42 @@ async def test_process_sensor_attribute_merge(hass):
     assert data["test_sensor"] == 5
     assert data["test_image"] == "abc.jpg"
     assert data["image_path"] == "/test/path"
+
+
+@pytest.mark.asyncio
+async def test_process_sensor_invalid_return(hass):
+    """Test _process_sensor returns early if shipper doesn't return a dict."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    mock_shipper = AsyncMock()
+    mock_shipper.process.return_value = "invalid"
+
+    data = {}
+    with patch(
+        "custom_components.mail_and_packages.coordinator.get_shipper_for_sensor",
+        return_value=mock_shipper,
+    ):
+        await coordinator._process_sensor(
+            None, "today", "test_sensor", data, hass, FAKE_CONFIG_DATA
+        )
+
+    assert data == {}
+
+
+@pytest.mark.asyncio
+async def test_process_sensor_no_shipper(hass):
+    """Test _process_sensor returns early if no shipper is found."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    data = {}
+    with patch(
+        "custom_components.mail_and_packages.coordinator.get_shipper_for_sensor",
+        return_value=None,
+    ):
+        await coordinator._process_sensor(
+            None, "today", "test_sensor", data, hass, FAKE_CONFIG_DATA
+        )
+
+    assert data == {}

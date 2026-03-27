@@ -4,7 +4,7 @@ import datetime
 import re
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -783,3 +783,51 @@ async def test_amazon_search_multiple_images_gif(hass):
     ):
         await shipper.process(mock_account, "today", AMAZON_DELIVERED)
         assert mock_gif.called
+
+
+@pytest.mark.asyncio
+async def test_amazon_process_images_missing_config(hass):
+    """Test _process_amazon_images returns early with missing config."""
+    shipper = AmazonShipper(hass, {})
+    with patch("custom_components.mail_and_packages.shippers.amazon.Path") as mock_path:
+        await shipper._process_amazon_images(["url1"], None, None, 1)
+        assert not mock_path.called
+
+
+@pytest.mark.asyncio
+async def test_amazon_process_images_single(hass, caplog):
+    """Test _process_amazon_images with a single image."""
+    shipper = AmazonShipper(hass, {"image_path": "test/", "amazon_image": "test.gif"})
+    caplog.set_level("DEBUG")
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.anyio.Path.exists",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.anyio.Path.unlink",
+        ) as mock_unlink,
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.AmazonShipper._download_all_images",
+            return_value=["/fake/test.jpg"],
+        ),
+        patch("custom_components.mail_and_packages.shippers.amazon.Path") as mock_path,
+    ):
+        # mock_path needs to handle / operator and rename
+        mock_path_obj = MagicMock()
+        mock_path.side_effect = lambda *args: mock_path_obj
+        mock_path_obj.__truediv__.return_value = mock_path_obj
+
+        await shipper._process_amazon_images(["url1"], "test/", "test.gif", 1)
+        assert mock_unlink.called
+        assert mock_path_obj.rename.called
+        assert "Single Amazon image saved: test.gif" in caplog.text
+
+
+def test_amazon_handles_sensor(hass):
+    """Test handles_sensor method."""
+    shipper = AmazonShipper(hass, {})
+    assert shipper.handles_sensor("amazon_delivered") is True
+    assert shipper.handles_sensor("amazon_packages") is True
+    assert shipper.handles_sensor("usps_mail") is False
