@@ -337,7 +337,7 @@ async def test_coordinator_binary_sensor_update_usps_hash_comparison():
     with patch("homeassistant.helpers.frame.report_usage"):
         coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
         coordinator._data = {
-            "image_name": "test_image.gif",
+            "usps_image": "test_image.gif",
             "image_path": "custom_components/mail_and_packages/images/",
         }
 
@@ -460,7 +460,7 @@ async def test_coordinator_binary_sensor_update_same_hashes():
     with patch("homeassistant.helpers.frame.report_usage"):
         coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
         coordinator._data = {
-            "image_name": "test_image.gif",
+            "usps_image": "test_image.gif",
             "image_path": "custom_components/mail_and_packages/images/",
         }
 

@@ -32,7 +32,7 @@ async def test_informed_delivery_emails_class(
         hass,
         {
             "image_path": "test/path/usps/",
-            "image_name": "mail_today.gif",
+            "usps_image": "mail_today.gif",
             CONF_DURATION: 5,
             "forwarded_emails": [],
         },
@@ -79,7 +79,7 @@ async def test_new_informed_delivery_emails_class(
         hass,
         {
             "image_path": "test/path/usps/",
-            "image_name": "mail_today.gif",
+            "usps_image": "mail_today.gif",
             CONF_DURATION: 5,
             "forwarded_emails": [],
         },
@@ -126,7 +126,7 @@ async def test_informed_digest_no_mail_class(
         hass,
         {
             "image_path": "test/path/usps/",
-            "image_name": "mail_today.gif",
+            "usps_image": "mail_today.gif",
             "forwarded_emails": [],
         },
     )
@@ -159,7 +159,7 @@ async def test_informed_delivery_with_images_class(hass):
         hass,
         {
             "image_path": "test/path/usps/",
-            "image_name": "mail_today.gif",
+            "usps_image": "mail_today.gif",
             CONF_DURATION: 5,
         },
     )
@@ -223,7 +223,7 @@ async def test_informed_delivery_placeholder_image(hass):
         hass,
         {
             "image_path": "test/path/usps/",
-            "image_name": "mail_today.gif",
+            "usps_image": "mail_today.gif",
             CONF_DURATION: 5,
         },
     )
@@ -273,7 +273,7 @@ async def test_informed_delivery_announcement_filtering(hass):
         hass,
         {
             "image_path": "test/path/usps/",
-            "image_name": "mail_today.gif",
+            "usps_image": "mail_today.gif",
             CONF_DURATION: 5,
         },
     )
@@ -372,7 +372,7 @@ async def test_informed_delivery_resize_error(hass):
         hass,
         {
             "image_path": "test/path/usps/",
-            "image_name": "mail_today.gif",
+            "usps_image": "mail_today.gif",
             CONF_DURATION: 5,
         },
     )
@@ -438,7 +438,7 @@ async def test_informed_delivery_gen_mp4_grid(hass):
         hass,
         {
             "image_path": "test/",
-            "image_name": "test.gif",
+            "usps_image": "test.gif",
             "generate_mp4": True,
             "generate_grid": True,
         },

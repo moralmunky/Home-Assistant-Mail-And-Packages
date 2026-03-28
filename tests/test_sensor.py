@@ -201,7 +201,7 @@ async def test_image_path_sensor_urls(hass, external_url, internal_url, expected
 
     # Mock coordinator data
     coordinator = MagicMock()
-    coordinator.data = {"image_name": "test_image.gif", "image_path": "images/"}
+    coordinator.data = {"usps_image": "test_image.gif", "image_path": "images/"}
 
     hass.config.external_url = external_url
     hass.config.internal_url = internal_url
@@ -348,7 +348,7 @@ async def test_image_path_sensor_grid(hass):
     entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
     coordinator = MagicMock()
     coordinator.data = {
-        "image_name": "test.gif",
+        "usps_image": "test.gif",
         "grid_image": "test_grid.png",
         "image_path": "images/",
     }
