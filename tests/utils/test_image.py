@@ -752,3 +752,38 @@ def test_copy_overlays_force_copy():
 
         copy_overlays("/path/")
         assert mock_copy.called
+
+
+@pytest.mark.asyncio
+async def test_get_image_name_from_directory_skips_generic():
+    """Test _get_image_name_from_directory skips generic_deliveries.gif (Line 416)."""
+    with (
+        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch(
+            "custom_components.mail_and_packages.utils.image.get_formatted_date",
+            return_value="01-Jan-2024",
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.image.hash_file",
+            return_value="different_sha1",
+        ),
+    ):
+        mock_path_obj = MagicMock()
+        mock_generic_file = MagicMock()
+        mock_generic_file.is_file.return_value = True
+        mock_generic_file.name = "generic_deliveries.gif"
+
+        mock_valid_file = MagicMock()
+        mock_valid_file.is_file.return_value = True
+        mock_valid_file.name = "valid_image.gif"
+        # 1-Jan-2024 12:00:00 (Today)
+        mock_valid_file.stat.return_value.st_ctime = 1704110400.0
+
+        mock_path_obj.iterdir.return_value = [mock_generic_file, mock_valid_file]
+        mock_path.return_value = mock_path_obj
+
+        result = _get_image_name_from_directory(
+            "/path/", "mail_none.gif", "sha1", ".gif"
+        )
+        # Should skip generic_deliveries.gif and return valid_image.gif
+        assert result == "valid_image.gif"
