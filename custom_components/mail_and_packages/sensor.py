@@ -24,6 +24,7 @@ from .const import (
     ATTR_IMAGE_PATH,
     ATTR_ORDER,
     ATTR_TRACKING_NUM,
+    ATTR_USPS_IMAGE,
     CONF_PATH,
     DOMAIN,
     IMAGE_SENSORS,
@@ -95,7 +96,7 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
     @property
     def unique_id(self) -> str:
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self._host}_{self._name}_{self._unique_id}"
+        return f"sensor_{self._host}_{self.type}_{self._unique_id}"
 
     @property
     def name(self) -> str:
@@ -189,7 +190,7 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
     @property
     def unique_id(self) -> str:
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self._host}_{self._name}_{self._unique_id}"
+        return f"sensor_{self._host}_{self.type}_{self._unique_id}"
 
     @property
     def name(self) -> str:
@@ -202,7 +203,7 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
         image = ""
         the_path = None
 
-        image = self.coordinator.data.get(ATTR_IMAGE_NAME)
+        image = self.coordinator.data.get(ATTR_USPS_IMAGE)
 
         grid_image = self.coordinator.data.get(ATTR_GRID_IMAGE_NAME)
 

@@ -80,3 +80,5 @@ virtualization/vagrant/config
 # Home Assistant configuration
 config/*
 !config/configuration.yaml
+.storage/*
+test/*

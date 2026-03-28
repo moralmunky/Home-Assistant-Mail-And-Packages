@@ -73,7 +73,9 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
         self._host = config.data[CONF_HOST]
 
         self._attr_name = f"{self._name}"
-        self._attr_unique_id = f"{self._host}_{self._name}_{self._unique_id}"
+        self._attr_unique_id = (
+            f"binary_sensor_{self._host}_{self._type}_{self._unique_id}"
+        )
 
     @property
     def device_info(self) -> dict:
