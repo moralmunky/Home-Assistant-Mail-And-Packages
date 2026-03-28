@@ -25,8 +25,8 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from . import const
 from .const import (
-    ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
+    ATTR_USPS_IMAGE,
     AUTH_TYPE_PASSWORD,
     CONF_ALLOW_EXTERNAL,
     CONF_AUTH_TYPE,
@@ -169,7 +169,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         config["fedex_image"] = await hass.async_add_executor_job(
             image_file_name, hass, config, False, False, False, True
         )
-        config["image_name"] = await hass.async_add_executor_job(
+        config["usps_image"] = await hass.async_add_executor_job(
             image_file_name, hass, config, False, False, False, False
         )
 
@@ -256,11 +256,11 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _binary_sensor_update(self):
         """Update binary sensor states."""
-        # USPS uses different attributes (ATTR_IMAGE_NAME instead of ATTR_*_IMAGE)
+        # USPS uses ATTR_USPS_IMAGE instead of the old ATTR_IMAGE_NAME
         _LOGGER.debug("Data: %s", self._data)
-        attributes = (ATTR_IMAGE_NAME, ATTR_IMAGE_PATH)
+        attributes = (ATTR_USPS_IMAGE, ATTR_IMAGE_PATH)
         if set(attributes).issubset(self._data.keys()):
-            image = self._data[ATTR_IMAGE_NAME]
+            image = self._data[ATTR_USPS_IMAGE]
             path = default_image_path(self.hass, self.config)
             usps_image = f"{path}/{image}"
             usps_none = f"{Path(__file__).parent}/mail_none.gif"

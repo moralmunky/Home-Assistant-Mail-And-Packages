@@ -16,8 +16,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import MailAndPackagesConfigEntry, const
 from .const import (
-    ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
+    ATTR_USPS_IMAGE,
     CAMERA_DATA,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
@@ -201,9 +201,9 @@ class MailCam(CoordinatorEntity, Camera):
     def _update_usps_camera(self) -> None:
         """Update file path for USPS camera."""
         self._file_path = f"{Path(__file__).parent}/mail_none.gif"
-        required_keys = {ATTR_IMAGE_NAME, ATTR_IMAGE_PATH}
+        required_keys = {ATTR_USPS_IMAGE, ATTR_IMAGE_PATH}
         if required_keys.issubset(self.coordinator.data):
-            image = self.coordinator.data[ATTR_IMAGE_NAME]
+            image = self.coordinator.data[ATTR_USPS_IMAGE]
             path = self.coordinator.data[ATTR_IMAGE_PATH]
             self._file_path = f"{self.hass.config.path()}/{path}{image}"
         elif self._no_mail:
@@ -527,7 +527,7 @@ class MailCam(CoordinatorEntity, Camera):
     @property
     def unique_id(self) -> str:
         """Return a unique, Home Assistant friendly identifier for this entity."""
-        return f"{self._host}_{self._name}_{self._unique_id}"
+        return f"camera_{self._host}_{self._type}_{self._unique_id}"
 
     @property
     def name(self):

@@ -17,9 +17,9 @@ from bs4 import BeautifulSoup
 from custom_components.mail_and_packages.const import (
     ATTR_COUNT,
     ATTR_EMAIL,
-    ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
     ATTR_SUBJECT,
+    ATTR_USPS_IMAGE,
     ATTR_USPS_MAIL,
     CONF_CUSTOM_IMG_FILE,
     CONF_DURATION,
@@ -127,7 +127,7 @@ class USPSShipper(Shipper):
 
         return {
             ATTR_COUNT: image_count,
-            ATTR_IMAGE_NAME: config["image_name"],
+            ATTR_USPS_IMAGE: config["image_name"],
             ATTR_IMAGE_PATH: config["image_output_path"],
         }
 
@@ -225,7 +225,7 @@ class USPSShipper(Shipper):
         return {
             "image_output_path": self.config.get("image_path"),
             "gif_duration": self.config.get(CONF_DURATION),
-            "image_name": self.config.get("image_name"),
+            "image_name": self.config.get("usps_image"),
             "gen_mp4": self.config.get(CONF_GENERATE_MP4),
             "custom_img": self.config.get(CONF_CUSTOM_IMG_FILE)
             or DEFAULT_CUSTOM_IMG_FILE,

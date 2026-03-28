@@ -42,6 +42,7 @@ ATTR_UPS_IMAGE = "ups_image"
 ATTR_WALMART_IMAGE = "walmart_image"
 ATTR_FEDEX_IMAGE = "fedex_image"
 ATTR_GENERIC_IMAGE = "generic_image"
+ATTR_USPS_IMAGE = "usps_image"
 
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"

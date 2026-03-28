@@ -412,6 +412,8 @@ def _get_image_name_from_directory(
             if not file_path.is_file():
                 continue
             filename = file_path.name
+            if filename == "generic_deliveries.gif":
+                continue
             is_image_file = filename.endswith(".gif") or (
                 filename.endswith(".jpg") and ext == ".jpg"
             )
@@ -420,10 +422,11 @@ def _get_image_name_from_directory(
                     created = datetime.datetime.fromtimestamp(
                         file_path.stat().st_ctime,
                     ).strftime("%d-%b-%Y")
-                    if sha1 != hash_file(str(file_path)) and today != created:
-                        image_name = f"{uuid.uuid4()!s}{ext}"
-                    else:
+                    # If it's the correct hash OR created today, we can reuse it
+                    if sha1 == hash_file(str(file_path)) or today == created:
                         image_name = filename
+                        break
+                    image_name = f"{uuid.uuid4()!s}{ext}"
                 except OSError as err:
                     _LOGGER.error("Problem accessing file %s: %s", filename, err)
     except OSError as err:

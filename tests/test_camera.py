@@ -2424,7 +2424,7 @@ async def test_usps_camera_with_image_data_full(hass, mock_imap_no_email, integr
     entry = integration
     coordinator = entry.runtime_data.coordinator
     coordinator.data = {
-        "image_name": "test_usps.gif",
+        "usps_image": "test_usps.gif",
         "image_path": "images/usps/",
     }
 
