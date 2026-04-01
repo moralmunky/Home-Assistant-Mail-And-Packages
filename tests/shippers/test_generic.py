@@ -8,6 +8,7 @@ from custom_components.mail_and_packages.const import (
     ATTR_COUNT,
     ATTR_TRACKING,
 )
+from custom_components.mail_and_packages.shippers import generic
 from custom_components.mail_and_packages.shippers.generic import GenericShipper
 from custom_components.mail_and_packages.utils.cache import EmailCache
 
@@ -422,3 +423,53 @@ async def test_generic_image_found(hass):
         assert result[ATTR_COUNT] == 1
         # image_found is true, so _copy_generic_placeholder should NOT be called
         mock_copy.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_generic_search_coverage_edges(hass):
+    """Test GenericShipper coverage for Line 219 and 233."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    mock_account = AsyncMock()
+
+    # Patch SENSOR_DATA to give ups_delivered only 2 subjects, hitting the 'else' branch
+    # but still having a valid camera config (ups_camera).
+    modified_sensor_data = generic.SENSOR_DATA.copy()
+    modified_sensor_data["ups_delivered"] = {
+        **modified_sensor_data["ups_delivered"],
+        "subject": ["Subject 1", "Subject 2"],
+    }
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.SENSOR_DATA",
+            modified_sensor_data,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.email_search",
+            new_callable=AsyncMock,
+            side_effect=[
+                ("OK", [b"1"]),  # Subject 1 finds ID 1
+                ("OK", [b"1"]),  # Subject 2 finds ID 1 again -> Hits Line 219
+            ],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"RFC822", b"body"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.generic_delivery_image_extraction",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            new_callable=AsyncMock,
+            return_value=[],
+        ),
+        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+        patch.object(shipper, "_copy_generic_placeholder", new_callable=AsyncMock),
+    ):
+        # We use 'ups_delivered' because it has a camera entry ('ups_camera')
+        result = await shipper.process(mock_account, "today", "ups_delivered")
+        # Line 233 hit because image_found = True
+        assert result[ATTR_COUNT] == 1
