@@ -18,6 +18,7 @@ from custom_components.mail_and_packages.utils.amazon import (
     get_email_body,
     search_amazon_emails,
 )
+from custom_components.mail_and_packages.utils.cache import EmailCache
 
 
 def test_get_decoded_subject_error_handling():
@@ -117,7 +118,7 @@ async def test_get_amazon_image_urls_basic():
         "OK",
         [
             b"RFC822",
-            b'Content-Type: text/html\n\n<img src="https://m.media-amazon.com/images/I/test.jpg">',
+            b'Content-Type: text/html\n\n<img src="https://us-prod-temp.s3.amazonaws.com/test.jpg">',
         ],
     )
     # AMAZON_IMG_PATTERN and AMAZON_IMG_LIST check
@@ -129,12 +130,12 @@ async def test_get_amazon_image_urls_basic():
             "OK",
             [
                 b"RFC822",
-                b'Content-Type: text/html\n\n<img src="https://m.media-amazon.com/images/I/test.jpg">',
+                b'Content-Type: text/html\n\n<img src="https://us-prod-temp.s3.amazonaws.com/test.jpg">',
             ],
         )
         result = await get_amazon_image_urls("1", mock_acc)
         assert isinstance(result, list)
-        # Verify it doesn't crash
+        assert "https://us-prod-temp.s3.amazonaws.com/test.jpg" in result
 
 
 def test_get_decoded_subject_non_bytes_decoded():
@@ -199,3 +200,43 @@ async def test_download_amazon_img_client_error(hass, tmp_path, caplog):
     ):
         await download_amazon_img(img_url, img_path, img_name, hass)
         assert "Problem downloading file" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_search_amazon_emails_with_cache():
+    """Test search_amazon_emails with EmailCache (Line 194)."""
+    mock_acc = AsyncMock()
+    cache = EmailCache(mock_acc)
+    # Populate cache with a subject that matches AMAZON_SHIPMENT_SUBJECT "Shipped:"
+    cache._cache_headers["1"] = (
+        "OK",
+        [b"Subject: Shipped: Your Amazon.com order"],
+    )
+
+    with patch(
+        "custom_components.mail_and_packages.utils.amazon.email_search",
+        new_callable=AsyncMock,
+    ) as mock_search:
+        mock_search.return_value = ("OK", [b"1"])
+        result = await search_amazon_emails(
+            mock_acc, ["test@amazon.com"], 1, cache=cache
+        )
+        assert result == [b"1"]
+
+
+@pytest.mark.asyncio
+async def test_get_amazon_image_urls_with_cache():
+    """Test get_amazon_image_urls with EmailCache (Line 243)."""
+    mock_acc = AsyncMock()
+    cache = EmailCache(mock_acc)
+    # Populate cache with a domain in AMAZON_IMG_LIST
+    cache._cache_rfc822["1"] = (
+        "OK",
+        [
+            b"RFC822",
+            b'Content-Type: text/html\n\n<img src="https://us-prod-temp.s3.amazonaws.com/test.jpg">',
+        ],
+    )
+
+    result = await get_amazon_image_urls("1", mock_acc, cache=cache)
+    assert "https://us-prod-temp.s3.amazonaws.com/test.jpg" in result

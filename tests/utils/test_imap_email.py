@@ -14,6 +14,9 @@ from custom_components.mail_and_packages.utils.imap import (
     InvalidAuth,
     build_search,
     email_fetch,
+    email_fetch_batch,
+    email_fetch_headers,
+    email_fetch_text,
     email_search,
     login,
     selectfolder,
@@ -421,3 +424,119 @@ async def test_find_text_decode_error():
         with patch("email.message.Message.get_payload", return_value=None):
             result = await find_text(sdata, mock_acc, ["term"], False)
             assert result == 0
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_headers_success():
+    """Test email_fetch_headers success path."""
+    mock_imap = AsyncMock()
+    mock_res = MagicMock()
+    mock_res.result = "OK"
+    mock_res.lines = [b"Subject: Test"]
+    mock_imap.fetch.return_value = mock_res
+
+    result = await email_fetch_headers(mock_imap, "1")
+    assert result[0] == "OK"
+    assert result[1] == [b"Subject: Test"]
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_headers_failure(caplog):
+    """Test email_fetch_headers failure path."""
+    mock_imap = AsyncMock()
+    mock_imap.fetch.side_effect = OSError("Connection error")
+    caplog.set_level("ERROR")
+
+    result = await email_fetch_headers(mock_imap, "1")
+    assert result[0] == "BAD"
+    assert "Error fetching email headers" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_text_success():
+    """Test email_fetch_text success path."""
+    mock_imap = AsyncMock()
+    mock_res = MagicMock()
+    mock_res.result = "OK"
+    mock_res.lines = [b"Text content"]
+    mock_imap.fetch.return_value = mock_res
+
+    result = await email_fetch_text(mock_imap, "1")
+    assert result[0] == "OK"
+    assert result[1] == [b"Text content"]
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_text_me_com():
+    """Test email_fetch_text for me.com."""
+    mock_imap = AsyncMock()
+    mock_imap.host = "imap.mail.me.com"
+    mock_res = MagicMock()
+    mock_res.result = "OK"
+    mock_res.lines = []
+    mock_imap.fetch.return_value = mock_res
+
+    await email_fetch_text(mock_imap, "1")
+    mock_imap.fetch.assert_called_with("1", "BODY[]")
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_text_failure(caplog):
+    """Test email_fetch_text failure path."""
+    mock_imap = AsyncMock()
+    mock_imap.fetch.side_effect = OSError("Connection error")
+    caplog.set_level("ERROR")
+
+    result = await email_fetch_text(mock_imap, "1")
+    assert result[0] == "BAD"
+    assert "Error fetching email text" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_batch_success():
+    """Test email_fetch_batch success path."""
+    mock_imap = AsyncMock()
+    mock_res = MagicMock()
+    mock_res.result = "OK"
+    mock_res.lines = [b"Batch content"]
+    mock_imap.fetch.return_value = mock_res
+
+    result = await email_fetch_batch(mock_imap, ["1", "2"])
+    assert result[0] == "OK"
+    assert result[1] == [b"Batch content"]
+    mock_imap.fetch.assert_called_with("1,2", "(RFC822)")
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_batch_empty():
+    """Test email_fetch_batch with empty list."""
+    mock_imap = AsyncMock()
+    result = await email_fetch_batch(mock_imap, [])
+    assert result == ("OK", [])
+    assert not mock_imap.fetch.called
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_batch_me_com():
+    """Test email_fetch_batch for me.com."""
+    mock_imap = AsyncMock()
+    mock_imap.host = "imap.mail.me.com"
+    mock_res = MagicMock()
+    mock_res.result = "OK"
+    mock_res.lines = []
+    mock_imap.fetch.return_value = mock_res
+
+    await email_fetch_batch(mock_imap, ["1"])
+    mock_imap.fetch.assert_called_with("1", "BODY[]")
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_batch_failure(caplog):
+    """Test email_fetch_batch failure path."""
+    mock_imap = AsyncMock()
+    mock_imap.fetch.side_effect = OSError("Connection error")
+    caplog.set_level("ERROR")
+
+    result = await email_fetch_batch(mock_imap, ["1"])
+    assert result[0] == "BAD"
+    assert "Error fetching emails batch" in caplog.text

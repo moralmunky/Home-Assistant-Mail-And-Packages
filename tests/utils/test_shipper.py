@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from custom_components.mail_and_packages.utils.cache import EmailCache
 from custom_components.mail_and_packages.utils.shipper import (
     generic_delivery_image_extraction,
     get_tracking,
@@ -419,3 +420,18 @@ async def test_extract_from_attachments_error(caplog):
         )
         assert result is False
         assert "Error saving t delivery photo to" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_tracking_with_cache():
+    """Test get_tracking with EmailCache (Line 38)."""
+    mock_acc = AsyncMock()
+    cache = EmailCache(mock_acc)
+    # Populate cache
+    cache._cache_rfc822["1"] = (
+        "OK",
+        [b"Subject: UPS: 1Z1234567890123456\n\nBody"],
+    )
+
+    result = await get_tracking("1", mock_acc, "1Z?[0-9A-Z]{16}", cache=cache)
+    assert result == ["1Z1234567890123456"]
