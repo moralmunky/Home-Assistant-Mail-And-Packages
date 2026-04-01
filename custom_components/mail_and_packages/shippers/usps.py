@@ -28,6 +28,7 @@ from custom_components.mail_and_packages.const import (
     DEFAULT_CUSTOM_IMG_FILE,
     SENSOR_DATA,
 )
+from custom_components.mail_and_packages.utils.cache import EmailCache
 from custom_components.mail_and_packages.utils.date import get_formatted_date
 from custom_components.mail_and_packages.utils.image import (
     _generate_mp4,
@@ -64,6 +65,7 @@ class USPSShipper(Shipper):
         account: IMAP4_SSL,
         date: str,
         sensor_type: str,
+        cache: EmailCache | None = None,
     ) -> dict[str, Any]:
         """Process USPS Informed Delivery emails."""
         config = self._get_usps_config()
@@ -91,6 +93,7 @@ class USPSShipper(Shipper):
                     config["image_output_path"],
                     image_count,
                     images,
+                    cache,
                 )
                 all_msg_content += email_content
 
@@ -130,6 +133,27 @@ class USPSShipper(Shipper):
             ATTR_USPS_IMAGE: config["image_name"],
             ATTR_IMAGE_PATH: config["image_output_path"],
         }
+
+    async def process_batch(
+        self,
+        account: IMAP4_SSL,
+        date: str,
+        sensors: list[str],
+        cache: EmailCache,
+    ) -> dict[str, Any]:
+        """Process multiple USPS sensors in batch."""
+        res = {}
+        for sensor in sensors:
+            res.update(await self.process(account, date, sensor, cache))
+
+            # Replicatecoordinator dict structure
+            if sensor not in res:
+                if ATTR_COUNT in res:
+                    res[sensor] = res[ATTR_COUNT]
+                    # Don't pop ATTR_COUNT because other things might need it, actually
+                    # coordinator used to pop it via explicit assignment
+
+        return res
 
     async def _generate_mp4_video(self, path: str, name: str):
         """Generate MP4 video from images."""
@@ -271,9 +295,13 @@ class USPSShipper(Shipper):
         image_output_path: str,
         image_count: int,
         images: list,
+        cache: EmailCache | None = None,
     ) -> tuple[int, list, str]:
         """Process a single USPS Informed Delivery email."""
-        msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
+        if cache:
+            msg_parts = (await cache.fetch(num, "(RFC822)"))[1]
+        else:
+            msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
         _LOGGER.debug("Processing email number: %s", num)
         all_content = ""
         for response_part in msg_parts:

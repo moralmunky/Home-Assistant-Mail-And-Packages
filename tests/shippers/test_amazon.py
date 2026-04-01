@@ -27,6 +27,7 @@ from custom_components.mail_and_packages.utils.amazon import (
     amazon_email_addresses,
     parse_amazon_arrival_date,
 )
+from custom_components.mail_and_packages.utils.cache import EmailCache
 
 
 @pytest.mark.asyncio
@@ -510,7 +511,7 @@ async def test_amazon_search_delivered(hass, mock_imap_amazon_delivered, caplog)
         )
         await hass.async_block_till_done()
         assert "Amazon email search addresses:" in caplog.text
-        assert result[AMAZON_DELIVERED] == 10
+        assert result[AMAZON_DELIVERED] == 1
         assert mock_download_img.called
 
 
@@ -536,7 +537,7 @@ async def test_amazon_search_delivered_it(hass, mock_imap_amazon_delivered_it):
             "today",
             AMAZON_DELIVERED,
         )
-        assert result[AMAZON_DELIVERED] == 10
+        assert result[AMAZON_DELIVERED] == 1
 
 
 @pytest.mark.asyncio
@@ -589,7 +590,18 @@ async def test_amazon_packages_counts(hass, mock_imap_amazon_shipped):
                 "OK",
                 [
                     b"Header",
-                    b"Subject: Shipped\nDate: Fri, 25 Sep 2020 12:00:00 +0000\n\nYour order 111-1234567-1234567 has shipped. Arriving: Saturday, September 26.",
+                    b"Subject: Shipped:\nDate: Fri, 25 Sep 2020 12:00:00 +0000\n\nYour order 111-1234567-1234567 has shipped. Arriving: Saturday, September 26.",
+                ],
+            ),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.email_fetch_headers",
+            new_callable=AsyncMock,
+            return_value=(
+                "OK",
+                [
+                    b"Header",
+                    b"Subject: Shipped:\nDate: Fri, 25 Sep 2020 12:00:00 +0000\n\nYour order 111-1234567-1234567 has shipped. Arriving: Saturday, September 26.",
                 ],
             ),
         ),
@@ -614,7 +626,18 @@ async def test_amazon_order_list(hass, mock_imap_amazon_shipped):
                 "OK",
                 [
                     b"Header",
-                    b"Subject: Shipped\n\nYour order 111-1234567-1234567 has shipped.",
+                    b"Subject: Shipped:\n\nYour order 111-1234567-1234567 has shipped.",
+                ],
+            ),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.email_fetch_headers",
+            new_callable=AsyncMock,
+            return_value=(
+                "OK",
+                [
+                    b"Header",
+                    b"Subject: Shipped:\n\nYour order 111-1234567-1234567 has shipped.",
                 ],
             ),
         ),
@@ -757,6 +780,14 @@ async def test_amazon_search_multiple_images_gif(hass):
             return_value=("OK", [b"1 2"]),
         ),
         patch(
+            "custom_components.mail_and_packages.shippers.amazon.email_fetch_headers",
+            new_callable=AsyncMock,
+            return_value=(
+                "OK",
+                [None, b"Subject: Delivered: Your Amazon order\n\nBody"],
+            ),
+        ),
+        patch(
             "custom_components.mail_and_packages.shippers.amazon.get_amazon_image_urls",
             new_callable=AsyncMock,
             return_value=urls,
@@ -831,3 +862,126 @@ def test_amazon_handles_sensor(hass):
     assert shipper.handles_sensor("amazon_delivered") is True
     assert shipper.handles_sensor("amazon_packages") is True
     assert shipper.handles_sensor("usps_mail") is False
+
+
+@pytest.mark.asyncio
+async def test_process_batch(hass):
+    """Test process_batch for Amazon shipper."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_cache = MagicMock()
+
+    with patch.object(shipper, "process", new_callable=AsyncMock) as mock_process:
+
+        async def _mock_process(account, date, sensor, cache):
+            if sensor == AMAZON_OTP:
+                return {AMAZON_OTP: {ATTR_CODE: ["123456"], ATTR_COUNT: 1}}
+            if sensor == AMAZON_PACKAGES:
+                # Trigger the "sensor not in sensor_res" and "ATTR_COUNT in sensor_res" branch
+                return {ATTR_COUNT: 5}
+            return {sensor: 0}
+
+        mock_process.side_effect = _mock_process
+
+        sensors = [AMAZON_OTP, AMAZON_PACKAGES]
+        result = await shipper.process_batch(mock_account, "today", sensors, mock_cache)
+
+        assert result[AMAZON_OTP] == {ATTR_CODE: ["123456"], ATTR_COUNT: 1}
+        assert result[AMAZON_PACKAGES] == 5
+
+
+@pytest.mark.asyncio
+async def test_process_with_cache(hass):
+    """Test Amazon shipper processing with EmailCache."""
+    shipper = AmazonShipper(hass, {})
+    """Test Amazon shipper processing with EmailCache."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+
+    cache = EmailCache(mock_account)
+
+    # 1. Test _process_amazon_email with cache
+    cache._cache_rfc822["1"] = (
+        "OK",
+        [b"RFC822", b"Subject: Shipped: 1\n\nOrder 111-1234567-1234567 shipped."],
+    )
+    ctx = {
+        "today": datetime.date.today(),
+        "deliveries_today": [],
+        "amazon_delivered": [],
+        "all_shipped_orders": set(),
+        "packages_arriving_today": {},
+        "delivered_packages": {},
+        "order_pattern": re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}"),
+    }
+    await shipper._process_amazon_email(mock_account, "1", ctx, cache=cache)
+    assert "111-1234567-1234567" in ctx["all_shipped_orders"]
+
+    # 2. Test _amazon_search with cache
+    cache._cache_headers["2"] = (
+        "OK",
+        [b"Subject: Delivered: Your Amazon order has arrived!"],
+    )
+    cache._cache_rfc822["2"] = (
+        "OK",
+        [b"RFC822", b"Content-Type: text/html\n\nNo images here"],
+    )
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"2"]),
+        ),
+        patch("custom_components.mail_and_packages.shippers.amazon.cleanup_images"),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.copyfile",
+        ),
+    ):
+        count = await shipper._amazon_search(
+            mock_account, "test/path/amazon/", "amazon.jpg", "amazon.com", cache=cache
+        )
+        assert count == 1
+
+    # 3. Test _amazon_hub with cache
+    cache._cache_rfc822["3"] = (
+        "OK",
+        [b"RFC822", b"Subject: a package to pick up 123456"],
+    )
+    with patch(
+        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        new_callable=AsyncMock,
+        return_value=("OK", [b"3"]),
+    ):
+        hub_res = await shipper._amazon_hub(mock_account, cache=cache)
+        assert hub_res[ATTR_COUNT] == 1
+        assert hub_res[ATTR_CODE] == ["123456"]
+
+    # 4. Test _amazon_otp with cache
+    cache._cache_rfc822["4"] = (
+        "OK",
+        [b"RFC822", b"Subject: OTP\n\n\n123456\n"],
+    )
+    with patch(
+        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        new_callable=AsyncMock,
+        return_value=("OK", [b"4"]),
+    ):
+        otp_res = await shipper._amazon_otp(mock_account, cache=cache)
+        assert otp_res[ATTR_CODE] == ["123456"]
+
+    # 5. Test _amazon_exception with cache
+    cache._cache_rfc822["5"] = (
+        "OK",
+        [
+            b"RFC822",
+            b"Subject: Delivery update: Order 111-1234567-1234567\n\nYour order is running late.",
+        ],
+    )
+    with patch(
+        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        new_callable=AsyncMock,
+        return_value=("OK", [b"5"]),
+    ):
+        exc_res = await shipper._amazon_exception(mock_account, cache=cache)
+        assert exc_res[ATTR_COUNT] == 1
+        assert "111-1234567-1234567" in exc_res[ATTR_ORDER]

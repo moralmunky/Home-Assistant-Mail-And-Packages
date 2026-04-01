@@ -11,6 +11,7 @@ from custom_components.mail_and_packages.const import (
     CONF_DURATION,
 )
 from custom_components.mail_and_packages.shippers.usps import USPSShipper
+from custom_components.mail_and_packages.utils.cache import EmailCache
 
 
 @pytest.mark.asyncio
@@ -612,3 +613,60 @@ async def test_copy_nomail_image_os_error(hass):
     shipper = USPSShipper(hass, {})
     with patch.object(hass, "async_add_executor_job", side_effect=OSError("Disk Full")):
         await shipper._copy_nomail_image("test/", "test.gif", None)
+
+
+@pytest.mark.asyncio
+async def test_process_batch(hass):
+    """Test process_batch for USPS shipper."""
+    shipper = USPSShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_cache = MagicMock()
+
+    with patch.object(shipper, "process", new_callable=AsyncMock) as mock_process:
+        # Mock process to return a result that requires the "sensor not in res" logic
+        async def _mock_process(account, date, sensor, cache):
+            if sensor == "usps_mail":
+                # Trigger the "sensor not in res" and "ATTR_COUNT in res" branch
+                return {ATTR_COUNT: 5}
+            return {sensor: 0}
+
+        mock_process.side_effect = _mock_process
+
+        sensors = ["usps_mail"]
+        result = await shipper.process_batch(mock_account, "today", sensors, mock_cache)
+
+        assert result["usps_mail"] == 5
+
+
+@pytest.mark.asyncio
+async def test_process_with_cache(hass):
+    """Test USPS shipper processing with EmailCache."""
+    shipper = USPSShipper(
+        hass, {"image_path": "test/path/", "usps_image": "mail_today.gif"}
+    )
+    mock_account = AsyncMock()
+
+    cache = EmailCache(mock_account)
+
+    # Populate cache for _search_for_emails (Line 302)
+    cache._cache_rfc822["1"] = (
+        "OK",
+        [b"RFC822", b"Subject: USPS Informed Delivery\n\nNo mail today"],
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
+        patch("custom_components.mail_and_packages.shippers.usps.shutil.copyfile"),
+    ):
+        result = await shipper.process(mock_account, "today", "usps_mail", cache=cache)
+        assert result[ATTR_COUNT] == 0  # "No mail today"

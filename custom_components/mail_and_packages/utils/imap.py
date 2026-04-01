@@ -97,7 +97,7 @@ def build_search(address: list, date: str, subject: str = "") -> tuple:
 
     _LOGGER.debug("DEBUG subject: %s", subject)
 
-    if subject is not None:
+    if subject:
         # Strip non-ASCII characters for IMAP server compatibility
         safe_subject = subject.encode("ascii", "ignore").decode("ascii")
         if prefix_list is not None:
@@ -148,6 +148,57 @@ async def email_fetch(account: IMAP4_SSL, num, parts: str = "(RFC822)") -> tuple
         res = await account.fetch(num_str, parts)
     except (AioImapException, OSError) as err:
         _LOGGER.error("Error fetching email %s: %s", num_str, err)
+        return ("BAD", str(err))
+    else:
+        return (res.result, res.lines)
+
+
+async def email_fetch_headers(account: IMAP4_SSL, num) -> tuple:
+    """Download only the subject header of an email asynchronously."""
+    num_str = num.decode() if isinstance(num, bytes) else str(num)
+
+    try:
+        res = await account.fetch(num_str, "(BODY[HEADER.FIELDS (SUBJECT)])")
+    except (AioImapException, OSError) as err:
+        _LOGGER.error("Error fetching email headers %s: %s", num_str, err)
+        return ("BAD", str(err))
+    else:
+        return (res.result, res.lines)
+
+
+async def email_fetch_text(account: IMAP4_SSL, num, parts: str = "(BODY[1])") -> tuple:
+    """Download the specific part of the email body asynchronously."""
+    if account.host == "imap.mail.me.com":
+        parts = "BODY[]"
+
+    num_str = num.decode() if isinstance(num, bytes) else str(num)
+
+    try:
+        res = await account.fetch(num_str, parts)
+    except (AioImapException, OSError) as err:
+        _LOGGER.error("Error fetching email text %s: %s", num_str, err)
+        return ("BAD", str(err))
+    else:
+        return (res.result, res.lines)
+
+
+async def email_fetch_batch(
+    account: IMAP4_SSL, nums: list[str | bytes], parts: str = "(RFC822)"
+) -> tuple:
+    """Download specified emails for parsing asynchronously in a batch."""
+    if not nums:
+        return ("OK", [])
+
+    if account.host == "imap.mail.me.com":
+        parts = "BODY[]"
+
+    num_strs = [num.decode() if isinstance(num, bytes) else str(num) for num in nums]
+    num_list_str = ",".join(num_strs)
+
+    try:
+        res = await account.fetch(num_list_str, parts)
+    except (AioImapException, OSError) as err:
+        _LOGGER.error("Error fetching emails batch %s: %s", num_list_str, err)
         return ("BAD", str(err))
     else:
         return (res.result, res.lines)

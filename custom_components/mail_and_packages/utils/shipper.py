@@ -11,6 +11,8 @@ from typing import Any
 
 from aioimaplib import IMAP4_SSL
 
+from custom_components.mail_and_packages.utils.cache import EmailCache
+
 from .imap import email_fetch
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,6 +22,7 @@ async def get_tracking(
     sdata: Any,
     account: type[IMAP4_SSL],
     the_format: str | None = None,
+    cache: EmailCache | None = None,
 ) -> list:
     """Parse tracking numbers from email.
 
@@ -31,7 +34,11 @@ async def get_tracking(
     _LOGGER.debug("Searching for tracking numbers in %s messages...", len(mail_list))
 
     for i in mail_list:
-        data = (await email_fetch(account, i, "(RFC822)"))[1]
+        if cache:
+            data = (await cache.fetch(i, "(RFC822)"))[1]
+        else:
+            data = (await email_fetch(account, i, "(RFC822)"))[1]
+
         for response_part in data:
             if not isinstance(response_part, (bytes, bytearray)):
                 continue

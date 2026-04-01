@@ -8,6 +8,8 @@ from typing import Any
 from aioimaplib import IMAP4_SSL
 from homeassistant.core import HomeAssistant
 
+from custom_components.mail_and_packages.utils.cache import EmailCache
+
 
 class Shipper(ABC):
     """Base class for shipper-specific parsing logic."""
@@ -35,3 +37,13 @@ class Shipper(ABC):
         sensor_type: str,
     ) -> dict[str, Any]:
         """Process emails for this shipper on the given date for a specific sensor."""
+
+    @abstractmethod
+    async def process_batch(
+        self,
+        account: IMAP4_SSL,
+        date: str,
+        sensors: list[str],
+        cache: EmailCache,
+    ) -> dict[str, Any]:
+        """Process multiple sensors for this shipper using batched fetching/searching."""
