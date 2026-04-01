@@ -9,6 +9,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import anyio
+from aioimaplib import IMAP4_SSL
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
@@ -37,6 +38,7 @@ from .const import (
 )
 from .helpers import copy_images
 from .shippers import get_shipper_for_sensor
+from .utils.cache import EmailCache
 from .utils.image import default_image_path, hash_file, image_file_name
 from .utils.imap import login, selectfolder
 
@@ -141,42 +143,66 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def process_emails(self, hass: HomeAssistant, config: dict) -> dict:
         """Process emails and update sensors."""
-        # Basic data structure
+        # Initialize defaults and image paths
+        data = self._initialize_data()
+        config = await self._setup_image_config(hass, config)
+
+        # Connect to IMAP
+        account = await self._get_imap_connection(config)
+        try:
+            cache = EmailCache(account)
+            today = datetime.datetime.now().strftime("%d-%b-%Y")
+
+            # Process logic
+            shipper_data = await self._update_shippers(account, config, today, cache)
+            data.update(shipper_data)
+        finally:
+            await account.logout()
+
+        # Post-process external images
+        if config.get(CONF_ALLOW_EXTERNAL):
+            try:
+                await hass.async_add_executor_job(copy_images, hass, config)
+            except (OSError, ValueError) as err:
+                _LOGGER.error("Problem creating: %s", err)
+
+        return data
+
+    def _initialize_data(self) -> dict:
+        """Initialize core data structure with default values."""
         data = {
             "mail_updated": datetime.datetime.now(datetime.UTC).isoformat(),
             "amazon_delivered_by_others": 0,
         }
-
-        # Initialize all potential sensors to 0 if not already set
         for sensor in const.SENSOR_TYPES:
             if sensor not in data:
                 data[sensor] = 0
+        return data
 
-        # Generate image path and name
+    async def _setup_image_config(self, hass: HomeAssistant, config: dict) -> dict:
+        """Configure image paths and filenames for all shippers."""
         image_path = default_image_path(hass, config)
         config["image_path"] = image_path
 
-        # Generate unique image names for each courier
-        config["amazon_image"] = await hass.async_add_executor_job(
-            image_file_name, hass, config, True, False, False, False
-        )
-        config["ups_image"] = await hass.async_add_executor_job(
-            image_file_name, hass, config, False, True, False, False
-        )
-        config["walmart_image"] = await hass.async_add_executor_job(
-            image_file_name, hass, config, False, False, True, False
-        )
-        config["fedex_image"] = await hass.async_add_executor_job(
-            image_file_name, hass, config, False, False, False, True
-        )
-        config["usps_image"] = await hass.async_add_executor_job(
-            image_file_name, hass, config, False, False, False, False
-        )
+        shipper_images = {
+            "amazon_image": (True, False, False, False),
+            "ups_image": (False, True, False, False),
+            "walmart_image": (False, False, True, False),
+            "fedex_image": (False, False, False, True),
+            "usps_image": (False, False, False, False),
+        }
 
-        # Login to IMAP
+        for key, params in shipper_images.items():
+            config[key] = await hass.async_add_executor_job(
+                image_file_name, hass, config, *params
+            )
+        return config
+
+    async def _get_imap_connection(self, config: dict) -> IMAP4_SSL:
+        """Establish and return an authenticated IMAP connection."""
         try:
             account = await login(
-                hass,
+                self.hass,
                 config.get(CONF_HOST),
                 config.get(CONF_PORT),
                 config.get(CONF_USERNAME),
@@ -189,70 +215,42 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             _LOGGER.error("Error logging into IMAP: %s", err)
             raise UpdateFailed(f"Login failed: {err}") from err
 
-        # Select folder
         if not await selectfolder(account, config.get(CONF_FOLDER)):
             _LOGGER.error("Error selecting folder: %s", config.get(CONF_FOLDER))
             await account.logout()
             raise UpdateFailed(f"Folder selection failed: {config.get(CONF_FOLDER)}")
 
-        # Process sensors
-        today = datetime.datetime.now().strftime("%d-%b-%Y")
+        return account
+
+    async def _update_shippers(
+        self, account: IMAP4_SSL, config: dict, today: str, cache: EmailCache
+    ) -> dict:
+        """Group and process sensors by shipper."""
+        data = {}
         resources = config.get(CONF_RESOURCES, [])
+        sensors_by_shipper = {}
 
         for sensor in resources:
-            await self._process_sensor(account, today, sensor, data, hass, config)
+            shipper = get_shipper_for_sensor(self.hass, config, sensor)
+            if shipper:
+                sensors_by_shipper.setdefault(shipper.name, []).append(
+                    (shipper, sensor)
+                )
 
-        await account.logout()
+        for shipper_name, shipper_group in sensors_by_shipper.items():
+            shipper_instance = shipper_group[0][0]
+            sensors = [s[1] for s in shipper_group]
 
-        # Copy image file to www directory if enabled
-        if config.get(CONF_ALLOW_EXTERNAL):
             try:
-                await hass.async_add_executor_job(copy_images, hass, config)
-            except (OSError, ValueError) as err:
-                _LOGGER.error("Problem creating: %s", err)
+                results = await shipper_instance.process_batch(
+                    account, today, sensors, cache
+                )
+                if isinstance(results, dict):
+                    data.update(results)
+            except Exception as err:  # noqa: BLE001
+                _LOGGER.error("Error processing shipper %s: %s", shipper_name, err)
 
         return data
-
-    async def _process_sensor(
-        self,
-        account,
-        today,
-        sensor,
-        data,
-        hass,
-        config,
-    ):
-        """Process a single sensor."""
-        shipper = get_shipper_for_sensor(hass, config, sensor)
-        if not shipper:
-            return
-
-        try:
-            result = await shipper.process(account, today, sensor)
-            if not isinstance(result, dict):
-                return
-
-            # 1. Handle primary sensor value (sensor name or ATTR_COUNT)
-            if sensor in result:
-                if isinstance(result[sensor], dict):
-                    data.update(result[sensor])
-                else:
-                    data[sensor] = result[sensor]
-            elif const.ATTR_COUNT in result:
-                data[sensor] = result[const.ATTR_COUNT]
-
-            # 2. Merge all other attributes (metadata, images, tracking)
-            for key, value in result.items():
-                if key in (sensor, const.ATTR_COUNT):
-                    continue
-
-                if key == const.ATTR_TRACKING:
-                    tracking_key = f"{'_'.join(sensor.split('_')[:-1])}_tracking"
-                    data[tracking_key] = value
-                else:
-                    data[key] = value
-        except Exception as err:  # noqa: BLE001
-            _LOGGER.error("Error processing sensor %s: %s", sensor, err)
 
     async def _binary_sensor_update(self):
         """Update binary sensor states."""

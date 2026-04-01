@@ -510,7 +510,7 @@ async def test_amazon_search_delivered(hass, mock_imap_amazon_delivered, caplog)
         )
         await hass.async_block_till_done()
         assert "Amazon email search addresses:" in caplog.text
-        assert result[AMAZON_DELIVERED] == 10
+        assert result[AMAZON_DELIVERED] == 1
         assert mock_download_img.called
 
 
@@ -536,7 +536,7 @@ async def test_amazon_search_delivered_it(hass, mock_imap_amazon_delivered_it):
             "today",
             AMAZON_DELIVERED,
         )
-        assert result[AMAZON_DELIVERED] == 10
+        assert result[AMAZON_DELIVERED] == 1
 
 
 @pytest.mark.asyncio
@@ -589,7 +589,18 @@ async def test_amazon_packages_counts(hass, mock_imap_amazon_shipped):
                 "OK",
                 [
                     b"Header",
-                    b"Subject: Shipped\nDate: Fri, 25 Sep 2020 12:00:00 +0000\n\nYour order 111-1234567-1234567 has shipped. Arriving: Saturday, September 26.",
+                    b"Subject: Shipped:\nDate: Fri, 25 Sep 2020 12:00:00 +0000\n\nYour order 111-1234567-1234567 has shipped. Arriving: Saturday, September 26.",
+                ],
+            ),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.email_fetch_headers",
+            new_callable=AsyncMock,
+            return_value=(
+                "OK",
+                [
+                    b"Header",
+                    b"Subject: Shipped:\nDate: Fri, 25 Sep 2020 12:00:00 +0000\n\nYour order 111-1234567-1234567 has shipped. Arriving: Saturday, September 26.",
                 ],
             ),
         ),
@@ -614,7 +625,18 @@ async def test_amazon_order_list(hass, mock_imap_amazon_shipped):
                 "OK",
                 [
                     b"Header",
-                    b"Subject: Shipped\n\nYour order 111-1234567-1234567 has shipped.",
+                    b"Subject: Shipped:\n\nYour order 111-1234567-1234567 has shipped.",
+                ],
+            ),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.email_fetch_headers",
+            new_callable=AsyncMock,
+            return_value=(
+                "OK",
+                [
+                    b"Header",
+                    b"Subject: Shipped:\n\nYour order 111-1234567-1234567 has shipped.",
                 ],
             ),
         ),
@@ -755,6 +777,14 @@ async def test_amazon_search_multiple_images_gif(hass):
             "custom_components.mail_and_packages.shippers.amazon.email_search",
             new_callable=AsyncMock,
             return_value=("OK", [b"1 2"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.email_fetch_headers",
+            new_callable=AsyncMock,
+            return_value=(
+                "OK",
+                [None, b"Subject: Delivered: Your Amazon order\n\nBody"],
+            ),
         ),
         patch(
             "custom_components.mail_and_packages.shippers.amazon.get_amazon_image_urls",

@@ -9,6 +9,7 @@ from aioimaplib import IMAP4_SSL
 from voluptuous import Email, MultipleInvalid, Schema
 
 from custom_components.mail_and_packages.const import SENSOR_DATA
+from custom_components.mail_and_packages.utils.cache import EmailCache
 
 from .imap import email_fetch
 
@@ -92,6 +93,7 @@ async def _scan_email_for_text(
     email_id: str,
     patterns: list[re.Pattern],
     body_count: bool,
+    cache: EmailCache | None = None,
 ) -> tuple[int, int | None]:
     """Scan a single email for terms.
 
@@ -102,7 +104,10 @@ async def _scan_email_for_text(
     total_matches = 0
     last_value = None
 
-    data = (await email_fetch(account, email_id, "(RFC822)"))[1]
+    if cache:
+        data = (await cache.fetch(email_id, "(RFC822)"))[1]
+    else:
+        data = (await email_fetch(account, email_id, "(RFC822)"))[1]
     for response_part in data:
         if not isinstance(response_part, (bytes, bytearray)):
             continue
@@ -132,6 +137,7 @@ async def find_text(
     account: type[IMAP4_SSL],
     search_terms: list,
     body_count: bool,
+    cache: EmailCache | None = None,
 ) -> int:
     """Filter for specific words in email."""
     _LOGGER.debug("Searching for (%s) in (%s) emails", search_terms, len(sdata))
@@ -142,7 +148,9 @@ async def find_text(
     patterns = [re.compile(rf"{term}") for term in search_terms]
 
     for i in mail_list:
-        matches, value = await _scan_email_for_text(account, i, patterns, body_count)
+        matches, value = await _scan_email_for_text(
+            account, i, patterns, body_count, cache
+        )
 
         if body_count:
             # If extracting a value, "last found value wins" (updates count)

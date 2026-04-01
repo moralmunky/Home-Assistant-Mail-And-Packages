@@ -52,6 +52,7 @@ from custom_components.mail_and_packages.utils.amazon import (
     parse_amazon_arrival_date,
     search_amazon_emails,
 )
+from custom_components.mail_and_packages.utils.cache import EmailCache
 from custom_components.mail_and_packages.utils.date import get_today
 from custom_components.mail_and_packages.utils.image import (
     cleanup_images,
@@ -59,7 +60,11 @@ from custom_components.mail_and_packages.utils.image import (
     random_filename,
     resize_images,
 )
-from custom_components.mail_and_packages.utils.imap import email_fetch, email_search
+from custom_components.mail_and_packages.utils.imap import (
+    email_fetch,
+    email_fetch_headers,
+    email_search,
+)
 
 from .base import Shipper
 
@@ -84,6 +89,7 @@ class AmazonShipper(Shipper):
         account: IMAP4_SSL,
         date: str,
         sensor_type: str,
+        cache: EmailCache | None = None,
     ) -> dict[str, Any]:
         """Process Amazon-specific emails."""
         fwds = cv.ensure_list_csv(self.config.get(CONF_AMAZON_FWDS))
@@ -92,18 +98,20 @@ class AmazonShipper(Shipper):
 
         if sensor_type in [AMAZON_PACKAGES, AMAZON_ORDER]:
             param = "count" if sensor_type == AMAZON_PACKAGES else "order"
-            result = await self._parse_amazon_emails(account, param, fwds, days, domain)
+            result = await self._parse_amazon_emails(
+                account, param, fwds, days, domain, cache
+            )
             return {sensor_type: result}
 
         if sensor_type == AMAZON_HUB:
-            return await self._amazon_hub(account, fwds)
+            return await self._amazon_hub(account, fwds, cache)
 
         if sensor_type == AMAZON_OTP:
-            result = await self._amazon_otp(account, fwds)
+            result = await self._amazon_otp(account, fwds, cache)
             return {sensor_type: result}
 
         if sensor_type == AMAZON_EXCEPTION:
-            return await self._amazon_exception(account, fwds, domain)
+            return await self._amazon_exception(account, fwds, domain, cache)
 
         if sensor_type == AMAZON_DELIVERED:
             image_path = self.config.get("image_path")
@@ -114,6 +122,7 @@ class AmazonShipper(Shipper):
                 image_name,
                 domain,
                 fwds,
+                cache,
             )
             return {
                 sensor_type: result,
@@ -122,6 +131,24 @@ class AmazonShipper(Shipper):
             }
 
         return {ATTR_COUNT: 0}
+
+    async def process_batch(
+        self,
+        account: IMAP4_SSL,
+        date: str,
+        sensors: list[str],
+        cache: EmailCache,
+    ) -> dict[str, Any]:
+        """Process multiple Amazon sensors in batch."""
+        res = {}
+        for sensor in sensors:
+            sensor_res = await self.process(account, date, sensor, cache)
+            res.update(sensor_res)
+            # Replicate coordinator dictionary logic
+            if sensor not in sensor_res:
+                if ATTR_COUNT in sensor_res:
+                    res[sensor] = sensor_res[ATTR_COUNT]
+        return res
 
     # Internal helper methods (migrated from helpers.py)
 
@@ -132,11 +159,12 @@ class AmazonShipper(Shipper):
         fwds: list[str] | None = None,
         days: int = DEFAULT_AMAZON_DAYS,
         domain: str | None = None,
+        cache: EmailCache | None = None,
     ) -> list[str] | int:
         """Parse Amazon emails for delivery date and order number."""
         today_date = get_today()
         address_list = amazon_email_addresses(fwds, domain)
-        unique_emails = await search_amazon_emails(account, address_list, days)
+        unique_emails = await search_amazon_emails(account, address_list, days, cache)
         order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
 
         context = {
@@ -150,7 +178,7 @@ class AmazonShipper(Shipper):
         }
 
         for email_id in unique_emails:
-            await self._process_amazon_email(account, email_id, context)
+            await self._process_amazon_email(account, email_id, context, cache)
 
         final_count = self._calculate_final_count(context)
 
@@ -163,10 +191,14 @@ class AmazonShipper(Shipper):
         account: IMAP4_SSL,
         email_id: bytes | str,
         ctx: dict,
+        cache: EmailCache | None = None,
     ):
         """Process a single Amazon email."""
         fetch_id = email_id.decode() if isinstance(email_id, bytes) else email_id
-        data = (await email_fetch(account, fetch_id, "(RFC822)"))[1]
+        if cache:
+            data = (await cache.fetch(fetch_id, "(RFC822)"))[1]
+        else:
+            data = (await email_fetch(account, fetch_id, "(RFC822)"))[1]
 
         for response_part in data:
             if not isinstance(response_part, (bytes, bytearray)):
@@ -267,6 +299,7 @@ class AmazonShipper(Shipper):
         amazon_image_name: str,
         amazon_domain: str,
         fwds: list[str] | None = None,
+        cache: EmailCache | None = None,
     ) -> int:
         """Find Amazon Delivered email and handle images."""
         _LOGGER.debug("=== AMAZON DELIVERED SEARCH START ===")
@@ -282,21 +315,31 @@ class AmazonShipper(Shipper):
 
         address_list = amazon_email_addresses(fwds, amazon_domain)
         _LOGGER.debug("Amazon email search addresses: %s", address_list)
-        for subject in subjects:
-            (server_response, data) = await email_search(
-                account,
-                address_list,
-                today,
-                subject,
-            )
-            if server_response == "OK" and data[0] is not None and data[0] != b"":
-                email_count = len(data[0].split())
-                count += email_count
+        (server_response, data) = await email_search(
+            account,
+            address_list,
+            today,
+            "",
+        )
+        if server_response == "OK" and data[0]:
+            for email_id in data[0].split():
+                if cache:
+                    header_data = (await cache.fetch(email_id, "(HEADER)"))[1]
+                else:
+                    header_data = (await email_fetch_headers(account, email_id))[1]
 
-                urls = await get_amazon_image_urls(data[0], account)
-                for url in urls:
-                    if url not in all_image_urls:
-                        all_image_urls.append(url)
+                for response_part in header_data:
+                    if isinstance(response_part, (bytes, bytearray)):
+                        msg = email.message_from_bytes(response_part)
+                        subject = get_decoded_subject(msg)
+                        if not subject:
+                            continue
+                        if any(s.lower() in subject.lower() for s in subjects):
+                            count += 1
+                            urls = await get_amazon_image_urls(email_id, account, cache)
+                            for url in urls:
+                                if url not in all_image_urls:
+                                    all_image_urls.append(url)
 
         await self._process_amazon_images(
             all_image_urls, image_path, amazon_image_name, count
@@ -386,6 +429,7 @@ class AmazonShipper(Shipper):
         self,
         account: IMAP4_SSL,
         fwds: list[str] | None = None,
+        cache: EmailCache | None = None,
     ) -> dict[str, Any]:
         """Find Amazon Hub code."""
         _LOGGER.debug("=== AMAZON HUB SEARCH START ===")
@@ -406,7 +450,10 @@ class AmazonShipper(Shipper):
                     if num in processed_ids:
                         continue
                     processed_ids.append(num)
-                    msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
+                    if cache:
+                        msg_parts = (await cache.fetch(num, "(RFC822)"))[1]
+                    else:
+                        msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
                     for response_part in msg_parts:
                         if isinstance(response_part, (bytes, bytearray)):
                             msg = email.message_from_bytes(response_part)
@@ -427,6 +474,7 @@ class AmazonShipper(Shipper):
         self,
         account: IMAP4_SSL,
         fwds: list[str] | None = None,
+        cache: EmailCache | None = None,
     ) -> dict[str, Any]:
         """Find Amazon OTP code."""
         code = []
@@ -440,7 +488,10 @@ class AmazonShipper(Shipper):
         )
         if server_response == "OK" and data[0] is not None:
             for num in data[0].split():
-                msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
+                if cache:
+                    msg_parts = (await cache.fetch(num, "(RFC822)"))[1]
+                else:
+                    msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
                 for response_part in msg_parts:
                     if isinstance(response_part, (bytes, bytearray)):
                         msg = email.message_from_bytes(response_part)
@@ -456,6 +507,7 @@ class AmazonShipper(Shipper):
         account: IMAP4_SSL,
         fwds: list[str] | None = None,
         domain: str | None = None,
+        cache: EmailCache | None = None,
     ) -> dict[str, Any]:
         """Find Amazon exception emails."""
         count = 0
@@ -471,7 +523,10 @@ class AmazonShipper(Shipper):
         if server_response == "OK" and data[0] is not None:
             order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
             for num in data[0].split():
-                msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
+                if cache:
+                    msg_parts = (await cache.fetch(num, "(RFC822)"))[1]
+                else:
+                    msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
                 for response_part in msg_parts:
                     if isinstance(response_part, (bytes, bytearray)):
                         msg = email.message_from_bytes(response_part)
