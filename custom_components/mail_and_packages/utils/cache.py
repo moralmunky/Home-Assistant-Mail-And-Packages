@@ -55,7 +55,9 @@ class EmailCache:
         # Unknown part, bypass cache
         return await email_fetch(self.account, eid_str, parts)
 
-    async def fetch_batch(self, email_ids: list[str | bytes], parts: str = "(RFC822)") -> tuple:
+    async def fetch_batch(
+        self, email_ids: list[str | bytes], parts: str = "(RFC822)"
+    ) -> tuple:
         """Fetch multiple emails in a batch, retrieving from cache if applicable."""
         # For simplicity, if we don't have all of them, fetch the missing ones in batch
         missing_ids = []
@@ -67,24 +69,30 @@ class EmailCache:
                 if eid_str not in self._cache_rfc822:
                     missing_ids.append(eid_str)
             elif "HEADER" in parts:
-                if eid_str not in self._cache_headers and eid_str not in self._cache_rfc822:
+                if (
+                    eid_str not in self._cache_headers
+                    and eid_str not in self._cache_rfc822
+                ):
                     missing_ids.append(eid_str)
             elif "TEXT" in parts or parts == "(BODY[1])":
-                if eid_str not in self._cache_text and eid_str not in self._cache_rfc822:
+                if (
+                    eid_str not in self._cache_text
+                    and eid_str not in self._cache_rfc822
+                ):
                     missing_ids.append(eid_str)
             else:
-                 missing_ids.append(eid_str)
+                missing_ids.append(eid_str)
 
         # Batch fetch only what is missing
         if missing_ids:
-             # Just use fetch() internally for now to populate individual items since fetch_batch
-             # returns combined lines which might be tricky to parse.
-             # Wait, email_fetch_batch might be tricky to cache without parsing the response to separate emails.
-             # So actually we will just loop `fetch` for batch if we want it cleanly cached, or we don't cache
-             # `fetch_batch` if we aren't parsing it.
-             # Actually `fetch_batch` isn't needed if we just do individual fetches? No, batch is faster.
-             # But parsing batch response to stick into cache is annoying.
-             pass
+            # Just use fetch() internally for now to populate individual items since fetch_batch
+            # returns combined lines which might be tricky to parse.
+            # Wait, email_fetch_batch might be tricky to cache without parsing the response to separate emails.
+            # So actually we will just loop `fetch` for batch if we want it cleanly cached, or we don't cache
+            # `fetch_batch` if we aren't parsing it.
+            # Actually `fetch_batch` isn't needed if we just do individual fetches? No, batch is faster.
+            # But parsing batch response to stick into cache is annoying.
+            pass
 
         # For this version, let's keep fetch_batch simple and bypass cache.
         return await email_fetch_batch(self.account, email_ids, parts)
