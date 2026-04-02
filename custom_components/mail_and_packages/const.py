@@ -90,7 +90,7 @@ DEFAULT_GIF_FILE_NAME = "mail_today.gif"
 DEFAULT_AMAZON_FWDS = "(none)"
 DEFAULT_ALLOW_EXTERNAL = False
 DEFAULT_CUSTOM_IMG = False
-DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
+DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/mail_none.gif"
 DEFAULT_AMAZON_CUSTOM_IMG = False
 DEFAULT_AMAZON_CUSTOM_IMG_FILE = (
     "custom_components/mail_and_packages/no_deliveries_amazon.jpg"
