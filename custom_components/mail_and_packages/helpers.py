@@ -104,9 +104,9 @@ async def get_items(
     return await shipper.process(account, today, sensor)
 
 
-def get_resources(hass: HomeAssistant | None = None) -> list:
+def get_resources(hass: HomeAssistant | None = None) -> dict:
     """Return resources from const."""
-    return list(SENSOR_TYPES.keys())
+    return {k: v.name for k, v in SENSOR_TYPES.items()}
 
 
 def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:

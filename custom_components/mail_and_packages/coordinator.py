@@ -174,7 +174,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             "mail_updated": datetime.datetime.now(datetime.UTC).isoformat(),
             "amazon_delivered_by_others": 0,
         }
-        for sensor in const.SENSOR_TYPES:
+        resources = self.config.get(CONF_RESOURCES, [])
+        for sensor in resources:
             if sensor not in data:
                 data[sensor] = 0
         return data
