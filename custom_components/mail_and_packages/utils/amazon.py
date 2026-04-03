@@ -45,18 +45,19 @@ def get_decoded_subject(msg: email.message.Message) -> str:
     header_val = msg["subject"]
     if not header_val:
         return ""
-    decoded = decode_header(header_val)[0]
-    subject_bytes, encoding = decoded
-    if encoding:
-        try:
-            if isinstance(subject_bytes, bytes):
-                return subject_bytes.decode(encoding, "ignore")
-            return str(subject_bytes)
-        except (LookupError, UnicodeError):
-            pass
-    if isinstance(subject_bytes, bytes):
-        return subject_bytes.decode("utf-8", "ignore")
-    return str(subject_bytes)
+    decoded_parts = []
+    for subject_bytes, encoding in decode_header(header_val):
+        if isinstance(subject_bytes, bytes):
+            if encoding:
+                try:
+                    decoded_parts.append(subject_bytes.decode(encoding, "ignore"))
+                    continue
+                except (LookupError, UnicodeError):
+                    pass
+            decoded_parts.append(subject_bytes.decode("utf-8", "ignore"))
+        else:
+            decoded_parts.append(str(subject_bytes))
+    return "".join(decoded_parts)
 
 
 def get_email_body(msg: email.message.Message) -> str:

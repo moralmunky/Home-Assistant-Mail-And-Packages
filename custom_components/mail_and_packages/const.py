@@ -408,6 +408,11 @@ SENSOR_DATA = {
             "wurde zugestellt",
             "DHL Shipment Notification",
             "liegt am gewünschten Ablageort",
+            "Ihre Sendung liegt im Briefkasten",
+            "Zustellung an Ablageort",
+            "Sendung zugestellt",
+            "Paket wurde zugestellt",
+            "Ihre AliExpress Sendung liegt im Briefkasten",
             "succesvol bezorgd",
             "is bezorgd",
         ],
@@ -417,6 +422,10 @@ SENSOR_DATA = {
             "ist angekommen",
             'Notification for shipment event group "Delivered',
             " - Delivered - ",
+            "liegt im Briefkasten",
+            "zugestellt",
+            "Zustellung",
+            "wurde zugestellt",
             "succesvol bezorgd",
             "is bezorgd",
             "pakket is afgeleverd",
@@ -894,6 +903,47 @@ SENSOR_DATA = {
         "subject": ["Deine Rechnung zu"],
         "body": ["Im Anhang dieser E-Mail kommt"],
     },
+    # AliExpress
+    "aliexpress_delivered": {
+        "email": [
+            "promotion@aliexpress.com",
+            "transaction@notice.aliexpress.com",
+            "chocieservice@aliexpress.com",
+            "aebuyersservices@aliexpress.com",
+        ],
+        "subject": [
+            "Package delivered",
+            "Your package has been delivered",
+            "Sendung zugestellt",
+        ],
+        "body": [
+            "delivered",
+            "zugestellt",
+        ],
+    },
+    "aliexpress_delivering": {
+        "email": [
+            "promotion@aliexpress.com",
+            "transaction@notice.aliexpress.com",
+            "chocieservice@aliexpress.com",
+            "aebuyersservices@aliexpress.com",
+        ],
+        "subject": [
+            "Package is on the way",
+            "Your package is on the way",
+            "Ihre Sendung ist unterwegs",
+            "Sendung wird versandt",
+        ],
+        "body": [
+            "on the way",
+            "unterwegs",
+            "wird versandt",
+        ],
+    },
+    "aliexpress_packages": {},
+    "aliexpress_tracking": {
+        "pattern": ["(?:[A-Z]{2}[0-9]{9}[A-Z]{2}|[0-9]{13}|[0-9]{20})"],
+    },
     # DPD Netherlands
     "dpd_nl_delivered": {
         "email": [
@@ -1066,6 +1116,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         name="Mail Amazon OTP Code",
         icon="mdi:counter",
         key="amazon_otp",
+    ),
+    # AliExpress
+    "aliexpress_delivered": SensorEntityDescription(
+        name="Mail AliExpress Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="aliexpress_delivered",
+    ),
+    "aliexpress_delivering": SensorEntityDescription(
+        name="Mail AliExpress Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="aliexpress_delivering",
+    ),
+    "aliexpress_packages": SensorEntityDescription(
+        name="Mail AliExpress Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="aliexpress_packages",
     ),
     # Canada Post
     "capost_delivered": SensorEntityDescription(
