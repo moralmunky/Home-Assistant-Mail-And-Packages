@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 from custom_components.mail_and_packages.const import (
     ATTR_COUNT,
     ATTR_EMAIL,
+    ATTR_GRID_IMAGE_NAME,
     ATTR_IMAGE_PATH,
     ATTR_SUBJECT,
     ATTR_USPS_IMAGE,
@@ -132,6 +133,7 @@ class USPSShipper(Shipper):
             ATTR_COUNT: image_count,
             ATTR_USPS_IMAGE: config["image_name"],
             ATTR_IMAGE_PATH: config["image_output_path"],
+            ATTR_GRID_IMAGE_NAME: config["image_name"].replace(".gif", "_grid.png"),
         }
 
     async def process_batch(

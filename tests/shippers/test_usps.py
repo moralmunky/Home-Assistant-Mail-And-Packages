@@ -8,6 +8,7 @@ import pytest
 
 from custom_components.mail_and_packages.const import (
     ATTR_COUNT,
+    ATTR_GRID_IMAGE_NAME,
     CONF_DURATION,
 )
 from custom_components.mail_and_packages.shippers.usps import USPSShipper
@@ -466,9 +467,10 @@ async def test_informed_delivery_gen_mp4_grid(hass):
             "custom_components.mail_and_packages.shippers.usps.generate_grid_img",
         ) as mock_grid,
     ):
-        await shipper.process(mock_account, "today", "usps_mail")
+        result = await shipper.process(mock_account, "today", "usps_mail")
         mock_mp4.assert_called_once()
         mock_grid.assert_called_once()
+        assert result[ATTR_GRID_IMAGE_NAME] == "test_grid.png"
 
 
 @pytest.mark.asyncio
