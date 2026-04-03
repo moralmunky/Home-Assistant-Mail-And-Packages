@@ -1014,3 +1014,37 @@ async def test_ups_packages_uses_since_date(hass):
     mock_search.assert_called_once()
     # since_date should be passed as the search date, not the regular date
     assert mock_search.call_args.args[2] == "19-Apr-2026"
+
+
+@pytest.mark.asyncio
+async def test_aliexpress_delivered_class(hass):
+    """Test AliExpress delivered email parsing via GenericShipper."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    mock_account = AsyncMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch.object(
+            shipper,
+            "_verify_matched_subjects",
+            new_callable=AsyncMock,
+            return_value=[b"1"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.find_text_matches",
+            new_callable=AsyncMock,
+            return_value=(1, [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            new_callable=AsyncMock,
+            return_value=["LP123456789DE"],
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "aliexpress_delivered")
+        assert result[ATTR_COUNT] == 1
+        assert result[ATTR_TRACKING] == ["LP123456789DE"]
