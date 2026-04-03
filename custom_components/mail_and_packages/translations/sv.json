@@ -12,7 +12,9 @@
       "file_not_found": "Bildfilen hittades inte",
       "invalid_email_format": "Ogiltigt format för e-postadress.",
       "missing_forwarded_emails": "Saknade vidarebefordrade e-postadresser. Du kan ange '(none)' för att rensa denna inställning.",
-      "path_not_found": "Katalogen hittades inte"
+      "path_not_found": "Katalogen hittades inte",
+      "invalid_auth": "Invalid authentication details. Please check your username and password.",
+      "ssl_error": "An SSL error occurred. Change SSL cipher list and try again."
     },
     "step": {
       "config_2": {
@@ -40,7 +42,11 @@
       },
       "config_3": {
         "data": {
-          "custom_img_file": "Sökväg till anpassad bild: (t.ex: bilder/min_anpassade_ingen_mail.jpg)"
+          "custom_img_file": "Sökväg till anpassad bild: (t.ex: bilder/min_anpassade_ingen_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (ie: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (ie: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (ie: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (ie: images/my_custom_no_fedex.jpg)"
         },
         "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder/anpassad_nomail.gif",
         "title": "Post och paket (Steg 3 av 3)"
@@ -79,7 +85,11 @@
       },
       "reconfig_3": {
         "data": {
-          "custom_img_file": "Sökväg till anpassad bild: (t.ex.: bilder/min_anpassade_ingen_mail.jpg)"
+          "custom_img_file": "Sökväg till anpassad bild: (t.ex.: bilder/min_anpassade_ingen_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
         },
         "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder/anpassad_nomail.gif",
         "title": "Post och paket (Steg 3 av 3)"
@@ -158,6 +168,14 @@
           "auth_type": "Authentication Type"
         },
         "title": "Authentication Method"
+      },
+      "reauth_confirm": {
+        "description": "The authentication for your mail server has expired or is invalid. Please re-authenticate to continue.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "title": "Re-authenticate Mail Server"
       }
     }
   },

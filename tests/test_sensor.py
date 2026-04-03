@@ -285,7 +285,7 @@ async def test_packages_sensor_attributes_edge_cases(hass):
     entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
     coordinator = MagicMock()
 
-    # Line 85: Single word type
+    # Test tracking key derivation for single word sensor types
     sensor = PackagesSensor(
         entry,
         MagicMock(key="packages", name="Packages"),
@@ -293,7 +293,7 @@ async def test_packages_sensor_attributes_edge_cases(hass):
     )
     assert sensor._tracking_key == "packages_tracking"
 
-    # Line 120: mail_updated is None in data
+    # Verify that mail_updated sensor returns current time if data is missing
     coordinator.data = {}
     sensor_updated = PackagesSensor(
         entry,
@@ -302,7 +302,7 @@ async def test_packages_sensor_attributes_edge_cases(hass):
     )
     assert isinstance(sensor_updated.native_value, datetime.datetime)
 
-    # Line 145: extra_state_attributes when data is None
+    # Verify extra_state_attributes returns empty dict when coordinator data is None
     coord_none = MagicMock()
     coord_none.data = None
     sensor_none = PackagesSensor(
@@ -312,7 +312,7 @@ async def test_packages_sensor_attributes_edge_cases(hass):
     )
     assert sensor_none.extra_state_attributes == {}
 
-    # Lines 148-149: Amazon Exception attributes
+    # Test attributes for Amazon Exception sensors
 
     coord_ex = MagicMock()
     coord_ex.data = {
@@ -330,7 +330,7 @@ async def test_packages_sensor_attributes_edge_cases(hass):
     attrs_ex = sensor_ex.extra_state_attributes
     assert attrs_ex[ATTR_ORDER] == ["Error #1"]
 
-    # Line 151: Generic Amazon sensor test
+    # Test attributes for regular Amazon packages sensor
     sensor_desc = MagicMock(key="amazon_packages")
     sensor_desc.name = "Mail Amazon Packages"
     sensor_regular = PackagesSensor(
@@ -344,7 +344,7 @@ async def test_packages_sensor_attributes_edge_cases(hass):
 
 @pytest.mark.asyncio
 async def test_image_path_sensor_grid(hass):
-    """Test ImagePathSensors with grid image path (Lines 227-228)."""
+    """Test ImagePathSensors URL generation logic for grid image paths."""
     entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
     coordinator = MagicMock()
     coordinator.data = {

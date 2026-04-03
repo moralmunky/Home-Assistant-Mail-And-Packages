@@ -383,7 +383,7 @@ async def test_amazon_parsing_more_coverage(hass, caplog):
 
 @pytest.mark.asyncio
 async def test_get_items_more_coverage(hass):
-    """Test get_items for remaining uncovered lines."""
+    """Test get_items to verify more complex order parsing branches."""
     shipper = AmazonShipper(hass, {})
     mock_account = AsyncMock()
     mock_account.host = "imap.gmail.com"

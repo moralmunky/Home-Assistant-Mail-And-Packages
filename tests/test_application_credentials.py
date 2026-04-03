@@ -18,6 +18,5 @@ async def test_async_get_auth_implementation(hass):
     cred = ClientCredential("id", "secret")
     impl = await async_get_auth_implementation(hass, DOMAIN, cred)
 
-    # AuthImplementation stores the Server as an attribute or property, it is accessible
-    # However just ensuring we can instantiate it and it runs the code covers lines 3-35
+    # Verify we can successfully get an AuthImplementation for the integration
     assert impl.domain == DOMAIN

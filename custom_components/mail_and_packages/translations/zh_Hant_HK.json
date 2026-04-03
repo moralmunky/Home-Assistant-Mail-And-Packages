@@ -12,7 +12,9 @@
       "file_not_found": "找不到圖像檔案",
       "invalid_email_format": "無效的電郵地址格式。",
       "missing_forwarded_emails": "缺少轉發的電郵地址。您可以輸入 '(none)' 來清除此設定。",
-      "path_not_found": "找不到目錄"
+      "path_not_found": "找不到目錄",
+      "invalid_auth": "Invalid authentication details. Please check your username and password.",
+      "ssl_error": "An SSL error occurred. Change SSL cipher list and try again."
     },
     "step": {
       "config_2": {
@@ -40,7 +42,11 @@
       },
       "config_3": {
         "data": {
-          "custom_img_file": "自訂圖片的路徑：（例如：images/my_custom_no_mail.jpg）"
+          "custom_img_file": "自訂圖片的路徑：（例如：images/my_custom_no_mail.jpg）",
+          "amazon_custom_img_file": "Path to custom Amazon image: (ie: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (ie: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (ie: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (ie: images/my_custom_no_fedex.jpg)"
         },
         "description": "在下方輸入您的自訂無郵件圖像的路徑和檔案名稱。\n\n例如：images/custom_nomail.gif",
         "title": "郵件和包裹（第3步，共3步）"
@@ -79,7 +85,11 @@
       },
       "reconfig_3": {
         "data": {
-          "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
         },
         "description": "在下方輸入您的自訂無郵件圖像的路徑和檔案名稱。\n\n例如：images/custom_nomail.gif",
         "title": "郵件和包裹（第3步，共3步）"
@@ -158,6 +168,14 @@
           "auth_type": "Authentication Type"
         },
         "title": "Authentication Method"
+      },
+      "reauth_confirm": {
+        "description": "The authentication for your mail server has expired or is invalid. Please re-authenticate to continue.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "title": "Re-authenticate Mail Server"
       }
     }
   },

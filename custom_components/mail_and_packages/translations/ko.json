@@ -12,7 +12,9 @@
       "file_not_found": "이미지 파일을 찾을 수 없습니다",
       "invalid_email_format": "잘못된 이메일 주소 형식입니다.",
       "missing_forwarded_emails": "전달된 이메일 주소가 없습니다. 이 설정을 지우려면 '(none)'을 입력할 수 있습니다.",
-      "path_not_found": "디렉토리를 찾을 수 없습니다"
+      "path_not_found": "디렉토리를 찾을 수 없습니다",
+      "invalid_auth": "Invalid authentication details. Please check your username and password.",
+      "ssl_error": "An SSL error occurred. Change SSL cipher list and try again."
     },
     "step": {
       "config_2": {
@@ -40,7 +42,11 @@
       },
       "config_3": {
         "data": {
-          "custom_img_file": "사용자 정의 이미지 경로: (예: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "사용자 정의 이미지 경로: (예: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (ie: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (ie: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (ie: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (ie: images/my_custom_no_fedex.jpg)"
         },
         "description": "아래에 사용자 정의 '메일 없음' 이미지의 경로와 파일 이름을 입력하세요.\n\n예시: images/custom_nomail.gif",
         "title": "우편 및 패키지 (3단계 중 3단계)"
@@ -79,7 +85,11 @@
       },
       "reconfig_3": {
         "data": {
-          "custom_img_file": "사용자 정의 이미지 경로: (예: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "사용자 정의 이미지 경로: (예: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
         },
         "description": "아래에 사용자 정의 '메일 없음' 이미지의 경로와 파일 이름을 입력하세요.\n\n예시: images/custom_nomail.gif",
         "title": "우편 및 패키지 (3단계 중 3단계)"
@@ -158,6 +168,14 @@
           "auth_type": "Authentication Type"
         },
         "title": "Authentication Method"
+      },
+      "reauth_confirm": {
+        "description": "The authentication for your mail server has expired or is invalid. Please re-authenticate to continue.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "title": "Re-authenticate Mail Server"
       }
     }
   },

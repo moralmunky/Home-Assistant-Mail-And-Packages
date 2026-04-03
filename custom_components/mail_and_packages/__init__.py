@@ -6,7 +6,7 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_RESOURCES
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 
 from . import const
@@ -134,8 +134,10 @@ async def async_setup_entry(
     # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
 
-    # Raise ConfEntryNotReady if coordinator didn't update
+    # Raise ConfigEntryNotReady if coordinator didn't update
     if not coordinator.last_update_success:
+        if isinstance(coordinator.last_exception, ConfigEntryAuthFailed):
+            raise coordinator.last_exception
         _LOGGER.error("Error updating sensor data: %s", coordinator.last_exception)
         raise ConfigEntryNotReady
 

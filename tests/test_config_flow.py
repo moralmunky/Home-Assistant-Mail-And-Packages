@@ -6838,7 +6838,7 @@ async def test_reconfig_forwarded_emails_routing_success(hass, integration):
 
 @pytest.mark.asyncio
 async def test_get_mailboxes_connection_exceptions(hass, caplog):
-    """Test get_mailboxes handling of connection exceptions (lines 281-282)."""
+    """Test get_mailboxes handling of connection exceptions from aioimaplib."""
     # Test triggering the specific exception block with AioImapException
     with patch(
         "custom_components.mail_and_packages.config_flow.login",
@@ -6907,7 +6907,7 @@ async def test_config_flow_validate_login_errors(
 
 @pytest.mark.asyncio
 async def test_step_2_finish_flow(hass, mock_imap):
-    """Test config flow finishes at step 2 when features are disabled (covers line 659)."""
+    """Test config flow finishes at step 2 when advanced features are disabled."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
@@ -7407,3 +7407,26 @@ async def test_validate_login_oauth(hass):
     user_input = {"auth_type": "oauth2_google"}
     errors = await _validate_login(hass, user_input)
     assert errors == {}
+
+
+async def test_step_reconfig_amazon_error_final(hass):
+    """Test async_step_reconfig_amazon with validation error to ensure form is re-shown."""
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    user_input = {"amazon_domain": "bad"}
+    flow._data = {
+        "amazon_fwds": [],
+        "generate_mp4": False,
+        "gif_duration": 5,
+        "image_path": "images/",
+        "scan_interval": 5,
+    }
+    # Mock validation to return a tuple (errors, user_input)
+    with patch(
+        "custom_components.mail_and_packages.config_flow._validate_user_input",
+        return_value=({"base": "invalid"}, user_input),
+    ):
+        result = await flow.async_step_reconfig_amazon(user_input=user_input)
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_amazon"

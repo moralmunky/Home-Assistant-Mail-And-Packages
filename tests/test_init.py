@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -280,6 +280,32 @@ async def test_setup_entry_coordinator_failure():
 
         # Should raise ConfigEntryNotReady
         with pytest.raises(ConfigEntryNotReady):
+            await async_setup_entry(mock_hass, mock_config_entry)
+
+
+async def test_setup_entry_auth_failure():
+    """Test setup_entry when coordinator fails with ConfigEntryAuthFailed."""
+    mock_hass = MagicMock()
+    mock_config_entry = MagicMock()
+    mock_config_entry.data = FAKE_CONFIG_DATA.copy()
+    mock_config_entry.entry_id = "test_entry_id"
+
+    # Mock coordinator that fails with ConfigEntryAuthFailed
+    mock_coordinator = MagicMock()
+    mock_coordinator.last_update_success = False
+    mock_coordinator.last_exception = ConfigEntryAuthFailed("Invalid credentials")
+    mock_coordinator.async_refresh = AsyncMock()
+
+    with (
+        patch("homeassistant.helpers.frame.report_usage"),
+        patch(
+            "custom_components.mail_and_packages.MailDataUpdateCoordinator",
+        ) as mock_coordinator_class,
+    ):
+        mock_coordinator_class.return_value = mock_coordinator
+
+        # Verify that an authentication failure during setup raises ConfigEntryAuthFailed
+        with pytest.raises(ConfigEntryAuthFailed):
             await async_setup_entry(mock_hass, mock_config_entry)
 
 
@@ -574,7 +600,7 @@ async def test_async_migrate_entry_invalid_version(hass):
 
 @pytest.mark.asyncio
 async def test_async_migrate_entry_missing_amazon_fwds(hass):
-    """Test migration when CONF_AMAZON_FWDS is missing (Line 271)."""
+    """Test migration when CONF_AMAZON_FWDS is missing from config data."""
     # Create an entry specifically missing CONF_AMAZON_FWDS
     mock_entry = MockConfigEntry(
         domain="mail_and_packages",
@@ -610,7 +636,7 @@ async def test_get_file_hash_cache_hit():
         assert result1 == file_hash
         assert mock_hass.async_add_executor_job.call_count == 2
 
-        # Second call: same mtime, should hit cache (line 271)
+        # Second call: same mtime, should return value from cache
         mock_hass.async_add_executor_job = AsyncMock(return_value=mtime)
         result2 = await coordinator._get_file_hash_if_changed(file_path)
         assert result2 == file_hash
@@ -619,7 +645,7 @@ async def test_get_file_hash_cache_hit():
 
 @pytest.mark.asyncio
 async def test_binary_sensor_update_missing_image_attr(hass, tmp_path):
-    """Test _binary_sensor_update when an image attribute is missing (Line 335)."""
+    """Test _binary_sensor_update when an image attribute is missing in CAMERA_DATA."""
     mock_config = FAKE_CONFIG_DATA.copy()
     coordinator = MailDataUpdateCoordinator(hass, mock_config)
 
@@ -633,7 +659,7 @@ async def test_binary_sensor_update_missing_image_attr(hass, tmp_path):
         "custom_components.mail_and_packages.const.CAMERA_DATA",
         {"nonexistent_camera": ["Nonexistent Camera"]},
     ):
-        # This should hit line 335 and continue without error
+        # Should continue without error when a camera entry is handled unexpectedly
         await coordinator._binary_sensor_update()
         assert "nonexistent_update" not in coordinator._data
 
@@ -791,7 +817,7 @@ async def test_coordinator_binary_sensor_custom_images(hass):
 
 @pytest.mark.asyncio
 async def test_coordinator_image_hash_changed(hass, integration):
-    """Test coordinator update when image hash changes (Line 313)."""
+    """Test coordinator update when image hash changes compared to the placeholder."""
     coordinator = integration.runtime_data.coordinator
     # Mock self._data with necessary attributes
     coordinator._data["ups_image"] = "today.gif"

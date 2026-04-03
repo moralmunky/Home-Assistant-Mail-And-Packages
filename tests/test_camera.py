@@ -2192,7 +2192,7 @@ async def test_camera_service_update_specific_explicit(
             blocking=True,
         )
 
-        # Verify the method was called, confirming lines 175-176 were hit
+        # Verify the update_file_path method was called on the camera instance
         mock_update.assert_called_once()
 
 
@@ -2212,7 +2212,7 @@ async def test_camera_file_not_found(hass, mock_update):
 
 @pytest.mark.asyncio
 async def test_camera_image_read_error(hass, tmp_path):
-    """Test camera failure to read existing file (Lines 171-176)."""
+    """Test camera behavior when failing to read an existing image file."""
     # Create a secure temporary directory and file path
     d = tmp_path / "test_dir"
     d.mkdir()
@@ -2274,7 +2274,7 @@ async def test_camera_update_coordinator_failed(
     integration,
     caplog,
 ):
-    """Test camera update early exit on coordinator failure (Line 197)."""
+    """Test camera update early exit when the coordinator update state has failed."""
     entry = integration
     cameras = entry.runtime_data.cameras
     target_camera = cameras[0]
@@ -2420,7 +2420,7 @@ async def test_handle_coordinator_update_logic(
 
 
 async def test_usps_camera_with_image_data_full(hass, mock_imap_no_email, integration):
-    """Test USPS camera with image data in coordinator (covers 191-193)."""
+    """Test USPS camera behavior with valid image data present in coordinator."""
     entry = integration
     coordinator = entry.runtime_data.coordinator
     coordinator.data = {
@@ -2466,3 +2466,42 @@ async def test_get_sensor_name_for_camera(hass, mock_imap_no_email, integration)
 
     assert camera._get_sensor_name_for_camera("amazon_camera") == "amazon_delivered"
     assert camera._get_sensor_name_for_camera("usps_camera") == "usps_mail"
+
+
+async def test_generic_camera_gif_failure_fallback(
+    hass,
+    integration,
+    caplog,
+):
+    """Test Generic camera fallback to a static delivery image when GIF generation fails."""
+    entry = integration
+    coordinator = entry.runtime_data.coordinator
+    coordinator.data = {
+        "amazon_image": "test_amazon_delivery.jpg",
+        "image_path": "custom_components/mail_and_packages/images/",
+        "amazon_delivered": 1,
+    }
+
+    with (
+        patch("os.path.exists", return_value=True),
+        patch("os.access", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.camera.resize_images",
+            return_value=["/fake/path/amazon/res1.jpg"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.camera.generate_delivery_gif",
+            return_value=False,
+        ),
+    ):
+        cameras = entry.runtime_data.cameras
+        generic_camera = next(c for c in cameras if c._type == "generic_camera")
+
+        await generic_camera.update_file_path()
+        await hass.async_block_till_done()
+
+        assert "Failed to create animated GIF" in caplog.text
+        assert "amazon" in str(generic_camera._file_path) or "mail_none.gif" in str(
+            generic_camera._file_path
+        )

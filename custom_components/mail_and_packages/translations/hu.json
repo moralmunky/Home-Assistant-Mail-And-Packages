@@ -12,7 +12,9 @@
       "file_not_found": "Képfájl nem található",
       "invalid_email_format": "Érvénytelen e-mail cím formátum.",
       "missing_forwarded_emails": "Hiányzó továbbított e-mail címek. Megadhatja a '(none)' értéket a beállítás törléséhez.",
-      "path_not_found": "Könyvtár nem található"
+      "path_not_found": "Könyvtár nem található",
+      "invalid_auth": "Invalid authentication details. Please check your username and password.",
+      "ssl_error": "An SSL error occurred. Change SSL cipher list and try again."
     },
     "step": {
       "config_2": {
@@ -40,7 +42,11 @@
       },
       "config_3": {
         "data": {
-          "custom_img_file": "Egyéni kép elérési útja: (pl.: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "Egyéni kép elérési útja: (pl.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (ie: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (ie: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (ie: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (ie: images/my_custom_no_fedex.jpg)"
         },
         "description": "Adja meg az egyéni \"nincs levél\" kép útvonalát és fájlnevét alább.\n\nPélda: images/custom_nomail.gif",
         "title": "Levelek és csomagok (3. lépés a 3-ból)"
@@ -79,7 +85,11 @@
       },
       "reconfig_3": {
         "data": {
-          "custom_img_file": "Egyéni kép elérési útja: (pl.: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "Egyéni kép elérési útja: (pl.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
         },
         "description": "Adja meg az egyéni \"nincs levél\" kép útvonalát és fájlnevét alább.\n\nPélda: images/custom_nomail.gif",
         "title": "Levelek és csomagok (3. lépés a 3-ból)"
@@ -158,6 +168,14 @@
           "auth_type": "Authentication Type"
         },
         "title": "Authentication Method"
+      },
+      "reauth_confirm": {
+        "description": "The authentication for your mail server has expired or is invalid. Please re-authenticate to continue.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "title": "Re-authenticate Mail Server"
       }
     }
   },
