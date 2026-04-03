@@ -1613,7 +1613,7 @@ AUTH_TYPES = [AUTH_TYPE_PASSWORD, AUTH_TYPE_OAUTH_MICROSOFT, AUTH_TYPE_OAUTH_GOO
 
 # OAuth2 scopes per provider
 OAUTH_SCOPES = {
-    AUTH_TYPE_OAUTH_MICROSOFT: "https://outlook.office365.com/IMAP.AccessAsUser.All offline_access",
+    AUTH_TYPE_OAUTH_MICROSOFT: "https://outlook.office.com/IMAP.AccessAsUser.All offline_access openid profile email",
     AUTH_TYPE_OAUTH_GOOGLE: "https://mail.google.com/",
 }
 
