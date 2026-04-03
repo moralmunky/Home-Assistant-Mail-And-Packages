@@ -61,7 +61,11 @@
       },
       "config_3": {
         "data": {
-          "custom_img_file": "Path to custom image: (ie: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "Path to custom image: (ie: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (ie: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (ie: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (ie: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (ie: images/my_custom_no_fedex.jpg)"
         },
         "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
         "title": "Mail and Packages (Step 3 of 3)"
@@ -119,7 +123,11 @@
       },
       "reconfig_3": {
         "data": {
-          "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
         },
         "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
         "title": "Mail and Packages (Step 3 of 3)"
@@ -160,6 +168,14 @@
         },
         "description": "By default, the Mail and Packages integration only searches for messages matching a service's address.\n\nIf you want to use forwarded emails, please separate each address messages will be coming from with a comma or enter '(none)' to clear this setting.",
         "title": "Forwarded Email Addresses"
+      },
+      "reauth_confirm": {
+        "description": "The authentication for your mail server has expired or is invalid. Please re-authenticate to continue.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "title": "Re-authenticate Mail Server"
       }
     }
   },

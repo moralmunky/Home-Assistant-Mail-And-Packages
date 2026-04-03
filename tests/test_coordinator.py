@@ -3,8 +3,11 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from custom_components.mail_and_packages.coordinator import MailDataUpdateCoordinator
+from custom_components.mail_and_packages.utils.imap import InvalidAuth
 from tests.const import FAKE_CONFIG_DATA
 
 
@@ -98,6 +101,38 @@ async def test_process_emails_invalid_return(hass):
 
     # Should just not crash, missing data ok
     assert "test_sensor" not in data
+
+
+@pytest.mark.asyncio
+async def test_get_imap_connection_invalid_auth(hass):
+    """Test _get_imap_connection handles InvalidAuth."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            side_effect=InvalidAuth("Invalid credentials"),
+        ),
+        pytest.raises(ConfigEntryAuthFailed),
+    ):
+        await coordinator._get_imap_connection(FAKE_CONFIG_DATA)
+
+
+@pytest.mark.asyncio
+async def test_get_imap_connection_exception(hass):
+    """Test _get_imap_connection handles generic Exception."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            side_effect=Exception("Connection refused"),
+        ),
+        pytest.raises(UpdateFailed, match="Login failed"),
+    ):
+        await coordinator._get_imap_connection(FAKE_CONFIG_DATA)
 
 
 @pytest.mark.asyncio

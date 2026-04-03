@@ -22,7 +22,11 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_entry_oauth2_flow
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import (
+    ConfigEntryAuthFailed,
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
 
 from . import const
 from .const import (
@@ -40,7 +44,7 @@ from .helpers import copy_images
 from .shippers import get_shipper_for_sensor
 from .utils.cache import EmailCache
 from .utils.image import default_image_path, hash_file, image_file_name
-from .utils.imap import login, selectfolder
+from .utils.imap import InvalidAuth, login, selectfolder
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -212,6 +216,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 config.get(CONF_VERIFY_SSL),
                 config.get("oauth_token"),
             )
+        except InvalidAuth as err:
+            _LOGGER.error("Authentication failed: %s", err)
+            raise ConfigEntryAuthFailed from err
         except Exception as err:
             _LOGGER.error("Error logging into IMAP: %s", err)
             raise UpdateFailed(f"Login failed: {err}") from err

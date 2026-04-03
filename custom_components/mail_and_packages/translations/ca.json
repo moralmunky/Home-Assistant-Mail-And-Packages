@@ -12,7 +12,9 @@
       "file_not_found": "No s'ha trobat el fitxer d'imatge",
       "invalid_email_format": "Format d'adreça de correu electrònic no vàlid.",
       "path_not_found": "Directori no trobat",
-      "missing_forwarded_emails": "Falten les adreces de correu electrònic reenviades. Podeu introduir \"(none)\" per esborrar aquesta configuració."
+      "missing_forwarded_emails": "Falten les adreces de correu electrònic reenviades. Podeu introduir \"(none)\" per esborrar aquesta configuració.",
+      "invalid_auth": "Invalid authentication details. Please check your username and password.",
+      "ssl_error": "An SSL error occurred. Change SSL cipher list and try again."
     },
     "step": {
       "config_2": {
@@ -40,7 +42,11 @@
       },
       "config_3": {
         "data": {
-          "custom_img_file": "Camí a la imatge personalitzada: (és a dir: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "Camí a la imatge personalitzada: (és a dir: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (ie: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (ie: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (ie: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (ie: images/my_custom_no_fedex.jpg)"
         },
         "description": "Introduïu el camí i el nom del fitxer de la vostra imatge personalitzada de no correu a continuació.\n\nExemple: imatges/custom_nomail.gif",
         "title": "Correu i paquets (Pas 3 de 3)"
@@ -79,7 +85,11 @@
       },
       "reconfig_3": {
         "data": {
-          "custom_img_file": "Camí a la imatge personalitzada: (p. ex.: imatges/my_custom_no_mail.jpg)"
+          "custom_img_file": "Camí a la imatge personalitzada: (p. ex.: imatges/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
         },
         "description": "Introduïu el camí i el nom del fitxer de la vostra imatge personalitzada de no correu a continuació.\n\nExemple: imatges/custom_nomail.gif",
         "title": "Correu i paquets (Pas 3 de 3)"
@@ -158,6 +168,14 @@
           "auth_type": "Authentication Type"
         },
         "title": "Authentication Method"
+      },
+      "reauth_confirm": {
+        "description": "The authentication for your mail server has expired or is invalid. Please re-authenticate to continue.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "title": "Re-authenticate Mail Server"
       }
     }
   },

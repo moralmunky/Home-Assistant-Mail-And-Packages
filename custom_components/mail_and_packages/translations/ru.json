@@ -12,7 +12,9 @@
       "file_not_found": "Файл изображения не найден",
       "invalid_email_format": "Неверный формат адреса электронной почты.",
       "missing_forwarded_emails": "Отсутствуют переадресованные адреса электронной почты. Вы можете ввести '(none)', чтобы очистить этот параметр.",
-      "path_not_found": "Директория не найдена"
+      "path_not_found": "Директория не найдена",
+      "invalid_auth": "Invalid authentication details. Please check your username and password.",
+      "ssl_error": "An SSL error occurred. Change SSL cipher list and try again."
     },
     "step": {
       "config_2": {
@@ -40,7 +42,11 @@
       },
       "config_3": {
         "data": {
-          "custom_img_file": "Путь к пользовательскому изображению: (например: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "Путь к пользовательскому изображению: (например: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (ie: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (ie: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (ie: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (ie: images/my_custom_no_fedex.jpg)"
         },
         "description": "Введите путь и имя файла к вашему пользовательскому изображению без почты ниже.\n\nПример: images/custom_nomail.gif",
         "title": "Почта и посылки (Шаг 3 из 3)"
@@ -79,7 +85,11 @@
       },
       "reconfig_3": {
         "data": {
-          "custom_img_file": "Путь к пользовательскому изображению: (например: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "Путь к пользовательскому изображению: (например: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
         },
         "description": "Введите путь и имя файла к вашему пользовательскому изображению без почты ниже.\n\nПример: images/custom_nomail.gif",
         "title": "Почта и посылки (Шаг 3 из 3)"
@@ -158,6 +168,14 @@
           "auth_type": "Authentication Type"
         },
         "title": "Authentication Method"
+      },
+      "reauth_confirm": {
+        "description": "The authentication for your mail server has expired or is invalid. Please re-authenticate to continue.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "title": "Re-authenticate Mail Server"
       }
     }
   },

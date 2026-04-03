@@ -3,6 +3,7 @@
 import contextlib
 import logging
 import ssl
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -10,6 +11,7 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from aioimaplib import AioImapException
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import (
     CONF_HOST,
     CONF_PASSWORD,
@@ -711,7 +713,7 @@ class MailAndPackagesFlowHandler(
     def __init__(self):
         """Initialize."""
         super().__init__()
-        self._entry = {}
+        self._entry = None
         self._data = {}
         self._errors = {}
 
@@ -724,6 +726,46 @@ class MailAndPackagesFlowHandler(
             return await self.async_step_imap_config()
 
         return await self._show_auth_form(user_input)
+
+    async def async_step_reauth(
+        self, entry_data: Mapping[str, Any]
+    ) -> ConfigFlowResult:
+        """Handle re-authentication."""
+        self._entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        self._data.update(entry_data)
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Confirm re-authentication."""
+        self._errors = {}
+        auth_type = self._data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+
+        if user_input is not None:
+            self._data.update(user_input)
+            if auth_type != AUTH_TYPE_PASSWORD:
+                return await self.async_step_pick_implementation()
+
+            self._errors = await _validate_login(self.hass, self._data)
+            if not self._errors:
+                return self.async_update_reload_and_abort(
+                    self._entry,
+                    data=self._data,
+                )
+
+        if auth_type != AUTH_TYPE_PASSWORD:
+            return self.async_show_form(step_id="reauth_confirm")
+
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_USERNAME, default=self._data.get(CONF_USERNAME)): str,
+                vol.Required(CONF_PASSWORD): str,
+            }
+        )
+        return self.async_show_form(
+            step_id="reauth_confirm", data_schema=schema, errors=self._errors
+        )
 
     async def async_step_imap_config(self, user_input=None):
         """Handle IMAP config step after auth selection."""
@@ -759,6 +801,11 @@ class MailAndPackagesFlowHandler(
         """Handle OAuth2 completion — store token and continue to step 2."""
         self._data.update(data)
         if self._entry:
+            if self.source == config_entries.SOURCE_REAUTH:
+                return self.async_update_reload_and_abort(
+                    self._entry,
+                    data=self._data,
+                )
             return await self.async_step_reconfig_2()
         return await self.async_step_config_2()
 

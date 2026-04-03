@@ -12,7 +12,11 @@
       "file_not_found": "Soubor obrázku nebyl nalezen",
       "missing_forwarded_emails": "Chybí přeposílané e-mailové adresy. Můžete zadat '(none)' pro vymazání tohoto nastavení.",
       "scan_too_low": "Interval skenování je příliš nízký (minimum 5)",
-      "timeout_too_low": "IMAP timeout je příliš nízký (minimum 10)"
+      "timeout_too_low": "IMAP timeout je příliš nízký (minimum 10)",
+      "invalid_email_format": "Invalid email address format.",
+      "path_not_found": "Directory not found",
+      "invalid_auth": "Invalid authentication details. Please check your username and password.",
+      "ssl_error": "An SSL error occurred. Change SSL cipher list and try again."
     },
     "step": {
       "config_2": {
@@ -34,7 +38,8 @@
           "walmart_custom_img": "Použít vlastní obrázek Walmart 'bez dodání'?",
           "fedex_custom_img": "Použít vlastní obrázek FedEx 'bez dodání'?",
           "generic_custom_img": "Použít vlastní obrázek obecný 'bez dodání'?",
-          "allow_forwarded_emails": "Povolit přeposílané e-maily kromě výchozí hodnoty služby (např. no-reply@usps.com)"
+          "allow_forwarded_emails": "Povolit přeposílané e-maily kromě výchozí hodnoty služby (např. no-reply@usps.com)",
+          "generate_grid": "Create image grid for LLM vision models"
         },
         "description": "Dokončete konfiguraci přizpůsobením následujících položek na základě struktury e-mailu a instalace Home Assistant.\n\nPodrobnosti o [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) můžete zkontrolovat na [configurace, styly a automatizace](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
         "title": "Mail and Packages (Krok 2 ze 3)"
@@ -65,7 +70,9 @@
           "host": "Host",
           "password": "Heslo",
           "port": "Port",
-          "username": "Uživatelské jméno"
+          "username": "Uživatelské jméno",
+          "verify_ssl": "Verify SSL Cert",
+          "imap_security": "IMAP Security"
         },
         "description": "Zadejte prosím informace o připojení vašeho poštovního serveru.",
         "title": "Mail and Packages (Krok 1 ze 3)"
@@ -83,6 +90,102 @@
           "auth_type": "Authentication Type"
         },
         "title": "Authentication Method"
+      },
+      "config_3": {
+        "data": {
+          "custom_img_file": "Path to custom USPS image: (ie: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (ie: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (ie: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (ie: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (ie: images/my_custom_no_fedex.jpg)"
+        },
+        "description": "Enter the path and file name to your custom no delivery images below.\n\nExample: images/custom_nomail.gif",
+        "title": "Mail and Packages (Step 3 of 3)"
+      },
+      "config_amazon": {
+        "data": {
+          "amazon_domain": "Amazon domain",
+          "amazon_fwds": "Amazon forwarded email addresses",
+          "amazon_days": "Days back to check for Amazon emails"
+        },
+        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
+        "title": "Amazon Settings"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "Host",
+          "password": "Password",
+          "port": "Port",
+          "username": "Username",
+          "imap_security": "IMAP Security",
+          "verify_ssl": "Verify SSL Cert"
+        },
+        "description": "Please enter the connection information of your mail server.",
+        "title": "Mail and Packages (Step 1 of 2)"
+      },
+      "reconfig_2": {
+        "data": {
+          "folder": "Mail Folder",
+          "scan_interval": "Scanning Interval (minutes, minimum 5)",
+          "image_path": "Image Path",
+          "gif_duration": "Image Duration (seconds)",
+          "image_security": "Random Image Filename",
+          "generate_grid": "Create image grid for LLM vision models",
+          "generate_mp4": "Create mp4 from images",
+          "resources": "Sensors List",
+          "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+          "allow_external": "Create image for notification apps",
+          "custom_img": "Use custom USPS 'no mail' image?",
+          "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
+          "ups_custom_img": "Use custom 'no UPS delivery' image?",
+          "walmart_custom_img": "Use custom 'no Walmart delivery' image?",
+          "fedex_custom_img": "Use custom 'no FedEx delivery' image?",
+          "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
+        },
+        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
+        "title": "Mail and Packages (Step 2 of 2)"
+      },
+      "reconfig_3": {
+        "data": {
+          "custom_img_file": "Path to custom USPS image: (i.e.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
+        },
+        "description": "Enter the path and file name to your custom no delivery images below.\n\nExample: images/custom_nomail.gif",
+        "title": "Mail and Packages (Step 3 of 3)"
+      },
+      "reconfig_amazon": {
+        "data": {
+          "amazon_domain": "Amazon domain",
+          "amazon_fwds": "Amazon forwarded email addresses",
+          "amazon_days": "Days back to check for Amazon emails"
+        },
+        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
+        "title": "Amazon Settings"
+      },
+      "config_storage": {
+        "data": {
+          "storage": "Directory to store images"
+        },
+        "description": "Please enter the directory you'd like your images to be stored in.\nThe default is auto populated.",
+        "title": "Image storage location"
+      },
+      "reconfig_storage": {
+        "data": {
+          "storage": "Directory to store images"
+        },
+        "description": "Please enter the directory you'd like your images to be stored in.\nThe default is auto populated.",
+        "title": "Image storage location"
+      },
+      "reauth_confirm": {
+        "description": "The authentication for your mail server has expired or is invalid. Please re-authenticate to continue.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "title": "Re-authenticate Mail Server"
       }
     },
     "title": "Mail and Packages"
