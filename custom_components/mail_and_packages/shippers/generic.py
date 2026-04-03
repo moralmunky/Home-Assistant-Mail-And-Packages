@@ -127,15 +127,90 @@ class GenericShipper(Shipper):
         cache: EmailCache,
     ) -> dict[str, Any]:
         """Process multiple generic sensors in batch."""
+        batch_results, all_tracking = await self._process_individual_sensors(
+            account, date, sensors, cache
+        )
+
+        self._deduplicate_batch_tracking(batch_results)
+
+        # Merge results and aggregate global tracking
         res = {}
+        for _, sensor_res in batch_results:
+            res.update(sensor_res)
+
+        if all_tracking:
+            res[ATTR_TRACKING] = list(all_tracking)
+
+        return res
+
+    async def _process_individual_sensors(
+        self,
+        account: IMAP4_SSL,
+        date: str,
+        sensors: list[str],
+        cache: EmailCache,
+    ) -> tuple[list[tuple[str, dict[str, Any]]], set[str]]:
+        """Process each sensor independently and aggregate tracking."""
+        batch_results = []
+        all_tracking = set()
+
         for sensor in sensors:
             sensor_res = await self.process(account, date, sensor, cache)
-            res.update(sensor_res)
-            # Replicate coordinator dictionary logic
-            if sensor not in sensor_res:
+            # Replicate coordinator dictionary logic for local sensor counts
+            if sensor not in sensor_res and ATTR_COUNT in sensor_res:
+                sensor_res[sensor] = sensor_res[ATTR_COUNT]
+
+            # Record results for post-processing
+            batch_results.append((sensor, sensor_res))
+
+            # Aggregate all tracking numbers found
+            if ATTR_TRACKING in sensor_res:
+                all_tracking.update(sensor_res[ATTR_TRACKING])
+
+        return batch_results, all_tracking
+
+    def _deduplicate_batch_tracking(
+        self,
+        batch_results: list[tuple[str, dict[str, Any]]],
+    ) -> None:
+        """Deduplicate tracking numbers across sensors based on shipper prefix."""
+        shippers = {}
+        for sensor, sensor_res in batch_results:
+            # Prefix is everything before the last underscore (e.g., 'ups', 'fedex')
+            prefix = "_".join(sensor.split("_")[:-1])
+            if prefix not in shippers:
+                shippers[prefix] = {"delivered": set(), "update_targets": []}
+
+            tracking = set(sensor_res.get(ATTR_TRACKING, []))
+            if sensor.endswith("_delivered"):
+                shippers[prefix]["delivered"].update(tracking)
+            elif sensor.endswith(("_delivering", "_exception")):
+                shippers[prefix]["update_targets"].append((sensor, sensor_res))
+
+        # Remove "delivered" tracking numbers from concurrent "transit" sensors
+        for data in shippers.values():
+            self._apply_deduplication(data["update_targets"], data["delivered"])
+
+    def _apply_deduplication(
+        self,
+        targets: list[tuple[str, dict[str, Any]]],
+        delivered_ids: set[str],
+    ) -> None:
+        """Apply deduplication logic to a list of target sensors."""
+        if not delivered_ids:
+            return
+
+        for sensor, sensor_res in targets:
+            original_tracking = sensor_res.get(ATTR_TRACKING, [])
+            new_tracking = [
+                tid for tid in original_tracking if tid not in delivered_ids
+            ]
+
+            if len(new_tracking) != len(original_tracking):
+                sensor_res[ATTR_TRACKING] = new_tracking
+                sensor_res[sensor] = len(new_tracking)
                 if ATTR_COUNT in sensor_res:
-                    res[sensor] = sensor_res[ATTR_COUNT]
-        return res
+                    sensor_res[ATTR_COUNT] = len(new_tracking)
 
     async def _copy_generic_placeholder(self, shipper_cfg: dict[str, Any]) -> None:
         """Copy the generic placeholder for the shipper."""
