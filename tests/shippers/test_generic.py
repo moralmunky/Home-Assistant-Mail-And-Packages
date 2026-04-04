@@ -473,3 +473,88 @@ async def test_generic_search_coverage_edges(hass):
         result = await shipper.process(mock_account, "today", "ups_delivered")
         # Line 233 hit because image_found = True
         assert result[ATTR_COUNT] == 1
+
+
+@pytest.mark.asyncio
+async def test_process_batch_deduplication(hass):
+    """Test process_batch deduplication and tracking aggregation."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_cache = MagicMock()
+
+    async def _mock_process(account, date, sensor, cache):
+        if sensor == "ups_delivered":
+            return {"ups_delivered": 1, ATTR_TRACKING: ["T1"]}
+        if sensor == "ups_delivering":
+            return {"ups_delivering": 2, ATTR_TRACKING: ["T1", "T2"], ATTR_COUNT: 2}
+        if sensor == "ups_packages":
+            return {"ups_packages": 1, ATTR_TRACKING: ["T1"]}
+        if sensor == "fedex_delivered":
+            return {"fedex_delivered": 1, ATTR_TRACKING: ["F1"]}
+        if sensor == "fedex_delivering":
+            return {"fedex_delivering": 1, ATTR_TRACKING: ["F1"]}
+        return {sensor: 0, ATTR_TRACKING: []}
+
+    with patch.object(shipper, "process", side_effect=_mock_process):
+        sensors = [
+            "ups_delivered",
+            "ups_delivering",
+            "ups_packages",
+            "fedex_delivered",
+            "fedex_delivering",
+        ]
+        result = await shipper.process_batch(mock_account, "today", sensors, mock_cache)
+
+        # UPS Deduplication
+        assert result["ups_delivered"] == 1
+        assert result["ups_delivering"] == 1  # T1 removed
+        assert result["ups_packages"] == 1  # Untouched
+
+        # FedEx Deduplication
+        assert result["fedex_delivered"] == 1
+        assert result["fedex_delivering"] == 0  # F1 removed
+
+        # Tracking Aggregation
+        assert set(result[ATTR_TRACKING]) == {"T1", "T2", "F1"}
+
+
+@pytest.mark.asyncio
+async def test_generic_image_reset_on_zero_count(hass):
+    """Test GenericShipper camera image resets when count is zero."""
+    shipper = GenericShipper(
+        hass,
+        {
+            "image_path": "test/path/ups/",
+            "image_name": "testfilename.jpg",
+        },
+    )
+    mock_account = AsyncMock()
+
+    # Mock _search_for_emails to return count=0, image_found=False
+    with (
+        patch.object(
+            shipper,
+            "_search_for_emails",
+            new_callable=AsyncMock,
+            return_value=(0, [], False),
+        ),
+        patch.object(
+            shipper,
+            "_setup_image_extraction",
+            new_callable=AsyncMock,
+            return_value={
+                "name": "ups",
+                "image_path": "test/path/ups/",
+                "image_name": "testfilename.jpg",
+            },
+        ),
+        patch.object(
+            shipper,
+            "_copy_generic_placeholder",
+            new_callable=AsyncMock,
+        ) as mock_copy,
+    ):
+        result = await shipper.process(mock_account, "today", "ups_delivered")
+        assert result[ATTR_COUNT] == 0
+        # This is what we are testing: it should be called even if count is 0
+        mock_copy.assert_called_once()
