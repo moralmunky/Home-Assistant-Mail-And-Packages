@@ -160,6 +160,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             # Process logic
             shipper_data = await self._update_shippers(account, config, today, cache)
             data.update(shipper_data)
+
+            # Aggregate global transit and delivered sensors
+            self._aggregate_package_counts(data)
         finally:
             await account.logout()
 
@@ -259,6 +262,60 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 _LOGGER.error("Error processing shipper %s: %s", shipper_name, err)
 
         return data
+
+    def _aggregate_package_counts(self, data: dict) -> None:
+        """Aggregate global transit and delivered counts from all shippers."""
+        # Only update if sensors were requested in initialize_data
+        if "zpackages_transit" in data:
+            data["zpackages_transit"] = self._sum_transit_counts(data)
+        if "zpackages_delivered" in data:
+            data["zpackages_delivered"] = self._sum_delivered_counts(data)
+
+    def _sum_delivered_counts(self, data: dict) -> int:
+        """Sum delivered packages from all shippers."""
+        delivered = 0
+        exclude_keys = ("zpackages_delivered", "amazon_delivered_by_others")
+
+        for key, value in data.items():
+            if (
+                isinstance(value, int)
+                and value > 0
+                and key.endswith("_delivered")
+                and key not in exclude_keys
+            ):
+                delivered += value
+        return delivered
+
+    def _sum_transit_counts(self, data: dict) -> int:
+        """Sum transit and exception packages from all shippers."""
+        transit = 0
+        shippers_counted = set()
+
+        # Amazon is special as it uses amazon_packages for total arriving
+        if data.get("amazon_packages", 0) > 0:
+            transit += data["amazon_packages"]
+            shippers_counted.add("amazon")
+
+        for key, value in data.items():
+            if not isinstance(value, int) or value <= 0:
+                continue
+
+            # Add exceptions for all shippers
+            if key.endswith("_exception") and key != "zpackages_exception":
+                transit += value
+                continue
+
+            # Match shipper prefix
+            shipper = next((s for s in const.SHIPPERS if key.startswith(s)), None)
+            if not shipper or shipper in shippers_counted:
+                continue
+
+            # Priority: _delivering (preferred generic state) or _packages
+            if key.endswith(("_delivering", "_packages")):
+                transit += value
+                shippers_counted.add(shipper)
+
+        return transit
 
     async def _binary_sensor_update(self):
         """Update binary sensor states."""

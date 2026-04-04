@@ -159,3 +159,59 @@ async def test_process_emails_no_shipper(hass):
 
     # Dictionary returned with nothing added since no shipper available
     assert "test_sensor" not in data
+
+
+@pytest.mark.asyncio
+async def test_aggregate_package_counts(hass):
+    """Test that package counts are correctly aggregated."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    # Mock data to be aggregated
+    test_data = {
+        "zpackages_transit": 0,
+        "zpackages_delivered": 0,
+        "usps_delivering": 1,
+        "usps_delivered": 1,
+        "ups_delivering": 2,
+        "ups_delivered": 0,
+        "fedex_packages": 3,
+        "fedex_delivered": 2,
+        "amazon_packages": 5,
+        "amazon_delivered": 1,
+        "amazon_exception": 1,
+        "dhl_exception": 1,
+        "unknown_sensor": 99,
+        "amazon_delivered_by_others": 10,  # Should be excluded from zpackages_delivered
+    }
+
+    coordinator._aggregate_package_counts(test_data)
+
+    # Expected Transit:
+    # usps_delivering (1) + ups_delivering (2) + fedex_packages (3) + amazon_packages (5)
+    # + amazon_exception (1) + dhl_exception (1)
+    # = 1 + 2 + 3 + 5 + 1 + 1 = 13
+    assert test_data["zpackages_transit"] == 13
+
+    # Expected Delivered:
+    # usps_delivered (1) + fedex_delivered (2) + amazon_delivered (1)
+    # ups_delivered (0) is ignored as it is <= 0
+    # amazon_delivered_by_others (10) is excluded
+    # = 1 + 2 + 1 = 4
+    assert test_data["zpackages_delivered"] == 4
+
+
+@pytest.mark.asyncio
+async def test_aggregate_package_counts_no_resource(hass):
+    """Test that aggregation doesn't add sensors not in initialize_data."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    test_data = {
+        "usps_delivering": 1,
+    }
+
+    coordinator._aggregate_package_counts(test_data)
+
+    assert "zpackages_transit" not in test_data
+    assert "zpackages_delivered" not in test_data
