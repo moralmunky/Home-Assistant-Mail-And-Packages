@@ -516,3 +516,45 @@ async def test_process_batch_deduplication(hass):
 
         # Tracking Aggregation
         assert set(result[ATTR_TRACKING]) == {"T1", "T2", "F1"}
+
+
+@pytest.mark.asyncio
+async def test_generic_image_reset_on_zero_count(hass):
+    """Test GenericShipper camera image resets when count is zero."""
+    shipper = GenericShipper(
+        hass,
+        {
+            "image_path": "test/path/ups/",
+            "image_name": "testfilename.jpg",
+        },
+    )
+    mock_account = AsyncMock()
+
+    # Mock _search_for_emails to return count=0, image_found=False
+    with (
+        patch.object(
+            shipper,
+            "_search_for_emails",
+            new_callable=AsyncMock,
+            return_value=(0, [], False),
+        ),
+        patch.object(
+            shipper,
+            "_setup_image_extraction",
+            new_callable=AsyncMock,
+            return_value={
+                "name": "ups",
+                "image_path": "test/path/ups/",
+                "image_name": "testfilename.jpg",
+            },
+        ),
+        patch.object(
+            shipper,
+            "_copy_generic_placeholder",
+            new_callable=AsyncMock,
+        ) as mock_copy,
+    ):
+        result = await shipper.process(mock_account, "today", "ups_delivered")
+        assert result[ATTR_COUNT] == 0
+        # This is what we are testing: it should be called even if count is 0
+        mock_copy.assert_called_once()

@@ -114,7 +114,7 @@ class GenericShipper(Shipper):
             result[image_attr] = shipper_cfg["image_name"]
             result["image_path"] = image_path
 
-            if count > 0 and not image_found:
+            if not image_found:
                 await self._copy_generic_placeholder(shipper_cfg)
 
         return result
