@@ -1113,11 +1113,12 @@ class MailAndPackagesFlowHandler(
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(user_input)
             if len(self._errors) == 0:
-                if self._data[CONF_ALLOW_FORWARDED_EMAILS]:
+                if self._data.get(CONF_ALLOW_FORWARDED_EMAILS, False):
                     return await self.async_step_reconfig_forwarded_emails()
 
                 if any(
-                    sensor in self._data[CONF_RESOURCES] for sensor in AMAZON_SENSORS
+                    sensor in self._data.get(CONF_RESOURCES, [])
+                    for sensor in AMAZON_SENSORS
                 ):
                     return await self.async_step_reconfig_amazon()
                 has_custom_image = (
@@ -1207,7 +1208,7 @@ class MailAndPackagesFlowHandler(
 
     async def _show_reconfig_amazon(self, user_input):
         """Step 3 setup."""
-        if self._data[CONF_AMAZON_FWDS] == []:
+        if self._data.get(CONF_AMAZON_FWDS, []) == []:
             self._data[CONF_AMAZON_FWDS] = "(none)"
 
         return self.async_show_form(
@@ -1227,10 +1228,11 @@ class MailAndPackagesFlowHandler(
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
                 if any(
-                    sensor in self._data[CONF_RESOURCES] for sensor in AMAZON_SENSORS
+                    sensor in self._data.get(CONF_RESOURCES, [])
+                    for sensor in AMAZON_SENSORS
                 ):
                     return await self.async_step_reconfig_amazon()
-                if self._data[CONF_CUSTOM_IMG]:
+                if self._data.get(CONF_CUSTOM_IMG, False):
                     return await self.async_step_reconfig_3()
                 return await self.async_step_reconfig_storage()
             return await self._show_reconfig_forwarded_emails(user_input)
