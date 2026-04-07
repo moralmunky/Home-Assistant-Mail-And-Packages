@@ -1,5 +1,6 @@
 """Tests for IMAP and email utilities."""
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -19,6 +20,7 @@ from custom_components.mail_and_packages.utils.imap import (
     email_fetch_text,
     email_search,
     login,
+    logout,
     selectfolder,
 )
 
@@ -540,3 +542,44 @@ async def test_email_fetch_batch_failure(caplog):
     result = await email_fetch_batch(mock_imap, ["1"])
     assert result[0] == "BAD"
     assert "Error fetching emails batch" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_logout_success():
+    """Test logout success path."""
+    mock_acc = AsyncMock()
+    await logout(mock_acc)
+    assert mock_acc.logout.called
+
+
+@pytest.mark.asyncio
+async def test_logout_timeout(caplog):
+    """Test logout timeout handling."""
+    mock_acc = AsyncMock()
+    mock_acc.logout.side_effect = TimeoutError("Logout timed out")
+    caplog.set_level("DEBUG")
+
+    await logout(mock_acc)
+    assert "Error logging out of IMAP Server" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_logout_cancelled(caplog):
+    """Test logout cancellation handling."""
+    mock_acc = AsyncMock()
+    mock_acc.logout.side_effect = asyncio.CancelledError()
+    caplog.set_level("DEBUG")
+
+    await logout(mock_acc)
+    assert "Error logging out of IMAP Server" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_logout_oserror(caplog):
+    """Test logout OSError handling."""
+    mock_acc = AsyncMock()
+    mock_acc.logout.side_effect = OSError("Connection lost")
+    caplog.set_level("DEBUG")
+
+    await logout(mock_acc)
+    assert "Error logging out of IMAP Server" in caplog.text

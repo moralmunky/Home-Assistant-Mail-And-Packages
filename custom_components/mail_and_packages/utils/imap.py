@@ -1,5 +1,6 @@
 """IMAP connection and search utilities for Mail and Packages."""
 
+import asyncio
 import logging
 
 from aioimaplib import AUTH, IMAP4, IMAP4_SSL, NONAUTH, SELECTED, AioImapException
@@ -202,3 +203,11 @@ async def email_fetch_batch(
         return ("BAD", str(err))
     else:
         return (res.result, res.lines)
+
+
+async def logout(account: IMAP4_SSL | IMAP4) -> None:
+    """Logout from IMAP server asynchronously."""
+    try:
+        await account.logout()
+    except (TimeoutError, AioImapException, OSError, asyncio.CancelledError) as err:
+        _LOGGER.debug("Error logging out of IMAP Server: %s", err)
