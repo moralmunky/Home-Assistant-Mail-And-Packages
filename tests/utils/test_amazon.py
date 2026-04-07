@@ -55,9 +55,13 @@ def test_extract_order_numbers_str_pattern():
 def test_amazon_email_addresses_str_input():
     """Test amazon_email_addresses with string input for fwds."""
     # When fwds is a string, it's treated as a single forwarder.
-    # If the forwarder doesn't match AMAZON_DOMAINS, it gets prefixes added.
+    # If the forwarder matches AMAZON_DOMAINS, it gets prefixes added.
+    result = amazon_email_addresses(fwds="amazon.com")
+    assert "order-update@amazon.com" in result
+
+    # If it doesn't match and has no @, it should be discarded.
     result = amazon_email_addresses(fwds="forward.com")
-    assert "order-update@forward.com" in result
+    assert "order-update@forward.com" not in result
 
 
 @pytest.mark.asyncio
@@ -240,3 +244,27 @@ async def test_get_amazon_image_urls_with_cache():
 
     result = await get_amazon_image_urls("1", mock_acc, cache=cache)
     assert "https://us-prod-temp.s3.amazonaws.com/test.jpg" in result
+
+
+def test_amazon_email_addresses_forwarder_variations():
+    """Test amazon_email_addresses with full emails, standard domains, and invalid domains."""
+    # Case 1: Full email address from personal domain
+    # Should be preserved as-is.
+    fwds = ["my-forwarder@gmail.com"]
+    result = amazon_email_addresses(fwds=fwds)
+    assert "my-forwarder@gmail.com" in result
+    assert "order-update@my-forwarder@gmail.com" not in result
+
+    # Case 2: Standard Amazon domain (no @)
+    # Should have prefixes prepended.
+    fwds = ["amazon.com"]
+    result = amazon_email_addresses(fwds=fwds)
+    assert "order-update@amazon.com" in result
+    assert "amazon.com" not in result
+
+    # Case 3: Non-Amazon domain without @
+    # Should be discarded (not in AMAZON_DOMAINS).
+    fwds = ["example.com"]
+    result = amazon_email_addresses(fwds=fwds)
+    assert "order-update@example.com" not in result
+    assert "example.com" not in result
