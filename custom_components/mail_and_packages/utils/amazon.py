@@ -139,9 +139,9 @@ def amazon_email_addresses(
     value = [f"{e}{domain}" for e in prefixes]
     if fwds:
         for fwd in fwds:
-            if any(f in fwd for f in AMAZON_DOMAINS):
+            if "@" in fwd:
                 value.append(fwd)
-            else:
+            elif any(f in fwd for f in AMAZON_DOMAINS):
                 value.extend(f"{e}{fwd}" for e in prefixes)
     return value
 
