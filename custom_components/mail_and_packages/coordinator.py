@@ -44,7 +44,7 @@ from .helpers import copy_images
 from .shippers import get_shipper_for_sensor
 from .utils.cache import EmailCache
 from .utils.image import default_image_path, hash_file, image_file_name
-from .utils.imap import InvalidAuth, login, selectfolder
+from .utils.imap import InvalidAuth, login, logout, selectfolder
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -164,7 +164,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             # Aggregate global transit and delivered sensors
             self._aggregate_package_counts(data)
         finally:
-            await account.logout()
+            await logout(account)
 
         # Post-process external images
         if config.get(CONF_ALLOW_EXTERNAL):
@@ -228,7 +228,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
         if not await selectfolder(account, config.get(CONF_FOLDER)):
             _LOGGER.error("Error selecting folder: %s", config.get(CONF_FOLDER))
-            await account.logout()
+            await logout(account)
             raise UpdateFailed(f"Folder selection failed: {config.get(CONF_FOLDER)}")
 
         return account
