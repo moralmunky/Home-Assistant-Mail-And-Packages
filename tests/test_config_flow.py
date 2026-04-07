@@ -7,6 +7,7 @@ import tempfile
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+import voluptuous as vol
 from aioimaplib import AioImapException
 from anyio import Path
 from homeassistant import config_entries, setup
@@ -7430,3 +7431,59 @@ async def test_step_reconfig_amazon_error_final(hass):
 
     assert result["type"] == "form"
     assert result["step_id"] == "reconfig_amazon"
+
+
+@pytest.mark.asyncio
+async def test_show_reconfig_amazon_no_key(hass):
+    """Test that _show_reconfig_amazon doesn't crash if CONF_AMAZON_FWDS is missing."""
+    handler = MailAndPackagesFlowHandler()
+    handler.hass = hass
+    handler._data = {}  # Missing CONF_AMAZON_FWDS
+    handler._errors = {}
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._get_schema_step_amazon"
+    ) as mock_schema:
+        mock_schema.return_value = vol.Schema({})
+        # This should not raise KeyError
+        result = await handler._show_reconfig_amazon(None)
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_amazon"
+    assert handler._data[CONF_AMAZON_FWDS] == "(none)"
+
+
+@pytest.mark.asyncio
+async def test_async_step_reconfig_2_no_keys(hass):
+    """Test that async_step_reconfig_2 doesn't crash if keys are missing."""
+    handler = MailAndPackagesFlowHandler()
+    handler.hass = hass
+    handler._data = {}  # Missing optional keys
+    handler._errors = {}
+
+    with patch.object(handler, "_show_reconfig_2", return_value={"type": "form"}):
+        # This should not raise KeyError
+        result = await handler.async_step_reconfig_2(None)
+
+    assert result["type"] == "form"
+
+
+@pytest.mark.asyncio
+async def test_async_step_reconfig_forwarded_emails_no_keys(hass):
+    """Test that async_step_reconfig_forwarded_emails doesn't crash if keys are missing."""
+    handler = MailAndPackagesFlowHandler()
+    handler.hass = hass
+    handler._data = {}  # Missing CONF_RESOURCES, CONF_CUSTOM_IMG
+    handler._errors = {}
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow._validate_user_input",
+            return_value=({}, {}),
+        ),
+        patch.object(handler, "_show_reconfig_storage", return_value={"type": "form"}),
+    ):
+        # This should not raise KeyError
+        result = await handler.async_step_reconfig_forwarded_emails({"some": "input"})
+
+    assert result["type"] == "form"
