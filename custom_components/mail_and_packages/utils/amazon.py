@@ -5,7 +5,6 @@ from __future__ import annotations
 import datetime
 import email
 import logging
-import quopri
 import re
 from email.header import decode_header
 from functools import partial
@@ -65,14 +64,18 @@ def get_email_body(msg: email.message.Message) -> str:
     """Extract and decode the email body safely."""
     try:
         if msg.is_multipart():
+            # Standard practice is to look for text/plain then text/html
+            for part in msg.walk():
+                if part.get_content_type() == "text/plain":
+                    return part.get_payload(decode=True).decode("utf-8", "ignore")
+            # If no text/plain, fall back to first part
             payload = msg.get_payload(0)
             if isinstance(payload, email.message.Message):
-                payload = payload.get_payload()
-            email_msg = quopri.decodestring(str(payload))
-        else:
-            email_msg = quopri.decodestring(str(msg.get_payload()))
-        return email_msg.decode("utf-8", "ignore")
-    except (ValueError, TypeError, IndexError) as err:
+                return payload.get_payload(decode=True).decode("utf-8", "ignore")
+            return str(payload)
+
+        return msg.get_payload(decode=True).decode("utf-8", "ignore")
+    except (ValueError, TypeError, IndexError, AttributeError) as err:
         _LOGGER.debug("Problem decoding email message: %s", err)
         return ""
 
@@ -91,6 +94,27 @@ async def parse_amazon_arrival_date(
 ) -> datetime.date | None:
     """Determine arrival date from email."""
     today_date = get_today()
+
+    # Try using regex for more precise extraction of the arrival date string
+    if date_str := amazon_date_regex(email_msg):
+        dateobj = await hass.async_add_executor_job(
+            partial(
+                dateparser.parse,
+                date_str,
+                settings={
+                    "PREFER_DATES_FROM": "future",
+                    "RELATIVE_BASE": datetime.datetime.combine(
+                        email_date or today_date,
+                        datetime.time(),
+                    ),
+                    "RETURN_AS_TIMEZONE_AWARE": False,
+                },
+            ),
+        )
+        if dateobj:
+            return dateobj.date()
+
+    # Fallback to chunk-based parsing
     for search in AMAZON_TIME_PATTERN:
         if search not in email_msg:
             continue
