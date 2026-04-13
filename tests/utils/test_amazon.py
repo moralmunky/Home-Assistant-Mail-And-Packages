@@ -271,8 +271,9 @@ def test_amazon_email_addresses_forwarder_variations():
 
 
 def test_get_email_body_multipart_no_text_plain_non_message_payload():
-    """Test get_email_body with multipart message, no text/plain, and non-message payload (Line 75)."""
+    """Test get_email_body with a multipart message that lacks a text/plain part."""
     msg = MagicMock(spec=email.message.Message)
+
     msg.is_multipart.return_value = True
 
     # Mock walk() to return nothing that matches text/plain
@@ -291,8 +292,9 @@ def test_get_email_body_multipart_no_text_plain_non_message_payload():
 
 
 def test_get_email_body_attribute_error():
-    """Test get_email_body with AttributeError (Line 78)."""
+    """Test get_email_body handles AttributeError during payload decoding."""
     msg = MagicMock(spec=email.message.Message)
+
     msg.is_multipart.return_value = False
     # Triggers AttributeError on get_payload(decode=True).decode(...)
     msg.get_payload.return_value = None

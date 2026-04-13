@@ -95,7 +95,7 @@ async def parse_amazon_arrival_date(
     """Determine arrival date from email."""
     today_date = get_today()
 
-    # Try using regex for more precise extraction
+    # Try using regex for more precise extraction of the arrival date string
     if date_str := amazon_date_regex(email_msg):
         dateobj = await hass.async_add_executor_job(
             partial(
