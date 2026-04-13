@@ -237,6 +237,7 @@ AMAZON_TIME_PATTERN_REGEX = [
     "Arrivée (\\w+ \\d*)",
     "Chega ((\\w+(-\\w+)?))",
     "Arriving (tomorrow)",
+    "Arriving (today)",
     "Wordt bezorgd op (\\w+ \\d+ \\w+)",
     "Wordt bezorgd op (\\w+ \\d+)",
     "Wordt (vandaag) bezorgd",
