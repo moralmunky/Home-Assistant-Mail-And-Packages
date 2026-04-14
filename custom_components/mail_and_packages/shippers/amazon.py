@@ -62,7 +62,6 @@ from custom_components.mail_and_packages.utils.image import (
 )
 from custom_components.mail_and_packages.utils.imap import (
     email_fetch,
-    email_fetch_headers,
     email_search,
 )
 
@@ -319,27 +318,15 @@ class AmazonShipper(Shipper):
             account,
             address_list,
             today,
-            "",
+            subjects,
         )
         if server_response == "OK" and data[0]:
             for email_id in data[0].split():
-                if cache:
-                    header_data = (await cache.fetch(email_id, "(HEADER)"))[1]
-                else:
-                    header_data = (await email_fetch_headers(account, email_id))[1]
-
-                for response_part in header_data:
-                    if isinstance(response_part, (bytes, bytearray)):
-                        msg = email.message_from_bytes(response_part)
-                        subject = get_decoded_subject(msg)
-                        if not subject:
-                            continue
-                        if any(s.lower() in subject.lower() for s in subjects):
-                            count += 1
-                            urls = await get_amazon_image_urls(email_id, account, cache)
-                            for url in urls:
-                                if url not in all_image_urls:
-                                    all_image_urls.append(url)
+                count += 1
+                urls = await get_amazon_image_urls(email_id, account, cache)
+                for url in urls:
+                    if url not in all_image_urls:
+                        all_image_urls.append(url)
 
         await self._process_amazon_images(
             all_image_urls, image_path, amazon_image_name, count

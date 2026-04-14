@@ -583,3 +583,110 @@ async def test_logout_oserror(caplog):
 
     await logout(mock_acc)
     assert "Error logging out of IMAP Server" in caplog.text
+
+
+def test_build_search_list_subject():
+    """Test build_search with a list of subjects."""
+    # Covers line 104: subjects = subject
+    utf8, search = build_search(
+        ["test@example.com"], "25-Mar-2026", subject=["Subject 1"]
+    )
+    assert 'SUBJECT "Subject 1"' in search
+
+
+def test_build_search_empty_safe_subjects():
+    """Test build_search when subjects become empty after ASCII stripping."""
+    # Covers line 112: subject_part = ""
+    # "é" is non-ASCII and will be stripped to an empty string
+    utf8, search = build_search(["test@example.com"], "25-Mar-2026", subject=["é"])
+    assert "SUBJECT" not in search
+
+
+def test_build_search_multi_subject():
+    """Test build_search with multiple subjects to verify OR prefix."""
+    # Covers lines 116-117
+    subjects = ["One", "Two", "Three"]
+    utf8, search = build_search(["test@example.com"], "25-Mar-2026", subject=subjects)
+    assert 'OR OR SUBJECT "One" SUBJECT "Two" SUBJECT "Three"' in search
+
+
+def test_build_search_single_addr_with_subject():
+    """Test build_search with single address and subject."""
+    # Covers line 126
+    utf8, search = build_search(["test@example.com"], "25-Mar-2026", subject="Test")
+    assert '(FROM "test@example.com" SUBJECT "Test" SINCE 25-Mar-2026)' in search
+
+
+@pytest.mark.asyncio
+async def test_email_search_batching():
+    """Test email_search batching logic for > 10 subjects."""
+    # Covers lines 163-176
+    mock_acc = AsyncMock()
+
+    # Mocking two batches: first with IDs 1 2, second with ID 3
+    res1 = MagicMock()
+    res1.result = "OK"
+    res1.lines = [b"1 2"]
+
+    res2 = MagicMock()
+    res2.result = "OK"
+    res2.lines = [b"3"]
+
+    mock_acc.search.side_effect = [res1, res2]
+
+    # 11 subjects will trigger 2 batches (10 + 1)
+    subjects = [f"Sub{i}" for i in range(11)]
+    result = await email_search(
+        mock_acc, ["test@example.com"], "25-Mar-2026", subject=subjects
+    )
+
+    assert result[0] == "OK"
+    assert result[1] == [b"1 2 3"]
+    assert mock_acc.search.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_email_search_batching_partially_no_results():
+    """Test email_search batching where one batch returns no results."""
+    mock_acc = AsyncMock()
+
+    res1 = MagicMock()
+    res1.result = "OK"
+    res1.lines = [b"1 2"]
+
+    res2 = MagicMock()
+    res2.result = "OK"
+    res2.lines = [None]  # No results in second batch
+
+    mock_acc.search.side_effect = [res1, res2]
+
+    subjects = [f"Sub{i}" for i in range(11)]
+    result = await email_search(
+        mock_acc, ["test@example.com"], "25-Mar-2026", subject=subjects
+    )
+
+    assert result[0] == "OK"
+    assert result[1] == [b"1 2"]
+
+
+@pytest.mark.asyncio
+async def test_email_search_batching_error(caplog):
+    """Test email_search batching with an error in one batch."""
+    # Covers lines 171-172
+    mock_acc = AsyncMock()
+    caplog.set_level("ERROR")
+
+    res1 = MagicMock()
+    res1.result = "OK"
+    res1.lines = [b"1 2"]
+
+    mock_acc.search.side_effect = [res1, AioImapException("Batch failed")]
+
+    subjects = [f"Sub{i}" for i in range(11)]
+    result = await email_search(
+        mock_acc, ["test@example.com"], "25-Mar-2026", subject=subjects
+    )
+
+    assert result[0] == "OK"
+    assert result[1] == [b"1 2"]
+    assert "Error searching emails batch: Batch failed" in caplog.text

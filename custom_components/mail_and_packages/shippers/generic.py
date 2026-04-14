@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import email
 import logging
 from pathlib import Path
 from shutil import copyfile
@@ -25,12 +24,10 @@ from custom_components.mail_and_packages.const import (
     CAMERA_EXTRACTION_CONFIG,
     SENSOR_DATA,
 )
-from custom_components.mail_and_packages.utils.amazon import get_decoded_subject
 from custom_components.mail_and_packages.utils.cache import EmailCache
 from custom_components.mail_and_packages.utils.email import find_text
 from custom_components.mail_and_packages.utils.imap import (
     email_fetch,
-    email_fetch_headers,
     email_search,
 )
 from custom_components.mail_and_packages.utils.shipper import (
@@ -253,59 +250,31 @@ class GenericShipper(Shipper):
         found_data = []
         image_found = False
 
-        if len(subjects) > 2:
-            matched_ids_str = await self._broad_search_then_filter(
-                account, email_addresses, date, subjects, cache
-            )
-            if matched_ids_str:
-                raw_ids = [eid.encode() for eid in matched_ids_str]
-                filtered_new_ids = self._filter_unique_ids(raw_ids, unique_email_ids)
+        (server_response, sdata) = await email_search(
+            account,
+            email_addresses,
+            date,
+            subjects,
+        )
 
-                if filtered_new_ids:
-                    count, img_found = await self._process_matched_emails(
-                        account,
-                        config,
-                        filtered_new_ids,
-                        count,
-                        cache,
-                        shipper_cfg,
-                        sensor_type,
-                        result,
-                        found_data,
-                    )
-                    if img_found:
-                        image_found = True
+        if server_response == "OK" and sdata[0]:
+            raw_ids = sdata[0].split()
+            filtered_new_ids = self._filter_unique_ids(raw_ids, unique_email_ids)
 
-        else:
-            for subject in subjects:
-                (server_response, sdata) = await email_search(
+            if filtered_new_ids:
+                count, img_found = await self._process_matched_emails(
                     account,
-                    email_addresses,
-                    date,
-                    subject,
+                    config,
+                    filtered_new_ids,
+                    count,
+                    cache,
+                    shipper_cfg,
+                    sensor_type,
+                    result,
+                    found_data,
                 )
-                if server_response == "OK" and sdata[0]:
-                    raw_ids = sdata[0].split()
-                    filtered_new_ids = self._filter_unique_ids(
-                        raw_ids, unique_email_ids
-                    )
-
-                    if not filtered_new_ids:
-                        continue
-
-                    count, img_found = await self._process_matched_emails(
-                        account,
-                        config,
-                        filtered_new_ids,
-                        count,
-                        cache,
-                        shipper_cfg,
-                        sensor_type,
-                        result,
-                        found_data,
-                    )
-                    if img_found:
-                        image_found = True
+                if img_found:
+                    image_found = True
 
         return count, found_data, image_found
 
@@ -350,45 +319,6 @@ class GenericShipper(Shipper):
             await self._check_amazon_mentions(account, new_ids, result, cache)
 
         return count, image_found
-
-    async def _broad_search_then_filter(
-        self,
-        account: IMAP4_SSL,
-        email_addresses: list[str],
-        date: str,
-        subjects: list[str],
-        cache: EmailCache | None,
-    ) -> list[str]:
-        """Perform a single IMAP SEARCH by FROM+SINCE and filter subjects client-side."""
-        (server_response, sdata) = await email_search(
-            account, email_addresses, date, ""
-        )
-        if server_response != "OK" or not sdata[0]:
-            return []
-
-        email_ids = sdata[0].split()
-        matched_ids = []
-
-        for eid in email_ids:
-            if cache:
-                header_data = (await cache.fetch(eid, "(HEADER)"))[1]
-            else:
-                header_data = (await email_fetch_headers(account, eid))[1]
-
-            for response_part in header_data:
-                if isinstance(response_part, (bytes, bytearray)):
-                    msg = email.message_from_bytes(response_part)
-
-                    subject = get_decoded_subject(msg)
-                    if not subject:
-                        continue
-
-                    if any(s.lower() in subject.lower() for s in subjects):
-                        matched_ids.append(
-                            eid.decode() if isinstance(eid, bytes) else str(eid)
-                        )
-
-        return matched_ids
 
     async def _process_tracking_numbers(
         self,
