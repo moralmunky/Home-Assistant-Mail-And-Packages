@@ -594,17 +594,6 @@ async def test_amazon_packages_counts(hass, mock_imap_amazon_shipped):
                 ],
             ),
         ),
-        patch(
-            "custom_components.mail_and_packages.utils.amazon.email_fetch_headers",
-            new_callable=AsyncMock,
-            return_value=(
-                "OK",
-                [
-                    b"Header",
-                    b"Subject: Shipped:\nDate: Fri, 25 Sep 2020 12:00:00 +0000\n\nYour order 111-1234567-1234567 has shipped. Arriving: Saturday, September 26.",
-                ],
-            ),
-        ),
     ):
         result = await shipper.process(
             mock_imap_amazon_shipped,
@@ -621,17 +610,6 @@ async def test_amazon_order_list(hass, mock_imap_amazon_shipped):
     with (
         patch(
             "custom_components.mail_and_packages.shippers.amazon.email_fetch",
-            new_callable=AsyncMock,
-            return_value=(
-                "OK",
-                [
-                    b"Header",
-                    b"Subject: Shipped:\n\nYour order 111-1234567-1234567 has shipped.",
-                ],
-            ),
-        ),
-        patch(
-            "custom_components.mail_and_packages.utils.amazon.email_fetch_headers",
             new_callable=AsyncMock,
             return_value=(
                 "OK",
@@ -778,14 +756,6 @@ async def test_amazon_search_multiple_images_gif(hass):
             "custom_components.mail_and_packages.shippers.amazon.email_search",
             new_callable=AsyncMock,
             return_value=("OK", [b"1 2"]),
-        ),
-        patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch_headers",
-            new_callable=AsyncMock,
-            return_value=(
-                "OK",
-                [None, b"Subject: Delivered: Your Amazon order\n\nBody"],
-            ),
         ),
         patch(
             "custom_components.mail_and_packages.shippers.amazon.get_amazon_image_urls",
