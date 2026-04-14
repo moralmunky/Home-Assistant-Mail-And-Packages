@@ -221,10 +221,6 @@ async def test_generic_multiple_emails(hass):
             new_callable=AsyncMock,
             return_value=["1Z123", "1Z456"],
         ),
-        patch(
-            "custom_components.mail_and_packages.shippers.generic.GenericShipper._broad_search_then_filter",
-            return_value=["1", "2"],
-        ),
     ):
         result = await shipper.process(mock_account, "today", "ups_delivered")
         assert result[ATTR_COUNT] == 2
@@ -287,10 +283,6 @@ async def test_generic_body_search(hass):
             return_value=1,
         ) as mock_find,
         patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
-        patch(
-            "custom_components.mail_and_packages.shippers.generic.GenericShipper._broad_search_then_filter",
-            return_value=["1"],
-        ),
     ):
         # dhl_delivered has "body" in SENSOR_DATA
         result = await shipper.process(mock_acc, "today", "dhl_delivered")
@@ -398,12 +390,6 @@ async def test_generic_image_found(hass):
         patch(
             "custom_components.mail_and_packages.shippers.generic.generic_delivery_image_extraction",
             return_value=True,
-        ),
-        patch.object(
-            shipper,
-            "_broad_search_then_filter",
-            new_callable=AsyncMock,
-            return_value=["1"],
         ),
         patch(
             "custom_components.mail_and_packages.shippers.generic.get_tracking",

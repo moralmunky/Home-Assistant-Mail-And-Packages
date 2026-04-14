@@ -34,7 +34,6 @@ from custom_components.mail_and_packages.utils.date import get_today
 from custom_components.mail_and_packages.utils.image import io_save_file
 from custom_components.mail_and_packages.utils.imap import (
     email_fetch,
-    email_fetch_headers,
     email_search,
 )
 
@@ -193,43 +192,13 @@ async def search_amazon_emails(
         account,
         address_list,
         tfmt,
-        "",
+        amazon_subjects,
     )
 
     if server_response != "OK" or not sdata[0]:
         return []
 
-    email_ids = sdata[0].split()
-    return await _process_amazon_email_headers(
-        account, email_ids, amazon_subjects, cache
-    )
-
-
-async def _process_amazon_email_headers(
-    account: IMAP4_SSL,
-    email_ids: list[bytes],
-    amazon_subjects: list[str],
-    cache: EmailCache | None,
-) -> list[bytes]:
-    """Process email headers to match Amazon subjects."""
-    unique_emails = []
-    for email_id in email_ids:
-        if cache:
-            header_data = (await cache.fetch(email_id, "(HEADER)"))[1]
-        else:
-            header_data = (await email_fetch_headers(account, email_id))[1]
-
-        for response_part in header_data:
-            if isinstance(response_part, (bytes, bytearray)):
-                msg = email.message_from_bytes(response_part)
-                subject = get_decoded_subject(msg)
-                if not subject:
-                    continue
-                if any(s.lower() in subject.lower() for s in amazon_subjects):
-                    if email_id not in unique_emails:
-                        unique_emails.append(email_id)
-
-    return unique_emails
+    return sdata[0].split()
 
 
 async def download_amazon_img(

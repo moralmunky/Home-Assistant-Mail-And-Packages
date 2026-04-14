@@ -76,7 +76,7 @@ async def selectfolder(account: IMAP4_SSL, folder: str) -> bool:
         return True
 
 
-def build_search(address: list, date: str, subject: str = "") -> tuple:
+def build_search(address: list, date: str, subject: str | list[str] = "") -> tuple:
     """Build IMAP search query.
 
     Return tuple of utf8 flag and search query.
@@ -87,26 +87,45 @@ def build_search(address: list, date: str, subject: str = "") -> tuple:
     """
     the_date = f"SINCE {date}"
     imap_search = None
-    prefix_list = None
+    addr_prefix = None
     email_list = None
 
     if len(address) == 1:
         email_list = address[0]
     else:
         email_list = '" FROM "'.join(address)
-        prefix_list = " ".join(["OR"] * (len(address) - 1))
+        addr_prefix = " ".join(["OR"] * (len(address) - 1))
 
-    _LOGGER.debug("DEBUG subject: %s", subject)
-
+    # Handle multiple subjects
     if subject:
-        # Strip non-ASCII characters for IMAP server compatibility
-        safe_subject = subject.encode("ascii", "ignore").decode("ascii")
-        if prefix_list is not None:
-            imap_search = f'({prefix_list} FROM "{email_list}" SUBJECT "{safe_subject}" {the_date})'
+        if isinstance(subject, str):
+            subjects = [subject]
         else:
-            imap_search = f'(FROM "{email_list}" SUBJECT "{safe_subject}" {the_date})'
-    elif prefix_list is not None:
-        imap_search = f'({prefix_list} FROM "{email_list}" {the_date})'
+            subjects = subject
+
+        # Strip non-ASCII characters for IMAP server compatibility
+        safe_subjects = [s.encode("ascii", "ignore").decode("ascii") for s in subjects]
+        # Filter out empty subjects after stripping
+        safe_subjects = [s for s in safe_subjects if s] if subjects else []
+
+        if not safe_subjects:
+            subject_part = ""
+        elif len(safe_subjects) == 1:
+            subject_part = f'SUBJECT "{safe_subjects[0]}"'
+        else:
+            subject_prefix = " ".join(["OR"] * (len(safe_subjects) - 1))
+            subject_part = (
+                f'{subject_prefix} SUBJECT "{'" SUBJECT "'.join(safe_subjects)}"'
+            )
+
+        if addr_prefix is not None:
+            imap_search = (
+                f'({addr_prefix} FROM "{email_list}" {subject_part} {the_date})'
+            )
+        else:
+            imap_search = f'(FROM "{email_list}" {subject_part} {the_date})'
+    elif addr_prefix is not None:
+        imap_search = f'({addr_prefix} FROM "{email_list}" {the_date})'
     else:
         imap_search = f'(FROM "{email_list}" {the_date})'
 
@@ -119,23 +138,42 @@ async def email_search(
     account: IMAP4_SSL,
     address: list,
     date: str,
-    subject: str = "",
+    subject: str | list[str] = "",
 ) -> tuple:
     """Search emails with from, subject, and date asynchronously.
 
     Always uses charset=None to avoid sending CHARSET in the IMAP SEARCH
     command, ensuring compatibility with servers like Microsoft Exchange
     that only support US-ASCII.
-    """
-    _unused, search = build_search(address, date, subject)
 
-    try:
-        res = await account.search(search, charset=None)
-    except (AioImapException, OSError) as err:
-        _LOGGER.error("Error searching emails: %s", err)
-        return ("BAD", str(err))
-    else:
-        return (res.result, res.lines)
+    If multiple subjects are provided, they are searched in batches of 10
+    to keep the search query length safe.
+    """
+    if not isinstance(subject, list) or len(subject) <= 10:
+        _unused, search = build_search(address, date, subject)
+        try:
+            res = await account.search(search, charset=None)
+        except (AioImapException, OSError) as err:
+            _LOGGER.error("Error searching emails: %s", err)
+            return ("BAD", str(err))
+        else:
+            return (res.result, res.lines)
+
+    # Batch subjects in groups of 10
+    all_matched_ids = []
+    for i in range(0, len(subject), 10):
+        batch = subject[i : i + 10]
+        _unused, search = build_search(address, date, batch)
+        try:
+            res = await account.search(search, charset=None)
+            if res.result == "OK" and res.lines[0]:
+                all_matched_ids.extend(res.lines[0].split())
+        except (AioImapException, OSError) as err:
+            _LOGGER.error("Error searching emails batch: %s", err)
+
+    # Deduplicate and return in same format as individual search
+    unique_ids = list(dict.fromkeys(all_matched_ids))
+    return ("OK", [b" ".join(unique_ids)])
 
 
 async def email_fetch(account: IMAP4_SSL, num, parts: str = "(RFC822)") -> tuple:
