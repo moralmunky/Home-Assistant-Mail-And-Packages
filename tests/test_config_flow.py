@@ -4239,6 +4239,21 @@ async def test_validate_user_input_forwarded_emails_none():
     assert CONF_FORWARDED_EMAILS not in result_input
 
 
+@pytest.mark.asyncio
+async def test_validate_user_input_forwarded_emails_saved_as_list():
+    """Test that a valid forwarded_emails string is converted to a list on save."""
+    user_input = {
+        CONF_FORWARDED_EMAILS: "forward@test.com, other@test.com",
+        CONF_ALLOW_FORWARDED_EMAILS: True,
+        CONF_GENERATE_MP4: False,
+    }
+
+    errors, result_input = await _validate_user_input(user_input)
+
+    assert errors == {}
+    assert result_input[CONF_FORWARDED_EMAILS] == ["forward@test.com", "other@test.com"]
+
+
 async def test_get_mailboxes_parsing_error(hass, caplog):
     """Test _get_mailboxes handles delimiter parsing failures."""
     mock_conn = AsyncMock()

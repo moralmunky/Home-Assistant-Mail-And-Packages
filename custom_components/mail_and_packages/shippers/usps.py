@@ -262,7 +262,9 @@ class USPSShipper(Shipper):
         """Search for USPS Informed Delivery emails."""
         forwarded_emails = self.config.get("forwarded_emails", [])
         if isinstance(forwarded_emails, str):
-            forwarded_emails = [e.strip() for e in forwarded_emails.split(",") if e.strip()]
+            forwarded_emails = [
+                e.strip() for e in forwarded_emails.split(",") if e.strip()
+            ]
         _LOGGER.debug("Attempting to find Informed Delivery mail")
         _LOGGER.debug("Informed delivery search date: %s", get_formatted_date())
 

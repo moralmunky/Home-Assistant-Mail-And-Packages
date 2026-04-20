@@ -270,6 +270,27 @@ async def test_generic_forwarded_emails(hass):
 
 
 @pytest.mark.asyncio
+async def test_generic_forwarded_emails_string(hass):
+    """Test that a legacy string value for forwarded_emails is normalized to a list."""
+    shipper = GenericShipper(
+        hass,
+        {
+            "forwarded_emails": "forward@test.com, other@test.com",
+            "image_path": "test/path/",
+        },
+    )
+    mock_acc = AsyncMock()
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_search",
+        return_value=("OK", [None]),
+    ) as mock_search:
+        await shipper.process(mock_acc, "today", "ups_delivered")
+        search_addresses = mock_search.call_args[0][1]
+        assert "forward@test.com" in search_addresses
+        assert "other@test.com" in search_addresses
+
+
+@pytest.mark.asyncio
 async def test_generic_body_search(hass):
     """Test GenericShipper with body search (Lines 209-211)."""
     shipper = GenericShipper(hass, {"image_path": "test/path/"})
