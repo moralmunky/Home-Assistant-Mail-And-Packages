@@ -4522,7 +4522,7 @@ async def test_validate_forwarded_emails_missing_and_invalid():
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
-                "forwarded_emails": "user@example.com,testuser@example.com",
+                "forwarded_emails": ["user@example.com", "testuser@example.com"],
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
@@ -4995,7 +4995,7 @@ async def test_form_allowed_forwarded_emails_entered_none(
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
-                "forwarded_emails": "user@example.com,testuser@example.com",
+                "forwarded_emails": ["user@example.com", "testuser@example.com"],
                 "custom_img": False,
                 "auth_type": "password",
                 "host": "imap.test.email",
@@ -5214,7 +5214,7 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
-                "forwarded_emails": "user@example.com,testuser@example.com",
+                "forwarded_emails": ["user@example.com", "testuser@example.com"],
                 "custom_img": False,
                 "auth_type": "password",
                 "host": "imap.test.email",
@@ -5434,7 +5434,7 @@ async def test_form_allow_forwarded_emails_without_custom_img(
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
-                "forwarded_emails": "user@example.com,testuser@example.com",
+                "forwarded_emails": ["user@example.com", "testuser@example.com"],
                 "custom_img": False,
                 "auth_type": "password",
                 "host": "imap.test.email",
@@ -6256,7 +6256,7 @@ async def test_form_allowed_forwards_invalid_email_address_format(
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
-                "forwarded_emails": "user@example.com,testuser@example.com",
+                "forwarded_emails": ["user@example.com", "testuser@example.com"],
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
@@ -6509,7 +6509,7 @@ async def test_reconfigure_allow_forwarded_emails(
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
-                "forwarded_emails": "no-reply@usps.com",
+                "forwarded_emails": ["no-reply@usps.com"],
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
