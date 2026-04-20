@@ -256,7 +256,13 @@ async def _validate_user_input(user_input: dict) -> tuple:
                 # the user changed their mind, remove the flag and config entry
                 user_input[CONF_ALLOW_FORWARDED_EMAILS] = False
                 del user_input[CONF_FORWARDED_EMAILS]
-            elif status[0] != "ok":
+            elif status[0] == "ok":
+                user_input[CONF_FORWARDED_EMAILS] = [
+                    e.strip()
+                    for e in user_input[CONF_FORWARDED_EMAILS].split(",")
+                    if e.strip()
+                ]
+            else:
                 errors[CONF_FORWARDED_EMAILS] = status[0]
 
     # Check for ffmpeg if option enabled
