@@ -128,10 +128,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                         await session.async_ensure_token_valid()
                         config["oauth_token"] = session.token["access_token"]
                     except Exception as err:
-                        _LOGGER.error("Error refreshing OAuth token: %s", err)
-                        raise UpdateFailed(
-                            f"OAuth token refresh failed: {err}",
-                        ) from err
+                        _LOGGER.error("Error refreshing OAuth token")
+                        _LOGGER.debug("OAuth token refresh error details: %s", err)
+                        raise UpdateFailed("OAuth token refresh failed") from err
 
                 data = await self.process_emails(self.hass, config)
             except UpdateFailed:
@@ -226,7 +225,13 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             _LOGGER.error("Error logging into IMAP: %s", err)
             raise UpdateFailed(f"Login failed: {err}") from err
 
-        if not await selectfolder(account, config.get(CONF_FOLDER)):
+        try:
+            folder_ok = await selectfolder(account, config.get(CONF_FOLDER))
+        except Exception as err:
+            await logout(account)
+            raise UpdateFailed(f"Folder selection failed: {err}") from err
+
+        if not folder_ok:
             _LOGGER.error("Error selecting folder: %s", config.get(CONF_FOLDER))
             await logout(account)
             raise UpdateFailed(f"Folder selection failed: {config.get(CONF_FOLDER)}")
