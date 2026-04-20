@@ -242,10 +242,8 @@ async def _validate_user_input(user_input: dict) -> tuple:
                 user_input[CONF_AMAZON_FWDS],
                 user_input[CONF_AMAZON_DOMAIN],
             )
-            if status[0] == "ok":
-                user_input[CONF_AMAZON_FWDS] = amazon_list
-            else:
-                user_input[CONF_AMAZON_FWDS] = amazon_list
+            user_input[CONF_AMAZON_FWDS] = amazon_list
+            if status[0] != "ok":
                 errors[CONF_AMAZON_FWDS] = status[0]
 
     if CONF_FORWARDED_EMAILS in user_input:
