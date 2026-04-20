@@ -39,6 +39,8 @@ from custom_components.mail_and_packages.utils.imap import (
 
 _LOGGER = logging.getLogger(__name__)
 
+_MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
+
 
 def get_decoded_subject(msg: email.message.Message) -> str:
     """Decode email subject."""
@@ -210,14 +212,27 @@ async def download_amazon_img(
     """Download image from url."""
     img_path = Path(img_path) / "amazon"
     filepath = img_path / img_name
-    async with aiohttp.ClientSession() as session:
+    timeout = aiohttp.ClientTimeout(total=30)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
             async with session.get(img_url.replace("&amp;", "&")) as resp:
-                if resp.status == 200:
-                    content_type = resp.headers.get("content-type", "")
-                    if "image" in content_type:
-                        data = await resp.read()
-                        await hass.async_add_executor_job(io_save_file, filepath, data)
+                if resp.status != 200:
+                    return
+                content_type = resp.headers.get("content-type", "")
+                if "image" not in content_type:
+                    return
+                content_length = int(resp.headers.get("content-length", 0))
+                if content_length > _MAX_IMAGE_SIZE:
+                    _LOGGER.warning(
+                        "Amazon image too large to download (%d bytes), skipping",
+                        content_length,
+                    )
+                    return
+                data = await resp.read()
+                if len(data) > _MAX_IMAGE_SIZE:
+                    _LOGGER.warning("Amazon image exceeds size limit after download, discarding")
+                    return
+                await hass.async_add_executor_job(io_save_file, filepath, data)
         except aiohttp.ClientError as err:
             _LOGGER.error("Problem downloading file: %s", err)
 
