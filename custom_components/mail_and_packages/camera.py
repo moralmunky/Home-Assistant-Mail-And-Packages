@@ -156,9 +156,12 @@ class MailCam(CoordinatorEntity, Camera):
             self._name,
             self._file_path,
         )
+        def _read_file(path: str) -> bytes:
+            with open(path, "rb") as f:
+                return f.read()
+
         try:
-            file = await self.hass.async_add_executor_job(open, self._file_path, "rb")
-            return file.read()
+            return await self.hass.async_add_executor_job(_read_file, self._file_path)
         except FileNotFoundError:
             _LOGGER.debug(
                 "Could not read camera %s image from file: %s",
