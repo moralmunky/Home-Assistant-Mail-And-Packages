@@ -263,21 +263,24 @@ def generate_grid_img(path: str, image_file: str, count: int) -> None:
         cleanup_images(str(png_image.parent) + "/", png_image.name)
         _LOGGER.debug("Removing old png grid: %s", png_image)
 
-    # TODO: find a way to call ffmpeg the right way from HA
-    subprocess.call(
-        [
-            "ffmpeg",
-            "-i",
-            str(gif_image),
-            "-r",
-            "0.20",
-            "-filter_complex",
-            f"tile=2x{length}:padding=10:color=black",
-            str(png_image),
-        ],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    try:
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-i",
+                str(gif_image),
+                "-r",
+                "0.20",
+                "-filter_complex",
+                f"tile=2x{length}:padding=10:color=black",
+                str(png_image),
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+    except subprocess.CalledProcessError as err:
+        _LOGGER.error("FFmpeg failed to generate grid image: %s", err)
 
 
 def generate_delivery_gif(
