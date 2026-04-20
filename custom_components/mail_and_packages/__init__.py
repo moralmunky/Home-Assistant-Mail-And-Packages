@@ -20,6 +20,7 @@ from .const import (
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
     CONF_AUTH_TYPE,
+    CONF_FORWARDED_EMAILS,
     CONF_FEDEX_CUSTOM_IMG,
     CONF_FEDEX_CUSTOM_IMG_FILE,
     CONF_GENERIC_CUSTOM_IMG,
@@ -210,6 +211,7 @@ def _migrate_legacy_versions(updated_config, version, config_entry):
     """Handle migration of legacy versions."""
     _migrate_versions_1_to_3(updated_config, version, config_entry)
     _migrate_versions_4_to_16(updated_config, version)
+    _migrate_version_17(updated_config, version)
 
 
 def _migrate_versions_1_to_3(updated_config, version, config_entry):
@@ -291,6 +293,19 @@ def _migrate_versions_15_to_16(updated_config, version):
         if "auth" in updated_config:
             auth_data = updated_config.pop("auth")
             updated_config.update(auth_data)
+
+
+def _migrate_version_17(updated_config, version):
+    """Handle migration for version 17."""
+    if version <= 17:
+        fwds = updated_config.get(CONF_FORWARDED_EMAILS)
+        if isinstance(fwds, str):
+            if fwds and fwds != "(none)":
+                updated_config[CONF_FORWARDED_EMAILS] = [
+                    e.strip() for e in fwds.split(",") if e.strip()
+                ]
+            else:
+                updated_config.pop(CONF_FORWARDED_EMAILS, None)
 
 
 def _apply_default_config(updated_config):
