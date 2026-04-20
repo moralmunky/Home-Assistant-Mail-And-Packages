@@ -127,7 +127,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                         )
                         await session.async_ensure_token_valid()
                         config["oauth_token"] = session.token["access_token"]
-                    except Exception as err:
+                    except Exception as err:  # noqa: BLE001
                         _LOGGER.error("Error refreshing OAuth token")
                         _LOGGER.debug("OAuth token refresh error details: %s", err)
                         raise UpdateFailed("OAuth token refresh failed") from err
@@ -135,7 +135,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 data = await self.process_emails(self.hass, config)
             except UpdateFailed:
                 raise
-            except Exception as error:
+            except Exception as error:  # noqa: BLE001
                 _LOGGER.error("Problem updating sensors: %s", error)
                 raise UpdateFailed(error) from error
 
@@ -221,13 +221,13 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         except InvalidAuth as err:
             _LOGGER.error("Authentication failed: %s", err)
             raise ConfigEntryAuthFailed from err
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001
             _LOGGER.error("Error logging into IMAP: %s", err)
             raise UpdateFailed(f"Login failed: {err}") from err
 
         try:
             folder_ok = await selectfolder(account, config.get(CONF_FOLDER))
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001
             await logout(account)
             raise UpdateFailed(f"Folder selection failed: {err}") from err
 
