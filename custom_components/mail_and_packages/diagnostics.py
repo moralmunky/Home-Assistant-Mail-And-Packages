@@ -11,10 +11,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
 
 from . import MailAndPackagesConfigEntry
-from .const import CONF_AMAZON_FWDS
+from .const import CONF_AMAZON_FWDS, CONF_FORWARDED_EMAILS
 
 _LOGGER = logging.getLogger(__name__)
-REDACT_KEYS = {CONF_PASSWORD, CONF_USERNAME, CONF_AMAZON_FWDS}
+REDACT_KEYS = {CONF_PASSWORD, CONF_USERNAME, CONF_AMAZON_FWDS, CONF_FORWARDED_EMAILS}
 
 
 async def async_get_config_entry_diagnostics(
@@ -35,11 +35,13 @@ async def async_get_device_diagnostics(
     """Return diagnostics for a device."""
     coordinator = config_entry.runtime_data.coordinator
 
-    for variable in coordinator.data:
-        if "tracking" in variable or "order" in variable:
-            _LOGGER.debug("Attempting to add: %s for redaction.", variable)
-            REDACT_KEYS.add(variable)
+    dynamic_keys = {
+        variable
+        for variable in coordinator.data
+        if "tracking" in variable or "order" in variable
+    }
+    redact_keys = REDACT_KEYS | dynamic_keys
 
-    _LOGGER.debug("Redacted keys: %s", REDACT_KEYS)
+    _LOGGER.debug("Redacted keys: %s", redact_keys)
 
-    return async_redact_data(coordinator.data, REDACT_KEYS)
+    return async_redact_data(coordinator.data, redact_keys)
