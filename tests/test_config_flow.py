@@ -22,6 +22,7 @@ from custom_components.mail_and_packages.config_flow import (
     _check_forwarded_emails,
     _get_mailboxes,
     _get_schema_step_3,
+    _get_schema_step_forwarded_emails,
     _validate_login,
     _validate_user_input,
 )
@@ -4252,6 +4253,16 @@ async def test_validate_user_input_forwarded_emails_saved_as_list():
 
     assert errors == {}
     assert result_input[CONF_FORWARDED_EMAILS] == ["forward@test.com", "other@test.com"]
+
+
+def test_get_schema_step_forwarded_emails_list_to_string():
+    """Test that a stored list is joined to a comma-separated string for form pre-fill."""
+    default_dict = {CONF_FORWARDED_EMAILS: ["forward@test.com", "other@test.com"]}
+    schema = _get_schema_step_forwarded_emails(None, default_dict)
+    req_key = next(
+        k for k in schema.schema if getattr(k, "schema", None) == CONF_FORWARDED_EMAILS
+    )
+    assert req_key.default() == "forward@test.com, other@test.com"
 
 
 async def test_get_mailboxes_parsing_error(hass, caplog):
