@@ -1949,50 +1949,6 @@ async def test_fedex_camera_default_image_path(
         )
 
 
-async def test_camera_update_no_data():
-    """Test camera update when coordinator has no data."""
-    # Create a mock coordinator with no data
-    mock_coordinator = MagicMock()
-    mock_coordinator.last_update_success = True
-    mock_coordinator.data = None
-
-    # Create camera
-    camera = MailCam(
-        hass=MagicMock(),
-        name="usps_camera",
-        config=MagicMock(),
-        coordinator=mock_coordinator,
-    )
-
-    # Mock the update_file_path method
-    with patch.object(camera, "update_file_path") as mock_update:
-        await camera.async_update()
-
-        # Should call update_file_path but it should return early when data is None
-        mock_update.assert_called_once()
-
-
-async def test_camera_update_coordinator_failure():
-    """Test camera update when coordinator update failed."""
-    # Create a mock coordinator with failed update
-    mock_coordinator = MagicMock()
-    mock_coordinator.last_update_success = False
-
-    # Create camera
-    camera = MailCam(
-        hass=MagicMock(),
-        name="usps_camera",
-        config=MagicMock(),
-        coordinator=mock_coordinator,
-    )
-
-    # Mock the update_file_path method
-    with patch.object(camera, "update_file_path") as mock_update:
-        await camera.async_update()
-
-        # Should call update_file_path but it should return early when data is None
-        mock_update.assert_called_once()
-
 
 async def test_camera_custom_no_mail_image():
     """Test camera with custom no-mail image configuration."""
