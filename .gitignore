@@ -51,7 +51,8 @@ test-output.xml
 pyvenv.cfg
 pip-selfcheck.json
 venv
-.venv
+.venv*
+.ruff_cache
 Pipfile*
 share/*
 Scripts/
