@@ -158,7 +158,7 @@ def test_get_decoded_subject_multiple_encoded_parts():
     msg = email.message_from_string(
         "Subject: =?UTF-8?Q?Ihre_Sendung?= =?UTF-8?Q?_ist_unterwegs_=F0=9F=9A=9A?="
     )
-    assert get_decoded_subject(msg) == "Ihre Sendung ist unterwegs \U0001F69A"
+    assert get_decoded_subject(msg) == "Ihre Sendung ist unterwegs \U0001f69a"
 
 
 def test_amazon_email_addresses_various_fwds():
