@@ -614,7 +614,10 @@ def _get_schema_step_forwarded_emails(
 
     def _get_default(key: str, fallback_default: Any = None) -> list:
         """Get default value for key."""
-        return user_input.get(key, default_dict.get(key, fallback_default))
+        value = user_input.get(key, default_dict.get(key, fallback_default))
+        if isinstance(value, list):
+            value = ", ".join(value)
+        return value
 
     return vol.Schema(
         {
