@@ -156,8 +156,9 @@ class MailCam(CoordinatorEntity, Camera):
             self._name,
             self._file_path,
         )
+
         def _read_file(path: str) -> bytes:
-            with open(path, "rb") as f:
+            with Path(path).open("rb") as f:
                 return f.read()
 
         try:

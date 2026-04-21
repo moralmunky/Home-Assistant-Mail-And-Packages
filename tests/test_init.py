@@ -208,8 +208,8 @@ async def test_migration_from_version_11_to_12():
     # So we're testing that the migration function completes successfully
 
 
-async def test_migration_from_version_14_to_17():
-    """Test migration from version 14 to 17."""
+async def test_migration_from_version_14_to_18():
+    """Test migration from version 14 to 18."""
     # Mock config entry with version 14
     mock_config_entry = MagicMock()
     mock_config_entry.version = 14
@@ -228,11 +228,11 @@ async def test_migration_from_version_14_to_17():
     args, kwargs = mock_hass.config_entries.async_update_entry.call_args
     assert kwargs["data"]["imap_security"] == "SSL"
     assert kwargs["data"]["auth_type"] == "password"
-    assert kwargs["version"] == 17
+    assert kwargs["version"] == 18
 
 
-async def test_migration_from_version_16_to_17():
-    """Test migration from version 16 to 17 (flattening auth data)."""
+async def test_migration_from_version_16_to_18():
+    """Test migration from version 16 to 18 (flattening auth data)."""
     # Mock config entry with version 16 and nested auth data
     mock_config_entry = MagicMock()
     mock_config_entry.version = 16
@@ -253,7 +253,7 @@ async def test_migration_from_version_16_to_17():
     assert "auth" not in kwargs["data"]
     assert kwargs["data"]["token"] == "test_token"
     assert kwargs["data"]["access_token"] == "test_access_token"
-    assert kwargs["version"] == 17
+    assert kwargs["version"] == 18
 
 
 async def test_setup_entry_coordinator_failure():

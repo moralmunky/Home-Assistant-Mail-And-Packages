@@ -230,7 +230,9 @@ async def download_amazon_img(
                     return
                 data = await resp.read()
                 if len(data) > _MAX_IMAGE_SIZE:
-                    _LOGGER.warning("Amazon image exceeds size limit after download, discarding")
+                    _LOGGER.warning(
+                        "Amazon image exceeds size limit after download, discarding"
+                    )
                     return
                 await hass.async_add_executor_job(io_save_file, filepath, data)
         except aiohttp.ClientError as err:

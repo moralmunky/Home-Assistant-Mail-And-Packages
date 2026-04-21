@@ -207,16 +207,23 @@ async def test_async_camera_image(
         entry = integration
 
         cameras = entry.runtime_data.cameras
-        m_open = mock_open()
-        with patch("builtins.open", m_open, create=True):
+        with patch(
+            "custom_components.mail_and_packages.camera.Path"
+        ) as mock_path_class:
+            mock_path_class.return_value.open.return_value.__enter__.return_value = (
+                MagicMock(read=MagicMock(return_value=b""))
+            )
+            mock_path_class.return_value.open.return_value.__exit__ = MagicMock(
+                return_value=False
+            )
             await cameras[0].async_camera_image()
 
-        assert m_open.call_count == 1
+        assert mock_path_class.call_count == 1
         assert (
             "custom_components/mail_and_packages/mail_none.gif"
-            in m_open.call_args.args[0]
+            in str(mock_path_class.call_args.args[0])
         )
-        assert m_open.call_args.args[1] == "rb"
+        mock_path_class.return_value.open.assert_called_once_with("rb")
 
 
 async def test_async_camera_image_file_error(
@@ -241,9 +248,10 @@ async def test_async_camera_image_file_error(
         entry = integration
 
         cameras = entry.runtime_data.cameras
-        m_open = mock_open()
-        with patch("builtins.open", m_open, create=True):
-            m_open.side_effect = FileNotFoundError
+        with patch(
+            "custom_components.mail_and_packages.camera.Path"
+        ) as mock_path_class:
+            mock_path_class.return_value.open.side_effect = FileNotFoundError
             await cameras[0].async_camera_image()
 
         assert "Could not read camera" in caplog.text
