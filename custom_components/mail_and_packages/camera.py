@@ -147,7 +147,7 @@ class MailCam(CoordinatorEntity, Camera):
 
         self._cached_image_path: str | None = None
         self._cached_image_bytes: bytes | None = None
-        self._last_delivery_images: list[str] = []
+        self._last_delivery_images: list[str] | None = None
 
     async def async_camera_image(
         self,
@@ -237,7 +237,7 @@ class MailCam(CoordinatorEntity, Camera):
 
         delivery_images = self._collect_generic_delivery_images()
 
-        if delivery_images == self._last_delivery_images:
+        if self._last_delivery_images is not None and delivery_images == self._last_delivery_images:
             _LOGGER.debug(
                 "Generic camera - delivery images unchanged, skipping GIF regeneration"
             )

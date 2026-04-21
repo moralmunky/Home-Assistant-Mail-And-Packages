@@ -104,7 +104,7 @@ def mock_update():
         autospec=True,
     ) as mock_update:
         # value = mock.Mock()
-        mock_update.return_value = FAKE_UPDATE_DATA
+        mock_update.side_effect = lambda *args, **kwargs: FAKE_UPDATE_DATA.copy()
         yield mock_update
 
 
@@ -1174,7 +1174,7 @@ def mock_update_amazon_image():
         autospec=True,
     ) as mock_update:
         # value = mock.Mock()
-        mock_update.return_value = FAKE_UPDATE_DATA_BIN
+        mock_update.side_effect = lambda *args, **kwargs: FAKE_UPDATE_DATA_BIN.copy()
         yield mock_update
 
 

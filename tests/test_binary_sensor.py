@@ -29,7 +29,7 @@ async def test_binary_sensor_no_updates(
 
     assert "mail_and_packages" in hass.config.components
 
-    entity_entry = entity_registry.async_get("binary_sensor.usps_image_updated")
+    entity_entry = entity_registry.async_get("binary_sensor.imap_test_email_usps_image_updated")
 
     assert entity_entry
     assert entity_entry.disabled
@@ -46,11 +46,11 @@ async def test_binary_sensor_no_updates(
     await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
     await hass.async_block_till_done()
 
-    state = hass.states.get("binary_sensor.usps_image_updated")
+    state = hass.states.get("binary_sensor.imap_test_email_usps_image_updated")
     assert state
     assert state.state == "off"
 
-    entity_entry = entity_registry.async_get("binary_sensor.amazon_image_updated")
+    entity_entry = entity_registry.async_get("binary_sensor.imap_test_email_amazon_image_updated")
 
     assert entity_entry
     assert entity_entry.disabled
@@ -67,11 +67,11 @@ async def test_binary_sensor_no_updates(
     await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
     await hass.async_block_till_done()
 
-    state = hass.states.get("binary_sensor.amazon_image_updated")
+    state = hass.states.get("binary_sensor.imap_test_email_amazon_image_updated")
     assert state
     assert state.state == "off"
 
-    entity_entry = entity_registry.async_get("binary_sensor.usps_mail_delivered")
+    entity_entry = entity_registry.async_get("binary_sensor.imap_test_email_usps_mail_delivered")
 
     assert entity_entry
     assert entity_entry.disabled
@@ -89,7 +89,7 @@ async def test_binary_sensor_no_updates(
     await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
     await hass.async_block_till_done()
 
-    state = hass.states.get("binary_sensor.usps_mail_delivered")
+    state = hass.states.get("binary_sensor.imap_test_email_usps_mail_delivered")
     assert state
     assert state.state == "off"
 
@@ -116,7 +116,7 @@ async def test_binary_sensor_mail_delivered(
 
         assert "mail_and_packages" in hass.config.components
 
-        entity_entry = entity_registry.async_get("binary_sensor.usps_image_updated")
+        entity_entry = entity_registry.async_get("binary_sensor.imap_test_email_usps_image_updated")
 
         assert entity_entry
         assert entity_entry.disabled
@@ -133,11 +133,11 @@ async def test_binary_sensor_mail_delivered(
         await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
         await hass.async_block_till_done()
 
-        state = hass.states.get("binary_sensor.usps_image_updated")
+        state = hass.states.get("binary_sensor.imap_test_email_usps_image_updated")
         assert state
         assert state.state == "off"
 
-        entity_entry = entity_registry.async_get("binary_sensor.amazon_image_updated")
+        entity_entry = entity_registry.async_get("binary_sensor.imap_test_email_amazon_image_updated")
 
         assert entity_entry
         assert entity_entry.disabled
@@ -154,11 +154,11 @@ async def test_binary_sensor_mail_delivered(
         await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
         await hass.async_block_till_done()
 
-        state = hass.states.get("binary_sensor.amazon_image_updated")
+        state = hass.states.get("binary_sensor.imap_test_email_amazon_image_updated")
         assert state
         assert state.state == "off"
 
-        entity_entry = entity_registry.async_get("binary_sensor.usps_mail_delivered")
+        entity_entry = entity_registry.async_get("binary_sensor.imap_test_email_usps_mail_delivered")
 
         assert entity_entry
         assert entity_entry.disabled
@@ -176,7 +176,7 @@ async def test_binary_sensor_mail_delivered(
         await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
         await hass.async_block_till_done()
 
-        state = hass.states.get("binary_sensor.usps_mail_delivered")
+        state = hass.states.get("binary_sensor.imap_test_email_usps_mail_delivered")
         assert state
         assert state.state == "on"
         assert "binary_sensor: usps_mail_delivered value: 1" in caplog.text
