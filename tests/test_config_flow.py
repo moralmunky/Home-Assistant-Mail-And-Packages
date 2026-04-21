@@ -22,6 +22,7 @@ from custom_components.mail_and_packages.config_flow import (
     _check_forwarded_emails,
     _get_mailboxes,
     _get_schema_step_3,
+    _get_schema_step_forwarded_emails,
     _validate_login,
     _validate_user_input,
 )
@@ -4239,6 +4240,31 @@ async def test_validate_user_input_forwarded_emails_none():
     assert CONF_FORWARDED_EMAILS not in result_input
 
 
+@pytest.mark.asyncio
+async def test_validate_user_input_forwarded_emails_saved_as_list():
+    """Test that a valid forwarded_emails string is converted to a list on save."""
+    user_input = {
+        CONF_FORWARDED_EMAILS: "forward@test.com, other@test.com",
+        CONF_ALLOW_FORWARDED_EMAILS: True,
+        CONF_GENERATE_MP4: False,
+    }
+
+    errors, result_input = await _validate_user_input(user_input)
+
+    assert errors == {}
+    assert result_input[CONF_FORWARDED_EMAILS] == ["forward@test.com", "other@test.com"]
+
+
+def test_get_schema_step_forwarded_emails_list_to_string():
+    """Test that a stored list is joined to a comma-separated string for form pre-fill."""
+    default_dict = {CONF_FORWARDED_EMAILS: ["forward@test.com", "other@test.com"]}
+    schema = _get_schema_step_forwarded_emails(None, default_dict)
+    req_key = next(
+        k for k in schema.schema if getattr(k, "schema", None) == CONF_FORWARDED_EMAILS
+    )
+    assert req_key.default() == "forward@test.com, other@test.com"
+
+
 async def test_get_mailboxes_parsing_error(hass, caplog):
     """Test _get_mailboxes handles delimiter parsing failures."""
     mock_conn = AsyncMock()
@@ -4507,7 +4533,7 @@ async def test_validate_forwarded_emails_missing_and_invalid():
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
-                "forwarded_emails": "user@example.com,testuser@example.com",
+                "forwarded_emails": ["user@example.com", "testuser@example.com"],
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
@@ -4980,7 +5006,7 @@ async def test_form_allowed_forwarded_emails_entered_none(
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
-                "forwarded_emails": "user@example.com,testuser@example.com",
+                "forwarded_emails": ["user@example.com", "testuser@example.com"],
                 "custom_img": False,
                 "auth_type": "password",
                 "host": "imap.test.email",
@@ -5199,7 +5225,7 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
-                "forwarded_emails": "user@example.com,testuser@example.com",
+                "forwarded_emails": ["user@example.com", "testuser@example.com"],
                 "custom_img": False,
                 "auth_type": "password",
                 "host": "imap.test.email",
@@ -5419,7 +5445,7 @@ async def test_form_allow_forwarded_emails_without_custom_img(
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],
-                "forwarded_emails": "user@example.com,testuser@example.com",
+                "forwarded_emails": ["user@example.com", "testuser@example.com"],
                 "custom_img": False,
                 "auth_type": "password",
                 "host": "imap.test.email",
@@ -6241,7 +6267,7 @@ async def test_form_allowed_forwards_invalid_email_address_format(
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
-                "forwarded_emails": "user@example.com,testuser@example.com",
+                "forwarded_emails": ["user@example.com", "testuser@example.com"],
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
@@ -6494,7 +6520,7 @@ async def test_reconfigure_allow_forwarded_emails(
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
-                "forwarded_emails": "no-reply@usps.com",
+                "forwarded_emails": ["no-reply@usps.com"],
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
                 "amazon_fwds": [],

@@ -434,6 +434,25 @@ async def test_informed_delivery_forwarded_emails(hass):
 
 
 @pytest.mark.asyncio
+async def test_informed_delivery_forwarded_emails_string(hass):
+    """Test that a legacy string value for forwarded_emails is normalized to a list."""
+    shipper = USPSShipper(
+        hass, {"forwarded_emails": "forward@test.com, other@test.com"}
+    )
+    mock_account = AsyncMock()
+    mock_account.search.return_value = MagicMock(result="OK", lines=[])
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.usps.email_search",
+        return_value=("OK", [None]),
+    ) as mock_search:
+        await shipper.process(mock_account, "today", "usps_mail")
+        search_addresses = mock_search.call_args[0][1]
+        assert "forward@test.com" in search_addresses
+        assert "other@test.com" in search_addresses
+
+
+@pytest.mark.asyncio
 async def test_informed_delivery_gen_mp4_grid(hass):
     """Test USPS Informed Delivery with MP4 and grid generation (Lines 106, 110)."""
     shipper = USPSShipper(
