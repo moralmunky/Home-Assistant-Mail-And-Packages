@@ -167,8 +167,13 @@ class USPSShipper(Shipper):
 
     async def _process_usps_images(self, content: str, images: list) -> list:
         """Process USPS images (placeholder and filtering)."""
-        # Placeholder images
-        if re.compile(r"\bimage-no-mailpieces?700\.jpg\b").search(content) is not None:
+        # Placeholder images — old format embedded the filename as a reference;
+        # new format uses a div with id="mailpiece-with-no-image-id"
+        has_placeholder = (
+            re.compile(r"\bimage-no-mailpieces?700\.jpg\b").search(content) is not None
+            or "mailpiece-with-no-image-id" in content
+        )
+        if has_placeholder:
             placeholder = Path(__file__).parent.parent / "image-no-mailpieces700.jpg"
             if placeholder.exists():
                 images.append(str(placeholder))
