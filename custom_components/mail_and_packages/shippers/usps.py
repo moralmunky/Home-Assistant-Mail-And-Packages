@@ -167,16 +167,13 @@ class USPSShipper(Shipper):
 
     async def _process_usps_images(self, content: str, images: list) -> list:
         """Process USPS images (placeholder and filtering)."""
-        # Placeholder images — old format embedded the filename as a reference;
-        # new format uses a div with id="mailpiece-with-no-image-id"
-        has_placeholder = (
-            re.compile(r"\bimage-no-mailpieces?700\.jpg\b").search(content) is not None
-            or "mailpiece-with-no-image-id" in content
-        )
-        if has_placeholder:
+        # Old USPS format: plain-text email body contained the filename as a reference.
+        # New format is handled in _extract_usps_images on properly decoded HTML.
+        if re.compile(r"\bimage-no-mailpieces?700\.jpg\b").search(content) is not None:
             placeholder = Path(__file__).parent.parent / "image-no-mailpieces700.jpg"
-            if placeholder.exists():
-                images.append(str(placeholder))
+            placeholder_str = str(placeholder)
+            if placeholder.exists() and placeholder_str not in images:
+                images.append(placeholder_str)
                 _LOGGER.debug(
                     "Placeholder image found using: image-no-mailpieces700.jpg.",
                 )
@@ -350,6 +347,19 @@ class USPSShipper(Shipper):
             if isinstance(payload, (bytes, bytearray))
             else str(payload)
         )
+
+        # New USPS format: unscanned mailpieces use a div with a specific id.
+        # Check here on properly decoded HTML — raw RFC822 content is
+        # quoted-printable encoded and soft line breaks could split the string.
+        if "mailpiece-with-no-image-id" in content:
+            placeholder = Path(__file__).parent.parent / "image-no-mailpieces700.jpg"
+            placeholder_str = str(placeholder)
+            if placeholder.exists() and placeholder_str not in images:
+                images.append(placeholder_str)
+                image_count += 1
+                _LOGGER.debug(
+                    "Placeholder image found using: image-no-mailpieces700.jpg.",
+                )
 
         if "data:image/jpeg;base64" not in content:
             return image_count, images
