@@ -175,15 +175,16 @@ class MailCam(CoordinatorEntity, Camera):
             image_bytes = await self.hass.async_add_executor_job(
                 _read_file, self._file_path
             )
-            self._cached_image_path = self._file_path
-            self._cached_image_bytes = image_bytes
-            return image_bytes
         except FileNotFoundError:
             _LOGGER.debug(
                 "Could not read camera %s image from file: %s",
                 self._name,
                 self._file_path,
             )
+        else:
+            self._cached_image_path = self._file_path
+            self._cached_image_bytes = image_bytes
+            return image_bytes
 
     def check_file_path_access(self, file_path: str) -> None:
         """Check that filepath given is readable."""
@@ -241,7 +242,10 @@ class MailCam(CoordinatorEntity, Camera):
 
         delivery_images = self._collect_generic_delivery_images()
 
-        if self._last_delivery_images is not None and delivery_images == self._last_delivery_images:
+        if (
+            self._last_delivery_images is not None
+            and delivery_images == self._last_delivery_images
+        ):
             _LOGGER.debug(
                 "Generic camera - delivery images unchanged, skipping GIF regeneration"
             )
@@ -593,4 +597,3 @@ class MailCam(CoordinatorEntity, Camera):
         """Update file path then write state so the frontend gets the correct image URL."""
         await self.update_file_path()
         self.async_write_ha_state()
-
