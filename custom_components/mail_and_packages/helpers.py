@@ -20,6 +20,7 @@ from .const import (
     AMAZON_OTP_SUBJECT,
     ATTR_COUNT,
     ATTR_TRACKING,
+    BINARY_SENSORS,
     CONF_PATH,
     SENSOR_TYPES,
 )
@@ -106,7 +107,9 @@ async def get_items(
 
 def get_resources(hass: HomeAssistant | None = None) -> dict:
     """Return resources from const."""
-    return {k: v.name for k, v in SENSOR_TYPES.items()}
+    resources = {k: v.name for k, v in SENSOR_TYPES.items()}
+    resources.update({k: v.name for k, v in BINARY_SENSORS.items() if v.selectable})
+    return resources
 
 
 def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
