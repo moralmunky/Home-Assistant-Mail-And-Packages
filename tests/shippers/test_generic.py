@@ -556,7 +556,8 @@ async def test_process_batch_deduplication(hass):
         # UPS Deduplication
         assert result["ups_delivered"] == 1
         assert result["ups_delivering"] == 1  # T1 removed
-        assert result["ups_packages"] == 1  # Untouched
+        # ups_packages = delivering(1 after dedup) + delivered(1) = 2
+        assert result["ups_packages"] == 2
 
         # FedEx Deduplication
         assert result["fedex_delivered"] == 1
@@ -724,3 +725,56 @@ def test_decode_subject_string_with_encoding(hass):
     ):
         result = shipper._decode_subject(b"Subject: dummy")
         assert result == "A string instead of bytes"
+
+
+@pytest.mark.asyncio
+async def test_ups_packages_empty_config_skips_imap(hass):
+    """Test that ups_packages with empty SENSOR_DATA config skips IMAP search."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_search",
+    ) as mock_search:
+        result = await shipper.process(mock_account, "today", "ups_packages")
+        mock_search.assert_not_called()
+        assert result[ATTR_COUNT] == 0
+
+
+@pytest.mark.asyncio
+async def test_ups_packages_with_forwarded_emails_skips_imap(hass):
+    """Test that ups_packages skips IMAP even when forwarded_emails are configured.
+
+    Regression test: previously forwarded_emails were prepended to the empty
+    email list and sent as a broad FROM-only IMAP query, matching all forwarder
+    mail instead of UPS mail.
+    """
+    shipper = GenericShipper(hass, {"forwarded_emails": ["forwarder@example.com"]})
+    mock_account = AsyncMock()
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_search",
+    ) as mock_search:
+        result = await shipper.process(mock_account, "today", "ups_packages")
+        mock_search.assert_not_called()
+        assert result[ATTR_COUNT] == 0
+
+
+def test_compute_package_totals(hass):
+    """Test _compute_package_totals sets _packages as delivering + delivered."""
+    shipper = GenericShipper(hass, {})
+    batch_results = [
+        ("ups_delivering", {"ups_delivering": 3, ATTR_COUNT: 3, ATTR_TRACKING: []}),
+        ("ups_delivered", {"ups_delivered": 1, ATTR_COUNT: 1, ATTR_TRACKING: []}),
+        ("ups_packages", {"ups_packages": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
+        ("fedex_delivering", {"fedex_delivering": 2, ATTR_COUNT: 2, ATTR_TRACKING: []}),
+        ("fedex_delivered", {"fedex_delivered": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
+        ("fedex_packages", {"fedex_packages": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
+    ]
+    shipper._compute_package_totals(batch_results)
+
+    _, ups_res = next(r for r in batch_results if r[0] == "ups_packages")
+    assert ups_res["ups_packages"] == 4  # 3 delivering + 1 delivered
+    assert ups_res[ATTR_COUNT] == 4
+
+    _, fedex_res = next(r for r in batch_results if r[0] == "fedex_packages")
+    assert fedex_res["fedex_packages"] == 2  # 2 delivering + 0 delivered
+    assert fedex_res[ATTR_COUNT] == 2

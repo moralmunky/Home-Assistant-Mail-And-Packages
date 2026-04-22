@@ -74,6 +74,11 @@ class GenericShipper(Shipper):
         email_addresses = config.get(ATTR_EMAIL, [])
         subjects = config.get(ATTR_SUBJECT, [])
 
+        # _packages sensors with no email/subject are computed in process_batch
+        # as delivering + delivered; skip IMAP search here.
+        if sensor_type.endswith("_packages") and not email_addresses and not subjects:
+            return {ATTR_COUNT: 0, ATTR_TRACKING: []}
+
         # Add forwarded emails if configured
         forwarded_emails = self.config.get("forwarded_emails", [])
         if isinstance(forwarded_emails, str):
@@ -145,6 +150,7 @@ class GenericShipper(Shipper):
         )
 
         self._deduplicate_batch_tracking(batch_results)
+        self._compute_package_totals(batch_results)
 
         # Merge results and aggregate global tracking
         res = {}
@@ -224,6 +230,34 @@ class GenericShipper(Shipper):
                 sensor_res[sensor] = len(new_tracking)
                 if ATTR_COUNT in sensor_res:
                     sensor_res[ATTR_COUNT] = len(new_tracking)
+
+    def _compute_package_totals(
+        self,
+        batch_results: list[tuple[str, dict[str, Any]]],
+    ) -> None:
+        """Compute _packages sensors with empty config as delivering + delivered.
+
+        These sensors have no IMAP search of their own; their value is the
+        sum of the shipper's _delivering and _delivered counts (matching the
+        original pre-refactor behaviour in helpers.py).
+        """
+        sensor_counts = {
+            sensor: sensor_res.get(sensor, sensor_res.get(ATTR_COUNT, 0))
+            for sensor, sensor_res in batch_results
+        }
+
+        for sensor, sensor_res in batch_results:
+            if not sensor.endswith("_packages"):
+                continue
+            config = SENSOR_DATA.get(sensor, {})
+            if config.get(ATTR_EMAIL) or config.get(ATTR_SUBJECT):
+                continue  # sensor has its own IMAP search config
+            prefix = sensor.replace("_packages", "")
+            computed = sensor_counts.get(f"{prefix}_delivering", 0) + sensor_counts.get(
+                f"{prefix}_delivered", 0
+            )
+            sensor_res[sensor] = computed
+            sensor_res[ATTR_COUNT] = computed
 
     async def _copy_generic_placeholder(self, shipper_cfg: dict[str, Any]) -> None:
         """Copy the generic placeholder for the shipper."""
