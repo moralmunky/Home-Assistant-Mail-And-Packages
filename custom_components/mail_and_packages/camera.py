@@ -225,6 +225,10 @@ class MailCam(CoordinatorEntity, Camera):
             image = self.coordinator.data[ATTR_USPS_IMAGE]
             path = self.coordinator.data[ATTR_IMAGE_PATH]
             self._file_path = f"{self.hass.config.path()}/{path}{image}"
+            _LOGGER.debug(
+                "usps_camera camera - file path set to: %s",
+                self._file_path,
+            )
         elif self._no_mail:
             self._file_path = self._no_mail
 
