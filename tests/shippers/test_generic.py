@@ -565,3 +565,32 @@ async def test_generic_image_reset_on_zero_count(hass):
         assert result[ATTR_COUNT] == 0
         # This is what we are testing: it should be called even if count is 0
         mock_copy.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_aliexpress_delivered_class(hass):
+    """Test AliExpress delivered email parsing via GenericShipper."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    mock_account = AsyncMock()
+
+    with (
+        patch.object(
+            shipper,
+            "_broad_search_then_filter",
+            new_callable=AsyncMock,
+            return_value=["1"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.find_text",
+            new_callable=AsyncMock,
+            return_value=1,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            new_callable=AsyncMock,
+            return_value=["LP123456789DE"],
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "aliexpress_delivered")
+        assert result[ATTR_COUNT] == 1
+        assert result[ATTR_TRACKING] == ["LP123456789DE"]
