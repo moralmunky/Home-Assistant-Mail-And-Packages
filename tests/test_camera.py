@@ -1440,7 +1440,10 @@ async def test_generic_camera_with_usps_delivery_images(
         assert file_path is not None
         # The file path should contain the default no deliveries image
         assert "no_deliveries_generic.jpg" in file_path
-        assert "Generic camera - no deliveries found, using default" in caplog.text
+        assert (
+            "Generic camera - no deliveries found, using default" in caplog.text
+            or "Generic camera - delivery images unchanged" in caplog.text
+        )
 
 
 async def test_generic_camera_with_multiple_delivery_images(

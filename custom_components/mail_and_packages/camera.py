@@ -529,6 +529,12 @@ class MailCam(CoordinatorEntity, Camera):
         # For other cameras, use the pattern: {base_name}_delivered
         return f"{base_name}_delivered"
 
+    async def async_added_to_hass(self) -> None:
+        """Run when entity is added to hass."""
+        await super().async_added_to_hass()
+        if self.coordinator.data is not None:
+            await self.update_file_path()
+
     async def async_on_demand_update(self):
         """Update state."""
         self.async_schedule_update_ha_state(True)
@@ -577,6 +583,10 @@ class MailCam(CoordinatorEntity, Camera):
             "%s camera - coordinator update received, updating file path",
             self._type,
         )
-        super()._handle_coordinator_update()
-        self.hass.async_create_task(self.update_file_path())
+        self.hass.async_create_task(self._async_handle_coordinator_update())
+
+    async def _async_handle_coordinator_update(self) -> None:
+        """Update file path then write state so the frontend gets the correct image URL."""
+        await self.update_file_path()
+        self.async_write_ha_state()
 
