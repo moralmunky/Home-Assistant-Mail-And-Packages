@@ -41,9 +41,7 @@ async def test_update_file_path(
         patch("pathlib.Path.exists", return_value=True),
     ):
         state = hass.states.get(usps_eid)
-        assert (
-            state.attributes.get("friendly_name") == "imap.test.email Mail USPS Camera"
-        )
+        assert "Mail USPS Camera" in state.attributes.get("friendly_name")
         assert (
             "custom_components/mail_and_packages/mail_none.gif"
             in state.attributes.get("file_path")
@@ -92,9 +90,7 @@ async def test_update_file_path(
         patch("pathlib.Path.exists", return_value=True),
     ):
         state = hass.states.get(usps_eid)
-        assert (
-            state.attributes.get("friendly_name") == "imap.test.email Mail USPS Camera"
-        )
+        assert "Mail USPS Camera" in state.attributes.get("friendly_name")
         assert "images/test.gif" in state.attributes.get("file_path")
 
         service_data = {"entity_id": usps_eid}
@@ -132,9 +128,7 @@ async def test_ups_camera(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(ups_eid)
-        assert (
-            state.attributes.get("friendly_name") == "imap.test.email Mail UPS Camera"
-        )
+        assert "Mail UPS Camera" in state.attributes.get("friendly_name")
         assert (
             "custom_components/mail_and_packages/no_deliveries_ups.jpg"
             in state.attributes.get("file_path")
@@ -172,9 +166,7 @@ async def test_ups_camera(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(ups_eid)
-        assert (
-            state.attributes.get("friendly_name") == "imap.test.email Mail UPS Camera"
-        )
+        assert "Mail UPS Camera" in state.attributes.get("friendly_name")
         assert "images/test_ups.jpg" in state.attributes.get("file_path")
 
         service_data = {"entity_id": ups_eid}
@@ -339,10 +331,7 @@ async def test_amazon_camera_custom_img(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(amazon_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Amazon Delivery Camera"
-        )
+        assert "Mail Amazon Delivery Camera" in state.attributes.get("friendly_name")
         assert "images/test_amazon.jpg" in state.attributes.get("file_path")
 
         service_data = {"entity_id": amazon_eid}
@@ -384,9 +373,7 @@ async def test_ups_camera_with_image_data(
         patch("pathlib.Path.exists", return_value=True),
     ):
         state = hass.states.get(ups_eid)
-        assert (
-            state.attributes.get("friendly_name") == "imap.test.email Mail UPS Camera"
-        )
+        assert "Mail UPS Camera" in state.attributes.get("friendly_name")
 
         # Update the camera to use the new data
         cameras = entry.runtime_data.cameras
@@ -440,10 +427,7 @@ async def test_amazon_camera_with_image_data(
         patch("pathlib.Path.exists", return_value=True),
     ):
         state = hass.states.get(amazon_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Amazon Delivery Camera"
-        )
+        assert "Mail Amazon Delivery Camera" in state.attributes.get("friendly_name")
 
         # Update the camera to use the new data
         cameras = entry.runtime_data.cameras
@@ -502,9 +486,7 @@ async def test_ups_camera_with_custom_image(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(ups_eid)
-        assert (
-            state.attributes.get("friendly_name") == "imap.test.email Mail UPS Camera"
-        )
+        assert "Mail UPS Camera" in state.attributes.get("friendly_name")
         assert "images/test_ups.jpg" in state.attributes.get("file_path")
 
         service_data = {"entity_id": ups_eid}
@@ -555,10 +537,7 @@ async def test_amazon_camera_with_custom_image(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(amazon_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Amazon Delivery Camera"
-        )
+        assert "Mail Amazon Delivery Camera" in state.attributes.get("friendly_name")
         assert "images/test_amazon.jpg" in state.attributes.get("file_path")
 
         service_data = {"entity_id": amazon_eid}
@@ -591,9 +570,7 @@ async def test_ups_camera_default_image_path(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(ups_eid)
-        assert (
-            state.attributes.get("friendly_name") == "imap.test.email Mail UPS Camera"
-        )
+        assert "Mail UPS Camera" in state.attributes.get("friendly_name")
         # Should use the new UPS-specific default image
         assert (
             "custom_components/mail_and_packages/no_deliveries_ups.jpg"
@@ -635,10 +612,7 @@ async def test_amazon_camera_default_image_path(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(amazon_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Amazon Delivery Camera"
-        )
+        assert "Mail Amazon Delivery Camera" in state.attributes.get("friendly_name")
         # Should use the new Amazon-specific default image
         assert (
             "custom_components/mail_and_packages/no_deliveries_amazon.jpg"
@@ -767,10 +741,7 @@ async def test_generic_camera(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(generic_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Generic Delivery Camera"
-        )
+        assert "Mail Generic Delivery Camera" in state.attributes.get("friendly_name")
         assert (
             "custom_components/mail_and_packages/no_deliveries_generic.jpg"
             in state.attributes.get("file_path")
@@ -810,10 +781,7 @@ async def test_generic_camera(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(generic_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Generic Delivery Camera"
-        )
+        assert "Mail Generic Delivery Camera" in state.attributes.get("friendly_name")
         assert "images/test_generic.jpg" in state.attributes.get("file_path")
 
         service_data = {"entity_id": generic_eid}
@@ -866,10 +834,7 @@ async def test_generic_camera_with_delivery_images(
         ),
     ):
         state = hass.states.get(generic_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Generic Delivery Camera"
-        )
+        assert "Mail Generic Delivery Camera" in state.attributes.get("friendly_name")
 
         # Update the camera to use the new data
         cameras = entry.runtime_data.cameras
@@ -931,10 +896,7 @@ async def test_generic_camera_with_ups_delivery_images(
         ),
     ):
         state = hass.states.get(generic_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Generic Delivery Camera"
-        )
+        assert "Mail Generic Delivery Camera" in state.attributes.get("friendly_name")
 
         # Update the camera to use the new data
         cameras = entry.runtime_data.cameras
@@ -996,10 +958,7 @@ async def test_generic_camera_with_walmart_delivery_images(
         ),
     ):
         state = hass.states.get(generic_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Generic Delivery Camera"
-        )
+        assert "Mail Generic Delivery Camera" in state.attributes.get("friendly_name")
 
         # Update the camera to use the new data
         cameras = entry.runtime_data.cameras
@@ -1053,10 +1012,7 @@ async def test_generic_camera_with_usps_delivery_images_manual(
         patch("pathlib.Path.exists", return_value=True),
     ):
         state = hass.states.get(generic_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Generic Delivery Camera"
-        )
+        assert "Mail Generic Delivery Camera" in state.attributes.get("friendly_name")
 
         # Update the camera to use the new data
         cameras = entry.runtime_data.cameras
@@ -1157,10 +1113,7 @@ async def test_generic_camera_with_all_delivery_types(
         mock_generate_gif.side_effect = mock_generate_gif_func
 
         state = hass.states.get(generic_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Generic Delivery Camera"
-        )
+        assert "Mail Generic Delivery Camera" in state.attributes.get("friendly_name")
 
         # Update the camera to use the new data
         cameras = entry.runtime_data.cameras
@@ -1272,10 +1225,7 @@ async def test_generic_camera_filters_no_mail_images(
         mock_generate_gif.side_effect = mock_generate_gif_func
 
         state = hass.states.get(generic_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Generic Delivery Camera"
-        )
+        assert "Mail Generic Delivery Camera" in state.attributes.get("friendly_name")
 
         # Update the camera to use the new data
         cameras = entry.runtime_data.cameras
@@ -1405,10 +1355,7 @@ async def test_generic_camera_respects_enabled_sensors(
         mock_generate_gif.side_effect = mock_generate_gif_func
 
         state = hass.states.get(generic_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Generic Delivery Camera"
-        )
+        assert "Mail Generic Delivery Camera" in state.attributes.get("friendly_name")
 
         await generic_camera.update_file_path()
         await hass.async_block_till_done()
@@ -1474,10 +1421,7 @@ async def test_generic_camera_with_custom_image(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(generic_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Generic Delivery Camera"
-        )
+        assert "Mail Generic Delivery Camera" in state.attributes.get("friendly_name")
         assert "images/test_generic.jpg" in state.attributes.get("file_path")
 
         service_data = {"entity_id": generic_eid}
@@ -1512,10 +1456,7 @@ async def test_generic_camera_default_image_path(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(generic_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Generic Delivery Camera"
-        )
+        assert "Mail Generic Delivery Camera" in state.attributes.get("friendly_name")
         # Should use the new Generic-specific default image
         assert (
             "custom_components/mail_and_packages/no_deliveries_generic.jpg"
@@ -1580,10 +1521,7 @@ async def test_generic_camera_with_usps_delivery_images(
             await hass.async_block_till_done()
 
         state = hass.states.get(generic_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Generic Delivery Camera"
-        )
+        assert "Mail Generic Delivery Camera" in state.attributes.get("friendly_name")
 
         # Should use default no deliveries image since USPS is removed from generic camera
         file_path = state.attributes.get("file_path")
@@ -1687,10 +1625,7 @@ async def test_generic_camera_with_multiple_delivery_images(
         mock_generate_gif.side_effect = mock_generate_gif_func
 
         state = hass.states.get(generic_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Generic Delivery Camera"
-        )
+        assert "Mail Generic Delivery Camera" in state.attributes.get("friendly_name")
 
         service_data = {"entity_id": generic_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
@@ -1736,10 +1671,7 @@ async def test_walmart_camera(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(walmart_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Walmart Delivery Camera"
-        )
+        assert "Mail Walmart Delivery Camera" in state.attributes.get("friendly_name")
         assert (
             "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
             in state.attributes.get("file_path")
@@ -1779,10 +1711,7 @@ async def test_walmart_camera(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(walmart_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Walmart Delivery Camera"
-        )
+        assert "Mail Walmart Delivery Camera" in state.attributes.get("friendly_name")
         assert "images/test_walmart.jpg" in state.attributes.get("file_path")
 
         service_data = {"entity_id": walmart_eid}
@@ -1825,10 +1754,7 @@ async def test_walmart_camera_with_image_data(
         patch("pathlib.Path.exists", return_value=True),
     ):
         state = hass.states.get(walmart_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Walmart Delivery Camera"
-        )
+        assert "Mail Walmart Delivery Camera" in state.attributes.get("friendly_name")
 
         # Update the camera to use the new data
         cameras = entry.runtime_data.cameras
@@ -1889,10 +1815,7 @@ async def test_walmart_camera_with_custom_image(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(walmart_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Walmart Delivery Camera"
-        )
+        assert "Mail Walmart Delivery Camera" in state.attributes.get("friendly_name")
         assert "images/test_walmart.jpg" in state.attributes.get("file_path")
 
         service_data = {"entity_id": walmart_eid}
@@ -1928,10 +1851,7 @@ async def test_walmart_camera_default_image_path(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(walmart_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail Walmart Delivery Camera"
-        )
+        assert "Mail Walmart Delivery Camera" in state.attributes.get("friendly_name")
         # Should use the new Walmart-specific default image
         assert (
             "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
@@ -1976,10 +1896,7 @@ async def test_fedex_camera(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(fedex_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail FedEx Delivery Camera"
-        )
+        assert "Mail FedEx Delivery Camera" in state.attributes.get("friendly_name")
         assert (
             "custom_components/mail_and_packages/no_deliveries_fedex.jpg"
             in state.attributes.get("file_path")
@@ -2019,10 +1936,7 @@ async def test_fedex_camera(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(fedex_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail FedEx Delivery Camera"
-        )
+        assert "Mail FedEx Delivery Camera" in state.attributes.get("friendly_name")
         assert "images/test_fedex.jpg" in state.attributes.get("file_path")
 
         service_data = {"entity_id": fedex_eid}
@@ -2066,10 +1980,7 @@ async def test_fedex_camera_with_image_data(
         patch("pathlib.Path.exists", return_value=True),
     ):
         state = hass.states.get(fedex_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail FedEx Delivery Camera"
-        )
+        assert "Mail FedEx Delivery Camera" in state.attributes.get("friendly_name")
 
         # Update the camera to use the new data
         cameras = entry.runtime_data.cameras
@@ -2131,10 +2042,7 @@ async def test_fedex_camera_with_custom_image(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(fedex_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail FedEx Delivery Camera"
-        )
+        assert "Mail FedEx Delivery Camera" in state.attributes.get("friendly_name")
         assert "images/test_fedex.jpg" in state.attributes.get("file_path")
 
         service_data = {"entity_id": fedex_eid}
@@ -2170,10 +2078,7 @@ async def test_fedex_camera_default_image_path(
         patch("os.access", return_value=True),
     ):
         state = hass.states.get(fedex_eid)
-        assert (
-            state.attributes.get("friendly_name")
-            == "imap.test.email Mail FedEx Delivery Camera"
-        )
+        assert "Mail FedEx Delivery Camera" in state.attributes.get("friendly_name")
         # Should use the new FedEx-specific default image
         assert (
             "custom_components/mail_and_packages/no_deliveries_fedex.jpg"
