@@ -77,12 +77,17 @@ virtualization/vagrant/config
 # Typing
 .mypy_cache
 *.pyc
+*.pyo
+*.pyd
+__pycache__/
 
 # Home Assistant configuration
 config/*
 !config/configuration.yaml
 .storage/*
 test/*
-custom_components/mail_and_packages/images/walmart/*
-custom_components/mail_and_packages/images/ups/*
-custom_components/mail_and_packages/images/fedex/*
+
+# Runtime-generated delivery images created by HA during operation.
+# Keep .PLACEHOLDER so the images/ directory itself is tracked.
+custom_components/mail_and_packages/images/*
+!custom_components/mail_and_packages/images/.PLACEHOLDER
