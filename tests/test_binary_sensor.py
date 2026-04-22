@@ -7,6 +7,7 @@ from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import DOMAIN
+from tests.conftest import resolve_entity_id
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_USPS_DELIVERED
 
 
@@ -29,9 +30,17 @@ async def test_binary_sensor_no_updates(
 
     assert "mail_and_packages" in hass.config.components
 
-    entity_entry = entity_registry.async_get(
-        "binary_sensor.imap_test_email_usps_image_updated"
+    usps_updated_id = resolve_entity_id(
+        entity_registry, entry.entry_id, "binary_sensor", "usps_update"
     )
+    amazon_updated_id = resolve_entity_id(
+        entity_registry, entry.entry_id, "binary_sensor", "amazon_update"
+    )
+    usps_delivered_id = resolve_entity_id(
+        entity_registry, entry.entry_id, "binary_sensor", "usps_mail_delivered"
+    )
+
+    entity_entry = entity_registry.async_get(usps_updated_id)
 
     assert entity_entry
     assert entity_entry.disabled
@@ -48,13 +57,11 @@ async def test_binary_sensor_no_updates(
     await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
     await hass.async_block_till_done()
 
-    state = hass.states.get("binary_sensor.imap_test_email_usps_image_updated")
+    state = hass.states.get(usps_updated_id)
     assert state
     assert state.state == "off"
 
-    entity_entry = entity_registry.async_get(
-        "binary_sensor.imap_test_email_amazon_image_updated"
-    )
+    entity_entry = entity_registry.async_get(amazon_updated_id)
 
     assert entity_entry
     assert entity_entry.disabled
@@ -71,13 +78,11 @@ async def test_binary_sensor_no_updates(
     await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
     await hass.async_block_till_done()
 
-    state = hass.states.get("binary_sensor.imap_test_email_amazon_image_updated")
+    state = hass.states.get(amazon_updated_id)
     assert state
     assert state.state == "off"
 
-    entity_entry = entity_registry.async_get(
-        "binary_sensor.imap_test_email_usps_mail_delivered"
-    )
+    entity_entry = entity_registry.async_get(usps_delivered_id)
 
     assert entity_entry
     assert entity_entry.disabled
@@ -95,7 +100,7 @@ async def test_binary_sensor_no_updates(
     await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
     await hass.async_block_till_done()
 
-    state = hass.states.get("binary_sensor.imap_test_email_usps_mail_delivered")
+    state = hass.states.get(usps_delivered_id)
     assert state
     assert state.state == "off"
 
@@ -122,9 +127,17 @@ async def test_binary_sensor_mail_delivered(
 
         assert "mail_and_packages" in hass.config.components
 
-        entity_entry = entity_registry.async_get(
-            "binary_sensor.imap_test_email_usps_image_updated"
+        usps_updated_id = resolve_entity_id(
+            entity_registry, entry.entry_id, "binary_sensor", "usps_update"
         )
+        amazon_updated_id = resolve_entity_id(
+            entity_registry, entry.entry_id, "binary_sensor", "amazon_update"
+        )
+        usps_delivered_id = resolve_entity_id(
+            entity_registry, entry.entry_id, "binary_sensor", "usps_mail_delivered"
+        )
+
+        entity_entry = entity_registry.async_get(usps_updated_id)
 
         assert entity_entry
         assert entity_entry.disabled
@@ -141,13 +154,11 @@ async def test_binary_sensor_mail_delivered(
         await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
         await hass.async_block_till_done()
 
-        state = hass.states.get("binary_sensor.imap_test_email_usps_image_updated")
+        state = hass.states.get(usps_updated_id)
         assert state
         assert state.state == "off"
 
-        entity_entry = entity_registry.async_get(
-            "binary_sensor.imap_test_email_amazon_image_updated"
-        )
+        entity_entry = entity_registry.async_get(amazon_updated_id)
 
         assert entity_entry
         assert entity_entry.disabled
@@ -164,13 +175,11 @@ async def test_binary_sensor_mail_delivered(
         await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
         await hass.async_block_till_done()
 
-        state = hass.states.get("binary_sensor.imap_test_email_amazon_image_updated")
+        state = hass.states.get(amazon_updated_id)
         assert state
         assert state.state == "off"
 
-        entity_entry = entity_registry.async_get(
-            "binary_sensor.imap_test_email_usps_mail_delivered"
-        )
+        entity_entry = entity_registry.async_get(usps_delivered_id)
 
         assert entity_entry
         assert entity_entry.disabled
@@ -188,7 +197,7 @@ async def test_binary_sensor_mail_delivered(
         await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor"])
         await hass.async_block_till_done()
 
-        state = hass.states.get("binary_sensor.imap_test_email_usps_mail_delivered")
+        state = hass.states.get(usps_delivered_id)
         assert state
         assert state.state == "on"
         assert "binary_sensor: usps_mail_delivered value: 1" in caplog.text

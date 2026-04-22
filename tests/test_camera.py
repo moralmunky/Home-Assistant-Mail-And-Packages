@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 import pytest
 from homeassistant.const import ATTR_ENTITY_ID
+from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.camera import MailCam
@@ -13,6 +14,7 @@ from custom_components.mail_and_packages.const import (
     ATTR_IMAGE_PATH,
     DOMAIN,
 )
+from tests.conftest import resolve_entity_id
 from tests.const import FAKE_CONFIG_DATA_CUSTOM_IMG
 
 pytestmark = pytest.mark.asyncio
@@ -23,18 +25,22 @@ async def test_update_file_path(
     mock_imap_no_email,
     integration,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test update_file_path service."""
     entry = integration
 
     entries = hass.config_entries.async_entries(DOMAIN)
+    usps_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "usps_camera"
+    )
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_usps_camera")
+        state = hass.states.get(usps_eid)
         assert (
             state.attributes.get("friendly_name") == "imap.test.email Mail USPS Camera"
         )
@@ -43,7 +49,7 @@ async def test_update_file_path(
             in state.attributes.get("file_path")
         )
 
-        service_data = {"entity_id": "camera.imap_test_email_mail_usps_camera"}
+        service_data = {"entity_id": usps_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
 
@@ -76,19 +82,22 @@ async def test_update_file_path(
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    usps_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "usps_camera"
+    )
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_usps_camera")
+        state = hass.states.get(usps_eid)
         assert (
             state.attributes.get("friendly_name") == "imap.test.email Mail USPS Camera"
         )
         assert "images/test.gif" in state.attributes.get("file_path")
 
-        service_data = {"entity_id": "camera.imap_test_email_mail_usps_camera"}
+        service_data = {"entity_id": usps_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
         assert "images/test.gif" in state.attributes.get("file_path")
@@ -110,17 +119,19 @@ async def test_ups_camera(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test UPS camera functionality."""
     entry = integration
 
     entries = hass.config_entries.async_entries(DOMAIN)
+    ups_eid = resolve_entity_id(entity_registry, entry.entry_id, "camera", "ups_camera")
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_ups_camera")
+        state = hass.states.get(ups_eid)
         assert (
             state.attributes.get("friendly_name") == "imap.test.email Mail UPS Camera"
         )
@@ -129,7 +140,7 @@ async def test_ups_camera(
             in state.attributes.get("file_path")
         )
 
-        service_data = {"entity_id": "camera.imap_test_email_mail_ups_camera"}
+        service_data = {"entity_id": ups_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
 
@@ -154,18 +165,19 @@ async def test_ups_camera(
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    ups_eid = resolve_entity_id(entity_registry, entry.entry_id, "camera", "ups_camera")
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_ups_camera")
+        state = hass.states.get(ups_eid)
         assert (
             state.attributes.get("friendly_name") == "imap.test.email Mail UPS Camera"
         )
         assert "images/test_ups.jpg" in state.attributes.get("file_path")
 
-        service_data = {"entity_id": "camera.imap_test_email_mail_ups_camera"}
+        service_data = {"entity_id": ups_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
         assert "images/test_ups.jpg" in state.attributes.get("file_path")
@@ -305,6 +317,7 @@ async def test_amazon_camera_custom_img(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Amazon camera with custom image settings."""
     # Load new config with custom img settings
@@ -317,21 +330,22 @@ async def test_amazon_camera_custom_img(
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    amazon_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "amazon_camera"
+    )
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_amazon_delivery_camera_2")
+        state = hass.states.get(amazon_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Amazon Delivery Camera"
         )
         assert "images/test_amazon.jpg" in state.attributes.get("file_path")
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_amazon_delivery_camera_2"
-        }
+        service_data = {"entity_id": amazon_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
         assert "images/test_amazon.jpg" in state.attributes.get("file_path")
@@ -351,9 +365,11 @@ async def test_ups_camera_with_image_data(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test UPS camera with image data."""
     entry = integration
+    ups_eid = resolve_entity_id(entity_registry, entry.entry_id, "camera", "ups_camera")
 
     # Mock coordinator data with UPS image
     coordinator = entry.runtime_data.coordinator
@@ -367,7 +383,7 @@ async def test_ups_camera_with_image_data(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_ups_camera")
+        state = hass.states.get(ups_eid)
         assert (
             state.attributes.get("friendly_name") == "imap.test.email Mail UPS Camera"
         )
@@ -384,7 +400,7 @@ async def test_ups_camera_with_image_data(
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
-        state = hass.states.get("camera.imap_test_email_mail_ups_camera")
+        state = hass.states.get(ups_eid)
 
         # Check that it's using the UPS image path
         assert "test_ups_image.jpg" in state.attributes.get("file_path")
@@ -402,10 +418,14 @@ async def test_amazon_camera_with_image_data(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Amazon camera with image data."""
     # Setup integration manually to ensure mocks are active
     entry = integration
+    amazon_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "amazon_camera"
+    )
 
     # Mock coordinator data with Amazon image directly
     coordinator = entry.runtime_data.coordinator
@@ -419,7 +439,7 @@ async def test_amazon_camera_with_image_data(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_amazon_delivery_camera")
+        state = hass.states.get(amazon_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Amazon Delivery Camera"
@@ -437,7 +457,7 @@ async def test_amazon_camera_with_image_data(
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
-        state = hass.states.get("camera.imap_test_email_mail_amazon_delivery_camera")
+        state = hass.states.get(amazon_eid)
 
         # Check that it's using the Amazon image path
         assert "test_amazon_image.jpg" in state.attributes.get("file_path")
@@ -455,6 +475,7 @@ async def test_ups_camera_with_custom_image(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test UPS camera with custom image functionality."""
     # Unload the default config
@@ -474,18 +495,19 @@ async def test_ups_camera_with_custom_image(
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    ups_eid = resolve_entity_id(entity_registry, entry.entry_id, "camera", "ups_camera")
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_ups_camera")
+        state = hass.states.get(ups_eid)
         assert (
             state.attributes.get("friendly_name") == "imap.test.email Mail UPS Camera"
         )
         assert "images/test_ups.jpg" in state.attributes.get("file_path")
 
-        service_data = {"entity_id": "camera.imap_test_email_mail_ups_camera"}
+        service_data = {"entity_id": ups_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
         assert "images/test_ups.jpg" in state.attributes.get("file_path")
@@ -504,6 +526,7 @@ async def test_amazon_camera_with_custom_image(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Amazon camera with custom image functionality."""
     # Unload the default config
@@ -523,21 +546,22 @@ async def test_amazon_camera_with_custom_image(
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    amazon_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "amazon_camera"
+    )
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_amazon_delivery_camera")
+        state = hass.states.get(amazon_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Amazon Delivery Camera"
         )
         assert "images/test_amazon.jpg" in state.attributes.get("file_path")
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_amazon_delivery_camera"
-        }
+        service_data = {"entity_id": amazon_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
         assert "images/test_amazon.jpg" in state.attributes.get("file_path")
@@ -556,13 +580,17 @@ async def test_ups_camera_default_image_path(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test UPS camera uses correct default image path."""
+    entry = integration
+    ups_eid = resolve_entity_id(entity_registry, entry.entry_id, "camera", "ups_camera")
+
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_ups_camera")
+        state = hass.states.get(ups_eid)
         assert (
             state.attributes.get("friendly_name") == "imap.test.email Mail UPS Camera"
         )
@@ -572,7 +600,7 @@ async def test_ups_camera_default_image_path(
             in state.attributes.get("file_path")
         )
 
-        service_data = {"entity_id": "camera.imap_test_email_mail_ups_camera"}
+        service_data = {"entity_id": ups_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
 
@@ -594,13 +622,19 @@ async def test_amazon_camera_default_image_path(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Amazon camera uses correct default image path."""
+    entry = integration
+    amazon_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "amazon_camera"
+    )
+
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_amazon_delivery_camera")
+        state = hass.states.get(amazon_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Amazon Delivery Camera"
@@ -611,9 +645,7 @@ async def test_amazon_camera_default_image_path(
             in state.attributes.get("file_path")
         )
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_amazon_delivery_camera"
-        }
+        service_data = {"entity_id": amazon_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
 
@@ -635,16 +667,21 @@ async def test_camera_entity_creation(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test that all camera entities are created correctly."""
-    # Check that all expected camera entities exist
+    entry = integration
+    slugs = [
+        "usps_camera",
+        "amazon_camera",
+        "ups_camera",
+        "walmart_camera",
+        "fedex_camera",
+        "generic_camera",
+    ]
     expected_cameras = [
-        "camera.imap_test_email_mail_usps_camera",
-        "camera.imap_test_email_mail_amazon_delivery_camera",
-        "camera.imap_test_email_mail_ups_camera",
-        "camera.imap_test_email_mail_walmart_delivery_camera",
-        "camera.imap_test_email_mail_fedex_delivery_camera",
-        "camera.imap_test_email_mail_generic_delivery_camera",
+        resolve_entity_id(entity_registry, entry.entry_id, "camera", slug)
+        for slug in slugs
     ]
 
     for camera_entity in expected_cameras:
@@ -666,15 +703,21 @@ async def test_camera_image_update_service(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test camera image update service works for all cameras."""
+    entry = integration
+    slugs = [
+        "usps_camera",
+        "amazon_camera",
+        "ups_camera",
+        "walmart_camera",
+        "fedex_camera",
+        "generic_camera",
+    ]
     cameras_to_test = [
-        "camera.imap_test_email_mail_usps_camera",
-        "camera.imap_test_email_mail_amazon_delivery_camera",
-        "camera.imap_test_email_mail_ups_camera",
-        "camera.imap_test_email_mail_walmart_delivery_camera",
-        "camera.imap_test_email_mail_fedex_delivery_camera",
-        "camera.imap_test_email_mail_generic_delivery_camera",
+        resolve_entity_id(entity_registry, entry.entry_id, "camera", slug)
+        for slug in slugs
     ]
 
     def isfile_side_effect(path):
@@ -709,17 +752,21 @@ async def test_generic_camera(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Generic camera functionality."""
     entry = integration
 
     entries = hass.config_entries.async_entries(DOMAIN)
+    generic_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "generic_camera"
+    )
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Generic Delivery Camera"
@@ -729,9 +776,7 @@ async def test_generic_camera(
             in state.attributes.get("file_path")
         )
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_generic_delivery_camera"
-        }
+        service_data = {"entity_id": generic_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
 
@@ -756,21 +801,22 @@ async def test_generic_camera(
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    generic_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "generic_camera"
+    )
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Generic Delivery Camera"
         )
         assert "images/test_generic.jpg" in state.attributes.get("file_path")
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_generic_delivery_camera"
-        }
+        service_data = {"entity_id": generic_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
         assert "images/test_generic.jpg" in state.attributes.get("file_path")
@@ -790,9 +836,13 @@ async def test_generic_camera_with_delivery_images(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Generic camera with delivery images from other cameras."""
     entry = integration
+    generic_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "generic_camera"
+    )
 
     # Mock coordinator data with Amazon delivery image
     coordinator = entry.runtime_data.coordinator
@@ -815,7 +865,7 @@ async def test_generic_camera_with_delivery_images(
             return_value=True,
         ),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Generic Delivery Camera"
@@ -833,7 +883,7 @@ async def test_generic_camera_with_delivery_images(
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
 
         # Check that it's using the Amazon delivery image
         assert "generic_deliveries.gif" in state.attributes.get("file_path")
@@ -851,9 +901,13 @@ async def test_generic_camera_with_ups_delivery_images(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Generic camera with UPS delivery images."""
     entry = integration
+    generic_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "generic_camera"
+    )
 
     # Mock coordinator data with UPS delivery image
     coordinator = entry.runtime_data.coordinator
@@ -876,7 +930,7 @@ async def test_generic_camera_with_ups_delivery_images(
             return_value=True,
         ),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Generic Delivery Camera"
@@ -894,7 +948,7 @@ async def test_generic_camera_with_ups_delivery_images(
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
 
         # Check that it's using the UPS delivery image
         assert "generic_deliveries.gif" in state.attributes.get("file_path")
@@ -912,9 +966,13 @@ async def test_generic_camera_with_walmart_delivery_images(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Generic camera with Walmart delivery images."""
     entry = integration
+    generic_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "generic_camera"
+    )
 
     # Mock coordinator data with Walmart delivery image
     coordinator = entry.runtime_data.coordinator
@@ -937,7 +995,7 @@ async def test_generic_camera_with_walmart_delivery_images(
             return_value=True,
         ),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Generic Delivery Camera"
@@ -955,7 +1013,7 @@ async def test_generic_camera_with_walmart_delivery_images(
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
 
         # Check that it's using the Walmart delivery image
         assert "generic_deliveries.gif" in state.attributes.get("file_path")
@@ -973,9 +1031,13 @@ async def test_generic_camera_with_usps_delivery_images_manual(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Generic camera without USPS (USPS removed from generic camera)."""
     entry = integration
+    generic_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "generic_camera"
+    )
 
     # Mock coordinator data with USPS delivery image
     coordinator = entry.runtime_data.coordinator
@@ -990,7 +1052,7 @@ async def test_generic_camera_with_usps_delivery_images_manual(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Generic Delivery Camera"
@@ -1008,7 +1070,7 @@ async def test_generic_camera_with_usps_delivery_images_manual(
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
 
         # Check that it's using the default no deliveries image (USPS removed from generic camera)
         assert "no_deliveries_generic.jpg" in state.attributes.get("file_path")
@@ -1026,9 +1088,13 @@ async def test_generic_camera_with_all_delivery_types(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Generic camera with all delivery types (Amazon, UPS, Walmart) to create animated GIF."""
     entry = integration
+    generic_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "generic_camera"
+    )
 
     # Mock coordinator data with all delivery types (excluding USPS)
     coordinator = entry.runtime_data.coordinator
@@ -1090,7 +1156,7 @@ async def test_generic_camera_with_all_delivery_types(
 
         mock_generate_gif.side_effect = mock_generate_gif_func
 
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Generic Delivery Camera"
@@ -1108,7 +1174,7 @@ async def test_generic_camera_with_all_delivery_types(
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
 
         # Should create animated GIF with all 3 delivery images (excluding USPS)
         assert "generic_deliveries.gif" in state.attributes.get("file_path")
@@ -1133,9 +1199,13 @@ async def test_generic_camera_filters_no_mail_images(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Generic camera properly filters out 'no mail' images."""
     entry = integration
+    generic_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "generic_camera"
+    )
 
     # Mock coordinator data with mix of delivery and "no mail" images
     coordinator = entry.runtime_data.coordinator
@@ -1201,7 +1271,7 @@ async def test_generic_camera_filters_no_mail_images(
 
         mock_generate_gif.side_effect = mock_generate_gif_func
 
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Generic Delivery Camera"
@@ -1219,7 +1289,7 @@ async def test_generic_camera_filters_no_mail_images(
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
 
         # Should create animated GIF with only 2 actual delivery images (Amazon and Walmart)
         assert "generic_deliveries.gif" in state.attributes.get("file_path")
@@ -1244,9 +1314,13 @@ async def test_generic_camera_respects_enabled_sensors(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Generic camera only includes cameras whose sensors are enabled in config."""
     entry = integration
+    generic_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "generic_camera"
+    )
 
     # Mock coordinator data with all delivery types
     coordinator = entry.runtime_data.coordinator
@@ -1330,7 +1404,7 @@ async def test_generic_camera_respects_enabled_sensors(
 
         mock_generate_gif.side_effect = mock_generate_gif_func
 
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Generic Delivery Camera"
@@ -1340,7 +1414,7 @@ async def test_generic_camera_respects_enabled_sensors(
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
 
         # Should create animated GIF with only 2 delivery images (Amazon and Walmart)
         # UPS and USPS should be skipped because their sensors are not enabled
@@ -1371,6 +1445,7 @@ async def test_generic_camera_with_custom_image(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Generic camera with custom image functionality."""
     # Unload the default config
@@ -1390,21 +1465,22 @@ async def test_generic_camera_with_custom_image(
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    generic_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "generic_camera"
+    )
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Generic Delivery Camera"
         )
         assert "images/test_generic.jpg" in state.attributes.get("file_path")
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_generic_delivery_camera"
-        }
+        service_data = {"entity_id": generic_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
         assert "images/test_generic.jpg" in state.attributes.get("file_path")
@@ -1423,13 +1499,19 @@ async def test_generic_camera_default_image_path(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Generic camera uses correct default image path."""
+    entry = integration
+    generic_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "generic_camera"
+    )
+
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Generic Delivery Camera"
@@ -1440,9 +1522,7 @@ async def test_generic_camera_default_image_path(
             in state.attributes.get("file_path")
         )
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_generic_delivery_camera"
-        }
+        service_data = {"entity_id": generic_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
 
@@ -1464,9 +1544,13 @@ async def test_generic_camera_with_usps_delivery_images(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Generic camera without USPS (USPS removed from generic camera)."""
     entry = integration
+    generic_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "generic_camera"
+    )
 
     # Mock coordinator data with USPS delivery
     coordinator = entry.runtime_data.coordinator
@@ -1495,7 +1579,7 @@ async def test_generic_camera_with_usps_delivery_images(
             await generic_camera.update_file_path()
             await hass.async_block_till_done()
 
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Generic Delivery Camera"
@@ -1507,9 +1591,7 @@ async def test_generic_camera_with_usps_delivery_images(
         # The file path should contain the default no deliveries image
         assert "no_deliveries_generic.jpg" in file_path
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_generic_delivery_camera"
-        }
+        service_data = {"entity_id": generic_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
 
@@ -1538,9 +1620,13 @@ async def test_generic_camera_with_multiple_delivery_images(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Generic camera with multiple delivery images (Amazon, UPS). USPS is excluded."""
     entry = integration
+    generic_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "generic_camera"
+    )
 
     # Mock coordinator data with multiple delivery types
     coordinator = entry.runtime_data.coordinator
@@ -1600,21 +1686,19 @@ async def test_generic_camera_with_multiple_delivery_images(
 
         mock_generate_gif.side_effect = mock_generate_gif_func
 
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Generic Delivery Camera"
         )
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_generic_delivery_camera"
-        }
+        service_data = {"entity_id": generic_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
 
         # Should create animated GIF with multiple delivery images
         # Get the updated state after the service call
-        state = hass.states.get("camera.imap_test_email_mail_generic_delivery_camera")
+        state = hass.states.get(generic_eid)
         file_path = state.attributes.get("file_path")
         assert file_path is not None
         assert "generic_deliveries.gif" in file_path
@@ -1637,17 +1721,21 @@ async def test_walmart_camera(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Walmart camera functionality."""
     entry = integration
 
     entries = hass.config_entries.async_entries(DOMAIN)
+    walmart_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "walmart_camera"
+    )
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_walmart_delivery_camera")
+        state = hass.states.get(walmart_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Walmart Delivery Camera"
@@ -1657,9 +1745,7 @@ async def test_walmart_camera(
             in state.attributes.get("file_path")
         )
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_walmart_delivery_camera"
-        }
+        service_data = {"entity_id": walmart_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
 
@@ -1684,21 +1770,22 @@ async def test_walmart_camera(
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    walmart_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "walmart_camera"
+    )
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_walmart_delivery_camera")
+        state = hass.states.get(walmart_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Walmart Delivery Camera"
         )
         assert "images/test_walmart.jpg" in state.attributes.get("file_path")
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_walmart_delivery_camera"
-        }
+        service_data = {"entity_id": walmart_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
         assert "images/test_walmart.jpg" in state.attributes.get("file_path")
@@ -1717,9 +1804,13 @@ async def test_walmart_camera_with_image_data(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Walmart camera with image data."""
     entry = integration
+    walmart_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "walmart_camera"
+    )
 
     # Mock coordinator data with Walmart image
     coordinator = entry.runtime_data.coordinator
@@ -1733,7 +1824,7 @@ async def test_walmart_camera_with_image_data(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_walmart_delivery_camera")
+        state = hass.states.get(walmart_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Walmart Delivery Camera"
@@ -1751,7 +1842,7 @@ async def test_walmart_camera_with_image_data(
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
-        state = hass.states.get("camera.imap_test_email_mail_walmart_delivery_camera")
+        state = hass.states.get(walmart_eid)
 
         # Check that it's using the Walmart image path
         assert "test_walmart_image.jpg" in state.attributes.get("file_path")
@@ -1769,6 +1860,7 @@ async def test_walmart_camera_with_custom_image(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Walmart camera with custom image functionality."""
     # Unload the default config
@@ -1788,21 +1880,22 @@ async def test_walmart_camera_with_custom_image(
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    walmart_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "walmart_camera"
+    )
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_walmart_delivery_camera")
+        state = hass.states.get(walmart_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Walmart Delivery Camera"
         )
         assert "images/test_walmart.jpg" in state.attributes.get("file_path")
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_walmart_delivery_camera"
-        }
+        service_data = {"entity_id": walmart_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
         assert "images/test_walmart.jpg" in state.attributes.get("file_path")
@@ -1822,13 +1915,19 @@ async def test_walmart_camera_default_image_path(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test Walmart camera uses correct default image path."""
+    entry = integration
+    walmart_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "walmart_camera"
+    )
+
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_walmart_delivery_camera")
+        state = hass.states.get(walmart_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail Walmart Delivery Camera"
@@ -1839,9 +1938,7 @@ async def test_walmart_camera_default_image_path(
             in state.attributes.get("file_path")
         )
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_walmart_delivery_camera"
-        }
+        service_data = {"entity_id": walmart_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
 
@@ -1864,17 +1961,21 @@ async def test_fedex_camera(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test FedEx camera functionality."""
     entry = integration
 
     entries = hass.config_entries.async_entries(DOMAIN)
+    fedex_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "fedex_camera"
+    )
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_fedex_delivery_camera")
+        state = hass.states.get(fedex_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail FedEx Delivery Camera"
@@ -1884,9 +1985,7 @@ async def test_fedex_camera(
             in state.attributes.get("file_path")
         )
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_fedex_delivery_camera"
-        }
+        service_data = {"entity_id": fedex_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
 
@@ -1911,21 +2010,22 @@ async def test_fedex_camera(
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    fedex_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "fedex_camera"
+    )
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_fedex_delivery_camera")
+        state = hass.states.get(fedex_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail FedEx Delivery Camera"
         )
         assert "images/test_fedex.jpg" in state.attributes.get("file_path")
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_fedex_delivery_camera"
-        }
+        service_data = {"entity_id": fedex_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
         assert "images/test_fedex.jpg" in state.attributes.get("file_path")
@@ -1945,9 +2045,13 @@ async def test_fedex_camera_with_image_data(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test FedEx camera with image data."""
     entry = integration
+    fedex_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "fedex_camera"
+    )
 
     # Mock coordinator data with FedEx image
     coordinator = entry.runtime_data.coordinator
@@ -1961,7 +2065,7 @@ async def test_fedex_camera_with_image_data(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_fedex_delivery_camera")
+        state = hass.states.get(fedex_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail FedEx Delivery Camera"
@@ -1979,7 +2083,7 @@ async def test_fedex_camera_with_image_data(
         await hass.async_block_till_done()
 
         # Get the updated state after the file path update
-        state = hass.states.get("camera.imap_test_email_mail_fedex_delivery_camera")
+        state = hass.states.get(fedex_eid)
 
         # Check that it's using the FedEx image path
         assert "test_fedex_image.jpg" in state.attributes.get("file_path")
@@ -1998,6 +2102,7 @@ async def test_fedex_camera_with_custom_image(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test FedEx camera with custom image functionality."""
     # Unload the default config
@@ -2017,21 +2122,22 @@ async def test_fedex_camera_with_custom_image(
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    fedex_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "fedex_camera"
+    )
 
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_fedex_delivery_camera")
+        state = hass.states.get(fedex_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail FedEx Delivery Camera"
         )
         assert "images/test_fedex.jpg" in state.attributes.get("file_path")
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_fedex_delivery_camera"
-        }
+        service_data = {"entity_id": fedex_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
         assert "images/test_fedex.jpg" in state.attributes.get("file_path")
@@ -2051,13 +2157,19 @@ async def test_fedex_camera_default_image_path(
     mock_getctime_today,
     mock_copyfile,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test FedEx camera uses correct default image path."""
+    entry = integration
+    fedex_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "fedex_camera"
+    )
+
     with (
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
     ):
-        state = hass.states.get("camera.imap_test_email_mail_fedex_delivery_camera")
+        state = hass.states.get(fedex_eid)
         assert (
             state.attributes.get("friendly_name")
             == "imap.test.email Mail FedEx Delivery Camera"
@@ -2068,9 +2180,7 @@ async def test_fedex_camera_default_image_path(
             in state.attributes.get("file_path")
         )
 
-        service_data = {
-            "entity_id": "camera.imap_test_email_mail_fedex_delivery_camera"
-        }
+        service_data = {"entity_id": fedex_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
 
@@ -2178,9 +2288,13 @@ async def test_camera_fallback_to_recent_file(
     mock_imap_no_email,
     integration,
     caplog,
+    entity_registry: er.EntityRegistry,
 ):
     """Test that camera falls back to the most recent file if specific image is missing."""
     entry = integration
+    amazon_eid = resolve_entity_id(
+        entity_registry, entry.entry_id, "camera", "amazon_camera"
+    )
 
     # Setup coordinator data with a file that "doesn't exist"
     coordinator = entry.runtime_data.coordinator
@@ -2257,7 +2371,7 @@ async def test_camera_fallback_to_recent_file(
         await hass.async_block_till_done()
 
         # Verify it picked the newer file
-        state = hass.states.get("camera.imap_test_email_mail_amazon_delivery_camera")
+        state = hass.states.get(amazon_eid)
         assert "new.jpg" in state.attributes.get("file_path")
         assert "found alternative image file" in caplog.text
 
