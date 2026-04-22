@@ -45,5 +45,10 @@ class Shipper(ABC):
         date: str,
         sensors: list[str],
         cache: EmailCache,
+        since_date: str | None = None,
     ) -> dict[str, Any]:
-        """Process multiple sensors for this shipper using batched fetching/searching."""
+        """Process multiple sensors for this shipper using batched fetching/searching.
+
+        since_date: earliest IMAP SINCE date for _delivering/_exception sensors.
+        Defaults to date (today) if not provided.
+        """

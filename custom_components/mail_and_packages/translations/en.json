@@ -41,6 +41,7 @@
           "folder": "Mail Folder",
           "resources": "Sensors List",
           "scan_interval": "Scanning Interval (minutes, minimum 5)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
           "image_path": "Image Path",
           "gif_duration": "Image Duration (seconds)",
           "image_security": "Random Image Filename",
@@ -102,6 +103,7 @@
         "data": {
           "folder": "Mail Folder",
           "scan_interval": "Scanning Interval (minutes, minimum 5)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
           "image_path": "Image Path",
           "gif_duration": "Image Duration (seconds)",
           "image_security": "Random Image Filename",

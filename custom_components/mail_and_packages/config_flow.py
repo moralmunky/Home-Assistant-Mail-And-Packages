@@ -34,6 +34,7 @@ from .const import (
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
     CONF_AUTH_TYPE,
+    CONF_CUSTOM_DAYS,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
     CONF_DURATION,
@@ -64,6 +65,7 @@ from .const import (
     DEFAULT_AMAZON_DAYS,
     DEFAULT_AMAZON_DOMAIN,
     DEFAULT_AMAZON_FWDS,
+    DEFAULT_CUSTOM_DAYS,
     DEFAULT_CUSTOM_IMG,
     DEFAULT_CUSTOM_IMG_FILE,
     DEFAULT_FEDEX_CUSTOM_IMG,
@@ -446,6 +448,10 @@ async def _get_schema_step_2(
                 CONF_SCAN_INTERVAL,
                 default=_get_default(CONF_SCAN_INTERVAL),
             ): vol.All(vol.Coerce(int), vol.Range(min=5)),
+            vol.Optional(
+                CONF_CUSTOM_DAYS,
+                default=_get_default(CONF_CUSTOM_DAYS, DEFAULT_CUSTOM_DAYS),
+            ): vol.All(vol.Coerce(int), vol.Range(min=1)),
             vol.Optional(
                 CONF_IMAP_TIMEOUT,
                 default=_get_default(CONF_IMAP_TIMEOUT),
@@ -890,6 +896,7 @@ class MailAndPackagesFlowHandler(
         defaults = {
             CONF_FOLDER: DEFAULT_FOLDER,
             CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
+            CONF_CUSTOM_DAYS: DEFAULT_CUSTOM_DAYS,
             CONF_PATH: self.hass.config.path() + DEFAULT_PATH,
             CONF_DURATION: DEFAULT_GIF_DURATION,
             CONF_IMAGE_SECURITY: DEFAULT_IMAGE_SECURITY,

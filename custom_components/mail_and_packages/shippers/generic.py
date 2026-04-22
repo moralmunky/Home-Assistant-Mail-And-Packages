@@ -62,8 +62,13 @@ class GenericShipper(Shipper):
         date: str,
         sensor_type: str,
         cache: EmailCache | None = None,
+        since_date: str | None = None,
     ) -> dict[str, Any]:
-        """Process emails for this shipper on the given date."""
+        """Process emails for this shipper on the given date.
+
+        since_date: if provided, used instead of date for _delivering and
+        _exception sensors so that emails from previous days are included.
+        """
         _LOGGER.debug("Processing generic sensor: %s", sensor_type)
 
         if sensor_type not in SENSOR_DATA:
@@ -88,6 +93,12 @@ class GenericShipper(Shipper):
         if forwarded_emails:
             email_addresses = forwarded_emails + email_addresses
 
+        # _delivering and _exception sensors use the extended window so packages
+        # whose notification emails arrived on a previous day stay visible.
+        search_date = date
+        if since_date and sensor_type.endswith(("_delivering", "_exception")):
+            search_date = since_date
+
         result = {ATTR_COUNT: 0, ATTR_TRACKING: []}
 
         # Skip email search for sensors with no email addresses configured
@@ -107,7 +118,7 @@ class GenericShipper(Shipper):
         count, found_data, image_found = await self._search_for_emails(
             account,
             email_addresses,
-            date,
+            search_date,
             subjects,
             config,
             shipper_cfg,
@@ -143,10 +154,11 @@ class GenericShipper(Shipper):
         date: str,
         sensors: list[str],
         cache: EmailCache,
+        since_date: str | None = None,
     ) -> dict[str, Any]:
         """Process multiple generic sensors in batch."""
         batch_results, all_tracking = await self._process_individual_sensors(
-            account, date, sensors, cache
+            account, date, sensors, cache, since_date
         )
 
         self._deduplicate_batch_tracking(batch_results)
@@ -154,8 +166,13 @@ class GenericShipper(Shipper):
 
         # Merge results and aggregate global tracking
         res = {}
-        for _, sensor_res in batch_results:
+        for sensor, sensor_res in batch_results:
             res.update(sensor_res)
+            # Expose per-sensor raw tracking for coordinator state management.
+            # Keyed as "_tracking_details" to distinguish from the public data dict.
+            tracking = sensor_res.get(ATTR_TRACKING)
+            if tracking and sensor.endswith(("_delivering", "_delivered", "_exception")):
+                res.setdefault("_tracking_details", {})[sensor] = list(tracking)
 
         if all_tracking:
             res[ATTR_TRACKING] = list(all_tracking)
@@ -168,13 +185,16 @@ class GenericShipper(Shipper):
         date: str,
         sensors: list[str],
         cache: EmailCache,
+        since_date: str | None = None,
     ) -> tuple[list[tuple[str, dict[str, Any]]], set[str]]:
         """Process each sensor independently and aggregate tracking."""
         batch_results = []
         all_tracking = set()
 
         for sensor in sensors:
-            sensor_res = await self.process(account, date, sensor, cache)
+            sensor_res = await self.process(
+                account, date, sensor, cache, since_date=since_date
+            )
             # Replicate coordinator dictionary logic for local sensor counts
             if sensor not in sensor_res and ATTR_COUNT in sensor_res:
                 sensor_res[sensor] = sensor_res[ATTR_COUNT]

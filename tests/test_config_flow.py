@@ -92,6 +92,7 @@ _LOGGER = logging.getLogger(__name__)
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -156,6 +157,7 @@ _LOGGER = logging.getLogger(__name__)
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
@@ -325,6 +327,7 @@ async def test_form(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -389,6 +392,7 @@ async def test_form(
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
@@ -555,6 +559,7 @@ async def test_form_no_fwds(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -615,6 +620,7 @@ async def test_form_no_fwds(
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -810,6 +816,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap_connect
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -864,6 +871,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap_connect
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -989,6 +997,7 @@ async def test_form_invalid_ffmpeg(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -1048,6 +1057,7 @@ async def test_form_invalid_ffmpeg(
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
@@ -1213,6 +1223,7 @@ async def test_form_index_error(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -1272,6 +1283,7 @@ async def test_form_index_error(
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
@@ -1437,6 +1449,7 @@ async def test_form_index_error_2(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -1497,6 +1510,7 @@ async def test_form_index_error_2(
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
@@ -1641,6 +1655,7 @@ async def test_form_storage_error(
                 "gif_duration": 5,
                 "imap_timeout": 120,
                 "scan_interval": 60,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -1709,6 +1724,7 @@ async def test_form_storage_error(
                 "imap_security": "SSL",
                 "imap_timeout": 120,
                 "scan_interval": 60,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_delivered",
@@ -1876,6 +1892,7 @@ async def test_reconfigure(
                 "gif_duration": 5,
                 "imap_timeout": 120,
                 "scan_interval": 60,
+                "custom_days": 3,
                 "resources": [
                     "fedex_delivered",
                     "fedex_delivering",
@@ -1936,6 +1953,7 @@ async def test_reconfigure(
                 "imap_security": "SSL",
                 "imap_timeout": 120,
                 "scan_interval": 60,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "auspost_delivered",
@@ -2092,6 +2110,7 @@ async def test_reconfigure_no_amazon(
                 "gif_duration": 5,
                 "imap_timeout": 120,
                 "scan_interval": 60,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -2154,6 +2173,7 @@ async def test_reconfigure_no_amazon(
                 "imap_security": "SSL",
                 "imap_timeout": 120,
                 "scan_interval": 60,
+                "custom_days": 3,
                 "storage": ".storage/mail_and_packages/images",
                 "resources": [
                     "amazon_packages",
@@ -2361,6 +2381,7 @@ async def test_config_flow_with_amazon_custom_image_only(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "mail_updated",
                     "usps_delivered",
@@ -2433,6 +2454,7 @@ async def test_config_flow_with_amazon_custom_image_only(
             "imap_security": "SSL",
             "imap_timeout": 30,
             "scan_interval": 20,
+            "custom_days": 3,
             "storage": ".storage/mail_and_packages/images",
             "resources": [
                 "mail_updated",
@@ -2544,6 +2566,7 @@ async def test_config_flow_with_ups_custom_image_only(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "mail_updated",
                     "usps_delivered",
@@ -2618,6 +2641,7 @@ async def test_config_flow_with_ups_custom_image_only(
             "imap_security": "SSL",
             "imap_timeout": 30,
             "scan_interval": 20,
+            "custom_days": 3,
             "resources": sorted(
                 [
                     "mail_updated",
@@ -2723,6 +2747,7 @@ async def integration_fixture_v10_migration(hass, caplog):
             "zpackages_transit",
         ],
         "scan_interval": 20,
+        "custom_days": 3,
         "storage": "custom_components/mail_and_packages/images/",
         "username": "user@fake.email",
         "verify_ssl": False,
@@ -2803,6 +2828,7 @@ async def test_migration_from_version_10_to_11(hass, caplog):
             "usps_packages",
         ],
         "scan_interval": 20,
+        "custom_days": 3,
         "storage": "custom_components/mail_and_packages/images/",
         "username": "user@fake.email",
         "verify_ssl": False,
@@ -2891,6 +2917,7 @@ async def test_migration_from_version_9_to_11(hass, caplog):
             "usps_packages",
         ],
         "scan_interval": 20,
+        "custom_days": 3,
         "username": "user@fake.email",
         "verify_ssl": False,
     }
@@ -2976,6 +3003,7 @@ async def test_migration_from_version_11_no_changes(hass, caplog):
             "usps_packages",
         ],
         "scan_interval": 20,
+        "custom_days": 3,
         "storage": "custom_components/mail_and_packages/images/",
         "username": "user@fake.email",
         "verify_ssl": False,
@@ -3061,6 +3089,7 @@ async def test_migration_preserves_existing_custom_image_settings(hass, caplog):
             "usps_packages",
         ],
         "scan_interval": 20,
+        "custom_days": 3,
         "storage": "custom_components/mail_and_packages/images/",
         "username": "user@fake.email",
         "verify_ssl": False,
@@ -3193,6 +3222,7 @@ async def test_migration_with_minimal_config(hass, caplog):
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "usps_delivered",
@@ -3293,6 +3323,7 @@ async def test_reconfig_amazon_error(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "usps_delivered",
@@ -3490,6 +3521,7 @@ async def test_walmart_custom_image_in_config_flow(hass, mock_imap_no_email):
                 "imap_timeout": 30,
                 "resources": ["walmart_delivered"],
                 "scan_interval": 20,
+                "custom_days": 3,
             },
         )
 
@@ -4362,6 +4394,7 @@ async def test_reconfig_2_schema_validation(hass, integration, mock_imap):
                 result["flow_id"],
                 {
                     "scan_interval": 1,
+                    "custom_days": 3,
                     "folder": '"INBOX"',
                     "resources": ["mail_updated"],
                 },
@@ -4486,6 +4519,7 @@ async def test_validate_forwarded_emails_missing_and_invalid():
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -4553,6 +4587,7 @@ async def test_validate_forwarded_emails_missing_and_invalid():
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
@@ -4731,6 +4766,7 @@ async def test_form_allow_forwarded_emails(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -4797,6 +4833,7 @@ async def test_form_allow_forwarded_emails(
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
@@ -4971,6 +5008,7 @@ async def test_form_allowed_forwarded_emails_entered_none(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "fedex_delivered",
                     "fedex_delivering",
@@ -5022,6 +5060,7 @@ async def test_form_allowed_forwarded_emails_entered_none(
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "fedex_delivered",
@@ -5180,6 +5219,7 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -5241,6 +5281,7 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
@@ -5400,6 +5441,7 @@ async def test_form_allow_forwarded_emails_without_custom_img(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -5461,6 +5503,7 @@ async def test_form_allow_forwarded_emails_without_custom_img(
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
@@ -5622,6 +5665,7 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -5689,6 +5733,7 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
@@ -5856,6 +5901,7 @@ async def test_form_allow_forwarded_emails_none_entered(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -5911,6 +5957,7 @@ async def test_form_allow_forwarded_emails_none_entered(
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
@@ -6031,6 +6078,7 @@ async def test_form_allowed_forwards_missing_email_addresses(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -6085,6 +6133,7 @@ async def test_form_allowed_forwards_missing_email_addresses(
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
@@ -6220,6 +6269,7 @@ async def test_form_allowed_forwards_invalid_email_address_format(
                 "gif_duration": 5,
                 "imap_timeout": 120,
                 "scan_interval": 60,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -6290,6 +6340,7 @@ async def test_form_allowed_forwards_invalid_email_address_format(
                 "imap_security": "SSL",
                 "imap_timeout": 120,
                 "scan_interval": 60,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_delivered",
@@ -6473,6 +6524,7 @@ async def test_reconfigure_allow_forwarded_emails(
                 "gif_duration": 5,
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -6540,6 +6592,7 @@ async def test_reconfigure_allow_forwarded_emails(
                 "imap_security": "SSL",
                 "imap_timeout": 30,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
@@ -6969,6 +7022,7 @@ async def test_step_2_finish_flow(hass, mock_imap):
         "gif_duration": 5,
         "imap_timeout": 30,
         "scan_interval": 20,
+        "custom_days": 3,
         "resources": ["mail_updated"],
     }
 
@@ -7027,6 +7081,7 @@ async def test_step_forwarded_emails_skip_amazon(hass, mock_imap):
             "gif_duration": 5,
             "imap_timeout": 30,
             "scan_interval": 20,
+            "custom_days": 3,
             "resources": ["mail_updated"],
         },
     )
@@ -7079,6 +7134,7 @@ async def test_reconfig_2_validation_error(hass, mock_imap_no_email, integration
                 "folder": '"INBOX"',
                 "generate_mp4": True,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": ["mail_updated"],
             },
         )
@@ -7129,6 +7185,7 @@ async def test_reconfig_3_validation_error(hass, mock_imap_no_email, integration
                 "folder": '"INBOX"',
                 "custom_img": True,
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": ["mail_updated"],
             },
         )
@@ -7193,6 +7250,7 @@ async def test_reconfig_forwarded_emails_to_reconfig_3(
                 "custom_img": True,
                 "folder": '"INBOX"',
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": ["mail_updated"],
             },
         )
@@ -7257,6 +7315,7 @@ async def test_reconfig_storage_validation_error(hass, mock_imap_no_email, integ
                 "custom_img": True,
                 "folder": '"INBOX"',
                 "scan_interval": 20,
+                "custom_days": 3,
                 "resources": ["mail_updated"],
             },
         )
@@ -7449,6 +7508,7 @@ async def test_step_reconfig_amazon_error_final(hass):
         "gif_duration": 5,
         "image_path": "images/",
         "scan_interval": 5,
+        "custom_days": 3,
     }
     # Mock validation to return a tuple (errors, user_input)
     with patch(

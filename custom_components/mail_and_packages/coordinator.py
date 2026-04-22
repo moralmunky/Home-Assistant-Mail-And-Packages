@@ -34,10 +34,13 @@ from .const import (
     AUTH_TYPE_PASSWORD,
     CONF_ALLOW_EXTERNAL,
     CONF_AUTH_TYPE,
+    CONF_CUSTOM_DAYS,
     CONF_FOLDER,
     CONF_IMAP_SECURITY,
     CONF_IMAP_TIMEOUT,
+    DEFAULT_CUSTOM_DAYS,
     DOMAIN,
+    MAX_TRACKING_AGE_DAYS,
 )
 from .helpers import copy_images
 from .shippers import get_shipper_for_sensor
@@ -78,6 +81,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self._data = {}
         self._file_mtime_cache = {}
         self._hash_cache = {}
+        self._in_transit_tracking: dict[str, dict[str, str]] = {}
 
         _LOGGER.debug("Data will be update every %s", self.interval)
 
@@ -153,11 +157,19 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         account = await self._get_imap_connection(config)
         try:
             cache = EmailCache(account)
-            today = datetime.datetime.now().strftime("%d-%b-%Y")
+            now = datetime.datetime.now()
+            today = now.strftime("%d-%b-%Y")
+            today_iso = now.date().isoformat()
+            days = config.get(CONF_CUSTOM_DAYS, DEFAULT_CUSTOM_DAYS)
+            since_date = (now - datetime.timedelta(days=days)).strftime("%d-%b-%Y")
 
             # Process logic
-            shipper_data = await self._update_shippers(account, config, today, cache)
+            shipper_data = await self._update_shippers(
+                account, config, today, since_date, cache
+            )
+            tracking_details = shipper_data.pop("_tracking_details", {})
             data.update(shipper_data)
+            self._apply_tracking_state(data, tracking_details, today_iso)
 
             # Aggregate global transit and delivered sensors
             self._aggregate_package_counts(data)
@@ -238,7 +250,12 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         return account
 
     async def _update_shippers(
-        self, account: IMAP4_SSL, config: dict, today: str, cache: EmailCache
+        self,
+        account: IMAP4_SSL,
+        config: dict,
+        today: str,
+        since_date: str,
+        cache: EmailCache,
     ) -> dict:
         """Group and process sensors by shipper."""
         data = {}
@@ -258,7 +275,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
             try:
                 results = await shipper_instance.process_batch(
-                    account, today, sensors, cache
+                    account, today, sensors, cache, since_date=since_date
                 )
                 if isinstance(results, dict):
                     data.update(results)
@@ -266,6 +283,68 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 _LOGGER.error("Error processing shipper %s: %s", shipper_name, err)
 
         return data
+
+    def _apply_tracking_state(
+        self,
+        data: dict,
+        tracking_details: dict[str, list[str]],
+        today_iso: str,
+    ) -> None:
+        """Update in-transit tracking state and override sensor counts."""
+        prefixes: set[str] = set()
+        for sensor_key in tracking_details:
+            prefix = "_".join(sensor_key.split("_")[:-1])
+            if prefix:
+                prefixes.add(prefix)
+
+        for prefix in prefixes:
+            delivering = list(tracking_details.get(f"{prefix}_delivering", []))
+            delivering += list(tracking_details.get(f"{prefix}_exception", []))
+            delivered = list(tracking_details.get(f"{prefix}_delivered", []))
+
+            self._update_tracking_for_prefix(
+                prefix, delivering, delivered, today_iso, MAX_TRACKING_AGE_DAYS
+            )
+
+            in_transit = self._in_transit_tracking.get(prefix, {})
+            if in_transit:
+                data[f"{prefix}_tracking"] = list(in_transit.keys())
+                data[f"{prefix}_delivering"] = len(in_transit)
+                delivered_count = data.get(f"{prefix}_delivered", 0)
+                data[f"{prefix}_packages"] = len(in_transit) + (
+                    delivered_count if isinstance(delivered_count, int) else 0
+                )
+
+    def _update_tracking_for_prefix(
+        self,
+        prefix: str,
+        delivering: list[str],
+        delivered: list[str],
+        today_iso: str,
+        ttl_days: int,
+    ) -> None:
+        """Add/expire delivering tracking numbers and remove delivered ones."""
+        if prefix not in self._in_transit_tracking:
+            self._in_transit_tracking[prefix] = {}
+
+        in_transit = self._in_transit_tracking[prefix]
+
+        # Add new delivering tracking numbers (record first-seen date)
+        for tid in delivering:
+            if tid and tid not in in_transit:
+                in_transit[tid] = today_iso
+
+        # Remove delivered tracking numbers
+        for tid in delivered:
+            in_transit.pop(tid, None)
+
+        # Expire entries older than TTL
+        cutoff = (
+            datetime.date.fromisoformat(today_iso) - datetime.timedelta(days=ttl_days)
+        ).isoformat()
+        expired = [tid for tid, seen in in_transit.items() if seen < cutoff]
+        for tid in expired:
+            del in_transit[tid]
 
     def _aggregate_package_counts(self, data: dict) -> None:
         """Aggregate global transit and delivered counts from all shippers."""

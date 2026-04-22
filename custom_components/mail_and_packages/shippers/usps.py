@@ -142,6 +142,7 @@ class USPSShipper(Shipper):
         date: str,
         sensors: list[str],
         cache: EmailCache,
+        since_date: str | None = None,
     ) -> dict[str, Any]:
         """Process multiple USPS sensors in batch."""
         res = {}

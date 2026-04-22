@@ -137,6 +137,7 @@ class AmazonShipper(Shipper):
         date: str,
         sensors: list[str],
         cache: EmailCache,
+        since_date: str | None = None,  # noqa: ARG002 — Amazon manages its own date window
     ) -> dict[str, Any]:
         """Process multiple Amazon sensors in batch."""
         res = {}

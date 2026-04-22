@@ -377,7 +377,7 @@ async def test_process_batch(hass):
 
     with patch.object(shipper, "process", new_callable=AsyncMock) as mock_process:
         # Mock process to return a result that requires the "sensor not in sensor_res" logic
-        async def _mock_process(account, date, sensor, cache):
+        async def _mock_process(account, date, sensor, cache, **kwargs):
             if sensor == "ups_delivered":
                 # Trigger the coordinator dictionary logic fallback
                 return {ATTR_COUNT: 5}
@@ -530,7 +530,7 @@ async def test_process_batch_deduplication(hass):
     mock_account = AsyncMock()
     mock_cache = MagicMock()
 
-    async def _mock_process(account, date, sensor, cache):
+    async def _mock_process(account, date, sensor, cache, **kwargs):
         if sensor == "ups_delivered":
             return {"ups_delivered": 1, ATTR_TRACKING: ["T1"]}
         if sensor == "ups_delivering":
