@@ -35,7 +35,8 @@
           "fedex_custom_img": "Benutzerdefiniertes FedEx 'keine Lieferung' Bild verwenden?",
           "generic_custom_img": "Benutzerdefiniertes generisches 'keine Lieferung' Bild verwenden?",
           "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle",
-          "allow_forwarded_emails": "Weitergeleitete E-Mails zusätzlich zu den Standardwerten eines Dienstes zulassen (z. B. no-reply@usps.com)"
+          "allow_forwarded_emails": "Weitergeleitete E-Mails zusätzlich zu den Standardwerten eines Dienstes zulassen (z. B. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Beenden Sie die Konfiguration, indem Sie Folgendes basierend auf Ihrer E-Mail-Struktur und der Installation von Home Assistant anpassen. \n\n Weitere Informationen zu den Optionen [Mail- und Paketintegration] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) finden Sie in den [Konfiguration, Vorlagen und Abschnitt Automatisierungen] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.",
         "title": "Briefe und Pakete (Schritt 2 von 2)"
@@ -78,7 +79,8 @@
           "fedex_custom_img": "Benutzerdefiniertes FedEx 'keine Lieferung' Bild verwenden?",
           "generic_custom_img": "Benutzerdefiniertes generisches 'keine Lieferung' Bild verwenden?",
           "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle",
-          "allow_forwarded_emails": "Weitergeleitete E-Mails zusätzlich zu den Standardwerten eines Dienstes zulassen (z. B. no-reply@usps.com)"
+          "allow_forwarded_emails": "Weitergeleitete E-Mails zusätzlich zu den Standardwerten eines Dienstes zulassen (z. B. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Schließen Sie die Konfiguration ab, indem Sie das Folgende an Ihre E-Mail-Struktur und Home Assistant-Installation anpassen.\n\nWeitere Informationen zu den [Mail und Packages Integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) Optionen finden Sie im [Konfigurations-, Vorlagen- und Automatisierungsabschnitt](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) auf GitHub.\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse durch ein Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
         "title": "Briefe und Pakete (Schritt 2 von 2)"

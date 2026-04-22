@@ -35,7 +35,8 @@
           "fedex_custom_img": "Usar imagem personalizada FedEx 'sem entrega'?",
           "generic_custom_img": "Usar imagem personalizada genérica 'sem entrega'?",
           "generate_grid": "Criar grade de imagens para modelos de visão LLM",
-          "allow_forwarded_emails": "Permitir e-mails encaminhados além do padrão de um serviço (ex: no-reply@usps.com)"
+          "allow_forwarded_emails": "Permitir e-mails encaminhados além do padrão de um serviço (ex: no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Conclua a configuração, personalizando o seguinte com base na sua estrutura de email e instalação do Home Assistant. \n\n Para obter detalhes sobre as opções [integração de Mail e Pacotes] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), revise as opções de [configuração, modelos e seção de automações] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) no GitHub.",
         "title": "Correio e pacotes (Etapa 2 de 2)"
@@ -78,7 +79,8 @@
           "fedex_custom_img": "Usar imagem personalizada FedEx 'sem entrega'?",
           "generic_custom_img": "Usar imagem personalizada genérica 'sem entrega'?",
           "generate_grid": "Criar grade de imagens para modelos de visão LLM",
-          "allow_forwarded_emails": "Permitir e-mails encaminhados além do padrão de um serviço (ex: no-reply@usps.com)"
+          "allow_forwarded_emails": "Permitir e-mails encaminhados além do padrão de um serviço (ex: no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Conclua a configuração personalizando o seguinte com base na estrutura do seu email e na instalação do Home Assistant.\n\nPara detalhes sobre as opções de [integração de Mail e Pacotes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), consulte a [seção de configuração, modelos e automações](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) no GitHub.\n\nSe estiver usando emails encaminhados da Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.",
         "title": "Correio e pacotes (Etapa 2 de 2)"

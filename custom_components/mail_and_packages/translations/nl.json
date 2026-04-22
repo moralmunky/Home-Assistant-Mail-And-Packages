@@ -35,7 +35,8 @@
           "fedex_custom_img": "Gebruik aangepaste FedEx 'geen levering' afbeelding?",
           "generic_custom_img": "Gebruik aangepaste generieke 'geen levering' afbeelding?",
           "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen",
-          "allow_forwarded_emails": "Doorgestuurde e-mails toestaan naast de standaardwaarde van een service (bijv. no-reply@usps.com)"
+          "allow_forwarded_emails": "Doorgestuurde e-mails toestaan naast de standaardwaarde van een service (bijv. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Voltooi de configuratie door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie. \n\n Voor meer informatie over de [E-mail en pakketten integratie] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties bekijk de [configuratie, sjablonen , en automatisering sectie] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.",
         "title": "Mail en pakketten (stap 2 van 2)"
@@ -78,7 +79,8 @@
           "fedex_custom_img": "Gebruik aangepaste FedEx 'geen levering' afbeelding?",
           "generic_custom_img": "Gebruik aangepaste generieke 'geen levering' afbeelding?",
           "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen",
-          "allow_forwarded_emails": "Doorgestuurde e-mails toestaan naast de standaardwaarde van een service (bijv. no-reply@usps.com)"
+          "allow_forwarded_emails": "Doorgestuurde e-mails toestaan naast de standaardwaarde van een service (bijv. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Rond de configuratie af door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie.\n\nVoor details over de [Mail en Packages integratie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties, bekijk de [configuratie, sjablonen en automatiseringen sectie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
         "title": "Mail en pakketten (stap 2 van 2)"
