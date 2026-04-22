@@ -787,3 +787,20 @@ async def test_get_image_name_from_directory_skips_generic():
         )
         # Should skip generic_deliveries.gif and return valid_image.gif
         assert result == "valid_image.gif"
+
+
+def test_generate_grid_img_ffmpeg_error(caplog):
+    """Test generate_grid_img logs error when ffmpeg raises CalledProcessError (lines 282-283)."""
+    with (
+        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch(
+            "custom_components.mail_and_packages.utils.image.subprocess.run",
+            side_effect=subprocess.CalledProcessError(1, "ffmpeg"),
+        ),
+    ):
+        mock_path_obj = MagicMock()
+        mock_path.return_value = mock_path_obj
+
+        generate_grid_img("/path/", "test.gif", 5)
+
+    assert "FFmpeg failed to generate grid image" in caplog.text

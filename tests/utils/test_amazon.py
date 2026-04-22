@@ -300,3 +300,108 @@ def test_get_email_body_attribute_error():
     msg.get_payload.return_value = None
 
     assert get_email_body(msg) == ""
+
+
+@pytest.mark.asyncio
+async def test_download_amazon_img_non_200_status(hass, tmp_path):
+    """Test download_amazon_img returns early when HTTP status is not 200 (line 220)."""
+    img_url = "https://example.com/test.jpg"
+    img_path = str(tmp_path)
+    img_name = "test.jpg"
+
+    mock_resp = AsyncMock()
+    mock_resp.status = 404
+    mock_get = MagicMock()
+    mock_get.__aenter__.return_value = mock_resp
+    mock_get.__aexit__ = AsyncMock(return_value=False)
+
+    with (
+        patch("aiohttp.ClientSession.get", return_value=mock_get),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.io_save_file",
+        ) as mock_save,
+    ):
+        await download_amazon_img(img_url, img_path, img_name, hass)
+        mock_save.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_download_amazon_img_non_image_content_type(hass, tmp_path):
+    """Test download_amazon_img returns early when content-type is not image (line 223)."""
+    img_url = "https://example.com/test.jpg"
+    img_path = str(tmp_path)
+    img_name = "test.jpg"
+
+    mock_resp = AsyncMock()
+    mock_resp.status = 200
+    mock_resp.headers = {"content-type": "text/html"}
+    mock_get = MagicMock()
+    mock_get.__aenter__.return_value = mock_resp
+    mock_get.__aexit__ = AsyncMock(return_value=False)
+
+    with (
+        patch("aiohttp.ClientSession.get", return_value=mock_get),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.io_save_file",
+        ) as mock_save,
+    ):
+        await download_amazon_img(img_url, img_path, img_name, hass)
+        mock_save.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_download_amazon_img_content_length_too_large(hass, tmp_path, caplog):
+    """Test download_amazon_img returns early when content-length exceeds limit (lines 226-230)."""
+    img_url = "https://example.com/test.jpg"
+    img_path = str(tmp_path)
+    img_name = "test.jpg"
+
+    mock_resp = AsyncMock()
+    mock_resp.status = 200
+    mock_resp.headers = {
+        "content-type": "image/jpeg",
+        "content-length": str(11 * 1024 * 1024),  # 11 MB > 10 MB limit
+    }
+    mock_get = MagicMock()
+    mock_get.__aenter__.return_value = mock_resp
+    mock_get.__aexit__ = AsyncMock(return_value=False)
+
+    with (
+        patch("aiohttp.ClientSession.get", return_value=mock_get),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.io_save_file",
+        ) as mock_save,
+    ):
+        await download_amazon_img(img_url, img_path, img_name, hass)
+        mock_save.assert_not_called()
+
+    assert "Amazon image too large to download" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_download_amazon_img_data_too_large_after_download(
+    hass, tmp_path, caplog
+):
+    """Test download_amazon_img discards data exceeding size limit after download (lines 233-236)."""
+    img_url = "https://example.com/test.jpg"
+    img_path = str(tmp_path)
+    img_name = "test.jpg"
+
+    mock_resp = AsyncMock()
+    mock_resp.status = 200
+    mock_resp.headers = {"content-type": "image/jpeg", "content-length": "100"}
+    mock_resp.read.return_value = b"x" * (11 * 1024 * 1024)  # 11 MB actual data
+    mock_get = MagicMock()
+    mock_get.__aenter__.return_value = mock_resp
+    mock_get.__aexit__ = AsyncMock(return_value=False)
+
+    with (
+        patch("aiohttp.ClientSession.get", return_value=mock_get),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.io_save_file",
+        ) as mock_save,
+    ):
+        await download_amazon_img(img_url, img_path, img_name, hass)
+        mock_save.assert_not_called()
+
+    assert "Amazon image exceeds size limit after download" in caplog.text

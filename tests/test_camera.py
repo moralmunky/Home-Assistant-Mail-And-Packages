@@ -237,6 +237,39 @@ async def test_async_camera_image(
         mock_path_class.return_value.open.assert_called_once_with("rb")
 
 
+async def test_async_camera_image_cache_hit(
+    hass,
+    mock_imap_no_email,
+    integration,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_update,
+):
+    """Test async_camera_image returns cached bytes on second call (line 162)."""
+    entry = integration
+    cameras = entry.runtime_data.cameras
+    cam = cameras[0]
+
+    with patch("custom_components.mail_and_packages.camera.Path") as mock_path_class:
+        mock_path_class.return_value.open.return_value.__enter__.return_value = (
+            MagicMock(read=MagicMock(return_value=b"cached"))
+        )
+        mock_path_class.return_value.open.return_value.__exit__ = MagicMock(
+            return_value=False
+        )
+        first = await cam.async_camera_image()
+        second = await cam.async_camera_image()
+
+    assert first == b"cached"
+    assert second == b"cached"
+    assert mock_path_class.return_value.open.call_count == 1
+
+
 async def test_async_camera_image_file_error(
     hass,
     mock_imap_no_email,

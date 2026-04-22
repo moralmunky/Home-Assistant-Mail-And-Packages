@@ -215,3 +215,29 @@ async def test_aggregate_package_counts_no_resource(hass):
 
     assert "zpackages_transit" not in test_data
     assert "zpackages_delivered" not in test_data
+
+
+@pytest.mark.asyncio
+async def test_get_imap_connection_selectfolder_exception(hass):
+    """Test _get_imap_connection handles exception from selectfolder (lines 229-231)."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    mock_account = AsyncMock()
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=mock_account,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            side_effect=Exception("Folder error"),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.logout",
+        ) as mock_logout,
+        pytest.raises(UpdateFailed, match="Folder selection failed"),
+    ):
+        await coordinator._get_imap_connection(FAKE_CONFIG_DATA)
+
+    mock_logout.assert_called_once_with(mock_account)
