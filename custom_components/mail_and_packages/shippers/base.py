@@ -49,6 +49,6 @@ class Shipper(ABC):
     ) -> dict[str, Any]:
         """Process multiple sensors for this shipper using batched fetching/searching.
 
-        since_date: earliest IMAP SINCE date for _delivering/_exception sensors.
-        Defaults to date (today) if not provided.
+        since_date: earliest IMAP SINCE date for _delivering/_exception/_delivered
+        sensors. Defaults to date (today) if not provided.
         """

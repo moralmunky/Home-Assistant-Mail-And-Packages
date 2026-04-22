@@ -778,3 +778,84 @@ def test_compute_package_totals(hass):
     _, fedex_res = next(r for r in batch_results if r[0] == "fedex_packages")
     assert fedex_res["fedex_packages"] == 2  # 2 delivering + 0 delivered
     assert fedex_res[ATTR_COUNT] == 2
+
+
+@pytest.mark.asyncio
+async def test_process_delivering_uses_since_date(hass):
+    """_delivering sensors use since_date for their IMAP search."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_search",
+        return_value=("OK", [None]),
+    ) as mock_search:
+        await shipper.process(
+            mock_account, "22-Apr-2026", "ups_delivering", since_date="19-Apr-2026"
+        )
+
+    # The search date passed to IMAP should be since_date, not today
+    call_date = mock_search.call_args[0][2]
+    assert call_date == "19-Apr-2026"
+
+
+@pytest.mark.asyncio
+async def test_process_delivered_uses_since_date(hass):
+    """_delivered sensors also use since_date so delivered tracking numbers are
+    found and can cancel out old in-transit emails for the same package."""
+    shipper = GenericShipper(hass, {"image_path": "/tmp/test/"})
+    mock_account = AsyncMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.email_search",
+            return_value=("OK", [None]),
+        ) as mock_search,
+        patch.object(hass, "async_add_executor_job", new_callable=AsyncMock),
+    ):
+        await shipper.process(
+            mock_account, "22-Apr-2026", "ups_delivered", since_date="19-Apr-2026"
+        )
+
+    call_date = mock_search.call_args[0][2]
+    assert call_date == "19-Apr-2026"
+
+
+@pytest.mark.asyncio
+async def test_process_exception_uses_since_date(hass):
+    """_exception sensors use since_date for their IMAP search."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_search",
+        return_value=("OK", [None]),
+    ) as mock_search:
+        await shipper.process(
+            mock_account,
+            "22-Apr-2026",
+            "walmart_exception",
+            since_date="19-Apr-2026",
+        )
+
+    call_date = mock_search.call_args[0][2]
+    assert call_date == "19-Apr-2026"
+
+
+@pytest.mark.asyncio
+async def test_process_packages_ignores_since_date(hass):
+    """Empty-config _packages sensors do no IMAP search regardless of since_date."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_search",
+    ) as mock_search:
+        await shipper.process(
+            mock_account,
+            "22-Apr-2026",
+            "ups_packages",
+            since_date="19-Apr-2026",
+        )
+
+    mock_search.assert_not_called()

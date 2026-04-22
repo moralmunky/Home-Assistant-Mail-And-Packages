@@ -93,10 +93,15 @@ class GenericShipper(Shipper):
         if forwarded_emails:
             email_addresses = forwarded_emails + email_addresses
 
-        # _delivering and _exception sensors use the extended window so packages
-        # whose notification emails arrived on a previous day stay visible.
+        # All three states use the extended window: _delivering/_exception to keep
+        # in-transit packages visible across the midnight boundary, and _delivered
+        # so that recently-delivered tracking numbers can be removed from the
+        # in-transit state (without this, a delivered package's "in transit" email
+        # stays visible because no corresponding delivered tracking number is found).
         search_date = date
-        if since_date and sensor_type.endswith(("_delivering", "_exception")):
+        if since_date and sensor_type.endswith(
+            ("_delivering", "_exception", "_delivered")
+        ):
             search_date = since_date
 
         result = {ATTR_COUNT: 0, ATTR_TRACKING: []}
