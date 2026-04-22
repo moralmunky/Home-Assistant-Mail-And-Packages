@@ -388,14 +388,14 @@ def test_generate_grid_img():
     with (
         patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
         patch(
-            "custom_components.mail_and_packages.utils.image.subprocess.call",
-        ) as mock_call,
+            "custom_components.mail_and_packages.utils.image.subprocess.run",
+        ) as mock_run,
     ):
         mock_path_obj = MagicMock()
         mock_path.return_value = mock_path_obj
 
         generate_grid_img("/path/", "test.gif", 5)
-        assert mock_call.called
+        assert mock_run.called
 
 
 @pytest.mark.asyncio
@@ -554,7 +554,7 @@ def test_generate_grid_img_existing(caplog):
     caplog.set_level("DEBUG")
     with (
         patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
-        patch("custom_components.mail_and_packages.utils.image.subprocess.call"),
+        patch("custom_components.mail_and_packages.utils.image.subprocess.run"),
         patch(
             "custom_components.mail_and_packages.utils.image.cleanup_images",
         ) as mock_cleanup,
@@ -641,7 +641,7 @@ def test_generate_grid_img_even_count():
     """Test generate_grid_img with an even count."""
     with (
         patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
-        patch("custom_components.mail_and_packages.utils.image.subprocess.call"),
+        patch("custom_components.mail_and_packages.utils.image.subprocess.run"),
     ):
         mock_path_obj = MagicMock()
         mock_path.return_value = mock_path_obj
@@ -787,3 +787,20 @@ async def test_get_image_name_from_directory_skips_generic():
         )
         # Should skip generic_deliveries.gif and return valid_image.gif
         assert result == "valid_image.gif"
+
+
+def test_generate_grid_img_ffmpeg_error(caplog):
+    """Test generate_grid_img logs error when ffmpeg raises CalledProcessError (lines 282-283)."""
+    with (
+        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch(
+            "custom_components.mail_and_packages.utils.image.subprocess.run",
+            side_effect=subprocess.CalledProcessError(1, "ffmpeg"),
+        ),
+    ):
+        mock_path_obj = MagicMock()
+        mock_path.return_value = mock_path_obj
+
+        generate_grid_img("/path/", "test.gif", 5)
+
+    assert "FFmpeg failed to generate grid image" in caplog.text

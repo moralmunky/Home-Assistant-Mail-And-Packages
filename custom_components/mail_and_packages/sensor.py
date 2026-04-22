@@ -135,23 +135,23 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         attr = {}
         data = self.coordinator.data
 
-        if (
-            any(sensor in self.type for sensor in ["_delivering", "_delivered"])
-            and self._tracking_key in data
-        ):
-            attr[ATTR_TRACKING_NUM] = data[self._tracking_key]
+        if any(sensor in self.type for sensor in ["_delivering", "_delivered"]):
+            if tracking := data.get(self._tracking_key):
+                attr[ATTR_TRACKING_NUM] = tracking
 
         # Catch no data entries
         if self.data is None:
             return attr
 
         if "Amazon" in self._name:
-            if self.type == AMAZON_EXCEPTION and ATTR_ORDER in data:
-                attr[ATTR_ORDER] = data[ATTR_ORDER]
-            elif AMAZON_ORDER in data:
-                attr[ATTR_ORDER] = data[AMAZON_ORDER]
-        elif self._name == "Mail USPS Mail" and ATTR_IMAGE_NAME in data:
-            attr[ATTR_IMAGE] = data[ATTR_IMAGE_NAME]
+            if self.type == AMAZON_EXCEPTION:
+                if order := data.get(ATTR_ORDER):
+                    attr[ATTR_ORDER] = order
+            elif order := data.get(AMAZON_ORDER):
+                attr[ATTR_ORDER] = order
+        elif self._name == "Mail USPS Mail":
+            if image_name := data.get(ATTR_IMAGE_NAME):
+                attr[ATTR_IMAGE] = image_name
 
         return attr
 

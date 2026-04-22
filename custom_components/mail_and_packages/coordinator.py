@@ -30,7 +30,6 @@ from homeassistant.helpers.update_coordinator import (
 
 from . import const
 from .const import (
-    ATTR_IMAGE_PATH,
     ATTR_USPS_IMAGE,
     AUTH_TYPE_PASSWORD,
     CONF_ALLOW_EXTERNAL,
@@ -128,10 +127,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                         await session.async_ensure_token_valid()
                         config["oauth_token"] = session.token["access_token"]
                     except Exception as err:
-                        _LOGGER.error("Error refreshing OAuth token: %s", err)
-                        raise UpdateFailed(
-                            f"OAuth token refresh failed: {err}",
-                        ) from err
+                        _LOGGER.error("Error refreshing OAuth token")
+                        _LOGGER.debug("OAuth token refresh error details: %s", err)
+                        raise UpdateFailed("OAuth token refresh failed") from err
 
                 data = await self.process_emails(self.hass, config)
             except UpdateFailed:
@@ -226,7 +224,13 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             _LOGGER.error("Error logging into IMAP: %s", err)
             raise UpdateFailed(f"Login failed: {err}") from err
 
-        if not await selectfolder(account, config.get(CONF_FOLDER)):
+        try:
+            folder_ok = await selectfolder(account, config.get(CONF_FOLDER))
+        except Exception as err:
+            await logout(account)
+            raise UpdateFailed(f"Folder selection failed: {err}") from err
+
+        if not folder_ok:
             _LOGGER.error("Error selecting folder: %s", config.get(CONF_FOLDER))
             await logout(account)
             raise UpdateFailed(f"Folder selection failed: {config.get(CONF_FOLDER)}")
@@ -321,9 +325,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         """Update binary sensor states."""
         # USPS uses ATTR_USPS_IMAGE instead of the old ATTR_IMAGE_NAME
         _LOGGER.debug("Data: %s", self._data)
-        attributes = (ATTR_USPS_IMAGE, ATTR_IMAGE_PATH)
-        if set(attributes).issubset(self._data.keys()):
-            image = self._data[ATTR_USPS_IMAGE]
+        image = self._data.get(ATTR_USPS_IMAGE)
+        if image:
             path = default_image_path(self.hass, self.config)
             usps_image = f"{path}/{image}"
             usps_none = f"{Path(__file__).parent}/mail_none.gif"
@@ -369,15 +372,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             )
             update_key = f"{base_name}_update"
 
-            attributes = (image_attr, ATTR_IMAGE_PATH)
-            _LOGGER.debug("%s attributes check: %s", base_name.title(), attributes)
-            if set(attributes).issubset(self._data.keys()):
-                image = self._data[image_attr]
-                _LOGGER.debug(
-                    "%s image from coordinator data: %s",
-                    base_name.title(),
-                    image,
-                )
+            image = self._data.get(image_attr)
+            _LOGGER.debug("%s image from data: %s", base_name.title(), image)
+            if image:
                 # Normalize path to avoid double slashes
                 image_path = (
                     default_image_path(self.hass, self.config).rstrip("/") + "/"

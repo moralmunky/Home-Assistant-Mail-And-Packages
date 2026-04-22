@@ -38,6 +38,19 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 pytestmark = pytest.mark.asyncio
 
 
+def resolve_entity_id(entity_registry, entry_id: str, domain: str, type_slug: str):
+    """Return entity_id for a type slug regardless of HA entity naming version.
+
+    HA changed entity ID generation between 2026.1 and 2026.4 to prefix the
+    device name. Resolving via unique_id (stable across versions) avoids
+    hardcoding either format in tests.
+    """
+    for entry in entity_registry.entities.get_entries_for_config_entry_id(entry_id):
+        if entry.domain == domain and type_slug in entry.unique_id:
+            return entry.entity_id
+    return None
+
+
 def _generate_search_side_effect(count=1, unique=False):
     """Generate search side effect.
 
@@ -104,7 +117,7 @@ def mock_update():
         autospec=True,
     ) as mock_update:
         # value = mock.Mock()
-        mock_update.return_value = FAKE_UPDATE_DATA
+        mock_update.side_effect = lambda *args, **kwargs: FAKE_UPDATE_DATA.copy()
         yield mock_update
 
 
@@ -1174,7 +1187,7 @@ def mock_update_amazon_image():
         autospec=True,
     ) as mock_update:
         # value = mock.Mock()
-        mock_update.return_value = FAKE_UPDATE_DATA_BIN
+        mock_update.side_effect = lambda *args, **kwargs: FAKE_UPDATE_DATA_BIN.copy()
         yield mock_update
 
 

@@ -269,6 +269,65 @@ async def test_informed_delivery_placeholder_image(hass):
 
 
 @pytest.mark.asyncio
+async def test_informed_delivery_placeholder_image_new_format(hass):
+    """Test USPS Informed Delivery with new-format mailpiece-with-no-image-id div."""
+    shipper = USPSShipper(
+        hass,
+        {
+            "image_path": "test/path/usps/",
+            "usps_image": "mail_today.gif",
+            CONF_DURATION: 5,
+        },
+    )
+
+    # New USPS email format: no image reference, instead a div with a specific id
+    html_content = (
+        "<!-- START MAILPIECE WITH NO IMAGE -->"
+        '<div id="mailpiece-with-no-image-id">'
+        "<p>There is one or more mailpieces for which we do not currently"
+        " have an image that is included in today's mail.</p>"
+        "</div>"
+        "<!-- END MAILPIECE WITH NO IMAGE -->"
+    )
+    msg = MIMEMultipart("alternative")
+    msg.attach(MIMEText(html_content, "html"))
+    msg_bytes = msg.as_bytes()
+
+    mock_account = AsyncMock()
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
+    mock_account.fetch.return_value = MagicMock(
+        result="OK",
+        lines=[b"RFC822", msg_bytes],
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.Path.exists",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.resize_images",
+            return_value=["test/path/usps/img1.jpg"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
+            return_value="25-Sep-2020",
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "usps_mail")
+        assert result[ATTR_COUNT] == 1
+
+
+@pytest.mark.asyncio
 async def test_informed_delivery_announcement_filtering(hass):
     """Test USPS Informed Delivery announcement filtering."""
     shipper = USPSShipper(

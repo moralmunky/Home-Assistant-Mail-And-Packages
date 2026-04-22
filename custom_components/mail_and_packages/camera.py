@@ -145,26 +145,46 @@ class MailCam(CoordinatorEntity, Camera):
         else:
             self._file_path = f"{Path(__file__).parent}/{default_image}"
 
+        self._cached_image_path: str | None = None
+        self._cached_image_bytes: bytes | None = None
+        self._last_delivery_images: list[str] | None = None
+
     async def async_camera_image(
         self,
         width: int | None = None,
         height: int | None = None,
     ) -> bytes | None:
         """Return image response."""
+        if (
+            self._file_path == self._cached_image_path
+            and self._cached_image_bytes is not None
+        ):
+            return self._cached_image_bytes
+
         _LOGGER.debug(
-            "Camera %s attempting to read image from: %s",
+            "Camera %s reading image from: %s",
             self._name,
             self._file_path,
         )
+
+        def _read_file(path: str) -> bytes:
+            with Path(path).open("rb") as f:
+                return f.read()
+
         try:
-            file = await self.hass.async_add_executor_job(open, self._file_path, "rb")
-            return file.read()
+            image_bytes = await self.hass.async_add_executor_job(
+                _read_file, self._file_path
+            )
         except FileNotFoundError:
             _LOGGER.debug(
                 "Could not read camera %s image from file: %s",
                 self._name,
                 self._file_path,
             )
+        else:
+            self._cached_image_path = self._file_path
+            self._cached_image_bytes = image_bytes
+            return image_bytes
 
     def check_file_path_access(self, file_path: str) -> None:
         """Check that filepath given is readable."""
@@ -206,68 +226,75 @@ class MailCam(CoordinatorEntity, Camera):
             image = self.coordinator.data[ATTR_USPS_IMAGE]
             path = self.coordinator.data[ATTR_IMAGE_PATH]
             self._file_path = f"{self.hass.config.path()}/{path}{image}"
+            _LOGGER.debug(
+                "usps_camera camera - file path set to: %s",
+                self._file_path,
+            )
         elif self._no_mail:
             self._file_path = self._no_mail
 
     async def _update_generic_camera(self) -> None:
         """Update file path for Generic camera."""
-        self._file_path = f"{Path(__file__).parent}/no_deliveries_generic.jpg"
-
-        # Check if custom image is configured for generic camera
         if self._no_mail:
             self._file_path = self._no_mail
             _LOGGER.debug("Generic camera - using custom no mail: %s", self._file_path)
             return
 
-        # Collect all delivery images from different cameras
         delivery_images = self._collect_generic_delivery_images()
 
-        # Create animated GIF if we have multiple delivery images
-        if len(delivery_images) > 0:
-            image_path = self.coordinator.data.get(ATTR_IMAGE_PATH, "")
-            full_storage_path = Path(f"{self.hass.config.path()}/{image_path}")
-            gif_path = str(full_storage_path / "generic_deliveries.gif")
-
-            # Resize images for consistency (800x600 for 4:3 aspect ratio)
-            resized_images = await self.hass.async_add_executor_job(
-                resize_images, delivery_images, 800, 600
+        if (
+            self._last_delivery_images is not None
+            and delivery_images == self._last_delivery_images
+        ):
+            _LOGGER.debug(
+                "Generic camera - delivery images unchanged, skipping GIF regeneration"
             )
+            return
 
-            # Generate animated GIF using helper function
-            # Run in executor to avoid blocking the event loop
-            duration = self.config.data.get(CONF_DURATION, 5) * 1000
-            gif_created = await self.hass.async_add_executor_job(
-                generate_delivery_gif,
-                resized_images,
-                gif_path,
-                duration,
-            )
+        self._last_delivery_images = delivery_images
 
-            if gif_created:
-                self._file_path = gif_path
-                _LOGGER.debug(
-                    "Generic camera - created animated GIF with %d delivery images at %s",
-                    len(delivery_images),
-                    gif_path,
-                )
-            else:
-                _LOGGER.warning(
-                    "Failed to create animated GIF, using first delivery image",
-                )
-                self._file_path = delivery_images[0]
-
-            # Cleanup resized images
-            for img in resized_images:
-                if await anyio.Path(img).exists():
-                    await self.hass.async_add_executor_job(
-                        cleanup_images, str(Path(img).parent) + "/", Path(img).name
-                    )
-        else:
-            # No deliveries found, use default generic no mail image
+        if not delivery_images:
+            self._file_path = f"{Path(__file__).parent}/no_deliveries_generic.jpg"
             _LOGGER.debug(
                 "Generic camera - no deliveries found, using default: %s",
                 self._file_path,
             )
+            return
+
+        image_path = self.coordinator.data.get(ATTR_IMAGE_PATH, "")
+        full_storage_path = Path(f"{self.hass.config.path()}/{image_path}")
+        gif_path = str(full_storage_path / "generic_deliveries.gif")
+
+        resized_images = await self.hass.async_add_executor_job(
+            resize_images, delivery_images, 800, 600
+        )
+
+        duration = self.config.data.get(CONF_DURATION, 5) * 1000
+        gif_created = await self.hass.async_add_executor_job(
+            generate_delivery_gif,
+            resized_images,
+            gif_path,
+            duration,
+        )
+
+        if gif_created:
+            self._file_path = gif_path
+            _LOGGER.debug(
+                "Generic camera - created animated GIF with %d delivery images at %s",
+                len(delivery_images),
+                gif_path,
+            )
+        else:
+            _LOGGER.warning(
+                "Failed to create animated GIF, using first delivery image",
+            )
+            self._file_path = delivery_images[0]
+
+        for img in resized_images:
+            if await anyio.Path(img).exists():
+                await self.hass.async_add_executor_job(
+                    cleanup_images, str(Path(img).parent) + "/", Path(img).name
+                )
 
     def _collect_generic_delivery_images(self) -> list[str]:
         """Collect delivery images for the generic camera."""
@@ -510,6 +537,12 @@ class MailCam(CoordinatorEntity, Camera):
         # For other cameras, use the pattern: {base_name}_delivered
         return f"{base_name}_delivered"
 
+    async def async_added_to_hass(self) -> None:
+        """Run when entity is added to hass."""
+        await super().async_added_to_hass()
+        if self.coordinator.data is not None:
+            await self.update_file_path()
+
     async def async_on_demand_update(self):
         """Update state."""
         self.async_schedule_update_ha_state(True)
@@ -545,7 +578,7 @@ class MailCam(CoordinatorEntity, Camera):
 
         False if entity pushes its state to HA.
         """
-        return True
+        return False
 
     @property
     def available(self) -> bool:
@@ -558,9 +591,9 @@ class MailCam(CoordinatorEntity, Camera):
             "%s camera - coordinator update received, updating file path",
             self._type,
         )
-        super()._handle_coordinator_update()
-        self.hass.async_create_task(self.update_file_path())
+        self.hass.async_create_task(self._async_handle_coordinator_update())
 
-    async def async_update(self):
-        """Update camera entity and refresh attributes."""
+    async def _async_handle_coordinator_update(self) -> None:
+        """Update file path then write state so the frontend gets the correct image URL."""
         await self.update_file_path()
+        self.async_write_ha_state()

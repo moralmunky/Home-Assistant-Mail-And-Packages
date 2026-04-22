@@ -15,6 +15,7 @@ from custom_components.mail_and_packages import (
 )
 from custom_components.mail_and_packages.const import (
     CONF_AUTH_TYPE,
+    CONF_FORWARDED_EMAILS,
     DOMAIN,
 )
 from custom_components.mail_and_packages.coordinator import (
@@ -208,8 +209,8 @@ async def test_migration_from_version_11_to_12():
     # So we're testing that the migration function completes successfully
 
 
-async def test_migration_from_version_14_to_17():
-    """Test migration from version 14 to 17."""
+async def test_migration_from_version_14_to_18():
+    """Test migration from version 14 to 18."""
     # Mock config entry with version 14
     mock_config_entry = MagicMock()
     mock_config_entry.version = 14
@@ -228,11 +229,11 @@ async def test_migration_from_version_14_to_17():
     args, kwargs = mock_hass.config_entries.async_update_entry.call_args
     assert kwargs["data"]["imap_security"] == "SSL"
     assert kwargs["data"]["auth_type"] == "password"
-    assert kwargs["version"] == 17
+    assert kwargs["version"] == 18
 
 
-async def test_migration_from_version_16_to_17():
-    """Test migration from version 16 to 17 (flattening auth data)."""
+async def test_migration_from_version_16_to_18():
+    """Test migration from version 16 to 18 (flattening auth data)."""
     # Mock config entry with version 16 and nested auth data
     mock_config_entry = MagicMock()
     mock_config_entry.version = 16
@@ -253,7 +254,7 @@ async def test_migration_from_version_16_to_17():
     assert "auth" not in kwargs["data"]
     assert kwargs["data"]["token"] == "test_token"
     assert kwargs["data"]["access_token"] == "test_access_token"
-    assert kwargs["version"] == 17
+    assert kwargs["version"] == 18
 
 
 async def test_setup_entry_coordinator_failure():
@@ -847,3 +848,31 @@ async def test_coordinator_image_hash_changed(hass, integration):
         mock_path.return_value.exists = AsyncMock(return_value=True)
         await coordinator._binary_sensor_update()
         assert coordinator._data["ups_update"] is True
+
+
+@pytest.mark.asyncio
+async def test_migrate_version_17_string_to_list():
+    """Test _migrate_version_17 converts a CSV string to a list."""
+    mock_entry = MagicMock()
+    mock_entry.version = 17
+    mock_entry.data = {CONF_FORWARDED_EMAILS: "a@test.com, b@test.com"}
+    mock_hass = MagicMock()
+
+    result = await async_migrate_entry(mock_hass, mock_entry)
+    assert result is True
+    _, kwargs = mock_hass.config_entries.async_update_entry.call_args
+    assert kwargs["data"][CONF_FORWARDED_EMAILS] == ["a@test.com", "b@test.com"]
+
+
+@pytest.mark.asyncio
+async def test_migrate_version_17_none_string_removed():
+    """Test _migrate_version_17 removes forwarded_emails when value is '(none)'."""
+    mock_entry = MagicMock()
+    mock_entry.version = 17
+    mock_entry.data = {CONF_FORWARDED_EMAILS: "(none)"}
+    mock_hass = MagicMock()
+
+    result = await async_migrate_entry(mock_hass, mock_entry)
+    assert result is True
+    _, kwargs = mock_hass.config_entries.async_update_entry.call_args
+    assert CONF_FORWARDED_EMAILS not in kwargs["data"]

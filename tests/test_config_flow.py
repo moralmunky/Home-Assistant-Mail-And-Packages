@@ -1115,6 +1115,7 @@ async def test_form_index_error(
     mock_account.list = AsyncMock(
         return_value=MagicMock(result="OK", lines=[b'(\\HasNoChildren) "." "INBOX"']),
     )
+    mock_account.logout = AsyncMock()
 
     with (
         patch(
@@ -1339,6 +1340,7 @@ async def test_form_index_error_2(
     mock_account.list = AsyncMock(
         return_value=MagicMock(result="OK", lines=[b"GARBAGE DATA"]),
     )
+    mock_account.logout = AsyncMock()
 
     with (
         patch(

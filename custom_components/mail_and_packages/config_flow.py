@@ -90,7 +90,7 @@ from .const import (
 from .helpers import get_resources
 from .utils.email import generate_service_email_domains, validate_email_address
 from .utils.image import _check_ffmpeg
-from .utils.imap import InvalidAuth, login
+from .utils.imap import InvalidAuth, login, logout
 
 ERROR_MAILBOX_FAIL = "Problem getting mailbox listing using 'INBOX' message"
 IMAP_SECURITY = ["none", "SSL"]
@@ -242,10 +242,8 @@ async def _validate_user_input(user_input: dict) -> tuple:
                 user_input[CONF_AMAZON_FWDS],
                 user_input[CONF_AMAZON_DOMAIN],
             )
-            if status[0] == "ok":
-                user_input[CONF_AMAZON_FWDS] = amazon_list
-            else:
-                user_input[CONF_AMAZON_FWDS] = amazon_list
+            user_input[CONF_AMAZON_FWDS] = amazon_list
+            if status[0] != "ok":
                 errors[CONF_AMAZON_FWDS] = status[0]
 
     if CONF_FORWARDED_EMAILS in user_input:
@@ -305,16 +303,19 @@ async def _get_mailboxes(
         return []
 
     _LOGGER.debug("Attempting to get mailbox list...")
-    result = await account.list('""', '"*"')
-    status = result.result
-    folderlist = result.lines
-    _LOGGER.debug("Get mailbox status: %s folder list: %s", status, folderlist)
-    mailboxes = []
-    if status != "OK" or not isinstance(folderlist, list):
-        _LOGGER.error("Error listing mailboxes ... using default")
-        mailboxes.append(DEFAULT_FOLDER)
-    else:
-        mailboxes = await _parse_folder_list(folderlist)
+    try:
+        result = await account.list('""', '"*"')
+        status = result.result
+        folderlist = result.lines
+        _LOGGER.debug("Get mailbox status: %s folder list: %s", status, folderlist)
+        mailboxes = []
+        if status != "OK" or not isinstance(folderlist, list):
+            _LOGGER.error("Error listing mailboxes ... using default")
+            mailboxes.append(DEFAULT_FOLDER)
+        else:
+            mailboxes = await _parse_folder_list(folderlist)
+    finally:
+        await logout(account)
 
     return mailboxes
 
@@ -662,6 +663,7 @@ async def _validate_login(
     if auth_type != AUTH_TYPE_PASSWORD:
         return errors
 
+    imap_client = None
     try:
         imap_client = await login(
             hass,
@@ -684,6 +686,9 @@ async def _validate_login(
     else:
         if result != "OK":
             errors["base"] = "missing_inbox"
+    finally:
+        if imap_client is not None:
+            await logout(imap_client)
 
     return errors
 
