@@ -3,52 +3,30 @@
 import logging
 
 from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
     BinarySensorEntity,
 )
-from homeassistant.const import CONF_HOST
+from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
 
 from . import MailAndPackagesConfigEntry
-from .const import DOMAIN, VERSION
+from .const import BINARY_SENSORS, DOMAIN, VERSION
 from .entity import MailandPackagesBinarySensorEntityDescription
 
 _LOGGER = logging.getLogger(__name__)
-
-BINARY_SENSORS = {
-    "usps_update": MailandPackagesBinarySensorEntityDescription(
-        name="USPS Image Updated",
-        key="usps_update",
-        device_class=BinarySensorDeviceClass.UPDATE,
-        selectable=False,
-        entity_registry_enabled_default=False,
-    ),
-    "amazon_update": MailandPackagesBinarySensorEntityDescription(
-        name="Amazon Image Updated",
-        key="amazon_update",
-        device_class=BinarySensorDeviceClass.UPDATE,
-        selectable=False,
-        entity_registry_enabled_default=False,
-    ),
-    "usps_mail_delivered": MailandPackagesBinarySensorEntityDescription(
-        name="USPS Mail Delivered",
-        key="usps_mail_delivered",
-        entity_registry_enabled_default=False,
-        selectable=True,
-    ),
-}
 
 
 async def async_setup_entry(hass, entry: MailAndPackagesConfigEntry, async_add_devices):
     """Initialize binary_sensor platform."""
     coordinator = entry.runtime_data.coordinator
+    resources = entry.data.get(CONF_RESOURCES, [])
 
     binary_sensors = [
         PackagesBinarySensor(value, coordinator, entry)
         for value in BINARY_SENSORS.values()
+        if not value.selectable or value.key in resources
     ]
     async_add_devices(binary_sensors, False)
 

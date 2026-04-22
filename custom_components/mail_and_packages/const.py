@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from typing import Final
 
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription
 from homeassistant.helpers.entity import EntityCategory
+
+from .entity import MailandPackagesBinarySensorEntityDescription
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
@@ -1520,6 +1523,30 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         key="zpackages_transit",
     ),
 }
+
+BINARY_SENSORS: Final[dict[str, MailandPackagesBinarySensorEntityDescription]] = {
+    "usps_update": MailandPackagesBinarySensorEntityDescription(
+        name="USPS Image Updated",
+        key="usps_update",
+        device_class=BinarySensorDeviceClass.UPDATE,
+        selectable=False,
+        entity_registry_enabled_default=False,
+    ),
+    "amazon_update": MailandPackagesBinarySensorEntityDescription(
+        name="Amazon Image Updated",
+        key="amazon_update",
+        device_class=BinarySensorDeviceClass.UPDATE,
+        selectable=False,
+        entity_registry_enabled_default=False,
+    ),
+    "usps_mail_delivered": MailandPackagesBinarySensorEntityDescription(
+        name="USPS Mail Delivered",
+        key="usps_mail_delivered",
+        entity_registry_enabled_default=False,
+        selectable=True,
+    ),
+}
+
 
 IMAGE_SENSORS: Final[dict[str, SensorEntityDescription]] = {
     "usps_mail_image_system_path": SensorEntityDescription(

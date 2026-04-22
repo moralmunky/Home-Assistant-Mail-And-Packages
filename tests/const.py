@@ -164,6 +164,7 @@ FAKE_CONFIG_DATA = {
         "gls_packages",
         "walmart_delivered",
         "walmart_exception",
+        "usps_mail_delivered",
         "post_nl_delivered",
         "post_nl_delivering",
         "post_nl_packages",
