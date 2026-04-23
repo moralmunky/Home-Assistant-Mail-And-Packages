@@ -90,6 +90,9 @@ def build_search(address: list, date: str, subject: str | list[str] = "") -> tup
     addr_prefix = None
     email_list = None
 
+    if not address:
+        raise ValueError("address list must not be empty")
+
     if len(address) == 1:
         email_list = address[0]
     else:

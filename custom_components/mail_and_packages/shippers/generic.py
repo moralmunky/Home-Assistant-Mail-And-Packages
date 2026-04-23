@@ -82,6 +82,15 @@ class GenericShipper(Shipper):
 
         result = {ATTR_COUNT: 0, ATTR_TRACKING: []}
 
+        # Skip email search for sensors with no email addresses configured
+        # (e.g. *_packages sensors that are empty dicts in SENSOR_DATA)
+        if not email_addresses:
+            _LOGGER.debug(
+                "Skipping email search for %s: no email addresses configured",
+                sensor_type,
+            )
+            return result
+
         image_path = self.config.get("image_path")
         # Setup image extraction
         shipper_cfg = await self._setup_image_extraction(sensor_type, image_path)

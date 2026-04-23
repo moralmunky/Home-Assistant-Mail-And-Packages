@@ -294,6 +294,12 @@ async def test_selectfolder_select_error(caplog):
     assert "Error selecting folder" in caplog.text
 
 
+def test_build_search_empty_address_raises():
+    """Test build_search raises ValueError when address list is empty."""
+    with pytest.raises(ValueError, match="address list must not be empty"):
+        build_search([], "25-Mar-2026", subject="Test")
+
+
 def test_build_search_no_subject():
     """Test build_search without subject."""
     utf8, search = build_search(["test@example.com"], "25-Mar-2026", subject=None)

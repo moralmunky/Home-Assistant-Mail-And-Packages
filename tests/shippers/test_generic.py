@@ -131,6 +131,22 @@ async def test_generic_sensor_not_found(hass):
 
 
 @pytest.mark.asyncio
+async def test_generic_packages_sensor_skips_search(hass, caplog):
+    """Test that *_packages sensors with no email config skip IMAP search."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    caplog.set_level("DEBUG")
+
+    # fedex_packages is an empty dict in SENSOR_DATA (no email/subject keys)
+    result = await shipper.process(mock_account, "today", "fedex_packages")
+    assert result[ATTR_COUNT] == 0
+    assert result[ATTR_TRACKING] == []
+    # Verify no IMAP search was attempted
+    mock_account.search.assert_not_called()
+    assert "Skipping email search for fedex_packages" in caplog.text
+
+
+@pytest.mark.asyncio
 async def test_generic_with_images_and_amazon_mentions(hass):
     """Test GenericShipper with image extraction and Amazon mentions."""
     shipper = GenericShipper(
