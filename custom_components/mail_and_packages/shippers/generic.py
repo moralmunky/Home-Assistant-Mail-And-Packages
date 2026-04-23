@@ -28,6 +28,7 @@ from custom_components.mail_and_packages.utils.cache import EmailCache
 from custom_components.mail_and_packages.utils.email import find_text
 from custom_components.mail_and_packages.utils.imap import (
     email_fetch,
+    email_fetch_headers,
     email_search,
 )
 from custom_components.mail_and_packages.utils.shipper import (
@@ -272,6 +273,13 @@ class GenericShipper(Shipper):
 
         if server_response == "OK" and sdata[0]:
             raw_ids = sdata[0].split()
+            _LOGGER.debug(
+                "Found %d matching email IDs for %s: %s",
+                len(raw_ids),
+                sensor_type,
+                [eid.decode() if isinstance(eid, bytes) else eid for eid in raw_ids],
+            )
+            await self._log_matched_subjects(account, raw_ids, sensor_type, cache)
             filtered_new_ids = self._filter_unique_ids(raw_ids, unique_email_ids)
 
             if filtered_new_ids:
@@ -290,6 +298,34 @@ class GenericShipper(Shipper):
                     image_found = True
 
         return count, found_data, image_found
+
+    async def _log_matched_subjects(
+        self,
+        account: IMAP4_SSL,
+        email_ids: list[bytes],
+        sensor_type: str,
+        cache: EmailCache | None = None,
+    ) -> None:
+        """Log the subject of each matched email for debugging."""
+        for eid in email_ids:
+            try:
+                if cache:
+                    header_data = (
+                        await cache.fetch(eid, "(BODY[HEADER.FIELDS (SUBJECT)])")
+                    )[1]
+                else:
+                    header_data = (await email_fetch_headers(account, eid))[1]
+                for part in header_data:
+                    if isinstance(part, (bytes, bytearray)):
+                        subject = part.decode("utf-8", "ignore").strip()
+                        _LOGGER.debug(
+                            "Matched email for %s (ID %s): %s",
+                            sensor_type,
+                            eid.decode() if isinstance(eid, bytes) else eid,
+                            subject,
+                        )
+            except (OSError, AttributeError) as err:
+                _LOGGER.debug("Could not fetch subject for email %s: %s", eid, err)
 
     def _filter_unique_ids(
         self, email_ids: list[bytes], unique_email_ids: set

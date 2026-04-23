@@ -99,6 +99,12 @@ def build_search(address: list, date: str, subject: str | list[str] = "") -> tup
         email_list = '" FROM "'.join(address)
         addr_prefix = " ".join(["OR"] * (len(address) - 1))
 
+    # Build the FROM part with explicit parentheses for OR groups
+    if addr_prefix is not None:
+        from_part = f'({addr_prefix} FROM "{email_list}")'
+    else:
+        from_part = f'FROM "{email_list}"'
+
     # Handle multiple subjects
     if subject:
         if isinstance(subject, str):
@@ -118,19 +124,15 @@ def build_search(address: list, date: str, subject: str | list[str] = "") -> tup
         else:
             subject_prefix = " ".join(["OR"] * (len(safe_subjects) - 1))
             subject_part = (
-                f'{subject_prefix} SUBJECT "{'" SUBJECT "'.join(safe_subjects)}"'
+                f'({subject_prefix} SUBJECT "{'" SUBJECT "'.join(safe_subjects)}")'
             )
 
-        if addr_prefix is not None:
-            imap_search = (
-                f'({addr_prefix} FROM "{email_list}" {subject_part} {the_date})'
-            )
+        if subject_part:
+            imap_search = f"({from_part} {subject_part} {the_date})"
         else:
-            imap_search = f'(FROM "{email_list}" {subject_part} {the_date})'
-    elif addr_prefix is not None:
-        imap_search = f'({addr_prefix} FROM "{email_list}" {the_date})'
+            imap_search = f"({from_part} {the_date})"
     else:
-        imap_search = f'(FROM "{email_list}" {the_date})'
+        imap_search = f"({from_part} {the_date})"
 
     _LOGGER.debug("DEBUG imap_search: %s", imap_search)
 
