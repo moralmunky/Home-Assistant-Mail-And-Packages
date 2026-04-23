@@ -581,3 +581,56 @@ async def test_generic_image_reset_on_zero_count(hass):
         assert result[ATTR_COUNT] == 0
         # This is what we are testing: it should be called even if count is 0
         mock_copy.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_log_matched_subjects(hass, caplog):
+    """Test _log_matched_subjects logs email subjects for debugging."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    caplog.set_level("DEBUG")
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_fetch_headers",
+        new_callable=AsyncMock,
+        return_value=("OK", [b"Subject: Your package has been delivered"]),
+    ):
+        await shipper._log_matched_subjects(mock_account, [b"42"], "fedex_delivered")
+        assert "Matched email for fedex_delivered (ID 42)" in caplog.text
+        assert "Your package has been delivered" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_log_matched_subjects_with_cache(hass, caplog):
+    """Test _log_matched_subjects uses cache when available."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    cache = EmailCache(mock_account)
+    caplog.set_level("DEBUG")
+
+    # Pre-populate the cache
+    cache._cache_headers["42"] = (
+        "OK",
+        [b"Subject: Your UPS Package was delivered"],
+    )
+
+    await shipper._log_matched_subjects(
+        mock_account, [b"42"], "ups_delivered", cache=cache
+    )
+    assert "Matched email for ups_delivered (ID 42)" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_log_matched_subjects_error(hass, caplog):
+    """Test _log_matched_subjects handles fetch errors gracefully."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    caplog.set_level("DEBUG")
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_fetch_headers",
+        new_callable=AsyncMock,
+        side_effect=OSError("Connection lost"),
+    ):
+        await shipper._log_matched_subjects(mock_account, [b"99"], "fedex_delivered")
+        assert "Could not fetch subject for email" in caplog.text

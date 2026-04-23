@@ -310,21 +310,21 @@ def test_build_search_no_subject():
 def test_build_search_multiple_no_subject():
     """Test build_search multiple addresses no subject."""
     utf8, search = build_search(["a@b.com", "c@d.com"], "25-Mar-2026", subject=None)
-    assert 'OR FROM "a@b.com" FROM "c@d.com"' in search
+    assert '(OR FROM "a@b.com" FROM "c@d.com")' in search
     assert "SUBJECT" not in search
 
 
 def test_build_search_prefix_subject():
     """Test build_search with multiple addresses and subject."""
     utf8, search = build_search(["a@b.com", "c@d.com"], "25-Mar-2026", "Test")
-    assert 'OR FROM "a@b.com" FROM "c@d.com"' in search
+    assert '(OR FROM "a@b.com" FROM "c@d.com")' in search
     assert 'SUBJECT "Test"' in search
 
 
 def test_build_search_triple_address():
     """Test build_search with 3 addresses for OR prefix coverage."""
     utf8, search = build_search(["a@b.com", "c@d.com", "e@f.com"], "25-Mar-2026")
-    assert 'OR OR FROM "a@b.com" FROM "c@d.com" FROM "e@f.com"' in search
+    assert '(OR OR FROM "a@b.com" FROM "c@d.com" FROM "e@f.com")' in search
 
 
 @pytest.mark.asyncio
@@ -613,7 +613,7 @@ def test_build_search_multi_subject():
     # Covers lines 116-117
     subjects = ["One", "Two", "Three"]
     utf8, search = build_search(["test@example.com"], "25-Mar-2026", subject=subjects)
-    assert 'OR OR SUBJECT "One" SUBJECT "Two" SUBJECT "Three"' in search
+    assert '(OR OR SUBJECT "One" SUBJECT "Two" SUBJECT "Three")' in search
 
 
 def test_build_search_single_addr_with_subject():
@@ -696,3 +696,37 @@ async def test_email_search_batching_error(caplog):
     assert result[0] == "OK"
     assert result[1] == [b"1 2"]
     assert "Error searching emails batch: Batch failed" in caplog.text
+
+
+def test_build_search_multi_addr_multi_subject_parentheses():
+    """Test that multi-address AND multi-subject queries use explicit parentheses.
+
+    Regression test for Yahoo IMAP misparsing where FROM OR-chain and SUBJECT
+    OR-chain without explicit parentheses caused the server to match emails
+    based solely on FROM address, ignoring SUBJECT criteria.
+    """
+    addresses = [
+        "TrackingUpdates@fedex.com",
+        "fedexcanada@fedex.com",
+        "noreply@fedex.com",
+    ]
+    subjects = [
+        "Your package has been delivered",
+        "Your packages have been delivered",
+        "Your shipment was delivered",
+    ]
+    _utf8, search = build_search(addresses, "23-Apr-2026", subject=subjects)
+
+    # FROM group must be wrapped in parentheses
+    assert (
+        '(OR OR FROM "TrackingUpdates@fedex.com" FROM "fedexcanada@fedex.com" FROM "noreply@fedex.com")'
+        in search
+    )
+    # SUBJECT group must be wrapped in parentheses
+    assert (
+        '(OR OR SUBJECT "Your package has been delivered" SUBJECT "Your packages have been delivered" SUBJECT "Your shipment was delivered")'
+        in search
+    )
+    # Both groups and SINCE must be at the top level
+    assert search.startswith("((")
+    assert "SINCE 23-Apr-2026)" in search
