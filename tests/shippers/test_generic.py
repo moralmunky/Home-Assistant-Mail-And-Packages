@@ -205,6 +205,11 @@ async def test_generic_ups_exception(hass):
             new_callable=AsyncMock,
             return_value=["1Z999"],
         ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.GenericShipper._verify_matched_subjects",
+            new_callable=AsyncMock,
+            side_effect=lambda a, b, c, d, cache=None: b,
+        ),
     ):
         result = await shipper.process(mock_account, "today", "ups_exception")
         assert result[ATTR_COUNT] == 1
@@ -236,6 +241,11 @@ async def test_generic_multiple_emails(hass):
             "custom_components.mail_and_packages.shippers.generic.get_tracking",
             new_callable=AsyncMock,
             return_value=["1Z123", "1Z456"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.GenericShipper._verify_matched_subjects",
+            new_callable=AsyncMock,
+            side_effect=lambda a, b, c, d, cache=None: b,
         ),
     ):
         result = await shipper.process(mock_account, "today", "ups_delivered")
@@ -320,6 +330,11 @@ async def test_generic_body_search(hass):
             return_value=1,
         ) as mock_find,
         patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.GenericShipper._verify_matched_subjects",
+            new_callable=AsyncMock,
+            side_effect=lambda a, b, c, d, cache=None: b,
+        ),
     ):
         # dhl_delivered has "body" in SENSOR_DATA
         result = await shipper.process(mock_acc, "today", "dhl_delivered")
@@ -441,6 +456,11 @@ async def test_generic_image_found(hass):
         patch.object(
             shipper, "_copy_generic_placeholder", new_callable=AsyncMock
         ) as mock_copy,
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.GenericShipper._verify_matched_subjects",
+            new_callable=AsyncMock,
+            side_effect=lambda a, b, c, d, cache=None: b,
+        ),
     ):
         result = await shipper.process(mock_account, "today", "ups_delivered")
         assert result[ATTR_COUNT] == 1
@@ -491,6 +511,11 @@ async def test_generic_search_coverage_edges(hass):
         ),
         patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
         patch.object(shipper, "_copy_generic_placeholder", new_callable=AsyncMock),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.GenericShipper._verify_matched_subjects",
+            new_callable=AsyncMock,
+            side_effect=lambda a, b, c, d, cache=None: b,
+        ),
     ):
         # We use 'ups_delivered' because it has a camera entry ('ups_camera')
         result = await shipper.process(mock_account, "today", "ups_delivered")
@@ -584,8 +609,8 @@ async def test_generic_image_reset_on_zero_count(hass):
 
 
 @pytest.mark.asyncio
-async def test_log_matched_subjects(hass, caplog):
-    """Test _log_matched_subjects logs email subjects for debugging."""
+async def test_verify_matched_subjects(hass, caplog):
+    """Test _verify_matched_subjects filters emails locally for debugging."""
     shipper = GenericShipper(hass, {})
     mock_account = AsyncMock()
     caplog.set_level("DEBUG")
@@ -595,14 +620,45 @@ async def test_log_matched_subjects(hass, caplog):
         new_callable=AsyncMock,
         return_value=("OK", [b"Subject: Your package has been delivered"]),
     ):
-        await shipper._log_matched_subjects(mock_account, [b"42"], "fedex_delivered")
+        expected_subjects = ["Your package has been delivered"]
+        verified = await shipper._verify_matched_subjects(
+            mock_account, [b"42"], "fedex_delivered", expected_subjects
+        )
         assert "Matched email for fedex_delivered (ID 42)" in caplog.text
         assert "Your package has been delivered" in caplog.text
+        assert verified == [b"42"]
 
 
 @pytest.mark.asyncio
-async def test_log_matched_subjects_with_cache(hass, caplog):
-    """Test _log_matched_subjects uses cache when available."""
+async def test_verify_matched_subjects_rejection(hass, caplog):
+    """Test _verify_matched_subjects rejects emails that don't match expected subjects."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    caplog.set_level("DEBUG")
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_fetch_headers",
+        new_callable=AsyncMock,
+        return_value=(
+            "OK",
+            [b"Subject: Your shipment is scheduled for delivery tomorrow 380636585874"],
+        ),
+    ):
+        expected_subjects = [
+            "Your package has been delivered",
+            "Your packages have been delivered",
+            "Your shipment was delivered",
+        ]
+        verified = await shipper._verify_matched_subjects(
+            mock_account, [b"42"], "fedex_delivered", expected_subjects
+        )
+        assert "Subject did not match any expected subjects" in caplog.text
+        assert verified == []
+
+
+@pytest.mark.asyncio
+async def test_verify_matched_subjects_with_cache(hass, caplog):
+    """Test _verify_matched_subjects uses cache when available."""
     shipper = GenericShipper(hass, {})
     mock_account = AsyncMock()
     cache = EmailCache(mock_account)
@@ -614,15 +670,17 @@ async def test_log_matched_subjects_with_cache(hass, caplog):
         [b"Subject: Your UPS Package was delivered"],
     )
 
-    await shipper._log_matched_subjects(
-        mock_account, [b"42"], "ups_delivered", cache=cache
+    expected_subjects = ["Your UPS Package was delivered"]
+    verified = await shipper._verify_matched_subjects(
+        mock_account, [b"42"], "ups_delivered", expected_subjects, cache=cache
     )
     assert "Matched email for ups_delivered (ID 42)" in caplog.text
+    assert verified == [b"42"]
 
 
 @pytest.mark.asyncio
-async def test_log_matched_subjects_error(hass, caplog):
-    """Test _log_matched_subjects handles fetch errors gracefully."""
+async def test_verify_matched_subjects_error(hass, caplog):
+    """Test _verify_matched_subjects handles fetch errors gracefully."""
     shipper = GenericShipper(hass, {})
     mock_account = AsyncMock()
     caplog.set_level("DEBUG")
@@ -632,5 +690,9 @@ async def test_log_matched_subjects_error(hass, caplog):
         new_callable=AsyncMock,
         side_effect=OSError("Connection lost"),
     ):
-        await shipper._log_matched_subjects(mock_account, [b"99"], "fedex_delivered")
+        expected_subjects = ["Some subject"]
+        verified = await shipper._verify_matched_subjects(
+            mock_account, [b"99"], "fedex_delivered", expected_subjects
+        )
         assert "Could not fetch subject for email" in caplog.text
+        assert verified == []

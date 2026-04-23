@@ -279,8 +279,10 @@ class GenericShipper(Shipper):
                 sensor_type,
                 [eid.decode() if isinstance(eid, bytes) else eid for eid in raw_ids],
             )
-            await self._log_matched_subjects(account, raw_ids, sensor_type, cache)
-            filtered_new_ids = self._filter_unique_ids(raw_ids, unique_email_ids)
+            verified_ids = await self._verify_matched_subjects(
+                account, raw_ids, sensor_type, subjects, cache
+            )
+            filtered_new_ids = self._filter_unique_ids(verified_ids, unique_email_ids)
 
             if filtered_new_ids:
                 count, img_found = await self._process_matched_emails(
@@ -299,14 +301,21 @@ class GenericShipper(Shipper):
 
         return count, found_data, image_found
 
-    async def _log_matched_subjects(
+    async def _verify_matched_subjects(
         self,
         account: IMAP4_SSL,
         email_ids: list[bytes],
         sensor_type: str,
+        expected_subjects: list[str],
         cache: EmailCache | None = None,
-    ) -> None:
-        """Log the subject of each matched email for debugging."""
+    ) -> list[bytes]:
+        """Verify the subject of each matched email locally and log for debugging."""
+        if not expected_subjects:
+            return email_ids
+
+        verified_ids = []
+        expected_subjects_lower = [s.lower() for s in expected_subjects]
+
         for eid in email_ids:
             try:
                 if cache:
@@ -315,6 +324,8 @@ class GenericShipper(Shipper):
                     )[1]
                 else:
                     header_data = (await email_fetch_headers(account, eid))[1]
+
+                subject_found = False
                 for part in header_data:
                     if isinstance(part, (bytes, bytearray)):
                         subject = part.decode("utf-8", "ignore").strip()
@@ -324,8 +335,25 @@ class GenericShipper(Shipper):
                             eid.decode() if isinstance(eid, bytes) else eid,
                             subject,
                         )
+                        subject_lower = subject.lower()
+                        if any(
+                            expected in subject_lower
+                            for expected in expected_subjects_lower
+                        ):
+                            subject_found = True
+
+                if subject_found:
+                    verified_ids.append(eid)
+                else:
+                    _LOGGER.debug(
+                        "Email ID %s rejected for %s: Subject did not match any expected subjects.",
+                        eid.decode() if isinstance(eid, bytes) else eid,
+                        sensor_type,
+                    )
             except (OSError, AttributeError) as err:
                 _LOGGER.debug("Could not fetch subject for email %s: %s", eid, err)
+
+        return verified_ids
 
     def _filter_unique_ids(
         self, email_ids: list[bytes], unique_email_ids: set
