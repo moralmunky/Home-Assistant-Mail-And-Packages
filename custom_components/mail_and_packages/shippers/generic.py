@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import email
 import logging
+from email.header import decode_header
 from pathlib import Path
 from shutil import copyfile
 from typing import Any
@@ -301,6 +303,27 @@ class GenericShipper(Shipper):
 
         return count, found_data, image_found
 
+    def _decode_subject(self, header_part: bytes | bytearray) -> str | None:
+        """Decode MIME encoded subject from email header part."""
+        msg = email.message_from_bytes(header_part)
+        header_val = msg.get("subject")
+        if not header_val:
+            return None
+
+        decoded = decode_header(header_val)[0]
+        subject_bytes, encoding = decoded
+        if encoding:
+            try:
+                if isinstance(subject_bytes, bytes):
+                    return subject_bytes.decode(encoding, "ignore").strip()
+                return str(subject_bytes).strip()
+            except (LookupError, UnicodeError):
+                pass
+
+        if isinstance(subject_bytes, bytes):
+            return subject_bytes.decode("utf-8", "ignore").strip()
+        return str(subject_bytes).strip()
+
     async def _verify_matched_subjects(
         self,
         account: IMAP4_SSL,
@@ -328,7 +351,10 @@ class GenericShipper(Shipper):
                 subject_found = False
                 for part in header_data:
                     if isinstance(part, (bytes, bytearray)):
-                        subject = part.decode("utf-8", "ignore").strip()
+                        subject = self._decode_subject(part)
+                        if not subject:
+                            continue
+
                         _LOGGER.debug(
                             "Matched email for %s (ID %s): %s",
                             sensor_type,
