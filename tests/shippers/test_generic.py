@@ -713,3 +713,14 @@ async def test_verify_matched_subjects_empty_expected(hass):
     assert verified == [b"123", b"456"]
     # Verify no IMAP fetch calls were made
     mock_account.fetch.assert_not_called()
+
+
+def test_decode_subject_string_with_encoding(hass):
+    """Test _decode_subject when decode_header returns a string and an encoding."""
+    shipper = GenericShipper(hass, {})
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.decode_header",
+        return_value=[("A string instead of bytes", "utf-8")],
+    ):
+        result = shipper._decode_subject(b"Subject: dummy")
+        assert result == "A string instead of bytes"
