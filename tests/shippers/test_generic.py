@@ -696,3 +696,20 @@ async def test_verify_matched_subjects_error(hass, caplog):
         )
         assert "Could not fetch subject for email" in caplog.text
         assert verified == []
+
+
+@pytest.mark.asyncio
+async def test_verify_matched_subjects_empty_expected(hass):
+    """Test _verify_matched_subjects bypasses filtering when expected_subjects is empty."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+
+    # Pass empty list for expected_subjects
+    verified = await shipper._verify_matched_subjects(
+        mock_account, [b"123", b"456"], "ups_exception", []
+    )
+
+    # Verify that the exact same list of email IDs is returned
+    assert verified == [b"123", b"456"]
+    # Verify no IMAP fetch calls were made
+    mock_account.fetch.assert_not_called()
