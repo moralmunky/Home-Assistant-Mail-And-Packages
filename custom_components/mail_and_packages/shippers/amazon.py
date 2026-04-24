@@ -163,7 +163,9 @@ class AmazonShipper(Shipper):
         """Parse Amazon emails for delivery date and order number."""
         today_date = get_today()
         address_list = amazon_email_addresses(fwds, domain)
-        unique_emails = await search_amazon_emails(account, address_list, days, cache)
+        unique_emails = await search_amazon_emails(
+            account, address_list, days, domain, cache
+        )
         order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
 
         context = {
