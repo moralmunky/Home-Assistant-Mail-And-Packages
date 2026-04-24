@@ -34,7 +34,6 @@ from custom_components.mail_and_packages.utils.imap import (
     email_search,
 )
 from custom_components.mail_and_packages.utils.shipper import (
-    filter_localized_strings,
     generic_delivery_image_extraction,
     get_tracking,
 )
@@ -74,14 +73,6 @@ class GenericShipper(Shipper):
         config = SENSOR_DATA[sensor_type]
         email_addresses = config.get(ATTR_EMAIL, [])
         subjects = config.get(ATTR_SUBJECT, [])
-
-        # Filter emails and subjects based on domain if applicable
-        domain = self.config.get("amazon_domain", "amazon.com")
-        shipper_name = sensor_type.split("_", maxsplit=1)[0]
-        email_addresses = filter_localized_strings(
-            email_addresses, domain, shipper_name
-        )
-        subjects = filter_localized_strings(subjects, domain, shipper_name)
 
         # Add forwarded emails if configured
         forwarded_emails = self.config.get("forwarded_emails", [])

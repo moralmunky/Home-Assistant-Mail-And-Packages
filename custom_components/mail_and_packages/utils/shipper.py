@@ -11,50 +11,11 @@ from typing import Any
 
 from aioimaplib import IMAP4_SSL
 
-from custom_components.mail_and_packages.const import SHIPPER_LANG_MAPS
 from custom_components.mail_and_packages.utils.cache import EmailCache
 
 from .imap import email_fetch
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def filter_localized_strings(
-    strings: list[str], domain: str, shipper: str
-) -> list[str]:
-    """Filter list of strings based on the domain language for a specific shipper."""
-    # If the shipper isn't mapped, return all strings as base strings
-    if shipper not in SHIPPER_LANG_MAPS:
-        return strings
-
-    lang_map = SHIPPER_LANG_MAPS[shipper]
-
-    # Get all mapped strings for this shipper across all domains
-    all_mapped_strings = []
-    for localized_list in lang_map.values():
-        all_mapped_strings.extend(localized_list)
-
-    def is_mapped(s: str) -> bool:
-        return any(m in s for m in all_mapped_strings)
-
-    # Base strings are those not mapped to any specific language
-    base_strings = [s for s in strings if not is_mapped(s)]
-
-    # Domain specific strings
-    region = domain.replace("amazon.", "")
-    domain_strings = []
-    if region in lang_map:
-        mapped_for_domain = lang_map[region]
-        domain_strings = [s for s in strings if any(m in s for m in mapped_for_domain)]
-
-    # Only 'ca' and unmapped domains (like 'com', 'co.uk') should use base English strings
-    # if the shipper has mapped strings in other languages.
-    if region in lang_map and region != "ca":
-        if domain_strings:
-            return list(dict.fromkeys(domain_strings))
-        return list(dict.fromkeys(base_strings + domain_strings))
-
-    return list(dict.fromkeys(base_strings + domain_strings))
 
 
 async def get_tracking(
