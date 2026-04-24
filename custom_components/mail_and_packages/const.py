@@ -268,6 +268,7 @@ AMAZON_LANGS = [
     "",
 ]
 AMAZON_OTP = "amazon_otp"
+AMAZON_OTP_CODE = "amazon_otp_code"
 AMAZON_OTP_REGEX = "(\n)(\\d{6})(\n)"
 AMAZON_OTP_SUBJECT = "A one-time password is required for your Amazon delivery"
 

@@ -17,7 +17,13 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from . import MailAndPackagesConfigEntry
 from .const import (
     AMAZON_EXCEPTION,
+    AMAZON_EXCEPTION_ORDER,
+    AMAZON_HUB,
+    AMAZON_HUB_CODE,
     AMAZON_ORDER,
+    AMAZON_OTP,
+    AMAZON_OTP_CODE,
+    ATTR_CODE,
     ATTR_GRID_IMAGE_NAME,
     ATTR_IMAGE,
     ATTR_IMAGE_NAME,
@@ -144,16 +150,26 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
             return attr
 
         if "Amazon" in self._name:
-            if self.type == AMAZON_EXCEPTION:
-                if order := data.get(ATTR_ORDER):
-                    attr[ATTR_ORDER] = order
-            elif order := data.get(AMAZON_ORDER):
-                attr[ATTR_ORDER] = order
+            self._add_amazon_attributes(attr, data)
         elif self._name == "Mail USPS Mail":
             if image_name := data.get(ATTR_IMAGE_NAME):
                 attr[ATTR_IMAGE] = image_name
 
         return attr
+
+    def _add_amazon_attributes(self, attr: dict, data: dict) -> None:
+        """Add Amazon specific attributes to the sensor."""
+        if self.type == AMAZON_EXCEPTION:
+            if order := data.get(AMAZON_EXCEPTION_ORDER, data.get(ATTR_ORDER)):
+                attr[ATTR_ORDER] = order
+        elif order := data.get(AMAZON_ORDER):
+            attr[ATTR_ORDER] = order
+        elif self.type == AMAZON_HUB:
+            if code := data.get(AMAZON_HUB_CODE, data.get(ATTR_CODE)):
+                attr[ATTR_CODE] = code
+        elif self.type == AMAZON_OTP:
+            if code := data.get(AMAZON_OTP_CODE, data.get(ATTR_CODE)):
+                attr[ATTR_CODE] = code
 
 
 class ImagePathSensors(CoordinatorEntity, SensorEntity):
