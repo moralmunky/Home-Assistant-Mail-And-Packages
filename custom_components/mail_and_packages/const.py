@@ -272,6 +272,105 @@ AMAZON_OTP_CODE = "amazon_otp_code"
 AMAZON_OTP_REGEX = "(\n)(\\d{6})(\n)"
 AMAZON_OTP_SUBJECT = "A one-time password is required for your Amazon delivery"
 
+AMAZON_LANG_MAP = {
+    "de": ["versandbestaetigung", "Geliefert:", "Zugestellt:"],
+    "it": ["conferma-spedizione", "Consegna effettuata:", "Arriverà"],
+    "nl": [
+        "update-bestelling",
+        "verzending-volgen",
+        "auto-bevestiging",
+        "Bezorgd:",
+    ],
+    "fr": ["confirmation-commande", "Livré", "Livraison : Votre", "Arrivée :"],
+    "ca": ["confirmation-commande", "Livré", "Livraison : Votre", "Arrivée :"],
+    "es": [
+        "confirmar-envio",
+        "Entregado:",
+        "Enviado:",
+        "Pedido efetuado:",
+        "Chega ",
+    ],
+    "pl": ["Dostarczono:"],
+}
+
+DHL_LANG_MAP = {
+    "de": [
+        "noreply@dhl.de",
+        "wurde zugestellt",
+        "liegt am gewünschten Ablageort",
+        "ist angekommen",
+        "Paket kommt heute",
+        "kommt heute",
+        "wird gleich zugestellt",
+        "ist unterwegs",
+        "Jetzt Live verfolgen",
+        "wird Ihnen heute",
+        "heute zwischen",
+        "voraussichtlich innerhalb",
+    ],
+    "pl": [
+        "pl.no.reply@dhl.com",
+        "Powiadomienie o przesyłce",
+        "została doręczona",
+        "zostanie dziś do Państwa doręczona",
+    ],
+    "nl": [
+        "noreply@dhlecommerce.nl",
+        "noreply@dhl.nl",
+        "succesvol bezorgd",
+        "is bezorgd",
+        "pakket is afgeleverd",
+        "vanavond voor de deur",
+        "vandaag voor de deur",
+        "pakket onderweg",
+        "bezorging vandaag",
+        "staan vandaag voor de deur",
+        "staan vanavond voor de deur",
+        "komen we bij je langs",
+        "wordt vandaag bezorgd",
+        "bezorger onderweg",
+    ],
+}
+
+UPS_LANG_MAP = {
+    "fr": [
+        "Votre colis UPS a été livré",
+        "Mise à jour UPS : Livraison du colis prévue demain",
+        "Mise à jour UPS : Livraison du colis prévue aujourd'hui",
+    ],
+    "ca": [
+        "Votre colis UPS a été livré",
+        "Mise à jour UPS : Livraison du colis prévue demain",
+        "Mise à jour UPS : Livraison du colis prévue aujourd'hui",
+    ],
+    "de": [
+        "Paket wurde zugestellt",
+    ],
+}
+
+FEDEX_LANG_MAP = {
+    "de": [
+        "Ihre Sendung wird voraussichtlich heute zugestellt",
+    ],
+}
+
+HERMES_LANG_MAP = {
+    "de": [
+        "noreply@paketankuendigung.myhermes.de",
+        "Ihre Hermes Sendung",
+        "Deine Hermes Sendung",
+        "Voraussichtliche Zustellung",
+    ],
+}
+
+SHIPPER_LANG_MAPS = {
+    "amazon": AMAZON_LANG_MAP,
+    "dhl": DHL_LANG_MAP,
+    "ups": UPS_LANG_MAP,
+    "fedex": FEDEX_LANG_MAP,
+    "hermes": HERMES_LANG_MAP,
+}
+
 AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT = ["AMAZON"]
 
 # Sensor Data

@@ -36,54 +36,16 @@ from custom_components.mail_and_packages.utils.imap import (
     email_fetch,
     email_search,
 )
+from custom_components.mail_and_packages.utils.shipper import filter_localized_strings
 
 _LOGGER = logging.getLogger(__name__)
 
 _MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
 
-DOMAIN_LANG_MAP = {
-    "amazon.de": ["versandbestaetigung", "Geliefert:", "Zugestellt:"],
-    "amazon.it": ["conferma-spedizione", "Consegna effettuata:", "Arriverà"],
-    "amazon.nl": [
-        "update-bestelling",
-        "verzending-volgen",
-        "auto-bevestiging",
-        "Bezorgd:",
-    ],
-    "amazon.fr": ["confirmation-commande", "Livré", "Livraison : Votre", "Arrivée :"],
-    "amazon.ca": ["confirmation-commande", "Livré", "Livraison : Votre", "Arrivée :"],
-    "amazon.es": [
-        "confirmar-envio",
-        "Entregado:",
-        "Enviado:",
-        "Pedido efetuado:",
-        "Chega ",
-    ],
-    "amazon.pl": ["Dostarczono:"],
-}
-
 
 def filter_amazon_strings(strings: list[str], domain: str) -> list[str]:
     """Filter list of strings based on the domain language."""
-    all_mapped_strings = []
-    for lang_list in DOMAIN_LANG_MAP.values():
-        all_mapped_strings.extend(lang_list)
-
-    def is_mapped(s: str) -> bool:
-        return any(m in s for m in all_mapped_strings)
-
-    base_strings = [s for s in strings if not is_mapped(s)]
-
-    domain_strings = []
-    if domain in DOMAIN_LANG_MAP:
-        mapped_for_domain = DOMAIN_LANG_MAP[domain]
-        domain_strings = [s for s in strings if any(m in s for m in mapped_for_domain)]
-
-    # Only amazon.ca and unmapped domains (like .com, .co.uk) should use base English strings
-    if domain in DOMAIN_LANG_MAP and domain != "amazon.ca":
-        return list(dict.fromkeys(domain_strings))
-
-    return list(dict.fromkeys(base_strings + domain_strings))
+    return filter_localized_strings(strings, domain, "amazon")
 
 
 def get_decoded_subject(msg: email.message.Message) -> str:
