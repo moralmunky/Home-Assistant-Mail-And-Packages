@@ -782,7 +782,11 @@ SENSOR_DATA = {
     # Walmart
     "walmart_delivering": {
         "email": ["help@walmart.com"],
-        "subject": ["Out for delivery", "Your package should arrive by"],
+        "subject": [
+            "Out for delivery",
+            "Your package should arrive by",
+            "Your delivery should arrive by",
+        ],
     },
     "walmart_delivered": {
         "email": ["help@walmart.com"],
