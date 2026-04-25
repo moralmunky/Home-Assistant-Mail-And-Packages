@@ -11,13 +11,14 @@ import pytest
 from custom_components.mail_and_packages.const import (
     AMAZON_DELIVERED,
     AMAZON_EXCEPTION,
+    AMAZON_EXCEPTION_ORDER,
     AMAZON_HUB,
+    AMAZON_HUB_CODE,
     AMAZON_ORDER,
     AMAZON_OTP,
+    AMAZON_OTP_CODE,
     AMAZON_PACKAGES,
-    ATTR_CODE,
     ATTR_COUNT,
-    ATTR_ORDER,
 )
 from custom_components.mail_and_packages.shippers.amazon import AmazonShipper
 from custom_components.mail_and_packages.utils.amazon import (
@@ -78,8 +79,8 @@ async def test_amazon_otp(hass):
         mock_fetch.return_value = ("OK", [bytearray(msg_text.encode())])
 
         result = await shipper.process(mock_account, "today", AMAZON_OTP)
-        assert ATTR_CODE in result[AMAZON_OTP]
-        assert result[AMAZON_OTP][ATTR_CODE] == ["123456"]
+        assert AMAZON_OTP_CODE in result
+        assert result[AMAZON_OTP_CODE] == ["123456"]
 
         # Scenario 2: Successful Extraction (Multipart)
         mock_search.return_value = ("OK", [b"2"])
@@ -88,7 +89,7 @@ async def test_amazon_otp(hass):
         mock_fetch.return_value = ("OK", [bytearray(msg.as_bytes())])
 
         result = await shipper.process(mock_account, "today", AMAZON_OTP)
-        assert result[AMAZON_OTP][ATTR_CODE] == ["654321"]
+        assert result[AMAZON_OTP_CODE] == ["654321"]
 
         # Scenario 3: No Match found
         mock_search.return_value = ("OK", [b"3"])
@@ -96,7 +97,7 @@ async def test_amazon_otp(hass):
         mock_fetch.return_value = ("OK", [bytearray(msg_no_match.encode())])
 
         result = await shipper.process(mock_account, "today", AMAZON_OTP)
-        assert result[AMAZON_OTP][ATTR_CODE] == []
+        assert result[AMAZON_OTP_CODE] == []
 
 
 @pytest.mark.asyncio
@@ -108,8 +109,8 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
         return_value=datetime.date(2020, 9, 25),
     ):
         result = await shipper.process(mock_imap_amazon_the_hub, "today", AMAZON_HUB)
-        assert result["count"] == 1
-        assert result["code"] == ["123456"]
+        assert result[AMAZON_HUB] == 1
+        assert result[AMAZON_HUB_CODE] == ["123456"]
 
     with patch(
         "custom_components.mail_and_packages.shippers.amazon.email_search",
@@ -117,7 +118,7 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
         return_value=("BAD", []),
     ):
         result = await shipper.process(mock_imap_amazon_the_hub, "today", AMAZON_HUB)
-        assert result == {"code": [], "count": 0}
+        assert result == {AMAZON_HUB_CODE: [], AMAZON_HUB: 0}
 
     with patch(
         "custom_components.mail_and_packages.shippers.amazon.email_search",
@@ -125,7 +126,7 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
         return_value=("OK", [None]),
     ):
         result = await shipper.process(mock_imap_amazon_the_hub, "today", AMAZON_HUB)
-        assert result == {"code": [], "count": 0}
+        assert result == {AMAZON_HUB_CODE: [], AMAZON_HUB: 0}
 
 
 @pytest.mark.asyncio
@@ -138,8 +139,8 @@ async def test_amazon_hub_2(hass, mock_imap_amazon_the_hub_2):
         return_value=datetime.date(2020, 9, 25),
     ):
         result = await shipper.process(mock_imap_amazon_the_hub_2, "today", AMAZON_HUB)
-        assert result["count"] == 1
-        assert result["code"] == ["123456"]
+        assert result[AMAZON_HUB] == 1
+        assert result[AMAZON_HUB_CODE] == ["123456"]
 
     # Test "BAD" search response
     with patch(
@@ -148,7 +149,7 @@ async def test_amazon_hub_2(hass, mock_imap_amazon_the_hub_2):
         return_value=("BAD", []),
     ):
         result = await shipper.process(mock_imap_amazon_the_hub_2, "today", AMAZON_HUB)
-        assert result == {"code": [], "count": 0}
+        assert result == {AMAZON_HUB_CODE: [], AMAZON_HUB: 0}
 
     # Test "OK" search response but with no email IDs
     with patch(
@@ -157,7 +158,7 @@ async def test_amazon_hub_2(hass, mock_imap_amazon_the_hub_2):
         return_value=("OK", [b""]),
     ):
         result = await shipper.process(mock_imap_amazon_the_hub_2, "today", AMAZON_HUB)
-        assert result == {"code": [], "count": 0}
+        assert result == {AMAZON_HUB_CODE: [], AMAZON_HUB: 0}
 
 
 @pytest.mark.asyncio
@@ -352,8 +353,8 @@ async def test_amazon_hub_more_coverage(hass):
         ),
     ):
         result = await shipper.process(mock_account, "today", AMAZON_HUB)
-        assert result["count"] == 1  # Deduplicated
-        assert result["code"] == ["123456"]
+        assert result[AMAZON_HUB] == 1  # Deduplicated
+        assert result[AMAZON_HUB_CODE] == ["123456"]
 
 
 @pytest.mark.asyncio
@@ -473,8 +474,8 @@ async def test_amazon_exception(hass):
         mock_fetch.return_value = ("OK", [bytearray(content)])
 
         result = await shipper.process(mock_account, "today", AMAZON_EXCEPTION)
-        assert result[ATTR_COUNT] == 1
-        assert result[ATTR_ORDER] == ["111-1234567-1234567"]
+        assert result[AMAZON_EXCEPTION] == 1
+        assert result[AMAZON_EXCEPTION_ORDER] == ["111-1234567-1234567"]
 
 
 @pytest.mark.asyncio
@@ -644,9 +645,9 @@ async def test_amazon_hub_multi(hass, mock_imap_amazon_the_hub):
         ),
     ):
         result = await shipper.process(mock_imap_amazon_the_hub, "today", AMAZON_HUB)
-        assert result["count"] == 2
-        assert "123456" in result["code"]
-        assert "654321" in result["code"]
+        assert result[AMAZON_HUB] == 2
+        assert "123456" in result[AMAZON_HUB_CODE]
+        assert "654321" in result[AMAZON_HUB_CODE]
 
 
 @pytest.mark.asyncio
@@ -654,7 +655,7 @@ async def test_amazon_shipper_process_default(hass):
     """Test AmazonShipper.process default case (Line 105)."""
     shipper = AmazonShipper(hass, {})
     result = await shipper.process(AsyncMock(), "today", "invalid_sensor")
-    assert result == {ATTR_COUNT: 0}
+    assert result == {"count": 0}
 
 
 @pytest.mark.asyncio
@@ -737,8 +738,8 @@ async def test_amazon_exception_body_match(hass):
         ),
     ):
         result = await shipper.process(mock_account, "today", AMAZON_EXCEPTION)
-        assert result[ATTR_COUNT] == 1
-        assert "111-1234567-1234567" in result[ATTR_ORDER]
+        assert result[AMAZON_EXCEPTION] == 1
+        assert "111-1234567-1234567" in result[AMAZON_EXCEPTION_ORDER]
 
 
 @pytest.mark.asyncio
@@ -845,7 +846,7 @@ async def test_process_batch(hass):
 
         async def _mock_process(account, date, sensor, cache):
             if sensor == AMAZON_OTP:
-                return {AMAZON_OTP: {ATTR_CODE: ["123456"], ATTR_COUNT: 1}}
+                return {AMAZON_OTP: 1, AMAZON_OTP_CODE: ["123456"]}
             if sensor == AMAZON_PACKAGES:
                 # Trigger the "sensor not in sensor_res" and "ATTR_COUNT in sensor_res" branch
                 return {ATTR_COUNT: 5}
@@ -856,7 +857,8 @@ async def test_process_batch(hass):
         sensors = [AMAZON_OTP, AMAZON_PACKAGES]
         result = await shipper.process_batch(mock_account, "today", sensors, mock_cache)
 
-        assert result[AMAZON_OTP] == {ATTR_CODE: ["123456"], ATTR_COUNT: 1}
+        assert result[AMAZON_OTP] == 1
+        assert result[AMAZON_OTP_CODE] == ["123456"]
         assert result[AMAZON_PACKAGES] == 5
 
 
@@ -923,8 +925,8 @@ async def test_process_with_cache(hass):
         return_value=("OK", [b"3"]),
     ):
         hub_res = await shipper._amazon_hub(mock_account, cache=cache)
-        assert hub_res[ATTR_COUNT] == 1
-        assert hub_res[ATTR_CODE] == ["123456"]
+        assert hub_res[AMAZON_HUB] == 1
+        assert hub_res[AMAZON_HUB_CODE] == ["123456"]
 
     # 4. Test _amazon_otp with cache
     cache._cache_rfc822["4"] = (
@@ -937,7 +939,8 @@ async def test_process_with_cache(hass):
         return_value=("OK", [b"4"]),
     ):
         otp_res = await shipper._amazon_otp(mock_account, cache=cache)
-        assert otp_res[ATTR_CODE] == ["123456"]
+        assert otp_res[AMAZON_OTP] == 1
+        assert otp_res[AMAZON_OTP_CODE] == ["123456"]
 
     # 5. Test _amazon_exception with cache
     cache._cache_rfc822["5"] = (
@@ -953,5 +956,5 @@ async def test_process_with_cache(hass):
         return_value=("OK", [b"5"]),
     ):
         exc_res = await shipper._amazon_exception(mock_account, cache=cache)
-        assert exc_res[ATTR_COUNT] == 1
-        assert "111-1234567-1234567" in exc_res[ATTR_ORDER]
+        assert exc_res[AMAZON_EXCEPTION] == 1
+        assert "111-1234567-1234567" in exc_res[AMAZON_EXCEPTION_ORDER]

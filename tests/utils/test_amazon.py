@@ -13,6 +13,7 @@ from custom_components.mail_and_packages.utils.amazon import (
     amazon_email_addresses,
     download_amazon_img,
     extract_order_numbers,
+    filter_amazon_strings,
     get_amazon_image_urls,
     get_decoded_subject,
     get_email_body,
@@ -73,7 +74,9 @@ async def test_search_amazon_emails_invalid_days():
         new_callable=AsyncMock,
     ) as mock_search:
         mock_search.return_value = ("OK", [None])
-        await search_amazon_emails(mock_acc, ["test@amazon.com"], "invalid")
+        await search_amazon_emails(
+            mock_acc, ["test@amazon.com"], "invalid", domain="amazon.com"
+        )
         # Should default to DEFAULT_AMAZON_DAYS (3)
         assert mock_search.called
 
@@ -156,9 +159,9 @@ def test_get_decoded_subject_non_bytes_decoded():
 def test_amazon_email_addresses_various_fwds():
     """Test amazon_email_addresses with various fwd types (Line 119)."""
     # Test with None (triggers Line 119)
-    assert len(amazon_email_addresses(fwds=None)) >= 10
+    assert len(amazon_email_addresses(fwds=None)) == 3
     # Test with non-list/tuple (triggers Line 119)
-    assert len(amazon_email_addresses(fwds=123)) >= 10
+    assert len(amazon_email_addresses(fwds=123)) == 3
 
 
 @pytest.mark.asyncio
@@ -223,9 +226,37 @@ async def test_search_amazon_emails_with_cache():
     ) as mock_search:
         mock_search.return_value = ("OK", [b"1"])
         result = await search_amazon_emails(
-            mock_acc, ["test@amazon.com"], 1, cache=cache
+            mock_acc, ["test@amazon.com"], 1, domain="amazon.com", cache=cache
         )
         assert result == [b"1"]
+
+
+def test_filter_amazon_strings_branches():
+    """Test all branches of filter_amazon_strings."""
+
+    # Test with unmapped domain (.co.uk)
+    # Should only return base English strings
+    test_list = ["order-update@", "versandbestaetigung@"]
+    result = filter_amazon_strings(test_list, "amazon.co.uk")
+    assert result == ["order-update@"]
+
+    # Test with mapped domain (.de)
+    # Should only return German strings
+    result = filter_amazon_strings(test_list, "amazon.de")
+    assert result == ["versandbestaetigung@"]
+
+    # Test with amazon.ca
+    # Should return both English and French strings
+    test_list = ["order-update@", "confirmation-commande@"]
+    result = filter_amazon_strings(test_list, "amazon.ca")
+    assert "order-update@" in result
+    assert "confirmation-commande@" in result
+
+    # Test with amazon.com
+    # Should only return English strings (no Spanish fallback anymore)
+    test_list = ["order-update@", "confirmar-envio@"]
+    result = filter_amazon_strings(test_list, "amazon.com")
+    assert result == ["order-update@"]
 
 
 @pytest.mark.asyncio

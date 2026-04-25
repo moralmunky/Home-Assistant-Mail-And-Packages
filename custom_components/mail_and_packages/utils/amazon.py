@@ -41,6 +41,50 @@ _LOGGER = logging.getLogger(__name__)
 
 _MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
 
+DOMAIN_LANG_MAP = {
+    "amazon.de": ["versandbestaetigung", "Geliefert:", "Zugestellt:"],
+    "amazon.it": ["conferma-spedizione", "Consegna effettuata:", "Arriverà"],
+    "amazon.nl": [
+        "update-bestelling",
+        "verzending-volgen",
+        "auto-bevestiging",
+        "Bezorgd:",
+    ],
+    "amazon.fr": ["confirmation-commande", "Livré", "Livraison : Votre", "Arrivée :"],
+    "amazon.ca": ["confirmation-commande", "Livré", "Livraison : Votre", "Arrivée :"],
+    "amazon.es": [
+        "confirmar-envio",
+        "Entregado:",
+        "Enviado:",
+        "Pedido efetuado:",
+        "Chega ",
+    ],
+    "amazon.pl": ["Dostarczono:"],
+}
+
+
+def filter_amazon_strings(strings: list[str], domain: str) -> list[str]:
+    """Filter list of strings based on the domain language."""
+    all_mapped_strings = []
+    for lang_list in DOMAIN_LANG_MAP.values():
+        all_mapped_strings.extend(lang_list)
+
+    def is_mapped(s: str) -> bool:
+        return any(m in s for m in all_mapped_strings)
+
+    base_strings = [s for s in strings if not is_mapped(s)]
+
+    domain_strings = []
+    if domain in DOMAIN_LANG_MAP:
+        mapped_for_domain = DOMAIN_LANG_MAP[domain]
+        domain_strings = [s for s in strings if any(m in s for m in mapped_for_domain)]
+
+    # Only amazon.ca and unmapped domains (like .com, .co.uk) should use base English strings
+    if domain in DOMAIN_LANG_MAP and domain != "amazon.ca":
+        return list(dict.fromkeys(domain_strings))
+
+    return list(dict.fromkeys(base_strings + domain_strings))
+
 
 def get_decoded_subject(msg: email.message.Message) -> str:
     """Decode email subject."""
@@ -161,6 +205,8 @@ def amazon_email_addresses(
         if f"{p}@" not in prefixes:
             prefixes.append(f"{p}@")
 
+    prefixes = filter_amazon_strings(prefixes, domain)
+
     value = [f"{e}{domain}" for e in prefixes]
     if fwds:
         for fwd in fwds:
@@ -175,6 +221,7 @@ async def search_amazon_emails(
     account: IMAP4_SSL,
     address_list: list[str],
     days: int,
+    domain: str | None = None,
     cache: EmailCache | None = None,
 ) -> list[bytes]:
     """Search for Amazon emails."""
@@ -189,6 +236,8 @@ async def search_amazon_emails(
     amazon_subjects = (
         AMAZON_DELIVERED_SUBJECT + AMAZON_SHIPMENT_SUBJECT + AMAZON_ORDERED_SUBJECT
     )
+    if domain:
+        amazon_subjects = filter_amazon_strings(amazon_subjects, domain)
 
     (server_response, sdata) = await email_search(
         account,

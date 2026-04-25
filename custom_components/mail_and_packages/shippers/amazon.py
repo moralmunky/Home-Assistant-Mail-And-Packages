@@ -21,20 +21,21 @@ from custom_components.mail_and_packages.const import (
     AMAZON_DELIVERED_SUBJECT,
     AMAZON_EXCEPTION,
     AMAZON_EXCEPTION_BODY,
+    AMAZON_EXCEPTION_ORDER,
     AMAZON_EXCEPTION_SUBJECT,
     AMAZON_HUB,
     AMAZON_HUB_BODY,
+    AMAZON_HUB_CODE,
     AMAZON_HUB_SUBJECT,
     AMAZON_HUB_SUBJECT_SEARCH,
     AMAZON_ORDER,
     AMAZON_ORDERED_SUBJECT,
     AMAZON_OTP,
+    AMAZON_OTP_CODE,
     AMAZON_OTP_REGEX,
     AMAZON_OTP_SUBJECT,
     AMAZON_PACKAGES,
-    ATTR_CODE,
     ATTR_COUNT,
-    ATTR_ORDER,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
@@ -106,8 +107,7 @@ class AmazonShipper(Shipper):
             return await self._amazon_hub(account, fwds, cache)
 
         if sensor_type == AMAZON_OTP:
-            result = await self._amazon_otp(account, fwds, cache)
-            return {sensor_type: result}
+            return await self._amazon_otp(account, fwds, cache)
 
         if sensor_type == AMAZON_EXCEPTION:
             return await self._amazon_exception(account, fwds, domain, cache)
@@ -163,7 +163,9 @@ class AmazonShipper(Shipper):
         """Parse Amazon emails for delivery date and order number."""
         today_date = get_today()
         address_list = amazon_email_addresses(fwds, domain)
-        unique_emails = await search_amazon_emails(account, address_list, days, cache)
+        unique_emails = await search_amazon_emails(
+            account, address_list, days, domain, cache
+        )
         order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
 
         context = {
@@ -455,7 +457,7 @@ class AmazonShipper(Shipper):
                                 count += 1
                                 if hub_code not in code:
                                     code.append(hub_code)
-        return {ATTR_COUNT: count, ATTR_CODE: code}
+        return {AMAZON_HUB: count, AMAZON_HUB_CODE: code}
 
     async def _amazon_otp(
         self,
@@ -487,7 +489,7 @@ class AmazonShipper(Shipper):
                             found := re.compile(AMAZON_OTP_REGEX).search(body)
                         ) is not None:
                             code.append(found.group(2))
-        return {ATTR_CODE: code}
+        return {AMAZON_OTP: len(code), AMAZON_OTP_CODE: code}
 
     async def _amazon_exception(
         self,
@@ -525,4 +527,4 @@ class AmazonShipper(Shipper):
                                 orders.extend(found)
                             if found := order_pattern.findall(subject):
                                 orders.extend(found)
-        return {ATTR_COUNT: count, ATTR_ORDER: orders}
+        return {AMAZON_EXCEPTION: count, AMAZON_EXCEPTION_ORDER: orders}
