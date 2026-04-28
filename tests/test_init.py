@@ -142,7 +142,7 @@ async def test_custom_img(
     mock_update,
 ):
     """Test setting up entities."""
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 45
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 46
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 

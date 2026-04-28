@@ -184,6 +184,7 @@ async def test_aggregate_package_counts(hass):
         "dhl_exception": 1,
         "unknown_sensor": 99,
         "amazon_delivered_by_others": 10,  # Should be excluded from zpackages_delivered
+        "usps_mail_delivered": 3,  # Should be excluded — these are mail pieces, not packages
     }
 
     coordinator._aggregate_package_counts(test_data)
@@ -197,7 +198,7 @@ async def test_aggregate_package_counts(hass):
     # Expected Delivered:
     # usps_delivered (1) + fedex_delivered (2) + amazon_delivered (1)
     # ups_delivered (0) is ignored as it is <= 0
-    # amazon_delivered_by_others (10) is excluded
+    # amazon_delivered_by_others (10) and usps_mail_delivered (3) are excluded
     # = 1 + 2 + 1 = 4
     assert test_data["zpackages_delivered"] == 4
 

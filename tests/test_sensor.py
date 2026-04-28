@@ -62,6 +62,7 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     state = s("mail_usps_packages")
     assert state
     assert state.state == "3"
+    assert state.attributes["tracking_#"] == ["92123456789012345"]
 
     state = s("mail_ups_delivered")
     assert state
@@ -75,6 +76,7 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     state = s("mail_ups_packages")
     assert state
     assert state.state == "1"
+    assert state.attributes["tracking_#"] == ["1Z123456789"]
 
     state = s("mail_fedex_delivered")
     assert state
@@ -88,6 +90,7 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     state = s("mail_fedex_packages")
     assert state
     assert state.state == "2"
+    assert state.attributes["tracking_#"] == ["1234567890"]
 
     state = s("mail_amazon_packages")
     assert state
@@ -111,6 +114,7 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     state = s("mail_dhl_packages")
     assert state
     assert state.state == "2"
+    assert state.attributes["tracking_#"] == ["1234567890"]
 
     state = s("mail_auspost_delivered")
     assert state
@@ -143,6 +147,7 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     state = s("mail_inpost_pl_packages")
     assert state
     assert state.state == "3"
+    assert state.attributes["tracking_#"] == ["520113017830399002575123"]
 
     state = s("mail_dpd_com_pl_delivered")
     assert state
@@ -155,6 +160,7 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     state = s("mail_dpd_com_pl_packages")
     assert state
     assert state.state == "3"
+    assert state.attributes["tracking_#"] == ["13490015284111"]
 
     state = s("mail_gls_delivered")
     assert state
@@ -167,6 +173,7 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     state = s("mail_gls_packages")
     assert state
     assert state.state == "3"
+    assert state.attributes["tracking_#"] == ["51687952111"]
 
     state = s("packages_delivered")
     assert state

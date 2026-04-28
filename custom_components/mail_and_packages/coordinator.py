@@ -357,7 +357,11 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
     def _sum_delivered_counts(self, data: dict) -> int:
         """Sum delivered packages from all shippers."""
         delivered = 0
-        exclude_keys = ("zpackages_delivered", "amazon_delivered_by_others")
+        exclude_keys = (
+            "zpackages_delivered",
+            "amazon_delivered_by_others",
+            "usps_mail_delivered",
+        )
 
         for key, value in data.items():
             if (
