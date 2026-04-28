@@ -58,7 +58,7 @@
           "amazon_fwds": "Amazon reenvió direcciones de correo electrónico",
           "amazon_days": "Días atrás para verificar los correos electrónicos de Amazon"
         },
-        "description": "Por favor, ingrese el dominio desde el cual Amazon envía correos electrónicos (es decir: amazon.com o amazon.de)\n\nSi utiliza correos electrónicos reenviados por Amazon, separe cada dirección con una coma o ingrese (ninguno) para borrar esta configuración.",
+        "description": "Por favor, ingrese el dominio desde el cual Amazon envía correos electrónicos (es decir: amazon.com o amazon.de)\n\nSi utiliza correos electrónicos reenviados por Amazon, separe cada dirección con una coma o ingrese (ninguno) para borrar esta configuración.\n\nNota: si configuró un encabezado de reenvío en el paso anterior, el campo de dirección de reenvío no aparecerá — el encabezado gestiona la coincidencia de correos electrónicos de Amazon automáticamente.",
         "title": "Configuración de Amazon"
       },
       "reconfig_2": {
@@ -102,7 +102,7 @@
           "amazon_fwds": "Amazon reenvió direcciones de correo electrónico",
           "amazon_days": "Días atrás para verificar los correos electrónicos de Amazon"
         },
-        "description": "Por favor, ingrese el dominio desde el cual Amazon envía correos electrónicos (es decir: amazon.com o amazon.de)\n\nSi utiliza correos electrónicos reenviados por Amazon, separe cada dirección con una coma o ingrese (ninguno) para borrar esta configuración.",
+        "description": "Por favor, ingrese el dominio desde el cual Amazon envía correos electrónicos (es decir: amazon.com o amazon.de)\n\nSi utiliza correos electrónicos reenviados por Amazon, separe cada dirección con una coma o ingrese (ninguno) para borrar esta configuración.\n\nNota: si configuró un encabezado de reenvío en el paso anterior, el campo de dirección de reenvío no aparecerá — el encabezado gestiona la coincidencia de correos electrónicos de Amazon automáticamente.",
         "title": "Configuración de Amazon"
       },
       "config_storage": {
@@ -121,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Cabecera de reenvío (p. ej. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Direcciones de correo electrónico reenviadas"
         },
-        "description": "Por defecto, la integración de correo y paquetes solo busca mensajes que coinciden con la dirección de un servicio.\n\nSi desea utilizar correos electrónicos reenviados, separe cada dirección de la que vendrán los mensajes con una coma o ingrese '(none)' para borrar esta configuración.",
-        "title": "Direcciones de correo electrónico reenviadas"
+        "data_description": {
+          "forwarding_header": "Si su servicio de reenvío incluye el remitente original en una cabecera, ingrese el nombre de la cabecera aquí. Esto tiene prioridad sobre la lista de direcciones a continuación. Ingrese '(none)' o deje en blanco para usar la lista de direcciones en su lugar.",
+          "forwarded_emails": "Lista separada por comas de las direcciones de reenvío de las que llegarán los mensajes. Deje '(none)' si usa la cabecera de reenvío de arriba."
+        },
+        "description": "Elija cómo hacer coincidir los correos electrónicos reenviados.\n\n**Opción 1 — Cabecera de reenvío**: Si su servicio (p. ej. SimpleLogin) incluye el remitente original en una cabecera personalizada, ingrese ese nombre de cabecera. Mail and Packages lo usará para hacer coincidir las direcciones de los transportistas automáticamente.\n\n**Opción 2 — Lista de direcciones**: Ingrese las direcciones de reenvío que su servicio asignó a cada transportista, separadas por comas.",
+        "title": "Configuración de correos electrónicos reenviados"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Cabecera de reenvío (p. ej. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Direcciones de correo electrónico reenviadas"
         },
-        "description": "Por defecto, la integración de correo y paquetes solo busca mensajes que coinciden con la dirección de un servicio.\n\nSi desea utilizar correos electrónicos reenviados, separe cada dirección de la que vendrán los mensajes con una coma o ingrese '(none)' para borrar esta configuración.",
-        "title": "Direcciones de correo electrónico reenviadas"
+        "data_description": {
+          "forwarding_header": "Si su servicio de reenvío incluye el remitente original en una cabecera, ingrese el nombre de la cabecera aquí. Esto tiene prioridad sobre la lista de direcciones a continuación. Ingrese '(none)' o deje en blanco para usar la lista de direcciones en su lugar.",
+          "forwarded_emails": "Lista separada por comas de las direcciones de reenvío de las que llegarán los mensajes. Deje '(none)' si usa la cabecera de reenvío de arriba."
+        },
+        "description": "Elija cómo hacer coincidir los correos electrónicos reenviados.\n\n**Opción 1 — Cabecera de reenvío**: Si su servicio (p. ej. SimpleLogin) incluye el remitente original en una cabecera personalizada, ingrese ese nombre de cabecera. Mail and Packages lo usará para hacer coincidir las direcciones de los transportistas automáticamente.\n\n**Opción 2 — Lista de direcciones**: Ingrese las direcciones de reenvío que su servicio asignó a cada transportista, separadas por comas.",
+        "title": "Configuración de correos electrónicos reenviados"
       },
       "imap_config": {
         "description": "Por favor, ingrese la información de conexión de su servidor de correo.",

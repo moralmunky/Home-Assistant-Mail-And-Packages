@@ -327,6 +327,46 @@ def test_build_search_triple_address():
     assert '(OR OR FROM "a@b.com" FROM "c@d.com" FROM "e@f.com")' in search
 
 
+def test_build_search_single_header():
+    """Test build_search with header mode matches both forwarded (HEADER) and direct (FROM)."""
+    utf8, search = build_search(
+        ["mcinfo@ups.com"], "25-Mar-2026", header="X-SimpleLogin-Original-From"
+    )
+    assert 'HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com"' in search
+    assert 'FROM "mcinfo@ups.com"' in search
+    assert search.startswith("(OR HEADER")
+
+
+def test_build_search_multiple_header():
+    """Test build_search with header mode for multiple addresses uses OR pairs."""
+    utf8, search = build_search(
+        ["mcinfo@ups.com", "pkginfo@ups.com"],
+        "25-Mar-2026",
+        header="X-SimpleLogin-Original-From",
+    )
+    assert (
+        'OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com"'
+        in search
+    )
+    assert (
+        'OR HEADER "X-SimpleLogin-Original-From" "pkginfo@ups.com" FROM "pkginfo@ups.com"'
+        in search
+    )
+
+
+def test_build_search_header_with_subject():
+    """Test build_search with header mode includes HEADER, FROM, and SUBJECT criteria."""
+    utf8, search = build_search(
+        ["mcinfo@ups.com"],
+        "25-Mar-2026",
+        subject="UPS Ship Notification",
+        header="X-SimpleLogin-Original-From",
+    )
+    assert 'HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com"' in search
+    assert 'FROM "mcinfo@ups.com"' in search
+    assert 'SUBJECT "UPS Ship Notification"' in search
+
+
 @pytest.mark.asyncio
 async def test_email_search_success():
     """Test email_search success."""

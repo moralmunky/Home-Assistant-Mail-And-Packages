@@ -22,6 +22,7 @@ from custom_components.mail_and_packages.config_flow import (
     _check_forwarded_emails,
     _get_mailboxes,
     _get_schema_step_3,
+    _get_schema_step_amazon,
     _get_schema_step_forwarded_emails,
     _validate_login,
     _validate_user_input,
@@ -38,6 +39,7 @@ from custom_components.mail_and_packages.const import (
     CONF_FEDEX_CUSTOM_IMG,
     CONF_FEDEX_CUSTOM_IMG_FILE,
     CONF_FORWARDED_EMAILS,
+    CONF_FORWARDING_HEADER,
     CONF_GENERATE_MP4,
     CONF_GENERIC_CUSTOM_IMG,
     CONF_GENERIC_CUSTOM_IMG_FILE,
@@ -4299,6 +4301,22 @@ def test_get_schema_step_forwarded_emails_list_to_string():
     assert req_key.default() == "forward@test.com, other@test.com"
 
 
+@pytest.mark.asyncio
+async def test_validate_user_input_forwarding_header_takes_precedence():
+    """Test that a forwarding header is stored and CONF_FORWARDED_EMAILS is removed."""
+    user_input = {
+        CONF_FORWARDING_HEADER: "X-SimpleLogin-Original-From",
+        CONF_FORWARDED_EMAILS: "forward@simplelogin.co",
+        CONF_GENERATE_MP4: False,
+    }
+
+    errors, result_input = await _validate_user_input(user_input)
+
+    assert errors == {}
+    assert result_input[CONF_FORWARDING_HEADER] == "X-SimpleLogin-Original-From"
+    assert CONF_FORWARDED_EMAILS not in result_input
+
+
 async def test_get_mailboxes_parsing_error(hass, caplog):
     """Test _get_mailboxes handles delimiter parsing failures."""
     mock_conn = AsyncMock()
@@ -7575,3 +7593,24 @@ async def test_async_step_reconfig_forwarded_emails_no_keys(hass):
         result = await handler.async_step_reconfig_forwarded_emails({"some": "input"})
 
     assert result["type"] == "form"
+
+
+def test_get_schema_step_amazon_hides_fwds_in_header_mode():
+    """CONF_AMAZON_FWDS is absent from the schema when forwarding_header is active."""
+    schema = _get_schema_step_amazon(
+        {},
+        {CONF_AMAZON_DOMAIN: "amazon.com", CONF_AMAZON_FWDS: "(none)"},
+        forwarding_header="X-SimpleLogin-Original-From",
+    )
+    keys = {k.schema if hasattr(k, "schema") else k for k in schema.schema}
+    assert CONF_AMAZON_FWDS not in keys
+
+
+def test_get_schema_step_amazon_shows_fwds_without_header_mode():
+    """CONF_AMAZON_FWDS is present in the schema when no forwarding_header is set."""
+    schema = _get_schema_step_amazon(
+        {},
+        {CONF_AMAZON_DOMAIN: "amazon.com", CONF_AMAZON_FWDS: "(none)"},
+    )
+    keys = {k.schema if hasattr(k, "schema") else k for k in schema.schema}
+    assert CONF_AMAZON_FWDS in keys

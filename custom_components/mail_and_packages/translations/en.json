@@ -77,7 +77,7 @@
           "amazon_fwds": "Amazon forwarded email addresses",
           "amazon_days": "Days back to check for Amazon emails"
         },
-        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
+        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.\n\nNote: if you configured a forwarding header in the previous step, the forwarding address field will not appear — the header handles Amazon email matching automatically.",
         "title": "Amazon Settings"
       },
       "reconfigure": {
@@ -140,7 +140,7 @@
           "amazon_fwds": "Amazon forwarded email addresses",
           "amazon_days": "Days back to check for Amazon emails"
         },
-        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
+        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.\n\nNote: if you configured a forwarding header in the previous step, the forwarding address field will not appear — the header handles Amazon email matching automatically.",
         "title": "Amazon Settings"
       },
       "config_storage": {
@@ -159,17 +159,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Forwarding Header (e.g. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Forwarded Email Addresses"
         },
-        "description": "By default, the Mail and Packages integration only searches for messages matching a service's address.\n\nIf you want to use forwarded emails, please separate each address messages will be coming from with a comma or enter '(none)' to clear this setting.",
-        "title": "Forwarded Email Addresses"
+        "data_description": {
+          "forwarding_header": "If your forwarding service includes the original sender in a header, enter the header name here. This takes precedence over the address list below. Enter '(none)' or leave blank to use the address list instead.",
+          "forwarded_emails": "Comma-separated list of forwarded addresses messages will arrive from. Leave as '(none)' if using the forwarding header above."
+        },
+        "description": "Choose how to match forwarded emails.\n\n**Option 1 — Forwarding header**: If your service (e.g. SimpleLogin) includes the original sender in a custom header, enter that header name. Mail and Packages will use it to match carrier addresses automatically.\n\n**Option 2 — Address list**: Enter the forwarding addresses your service assigned to each carrier, separated by commas.",
+        "title": "Forwarded Email Settings"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Forwarding Header (e.g. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Forwarded Email Addresses"
         },
-        "description": "By default, the Mail and Packages integration only searches for messages matching a service's address.\n\nIf you want to use forwarded emails, please separate each address messages will be coming from with a comma or enter '(none)' to clear this setting.",
-        "title": "Forwarded Email Addresses"
+        "data_description": {
+          "forwarding_header": "If your forwarding service includes the original sender in a header, enter the header name here. This takes precedence over the address list below. Enter '(none)' or leave blank to use the address list instead.",
+          "forwarded_emails": "Comma-separated list of forwarded addresses messages will arrive from. Leave as '(none)' if using the forwarding header above."
+        },
+        "description": "Choose how to match forwarded emails.\n\n**Option 1 — Forwarding header**: If your service (e.g. SimpleLogin) includes the original sender in a custom header, enter that header name. Mail and Packages will use it to match carrier addresses automatically.\n\n**Option 2 — Address list**: Enter the forwarding addresses your service assigned to each carrier, separated by commas.",
+        "title": "Forwarded Email Settings"
       },
       "reauth_confirm": {
         "description": "The authentication for your mail server has expired or is invalid. Please re-authenticate to continue.",

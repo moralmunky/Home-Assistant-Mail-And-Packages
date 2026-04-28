@@ -58,7 +58,7 @@
           "amazon_fwds": "Amazon ha inoltrato gli indirizzi email",
           "amazon_days": "Giorni precedenti da controllare per le email di Amazon"
         },
-        "description": "Inserisci il dominio da cui Amazon invia le email (ad esempio: amazon.com o amazon.de)\n\nSe stai utilizzando email inoltrate da Amazon, separa ogni indirizzo con una virgola o inserisci (nessuno) per cancellare questa impostazione.",
+        "description": "Inserisci il dominio da cui Amazon invia le email (ad esempio: amazon.com o amazon.de)\n\nSe stai utilizzando email inoltrate da Amazon, separa ogni indirizzo con una virgola o inserisci (nessuno) per cancellare questa impostazione.\n\nNota: se hai configurato un'intestazione di inoltro nel passaggio precedente, il campo dell'indirizzo di inoltro non apparirà — l'intestazione gestisce automaticamente la corrispondenza delle email Amazon.",
         "title": "Impostazioni Amazon"
       },
       "reconfig_2": {
@@ -102,7 +102,7 @@
           "amazon_fwds": "Amazon ha inoltrato gli indirizzi email",
           "amazon_days": "Giorni precedenti da controllare per le email di Amazon"
         },
-        "description": "Inserisci il dominio da cui Amazon invia le email (ad esempio: amazon.com o amazon.de)\n\nSe stai utilizzando email inoltrate da Amazon, separa ogni indirizzo con una virgola o inserisci (nessuno) per cancellare questa impostazione.",
+        "description": "Inserisci il dominio da cui Amazon invia le email (ad esempio: amazon.com o amazon.de)\n\nSe stai utilizzando email inoltrate da Amazon, separa ogni indirizzo con una virgola o inserisci (nessuno) per cancellare questa impostazione.\n\nNota: se hai configurato un'intestazione di inoltro nel passaggio precedente, il campo dell'indirizzo di inoltro non apparirà — l'intestazione gestisce automaticamente la corrispondenza delle email Amazon.",
         "title": "Impostazioni Amazon"
       },
       "config_storage": {
@@ -121,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Intestazione di inoltro (es. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Indirizzi email inoltrati"
         },
-        "description": "Per impostazione predefinita, l'integrazione Mail and Packages cerca solo i messaggi che corrispondono all'indirizzo di un servizio.\n\nSe si desidera utilizzare e-mail inoltrate, separare ogni indirizzo da cui arriveranno i messaggi con una virgola o inserire '(none)' per cancellare questa impostazione.",
-        "title": "Indirizzi email inoltrati"
+        "data_description": {
+          "forwarding_header": "Se il tuo servizio di inoltro include il mittente originale in un'intestazione, inserisci qui il nome dell'intestazione. Questo ha la precedenza sull'elenco di indirizzi seguente. Inserisci '(none)' o lascia vuoto per usare l'elenco di indirizzi.",
+          "forwarded_emails": "Elenco separato da virgole degli indirizzi di inoltro da cui arriveranno i messaggi. Lascia '(none)' se stai usando l'intestazione di inoltro sopra."
+        },
+        "description": "Scegli come abbinare le email inoltrate.\n\n**Opzione 1 — Intestazione di inoltro**: Se il tuo servizio (es. SimpleLogin) include il mittente originale in un'intestazione personalizzata, inserisci il nome di quell'intestazione. Mail and Packages lo utilizzerà per abbinare automaticamente gli indirizzi dei corrieri.\n\n**Opzione 2 — Elenco di indirizzi**: Inserisci gli indirizzi di inoltro che il tuo servizio ha assegnato a ciascun corriere, separati da virgole.",
+        "title": "Impostazioni email inoltrate"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Intestazione di inoltro (es. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Indirizzi email inoltrati"
         },
-        "description": "Per impostazione predefinita, l'integrazione Mail and Packages cerca solo i messaggi che corrispondono all'indirizzo di un servizio.\n\nSe si desidera utilizzare e-mail inoltrate, separare ogni indirizzo da cui arriveranno i messaggi con una virgola o inserire '(none)' per cancellare questa impostazione.",
-        "title": "Indirizzi email inoltrati"
+        "data_description": {
+          "forwarding_header": "Se il tuo servizio di inoltro include il mittente originale in un'intestazione, inserisci qui il nome dell'intestazione. Questo ha la precedenza sull'elenco di indirizzi seguente. Inserisci '(none)' o lascia vuoto per usare l'elenco di indirizzi.",
+          "forwarded_emails": "Elenco separato da virgole degli indirizzi di inoltro da cui arriveranno i messaggi. Lascia '(none)' se stai usando l'intestazione di inoltro sopra."
+        },
+        "description": "Scegli come abbinare le email inoltrate.\n\n**Opzione 1 — Intestazione di inoltro**: Se il tuo servizio (es. SimpleLogin) include il mittente originale in un'intestazione personalizzata, inserisci il nome di quell'intestazione. Mail and Packages lo utilizzerà per abbinare automaticamente gli indirizzi dei corrieri.\n\n**Opzione 2 — Elenco di indirizzi**: Inserisci gli indirizzi di inoltro che il tuo servizio ha assegnato a ciascun corriere, separati da virgole.",
+        "title": "Impostazioni email inoltrate"
       },
       "imap_config": {
         "description": "Inserisci le informazioni di connessione del tuo server di posta.",

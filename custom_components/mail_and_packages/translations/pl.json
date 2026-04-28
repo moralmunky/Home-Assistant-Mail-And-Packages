@@ -58,7 +58,7 @@
           "amazon_fwds": "Amazon przekazał adresy e-mail",
           "amazon_days": "Dni do sprawdzenia dla wiadomości e-mail od Amazon"
         },
-        "description": "Wprowadź domenę, z której Amazon wysyła e-maile (np. amazon.com lub amazon.de)\n\nJeśli korzystasz z przekierowanych e-maili od Amazon, oddziel każdy adres przecinkiem lub wpisz (brak), aby wyczyścić to ustawienie.",
+        "description": "Wprowadź domenę, z której Amazon wysyła e-maile (np. amazon.com lub amazon.de)\n\nJeśli korzystasz z przekierowanych e-maili od Amazon, oddziel każdy adres przecinkiem lub wpisz (brak), aby wyczyścić to ustawienie.\n\nUwaga: jeśli w poprzednim kroku skonfigurowałeś nagłówek przekierowania, pole adresu przekierowania nie pojawi się — nagłówek automatycznie obsługuje dopasowywanie e-maili Amazon.",
         "title": "Ustawienia Amazon"
       },
       "reconfig_2": {
@@ -102,7 +102,7 @@
           "amazon_fwds": "Amazon przekazał adresy e-mail",
           "amazon_days": "Dni do sprawdzenia dla wiadomości e-mail od Amazon"
         },
-        "description": "Wprowadź domenę, z której Amazon wysyła e-maile (np. amazon.com lub amazon.de)\n\nJeśli korzystasz z przekierowanych e-maili od Amazon, oddziel każdy adres przecinkiem lub wpisz (brak), aby wyczyścić to ustawienie.",
+        "description": "Wprowadź domenę, z której Amazon wysyła e-maile (np. amazon.com lub amazon.de)\n\nJeśli korzystasz z przekierowanych e-maili od Amazon, oddziel każdy adres przecinkiem lub wpisz (brak), aby wyczyścić to ustawienie.\n\nUwaga: jeśli w poprzednim kroku skonfigurowałeś nagłówek przekierowania, pole adresu przekierowania nie pojawi się — nagłówek automatycznie obsługuje dopasowywanie e-maili Amazon.",
         "title": "Ustawienia Amazon"
       },
       "config_storage": {
@@ -121,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Nagłówek przekierowania (np. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Przekierowane adresy e-mail"
         },
-        "description": "Domyślnie integracja Mail and Packages wyszukuje tylko wiadomości pasujące do adresu usługi.\n\nJeśli chcesz używać przekierowanych e-maili, oddziel każdy adres, z którego będą przychodzić wiadomości, przecinkiem lub wprowadź '(none)', aby wyczyścić to ustawienie.",
-        "title": "Przekierowane adresy e-mail"
+        "data_description": {
+          "forwarding_header": "Jeśli Twoja usługa przekierowania zawiera oryginalnego nadawcę w nagłówku, wprowadź tutaj nazwę nagłówka. Ma to pierwszeństwo przed poniższą listą adresów. Wprowadź '(none)' lub pozostaw puste, aby zamiast tego użyć listy adresów.",
+          "forwarded_emails": "Lista oddzielona przecinkami adresów przekierowania, z których będą przychodziły wiadomości. Pozostaw '(none)', jeśli używasz powyższego nagłówka przekierowania."
+        },
+        "description": "Wybierz sposób dopasowywania przekierowanych wiadomości e-mail.\n\n**Opcja 1 — Nagłówek przekierowania**: Jeśli Twoja usługa (np. SimpleLogin) zawiera oryginalnego nadawcę w niestandardowym nagłówku, wprowadź nazwę tego nagłówka. Mail and Packages użyje go do automatycznego dopasowywania adresów przewoźników.\n\n**Opcja 2 — Lista adresów**: Wprowadź adresy przekierowania przypisane przez usługę do każdego przewoźnika, oddzielone przecinkami.",
+        "title": "Ustawienia przekierowanych wiadomości e-mail"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Nagłówek przekierowania (np. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Przekierowane adresy e-mail"
         },
-        "description": "Domyślnie integracja Mail and Packages wyszukuje tylko wiadomości pasujące do adresu usługi.\n\nJeśli chcesz używać przekierowanych e-maili, oddziel każdy adres, z którego będą przychodzić wiadomości, przecinkiem lub wprowadź '(none)', aby wyczyścić to ustawienie.",
-        "title": "Przekierowane adresy e-mail"
+        "data_description": {
+          "forwarding_header": "Jeśli Twoja usługa przekierowania zawiera oryginalnego nadawcę w nagłówku, wprowadź tutaj nazwę nagłówka. Ma to pierwszeństwo przed poniższą listą adresów. Wprowadź '(none)' lub pozostaw puste, aby zamiast tego użyć listy adresów.",
+          "forwarded_emails": "Lista oddzielona przecinkami adresów przekierowania, z których będą przychodziły wiadomości. Pozostaw '(none)', jeśli używasz powyższego nagłówka przekierowania."
+        },
+        "description": "Wybierz sposób dopasowywania przekierowanych wiadomości e-mail.\n\n**Opcja 1 — Nagłówek przekierowania**: Jeśli Twoja usługa (np. SimpleLogin) zawiera oryginalnego nadawcę w niestandardowym nagłówku, wprowadź nazwę tego nagłówka. Mail and Packages użyje go do automatycznego dopasowywania adresów przewoźników.\n\n**Opcja 2 — Lista adresów**: Wprowadź adresy przekierowania przypisane przez usługę do każdego przewoźnika, oddzielone przecinkami.",
+        "title": "Ustawienia przekierowanych wiadomości e-mail"
       },
       "imap_config": {
         "description": "Proszę wprowadzić informacje o połączeniu z serwerem pocztowym.",

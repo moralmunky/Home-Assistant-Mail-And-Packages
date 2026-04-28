@@ -42,6 +42,7 @@ from .const import (
     CONF_FEDEX_CUSTOM_IMG_FILE,
     CONF_FOLDER,
     CONF_FORWARDED_EMAILS,
+    CONF_FORWARDING_HEADER,
     CONF_GENERATE_GRID,
     CONF_GENERATE_MP4,
     CONF_GENERIC_CUSTOM_IMG,
@@ -72,6 +73,7 @@ from .const import (
     DEFAULT_FEDEX_CUSTOM_IMG_FILE,
     DEFAULT_FOLDER,
     DEFAULT_FORWARDED_EMAILS,
+    DEFAULT_FORWARDING_HEADER,
     DEFAULT_GENERIC_CUSTOM_IMG,
     DEFAULT_GENERIC_CUSTOM_IMG_FILE,
     DEFAULT_GIF_DURATION,
@@ -230,40 +232,61 @@ def _validate_path_input(user_input: dict, errors: dict) -> None:
             errors[CONF_STORAGE] = "path_not_found"
 
 
+async def _validate_amazon_fwds(user_input: dict, errors: dict) -> None:
+    """Validate amazon forwarding email addresses in user_input."""
+    if CONF_AMAZON_FWDS not in user_input:
+        return
+    if not isinstance(user_input[CONF_AMAZON_FWDS], str):
+        return
+    status, amazon_list = await _check_amazon_forwards(
+        user_input[CONF_AMAZON_FWDS],
+        user_input[CONF_AMAZON_DOMAIN],
+    )
+    user_input[CONF_AMAZON_FWDS] = amazon_list
+    if status[0] != "ok":
+        errors[CONF_AMAZON_FWDS] = status[0]
+
+
+async def _validate_forwarded_emails(user_input: dict, errors: dict) -> None:
+    """Validate forwarded email address list in user_input."""
+    if CONF_FORWARDED_EMAILS not in user_input:
+        return
+    if not isinstance(user_input[CONF_FORWARDED_EMAILS], str):
+        return
+    status = await _check_forwarded_emails(user_input)
+    if status[0] == "ok" and user_input[CONF_FORWARDED_EMAILS] == "(none)":
+        # the user changed their mind, remove the flag and config entry
+        user_input[CONF_ALLOW_FORWARDED_EMAILS] = False
+        del user_input[CONF_FORWARDED_EMAILS]
+    elif status[0] == "ok":
+        user_input[CONF_FORWARDED_EMAILS] = [
+            e.strip() for e in user_input[CONF_FORWARDED_EMAILS].split(",") if e.strip()
+        ]
+    else:
+        errors[CONF_FORWARDED_EMAILS] = status[0]
+
+
 async def _validate_user_input(user_input: dict) -> tuple:
-    """Valididate user input from config flow.
+    """Validate user input from config flow.
 
     Returns tuple with error messages and modified user_input
     """
     errors = {}
 
-    # Validate amazon forwarding email addresses
-    if CONF_AMAZON_FWDS in user_input:
-        if isinstance(user_input[CONF_AMAZON_FWDS], str):
-            status, amazon_list = await _check_amazon_forwards(
-                user_input[CONF_AMAZON_FWDS],
-                user_input[CONF_AMAZON_DOMAIN],
-            )
-            user_input[CONF_AMAZON_FWDS] = amazon_list
-            if status[0] != "ok":
-                errors[CONF_AMAZON_FWDS] = status[0]
+    await _validate_amazon_fwds(user_input, errors)
 
-    if CONF_FORWARDED_EMAILS in user_input:
-        if isinstance(user_input[CONF_FORWARDED_EMAILS], str):
-            status = await _check_forwarded_emails(user_input)
-
-            if status[0] == "ok" and user_input[CONF_FORWARDED_EMAILS] == "(none)":
-                # the user changed their mind, remove the flag and config entry
-                user_input[CONF_ALLOW_FORWARDED_EMAILS] = False
-                del user_input[CONF_FORWARDED_EMAILS]
-            elif status[0] == "ok":
-                user_input[CONF_FORWARDED_EMAILS] = [
-                    e.strip()
-                    for e in user_input[CONF_FORWARDED_EMAILS].split(",")
-                    if e.strip()
-                ]
-            else:
-                errors[CONF_FORWARDED_EMAILS] = status[0]
+    # Check for forwarding header mode first — it takes precedence over address list
+    forwarding_header = user_input.get(CONF_FORWARDING_HEADER, "")
+    if isinstance(forwarding_header, str):
+        forwarding_header = forwarding_header.strip()
+    if forwarding_header and forwarding_header not in ("(none)", ""):
+        # Header mode: store the header name, clear address list if present
+        user_input[CONF_FORWARDING_HEADER] = forwarding_header
+        user_input.pop(CONF_FORWARDED_EMAILS, None)
+    else:
+        # No header provided — clear the key and fall through to address list validation
+        user_input.pop(CONF_FORWARDING_HEADER, None)
+        await _validate_forwarded_emails(user_input, errors)
 
     # Check for ffmpeg if option enabled
     if user_input[CONF_GENERATE_MP4]:
@@ -587,7 +610,11 @@ def _get_schema_step_3(user_input: dict, default_dict: dict) -> Any:
     return vol.Schema(schema)
 
 
-def _get_schema_step_amazon(user_input: list, default_dict: list) -> Any:
+def _get_schema_step_amazon(
+    user_input: list,
+    default_dict: list,
+    forwarding_header: str = "",
+) -> Any:
     """Get a schema using the default_dict as a backup."""
     if user_input is None:
         user_input = {}
@@ -596,19 +623,26 @@ def _get_schema_step_amazon(user_input: list, default_dict: list) -> Any:
         """Get default value for key."""
         return user_input.get(key, default_dict.get(key, fallback_default))
 
-    return vol.Schema(
-        {
-            vol.Required(
-                CONF_AMAZON_DOMAIN,
-                default=_get_default(CONF_AMAZON_DOMAIN),
-            ): cv.string,
+    schema_dict: dict = {
+        vol.Required(
+            CONF_AMAZON_DOMAIN,
+            default=_get_default(CONF_AMAZON_DOMAIN),
+        ): cv.string,
+    }
+
+    if not forwarding_header or forwarding_header == "(none)":
+        schema_dict[
             vol.Optional(
                 CONF_AMAZON_FWDS,
                 default=_get_default(CONF_AMAZON_FWDS),
-            ): cv.string,
-            vol.Optional(CONF_AMAZON_DAYS, default=_get_default(CONF_AMAZON_DAYS)): int,
-        },
-    )
+            )
+        ] = cv.string
+
+    schema_dict[
+        vol.Optional(CONF_AMAZON_DAYS, default=_get_default(CONF_AMAZON_DAYS))
+    ] = int
+
+    return vol.Schema(schema_dict)
 
 
 def _get_schema_step_forwarded_emails(
@@ -628,9 +662,13 @@ def _get_schema_step_forwarded_emails(
 
     return vol.Schema(
         {
-            vol.Required(
+            vol.Optional(
+                CONF_FORWARDING_HEADER,
+                default=_get_default(CONF_FORWARDING_HEADER, DEFAULT_FORWARDING_HEADER),
+            ): cv.string,
+            vol.Optional(
                 CONF_FORWARDED_EMAILS,
-                default=_get_default(CONF_FORWARDED_EMAILS),
+                default=_get_default(CONF_FORWARDED_EMAILS, DEFAULT_FORWARDED_EMAILS),
             ): cv.string,
         },
     )
@@ -986,7 +1024,11 @@ class MailAndPackagesFlowHandler(
 
         return self.async_show_form(
             step_id="config_amazon",
-            data_schema=_get_schema_step_amazon(user_input, defaults),
+            data_schema=_get_schema_step_amazon(
+                user_input,
+                defaults,
+                forwarding_header=self._data.get(CONF_FORWARDING_HEADER, ""),
+            ),
             errors=self._errors,
         )
 
@@ -1234,7 +1276,11 @@ class MailAndPackagesFlowHandler(
 
         return self.async_show_form(
             step_id="reconfig_amazon",
-            data_schema=_get_schema_step_amazon(user_input, self._data),
+            data_schema=_get_schema_step_amazon(
+                user_input,
+                self._data,
+                forwarding_header=self._data.get(CONF_FORWARDING_HEADER, ""),
+            ),
             errors=self._errors,
         )
 

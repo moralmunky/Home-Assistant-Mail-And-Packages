@@ -58,7 +58,7 @@
           "amazon_fwds": "Amazon이 전달한 이메일 주소",
           "amazon_days": "Amazon 이메일을 확인하기 위해 돌아가야 할 날짜"
         },
-        "description": "Amazon이 이메일을 보내는 도메인을 입력해 주세요 (예: amazon.com 또는 amazon.de)\n\nAmazon에서 전달된 이메일을 사용하는 경우 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 (none)을 입력하세요.",
+        "description": "Amazon이 이메일을 보내는 도메인을 입력해 주세요 (예: amazon.com 또는 amazon.de)\n\nAmazon에서 전달된 이메일을 사용하는 경우 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 (none)을 입력하세요.\n\n참고: 이전 단계에서 전달 헤더를 구성한 경우 전달 주소 필드가 표시되지 않습니다 — 헤더가 Amazon 이메일 매칭을 자동으로 처리합니다.",
         "title": "아마존 설정"
       },
       "reconfig_2": {
@@ -102,7 +102,7 @@
           "amazon_fwds": "Amazon이 전달한 이메일 주소",
           "amazon_days": "Amazon 이메일을 확인하기 위해 돌아가야 할 날짜"
         },
-        "description": "Amazon이 이메일을 보내는 도메인을 입력해 주세요 (예: amazon.com 또는 amazon.de)\n\nAmazon에서 전달된 이메일을 사용하는 경우 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 (none)을 입력하세요.",
+        "description": "Amazon이 이메일을 보내는 도메인을 입력해 주세요 (예: amazon.com 또는 amazon.de)\n\nAmazon에서 전달된 이메일을 사용하는 경우 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 (none)을 입력하세요.\n\n참고: 이전 단계에서 전달 헤더를 구성한 경우 전달 주소 필드가 표시되지 않습니다 — 헤더가 Amazon 이메일 매칭을 자동으로 처리합니다.",
         "title": "아마존 설정"
       },
       "config_storage": {
@@ -121,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "전달 헤더 (예: X-SimpleLogin-Original-From)",
           "forwarded_emails": "전달된 이메일 주소"
         },
-        "description": "기본적으로 Mail and Packages 통합은 서비스 주소와 일치하는 메시지만 검색합니다.\n\n전달된 이메일을 사용하려면 메시지가 올 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 '(none)'을 입력하세요.",
-        "title": "전달된 이메일 주소"
+        "data_description": {
+          "forwarding_header": "전달 서비스가 헤더에 원래 발신자를 포함하는 경우, 여기에 헤더 이름을 입력하세요. 이는 아래 주소 목록보다 우선합니다. 주소 목록을 사용하려면 '(none)'을 입력하거나 비워두세요.",
+          "forwarded_emails": "메시지가 도착할 전달 주소의 쉼표로 구분된 목록입니다. 위의 전달 헤더를 사용하는 경우 '(none)'으로 두세요."
+        },
+        "description": "전달된 이메일을 일치시키는 방법을 선택하세요.\n\n**옵션 1 — 전달 헤더**: 서비스(예: SimpleLogin)가 사용자 지정 헤더에 원래 발신자를 포함하는 경우, 해당 헤더 이름을 입력하세요. Mail and Packages가 이를 사용하여 배송사 주소를 자동으로 일치시킵니다.\n\n**옵션 2 — 주소 목록**: 서비스가 각 배송사에 할당한 전달 주소를 쉼표로 구분하여 입력하세요.",
+        "title": "전달 이메일 설정"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "전달 헤더 (예: X-SimpleLogin-Original-From)",
           "forwarded_emails": "전달된 이메일 주소"
         },
-        "description": "기본적으로 Mail and Packages 통합은 서비스 주소와 일치하는 메시지만 검색합니다.\n\n전달된 이메일을 사용하려면 메시지가 올 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 '(none)'을 입력하세요.",
-        "title": "전달된 이메일 주소"
+        "data_description": {
+          "forwarding_header": "전달 서비스가 헤더에 원래 발신자를 포함하는 경우, 여기에 헤더 이름을 입력하세요. 이는 아래 주소 목록보다 우선합니다. 주소 목록을 사용하려면 '(none)'을 입력하거나 비워두세요.",
+          "forwarded_emails": "메시지가 도착할 전달 주소의 쉼표로 구분된 목록입니다. 위의 전달 헤더를 사용하는 경우 '(none)'으로 두세요."
+        },
+        "description": "전달된 이메일을 일치시키는 방법을 선택하세요.\n\n**옵션 1 — 전달 헤더**: 서비스(예: SimpleLogin)가 사용자 지정 헤더에 원래 발신자를 포함하는 경우, 해당 헤더 이름을 입력하세요. Mail and Packages가 이를 사용하여 배송사 주소를 자동으로 일치시킵니다.\n\n**옵션 2 — 주소 목록**: 서비스가 각 배송사에 할당한 전달 주소를 쉼표로 구분하여 입력하세요.",
+        "title": "전달 이메일 설정"
       },
       "imap_config": {
         "description": "메일 서버의 연결 정보를 입력해 주세요.",

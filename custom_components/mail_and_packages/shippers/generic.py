@@ -24,6 +24,7 @@ from custom_components.mail_and_packages.const import (
     ATTR_TRACKING,
     CAMERA_DATA,
     CAMERA_EXTRACTION_CONFIG,
+    CONF_FORWARDING_HEADER,
     SENSOR_DATA,
 )
 from custom_components.mail_and_packages.utils.cache import EmailCache
@@ -84,14 +85,22 @@ class GenericShipper(Shipper):
         if sensor_type.endswith("_packages") and not email_addresses and not subjects:
             return {ATTR_COUNT: 0, ATTR_TRACKING: []}
 
-        # Add forwarded emails if configured
-        forwarded_emails = self.config.get("forwarded_emails", [])
-        if isinstance(forwarded_emails, str):
-            forwarded_emails = [
-                e.strip() for e in forwarded_emails.split(",") if e.strip()
-            ]
-        if forwarded_emails:
-            email_addresses = forwarded_emails + email_addresses
+        # Resolve forwarding: header mode uses original-sender header matching;
+        # address-list mode prepends the user's forwarded addresses to the search.
+        forwarding_header = self.config.get(CONF_FORWARDING_HEADER, "")
+        if forwarding_header and forwarding_header != "(none)":
+            # Header mode: carrier email list is used as header value substrings;
+            # no address prepending needed.
+            pass
+        else:
+            forwarding_header = ""
+            forwarded_emails = self.config.get("forwarded_emails", [])
+            if isinstance(forwarded_emails, str):
+                forwarded_emails = [
+                    e.strip() for e in forwarded_emails.split(",") if e.strip()
+                ]
+            if forwarded_emails:
+                email_addresses = forwarded_emails + email_addresses
 
         # All three states use the extended window: _delivering/_exception to keep
         # in-transit packages visible across the midnight boundary, and _delivered
@@ -100,7 +109,7 @@ class GenericShipper(Shipper):
         # stays visible because no corresponding delivered tracking number is found).
         search_date = date
         if since_date and sensor_type.endswith(
-            ("_delivering", "_exception", "_delivered")
+            ("_delivering", "_exception", "_delivered", "_packages")
         ):
             search_date = since_date
 
@@ -130,6 +139,7 @@ class GenericShipper(Shipper):
             sensor_type,
             result,
             cache,
+            forwarding_header,
         )
 
         # Process tracking numbers
@@ -176,7 +186,9 @@ class GenericShipper(Shipper):
             # Expose per-sensor raw tracking for coordinator state management.
             # Keyed as "_tracking_details" to distinguish from the public data dict.
             tracking = sensor_res.get(ATTR_TRACKING)
-            if tracking and sensor.endswith(("_delivering", "_delivered", "_exception")):
+            if tracking and sensor.endswith(
+                ("_delivering", "_delivered", "_exception")
+            ):
                 res.setdefault("_tracking_details", {})[sensor] = list(tracking)
 
         if all_tracking:
@@ -223,17 +235,29 @@ class GenericShipper(Shipper):
             # Prefix is everything before the last underscore (e.g., 'ups', 'fedex')
             prefix = "_".join(sensor.split("_")[:-1])
             if prefix not in shippers:
-                shippers[prefix] = {"delivered": set(), "update_targets": []}
+                shippers[prefix] = {
+                    "delivered": set(),
+                    "delivering": set(),
+                    "update_targets": [],
+                    "package_targets": [],
+                }
 
             tracking = set(sensor_res.get(ATTR_TRACKING, []))
             if sensor.endswith("_delivered"):
                 shippers[prefix]["delivered"].update(tracking)
             elif sensor.endswith(("_delivering", "_exception")):
+                shippers[prefix]["delivering"].update(tracking)
                 shippers[prefix]["update_targets"].append((sensor, sensor_res))
+            elif sensor.endswith("_packages"):
+                shippers[prefix]["package_targets"].append((sensor, sensor_res))
 
-        # Remove "delivered" tracking numbers from concurrent "transit" sensors
         for data in shippers.values():
+            # Remove "delivered" tracking numbers from in-transit sensors
             self._apply_deduplication(data["update_targets"], data["delivered"])
+            # Remove "delivering" and "delivered" tracking numbers from _packages
+            # so _packages only shows packages not yet out for delivery or delivered
+            in_pipeline = data["delivering"] | data["delivered"]
+            self._apply_deduplication(data["package_targets"], in_pipeline)
 
     def _apply_deduplication(
         self,
@@ -318,6 +342,7 @@ class GenericShipper(Shipper):
         sensor_type: str,
         result: dict[str, Any],
         cache: EmailCache | None = None,
+        forwarding_header: str = "",
     ) -> tuple[int, list[bytes], bool]:
         """Search for and process emails."""
         count = 0
@@ -330,6 +355,7 @@ class GenericShipper(Shipper):
             email_addresses,
             date,
             subjects,
+            forwarding_header,
         )
 
         if server_response == "OK" and sdata[0]:

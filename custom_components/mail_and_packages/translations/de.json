@@ -58,7 +58,7 @@
           "amazon_fwds": "Amazon hat E-Mail-Adressen weitergeleitet",
           "amazon_days": "Tage zurück, um nach Amazon-E-Mails zu suchen"
         },
-        "description": "Bitte geben Sie die Domain ein, von der Amazon E-Mails sendet (z.B.: amazon.com oder amazon.de)\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse mit einem Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
+        "description": "Bitte geben Sie die Domain ein, von der Amazon E-Mails sendet (z.B.: amazon.com oder amazon.de)\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse mit einem Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.\n\nHinweis: Wenn Sie im vorherigen Schritt einen Weiterleitungs-Header konfiguriert haben, wird das Feld für die Weiterleitungsadresse nicht angezeigt — der Header übernimmt die Zuordnung von Amazon-E-Mails automatisch.",
         "title": "Amazon Einstellungen"
       },
       "reconfig_2": {
@@ -102,7 +102,7 @@
           "amazon_fwds": "Amazon hat E-Mail-Adressen weitergeleitet",
           "amazon_days": "Tage zurück, um nach Amazon-E-Mails zu suchen"
         },
-        "description": "Bitte geben Sie die Domain ein, von der Amazon E-Mails sendet (z.B.: amazon.com oder amazon.de)\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse mit einem Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.",
+        "description": "Bitte geben Sie die Domain ein, von der Amazon E-Mails sendet (z.B.: amazon.com oder amazon.de)\n\nWenn Sie weitergeleitete E-Mails von Amazon verwenden, trennen Sie bitte jede Adresse mit einem Komma oder geben Sie (keine) ein, um diese Einstellung zu löschen.\n\nHinweis: Wenn Sie im vorherigen Schritt einen Weiterleitungs-Header konfiguriert haben, wird das Feld für die Weiterleitungsadresse nicht angezeigt — der Header übernimmt die Zuordnung von Amazon-E-Mails automatisch.",
         "title": "Amazon Einstellungen"
       },
       "config_storage": {
@@ -121,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Weiterleitungs-Header (z.B. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Weitergeleitete E-Mail-Adressen"
         },
-        "description": "Standardmäßig sucht die Mail- und Paket-Integration nur nach Nachrichten, die mit der Adresse eines Dienstes übereinstimmen.\n\nWenn Sie weitergeleitete E-Mails verwenden möchten, trennen Sie bitte jede Adresse, von der Nachrichten kommen werden, durch ein Komma oder geben Sie '(none)' ein, um diese Einstellung zu löschen.",
-        "title": "Weitergeleitete E-Mail-Adressen"
+        "data_description": {
+          "forwarding_header": "Wenn Ihr Weiterleitungsdienst den ursprünglichen Absender in einem Header enthält, geben Sie hier den Header-Namen ein. Dies hat Vorrang vor der Adressliste unten. Geben Sie '(none)' ein oder lassen Sie das Feld leer, um stattdessen die Adressliste zu verwenden.",
+          "forwarded_emails": "Kommagetrennte Liste der Weiterleitungsadressen, von denen Nachrichten eingehen. Lassen Sie '(none)' stehen, wenn Sie den Weiterleitungs-Header oben verwenden."
+        },
+        "description": "Wählen Sie, wie weitergeleitete E-Mails abgeglichen werden sollen.\n\n**Option 1 — Weiterleitungs-Header**: Wenn Ihr Dienst (z.B. SimpleLogin) den ursprünglichen Absender in einem benutzerdefinierten Header enthält, geben Sie diesen Header-Namen ein. Mail and Packages verwendet ihn, um Zustell-Adressen automatisch abzugleichen.\n\n**Option 2 — Adressliste**: Geben Sie die Weiterleitungsadressen ein, die Ihr Dienst jedem Zusteller zugewiesen hat, getrennt durch Kommas.",
+        "title": "Einstellungen für weitergeleitete E-Mails"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Weiterleitungs-Header (z.B. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Weitergeleitete E-Mail-Adressen"
         },
-        "description": "Standardmäßig sucht die Mail- und Paket-Integration nur nach Nachrichten, die mit der Adresse eines Dienstes übereinstimmen.\n\nWenn Sie weitergeleitete E-Mails verwenden möchten, trennen Sie bitte jede Adresse, von der Nachrichten kommen werden, durch ein Komma oder geben Sie '(none)' ein, um diese Einstellung zu löschen.",
-        "title": "Weitergeleitete E-Mail-Adressen"
+        "data_description": {
+          "forwarding_header": "Wenn Ihr Weiterleitungsdienst den ursprünglichen Absender in einem Header enthält, geben Sie hier den Header-Namen ein. Dies hat Vorrang vor der Adressliste unten. Geben Sie '(none)' ein oder lassen Sie das Feld leer, um stattdessen die Adressliste zu verwenden.",
+          "forwarded_emails": "Kommagetrennte Liste der Weiterleitungsadressen, von denen Nachrichten eingehen. Lassen Sie '(none)' stehen, wenn Sie den Weiterleitungs-Header oben verwenden."
+        },
+        "description": "Wählen Sie, wie weitergeleitete E-Mails abgeglichen werden sollen.\n\n**Option 1 — Weiterleitungs-Header**: Wenn Ihr Dienst (z.B. SimpleLogin) den ursprünglichen Absender in einem benutzerdefinierten Header enthält, geben Sie diesen Header-Namen ein. Mail and Packages verwendet ihn, um Zustell-Adressen automatisch abzugleichen.\n\n**Option 2 — Adressliste**: Geben Sie die Weiterleitungsadressen ein, die Ihr Dienst jedem Zusteller zugewiesen hat, getrennt durch Kommas.",
+        "title": "Einstellungen für weitergeleitete E-Mails"
       },
       "imap_config": {
         "description": "Bitte geben Sie die Verbindungsinformationen Ihres Mail-Servers ein.",

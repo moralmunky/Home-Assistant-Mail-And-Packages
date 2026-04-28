@@ -58,7 +58,7 @@
           "amazon_fwds": "Amazon videresendte e-postadresser",
           "amazon_days": "Dager tilbake for å sjekke Amazon-e-poster"
         },
-        "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (ingen) for å tømme denne innstillingen.",
+        "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (ingen) for å tømme denne innstillingen.\n\nMerk: hvis du konfigurerte et videresendingshode i forrige trinn, vil feltet for videresendingsadresse ikke vises — hodet håndterer Amazon e-postkoblingen automatisk.",
         "title": "Amazon-innstillinger"
       },
       "reconfig_2": {
@@ -102,7 +102,7 @@
           "amazon_fwds": "Amazon videresendte e-postadresser",
           "amazon_days": "Dager tilbake for å sjekke Amazon-e-poster"
         },
-        "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (ingen) for å tømme denne innstillingen.",
+        "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (ingen) for å tømme denne innstillingen.\n\nMerk: hvis du konfigurerte et videresendingshode i forrige trinn, vil feltet for videresendingsadresse ikke vises — hodet håndterer Amazon e-postkoblingen automatisk.",
         "title": "Amazon-innstillinger"
       },
       "config_storage": {
@@ -121,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Videresendingshode (f.eks. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Videresendte e-postadresser"
         },
-        "description": "Som standard søker Mail and Packages-integrasjonen bare etter meldinger som samsvarer med en tjenestes adresse.\n\nHvis du vil bruke videresendte e-poster, vennligst skill hver adresse meldingene kommer fra med et komma eller skriv inn '(none)' for å tømme denne innstillingen.",
-        "title": "Videresendte e-postadresser"
+        "data_description": {
+          "forwarding_header": "Hvis videresendingstjenesten din inkluderer den opprinnelige avsenderen i en topptekst, skriv inn topptekstnavnet her. Dette har forrang over adresselisten nedenfor. Skriv inn '(none)' eller la det stå tomt for å bruke adresselisten i stedet.",
+          "forwarded_emails": "Kommaseparert liste over videresendingsadresser meldinger vil komme fra. La '(none)' stå hvis du bruker videresendingshodet ovenfor."
+        },
+        "description": "Velg hvordan videresendte e-poster skal matches.\n\n**Alternativ 1 — Videresendingshode**: Hvis tjenesten din (f.eks. SimpleLogin) inkluderer den opprinnelige avsenderen i et tilpasset hode, skriv inn det hodet. Mail and Packages vil bruke det til å matche fraktadresser automatisk.\n\n**Alternativ 2 — Adresseliste**: Skriv inn videresendingsadressene tjenesten din har tildelt hver fraktfører, atskilt med komma.",
+        "title": "Innstillinger for videresendte e-poster"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Videresendingshode (f.eks. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Videresendte e-postadresser"
         },
-        "description": "Som standard søker Mail and Packages-integrasjonen bare etter meldinger som samsvarer med en tjenestes adresse.\n\nHvis du vil bruke videresendte e-poster, vennligst skill hver adresse meldingene kommer fra med et komma eller skriv inn '(none)' for å tømme denne innstillingen.",
-        "title": "Videresendte e-postadresser"
+        "data_description": {
+          "forwarding_header": "Hvis videresendingstjenesten din inkluderer den opprinnelige avsenderen i en topptekst, skriv inn topptekstnavnet her. Dette har forrang over adresselisten nedenfor. Skriv inn '(none)' eller la det stå tomt for å bruke adresselisten i stedet.",
+          "forwarded_emails": "Kommaseparert liste over videresendingsadresser meldinger vil komme fra. La '(none)' stå hvis du bruker videresendingshodet ovenfor."
+        },
+        "description": "Velg hvordan videresendte e-poster skal matches.\n\n**Alternativ 1 — Videresendingshode**: Hvis tjenesten din (f.eks. SimpleLogin) inkluderer den opprinnelige avsenderen i et tilpasset hode, skriv inn det hodet. Mail and Packages vil bruke det til å matche fraktadresser automatisk.\n\n**Alternativ 2 — Adresseliste**: Skriv inn videresendingsadressene tjenesten din har tildelt hver fraktfører, atskilt med komma.",
+        "title": "Innstillinger for videresendte e-poster"
       },
       "imap_config": {
         "description": "Vennligst oppgi tilkoblingsinformasjonen til din e-postserver.",

@@ -58,7 +58,7 @@
           "amazon_fwds": "Amazon je posredoval e-poštne naslove",
           "amazon_days": "Dnevi nazaj za preverjanje Amazonovih e-poštnih sporočil"
         },
-        "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
+        "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.\n\nOpomba: če ste v prejšnjem koraku konfigurirali glavo posredovanja, polje z naslovom posredovanja ne bo prikazano — glava samodejno obravnava ujemanje Amazonovih e-poštnih sporočil.",
         "title": "Nastavitve Amazon"
       },
       "reconfig_2": {
@@ -102,7 +102,7 @@
           "amazon_fwds": "Amazon je posredoval e-poštne naslove",
           "amazon_days": "Dnevi nazaj za preverjanje Amazonovih e-poštnih sporočil"
         },
-        "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
+        "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.\n\nOpomba: če ste v prejšnjem koraku konfigurirali glavo posredovanja, polje z naslovom posredovanja ne bo prikazano — glava samodejno obravnava ujemanje Amazonovih e-poštnih sporočil.",
         "title": "Nastavitve Amazon"
       },
       "config_storage": {
@@ -121,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Glava za posredovanje (npr. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Posredovani e-poštni naslovi"
         },
-        "description": "Privzeto integracija Mail and Packages išče samo sporočila, ki ustrezajo naslovu storitve.\n\nČe želite uporabljati posredovana e-poštna sporočila, ločite vsak naslov, s katerega bodo prihajala sporočila, z vejico ali vnesite '(none)' za izbris te nastavitve.",
-        "title": "Posredovani e-poštni naslovi"
+        "data_description": {
+          "forwarding_header": "Če vaša storitev posredovanja vključuje izvirnega pošiljatelja v glavi, vnesite tukaj ime glave. To ima prednost pred spodnjim seznamom naslovov. Vnesite '(none)' ali pustite prazno, da namesto tega uporabite seznam naslovov.",
+          "forwarded_emails": "Z vejicami ločen seznam naslovov za posredovanje, od katerih bodo prihajala sporočila. Pustite '(none)', če uporabljate zgornjo glavo za posredovanje."
+        },
+        "description": "Izberite, kako ujemati posredovana e-poštna sporočila.\n\n**Možnost 1 — Glava za posredovanje**: Če vaša storitev (npr. SimpleLogin) vključuje izvirnega pošiljatelja v glavo po meri, vnesite ime te glave. Mail and Packages jo bo uporabil za samodejno ujemanje naslovov prevoznikov.\n\n**Možnost 2 — Seznam naslovov**: Vnesite naslove za posredovanje, ki jih je vaša storitev dodelila vsakemu prevozniku, ločene z vejicami.",
+        "title": "Nastavitve posredovane e-pošte"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Glava za posredovanje (npr. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Posredovani e-poštni naslovi"
         },
-        "description": "Privzeto integracija Mail and Packages išče samo sporočila, ki ustrezajo naslovu storitve.\n\nČe želite uporabljati posredovana e-poštna sporočila, ločite vsak naslov, s katerega bodo prihajala sporočila, z vejico ali vnesite '(none)' za izbris te nastavitve.",
-        "title": "Posredovani e-poštni naslovi"
+        "data_description": {
+          "forwarding_header": "Če vaša storitev posredovanja vključuje izvirnega pošiljatelja v glavi, vnesite tukaj ime glave. To ima prednost pred spodnjim seznamom naslovov. Vnesite '(none)' ali pustite prazno, da namesto tega uporabite seznam naslovov.",
+          "forwarded_emails": "Z vejicami ločen seznam naslovov za posredovanje, od katerih bodo prihajala sporočila. Pustite '(none)', če uporabljate zgornjo glavo za posredovanje."
+        },
+        "description": "Izberite, kako ujemati posredovana e-poštna sporočila.\n\n**Možnost 1 — Glava za posredovanje**: Če vaša storitev (npr. SimpleLogin) vključuje izvirnega pošiljatelja v glavo po meri, vnesite ime te glave. Mail and Packages jo bo uporabil za samodejno ujemanje naslovov prevoznikov.\n\n**Možnost 2 — Seznam naslovov**: Vnesite naslove za posredovanje, ki jih je vaša storitev dodelila vsakemu prevozniku, ločene z vejicami.",
+        "title": "Nastavitve posredovane e-pošte"
       },
       "imap_config": {
         "description": "Prosimo, vnesite podatke o povezavi vašega poštnega strežnika.",

@@ -223,6 +223,7 @@ async def search_amazon_emails(
     days: int,
     domain: str | None = None,
     cache: EmailCache | None = None,
+    forwarding_header: str = "",
 ) -> list[bytes]:
     """Search for Amazon emails."""
     if not isinstance(days, int):
@@ -244,6 +245,7 @@ async def search_amazon_emails(
         address_list,
         tfmt,
         amazon_subjects,
+        forwarding_header,
     )
 
     if server_response != "OK" or not sdata[0]:

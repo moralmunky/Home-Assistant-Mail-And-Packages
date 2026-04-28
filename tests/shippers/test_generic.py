@@ -7,6 +7,7 @@ import pytest
 from custom_components.mail_and_packages.const import (
     ATTR_COUNT,
     ATTR_TRACKING,
+    CONF_FORWARDING_HEADER,
 )
 from custom_components.mail_and_packages.shippers import generic
 from custom_components.mail_and_packages.shippers.generic import GenericShipper
@@ -317,6 +318,28 @@ async def test_generic_forwarded_emails_string(hass):
 
 
 @pytest.mark.asyncio
+async def test_generic_forwarding_header_mode(hass):
+    """Test GenericShipper in header mode: forwarded_emails not prepended, header kwarg passed."""
+    shipper = GenericShipper(
+        hass,
+        {
+            CONF_FORWARDING_HEADER: "X-SimpleLogin-Original-From",
+            "forwarded_emails": ["should-not-appear@example.com"],
+            "image_path": "test/path/",
+        },
+    )
+    mock_acc = AsyncMock()
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_search",
+        return_value=("OK", [None]),
+    ) as mock_search:
+        await shipper.process(mock_acc, "today", "ups_delivered")
+        search_addresses = mock_search.call_args[0][1]
+        assert "should-not-appear@example.com" not in search_addresses
+        assert mock_search.call_args[0][4] == "X-SimpleLogin-Original-From"
+
+
+@pytest.mark.asyncio
 async def test_generic_body_search(hass):
     """Test GenericShipper with body search (Lines 209-211)."""
     shipper = GenericShipper(hass, {"image_path": "test/path/"})
@@ -536,7 +559,8 @@ async def test_process_batch_deduplication(hass):
         if sensor == "ups_delivering":
             return {"ups_delivering": 2, ATTR_TRACKING: ["T1", "T2"], ATTR_COUNT: 2}
         if sensor == "ups_packages":
-            return {"ups_packages": 1, ATTR_TRACKING: ["T1"]}
+            # T1 already in delivered/delivering; T3 is a new upcoming shipment
+            return {"ups_packages": 2, ATTR_TRACKING: ["T1", "T3"]}
         if sensor == "fedex_delivered":
             return {"fedex_delivered": 1, ATTR_TRACKING: ["F1"]}
         if sensor == "fedex_delivering":
@@ -555,16 +579,17 @@ async def test_process_batch_deduplication(hass):
 
         # UPS Deduplication
         assert result["ups_delivered"] == 1
-        assert result["ups_delivering"] == 1  # T1 removed
-        # ups_packages = delivering(1 after dedup) + delivered(1) = 2
-        assert result["ups_packages"] == 2
+        assert result["ups_delivering"] == 1  # T1 removed (already delivered)
+        # ups_packages has its own IMAP search; T1 and T2 are removed (in pipeline)
+        # leaving only T3 (upcoming shipment not yet delivering/delivered)
+        assert result["ups_packages"] == 1
 
         # FedEx Deduplication
         assert result["fedex_delivered"] == 1
         assert result["fedex_delivering"] == 0  # F1 removed
 
         # Tracking Aggregation
-        assert set(result[ATTR_TRACKING]) == {"T1", "T2", "F1"}
+        assert set(result[ATTR_TRACKING]) == {"T1", "T2", "F1", "T3"}
 
 
 @pytest.mark.asyncio
@@ -735,49 +760,69 @@ async def test_ups_packages_empty_config_skips_imap(hass):
     with patch(
         "custom_components.mail_and_packages.shippers.generic.email_search",
     ) as mock_search:
-        result = await shipper.process(mock_account, "today", "ups_packages")
+        # capost_packages still has {} config — skips IMAP
+        result = await shipper.process(mock_account, "today", "capost_packages")
         mock_search.assert_not_called()
         assert result[ATTR_COUNT] == 0
 
 
 @pytest.mark.asyncio
-async def test_ups_packages_with_forwarded_emails_skips_imap(hass):
-    """Test that ups_packages skips IMAP even when forwarded_emails are configured.
+async def test_ups_packages_searches_imap(hass):
+    """Test that ups_packages now performs an IMAP search with its own config."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_search",
+        return_value=("OK", [b""]),
+    ) as mock_search:
+        await shipper.process(mock_account, "today", "ups_packages")
+        mock_search.assert_called_once()
+        call_args = mock_search.call_args
+        # Verify UPS emails are passed
+        assert "mcinfo@ups.com" in call_args.args[1]
 
-    Regression test: previously forwarded_emails were prepended to the empty
-    email list and sent as a broad FROM-only IMAP query, matching all forwarder
-    mail instead of UPS mail.
-    """
+
+@pytest.mark.asyncio
+async def test_ups_packages_with_forwarded_emails_includes_both(hass):
+    """Test that forwarded_emails are prepended to UPS emails for ups_packages."""
     shipper = GenericShipper(hass, {"forwarded_emails": ["forwarder@example.com"]})
     mock_account = AsyncMock()
     with patch(
         "custom_components.mail_and_packages.shippers.generic.email_search",
+        return_value=("OK", [b""]),
     ) as mock_search:
-        result = await shipper.process(mock_account, "today", "ups_packages")
-        mock_search.assert_not_called()
-        assert result[ATTR_COUNT] == 0
+        await shipper.process(mock_account, "today", "ups_packages")
+        mock_search.assert_called_once()
+        email_list = mock_search.call_args.args[1]
+        assert "forwarder@example.com" in email_list
+        assert "mcinfo@ups.com" in email_list
 
 
 def test_compute_package_totals(hass):
-    """Test _compute_package_totals sets _packages as delivering + delivered."""
+    """Test _compute_package_totals sets _packages as delivering + delivered for carriers with empty config."""
     shipper = GenericShipper(hass, {})
+    # capost_packages still has {} config — should be computed as delivering + delivered
+    # dhl_packages also has {} config
     batch_results = [
-        ("ups_delivering", {"ups_delivering": 3, ATTR_COUNT: 3, ATTR_TRACKING: []}),
-        ("ups_delivered", {"ups_delivered": 1, ATTR_COUNT: 1, ATTR_TRACKING: []}),
-        ("ups_packages", {"ups_packages": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
-        ("fedex_delivering", {"fedex_delivering": 2, ATTR_COUNT: 2, ATTR_TRACKING: []}),
-        ("fedex_delivered", {"fedex_delivered": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
-        ("fedex_packages", {"fedex_packages": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
+        (
+            "capost_delivering",
+            {"capost_delivering": 3, ATTR_COUNT: 3, ATTR_TRACKING: []},
+        ),
+        ("capost_delivered", {"capost_delivered": 1, ATTR_COUNT: 1, ATTR_TRACKING: []}),
+        ("capost_packages", {"capost_packages": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
+        ("dhl_delivering", {"dhl_delivering": 2, ATTR_COUNT: 2, ATTR_TRACKING: []}),
+        ("dhl_delivered", {"dhl_delivered": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
+        ("dhl_packages", {"dhl_packages": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
     ]
     shipper._compute_package_totals(batch_results)
 
-    _, ups_res = next(r for r in batch_results if r[0] == "ups_packages")
-    assert ups_res["ups_packages"] == 4  # 3 delivering + 1 delivered
-    assert ups_res[ATTR_COUNT] == 4
+    _, capost_res = next(r for r in batch_results if r[0] == "capost_packages")
+    assert capost_res["capost_packages"] == 4  # 3 delivering + 1 delivered
+    assert capost_res[ATTR_COUNT] == 4
 
-    _, fedex_res = next(r for r in batch_results if r[0] == "fedex_packages")
-    assert fedex_res["fedex_packages"] == 2  # 2 delivering + 0 delivered
-    assert fedex_res[ATTR_COUNT] == 2
+    _, dhl_res = next(r for r in batch_results if r[0] == "dhl_packages")
+    assert dhl_res["dhl_packages"] == 2  # 2 delivering + 0 delivered
+    assert dhl_res[ATTR_COUNT] == 2
 
 
 @pytest.mark.asyncio
@@ -801,9 +846,12 @@ async def test_process_delivering_uses_since_date(hass):
 
 @pytest.mark.asyncio
 async def test_process_delivered_uses_since_date(hass):
-    """_delivered sensors also use since_date so delivered tracking numbers are
-    found and can cancel out old in-transit emails for the same package."""
-    shipper = GenericShipper(hass, {"image_path": "/tmp/test/"})
+    """_delivered sensors also use since_date.
+
+    So delivered tracking numbers are found and can cancel out old
+    in-transit emails for the same package.
+    """
+    shipper = GenericShipper(hass, {"image_path": "/tmp/test/"})  # noqa: S108
     mock_account = AsyncMock()
 
     with (
@@ -851,6 +899,27 @@ async def test_process_packages_ignores_since_date(hass):
     with patch(
         "custom_components.mail_and_packages.shippers.generic.email_search",
     ) as mock_search:
+        # capost_packages still has {} config — skips IMAP even with since_date
+        await shipper.process(
+            mock_account,
+            "22-Apr-2026",
+            "capost_packages",
+            since_date="19-Apr-2026",
+        )
+
+    mock_search.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_ups_packages_uses_since_date(hass):
+    """ups_packages with real config uses since_date for IMAP search window."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_search",
+        return_value=("OK", [b""]),
+    ) as mock_search:
         await shipper.process(
             mock_account,
             "22-Apr-2026",
@@ -858,4 +927,6 @@ async def test_process_packages_ignores_since_date(hass):
             since_date="19-Apr-2026",
         )
 
-    mock_search.assert_not_called()
+    mock_search.assert_called_once()
+    # since_date should be passed as the search date, not the regular date
+    assert mock_search.call_args.args[2] == "19-Apr-2026"

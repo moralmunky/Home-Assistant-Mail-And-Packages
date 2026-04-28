@@ -10,6 +10,8 @@ from custom_components.mail_and_packages.const import (
     ATTR_COUNT,
     ATTR_GRID_IMAGE_NAME,
     CONF_DURATION,
+    CONF_FORWARDING_HEADER,
+    SENSOR_DATA,
 )
 from custom_components.mail_and_packages.shippers.usps import USPSShipper
 from custom_components.mail_and_packages.utils.cache import EmailCache
@@ -509,6 +511,31 @@ async def test_informed_delivery_forwarded_emails_string(hass):
         search_addresses = mock_search.call_args[0][1]
         assert "forward@test.com" in search_addresses
         assert "other@test.com" in search_addresses
+
+
+@pytest.mark.asyncio
+async def test_informed_delivery_forwarding_header_mode(hass):
+    """Test USPS Informed Delivery in header mode: uses native addresses, passes header kwarg."""
+    shipper = USPSShipper(
+        hass,
+        {
+            CONF_FORWARDING_HEADER: "X-SimpleLogin-Original-From",
+            "forwarded_emails": ["should-not-appear@example.com"],
+        },
+    )
+    mock_account = AsyncMock()
+    native_addresses = SENSOR_DATA["usps_mail"]["email"]
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.usps.email_search",
+        return_value=("OK", [None]),
+    ) as mock_search:
+        await shipper.process(mock_account, "today", "usps_mail")
+        search_addresses = mock_search.call_args[0][1]
+        assert "should-not-appear@example.com" not in search_addresses
+        for addr in native_addresses:
+            assert addr in search_addresses
+        assert mock_search.call_args[0][4] == "X-SimpleLogin-Original-From"
 
 
 @pytest.mark.asyncio

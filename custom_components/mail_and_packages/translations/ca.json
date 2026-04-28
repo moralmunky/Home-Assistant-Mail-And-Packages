@@ -58,7 +58,7 @@
           "amazon_fwds": "Amazon ha reenviat les adreces de correu electrònic",
           "amazon_days": "Dies per comprovar els correus electrònics d'Amazon"
         },
-        "description": "Introduïu el domini des d'on Amazon envia correus electrònics (és a dir: amazon.com o amazon.de)\n\nSi utilitzeu correus electrònics reenviats d'Amazon, separeu cada adreça amb una coma o introduïu (none) per esborrar aquesta configuració.",
+        "description": "Introduïu el domini des d'on Amazon envia correus electrònics (és a dir: amazon.com o amazon.de)\n\nSi utilitzeu correus electrònics reenviats d'Amazon, separeu cada adreça amb una coma o introduïu (none) per esborrar aquesta configuració.\n\nNota: si heu configurat una capçalera de reenviament en el pas anterior, el camp d'adreça de reenviament no apareixerà — la capçalera gestiona la correspondència de correus electrònics d'Amazon automàticament.",
         "title": "Configuració d'Amazon"
       },
       "reconfig_2": {
@@ -102,7 +102,7 @@
           "amazon_fwds": "Amazon ha reenviat les adreces de correu electrònic",
           "amazon_days": "Dies per comprovar els correus electrònics d'Amazon"
         },
-        "description": "Introduïu el domini des d'on Amazon envia correus electrònics (és a dir: amazon.com o amazon.de)\n\nSi utilitzeu correus electrònics reenviats d'Amazon, separeu cada adreça amb una coma o introduïu (none) per esborrar aquesta configuració.",
+        "description": "Introduïu el domini des d'on Amazon envia correus electrònics (és a dir: amazon.com o amazon.de)\n\nSi utilitzeu correus electrònics reenviats d'Amazon, separeu cada adreça amb una coma o introduïu (none) per esborrar aquesta configuració.\n\nNota: si heu configurat una capçalera de reenviament en el pas anterior, el camp d'adreça de reenviament no apareixerà — la capçalera gestiona la correspondència de correus electrònics d'Amazon automàticament.",
         "title": "Configuració d'Amazon"
       },
       "config_storage": {
@@ -121,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Capçalera de reenviament (p. ex. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Adreces de correu electrònic reenviades"
         },
-        "description": "Per defecte, la integració de correu i paquets només cerca missatges que coincideixen amb l'adreça d'un servei.\n\nSi voleu utilitzar correus electrònics reenviats, separeu cada adreça de les quals vindran els missatges amb una coma o introduïu \"(none)\" per esborrar aquesta configuració.",
-        "title": "Adreces de correu electrònic reenviades"
+        "data_description": {
+          "forwarding_header": "Si el vostre servei de reenviament inclou el remitent original en una capçalera, introduïu aquí el nom de la capçalera. Això té prioritat sobre la llista d'adreces a continuació. Introduïu '(none)' o deixeu-ho en blanc per utilitzar la llista d'adreces.",
+          "forwarded_emails": "Llista d'adreces de reenviament separades per comes des de les quals arribaran els missatges. Deixeu '(none)' si feu servir la capçalera de reenviament de dalt."
+        },
+        "description": "Trieu com fer coincidir els correus electrònics reenviats.\n\n**Opció 1 — Capçalera de reenviament**: Si el vostre servei (p. ex. SimpleLogin) inclou el remitent original en una capçalera personalitzada, introduïu el nom d'aquesta capçalera. Mail and Packages l'utilitzarà per fer coincidir automàticament les adreces dels transportistes.\n\n**Opció 2 — Llista d'adreces**: Introduïu les adreces de reenviament que el vostre servei ha assignat a cada transportista, separades per comes.",
+        "title": "Configuració dels correus electrònics reenviats"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Capçalera de reenviament (p. ex. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Adreces de correu electrònic reenviades"
         },
-        "description": "Per defecte, la integració de correu i paquets només cerca missatges que coincideixen amb l'adreça d'un servei.\n\nSi voleu utilitzar correus electrònics reenviats, separeu cada adreça de les quals vindran els missatges amb una coma o introduïu \"(none)\" per esborrar aquesta configuració.",
-        "title": "Adreces de correu electrònic reenviades"
+        "data_description": {
+          "forwarding_header": "Si el vostre servei de reenviament inclou el remitent original en una capçalera, introduïu aquí el nom de la capçalera. Això té prioritat sobre la llista d'adreces a continuació. Introduïu '(none)' o deixeu-ho en blanc per utilitzar la llista d'adreces.",
+          "forwarded_emails": "Llista d'adreces de reenviament separades per comes des de les quals arribaran els missatges. Deixeu '(none)' si feu servir la capçalera de reenviament de dalt."
+        },
+        "description": "Trieu com fer coincidir els correus electrònics reenviats.\n\n**Opció 1 — Capçalera de reenviament**: Si el vostre servei (p. ex. SimpleLogin) inclou el remitent original en una capçalera personalitzada, introduïu el nom d'aquesta capçalera. Mail and Packages l'utilitzarà per fer coincidir automàticament les adreces dels transportistes.\n\n**Opció 2 — Llista d'adreces**: Introduïu les adreces de reenviament que el vostre servei ha assignat a cada transportista, separades per comes.",
+        "title": "Configuració dels correus electrònics reenviats"
       },
       "imap_config": {
         "description": "Introduïu la informació de connexió del vostre servidor de correu.",
