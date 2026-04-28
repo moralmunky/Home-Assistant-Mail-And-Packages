@@ -148,6 +148,7 @@ class MailCam(CoordinatorEntity, Camera):
         self._cached_image_path: str | None = None
         self._cached_image_bytes: bytes | None = None
         self._last_delivery_images: list[str] | None = None
+        self._is_generic: bool = True
 
     async def async_camera_image(
         self,
@@ -221,11 +222,13 @@ class MailCam(CoordinatorEntity, Camera):
     def _update_usps_camera(self) -> None:
         """Update file path for USPS camera."""
         self._file_path = f"{Path(__file__).parent}/mail_none.gif"
+        self._is_generic = True
         required_keys = {ATTR_USPS_IMAGE, ATTR_IMAGE_PATH}
         if required_keys.issubset(self.coordinator.data):
             image = self.coordinator.data[ATTR_USPS_IMAGE]
             path = self.coordinator.data[ATTR_IMAGE_PATH]
             self._file_path = f"{self.hass.config.path()}/{path}{image}"
+            self._is_generic = not self.coordinator.data.get("usps_update", False)
             _LOGGER.debug(
                 "usps_camera camera - file path set to: %s",
                 self._file_path,
@@ -237,6 +240,7 @@ class MailCam(CoordinatorEntity, Camera):
         """Update file path for Generic camera."""
         if self._no_mail:
             self._file_path = self._no_mail
+            self._is_generic = True
             _LOGGER.debug("Generic camera - using custom no mail: %s", self._file_path)
             return
 
@@ -255,6 +259,7 @@ class MailCam(CoordinatorEntity, Camera):
 
         if not delivery_images:
             self._file_path = f"{Path(__file__).parent}/no_deliveries_generic.jpg"
+            self._is_generic = True
             _LOGGER.debug(
                 "Generic camera - no deliveries found, using default: %s",
                 self._file_path,
@@ -279,6 +284,7 @@ class MailCam(CoordinatorEntity, Camera):
 
         if gif_created:
             self._file_path = gif_path
+            self._is_generic = False
             _LOGGER.debug(
                 "Generic camera - created animated GIF with %d delivery images at %s",
                 len(delivery_images),
@@ -289,6 +295,7 @@ class MailCam(CoordinatorEntity, Camera):
                 "Failed to create animated GIF, using first delivery image",
             )
             self._file_path = delivery_images[0]
+            self._is_generic = False
 
         for img in resized_images:
             if await anyio.Path(img).exists():
@@ -368,6 +375,7 @@ class MailCam(CoordinatorEntity, Camera):
         """Update file path for standard cameras (Amazon, UPS, etc)."""
         base_name = self._type.replace("_camera", "")
         self._file_path = f"{Path(__file__).parent}/no_deliveries_{base_name}.jpg"
+        self._is_generic = True
 
         if self._no_mail:
             self._file_path = self._no_mail
@@ -424,6 +432,11 @@ class MailCam(CoordinatorEntity, Camera):
             )
         else:
             await self._find_alternative_image(coordinator_file_path, image)
+
+        # Coordinator hashes the delivery image against the placeholder to detect
+        # whether a real email image was saved; use that result rather than guessing
+        # from file existence (the placeholder may have been copied to the same path).
+        self._is_generic = not self.coordinator.data.get(f"{base_name}_update", False)
 
     async def _find_alternative_image(
         self,
@@ -570,7 +583,10 @@ class MailCam(CoordinatorEntity, Camera):
     @property
     def extra_state_attributes(self):
         """Return the camera state attributes."""
-        return {"file_path": self._file_path}
+        return {
+            "file_path": self._file_path,
+            "is_generic": self._is_generic,
+        }
 
     @property
     def should_poll(self) -> bool:
