@@ -215,6 +215,12 @@ class MailCam(CoordinatorEntity, Camera):
         else:
             await self._update_standard_camera()
 
+        # Invalidate the cache so the next frontend request re-reads the image from disk.
+        # This is necessary because for some shippers (like USPS), the image file path
+        # stays the same but the underlying image content on disk changes.
+        self._cached_image_path = None
+        self._cached_image_bytes = None
+
         self.check_file_path_access(self._file_path)
         self.schedule_update_ha_state()
 
