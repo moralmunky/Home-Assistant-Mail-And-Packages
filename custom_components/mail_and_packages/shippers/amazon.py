@@ -40,6 +40,7 @@ from custom_components.mail_and_packages.const import (
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
     CONF_DURATION,
+    CONF_FORWARDING_HEADER,
     DEFAULT_AMAZON_DAYS,
 )
 from custom_components.mail_and_packages.utils.amazon import (
@@ -92,25 +93,34 @@ class AmazonShipper(Shipper):
         cache: EmailCache | None = None,
     ) -> dict[str, Any]:
         """Process Amazon-specific emails."""
-        fwds = cv.ensure_list_csv(self.config.get(CONF_AMAZON_FWDS))
+        forwarding_header = self.config.get(CONF_FORWARDING_HEADER, "")
+        if forwarding_header and forwarding_header != "(none)":
+            # Header mode: use native Amazon addresses; fwds not needed
+            fwds = None
+        else:
+            forwarding_header = ""
+            fwds = cv.ensure_list_csv(self.config.get(CONF_AMAZON_FWDS))
         days = self.config.get(CONF_AMAZON_DAYS, DEFAULT_AMAZON_DAYS)
         domain = self.config.get(CONF_AMAZON_DOMAIN)
 
         if sensor_type in [AMAZON_PACKAGES, AMAZON_ORDER]:
             param = "count" if sensor_type == AMAZON_PACKAGES else "order"
             result = await self._parse_amazon_emails(
-                account, param, fwds, days, domain, cache
+                account, param, fwds, days, domain, cache, forwarding_header
             )
             return {sensor_type: result}
 
         if sensor_type == AMAZON_HUB:
-            return await self._amazon_hub(account, fwds, cache)
+            return await self._amazon_hub(account, fwds, cache, forwarding_header)
 
         if sensor_type == AMAZON_OTP:
-            return await self._amazon_otp(account, fwds, cache)
+            result = await self._amazon_otp(account, fwds, cache, forwarding_header)
+            return {sensor_type: result}
 
         if sensor_type == AMAZON_EXCEPTION:
-            return await self._amazon_exception(account, fwds, domain, cache)
+            return await self._amazon_exception(
+                account, fwds, domain, cache, forwarding_header
+            )
 
         if sensor_type == AMAZON_DELIVERED:
             image_path = self.config.get("image_path")
@@ -122,6 +132,7 @@ class AmazonShipper(Shipper):
                 domain,
                 fwds,
                 cache,
+                forwarding_header,
             )
             return {
                 sensor_type: result,
@@ -137,6 +148,7 @@ class AmazonShipper(Shipper):
         date: str,
         sensors: list[str],
         cache: EmailCache,
+        since_date: str | None = None,
     ) -> dict[str, Any]:
         """Process multiple Amazon sensors in batch."""
         res = {}
@@ -159,12 +171,13 @@ class AmazonShipper(Shipper):
         days: int = DEFAULT_AMAZON_DAYS,
         domain: str | None = None,
         cache: EmailCache | None = None,
+        forwarding_header: str = "",
     ) -> list[str] | int:
         """Parse Amazon emails for delivery date and order number."""
         today_date = get_today()
         address_list = amazon_email_addresses(fwds, domain)
         unique_emails = await search_amazon_emails(
-            account, address_list, days, domain, cache
+            account, address_list, days, domain, cache, forwarding_header
         )
         order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
 
@@ -301,6 +314,7 @@ class AmazonShipper(Shipper):
         amazon_domain: str,
         fwds: list[str] | None = None,
         cache: EmailCache | None = None,
+        forwarding_header: str = "",
     ) -> int:
         """Find Amazon Delivered email and handle images."""
         _LOGGER.debug("=== AMAZON DELIVERED SEARCH START ===")
@@ -321,6 +335,7 @@ class AmazonShipper(Shipper):
             address_list,
             today,
             subjects,
+            forwarding_header,
         )
         if server_response == "OK" and data[0]:
             for email_id in data[0].split():
@@ -419,6 +434,7 @@ class AmazonShipper(Shipper):
         account: IMAP4_SSL,
         fwds: list[str] | None = None,
         cache: EmailCache | None = None,
+        forwarding_header: str = "",
     ) -> dict[str, Any]:
         """Find Amazon Hub code."""
         _LOGGER.debug("=== AMAZON HUB SEARCH START ===")
@@ -433,6 +449,7 @@ class AmazonShipper(Shipper):
                 address_list,
                 today,
                 search_subject,
+                forwarding_header,
             )
             if server_response == "OK" and data[0] is not None:
                 for num in data[0].split():
@@ -464,6 +481,7 @@ class AmazonShipper(Shipper):
         account: IMAP4_SSL,
         fwds: list[str] | None = None,
         cache: EmailCache | None = None,
+        forwarding_header: str = "",
     ) -> dict[str, Any]:
         """Find Amazon OTP code."""
         code = []
@@ -474,6 +492,7 @@ class AmazonShipper(Shipper):
             address_list,
             today,
             AMAZON_OTP_SUBJECT,
+            forwarding_header,
         )
         if server_response == "OK" and data[0] is not None:
             for num in data[0].split():
@@ -497,6 +516,7 @@ class AmazonShipper(Shipper):
         fwds: list[str] | None = None,
         domain: str | None = None,
         cache: EmailCache | None = None,
+        forwarding_header: str = "",
     ) -> dict[str, Any]:
         """Find Amazon exception emails."""
         count = 0
@@ -508,6 +528,7 @@ class AmazonShipper(Shipper):
             address_list,
             today,
             AMAZON_EXCEPTION_SUBJECT,
+            forwarding_header,
         )
         if server_response == "OK" and data[0] is not None:
             order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")

@@ -35,7 +35,8 @@
           "fedex_custom_img": "Gebruik aangepaste FedEx 'geen levering' afbeelding?",
           "generic_custom_img": "Gebruik aangepaste generieke 'geen levering' afbeelding?",
           "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen",
-          "allow_forwarded_emails": "Doorgestuurde e-mails toestaan naast de standaardwaarde van een service (bijv. no-reply@usps.com)"
+          "allow_forwarded_emails": "Doorgestuurde e-mails toestaan naast de standaardwaarde van een service (bijv. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Voltooi de configuratie door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie. \n\n Voor meer informatie over de [E-mail en pakketten integratie] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties bekijk de [configuratie, sjablonen , en automatisering sectie] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.",
         "title": "Mail en pakketten (stap 2 van 2)"
@@ -57,7 +58,7 @@
           "amazon_fwds": "Amazon stuurde e-mailadressen door",
           "amazon_days": "Dagen terug om te controleren op Amazon e-mails"
         },
-        "description": "Voer het domein in waarvan Amazon e-mails verstuurt (bijv: amazon.com of amazon.de)\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
+        "description": "Voer het domein in waarvan Amazon e-mails verstuurt (bijv: amazon.com of amazon.de)\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.\n\nOpmerking: als u in de vorige stap een doorstuurheader hebt geconfigureerd, verschijnt het doorstuuradresveld niet — de header verwerkt de Amazon e-mailkoppeling automatisch.",
         "title": "Amazon Instellingen"
       },
       "reconfig_2": {
@@ -78,7 +79,8 @@
           "fedex_custom_img": "Gebruik aangepaste FedEx 'geen levering' afbeelding?",
           "generic_custom_img": "Gebruik aangepaste generieke 'geen levering' afbeelding?",
           "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen",
-          "allow_forwarded_emails": "Doorgestuurde e-mails toestaan naast de standaardwaarde van een service (bijv. no-reply@usps.com)"
+          "allow_forwarded_emails": "Doorgestuurde e-mails toestaan naast de standaardwaarde van een service (bijv. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Rond de configuratie af door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie.\n\nVoor details over de [Mail en Packages integratie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties, bekijk de [configuratie, sjablonen en automatiseringen sectie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
         "title": "Mail en pakketten (stap 2 van 2)"
@@ -100,7 +102,7 @@
           "amazon_fwds": "Amazon stuurde e-mailadressen door",
           "amazon_days": "Dagen terug om te controleren op Amazon e-mails"
         },
-        "description": "Voer het domein in waarvan Amazon e-mails verstuurt (bijv: amazon.com of amazon.de)\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
+        "description": "Voer het domein in waarvan Amazon e-mails verstuurt (bijv: amazon.com of amazon.de)\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.\n\nOpmerking: als u in de vorige stap een doorstuurheader hebt geconfigureerd, verschijnt het doorstuuradresveld niet — de header verwerkt de Amazon e-mailkoppeling automatisch.",
         "title": "Amazon Instellingen"
       },
       "config_storage": {
@@ -119,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Doorstuurkoptekst (bijv. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Doorgestuurde e-mailadressen"
         },
-        "description": "Standaard zoekt de Mail and Packages-integratie alleen naar berichten die overeenkomen met het adres van een service.\n\nAls u doorgestuurde e-mails wilt gebruiken, scheid dan elk adres waarvan berichten zullen komen met een komma of voer '(none)' in om deze instelling te wissen.",
-        "title": "Doorgestuurde e-mailadressen"
+        "data_description": {
+          "forwarding_header": "Als uw doorstuurdienst de oorspronkelijke afzender in een koptekst opneemt, voer dan hier de naam van de koptekst in. Dit heeft voorrang op de onderstaande adreslijst. Voer '(none)' in of laat leeg om de adreslijst te gebruiken.",
+          "forwarded_emails": "Kommagescheiden lijst van doorstuuradressen waarvan berichten zullen aankomen. Laat '(none)' staan als u de bovenstaande doorstuurkoptekst gebruikt."
+        },
+        "description": "Kies hoe doorgestuurde e-mails worden gekoppeld.\n\n**Optie 1 — Doorstuurkoptekst**: Als uw dienst (bijv. SimpleLogin) de oorspronkelijke afzender in een aangepaste koptekst opneemt, voer dan die koptekstnaam in. Mail and Packages zal die gebruiken om vervoerdersadressen automatisch te koppelen.\n\n**Optie 2 — Adreslijst**: Voer de doorstuuradressen in die uw dienst aan elke vervoerder heeft toegewezen, gescheiden door komma's.",
+        "title": "Instellingen doorgestuurde e-mails"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Doorstuurkoptekst (bijv. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Doorgestuurde e-mailadressen"
         },
-        "description": "Standaard zoekt de Mail and Packages-integratie alleen naar berichten die overeenkomen met het adres van een service.\n\nAls u doorgestuurde e-mails wilt gebruiken, scheid dan elk adres waarvan berichten zullen komen met een komma of voer '(none)' in om deze instelling te wissen.",
-        "title": "Doorgestuurde e-mailadressen"
+        "data_description": {
+          "forwarding_header": "Als uw doorstuurdienst de oorspronkelijke afzender in een koptekst opneemt, voer dan hier de naam van de koptekst in. Dit heeft voorrang op de onderstaande adreslijst. Voer '(none)' in of laat leeg om de adreslijst te gebruiken.",
+          "forwarded_emails": "Kommagescheiden lijst van doorstuuradressen waarvan berichten zullen aankomen. Laat '(none)' staan als u de bovenstaande doorstuurkoptekst gebruikt."
+        },
+        "description": "Kies hoe doorgestuurde e-mails worden gekoppeld.\n\n**Optie 1 — Doorstuurkoptekst**: Als uw dienst (bijv. SimpleLogin) de oorspronkelijke afzender in een aangepaste koptekst opneemt, voer dan die koptekstnaam in. Mail and Packages zal die gebruiken om vervoerdersadressen automatisch te koppelen.\n\n**Optie 2 — Adreslijst**: Voer de doorstuuradressen in die uw dienst aan elke vervoerder heeft toegewezen, gescheiden door komma's.",
+        "title": "Instellingen doorgestuurde e-mails"
       },
       "imap_config": {
         "description": "Vul de verbindingsinformatie van uw mailserver in.",

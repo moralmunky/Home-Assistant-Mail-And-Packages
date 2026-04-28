@@ -24,6 +24,7 @@ from custom_components.mail_and_packages.const import (
     ATTR_USPS_MAIL,
     CONF_CUSTOM_IMG_FILE,
     CONF_DURATION,
+    CONF_FORWARDING_HEADER,
     CONF_GENERATE_GRID,
     CONF_GENERATE_MP4,
     DEFAULT_CUSTOM_IMG_FILE,
@@ -142,6 +143,7 @@ class USPSShipper(Shipper):
         date: str,
         sensors: list[str],
         cache: EmailCache,
+        since_date: str | None = None,
     ) -> dict[str, Any]:
         """Process multiple USPS sensors in batch."""
         res = {}
@@ -262,24 +264,32 @@ class USPSShipper(Shipper):
 
     async def _search_informed_delivery(self, account: IMAP4_SSL) -> tuple:
         """Search for USPS Informed Delivery emails."""
-        forwarded_emails = self.config.get("forwarded_emails", [])
-        if isinstance(forwarded_emails, str):
-            forwarded_emails = [
-                e.strip() for e in forwarded_emails.split(",") if e.strip()
-            ]
         _LOGGER.debug("Attempting to find Informed Delivery mail")
         _LOGGER.debug("Informed delivery search date: %s", get_formatted_date())
 
-        if forwarded_emails:
-            email_addresses = forwarded_emails + SENSOR_DATA[ATTR_USPS_MAIL][ATTR_EMAIL]
-        else:
+        forwarding_header = self.config.get(CONF_FORWARDING_HEADER, "")
+        if forwarding_header and forwarding_header != "(none)":
             email_addresses = SENSOR_DATA[ATTR_USPS_MAIL][ATTR_EMAIL]
+        else:
+            forwarding_header = ""
+            forwarded_emails = self.config.get("forwarded_emails", [])
+            if isinstance(forwarded_emails, str):
+                forwarded_emails = [
+                    e.strip() for e in forwarded_emails.split(",") if e.strip()
+                ]
+            if forwarded_emails:
+                email_addresses = (
+                    forwarded_emails + SENSOR_DATA[ATTR_USPS_MAIL][ATTR_EMAIL]
+                )
+            else:
+                email_addresses = SENSOR_DATA[ATTR_USPS_MAIL][ATTR_EMAIL]
 
         return await email_search(
             account,
             email_addresses,
             get_formatted_date(),
             SENSOR_DATA[ATTR_USPS_MAIL][ATTR_SUBJECT][0],
+            forwarding_header,
         )
 
     async def _setup_image_directory(self, path: str) -> bool:

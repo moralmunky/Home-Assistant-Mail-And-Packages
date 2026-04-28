@@ -35,7 +35,8 @@
           "fedex_custom_img": "Használjon egyéni FedEx 'nincs szállítás' képet?",
           "generic_custom_img": "Használjon egyéni általános 'nincs szállítás' képet?",
           "generate_grid": "Kép rács létrehozása LLM látásmodellekhez",
-          "allow_forwarded_emails": "Engedélyezze a továbbított e-maileket a szolgáltatás alapértelmezett értékén kívül (pl. no-reply@usps.com)"
+          "allow_forwarded_emails": "Engedélyezze a továbbított e-maileket a szolgáltatás alapértelmezett értékén kívül (pl. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Végezze el a konfigurációt az alábbiak testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján. \n\n A [Levelek és csomagok integrációja] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opciókkal kapcsolatban tekintse meg a [konfiguráció, sablonok , és az automatizálás szakasz] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) a GitHubon.",
         "title": "Levél és csomagok (2. lépés a 2-ből)"
@@ -57,7 +58,7 @@
           "amazon_fwds": "Amazon továbbított e-mail címek",
           "amazon_days": "Napok visszamenőleg az Amazon e-mailek ellenőrzéséhez"
         },
-        "description": "Kérjük, adja meg azt a domain-t, ahonnan az Amazon e-maileket küld (pl.: amazon.com vagy amazon.de)\n\nHa az Amazon továbbított e-maileket használ, kérjük, válassza el minden címet vesszővel, vagy írja be, hogy (nincs), hogy törölje ezt a beállítást.",
+        "description": "Kérjük, adja meg azt a domain-t, ahonnan az Amazon e-maileket küld (pl.: amazon.com vagy amazon.de)\n\nHa az Amazon továbbított e-maileket használ, kérjük, válassza el minden címet vesszővel, vagy írja be, hogy (nincs), hogy törölje ezt a beállítást.\n\nMegjegyzés: ha az előző lépésben beállított egy továbbítási fejlécet, a továbbítási cím mező nem jelenik meg — a fejléc automatikusan kezeli az Amazon e-mailek egyeztetését.",
         "title": "Amazon beállítások"
       },
       "reconfig_2": {
@@ -78,7 +79,8 @@
           "fedex_custom_img": "Használjon egyéni FedEx 'nincs szállítás' képet?",
           "generic_custom_img": "Használjon egyéni általános 'nincs szállítás' képet?",
           "generate_grid": "Kép rács létrehozása LLM látásmodellekhez",
-          "allow_forwarded_emails": "Engedélyezze a továbbított e-maileket a szolgáltatás alapértelmezett értékén kívül (pl. no-reply@usps.com)"
+          "allow_forwarded_emails": "Engedélyezze a továbbított e-maileket a szolgáltatás alapértelmezett értékén kívül (pl. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Fejezze be a konfigurációt a következők testreszabásával az e-mail struktúrája és a Home Assistant telepítése alapján.\n\nA [Mail and Packages integráció](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) lehetőségeinek részleteiről a GitHub-on található [konfiguráció, sablonok és automatizálások szekcióban](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) található információkat.\n\nHa Amazon továbbított e-maileket használ, kérjük, válassza el minden címet vesszővel, vagy írja be a (none) opciót, hogy törölje ezt a beállítást.",
         "title": "Levél és csomagok (2. lépés a 2-ből)"
@@ -100,7 +102,7 @@
           "amazon_fwds": "Amazon továbbított e-mail címek",
           "amazon_days": "Napok visszamenőleg az Amazon e-mailek ellenőrzéséhez"
         },
-        "description": "Kérjük, adja meg azt a domain-t, ahonnan az Amazon e-maileket küld (pl.: amazon.com vagy amazon.de)\n\nHa az Amazon továbbított e-maileket használ, kérjük, válassza el minden címet vesszővel, vagy írja be, hogy (nincs), hogy törölje ezt a beállítást.",
+        "description": "Kérjük, adja meg azt a domain-t, ahonnan az Amazon e-maileket küld (pl.: amazon.com vagy amazon.de)\n\nHa az Amazon továbbított e-maileket használ, kérjük, válassza el minden címet vesszővel, vagy írja be, hogy (nincs), hogy törölje ezt a beállítást.\n\nMegjegyzés: ha az előző lépésben beállított egy továbbítási fejlécet, a továbbítási cím mező nem jelenik meg — a fejléc automatikusan kezeli az Amazon e-mailek egyeztetését.",
         "title": "Amazon beállítások"
       },
       "config_storage": {
@@ -119,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Továbbítási fejléc (pl. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Továbbított e-mail címek"
         },
-        "description": "Alapértelmezés szerint a Mail and Packages integráció csak a szolgáltatás címével egyező üzeneteket keresi.\n\nHa továbbított e-maileket szeretne használni, kérjük, válassza el minden címet, ahonnan az üzenetek érkezni fognak, vesszővel, vagy írja be a '(none)' értéket a beállítás törléséhez.",
-        "title": "Továbbított e-mail címek"
+        "data_description": {
+          "forwarding_header": "Ha a továbbítási szolgáltatása tartalmazza az eredeti feladót egy fejlécben, adja meg itt a fejléc nevét. Ez elsőbbséget élvez az alábbi címlistával szemben. Írja be a '(none)' értéket, vagy hagyja üresen a címlista használatához.",
+          "forwarded_emails": "Vesszővel elválasztott lista a továbbítási címekről, ahonnan az üzenetek érkeznek. Hagyja '(none)' értéken, ha a fenti továbbítási fejlécet használja."
+        },
+        "description": "Válassza ki, hogyan egyezzen meg a továbbított e-mailekkel.\n\n**1. lehetőség — Továbbítási fejléc**: Ha a szolgáltatása (pl. SimpleLogin) tartalmazza az eredeti feladót egy egyéni fejlécben, adja meg azt a fejlécnevet. A Mail and Packages ezt fogja használni a szállítói címek automatikus egyeztetéséhez.\n\n**2. lehetőség — Címlista**: Adja meg a továbbítási címeket, amelyeket a szolgáltatása minden szállítóhoz hozzárendelt, vesszővel elválasztva.",
+        "title": "Továbbított e-mailek beállításai"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Továbbítási fejléc (pl. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Továbbított e-mail címek"
         },
-        "description": "Alapértelmezés szerint a Mail and Packages integráció csak a szolgáltatás címével egyező üzeneteket keresi.\n\nHa továbbított e-maileket szeretne használni, kérjük, válassza el minden címet, ahonnan az üzenetek érkezni fognak, vesszővel, vagy írja be a '(none)' értéket a beállítás törléséhez.",
-        "title": "Továbbított e-mail címek"
+        "data_description": {
+          "forwarding_header": "Ha a továbbítási szolgáltatása tartalmazza az eredeti feladót egy fejlécben, adja meg itt a fejléc nevét. Ez elsőbbséget élvez az alábbi címlistával szemben. Írja be a '(none)' értéket, vagy hagyja üresen a címlista használatához.",
+          "forwarded_emails": "Vesszővel elválasztott lista a továbbítási címekről, ahonnan az üzenetek érkeznek. Hagyja '(none)' értéken, ha a fenti továbbítási fejlécet használja."
+        },
+        "description": "Válassza ki, hogyan egyezzen meg a továbbított e-mailekkel.\n\n**1. lehetőség — Továbbítási fejléc**: Ha a szolgáltatása (pl. SimpleLogin) tartalmazza az eredeti feladót egy egyéni fejlécben, adja meg azt a fejlécnevet. A Mail and Packages ezt fogja használni a szállítói címek automatikus egyeztetéséhez.\n\n**2. lehetőség — Címlista**: Adja meg a továbbítási címeket, amelyeket a szolgáltatása minden szállítóhoz hozzárendelt, vesszővel elválasztva.",
+        "title": "Továbbított e-mailek beállításai"
       },
       "imap_config": {
         "description": "Kérjük, adja meg a levelezőszervere kapcsolati adatait.",

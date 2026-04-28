@@ -24,6 +24,7 @@ from custom_components.mail_and_packages.const import (
     ATTR_TRACKING,
     CAMERA_DATA,
     CAMERA_EXTRACTION_CONFIG,
+    CONF_FORWARDING_HEADER,
     SENSOR_DATA,
 )
 from custom_components.mail_and_packages.utils.cache import EmailCache
@@ -62,8 +63,13 @@ class GenericShipper(Shipper):
         date: str,
         sensor_type: str,
         cache: EmailCache | None = None,
+        since_date: str | None = None,
     ) -> dict[str, Any]:
-        """Process emails for this shipper on the given date."""
+        """Process emails for this shipper on the given date.
+
+        since_date: if provided, used instead of date for _delivering and
+        _exception sensors so that emails from previous days are included.
+        """
         _LOGGER.debug("Processing generic sensor: %s", sensor_type)
 
         if sensor_type not in SENSOR_DATA:
@@ -74,14 +80,30 @@ class GenericShipper(Shipper):
         email_addresses = config.get(ATTR_EMAIL, [])
         subjects = config.get(ATTR_SUBJECT, [])
 
-        # Add forwarded emails if configured
-        forwarded_emails = self.config.get("forwarded_emails", [])
-        if isinstance(forwarded_emails, str):
-            forwarded_emails = [
-                e.strip() for e in forwarded_emails.split(",") if e.strip()
-            ]
-        if forwarded_emails:
-            email_addresses = forwarded_emails + email_addresses
+        # _packages sensors with no email/subject are computed in process_batch
+        # as delivering + delivered; skip IMAP search here.
+        if sensor_type.endswith("_packages") and not email_addresses and not subjects:
+            _LOGGER.debug(
+                "Skipping email search for %s: no email addresses configured",
+                sensor_type,
+            )
+            return {ATTR_COUNT: 0, ATTR_TRACKING: []}
+
+        forwarding_header, email_addresses = self._resolve_forwarding(email_addresses)
+
+        # _delivering/_exception/_packages use the extended window so in-transit
+        # packages remain visible across the midnight boundary.
+        # _delivered uses today's date for the sensor count (resets at midnight)
+        # but also searches the extended window to obtain tracking numbers for
+        # deduplication — without those, a package delivered yesterday would still
+        # appear as "delivering" today because the delivering email is in the window
+        # but the delivered email is not.
+        is_delivered = sensor_type.endswith("_delivered")
+        search_date = date
+        if since_date and sensor_type.endswith(
+            ("_delivering", "_exception", "_delivered", "_packages")
+        ):
+            search_date = since_date
 
         result = {ATTR_COUNT: 0, ATTR_TRACKING: []}
 
@@ -102,13 +124,14 @@ class GenericShipper(Shipper):
         count, found_data, image_found = await self._search_for_emails(
             account,
             email_addresses,
-            date,
+            search_date,
             subjects,
             config,
             shipper_cfg,
             sensor_type,
             result,
             cache,
+            forwarding_header,
         )
 
         # Process tracking numbers
@@ -121,6 +144,28 @@ class GenericShipper(Shipper):
         if result[ATTR_TRACKING]:
             count = len(result[ATTR_TRACKING])
 
+        # For _delivered sensors, the extended-window search gives us tracking
+        # numbers needed for deduplication (above), but the count must reflect
+        # only today's deliveries so the sensor resets at midnight.
+        if is_delivered and since_date and search_date != date:
+            today_result: dict[str, Any] = {ATTR_COUNT: 0, ATTR_TRACKING: []}
+            today_count, today_found, _ = await self._search_for_emails(
+                account,
+                email_addresses,
+                date,
+                subjects,
+                config,
+                shipper_cfg,
+                sensor_type,
+                today_result,
+                cache,
+                forwarding_header,
+            )
+            today_tracking = await self._process_tracking_numbers(
+                sensor_type, today_found, account, cache
+            )
+            count = len(today_tracking) if today_tracking else today_count
+
         result[ATTR_COUNT] = count
         if shipper_cfg:
             image_attr = f"{shipper_cfg['name']}_image"
@@ -132,24 +177,54 @@ class GenericShipper(Shipper):
 
         return result
 
+    def _resolve_forwarding(self, email_addresses: list[str]) -> tuple[str, list[str]]:
+        """Return (forwarding_header, resolved_email_addresses).
+
+        Header mode: uses original-sender header for matching; address list
+        is passed as-is so IMAP can match via HEADER substring.
+        Address-list mode: prepends the user's forwarded addresses so that
+        emails arriving through a forwarding service are also matched.
+        """
+        forwarding_header = self.config.get(CONF_FORWARDING_HEADER, "")
+        if forwarding_header and forwarding_header != "(none)":
+            return forwarding_header, email_addresses
+        forwarding_header = ""
+        forwarded_emails = self.config.get("forwarded_emails", [])
+        if isinstance(forwarded_emails, str):
+            forwarded_emails = [
+                e.strip() for e in forwarded_emails.split(",") if e.strip()
+            ]
+        if forwarded_emails:
+            email_addresses = forwarded_emails + email_addresses
+        return forwarding_header, email_addresses
+
     async def process_batch(
         self,
         account: IMAP4_SSL,
         date: str,
         sensors: list[str],
         cache: EmailCache,
+        since_date: str | None = None,
     ) -> dict[str, Any]:
         """Process multiple generic sensors in batch."""
         batch_results, all_tracking = await self._process_individual_sensors(
-            account, date, sensors, cache
+            account, date, sensors, cache, since_date
         )
 
         self._deduplicate_batch_tracking(batch_results)
+        self._compute_package_totals(batch_results)
 
         # Merge results and aggregate global tracking
         res = {}
-        for _, sensor_res in batch_results:
+        for sensor, sensor_res in batch_results:
             res.update(sensor_res)
+            # Expose per-sensor raw tracking for coordinator state management.
+            # Keyed as "_tracking_details" to distinguish from the public data dict.
+            tracking = sensor_res.get(ATTR_TRACKING)
+            if tracking and sensor.endswith(
+                ("_delivering", "_delivered", "_exception")
+            ):
+                res.setdefault("_tracking_details", {})[sensor] = list(tracking)
 
         if all_tracking:
             res[ATTR_TRACKING] = list(all_tracking)
@@ -162,13 +237,16 @@ class GenericShipper(Shipper):
         date: str,
         sensors: list[str],
         cache: EmailCache,
+        since_date: str | None = None,
     ) -> tuple[list[tuple[str, dict[str, Any]]], set[str]]:
         """Process each sensor independently and aggregate tracking."""
         batch_results = []
         all_tracking = set()
 
         for sensor in sensors:
-            sensor_res = await self.process(account, date, sensor, cache)
+            sensor_res = await self.process(
+                account, date, sensor, cache, since_date=since_date
+            )
             # Replicate coordinator dictionary logic for local sensor counts
             if sensor not in sensor_res and ATTR_COUNT in sensor_res:
                 sensor_res[sensor] = sensor_res[ATTR_COUNT]
@@ -192,17 +270,29 @@ class GenericShipper(Shipper):
             # Prefix is everything before the last underscore (e.g., 'ups', 'fedex')
             prefix = "_".join(sensor.split("_")[:-1])
             if prefix not in shippers:
-                shippers[prefix] = {"delivered": set(), "update_targets": []}
+                shippers[prefix] = {
+                    "delivered": set(),
+                    "delivering": set(),
+                    "update_targets": [],
+                    "package_targets": [],
+                }
 
             tracking = set(sensor_res.get(ATTR_TRACKING, []))
             if sensor.endswith("_delivered"):
                 shippers[prefix]["delivered"].update(tracking)
             elif sensor.endswith(("_delivering", "_exception")):
+                shippers[prefix]["delivering"].update(tracking)
                 shippers[prefix]["update_targets"].append((sensor, sensor_res))
+            elif sensor.endswith("_packages"):
+                shippers[prefix]["package_targets"].append((sensor, sensor_res))
 
-        # Remove "delivered" tracking numbers from concurrent "transit" sensors
         for data in shippers.values():
+            # Remove "delivered" tracking numbers from in-transit sensors
             self._apply_deduplication(data["update_targets"], data["delivered"])
+            # Remove "delivering" and "delivered" tracking numbers from _packages
+            # so _packages only shows packages not yet out for delivery or delivered
+            in_pipeline = data["delivering"] | data["delivered"]
+            self._apply_deduplication(data["package_targets"], in_pipeline)
 
     def _apply_deduplication(
         self,
@@ -224,6 +314,34 @@ class GenericShipper(Shipper):
                 sensor_res[sensor] = len(new_tracking)
                 if ATTR_COUNT in sensor_res:
                     sensor_res[ATTR_COUNT] = len(new_tracking)
+
+    def _compute_package_totals(
+        self,
+        batch_results: list[tuple[str, dict[str, Any]]],
+    ) -> None:
+        """Compute _packages sensors with empty config as delivering + delivered.
+
+        These sensors have no IMAP search of their own; their value is the
+        sum of the shipper's _delivering and _delivered counts (matching the
+        original pre-refactor behaviour in helpers.py).
+        """
+        sensor_counts = {
+            sensor: sensor_res.get(sensor, sensor_res.get(ATTR_COUNT, 0))
+            for sensor, sensor_res in batch_results
+        }
+
+        for sensor, sensor_res in batch_results:
+            if not sensor.endswith("_packages"):
+                continue
+            config = SENSOR_DATA.get(sensor, {})
+            if config.get(ATTR_EMAIL) or config.get(ATTR_SUBJECT):
+                continue  # sensor has its own IMAP search config
+            prefix = sensor.replace("_packages", "")
+            computed = sensor_counts.get(f"{prefix}_delivering", 0) + sensor_counts.get(
+                f"{prefix}_delivered", 0
+            )
+            sensor_res[sensor] = computed
+            sensor_res[ATTR_COUNT] = computed
 
     async def _copy_generic_placeholder(self, shipper_cfg: dict[str, Any]) -> None:
         """Copy the generic placeholder for the shipper."""
@@ -259,6 +377,7 @@ class GenericShipper(Shipper):
         sensor_type: str,
         result: dict[str, Any],
         cache: EmailCache | None = None,
+        forwarding_header: str = "",
     ) -> tuple[int, list[bytes], bool]:
         """Search for and process emails."""
         count = 0
@@ -271,6 +390,7 @@ class GenericShipper(Shipper):
             email_addresses,
             date,
             subjects,
+            forwarding_header,
         )
 
         if server_response == "OK" and sdata[0]:

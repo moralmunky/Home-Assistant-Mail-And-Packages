@@ -35,7 +35,8 @@
           "fedex_custom_img": "Uporabite prilagojeno sliko FedEx 'brez dostave'?",
           "generic_custom_img": "Uporabite prilagojeno splošno sliko 'brez dostave'?",
           "generate_grid": "Ustvari mrežo slik za vizualne modele LLM",
-          "allow_forwarded_emails": "Dovoli posredovane e-poštne sporočila poleg privzete vrednosti storitve (npr. no-reply@usps.com)"
+          "allow_forwarded_emails": "Dovoli posredovane e-poštne sporočila poleg privzete vrednosti storitve (npr. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Končajte konfiguracijo s prilagoditvijo naslednjih na podlagi strukture e-pošte in namestitve Home Assistant. \n\n Za podrobnosti o možnostih [Integracija pošte in paketov] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) preglejte [konfiguracijo, predloge in oddelku za avtomatizacije] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
         "title": "Pošta in paketi (2. korak od 2)"
@@ -57,7 +58,7 @@
           "amazon_fwds": "Amazon je posredoval e-poštne naslove",
           "amazon_days": "Dnevi nazaj za preverjanje Amazonovih e-poštnih sporočil"
         },
-        "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
+        "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.\n\nOpomba: če ste v prejšnjem koraku konfigurirali glavo posredovanja, polje z naslovom posredovanja ne bo prikazano — glava samodejno obravnava ujemanje Amazonovih e-poštnih sporočil.",
         "title": "Nastavitve Amazon"
       },
       "reconfig_2": {
@@ -78,7 +79,8 @@
           "fedex_custom_img": "Uporabite prilagojeno sliko FedEx 'brez dostave'?",
           "generic_custom_img": "Uporabite prilagojeno splošno sliko 'brez dostave'?",
           "generate_grid": "Ustvari mrežo slik za vizualne modele LLM",
-          "allow_forwarded_emails": "Dovoli posredovane e-poštne sporočila poleg privzete vrednosti storitve (npr. no-reply@usps.com)"
+          "allow_forwarded_emails": "Dovoli posredovane e-poštne sporočila poleg privzete vrednosti storitve (npr. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Konfiguracijo dokončajte z prilagajanjem naslednjega glede na strukturo vašega e-poštnega sporočila in namestitev Home Assistant.\n\nZa podrobnosti o možnostih [integracije Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) si oglejte [razdelek o konfiguraciji, predlogah in avtomatizacijah](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
         "title": "Pošta in paketi (2. korak od 2)"
@@ -100,7 +102,7 @@
           "amazon_fwds": "Amazon je posredoval e-poštne naslove",
           "amazon_days": "Dnevi nazaj za preverjanje Amazonovih e-poštnih sporočil"
         },
-        "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
+        "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.\n\nOpomba: če ste v prejšnjem koraku konfigurirali glavo posredovanja, polje z naslovom posredovanja ne bo prikazano — glava samodejno obravnava ujemanje Amazonovih e-poštnih sporočil.",
         "title": "Nastavitve Amazon"
       },
       "config_storage": {
@@ -119,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Glava za posredovanje (npr. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Posredovani e-poštni naslovi"
         },
-        "description": "Privzeto integracija Mail and Packages išče samo sporočila, ki ustrezajo naslovu storitve.\n\nČe želite uporabljati posredovana e-poštna sporočila, ločite vsak naslov, s katerega bodo prihajala sporočila, z vejico ali vnesite '(none)' za izbris te nastavitve.",
-        "title": "Posredovani e-poštni naslovi"
+        "data_description": {
+          "forwarding_header": "Če vaša storitev posredovanja vključuje izvirnega pošiljatelja v glavi, vnesite tukaj ime glave. To ima prednost pred spodnjim seznamom naslovov. Vnesite '(none)' ali pustite prazno, da namesto tega uporabite seznam naslovov.",
+          "forwarded_emails": "Z vejicami ločen seznam naslovov za posredovanje, od katerih bodo prihajala sporočila. Pustite '(none)', če uporabljate zgornjo glavo za posredovanje."
+        },
+        "description": "Izberite, kako ujemati posredovana e-poštna sporočila.\n\n**Možnost 1 — Glava za posredovanje**: Če vaša storitev (npr. SimpleLogin) vključuje izvirnega pošiljatelja v glavo po meri, vnesite ime te glave. Mail and Packages jo bo uporabil za samodejno ujemanje naslovov prevoznikov.\n\n**Možnost 2 — Seznam naslovov**: Vnesite naslove za posredovanje, ki jih je vaša storitev dodelila vsakemu prevozniku, ločene z vejicami.",
+        "title": "Nastavitve posredovane e-pošte"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Glava za posredovanje (npr. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Posredovani e-poštni naslovi"
         },
-        "description": "Privzeto integracija Mail and Packages išče samo sporočila, ki ustrezajo naslovu storitve.\n\nČe želite uporabljati posredovana e-poštna sporočila, ločite vsak naslov, s katerega bodo prihajala sporočila, z vejico ali vnesite '(none)' za izbris te nastavitve.",
-        "title": "Posredovani e-poštni naslovi"
+        "data_description": {
+          "forwarding_header": "Če vaša storitev posredovanja vključuje izvirnega pošiljatelja v glavi, vnesite tukaj ime glave. To ima prednost pred spodnjim seznamom naslovov. Vnesite '(none)' ali pustite prazno, da namesto tega uporabite seznam naslovov.",
+          "forwarded_emails": "Z vejicami ločen seznam naslovov za posredovanje, od katerih bodo prihajala sporočila. Pustite '(none)', če uporabljate zgornjo glavo za posredovanje."
+        },
+        "description": "Izberite, kako ujemati posredovana e-poštna sporočila.\n\n**Možnost 1 — Glava za posredovanje**: Če vaša storitev (npr. SimpleLogin) vključuje izvirnega pošiljatelja v glavo po meri, vnesite ime te glave. Mail and Packages jo bo uporabil za samodejno ujemanje naslovov prevoznikov.\n\n**Možnost 2 — Seznam naslovov**: Vnesite naslove za posredovanje, ki jih je vaša storitev dodelila vsakemu prevozniku, ločene z vejicami.",
+        "title": "Nastavitve posredovane e-pošte"
       },
       "imap_config": {
         "description": "Prosimo, vnesite podatke o povezavi vašega poštnega strežnika.",

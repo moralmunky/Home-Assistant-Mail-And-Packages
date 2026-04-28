@@ -35,7 +35,8 @@
           "fedex_custom_img": "Använd anpassad FedEx 'ingen leverans' bild?",
           "generic_custom_img": "Använd anpassad generisk 'ingen leverans' bild?",
           "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller",
-          "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänsts standardvärde (t.ex. no-reply@usps.com)"
+          "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänsts standardvärde (t.ex. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
         "title": "Mail och paket (steg 2 av 2)"
@@ -57,7 +58,7 @@
           "amazon_fwds": "Amazon vidarebefordrade e-postadresser",
           "amazon_days": "Dagar tillbaka för att kontrollera Amazon-e-postmeddelanden"
         },
-        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
+        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.\n\nObs: om du konfigurerade ett vidarebefordringshuvud i föregående steg kommer fältet för vidarebefordringsadress inte att visas — huvudet hanterar Amazon e-postkopplingen automatiskt.",
         "title": "Amazon-inställningar"
       },
       "reconfig_2": {
@@ -78,7 +79,8 @@
           "fedex_custom_img": "Använd anpassad FedEx 'ingen leverans' bild?",
           "generic_custom_img": "Använd anpassad generisk 'ingen leverans' bild?",
           "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller",
-          "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänsts standardvärde (t.ex. no-reply@usps.com)"
+          "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänsts standardvärde (t.ex. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Slutför konfigurationen genom att anpassa följande baserat på din e-poststruktur och Home Assistant-installation.\n\nFör detaljer om [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) alternativen granska [konfiguration, mallar och automatiseringssektionen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.\n\nOm du använder vidarebefordrade e-postmeddelanden från Amazon, separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
         "title": "Mail och paket (steg 2 av 2)"
@@ -100,7 +102,7 @@
           "amazon_fwds": "Amazon vidarebefordrade e-postadresser",
           "amazon_days": "Dagar tillbaka för att kontrollera Amazon-e-postmeddelanden"
         },
-        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
+        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.\n\nObs: om du konfigurerade ett vidarebefordringshuvud i föregående steg kommer fältet för vidarebefordringsadress inte att visas — huvudet hanterar Amazon e-postkopplingen automatiskt.",
         "title": "Amazon-inställningar"
       },
       "config_storage": {
@@ -119,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Vidarebefordringshuvud (t.ex. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Vidarebefordrade e-postadresser"
         },
-        "description": "Som standard söker Mail and Packages-integrationen endast efter meddelanden som matchar en tjänsts adress.\n\nOm du vill använda vidarebefordrade e-postmeddelanden, separera varje adress som meddelanden kommer från med ett kommatecken eller ange '(none)' för att rensa denna inställning.",
-        "title": "Vidarebefordrade e-postadresser"
+        "data_description": {
+          "forwarding_header": "Om din vidarebefordringstjänst inkluderar den ursprungliga avsändaren i ett huvud, ange huvud-namnet här. Detta har företräde framför adresslistan nedan. Ange '(none)' eller lämna tomt för att använda adresslistan istället.",
+          "forwarded_emails": "Kommaseparerad lista över vidarebefordringsadresser som meddelanden kommer att anlända från. Lämna '(none)' om du använder vidarebefordringshuvudet ovan."
+        },
+        "description": "Välj hur vidarebefordrade e-postmeddelanden ska matchas.\n\n**Alternativ 1 — Vidarebefordringshuvud**: Om din tjänst (t.ex. SimpleLogin) inkluderar den ursprungliga avsändaren i ett anpassat huvud, ange det huvud-namnet. Mail and Packages kommer att använda det för att automatiskt matcha transportörernas adresser.\n\n**Alternativ 2 — Adresslista**: Ange de vidarebefordringsadresser som din tjänst har tilldelat varje transportör, separerade med kommatecken.",
+        "title": "Inställningar för vidarebefordrade e-postmeddelanden"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Vidarebefordringshuvud (t.ex. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Vidarebefordrade e-postadresser"
         },
-        "description": "Som standard söker Mail and Packages-integrationen endast efter meddelanden som matchar en tjänsts adress.\n\nOm du vill använda vidarebefordrade e-postmeddelanden, separera varje adress som meddelanden kommer från med ett kommatecken eller ange '(none)' för att rensa denna inställning.",
-        "title": "Vidarebefordrade e-postadresser"
+        "data_description": {
+          "forwarding_header": "Om din vidarebefordringstjänst inkluderar den ursprungliga avsändaren i ett huvud, ange huvud-namnet här. Detta har företräde framför adresslistan nedan. Ange '(none)' eller lämna tomt för att använda adresslistan istället.",
+          "forwarded_emails": "Kommaseparerad lista över vidarebefordringsadresser som meddelanden kommer att anlända från. Lämna '(none)' om du använder vidarebefordringshuvudet ovan."
+        },
+        "description": "Välj hur vidarebefordrade e-postmeddelanden ska matchas.\n\n**Alternativ 1 — Vidarebefordringshuvud**: Om din tjänst (t.ex. SimpleLogin) inkluderar den ursprungliga avsändaren i ett anpassat huvud, ange det huvud-namnet. Mail and Packages kommer att använda det för att automatiskt matcha transportörernas adresser.\n\n**Alternativ 2 — Adresslista**: Ange de vidarebefordringsadresser som din tjänst har tilldelat varje transportör, separerade med kommatecken.",
+        "title": "Inställningar för vidarebefordrade e-postmeddelanden"
       },
       "imap_config": {
         "description": "Vänligen ange anslutningsinformationen för din e-postserver.",

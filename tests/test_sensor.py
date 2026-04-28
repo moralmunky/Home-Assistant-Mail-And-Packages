@@ -1,7 +1,9 @@
 """Test Mail and Packages sensors."""
 
 import datetime
-from unittest.mock import MagicMock
+import sys
+import types
+from unittest.mock import MagicMock, patch
 
 import pytest
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
@@ -62,6 +64,7 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     state = s("mail_usps_packages")
     assert state
     assert state.state == "3"
+    assert state.attributes["tracking_#"] == ["92123456789012345"]
 
     state = s("mail_ups_delivered")
     assert state
@@ -75,6 +78,7 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     state = s("mail_ups_packages")
     assert state
     assert state.state == "1"
+    assert state.attributes["tracking_#"] == ["1Z123456789"]
 
     state = s("mail_fedex_delivered")
     assert state
@@ -88,6 +92,7 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     state = s("mail_fedex_packages")
     assert state
     assert state.state == "2"
+    assert state.attributes["tracking_#"] == ["1234567890"]
 
     state = s("mail_amazon_packages")
     assert state
@@ -111,6 +116,7 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     state = s("mail_dhl_packages")
     assert state
     assert state.state == "2"
+    assert state.attributes["tracking_#"] == ["1234567890"]
 
     state = s("mail_auspost_delivered")
     assert state
@@ -143,6 +149,7 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     state = s("mail_inpost_pl_packages")
     assert state
     assert state.state == "3"
+    assert state.attributes["tracking_#"] == ["520113017830399002575123"]
 
     state = s("mail_dpd_com_pl_delivered")
     assert state
@@ -155,6 +162,7 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     state = s("mail_dpd_com_pl_packages")
     assert state
     assert state.state == "3"
+    assert state.attributes["tracking_#"] == ["13490015284111"]
 
     state = s("mail_gls_delivered")
     assert state
@@ -167,6 +175,7 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     state = s("mail_gls_packages")
     assert state
     assert state.state == "3"
+    assert state.attributes["tracking_#"] == ["51687952111"]
 
     state = s("packages_delivered")
     assert state
@@ -215,6 +224,76 @@ async def test_image_path_sensor_urls(hass, external_url, internal_url, expected
         coordinator,
     )
     assert sensor.native_value == expected_url
+
+
+async def test_image_path_sensor_url_ha_cloud(hass):
+    """Test ImagePathSensors falls back to HA Cloud remote URL when external_url is None."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_HOST: "imap.test.email",
+            CONF_PORT: 993,
+            CONF_USERNAME: "test@test.com",
+            CONF_PASSWORD: "password",
+        },
+    )
+    coordinator = MagicMock()
+    coordinator.data = {"usps_image": "test_image.gif", "image_path": "images/"}
+    hass.config.external_url = None
+    hass.config.internal_url = None
+
+    sensor = ImagePathSensors(
+        hass,
+        entry,
+        MagicMock(key="usps_mail_image_url", name="Mail Image URL"),
+        coordinator,
+    )
+
+    cloud_url = "https://cloud.example.nabu.casa"
+    mock_cloud = types.ModuleType("homeassistant.components.cloud")
+    mock_cloud.CloudNotAvailable = Exception
+    mock_cloud.async_remote_ui_url = MagicMock(return_value=cloud_url)
+
+    with patch.dict(sys.modules, {"homeassistant.components.cloud": mock_cloud}):
+        result = sensor._get_base_url()
+
+    assert result == cloud_url
+
+
+async def test_image_path_sensor_url_ha_cloud_unavailable(hass):
+    """Test _get_base_url falls back to internal_url when HA Cloud raises CloudNotAvailable."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_HOST: "imap.test.email",
+            CONF_PORT: 993,
+            CONF_USERNAME: "test@test.com",
+            CONF_PASSWORD: "password",
+        },
+    )
+    coordinator = MagicMock()
+    coordinator.data = {"usps_image": "test_image.gif", "image_path": "images/"}
+    hass.config.external_url = None
+    hass.config.internal_url = "http://internal.hass.url"
+
+    sensor = ImagePathSensors(
+        hass,
+        entry,
+        MagicMock(key="usps_mail_image_url", name="Mail Image URL"),
+        coordinator,
+    )
+
+    class _CloudNotAvailable(Exception):
+        pass
+
+    mock_cloud = types.ModuleType("homeassistant.components.cloud")
+    mock_cloud.CloudNotAvailable = _CloudNotAvailable
+    mock_cloud.async_remote_ui_url = MagicMock(side_effect=_CloudNotAvailable())
+
+    with patch.dict(sys.modules, {"homeassistant.components.cloud": mock_cloud}):
+        result = sensor._get_base_url()
+
+    assert result == "http://internal.hass.url"
 
 
 async def test_mail_updated_sensor_string_conversion(hass):

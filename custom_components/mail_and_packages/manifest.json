@@ -1,6 +1,7 @@
 {
   "domain": "mail_and_packages",
   "name": "Mail and Packages",
+  "after_dependencies": ["cloud"],
   "codeowners": [
     "@moralmunky",
     "@firstof9"

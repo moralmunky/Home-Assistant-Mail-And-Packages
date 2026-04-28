@@ -35,7 +35,8 @@
           "fedex_custom_img": "Usar imagem personalizada FedEx 'sem entrega'?",
           "generic_custom_img": "Usar imagem personalizada genérica 'sem entrega'?",
           "generate_grid": "Criar grade de imagens para modelos de visão LLM",
-          "allow_forwarded_emails": "Permitir emails encaminhados além do padrão de um serviço (ex: no-reply@usps.com)"
+          "allow_forwarded_emails": "Permitir emails encaminhados além do padrão de um serviço (ex: no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Conclua a configuração, personalizando o seguinte com base na sua estrutura de email e instalação do Home Assistant. \n\n Para obter detalhes sobre as opções [integração de Mail e Pacotes] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), revise as opções de [configuração, modelos e seção de automações] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) no GitHub.",
         "title": "Correio e pacotes (Etapa 2 de 2)"
@@ -57,7 +58,7 @@
           "amazon_fwds": "A Amazon encaminhou endereços de email",
           "amazon_days": "Dias atrás para verificar emails da Amazon"
         },
-        "description": "Por favor, insira o domínio de onde a Amazon envia e-mails (por exemplo: amazon.com ou amazon.de)\n\nSe estiver usando e-mails encaminhados pela Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.",
+        "description": "Por favor, insira o domínio de onde a Amazon envia e-mails (por exemplo: amazon.com ou amazon.de)\n\nSe estiver usando e-mails encaminhados pela Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.\n\nNota: se configurou um cabeçalho de reencaminhamento no passo anterior, o campo de endereço de reencaminhamento não aparecerá — o cabeçalho trata automaticamente da correspondência de e-mails da Amazon.",
         "title": "Configurações da Amazon"
       },
       "reconfig_2": {
@@ -78,7 +79,8 @@
           "fedex_custom_img": "Usar imagem personalizada FedEx 'sem entrega'?",
           "generic_custom_img": "Usar imagem personalizada genérica 'sem entrega'?",
           "generate_grid": "Criar grade de imagens para modelos de visão LLM",
-          "allow_forwarded_emails": "Permitir emails encaminhados além do padrão de um serviço (ex: no-reply@usps.com)"
+          "allow_forwarded_emails": "Permitir emails encaminhados além do padrão de um serviço (ex: no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Conclua a configuração personalizando o seguinte com base na estrutura do seu email e na instalação do Home Assistant.\n\nPara detalhes sobre as opções de [integração de Correio e Pacotes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), consulte a [seção de configuração, modelos e automações](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) no GitHub.\n\nSe estiver usando emails encaminhados da Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.",
         "title": "Correio e pacotes (Etapa 2 de 2)"
@@ -100,7 +102,7 @@
           "amazon_fwds": "A Amazon encaminhou endereços de email",
           "amazon_days": "Dias atrás para verificar emails da Amazon"
         },
-        "description": "Por favor, insira o domínio de onde a Amazon envia e-mails (por exemplo: amazon.com ou amazon.de)\n\nSe estiver usando e-mails encaminhados pela Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.",
+        "description": "Por favor, insira o domínio de onde a Amazon envia e-mails (por exemplo: amazon.com ou amazon.de)\n\nSe estiver usando e-mails encaminhados pela Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.\n\nNota: se configurou um cabeçalho de reencaminhamento no passo anterior, o campo de endereço de reencaminhamento não aparecerá — o cabeçalho trata automaticamente da correspondência de e-mails da Amazon.",
         "title": "Configurações da Amazon"
       },
       "config_storage": {
@@ -119,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Cabeçalho de reencaminhamento (ex. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Endereços de email encaminhados"
         },
-        "description": "Por padrão, a integração Mail and Packages procura apenas mensagens que correspondem ao endereço de um serviço.\n\nSe desejar usar e-mails encaminhados, separe cada endereço de onde as mensagens virão com uma vírgula ou insira '(none)' para limpar esta configuração.",
-        "title": "Endereços de email encaminhados"
+        "data_description": {
+          "forwarding_header": "Se o seu serviço de reencaminhamento inclui o remetente original num cabeçalho, introduza aqui o nome do cabeçalho. Isto tem prioridade sobre a lista de endereços abaixo. Introduza '(none)' ou deixe em branco para usar a lista de endereços.",
+          "forwarded_emails": "Lista separada por vírgulas dos endereços de reencaminhamento de onde chegarão as mensagens. Deixe '(none)' se estiver a usar o cabeçalho de reencaminhamento acima."
+        },
+        "description": "Escolha como fazer a correspondência dos e-mails reencaminhados.\n\n**Opção 1 — Cabeçalho de reencaminhamento**: Se o seu serviço (ex. SimpleLogin) inclui o remetente original num cabeçalho personalizado, introduza esse nome de cabeçalho. O Mail and Packages irá utilizá-lo para fazer a correspondência automática dos endereços das transportadoras.\n\n**Opção 2 — Lista de endereços**: Introduza os endereços de reencaminhamento que o seu serviço atribuiu a cada transportadora, separados por vírgulas.",
+        "title": "Definições de e-mails reencaminhados"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Cabeçalho de reencaminhamento (ex. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Endereços de email encaminhados"
         },
-        "description": "Por padrão, a integração Mail and Packages procura apenas mensagens que correspondem ao endereço de um serviço.\n\nSe desejar usar e-mails encaminhados, separe cada endereço de onde as mensagens virão com uma vírgula ou insira '(none)' para limpar esta configuração.",
-        "title": "Endereços de email encaminhados"
+        "data_description": {
+          "forwarding_header": "Se o seu serviço de reencaminhamento inclui o remetente original num cabeçalho, introduza aqui o nome do cabeçalho. Isto tem prioridade sobre a lista de endereços abaixo. Introduza '(none)' ou deixe em branco para usar a lista de endereços.",
+          "forwarded_emails": "Lista separada por vírgulas dos endereços de reencaminhamento de onde chegarão as mensagens. Deixe '(none)' se estiver a usar o cabeçalho de reencaminhamento acima."
+        },
+        "description": "Escolha como fazer a correspondência dos e-mails reencaminhados.\n\n**Opção 1 — Cabeçalho de reencaminhamento**: Se o seu serviço (ex. SimpleLogin) inclui o remetente original num cabeçalho personalizado, introduza esse nome de cabeçalho. O Mail and Packages irá utilizá-lo para fazer a correspondência automática dos endereços das transportadoras.\n\n**Opção 2 — Lista de endereços**: Introduza os endereços de reencaminhamento que o seu serviço atribuiu a cada transportadora, separados por vírgulas.",
+        "title": "Definições de e-mails reencaminhados"
       },
       "imap_config": {
         "description": "Por favor, insira as informações de conexão do seu servidor de email.",

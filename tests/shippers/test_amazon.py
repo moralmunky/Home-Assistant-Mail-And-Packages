@@ -19,6 +19,7 @@ from custom_components.mail_and_packages.const import (
     AMAZON_OTP_CODE,
     AMAZON_PACKAGES,
     ATTR_COUNT,
+    CONF_FORWARDING_HEADER,
 )
 from custom_components.mail_and_packages.shippers.amazon import AmazonShipper
 from custom_components.mail_and_packages.utils.amazon import (
@@ -79,8 +80,8 @@ async def test_amazon_otp(hass):
         mock_fetch.return_value = ("OK", [bytearray(msg_text.encode())])
 
         result = await shipper.process(mock_account, "today", AMAZON_OTP)
-        assert AMAZON_OTP_CODE in result
-        assert result[AMAZON_OTP_CODE] == ["123456"]
+        assert AMAZON_OTP_CODE in result[AMAZON_OTP]
+        assert result[AMAZON_OTP][AMAZON_OTP_CODE] == ["123456"]
 
         # Scenario 2: Successful Extraction (Multipart)
         mock_search.return_value = ("OK", [b"2"])
@@ -89,7 +90,7 @@ async def test_amazon_otp(hass):
         mock_fetch.return_value = ("OK", [bytearray(msg.as_bytes())])
 
         result = await shipper.process(mock_account, "today", AMAZON_OTP)
-        assert result[AMAZON_OTP_CODE] == ["654321"]
+        assert result[AMAZON_OTP][AMAZON_OTP_CODE] == ["654321"]
 
         # Scenario 3: No Match found
         mock_search.return_value = ("OK", [b"3"])
@@ -97,7 +98,7 @@ async def test_amazon_otp(hass):
         mock_fetch.return_value = ("OK", [bytearray(msg_no_match.encode())])
 
         result = await shipper.process(mock_account, "today", AMAZON_OTP)
-        assert result[AMAZON_OTP_CODE] == []
+        assert result[AMAZON_OTP][AMAZON_OTP_CODE] == []
 
 
 @pytest.mark.asyncio
@@ -958,3 +959,33 @@ async def test_process_with_cache(hass):
         exc_res = await shipper._amazon_exception(mock_account, cache=cache)
         assert exc_res[AMAZON_EXCEPTION] == 1
         assert "111-1234567-1234567" in exc_res[AMAZON_EXCEPTION_ORDER]
+
+
+@pytest.mark.asyncio
+async def test_amazon_forwarding_header_mode_sets_fwds_none(hass):
+    """Test that header mode sets fwds=None so native Amazon addresses are used without forwarding."""
+    shipper = AmazonShipper(
+        hass,
+        {
+            CONF_FORWARDING_HEADER: "X-SimpleLogin-Original-From",
+            "amazon_fwds": ["fwd_at_amazon@simplelogin.co"],
+        },
+    )
+    mock_account = AsyncMock()
+
+    captured_fwds = {}
+
+    async def capture_fwds(account, param, fwds=None, *args, **kwargs):
+        captured_fwds["fwds"] = fwds
+        return 0
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            return_value=datetime.date(2024, 12, 19),
+        ),
+        patch.object(shipper, "_parse_amazon_emails", side_effect=capture_fwds),
+    ):
+        await shipper.process(mock_account, "today", AMAZON_PACKAGES)
+
+    assert captured_fwds["fwds"] is None

@@ -35,7 +35,8 @@
           "fedex_custom_img": "Utiliser une image personnalisée FedEx 'pas de livraison' ?",
           "generic_custom_img": "Utiliser une image personnalisée générique 'pas de livraison' ?",
           "generate_grid": "Créer une grille d'images pour les modèles de vision LLM",
-          "allow_forwarded_emails": "Autoriser les e-mails transférés en plus de la valeur par défaut d'un service (par ex. no-reply@usps.com)"
+          "allow_forwarded_emails": "Autoriser les e-mails transférés en plus de la valeur par défaut d'un service (par ex. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Terminez la configuration en personnalisant les éléments suivants en fonction de votre structure de messagerie et de l'installation de Home Assistant. \n\n Pour plus de détails sur les [Intégration de messagerie et de packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), passez en revue les [configuration, modèles et section automatisations] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sur GitHub.",
         "title": "Courrier et colis (étape 2 sur 2)"
@@ -57,7 +58,7 @@
           "amazon_fwds": "Amazon a transmis des adresses e-mail",
           "amazon_days": "Jours en arrière pour vérifier les emails Amazon"
         },
-        "description": "Veuillez entrer le domaine à partir duquel Amazon envoie des emails (par exemple : amazon.com ou amazon.de)\n\nSi vous utilisez des emails transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.",
+        "description": "Veuillez entrer le domaine à partir duquel Amazon envoie des emails (par exemple : amazon.com ou amazon.de)\n\nSi vous utilisez des emails transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.\n\nRemarque : si vous avez configuré un en-tête de transfert dans l'étape précédente, le champ d'adresse de transfert n'apparaîtra pas — l'en-tête gère automatiquement la correspondance des e-mails Amazon.",
         "title": "Paramètres Amazon"
       },
       "reconfig_2": {
@@ -78,7 +79,8 @@
           "fedex_custom_img": "Utiliser une image personnalisée FedEx 'pas de livraison' ?",
           "generic_custom_img": "Utiliser une image personnalisée générique 'pas de livraison' ?",
           "generate_grid": "Créer une grille d'images pour les modèles de vision LLM",
-          "allow_forwarded_emails": "Autoriser les e-mails transférés en plus de la valeur par défaut d'un service (par ex. no-reply@usps.com)"
+          "allow_forwarded_emails": "Autoriser les e-mails transférés en plus de la valeur par défaut d'un service (par ex. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Terminez la configuration en personnalisant ce qui suit en fonction de la structure de votre courrier électronique et de l'installation de Home Assistant.\n\nPour plus de détails sur les options d'[intégration de courrier et de colis](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), consultez la [section configuration, modèles et automatisations](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sur GitHub.\n\nSi vous utilisez des courriels transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.",
         "title": "Courrier et colis (étape 2 sur 2)"
@@ -100,7 +102,7 @@
           "amazon_fwds": "Amazon a transmis des adresses e-mail",
           "amazon_days": "Jours en arrière pour vérifier les emails Amazon"
         },
-        "description": "Veuillez entrer le domaine à partir duquel Amazon envoie des emails (par exemple : amazon.com ou amazon.de)\n\nSi vous utilisez des emails transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.",
+        "description": "Veuillez entrer le domaine à partir duquel Amazon envoie des emails (par exemple : amazon.com ou amazon.de)\n\nSi vous utilisez des emails transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.\n\nRemarque : si vous avez configuré un en-tête de transfert dans l'étape précédente, le champ d'adresse de transfert n'apparaîtra pas — l'en-tête gère automatiquement la correspondance des e-mails Amazon.",
         "title": "Paramètres Amazon"
       },
       "config_storage": {
@@ -119,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "En-tête de transfert (ex. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Adresses e-mail transférées"
         },
-        "description": "Par défaut, l'intégration Mail and Packages ne recherche que les messages correspondant à l'adresse d'un service.\n\nSi vous souhaitez utiliser des e-mails transférés, veuillez séparer chaque adresse d'où proviendront les messages par une virgule ou entrez '(none)' pour effacer ce paramètre.",
-        "title": "Adresses e-mail transférées"
+        "data_description": {
+          "forwarding_header": "Si votre service de transfert inclut l'expéditeur original dans un en-tête, entrez le nom de l'en-tête ici. Cela a la priorité sur la liste d'adresses ci-dessous. Entrez '(none)' ou laissez vide pour utiliser la liste d'adresses à la place.",
+          "forwarded_emails": "Liste séparée par des virgules des adresses de transfert dont proviendront les messages. Laissez '(none)' si vous utilisez l'en-tête de transfert ci-dessus."
+        },
+        "description": "Choisissez comment faire correspondre les e-mails transférés.\n\n**Option 1 — En-tête de transfert** : Si votre service (ex. SimpleLogin) inclut l'expéditeur original dans un en-tête personnalisé, entrez ce nom d'en-tête. Mail and Packages l'utilisera pour faire correspondre automatiquement les adresses des transporteurs.\n\n**Option 2 — Liste d'adresses** : Entrez les adresses de transfert que votre service a attribuées à chaque transporteur, séparées par des virgules.",
+        "title": "Paramètres des e-mails transférés"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "En-tête de transfert (ex. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Adresses e-mail transférées"
         },
-        "description": "Par défaut, l'intégration Mail and Packages ne recherche que les messages correspondant à l'adresse d'un service.\n\nSi vous souhaitez utiliser des e-mails transférés, veuillez séparer chaque adresse d'où proviendront les messages par une virgule ou entrez '(none)' pour effacer ce paramètre.",
-        "title": "Adresses e-mail transférées"
+        "data_description": {
+          "forwarding_header": "Si votre service de transfert inclut l'expéditeur original dans un en-tête, entrez le nom de l'en-tête ici. Cela a la priorité sur la liste d'adresses ci-dessous. Entrez '(none)' ou laissez vide pour utiliser la liste d'adresses à la place.",
+          "forwarded_emails": "Liste séparée par des virgules des adresses de transfert dont proviendront les messages. Laissez '(none)' si vous utilisez l'en-tête de transfert ci-dessus."
+        },
+        "description": "Choisissez comment faire correspondre les e-mails transférés.\n\n**Option 1 — En-tête de transfert** : Si votre service (ex. SimpleLogin) inclut l'expéditeur original dans un en-tête personnalisé, entrez ce nom d'en-tête. Mail and Packages l'utilisera pour faire correspondre automatiquement les adresses des transporteurs.\n\n**Option 2 — Liste d'adresses** : Entrez les adresses de transfert que votre service a attribuées à chaque transporteur, séparées par des virgules.",
+        "title": "Paramètres des e-mails transférés"
       },
       "imap_config": {
         "description": "Veuillez entrer les informations de connexion de votre serveur de messagerie.",

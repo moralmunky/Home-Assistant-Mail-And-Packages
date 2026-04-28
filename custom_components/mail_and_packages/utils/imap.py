@@ -76,7 +76,12 @@ async def selectfolder(account: IMAP4_SSL, folder: str) -> bool:
         return True
 
 
-def build_search(address: list, date: str, subject: str | list[str] = "") -> tuple:
+def build_search(
+    address: list,
+    date: str,
+    subject: str | list[str] = "",
+    header: str = "",
+) -> tuple:
     """Build IMAP search query.
 
     Return tuple of utf8 flag and search query.
@@ -84,55 +89,56 @@ def build_search(address: list, date: str, subject: str | list[str] = "") -> tup
     with servers that only support US-ASCII charset (e.g. Microsoft Exchange).
     IMAP SUBJECT performs substring matching, so stripping non-ASCII chars
     still matches the original subject (e.g. 'Livr' matches 'Livré').
+
+    When `header` is provided, each address is matched as either a forwarded
+    email (via HEADER substring match) OR a direct email (via FROM), so the
+    same config works for carriers that are forwarded through a service like
+    SimpleLogin AND carriers whose emails arrive directly in the mailbox.
+    IMAP HEADER does substring matching, so "mcinfo@ups.com" will match a
+    header value of "UPS <mcinfo@ups.com>".
     """
     the_date = f"SINCE {date}"
-    imap_search = None
-    addr_prefix = None
-    email_list = None
 
     if not address:
         raise ValueError("address list must not be empty")
 
-    if len(address) == 1:
-        email_list = address[0]
+    # Build the address/header clause
+    if header:
+        # Each address matches via header (forwarded) OR FROM (direct), so
+        # users with mixed setups (some carriers forwarded, others direct)
+        # don't need separate configurations.
+        parts = [f'OR HEADER "{header}" "{a}" FROM "{a}"' for a in address]
+        if len(parts) == 1:
+            addr_clause = parts[0]
+        else:
+            or_prefix = " ".join(["OR"] * (len(parts) - 1))
+            addr_clause = f"{or_prefix} {' '.join(parts)}"
+    elif len(address) == 1:
+        addr_clause = f'FROM "{address[0]}"'
     else:
-        email_list = '" FROM "'.join(address)
-        addr_prefix = " ".join(["OR"] * (len(address) - 1))
-
-    # Build the FROM part with explicit parentheses for OR groups
-    if addr_prefix is not None:
-        from_part = f'({addr_prefix} FROM "{email_list}")'
-    else:
-        from_part = f'FROM "{email_list}"'
+        joined = '" FROM "'.join(address)
+        or_prefix = " ".join(["OR"] * (len(address) - 1))
+        addr_clause = f'{or_prefix} FROM "{joined}"'
 
     # Handle multiple subjects
+    subject_part = ""
     if subject:
-        if isinstance(subject, str):
-            subjects = [subject]
-        else:
-            subjects = subject
-
-        # Strip non-ASCII characters for IMAP server compatibility
+        subjects = [subject] if isinstance(subject, str) else subject
         safe_subjects = [s.encode("ascii", "ignore").decode("ascii") for s in subjects]
-        # Filter out empty subjects after stripping
-        safe_subjects = [s for s in safe_subjects if s] if subjects else []
+        safe_subjects = [s for s in safe_subjects if s]
 
-        if not safe_subjects:
-            subject_part = ""
-        elif len(safe_subjects) == 1:
+        if len(safe_subjects) == 1:
             subject_part = f'SUBJECT "{safe_subjects[0]}"'
-        else:
+        elif len(safe_subjects) > 1:
             subject_prefix = " ".join(["OR"] * (len(safe_subjects) - 1))
             subject_part = (
                 f'({subject_prefix} SUBJECT "{'" SUBJECT "'.join(safe_subjects)}")'
             )
 
-        if subject_part:
-            imap_search = f"({from_part} {subject_part} {the_date})"
-        else:
-            imap_search = f"({from_part} {the_date})"
+    if subject_part:
+        imap_search = f"({addr_clause} {subject_part} {the_date})"
     else:
-        imap_search = f"({from_part} {the_date})"
+        imap_search = f"({addr_clause} {the_date})"
 
     _LOGGER.debug("DEBUG imap_search: %s", imap_search)
 
@@ -144,18 +150,22 @@ async def email_search(
     address: list,
     date: str,
     subject: str | list[str] = "",
+    header: str = "",
 ) -> tuple:
-    """Search emails with from, subject, and date asynchronously.
+    """Search emails with from/header, subject, and date asynchronously.
 
     Always uses charset=None to avoid sending CHARSET in the IMAP SEARCH
     command, ensuring compatibility with servers like Microsoft Exchange
     that only support US-ASCII.
 
+    When `header` is provided, searches via HEADER criterion instead of FROM,
+    matching the original sender in forwarding-service headers.
+
     If multiple subjects are provided, they are searched in batches of 10
     to keep the search query length safe.
     """
     if not isinstance(subject, list) or len(subject) <= 10:
-        _unused, search = build_search(address, date, subject)
+        _unused, search = build_search(address, date, subject, header)
         try:
             res = await account.search(search, charset=None)
         except (AioImapException, OSError) as err:
@@ -168,7 +178,7 @@ async def email_search(
     all_matched_ids = []
     for i in range(0, len(subject), 10):
         batch = subject[i : i + 10]
-        _unused, search = build_search(address, date, batch)
+        _unused, search = build_search(address, date, batch, header)
         try:
             res = await account.search(search, charset=None)
             if res.result == "OK" and res.lines[0]:

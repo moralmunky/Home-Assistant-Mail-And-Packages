@@ -35,7 +35,8 @@
           "fedex_custom_img": "使用自訂的 FedEx「無送貨」圖像？",
           "generic_custom_img": "使用自訂的通用「無送貨」圖像？",
           "generate_grid": "為LLM視覺模型創建圖像網格",
-          "allow_forwarded_emails": "允許轉發的電郵，除了服務的預設值（例如 no-reply@usps.com）"
+          "allow_forwarded_emails": "允許轉發的電郵，除了服務的預設值（例如 no-reply@usps.com）",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "通過根據您的電子郵件結構和Home Assistant安裝自定義以下內容來完成配置。 \n\n有關[郵件和軟件包集成]（https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration）選項的詳細信息，請查看[配置，模板和自動化部分]（GitHub上的https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration）。",
         "title": "郵件和包裹（第2步，共2步）"
@@ -57,7 +58,7 @@
           "amazon_fwds": "Amazon 轉發的電郵地址",
           "amazon_days": "檢查Amazon電郵的天數"
         },
-        "description": "請輸入亞馬遜發送電子郵件的域名（例如：amazon.com或amazon.de）\n\n如果使用亞馬遜轉發的電子郵件，請用逗號分隔每個地址，或輸入（無）以清除此設定。",
+        "description": "請輸入亞馬遜發送電子郵件的域名（例如：amazon.com或amazon.de）\n\n如果使用亞馬遜轉發的電子郵件，請用逗號分隔每個地址，或輸入（無）以清除此設定。\n\n注意：如果您在上一步中設定了轉寄標頭，轉寄地址欄位將不會顯示 — 標頭會自動處理 Amazon 電郵的配對。",
         "title": "Amazon 設定"
       },
       "reconfig_2": {
@@ -78,7 +79,8 @@
           "fedex_custom_img": "使用自訂的 FedEx「無送貨」圖像？",
           "generic_custom_img": "使用自訂的通用「無送貨」圖像？",
           "generate_grid": "為LLM視覺模型創建圖像網格",
-          "allow_forwarded_emails": "允許轉發的電郵，除了服務的預設值（例如 no-reply@usps.com）"
+          "allow_forwarded_emails": "允許轉發的電郵，除了服務的預設值（例如 no-reply@usps.com）",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "根據您的電郵結構和Home Assistant安裝來完成配置。\n\n有關[郵件和包裹整合](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)選項的詳情，請查閱GitHub上的[配置、模板和自動化部分](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)。\n\n如果使用Amazon轉發的電郵，請用逗號分隔每個地址，或輸入(none)以清除此設定。",
         "title": "郵件和包裹（第2步，共2步）"
@@ -100,7 +102,7 @@
           "amazon_fwds": "Amazon 轉發的電郵地址",
           "amazon_days": "檢查Amazon電郵的天數"
         },
-        "description": "請輸入亞馬遜發送電子郵件的域名（例如：amazon.com或amazon.de）\n\n如果使用亞馬遜轉發的電子郵件，請用逗號分隔每個地址，或輸入（無）以清除此設定。",
+        "description": "請輸入亞馬遜發送電子郵件的域名（例如：amazon.com或amazon.de）\n\n如果使用亞馬遜轉發的電子郵件，請用逗號分隔每個地址，或輸入（無）以清除此設定。\n\n注意：如果您在上一步中設定了轉寄標頭，轉寄地址欄位將不會顯示 — 標頭會自動處理 Amazon 電郵的配對。",
         "title": "Amazon 設定"
       },
       "config_storage": {
@@ -119,17 +121,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "轉寄標頭 (例如 X-SimpleLogin-Original-From)",
           "forwarded_emails": "轉發的電郵地址"
         },
-        "description": "預設情況下，Mail and Packages 整合只會搜尋與服務地址相符的訊息。\n\n如果您想使用轉發的電郵，請用逗號分隔每個訊息來源的地址，或輸入 '(none)' 來清除此設定。",
-        "title": "轉發的電郵地址"
+        "data_description": {
+          "forwarding_header": "如果您的轉寄服務在標頭中包含原始寄件者，請在此輸入標頭名稱。這優先於下方的地址清單。輸入「(none)」或留空以改用地址清單。",
+          "forwarded_emails": "以逗號分隔的轉寄地址清單，訊息將從這些地址發送。如果使用上方的轉寄標頭，請保留「(none)」。"
+        },
+        "description": "選擇如何匹配轉寄的電子郵件。\n\n**選項 1 — 轉寄標頭**：如果您的服務（例如 SimpleLogin）在自訂標頭中包含原始寄件者，請輸入該標頭名稱。Mail and Packages 將使用它自動匹配快遞公司地址。\n\n**選項 2 — 地址清單**：輸入您的服務為每個快遞公司分配的轉寄地址，以逗號分隔。",
+        "title": "轉寄電子郵件設定"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "轉寄標頭 (例如 X-SimpleLogin-Original-From)",
           "forwarded_emails": "轉發的電郵地址"
         },
-        "description": "預設情況下，Mail and Packages 整合只會搜尋與服務地址相符的訊息。\n\n如果您想使用轉發的電郵，請用逗號分隔每個訊息來源的地址，或輸入 '(none)' 來清除此設定。",
-        "title": "轉發的電郵地址"
+        "data_description": {
+          "forwarding_header": "如果您的轉寄服務在標頭中包含原始寄件者，請在此輸入標頭名稱。這優先於下方的地址清單。輸入「(none)」或留空以改用地址清單。",
+          "forwarded_emails": "以逗號分隔的轉寄地址清單，訊息將從這些地址發送。如果使用上方的轉寄標頭，請保留「(none)」。"
+        },
+        "description": "選擇如何匹配轉寄的電子郵件。\n\n**選項 1 — 轉寄標頭**：如果您的服務（例如 SimpleLogin）在自訂標頭中包含原始寄件者，請輸入該標頭名稱。Mail and Packages 將使用它自動匹配快遞公司地址。\n\n**選項 2 — 地址清單**：輸入您的服務為每個快遞公司分配的轉寄地址，以逗號分隔。",
+        "title": "轉寄電子郵件設定"
       },
       "imap_config": {
         "description": "請輸入您的郵件伺服器的連接資訊。",

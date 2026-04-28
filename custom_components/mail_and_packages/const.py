@@ -78,6 +78,8 @@ CONF_IMAP_SECURITY = "imap_security"
 CONF_AMAZON_DOMAIN = "amazon_domain"
 CONF_ALLOW_FORWARDED_EMAILS = "allow_forwarded_emails"
 CONF_FORWARDED_EMAILS = "forwarded_emails"
+CONF_FORWARDING_HEADER = "forwarding_header"
+CONF_CUSTOM_DAYS = "custom_days"
 
 # Defaults
 DEFAULT_CAMERA_NAME = "Mail USPS Camera"
@@ -89,6 +91,8 @@ DEFAULT_IMAGE_SECURITY = True
 DEFAULT_IMAP_TIMEOUT = 60
 DEFAULT_GIF_DURATION = 5
 DEFAULT_SCAN_INTERVAL = 30
+DEFAULT_CUSTOM_DAYS = 3
+MAX_TRACKING_AGE_DAYS = 14
 DEFAULT_GIF_FILE_NAME = "mail_today.gif"
 DEFAULT_AMAZON_FWDS = "(none)"
 DEFAULT_ALLOW_EXTERNAL = False
@@ -120,6 +124,7 @@ DEFAULT_STORAGE = "custom_components/mail_and_packages/images/"
 
 DEFAULT_ALLOW_FORWARDED_EMAILS = False
 DEFAULT_FORWARDED_EMAILS = "(none)"
+DEFAULT_FORWARDING_HEADER = "(none)"
 
 # Amazon
 AMAZON_DOMAINS = [
@@ -290,7 +295,10 @@ SENSOR_DATA = {
         "email": ["auto-reply@usps.com"],
         "subject": ["Delivery Exception"],
     },
-    "usps_packages": {},
+    "usps_packages": {
+        "email": ["auto-reply@usps.com"],
+        "subject": ["Expected Delivery by"],
+    },
     "usps_tracking": {"pattern": ["9[2345]\\d{15,26}"]},
     "usps_mail": {
         "email": [
@@ -337,7 +345,10 @@ SENSOR_DATA = {
         "email": ["mcinfo@ups.com"],
         "subject": ["UPS Update: New Scheduled Delivery Date"],
     },
-    "ups_packages": {},
+    "ups_packages": {
+        "email": ["mcinfo@ups.com", "pkginfo@ups.com"],
+        "subject": ["UPS Ship Notification"],
+    },
     "ups_tracking": {"pattern": ["1Z?[0-9A-Z]{16}"]},
     # FedEx
     "fedex_delivered": {
@@ -367,7 +378,14 @@ SENSOR_DATA = {
             "Ihre Sendung wird voraussichtlich heute zugestellt",
         ],
     },
-    "fedex_packages": {},
+    "fedex_packages": {
+        "email": [
+            "TrackingUpdates@fedex.com",
+            "fedexcanada@fedex.com",
+            "noreply@fedex.com",
+        ],
+        "subject": ["Your shipment is on the way"],
+    },
     "fedex_tracking": {"pattern": ["\\d{12,20}"]},
     # Canada Post
     "capost_delivered": {
@@ -797,6 +815,10 @@ SENSOR_DATA = {
             "Delivered:",
             "Arrived:",
         ],
+    },
+    "walmart_packages": {
+        "email": ["help@walmart.com"],
+        "subject": ["Thanks for your delivery order"],
     },
     "walmart_exception": {
         "email": ["help@walmart.com"],
@@ -1378,6 +1400,12 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="walmart_delivered",
+    ),
+    "walmart_packages": SensorEntityDescription(
+        name="Mail Walmart Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="walmart_packages",
     ),
     "walmart_exception": SensorEntityDescription(
         name="Mail Walmart Exception",

@@ -39,7 +39,8 @@
           "fedex_custom_img": "Použít vlastní obrázek FedEx 'bez dodání'?",
           "generic_custom_img": "Použít vlastní obrázek obecný 'bez dodání'?",
           "allow_forwarded_emails": "Povolit přeposílané e-maily kromě výchozí hodnoty služby (např. no-reply@usps.com)",
-          "generate_grid": "Create image grid for LLM vision models"
+          "generate_grid": "Create image grid for LLM vision models",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Dokončete konfiguraci přizpůsobením následujících položek na základě struktury e-mailu a instalace Home Assistant.\n\nPodrobnosti o [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) můžete zkontrolovat na [configurace, styly a automatizace](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
         "title": "Mail and Packages (Krok 2 ze 3)"
@@ -53,17 +54,27 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Hlavička přesměrování (např. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Přeposílané e-mailové adresy"
         },
-        "description": "Ve výchozím nastavení integrace Mail and Packages vyhledává pouze zprávy odpovídající adrese služby.\n\nPokud chcete používat přeposílané e-maily, oddělte každou adresu, ze které budou zprávy přicházet, čárkou nebo zadejte '(none)' pro vymazání tohoto nastavení.",
-        "title": "Přeposílané e-mailové adresy"
+        "data_description": {
+          "forwarding_header": "Pokud vaše přeposílací služba zahrnuje původního odesílatele do záhlaví, zadejte zde název záhlaví. To má přednost před níže uvedeným seznamem adres. Zadejte '(none)' nebo nechte prázdné, chcete-li místo toho použít seznam adres.",
+          "forwarded_emails": "Seznam přeposílacích adres oddělených čárkami, ze kterých budou přicházet zprávy. Ponechejte '(none)', pokud používáte výše uvedenou hlavičku přesměrování."
+        },
+        "description": "Vyberte způsob porovnávání přeposlaných e-mailů.\n\n**Možnost 1 — Hlavička přesměrování**: Pokud vaše služba (např. SimpleLogin) zahrnuje původního odesílatele do vlastního záhlaví, zadejte název tohoto záhlaví. Mail and Packages ho použije k automatickému přiřazení adres dopravců.\n\n**Možnost 2 — Seznam adres**: Zadejte přeposílací adresy, které vaše služba přidělila každému dopravci, oddělené čárkami.",
+        "title": "Nastavení přeposlaných e-mailů"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Hlavička přesměrování (např. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Přeposílané e-mailové adresy"
         },
-        "description": "Ve výchozím nastavení integrace Mail and Packages vyhledává pouze zprávy odpovídající adrese služby.\n\nPokud chcete používat přeposílané e-maily, oddělte každou adresu, ze které budou zprávy přicházet, čárkou nebo zadejte '(none)' pro vymazání tohoto nastavení.",
-        "title": "Přeposílané e-mailové adresy"
+        "data_description": {
+          "forwarding_header": "Pokud vaše přeposílací služba zahrnuje původního odesílatele do záhlaví, zadejte zde název záhlaví. To má přednost před níže uvedeným seznamem adres. Zadejte '(none)' nebo nechte prázdné, chcete-li místo toho použít seznam adres.",
+          "forwarded_emails": "Seznam přeposílacích adres oddělených čárkami, ze kterých budou přicházet zprávy. Ponechejte '(none)', pokud používáte výše uvedenou hlavičku přesměrování."
+        },
+        "description": "Vyberte způsob porovnávání přeposlaných e-mailů.\n\n**Možnost 1 — Hlavička přesměrování**: Pokud vaše služba (např. SimpleLogin) zahrnuje původního odesílatele do vlastního záhlaví, zadejte název tohoto záhlaví. Mail and Packages ho použije k automatickému přiřazení adres dopravců.\n\n**Možnost 2 — Seznam adres**: Zadejte přeposílací adresy, které vaše služba přidělila každému dopravci, oddělené čárkami.",
+        "title": "Nastavení přeposlaných e-mailů"
       },
       "imap_config": {
         "data": {
@@ -108,7 +119,7 @@
           "amazon_fwds": "Amazon forwarded email addresses",
           "amazon_days": "Days back to check for Amazon emails"
         },
-        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
+        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.\n\nNote: if you configured a forwarding header in the previous step, the forwarding address field will not appear — the header handles Amazon email matching automatically.",
         "title": "Amazon Settings"
       },
       "reconfig_imap": {
@@ -140,7 +151,8 @@
           "ups_custom_img": "Use custom 'no UPS delivery' image?",
           "walmart_custom_img": "Use custom 'no Walmart delivery' image?",
           "fedex_custom_img": "Use custom 'no FedEx delivery' image?",
-          "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
+          "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
         "title": "Mail and Packages (Step 2 of 2)"
@@ -162,7 +174,7 @@
           "amazon_fwds": "Amazon forwarded email addresses",
           "amazon_days": "Days back to check for Amazon emails"
         },
-        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
+        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.\n\nNote: if you configured a forwarding header in the previous step, the forwarding address field will not appear — the header handles Amazon email matching automatically.",
         "title": "Amazon Settings"
       },
       "config_storage": {

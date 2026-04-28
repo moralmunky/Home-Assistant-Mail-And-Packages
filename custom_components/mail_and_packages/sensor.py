@@ -141,7 +141,10 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         attr = {}
         data = self.coordinator.data
 
-        if any(sensor in self.type for sensor in ["_delivering", "_delivered"]):
+        if any(
+            sensor in self.type
+            for sensor in ["_delivering", "_delivered", "_packages", "_exception"]
+        ):
             if tracking := data.get(self._tracking_key):
                 attr[ATTR_TRACKING_NUM] = tracking
 
@@ -235,19 +238,39 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
             _LOGGER.debug("Updating grid image path to: %s", path)
             the_path = f"{self.hass.config.path()}/{path}{grid_image}"
         elif self.type == "usps_mail_image_url" and image:
-            if (
-                self.hass.config.external_url is None
-                and self.hass.config.internal_url is None
-            ):
-                the_path = None
-            elif self.hass.config.external_url is None:
-                _LOGGER.debug("External URL not set in configuration.")
-                url = self.hass.config.internal_url
-                the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
-            else:
-                url = self.hass.config.external_url
+            url = self._get_base_url()
+            if url:
                 the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
         return the_path
+
+    def _get_base_url(self) -> str | None:
+        """Return the best available base URL for building image links.
+
+        Priority: explicit external URL → HA Cloud remote URL → internal URL.
+        """
+        if self.hass.config.external_url:
+            return self.hass.config.external_url
+
+        # Try Home Assistant Cloud (Nabu Casa) — its remote URL is not exposed via
+        # hass.config.external_url when "Use Home Assistant Cloud" is selected.
+        try:
+            from homeassistant.components.cloud import (  # noqa: PLC0415
+                CloudNotAvailable,
+                async_remote_ui_url,
+            )
+        except ImportError:
+            pass
+        else:
+            try:
+                return async_remote_ui_url(self.hass)
+            except (CloudNotAvailable, KeyError):
+                _LOGGER.debug("HA Cloud remote URL not available.")
+
+        if self.hass.config.internal_url:
+            _LOGGER.debug("Falling back to internal URL for image link.")
+            return self.hass.config.internal_url
+
+        return None
 
     @property
     def should_poll(self) -> bool:
