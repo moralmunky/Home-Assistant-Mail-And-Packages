@@ -6,6 +6,7 @@
     "@firstof9"
   ],
   "config_flow": true,
+  "after_dependencies": ["cloud"],
   "dependencies": ["application_credentials"],
   "documentation": "https://github.com/moralmunky/Home-Assistant-Mail-And-Packages",
   "integration_type": "service",
