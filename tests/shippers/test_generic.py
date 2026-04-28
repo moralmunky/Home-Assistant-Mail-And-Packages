@@ -867,10 +867,11 @@ async def test_process_delivering_uses_since_date(hass):
 
 @pytest.mark.asyncio
 async def test_process_delivered_uses_since_date(hass):
-    """_delivered sensors also use since_date.
+    """_delivered sensors search twice: since_date for tracking dedup, date for count.
 
-    So delivered tracking numbers are found and can cancel out old
-    in-transit emails for the same package.
+    The first call uses since_date so delivered tracking numbers can cancel out
+    old in-transit emails. The second call uses today's date so the sensor count
+    resets at midnight.
     """
     shipper = GenericShipper(hass, {"image_path": "/tmp/test/"})  # noqa: S108
     mock_account = AsyncMock()
@@ -886,8 +887,11 @@ async def test_process_delivered_uses_since_date(hass):
             mock_account, "22-Apr-2026", "ups_delivered", since_date="19-Apr-2026"
         )
 
-    call_date = mock_search.call_args[0][2]
-    assert call_date == "19-Apr-2026"
+    assert mock_search.call_count == 2
+    # First call: extended window for tracking deduplication
+    assert mock_search.call_args_list[0][0][2] == "19-Apr-2026"
+    # Second call: today only so the count resets at midnight
+    assert mock_search.call_args_list[1][0][2] == "22-Apr-2026"
 
 
 @pytest.mark.asyncio

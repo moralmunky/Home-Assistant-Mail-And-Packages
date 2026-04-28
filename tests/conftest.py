@@ -426,6 +426,9 @@ def mock_imap_usps_informed_digest_no_mail(mock_imap):
 def mock_imap_usps_mail_delivered(mock_imap):
     """Mock IMAP search returning USPS package delivered."""
     mock_imap.select.return_value = ("OK", [b""])
+    # Use return_value (not side_effect) so both the extended-window and
+    # today-only searches triggered by the dual-search logic both find the email.
+    mock_imap.search = AsyncMock(return_value=MagicMock(result="OK", lines=[b"1"]))
     email_file = Path("tests/test_emails/usps_mail_delivered.eml").read_text(
         encoding="utf-8",
     )

@@ -91,11 +91,14 @@ class GenericShipper(Shipper):
 
         forwarding_header, email_addresses = self._resolve_forwarding(email_addresses)
 
-        # All three states use the extended window: _delivering/_exception to keep
-        # in-transit packages visible across the midnight boundary, and _delivered
-        # so that recently-delivered tracking numbers can be removed from the
-        # in-transit state (without this, a delivered package's "in transit" email
-        # stays visible because no corresponding delivered tracking number is found).
+        # _delivering/_exception/_packages use the extended window so in-transit
+        # packages remain visible across the midnight boundary.
+        # _delivered uses today's date for the sensor count (resets at midnight)
+        # but also searches the extended window to obtain tracking numbers for
+        # deduplication — without those, a package delivered yesterday would still
+        # appear as "delivering" today because the delivering email is in the window
+        # but the delivered email is not.
+        is_delivered = sensor_type.endswith("_delivered")
         search_date = date
         if since_date and sensor_type.endswith(
             ("_delivering", "_exception", "_delivered", "_packages")
@@ -140,6 +143,28 @@ class GenericShipper(Shipper):
         )
         if result[ATTR_TRACKING]:
             count = len(result[ATTR_TRACKING])
+
+        # For _delivered sensors, the extended-window search gives us tracking
+        # numbers needed for deduplication (above), but the count must reflect
+        # only today's deliveries so the sensor resets at midnight.
+        if is_delivered and since_date and search_date != date:
+            today_result: dict[str, Any] = {ATTR_COUNT: 0, ATTR_TRACKING: []}
+            today_count, today_found, _ = await self._search_for_emails(
+                account,
+                email_addresses,
+                date,
+                subjects,
+                config,
+                shipper_cfg,
+                sensor_type,
+                today_result,
+                cache,
+                forwarding_header,
+            )
+            today_tracking = await self._process_tracking_numbers(
+                sensor_type, today_found, account, cache
+            )
+            count = len(today_tracking) if today_tracking else today_count
 
         result[ATTR_COUNT] = count
         if shipper_cfg:
