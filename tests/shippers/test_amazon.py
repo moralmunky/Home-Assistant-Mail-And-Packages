@@ -19,7 +19,6 @@ from custom_components.mail_and_packages.const import (
     AMAZON_OTP_CODE,
     AMAZON_PACKAGES,
     ATTR_COUNT,
-    ATTR_ORDER,
     CONF_FORWARDING_HEADER,
 )
 from custom_components.mail_and_packages.shippers.amazon import AmazonShipper
@@ -81,8 +80,8 @@ async def test_amazon_otp(hass):
         mock_fetch.return_value = ("OK", [bytearray(msg_text.encode())])
 
         result = await shipper.process(mock_account, "today", AMAZON_OTP)
-        assert AMAZON_OTP_CODE in result
-        assert result[AMAZON_OTP_CODE] == ["123456"]
+        assert AMAZON_OTP_CODE in result[AMAZON_OTP]
+        assert result[AMAZON_OTP][AMAZON_OTP_CODE] == ["123456"]
 
         # Scenario 2: Successful Extraction (Multipart)
         mock_search.return_value = ("OK", [b"2"])
@@ -91,7 +90,7 @@ async def test_amazon_otp(hass):
         mock_fetch.return_value = ("OK", [bytearray(msg.as_bytes())])
 
         result = await shipper.process(mock_account, "today", AMAZON_OTP)
-        assert result[AMAZON_OTP_CODE] == ["654321"]
+        assert result[AMAZON_OTP][AMAZON_OTP_CODE] == ["654321"]
 
         # Scenario 3: No Match found
         mock_search.return_value = ("OK", [b"3"])
@@ -99,7 +98,7 @@ async def test_amazon_otp(hass):
         mock_fetch.return_value = ("OK", [bytearray(msg_no_match.encode())])
 
         result = await shipper.process(mock_account, "today", AMAZON_OTP)
-        assert result[AMAZON_OTP_CODE] == []
+        assert result[AMAZON_OTP][AMAZON_OTP_CODE] == []
 
 
 @pytest.mark.asyncio
@@ -958,8 +957,8 @@ async def test_process_with_cache(hass):
         return_value=("OK", [b"5"]),
     ):
         exc_res = await shipper._amazon_exception(mock_account, cache=cache)
-        assert exc_res[ATTR_COUNT] == 1
-        assert "111-1234567-1234567" in exc_res[ATTR_ORDER]
+        assert exc_res[AMAZON_EXCEPTION] == 1
+        assert "111-1234567-1234567" in exc_res[AMAZON_EXCEPTION_ORDER]
 
 
 @pytest.mark.asyncio

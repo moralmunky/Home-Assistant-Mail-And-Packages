@@ -224,6 +224,86 @@ async def test_image_path_sensor_urls(hass, external_url, internal_url, expected
     assert sensor.native_value == expected_url
 
 
+async def test_image_path_sensor_url_ha_cloud(hass):
+    """Test ImagePathSensors falls back to HA Cloud remote URL when external_url is None."""
+    import sys
+    import types
+    from unittest.mock import MagicMock as _MagicMock
+    from unittest.mock import patch as _patch
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_HOST: "imap.test.email",
+            CONF_PORT: 993,
+            CONF_USERNAME: "test@test.com",
+            CONF_PASSWORD: "password",
+        },
+    )
+    coordinator = MagicMock()
+    coordinator.data = {"usps_image": "test_image.gif", "image_path": "images/"}
+    hass.config.external_url = None
+    hass.config.internal_url = None
+
+    sensor = ImagePathSensors(
+        hass,
+        entry,
+        MagicMock(key="usps_mail_image_url", name="Mail Image URL"),
+        coordinator,
+    )
+
+    cloud_url = "https://cloud.example.nabu.casa"
+    mock_cloud = types.ModuleType("homeassistant.components.cloud")
+    mock_cloud.CloudNotAvailable = Exception
+    mock_cloud.async_remote_ui_url = _MagicMock(return_value=cloud_url)
+
+    with _patch.dict(sys.modules, {"homeassistant.components.cloud": mock_cloud}):
+        result = sensor._get_base_url()
+
+    assert result == cloud_url
+
+
+async def test_image_path_sensor_url_ha_cloud_unavailable(hass):
+    """Test _get_base_url falls back to internal_url when HA Cloud raises CloudNotAvailable."""
+    import sys
+    import types
+    from unittest.mock import MagicMock as _MagicMock
+    from unittest.mock import patch as _patch
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_HOST: "imap.test.email",
+            CONF_PORT: 993,
+            CONF_USERNAME: "test@test.com",
+            CONF_PASSWORD: "password",
+        },
+    )
+    coordinator = MagicMock()
+    coordinator.data = {"usps_image": "test_image.gif", "image_path": "images/"}
+    hass.config.external_url = None
+    hass.config.internal_url = "http://internal.hass.url"
+
+    sensor = ImagePathSensors(
+        hass,
+        entry,
+        MagicMock(key="usps_mail_image_url", name="Mail Image URL"),
+        coordinator,
+    )
+
+    class _CloudNotAvailable(Exception):
+        pass
+
+    mock_cloud = types.ModuleType("homeassistant.components.cloud")
+    mock_cloud.CloudNotAvailable = _CloudNotAvailable
+    mock_cloud.async_remote_ui_url = _MagicMock(side_effect=_CloudNotAvailable())
+
+    with _patch.dict(sys.modules, {"homeassistant.components.cloud": mock_cloud}):
+        result = sensor._get_base_url()
+
+    assert result == "http://internal.hass.url"
+
+
 async def test_mail_updated_sensor_string_conversion(hass):
     """Test that the mail_updated sensor handles string values correctly."""
     # This covers the fix we applied to sensor.py

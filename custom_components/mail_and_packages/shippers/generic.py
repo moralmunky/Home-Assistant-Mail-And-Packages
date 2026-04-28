@@ -83,24 +83,13 @@ class GenericShipper(Shipper):
         # _packages sensors with no email/subject are computed in process_batch
         # as delivering + delivered; skip IMAP search here.
         if sensor_type.endswith("_packages") and not email_addresses and not subjects:
+            _LOGGER.debug(
+                "Skipping email search for %s: no email addresses configured",
+                sensor_type,
+            )
             return {ATTR_COUNT: 0, ATTR_TRACKING: []}
 
-        # Resolve forwarding: header mode uses original-sender header matching;
-        # address-list mode prepends the user's forwarded addresses to the search.
-        forwarding_header = self.config.get(CONF_FORWARDING_HEADER, "")
-        if forwarding_header and forwarding_header != "(none)":
-            # Header mode: carrier email list is used as header value substrings;
-            # no address prepending needed.
-            pass
-        else:
-            forwarding_header = ""
-            forwarded_emails = self.config.get("forwarded_emails", [])
-            if isinstance(forwarded_emails, str):
-                forwarded_emails = [
-                    e.strip() for e in forwarded_emails.split(",") if e.strip()
-                ]
-            if forwarded_emails:
-                email_addresses = forwarded_emails + email_addresses
+        forwarding_header, email_addresses = self._resolve_forwarding(email_addresses)
 
         # All three states use the extended window: _delivering/_exception to keep
         # in-transit packages visible across the midnight boundary, and _delivered
@@ -162,6 +151,27 @@ class GenericShipper(Shipper):
                 await self._copy_generic_placeholder(shipper_cfg)
 
         return result
+
+    def _resolve_forwarding(self, email_addresses: list[str]) -> tuple[str, list[str]]:
+        """Return (forwarding_header, resolved_email_addresses).
+
+        Header mode: uses original-sender header for matching; address list
+        is passed as-is so IMAP can match via HEADER substring.
+        Address-list mode: prepends the user's forwarded addresses so that
+        emails arriving through a forwarding service are also matched.
+        """
+        forwarding_header = self.config.get(CONF_FORWARDING_HEADER, "")
+        if forwarding_header and forwarding_header != "(none)":
+            return forwarding_header, email_addresses
+        forwarding_header = ""
+        forwarded_emails = self.config.get("forwarded_emails", [])
+        if isinstance(forwarded_emails, str):
+            forwarded_emails = [
+                e.strip() for e in forwarded_emails.split(",") if e.strip()
+            ]
+        if forwarded_emails:
+            email_addresses = forwarded_emails + email_addresses
+        return forwarding_header, email_addresses
 
     async def process_batch(
         self,
