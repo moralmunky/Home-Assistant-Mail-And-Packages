@@ -41,6 +41,7 @@ def test_generate_service_email_domains():
     assert "amazon.co.uk" in domains
     # USPS is in SENSOR_DATA default emails
     assert "usps.com" in domains
+    assert "tracking.usps.com" in domains
 
 
 @pytest.mark.asyncio
