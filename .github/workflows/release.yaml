@@ -5,19 +5,27 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+
 jobs:
   release_zip_file:
     name: Prepare release asset
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
       - name: Check out repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Get Version
         id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
 
-      - name: "Set version numbmer"
+      - name: "Set version number"
         run: |
           sed -i '/\bVERSION\b = /c\VERSION = "${{ steps.get_version.outputs.VERSION }}"' ${{ github.workspace }}/custom_components/mail_and_packages/const.py
           sed -i '/version/c\  \"version\": \"${{ steps.get_version.outputs.VERSION }}\"' ${{ github.workspace }}/custom_components/mail_and_packages/manifest.json
@@ -27,7 +35,7 @@ jobs:
           cd ${{ github.workspace }}/custom_components/mail_and_packages
           zip mail_and_packages.zip -r ./
       - name: Upload zip to release
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # v2.11.5
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ github.workspace }}/custom_components/mail_and_packages/mail_and_packages.zip
