@@ -373,6 +373,11 @@ async def test_generic_body_search(hass):
             new_callable=AsyncMock,
             return_value=1,
         ) as mock_find,
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.find_text_matches",
+            new_callable=AsyncMock,
+            return_value=(1, [b"1"]),
+        ) as mock_find_matches,
         patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
         patch(
             "custom_components.mail_and_packages.shippers.generic.GenericShipper._verify_matched_subjects",
@@ -383,8 +388,38 @@ async def test_generic_body_search(hass):
         # dhl_delivered has "body" in SENSOR_DATA
         result = await shipper.process(mock_acc, "today", "dhl_delivered")
         assert result[ATTR_COUNT] == 1
-        # Called once for process_emails_by_type and once for check_amazon_mentions
-        assert mock_find.call_count == 2
+        assert mock_find.call_count == 1
+        assert mock_find_matches.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_generic_body_search_no_match(hass):
+    """Test GenericShipper with body search failing to match."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    mock_acc = AsyncMock()
+    mock_acc.search.return_value = MagicMock(result="OK", lines=[b"1"])
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.find_text_matches",
+            new_callable=AsyncMock,
+            return_value=(0, []),
+        ) as mock_find_matches,
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            new_callable=AsyncMock,
+        ) as mock_tracking,
+        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.GenericShipper._verify_matched_subjects",
+            new_callable=AsyncMock,
+            side_effect=lambda a, b, c, d, cache=None: b,
+        ),
+    ):
+        result = await shipper.process(mock_acc, "today", "dhl_delivered")
+        assert result[ATTR_COUNT] == 0
+        assert mock_find_matches.call_count == 1
+        assert mock_tracking.call_count == 0
 
 
 @pytest.mark.asyncio
