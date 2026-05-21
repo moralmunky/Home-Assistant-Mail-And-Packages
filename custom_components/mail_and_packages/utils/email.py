@@ -161,3 +161,41 @@ async def find_text(
             count += matches
 
     return count
+
+
+async def find_text_matches(
+    sdata: Any,
+    account: type[IMAP4_SSL],
+    search_terms: list,
+    body_count: bool,
+    cache: EmailCache | None = None,
+) -> tuple[int, list[bytes]]:
+    """Filter for specific words in email and return matches and matching IDs."""
+    _LOGGER.debug("Searching for (%s) in (%s) emails", search_terms, len(sdata))
+    mail_list = sdata[0].split()
+    count = 0
+    matching_ids = []
+
+    # Pre-compile regex patterns once
+    patterns = [re.compile(rf"{term}") for term in search_terms]
+
+    for i in mail_list:
+        matches, value = await _scan_email_for_text(
+            account, i, patterns, body_count, cache
+        )
+
+        matched = False
+        if body_count:
+            # If extracting a value, "last found value wins" (updates count)
+            if value is not None:
+                count = value
+                matched = True
+        # If counting occurrences, accumulate
+        elif matches > 0:
+            count += matches
+            matched = True
+
+        if matched:
+            matching_ids.append(i)
+
+    return count, matching_ids

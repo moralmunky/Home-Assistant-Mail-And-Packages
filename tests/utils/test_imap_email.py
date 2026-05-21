@@ -8,6 +8,7 @@ from aioimaplib import AUTH, NONAUTH, AioImapException
 
 from custom_components.mail_and_packages.utils.email import (
     find_text,
+    find_text_matches,
     generate_service_email_domains,
     validate_email_address,
 )
@@ -82,6 +83,57 @@ async def test_find_text_body_count():
 
         result = await find_text(sdata, mock_account, search_terms, True)
         assert result == 42
+
+
+@pytest.mark.asyncio
+async def test_find_text_matches_async():
+    """Test find_text_matches utility."""
+    mock_account = MagicMock()
+    sdata = [b"1 2 3"]  # three email IDs
+    search_terms = ["1Z1234567890"]
+
+    with patch(
+        "custom_components.mail_and_packages.utils.email.email_fetch",
+        new_callable=AsyncMock,
+    ) as mock_fetch:
+        # Email 1 and 2 match, Email 3 does not
+        mock_fetch.side_effect = [
+            ("OK", [b"From: test@example.com\n\nTracking 1Z1234567890"]),
+            ("OK", [b"From: test@example.com\n\nTracking 1Z1234567890"]),
+            ("OK", [b"From: test@example.com\n\nNo tracking info"]),
+        ]
+
+        count, matched_ids = await find_text_matches(
+            sdata, mock_account, search_terms, False
+        )
+        assert count == 2
+        assert matched_ids == [b"1", b"2"]
+        assert mock_fetch.call_count == 3
+
+
+@pytest.mark.asyncio
+async def test_find_text_matches_body_count():
+    """Test find_text_matches with body_count=True (value extraction)."""
+    mock_account = MagicMock()
+    sdata = [b"1 2"]
+    search_terms = [r"Count: (\d+)"]
+
+    with patch(
+        "custom_components.mail_and_packages.utils.email.email_fetch",
+        new_callable=AsyncMock,
+    ) as mock_fetch:
+        # Email 1 matches and extracts 42, Email 2 does not match
+        mock_fetch.side_effect = [
+            ("OK", [b"From: test@example.com\n\nCount: 42"]),
+            ("OK", [b"From: test@example.com\n\nNo count here"]),
+        ]
+
+        count, matched_ids = await find_text_matches(
+            sdata, mock_account, search_terms, True
+        )
+        assert count == 42
+        assert matched_ids == [b"1"]
+        assert mock_fetch.call_count == 2
 
 
 @pytest.mark.asyncio
