@@ -283,20 +283,20 @@ AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT = ["AMAZON"]
 SENSOR_DATA = {
     # USPS
     "usps_delivered": {
-        "email": ["auto-reply@usps.com"],
+        "email": ["auto-reply@usps.com", "auto-reply@tracking.usps.com"],
         "subject": ["Item Delivered"],
     },
     "usps_delivering": {
-        "email": ["auto-reply@usps.com"],
+        "email": ["auto-reply@usps.com", "auto-reply@tracking.usps.com"],
         "subject": ["Expected Delivery on", "Out for Delivery"],
         "body": ["Your item is out for delivery"],
     },
     "usps_exception": {
-        "email": ["auto-reply@usps.com"],
+        "email": ["auto-reply@usps.com", "auto-reply@tracking.usps.com"],
         "subject": ["Delivery Exception"],
     },
     "usps_packages": {
-        "email": ["auto-reply@usps.com"],
+        "email": ["auto-reply@usps.com", "auto-reply@tracking.usps.com"],
         "subject": ["Expected Delivery by"],
     },
     "usps_tracking": {"pattern": ["9[2345]\\d{15,26}"]},
