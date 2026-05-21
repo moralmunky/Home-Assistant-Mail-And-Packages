@@ -6,18 +6,26 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: "ubuntu-latest"
     name: Validate
     steps:
-        - uses: "actions/checkout@v4"
+        - name: Harden Runner
+          uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+          with:
+            egress-policy: audit
+
+        - uses: "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd" # v6.0.2
 
         - name: HACS validation
-          uses: "hacs/action@main"
+          uses: "hacs/action@d556e736723344f83838d08488c983a15381059a" # 22.5.0
           with:
             category: "integration"
             ignore: brands
 
         - name: Hassfest validation
-          uses: "home-assistant/actions/hassfest@master"
+          uses: "home-assistant/actions/hassfest@f6f29a7ee3fa0eccadf3620a7b9ee00ab54ec03b" # master
