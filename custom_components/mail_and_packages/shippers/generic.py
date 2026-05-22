@@ -100,8 +100,12 @@ class GenericShipper(Shipper):
         # but the delivered email is not.
         is_delivered = sensor_type.endswith("_delivered")
         search_date = date
-        if since_date and sensor_type.endswith(
-            ("_delivering", "_exception", "_delivered", "_packages")
+        if (
+            since_date
+            and sensor_type.endswith(
+                ("_delivering", "_exception", "_delivered", "_packages")
+            )
+            and sensor_type != "post_de_delivering"
         ):
             search_date = since_date
 
