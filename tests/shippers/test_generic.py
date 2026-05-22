@@ -990,3 +990,25 @@ async def test_ups_packages_uses_since_date(hass):
     mock_search.assert_called_once()
     # since_date should be passed as the search date, not the regular date
     assert mock_search.call_args.args[2] == "19-Apr-2026"
+
+
+@pytest.mark.asyncio
+async def test_post_de_delivering_ignores_since_date(hass):
+    """post_de_delivering (brief/letter announcement) ignores since_date and uses today's date."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_search",
+        return_value=("OK", [b""]),
+    ) as mock_search:
+        await shipper.process(
+            mock_account,
+            "22-Apr-2026",
+            "post_de_delivering",
+            since_date="19-Apr-2026",
+        )
+
+    mock_search.assert_called_once()
+    # today's date should be passed as the search date, ignoring since_date
+    assert mock_search.call_args.args[2] == "22-Apr-2026"
