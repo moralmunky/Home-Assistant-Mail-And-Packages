@@ -236,16 +236,23 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             _LOGGER.error("Error logging into IMAP: %s", err)
             raise UpdateFailed(f"Login failed: {err}") from err
 
-        try:
-            folder_ok = await selectfolder(account, config.get(CONF_FOLDER))
-        except Exception as err:
-            await logout(account)
-            raise UpdateFailed(f"Folder selection failed: {err}") from err
+        folders = config.get(CONF_FOLDER)
+        if isinstance(folders, str):
+            folders = [folders]
+        account._folders = folders  # noqa: SLF001
+        account._current_folder = None  # noqa: SLF001
 
-        if not folder_ok:
-            _LOGGER.error("Error selecting folder: %s", config.get(CONF_FOLDER))
-            await logout(account)
-            raise UpdateFailed(f"Folder selection failed: {config.get(CONF_FOLDER)}")
+        if folders:
+            try:
+                folder_ok = await selectfolder(account, folders[0])
+            except Exception as err:
+                await logout(account)
+                raise UpdateFailed(f"Folder selection failed: {err}") from err
+
+            if not folder_ok:
+                _LOGGER.error("Error selecting folder: %s", folders[0])
+                await logout(account)
+                raise UpdateFailed(f"Folder selection failed: {folders[0]}")
 
         return account
 

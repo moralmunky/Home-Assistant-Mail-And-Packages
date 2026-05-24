@@ -823,3 +823,179 @@ def test_build_search_multi_addr_multi_subject_parentheses():
     # Search must be wrapped in parens and include SINCE
     assert search.startswith("(")
     assert "SINCE 23-Apr-2026)" in search
+
+
+@pytest.mark.asyncio
+async def test_selectfolder_caching():
+    """Test that selectfolder caches the selected folder and avoids redundant list/select calls."""
+    mock_account = AsyncMock()
+    mock_account._current_folder = "INBOX"
+
+    # Select same folder - should return True immediately without calling list/select
+    res = await selectfolder(mock_account, "INBOX")
+    assert res is True
+    mock_account.list.assert_not_called()
+    mock_account.select.assert_not_called()
+
+    # Select different folder - should call list and select
+    mock_account._current_folder = "INBOX"
+    res = await selectfolder(mock_account, "Junk")
+    assert res is True
+    mock_account.list.assert_called_once_with("Junk", "*")
+    mock_account.select.assert_called_once_with("Junk")
+    assert mock_account._current_folder == "Junk"
+
+
+@pytest.mark.asyncio
+async def test_email_search_multisearch():
+    """Test email_search using ESEARCH (MULTISEARCH) capability."""
+    mock_account = AsyncMock()
+    mock_account._folders = ["INBOX", "Junk"]
+    mock_account.has_capability = MagicMock(return_value=True)
+
+    # Mock execute return value for Command ESEARCH
+    mock_res = MagicMock()
+    mock_res.result = "OK"
+    # ESEARCH response line with folder and range
+    mock_res.lines = [
+        b'* ESEARCH (TAG "1" MAILBOX "INBOX" UIDVALIDITY 123) UID ALL 1001:1003',
+        b'* ESEARCH (TAG "1" MAILBOX "Junk" UIDVALIDITY 123) UID ALL 2001',
+    ]
+
+    mock_protocol = AsyncMock()
+    mock_protocol.execute.return_value = mock_res
+    mock_protocol.new_tag.return_value = "1"
+    mock_protocol.loop = asyncio.get_running_loop()
+    mock_account.protocol = mock_protocol
+
+    result = await email_search(
+        mock_account, ["test@example.com"], "25-Mar-2026", subject="Test"
+    )
+
+    assert result[0] == "OK"
+    # UIDs should be parsed, expanded, and formatted as folder/uid
+    expected_uids = [
+        b"INBOX/1001",
+        b"INBOX/1002",
+        b"INBOX/1003",
+        b"Junk/2001",
+    ]
+    assert result[1] == [b" ".join(expected_uids)]
+
+
+@pytest.mark.asyncio
+async def test_email_search_sequential_fallback():
+    """Test email_search falling back to sequential searching when MULTISEARCH is absent."""
+    mock_account = AsyncMock()
+    mock_account._folders = ["INBOX", "Junk"]
+    mock_account.has_capability.return_value = False
+
+    # Mock uid_search response for each folder
+    mock_res1 = MagicMock(result="OK", lines=[b"1001 1002"])
+    mock_res2 = MagicMock(result="OK", lines=[b"2001"])
+    mock_account.uid_search.side_effect = [mock_res1, mock_res2]
+
+    # Mock list/select calls in selectfolder
+    mock_account.list.return_value = MagicMock()
+    mock_account.select.return_value = MagicMock()
+
+    result = await email_search(
+        mock_account, ["test@example.com"], "25-Mar-2026", subject="Test"
+    )
+
+    assert result[0] == "OK"
+    expected_uids = [
+        b"INBOX/1001",
+        b"INBOX/1002",
+        b"Junk/2001",
+    ]
+    assert result[1] == [b" ".join(expected_uids)]
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_folder_prefix():
+    """Test email_fetch with folder-prefixed UID."""
+    mock_account = AsyncMock()
+    mock_account._current_folder = "INBOX"
+
+    # Mock list/select/uid
+    mock_account.list.return_value = MagicMock()
+    mock_account.select.return_value = MagicMock()
+    mock_res = MagicMock(result="OK", lines=[b"RFC822", b"body"])
+    mock_account.uid.return_value = mock_res
+
+    result = await email_fetch(mock_account, b"Junk/2001")
+    assert result[0] == "OK"
+    assert result[1] == [b"RFC822", b"body"]
+
+    # Verify selectfolder was called for Junk and uid fetch executed
+    mock_account.select.assert_called_once_with("Junk")
+    mock_account.uid.assert_called_once_with("FETCH", "2001", "(RFC822)")
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_headers_folder_prefix():
+    """Test email_fetch_headers with folder-prefixed UID."""
+    mock_account = AsyncMock()
+    mock_account._current_folder = "INBOX"
+
+    mock_account.list.return_value = MagicMock()
+    mock_account.select.return_value = MagicMock()
+    mock_res = MagicMock(result="OK", lines=[b"Subject: Hello"])
+    mock_account.uid.return_value = mock_res
+
+    result = await email_fetch_headers(mock_account, b"Junk/2001")
+    assert result[0] == "OK"
+    assert result[1] == [b"Subject: Hello"]
+
+    mock_account.select.assert_called_once_with("Junk")
+    mock_account.uid.assert_called_once_with(
+        "FETCH", "2001", "(BODY[HEADER.FIELDS (SUBJECT)])"
+    )
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_text_folder_prefix():
+    """Test email_fetch_text with folder-prefixed UID."""
+    mock_account = AsyncMock()
+    mock_account._current_folder = "INBOX"
+
+    mock_account.list.return_value = MagicMock()
+    mock_account.select.return_value = MagicMock()
+    mock_res = MagicMock(result="OK", lines=[b"text body"])
+    mock_account.uid.return_value = mock_res
+
+    result = await email_fetch_text(mock_account, b"Junk/2001")
+    assert result[0] == "OK"
+    assert result[1] == [b"text body"]
+
+    mock_account.select.assert_called_once_with("Junk")
+    mock_account.uid.assert_called_once_with("FETCH", "2001", "(BODY[1])")
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_batch_folder_prefix():
+    """Test email_fetch_batch with folder-prefixed UIDs."""
+    mock_account = AsyncMock()
+    mock_account._current_folder = "INBOX"
+
+    mock_account.list.return_value = MagicMock()
+    mock_account.select.return_value = MagicMock()
+
+    # Mock fetch results for different folders
+    mock_res1 = MagicMock(result="OK", lines=[b"body1"])
+    mock_res2 = MagicMock(result="OK", lines=[b"body2"])
+    mock_account.uid.side_effect = [mock_res1, mock_res2]
+
+    uids = [b"INBOX/1001", b"Junk/2001"]
+    result = await email_fetch_batch(mock_account, uids)
+
+    assert result[0] == "OK"
+    assert result[1] == [b"body1", b"body2"]
+
+    # Verify folder switches and UID fetches
+    # 1001 should fetch in INBOX, 2001 in Junk
+    assert (
+        mock_account.select.call_count == 1
+    )  # selectfolder called only for Junk because _current_folder was already INBOX
+    mock_account.select.assert_called_once_with("Junk")

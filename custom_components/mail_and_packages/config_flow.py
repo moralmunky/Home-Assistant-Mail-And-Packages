@@ -296,6 +296,15 @@ async def _validate_user_input(user_input: dict) -> tuple:
     # Validate file paths
     _validate_path_input(user_input, errors)
 
+    # Normalize CONF_FOLDER: if it has exactly 1 folder, store as string
+    if CONF_FOLDER in user_input:
+        folder_val = user_input[CONF_FOLDER]
+        if isinstance(folder_val, (list, set, tuple)):
+            if len(folder_val) == 1:
+                user_input[CONF_FOLDER] = list(folder_val)[0]
+            else:
+                user_input[CONF_FOLDER] = list(folder_val)
+
     return errors, user_input
 
 
@@ -449,20 +458,29 @@ async def _get_schema_step_2(
         """Get default value for key."""
         return user_input.get(key, default_dict.get(key, fallback_default))
 
+    default_folder = _get_default(CONF_FOLDER)
+    if isinstance(default_folder, str):
+        default_folder = [default_folder]
+
+    mailboxes = await _get_mailboxes(
+        hass,
+        data[CONF_HOST],
+        data[CONF_PORT],
+        data[CONF_USERNAME],
+        data.get(CONF_PASSWORD, ""),
+        data[CONF_IMAP_SECURITY],
+        data[CONF_VERIFY_SSL],
+        data.get("token", {}).get("access_token"),
+    )
+
+    def multi_folder_select(value):
+        if isinstance(value, str):
+            value = [value]
+        return cv.multi_select(mailboxes)(value)
+
     return vol.Schema(
         {
-            vol.Required(CONF_FOLDER, default=_get_default(CONF_FOLDER)): vol.In(
-                await _get_mailboxes(
-                    hass,
-                    data[CONF_HOST],
-                    data[CONF_PORT],
-                    data[CONF_USERNAME],
-                    data.get(CONF_PASSWORD, ""),
-                    data[CONF_IMAP_SECURITY],
-                    data[CONF_VERIFY_SSL],
-                    data.get("token", {}).get("access_token"),
-                ),
-            ),
+            vol.Required(CONF_FOLDER, default=default_folder): multi_folder_select,
             vol.Required(
                 CONF_RESOURCES,
                 default=_get_default(CONF_RESOURCES),
