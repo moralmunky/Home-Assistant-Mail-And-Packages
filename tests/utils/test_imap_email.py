@@ -1128,7 +1128,7 @@ async def test_execute_single_search_capability_exception():
     """Test has_capability raising an exception inside _execute_single_search."""
     mock_account = AsyncMock()
     mock_account._folders = ["INBOX", "Junk"]
-    mock_account.has_capability.side_effect = Exception("Capability error")
+    mock_account.has_capability = MagicMock(side_effect=Exception("Capability error"))
 
     # In case of exception, it should fallback to sequential search
     mock_res = MagicMock(result="OK", lines=[b"1001"])
@@ -1146,7 +1146,7 @@ async def test_execute_single_search_esearch_failure():
     """Test ESEARCH command failure raising AioImapException/OSError."""
     mock_account = AsyncMock()
     mock_account._folders = ["INBOX", "Junk"]
-    mock_account.has_capability.return_value = True
+    mock_account.has_capability = MagicMock(return_value=True)
 
     # Mock protocol execution to raise AioImapException
     mock_account.protocol.execute.side_effect = AioImapException("ESEARCH failed")
