@@ -7,6 +7,7 @@ import pytest
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
+from custom_components.mail_and_packages.const import CONF_FOLDER
 from custom_components.mail_and_packages.coordinator import MailDataUpdateCoordinator
 from custom_components.mail_and_packages.utils.imap import InvalidAuth
 from tests.const import FAKE_CONFIG_DATA
@@ -439,3 +440,77 @@ async def test_process_emails_strips_tracking_details_from_output(hass):
         data = await coordinator.process_emails(hass, FAKE_CONFIG_DATA)
 
     assert "_tracking_details" not in data
+
+
+@pytest.mark.asyncio
+async def test_get_imap_connection_folders_normalization(hass):
+    """Test folder configuration normalization in _get_imap_connection."""
+    # Case 1: folders is None / not present
+    config_none = {**FAKE_CONFIG_DATA}
+    config_none.pop(CONF_FOLDER, None)
+
+    coordinator = MailDataUpdateCoordinator(hass, config_none)
+    mock_account = AsyncMock()
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=mock_account,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+    ):
+        await coordinator._get_imap_connection(config_none)
+        assert mock_account._folders == ["INBOX"]
+
+    # Case 2: folders is a list/tuple/set of strings
+    config_list = {**FAKE_CONFIG_DATA, CONF_FOLDER: ["Junk", "INBOX"]}
+    coordinator = MailDataUpdateCoordinator(hass, config_list)
+    mock_account = AsyncMock()
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=mock_account,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+    ):
+        await coordinator._get_imap_connection(config_list)
+        assert mock_account._folders == ["Junk", "INBOX"]
+
+    # Case 3: folders is a list of invalid types which filters to empty
+    config_empty = {**FAKE_CONFIG_DATA, CONF_FOLDER: [123]}
+    coordinator = MailDataUpdateCoordinator(hass, config_empty)
+    mock_account = AsyncMock()
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=mock_account,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+    ):
+        await coordinator._get_imap_connection(config_empty)
+        assert mock_account._folders == ["INBOX"]
+
+    # Case 4: folders is an invalid type (e.g. integer)
+    config_invalid = {**FAKE_CONFIG_DATA, CONF_FOLDER: 123}
+    coordinator = MailDataUpdateCoordinator(hass, config_invalid)
+    mock_account = AsyncMock()
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=mock_account,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+    ):
+        await coordinator._get_imap_connection(config_invalid)
+        assert mock_account._folders == ["INBOX"]

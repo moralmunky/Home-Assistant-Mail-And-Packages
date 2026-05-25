@@ -11,7 +11,7 @@ import voluptuous as vol
 from aioimaplib import AioImapException
 from anyio import Path
 from homeassistant import config_entries, setup
-from homeassistant.const import CONF_RESOURCES
+from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType, InvalidData
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -21,6 +21,7 @@ from custom_components.mail_and_packages.config_flow import (
     MailAndPackagesFlowHandler,
     _check_forwarded_emails,
     _get_mailboxes,
+    _get_schema_step_2,
     _get_schema_step_3,
     _get_schema_step_amazon,
     _get_schema_step_forwarded_emails,
@@ -38,6 +39,7 @@ from custom_components.mail_and_packages.const import (
     CONF_CUSTOM_IMG_FILE,
     CONF_FEDEX_CUSTOM_IMG,
     CONF_FEDEX_CUSTOM_IMG_FILE,
+    CONF_FOLDER,
     CONF_FORWARDED_EMAILS,
     CONF_FORWARDING_HEADER,
     CONF_GENERATE_MP4,
@@ -7614,3 +7616,58 @@ def test_get_schema_step_amazon_shows_fwds_without_header_mode():
     )
     keys = {k.schema if hasattr(k, "schema") else k for k in schema.schema}
     assert CONF_AMAZON_FWDS in keys
+
+
+@pytest.mark.asyncio
+async def test_validate_user_input_folder_normalization():
+    """Test CONF_FOLDER normalization in _validate_user_input."""
+    # 1. empty list/set/tuple -> "INBOX"
+    input_empty = {CONF_FOLDER: [], CONF_GENERATE_MP4: False}
+    errors, result = await _validate_user_input(input_empty)
+    assert not errors
+    assert result[CONF_FOLDER] == "INBOX"
+
+    # 2. list with multiple items -> list
+    input_multi = {CONF_FOLDER: ["INBOX", "Junk"], CONF_GENERATE_MP4: False}
+    errors, result = await _validate_user_input(input_multi)
+    assert not errors
+    assert result[CONF_FOLDER] == ["INBOX", "Junk"]
+
+    # 3. not a string or list/set/tuple -> "INBOX"
+    input_invalid = {CONF_FOLDER: 123, CONF_GENERATE_MP4: False}
+    errors, result = await _validate_user_input(input_invalid)
+    assert not errors
+    assert result[CONF_FOLDER] == "INBOX"
+
+    # 4. not isinstance string or empty string -> "INBOX"
+    input_empty_str = {CONF_FOLDER: "", CONF_GENERATE_MP4: False}
+    errors, result = await _validate_user_input(input_empty_str)
+    assert not errors
+    assert result[CONF_FOLDER] == "INBOX"
+
+
+@pytest.mark.asyncio
+async def test_get_schema_step_2_folders(hass):
+    """Test default_folder logic in _get_schema_step_2."""
+    data = {
+        CONF_HOST: "imap.example.com",
+        "port": 993,
+        "username": "test@example.com",
+        "password": "password",
+        "imap_security": "SSL",
+        "verify_ssl": True,
+    }
+
+    # Mock _get_mailboxes to avoid real login/network traffic
+    with patch(
+        "custom_components.mail_and_packages.config_flow._get_mailboxes",
+        return_value=["INBOX", "Junk"],
+    ) as mock_get_mailboxes:
+        # Case 1: default_folder is a list/tuple/set of strings
+        await _get_schema_step_2(data, {CONF_FOLDER: ["Junk"]}, {}, hass)
+        # Case 2: default_folder is a list of invalid types (e.g. integer) which filters to empty
+        await _get_schema_step_2(data, {CONF_FOLDER: [123]}, {}, hass)
+        # Case 3: default_folder is not a string, list, tuple or set (e.g. integer directly)
+        await _get_schema_step_2(data, {CONF_FOLDER: 123}, {}, hass)
+
+        assert mock_get_mailboxes.call_count == 3

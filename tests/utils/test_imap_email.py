@@ -14,6 +14,7 @@ from custom_components.mail_and_packages.utils.email import (
 )
 from custom_components.mail_and_packages.utils.imap import (
     InvalidAuth,
+    _execute_single_search,
     _parse_esearch_line,
     build_search,
     email_fetch,
@@ -1069,3 +1070,217 @@ async def test_email_search_sequential_fallback_capping(caplog):
         "Configured folders count (12) exceeds the sequential search limit"
         in caplog.text
     )
+
+
+@pytest.mark.asyncio
+async def test_esearch_parser_edge_cases():
+    """Test _parse_esearch_line edge cases to increase coverage."""
+    # Line 198: empty part
+    assert _parse_esearch_line(
+        b'* ESEARCH (TAG "1" MAILBOX INBOX UIDVALIDITY 123) UID ALL ,1001,,1002'
+    ) == [
+        b"INBOX/1001",
+        b"INBOX/1002",
+    ]
+
+    # Line 206: reversed range (start > end)
+    assert _parse_esearch_line(
+        b'* ESEARCH (TAG "1" MAILBOX INBOX UIDVALIDITY 123) UID ALL 1002:1001'
+    ) == [
+        b"INBOX/1001",
+        b"INBOX/1002",
+    ]
+
+    # Line 207-208: ValueError in range splitting
+    assert (
+        _parse_esearch_line(
+            b'* ESEARCH (TAG "1" MAILBOX INBOX UIDVALIDITY 123) UID ALL 100a:1002'
+        )
+        == []
+    )
+
+
+@pytest.mark.asyncio
+async def test_execute_single_search_single_folder():
+    """Test _execute_single_search when account has <= 1 folders."""
+    # Single folder case
+    mock_account = AsyncMock()
+    mock_account._folders = ["INBOX"]
+
+    # Search succeeds with result OK and lines
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"1001 1002"])
+    res = await _execute_single_search(mock_account, "ALL")
+    assert res == [b"1001", b"1002"]
+
+    # Search returns empty result
+    mock_account.search.return_value = MagicMock(result="OK", lines=[None])
+    res = await _execute_single_search(mock_account, "ALL")
+    assert res == []
+
+    # Search fails (result not OK)
+    mock_account.search.return_value = MagicMock(result="BAD", lines=[])
+    res = await _execute_single_search(mock_account, "ALL")
+    assert res == []
+
+
+@pytest.mark.asyncio
+async def test_execute_single_search_capability_exception():
+    """Test has_capability raising an exception inside _execute_single_search."""
+    mock_account = AsyncMock()
+    mock_account._folders = ["INBOX", "Junk"]
+    mock_account.has_capability.side_effect = Exception("Capability error")
+
+    # In case of exception, it should fallback to sequential search
+    mock_res = MagicMock(result="OK", lines=[b"1001"])
+    mock_account.uid_search.return_value = mock_res
+    mock_account.list.return_value = MagicMock()
+    mock_account.select.return_value = MagicMock()
+
+    res = await _execute_single_search(mock_account, "ALL")
+    # Should perform sequential fallback
+    assert len(res) == 2  # one for each folder
+
+
+@pytest.mark.asyncio
+async def test_execute_single_search_esearch_failure():
+    """Test ESEARCH command failure raising AioImapException/OSError."""
+    mock_account = AsyncMock()
+    mock_account._folders = ["INBOX", "Junk"]
+    mock_account.has_capability.return_value = True
+
+    # Mock protocol execution to raise AioImapException
+    mock_account.protocol.execute.side_effect = AioImapException("ESEARCH failed")
+
+    res = await _execute_single_search(mock_account, "ALL")
+    assert res == []
+
+
+@pytest.mark.asyncio
+async def test_execute_single_search_sequential_failures():
+    """Test sequential fallback failures (selectfolder failure and uid_search failure)."""
+    mock_account = AsyncMock()
+    mock_account._folders = ["INBOX", "Junk"]
+    mock_account.has_capability.return_value = False
+
+    mock_account.list.return_value = MagicMock()
+
+    # Case 1: selectfolder returns False for INBOX, Junk works
+    # We patch selectfolder to return False for INBOX and True for Junk
+    with patch(
+        "custom_components.mail_and_packages.utils.imap.selectfolder",
+        side_effect=lambda acc, f: f != "INBOX",
+    ):
+        mock_res = MagicMock(result="OK", lines=[b"1001"])
+        mock_account.uid_search.return_value = mock_res
+        res = await _execute_single_search(mock_account, "ALL")
+        assert res == [b"Junk/1001"]
+
+    # Case 2: selectfolder succeeds, but uid_search raises OSError
+    mock_account.select.return_value = MagicMock()
+    mock_account.uid_search.side_effect = OSError("Socket error")
+    with patch(
+        "custom_components.mail_and_packages.utils.imap.selectfolder",
+        return_value=True,
+    ):
+        res = await _execute_single_search(mock_account, "ALL")
+        assert res == []
+
+
+@pytest.mark.asyncio
+async def test_email_search_batch_and_exceptions():
+    """Test email_search batch subjects and search exceptions."""
+    mock_account = AsyncMock()
+    mock_account._folders = ["INBOX", "Junk"]
+
+    # Case 1: _execute_single_search raises OSError (single search)
+    with patch(
+        "custom_components.mail_and_packages.utils.imap._execute_single_search",
+        side_effect=OSError("Search error"),
+    ):
+        res = await email_search(
+            mock_account, ["test@example.com"], "25-Mar-2026", subject="Test"
+        )
+        assert res == ("BAD", "Search error")
+
+    # Case 2: Batching subjects (more than 10 subjects)
+    subjects = [f"Sub{i}" for i in range(12)]
+    # Mock successful returns for both batches
+    with patch(
+        "custom_components.mail_and_packages.utils.imap._execute_single_search",
+        side_effect=[[b"INBOX/1001"], [b"INBOX/1002"]],
+    ) as mock_single_search:
+        res = await email_search(
+            mock_account, ["test@example.com"], "25-Mar-2026", subject=subjects
+        )
+        assert res[0] == "OK"
+        assert res[1] == [b"INBOX/1001 INBOX/1002"]
+        assert mock_single_search.call_count == 2
+
+    # Case 3: Batching subjects and one batch raises OSError
+    with patch(
+        "custom_components.mail_and_packages.utils.imap._execute_single_search",
+        side_effect=[[b"INBOX/1001"], OSError("Batch error")],
+    ):
+        res = await email_search(
+            mock_account, ["test@example.com"], "25-Mar-2026", subject=subjects
+        )
+        assert res[0] == "OK"
+        # The failed batch is ignored, returns only first batch result
+        assert res[1] == [b"INBOX/1001"]
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_failures():
+    """Test fetch helpers error handling when account.uid raises OSError."""
+    mock_account = AsyncMock()
+    mock_account._current_folder = "INBOX"
+    mock_account.list.return_value = MagicMock()
+    mock_account.select.return_value = MagicMock()
+
+    mock_account.uid.side_effect = OSError("Fetch failed")
+
+    # email_fetch failure
+    res = await email_fetch(mock_account, b"Junk/1001")
+    assert res == ("BAD", "Fetch failed")
+
+    # email_fetch_headers failure
+    res = await email_fetch_headers(mock_account, b"Junk/1001")
+    assert res == ("BAD", "Fetch failed")
+
+    # email_fetch_text failure
+    res = await email_fetch_text(mock_account, b"Junk/1001")
+    assert res == ("BAD", "Fetch failed")
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_batch_edge_cases():
+    """Test email_fetch_batch edge cases including non-prefixed UIDs and errors."""
+    mock_account = AsyncMock()
+    mock_account._current_folder = "INBOX"
+    mock_account.list.return_value = MagicMock()
+    mock_account.select.return_value = MagicMock()
+
+    # Case 1: Mixed prefixed and non-prefixed UIDs (covers line 471)
+    # Grouping should assign None folder for "1001", and "Junk" for "Junk/2001"
+    mock_res1 = MagicMock(result="OK", lines=[b"body1"])
+    mock_res2 = MagicMock(result="OK", lines=[b"body2"])
+    mock_account.uid.side_effect = [mock_res1, mock_res2]
+
+    uids = [b"1001", b"Junk/2001"]
+    res = await email_fetch_batch(mock_account, uids)
+    assert res[0] == "OK"
+    assert res[1] == [b"body1", b"body2"]
+
+    # Case 2: One batch fetch returns a non-OK status (covers line 485)
+    mock_res_bad = MagicMock(result="NO", lines=[b"error"])
+    mock_account.uid.side_effect = [mock_res_bad]
+
+    uids = [b"Junk/2001"]
+    res = await email_fetch_batch(mock_account, uids)
+    assert res[0] == "NO"
+
+    # Case 3: Batch fetch raises AioImapException (covers lines 487-489)
+    mock_account.uid.side_effect = AioImapException("Batch command failed")
+
+    res = await email_fetch_batch(mock_account, uids)
+    assert res == ("BAD", "Batch command failed")
