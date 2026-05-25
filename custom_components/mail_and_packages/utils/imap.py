@@ -165,19 +165,32 @@ def build_search(
     return (False, imap_search)
 
 
-_ESEARCH_RE = re.compile(
-    r'\(TAG\s+"[^"]+"\s+MAILBOX\s+"([^"]+)"\s+UIDVALIDITY\s+\d+\)\s+UID\s+ALL\s+(.+)'
-)
-
-
 def _parse_esearch_line(line_bytes: bytes) -> list[bytes]:
     """Parse a single ESEARCH line and return list of formatted UID bytes: b'folder/uid'."""
     line_str = line_bytes.decode("utf-8", "ignore")
-    match = _ESEARCH_RE.search(line_str)
-    if not match:
+
+    # Extract the correlator inside parentheses
+    start_paren = line_str.find("(")
+    end_paren = line_str.find(")", start_paren) if start_paren != -1 else -1
+    if start_paren == -1 or end_paren == -1:
         return []
-    mailbox = match.group(1)
-    seq_set = match.group(2)
+
+    correlator = line_str[start_paren + 1 : end_paren]
+
+    # Extract mailbox name (could be quoted or unquoted)
+    mailbox_match = re.search(r'MAILBOX\s+"([^"]+)"', correlator)
+    if not mailbox_match:
+        mailbox_match = re.search(r"MAILBOX\s+(\S+)", correlator)
+    if not mailbox_match:
+        return []
+    mailbox = mailbox_match.group(1)
+
+    # Extract the sequence set after 'UID ALL' anywhere in the line
+    seq_match = re.search(r"UID\s+ALL\s+(\S+)", line_str)
+    if not seq_match:
+        return []
+    seq_set = seq_match.group(1)
+
     uids = []
     for part in seq_set.split(","):
         part = part.strip()
@@ -244,7 +257,14 @@ async def _execute_single_search(account: IMAP4_SSL, search_query: str) -> list[
             _LOGGER.error("Error executing ESEARCH: %s", err)
     else:
         # Sequential select and search fallback
-        for folder in folders:
+        # Limit sequential search to first 10 folders to prevent performance degradation
+        if len(folders) > 10:
+            _LOGGER.warning(
+                "Configured folders count (%d) exceeds the sequential search limit. "
+                "Only the first 10 folders will be searched to prevent excessive IMAP traffic.",
+                len(folders),
+            )
+        for folder in folders[:10]:
             select_ok = await selectfolder(account, folder)
             if not select_ok:
                 continue

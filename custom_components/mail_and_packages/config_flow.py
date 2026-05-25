@@ -300,10 +300,15 @@ async def _validate_user_input(user_input: dict) -> tuple:
     if CONF_FOLDER in user_input:
         folder_val = user_input[CONF_FOLDER]
         if isinstance(folder_val, (list, set, tuple)):
-            if len(folder_val) == 1:
-                user_input[CONF_FOLDER] = list(folder_val)[0]
+            folder_list = [f for f in folder_val if isinstance(f, str) and f]
+            if not folder_list:
+                user_input[CONF_FOLDER] = "INBOX"
+            elif len(folder_list) == 1:
+                user_input[CONF_FOLDER] = folder_list[0]
             else:
-                user_input[CONF_FOLDER] = list(folder_val)
+                user_input[CONF_FOLDER] = folder_list
+        elif not isinstance(folder_val, str) or not folder_val:
+            user_input[CONF_FOLDER] = "INBOX"
 
     return errors, user_input
 
@@ -459,8 +464,16 @@ async def _get_schema_step_2(
         return user_input.get(key, default_dict.get(key, fallback_default))
 
     default_folder = _get_default(CONF_FOLDER)
-    if isinstance(default_folder, str):
+    if not default_folder:
+        default_folder = ["INBOX"]
+    elif isinstance(default_folder, str):
         default_folder = [default_folder]
+    elif isinstance(default_folder, (list, tuple, set)):
+        default_folder = [f for f in default_folder if isinstance(f, str) and f]
+        if not default_folder:
+            default_folder = ["INBOX"]
+    else:
+        default_folder = ["INBOX"]
 
     mailboxes = await _get_mailboxes(
         hass,

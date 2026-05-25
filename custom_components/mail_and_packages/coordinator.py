@@ -237,8 +237,16 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(f"Login failed: {err}") from err
 
         folders = config.get(CONF_FOLDER)
-        if isinstance(folders, str):
+        if not folders:
+            folders = ["INBOX"]
+        elif isinstance(folders, str):
             folders = [folders]
+        elif isinstance(folders, (list, tuple, set)):
+            folders = [f for f in folders if isinstance(f, str) and f]
+            if not folders:
+                folders = ["INBOX"]
+        else:
+            folders = ["INBOX"]
         account._folders = folders  # noqa: SLF001
         account._current_folder = None  # noqa: SLF001
 

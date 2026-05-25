@@ -14,6 +14,7 @@ from custom_components.mail_and_packages.utils.email import (
 )
 from custom_components.mail_and_packages.utils.imap import (
     InvalidAuth,
+    _parse_esearch_line,
     build_search,
     email_fetch,
     email_fetch_batch,
@@ -999,3 +1000,72 @@ async def test_email_fetch_batch_folder_prefix():
         mock_account.select.call_count == 1
     )  # selectfolder called only for Junk because _current_folder was already INBOX
     mock_account.select.assert_called_once_with("Junk")
+
+
+@pytest.mark.asyncio
+async def test_esearch_parser_variants():
+    """Test _parse_esearch_line with variations in spacing, order, and quoted/unquoted folder names."""
+    # Test mailbox unquoted
+    line_unquoted = (
+        b'* ESEARCH (TAG "1" MAILBOX INBOX UIDVALIDITY 123) UID ALL 1001:1002'
+    )
+    res = _parse_esearch_line(line_unquoted)
+    assert res == [b"INBOX/1001", b"INBOX/1002"]
+
+    # Test mailbox order changed (UIDVALIDITY before MAILBOX)
+    line_ordered = b'* ESEARCH (TAG "1" UIDVALIDITY 123 MAILBOX "Junk") UID ALL 2001'
+    res = _parse_esearch_line(line_ordered)
+    assert res == [b"Junk/2001"]
+
+    # Test variation in spacing
+    line_spacing = b'* ESEARCH  ( TAG  "1"  MAILBOX  "Inbox"  UIDVALIDITY  123 )  UID  ALL  3001,3003'
+    res = _parse_esearch_line(line_spacing)
+    assert res == [b"Inbox/3001", b"Inbox/3003"]
+
+
+@pytest.mark.asyncio
+async def test_esearch_parser_malformed():
+    """Test _parse_esearch_line with malformed/missing fields fails gracefully returning empty list."""
+    # Missing parenthesis
+    assert _parse_esearch_line(b'* ESEARCH TAG "1" MAILBOX "INBOX" UID ALL 1001') == []
+
+    # Missing MAILBOX
+    assert (
+        _parse_esearch_line(b'* ESEARCH (TAG "1" UIDVALIDITY 123) UID ALL 1001') == []
+    )
+
+    # Missing UID ALL
+    assert (
+        _parse_esearch_line(b'* ESEARCH (TAG "1" MAILBOX "INBOX" UIDVALIDITY 123) 1001')
+        == []
+    )
+
+
+@pytest.mark.asyncio
+async def test_email_search_sequential_fallback_capping(caplog):
+    """Test sequential fallback limit (capping at 10 folders) and warning logging."""
+    caplog.set_level("WARNING")
+    mock_account = AsyncMock()
+    # 12 folders configured
+    mock_account._folders = [f"Folder{i}" for i in range(12)]
+    mock_account.has_capability.return_value = False
+
+    # Mock uid_search response for each folder
+    mock_res = MagicMock(result="OK", lines=[b"1001"])
+    mock_account.uid_search.return_value = mock_res
+
+    # Mock list/select calls in selectfolder
+    mock_account.list.return_value = MagicMock()
+    mock_account.select.return_value = MagicMock()
+
+    result = await email_search(
+        mock_account, ["test@example.com"], "25-Mar-2026", subject="Test"
+    )
+
+    assert result[0] == "OK"
+    # Select should only be called for the first 10 folders (Folder0 to Folder9)
+    assert mock_account.select.call_count == 10
+    assert (
+        "Configured folders count (12) exceeds the sequential search limit"
+        in caplog.text
+    )
