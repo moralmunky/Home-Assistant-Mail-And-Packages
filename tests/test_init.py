@@ -15,6 +15,7 @@ from custom_components.mail_and_packages import (
 )
 from custom_components.mail_and_packages.const import (
     CONF_AUTH_TYPE,
+    CONF_FOLDER,
     CONF_FORWARDED_EMAILS,
     DOMAIN,
 )
@@ -229,7 +230,7 @@ async def test_migration_from_version_14_to_18():
     args, kwargs = mock_hass.config_entries.async_update_entry.call_args
     assert kwargs["data"]["imap_security"] == "SSL"
     assert kwargs["data"]["auth_type"] == "password"
-    assert kwargs["version"] == 18
+    assert kwargs["version"] == 19
 
 
 async def test_migration_from_version_16_to_18():
@@ -254,7 +255,7 @@ async def test_migration_from_version_16_to_18():
     assert "auth" not in kwargs["data"]
     assert kwargs["data"]["token"] == "test_token"
     assert kwargs["data"]["access_token"] == "test_access_token"
-    assert kwargs["version"] == 18
+    assert kwargs["version"] == 19
 
 
 async def test_setup_entry_coordinator_failure():
@@ -876,3 +877,31 @@ async def test_migrate_version_17_none_string_removed():
     assert result is True
     _, kwargs = mock_hass.config_entries.async_update_entry.call_args
     assert CONF_FORWARDED_EMAILS not in kwargs["data"]
+
+
+@pytest.mark.asyncio
+async def test_migrate_version_18_string():
+    """Test _migrate_version_18 removes quotes from folder string."""
+    mock_entry = MagicMock()
+    mock_entry.version = 18
+    mock_entry.data = {CONF_FOLDER: '"INBOX"'}
+    mock_hass = MagicMock()
+
+    result = await async_migrate_entry(mock_hass, mock_entry)
+    assert result is True
+    _, kwargs = mock_hass.config_entries.async_update_entry.call_args
+    assert kwargs["data"][CONF_FOLDER] == "INBOX"
+
+
+@pytest.mark.asyncio
+async def test_migrate_version_18_list():
+    """Test _migrate_version_18 removes quotes from folder list."""
+    mock_entry = MagicMock()
+    mock_entry.version = 18
+    mock_entry.data = {CONF_FOLDER: ['"INBOX"', '"Junk"']}
+    mock_hass = MagicMock()
+
+    result = await async_migrate_entry(mock_hass, mock_entry)
+    assert result is True
+    _, kwargs = mock_hass.config_entries.async_update_entry.call_args
+    assert kwargs["data"][CONF_FOLDER] == ["INBOX", "Junk"]

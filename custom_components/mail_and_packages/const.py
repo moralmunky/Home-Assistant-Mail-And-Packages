@@ -21,7 +21,7 @@ COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
 SERVICE_UPDATE_FILE_PATH = "update_file_path"
 CAMERA = "cameras"
-CONFIG_VER = 18
+CONFIG_VER = 19
 
 # Attributes
 ATTR_AMAZON_IMAGE = "amazon_image"
@@ -85,7 +85,7 @@ CONF_CUSTOM_DAYS = "custom_days"
 DEFAULT_CAMERA_NAME = "Mail USPS Camera"
 DEFAULT_NAME = "Mail And Packages"
 DEFAULT_PORT = "993"
-DEFAULT_FOLDER = '"INBOX"'
+DEFAULT_FOLDER = "INBOX"
 DEFAULT_PATH = "custom_components/mail_and_packages/images/"
 DEFAULT_IMAGE_SECURITY = True
 DEFAULT_IMAP_TIMEOUT = 60
