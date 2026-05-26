@@ -26,6 +26,7 @@ from custom_components.mail_and_packages.utils.imap import (
     encode_imap_utf7,
     login,
     logout,
+    quote_folder,
     selectfolder,
 )
 
@@ -1292,3 +1293,10 @@ def test_imap_utf7_encoding_decoding():
 
     # Malformed inputs decode fallback
     assert decode_imap_utf7("&invalid") == "&invalid"
+    assert decode_imap_utf7("&invalid-") == "&invalid-"
+
+    # Unicode followed by ASCII to flush unicode buffer
+    assert encode_imap_utf7("éabc") == "&AOk-abc"
+
+    # quote_folder on already quoted folder
+    assert quote_folder('"INBOX"') == '"INBOX"'

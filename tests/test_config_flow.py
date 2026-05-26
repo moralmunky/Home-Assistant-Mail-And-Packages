@@ -27,6 +27,7 @@ from custom_components.mail_and_packages.config_flow import (
     _get_schema_step_forwarded_emails,
     _validate_login,
     _validate_user_input,
+    multi_folder_select,
 )
 from custom_components.mail_and_packages.const import (
     CONF_ALLOW_FORWARDED_EMAILS,
@@ -7671,3 +7672,20 @@ async def test_get_schema_step_2_folders(hass):
         await _get_schema_step_2(data, {CONF_FOLDER: 123}, {}, hass)
 
         assert mock_get_mailboxes.call_count == 3
+
+
+def test_multi_folder_select_validator():
+    """Test multi_folder_select validator."""
+    validator = multi_folder_select({"INBOX": "INBOX", "Junk": "Junk"})
+
+    # Test string with quotes
+    assert validator('"INBOX"') == ["INBOX"]
+
+    # Test list of strings with quotes
+    assert validator(['"INBOX"', '"Junk"']) == ["INBOX", "Junk"]
+
+    # Test set of strings
+    assert set(validator({'"INBOX"', '"Junk"'})) == {"INBOX", "Junk"}
+
+    # Test tuple
+    assert validator(('"INBOX"',)) == ["INBOX"]
