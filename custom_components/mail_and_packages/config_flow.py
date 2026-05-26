@@ -455,6 +455,18 @@ def _get_schema_imap(user_input: list, default_dict: list) -> Any:
     return vol.Schema(schema)
 
 
+class multi_folder_select(cv.multi_select):
+    """Multi select validator that allows a single string and converts it to a list, stripping quotes."""
+
+    def __call__(self, value: Any) -> list[Any]:
+        """Validate and format the folder selection value."""
+        if isinstance(value, str):
+            value = [value.strip('"')]
+        elif isinstance(value, (list, tuple, set)):
+            value = [v.strip('"') if isinstance(v, str) else v for v in value]
+        return super().__call__(value)
+
+
 async def _get_schema_step_2(
     data: list,
     user_input: list,
@@ -482,9 +494,11 @@ async def _get_schema_step_2(
 
     default_folder = _get_default(CONF_FOLDER)
     if isinstance(default_folder, str):
-        default_folder = [default_folder]
+        default_folder = [default_folder.strip('"')]
     elif isinstance(default_folder, (list, tuple, set)):
-        default_folder = [f for f in default_folder if isinstance(f, str) and f]
+        default_folder = [
+            f.strip('"') for f in default_folder if isinstance(f, str) and f
+        ]
     else:
         default_folder = []
 
@@ -497,7 +511,7 @@ async def _get_schema_step_2(
 
     return vol.Schema(
         {
-            vol.Required(CONF_FOLDER, default=default_folder): cv.multi_select(
+            vol.Required(CONF_FOLDER, default=default_folder): multi_folder_select(
                 {m: m for m in mailboxes}
             ),
             vol.Required(

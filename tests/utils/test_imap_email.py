@@ -917,7 +917,7 @@ async def test_email_fetch_folder_prefix():
     assert result[1] == [b"RFC822", b"body"]
 
     # Verify selectfolder was called for Junk and uid fetch executed
-    mock_account.select.assert_called_once_with("Junk")
+    mock_account.select.assert_called_once_with('"Junk"')
     mock_account.uid.assert_called_once_with("FETCH", "2001", "(RFC822)")
 
 
@@ -936,7 +936,7 @@ async def test_email_fetch_headers_folder_prefix():
     assert result[0] == "OK"
     assert result[1] == [b"Subject: Hello"]
 
-    mock_account.select.assert_called_once_with("Junk")
+    mock_account.select.assert_called_once_with('"Junk"')
     mock_account.uid.assert_called_once_with(
         "FETCH", "2001", "(BODY[HEADER.FIELDS (SUBJECT)])"
     )
@@ -957,7 +957,7 @@ async def test_email_fetch_text_folder_prefix():
     assert result[0] == "OK"
     assert result[1] == [b"text body"]
 
-    mock_account.select.assert_called_once_with("Junk")
+    mock_account.select.assert_called_once_with('"Junk"')
     mock_account.uid.assert_called_once_with("FETCH", "2001", "(BODY[1])")
 
 
@@ -986,7 +986,7 @@ async def test_email_fetch_batch_folder_prefix():
     assert (
         mock_account.select.call_count == 1
     )  # selectfolder called only for Junk because _current_folder was already INBOX
-    mock_account.select.assert_called_once_with("Junk")
+    mock_account.select.assert_called_once_with('"Junk"')
 
 
 @pytest.mark.asyncio
