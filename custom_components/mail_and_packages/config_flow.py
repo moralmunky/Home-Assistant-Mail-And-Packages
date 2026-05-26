@@ -94,7 +94,7 @@ from .const import (
 from .helpers import get_resources
 from .utils.email import generate_service_email_domains, validate_email_address
 from .utils.image import _check_ffmpeg
-from .utils.imap import InvalidAuth, login, logout
+from .utils.imap import InvalidAuth, decode_imap_utf7, login, logout
 
 ERROR_MAILBOX_FAIL = "Problem getting mailbox listing using 'INBOX' message"
 IMAP_SECURITY = ["none", "SSL"]
@@ -363,10 +363,16 @@ async def _parse_folder_list(folderlist: list) -> list:
     """Parse folder list from IMAP server response."""
     mailboxes = []
     with contextlib.suppress(IndexError):
-        mailboxes.extend(i.decode().split(' "/" ')[1] for i in folderlist)
+        mailboxes.extend(
+            decode_imap_utf7(i.decode().split(' "/" ')[1].strip('"'))
+            for i in folderlist
+        )
 
     with contextlib.suppress(IndexError):
-        mailboxes.extend(i.decode().split(' "." ')[1] for i in folderlist)
+        mailboxes.extend(
+            decode_imap_utf7(i.decode().split(' "." ')[1].strip('"'))
+            for i in folderlist
+        )
 
     if len(mailboxes) == 0:
         _LOGGER.error("Problem reading mailbox folders, using default.")
@@ -463,18 +469,6 @@ async def _get_schema_step_2(
         """Get default value for key."""
         return user_input.get(key, default_dict.get(key, fallback_default))
 
-    default_folder = _get_default(CONF_FOLDER)
-    if not default_folder:
-        default_folder = ["INBOX"]
-    elif isinstance(default_folder, str):
-        default_folder = [default_folder]
-    elif isinstance(default_folder, (list, tuple, set)):
-        default_folder = [f for f in default_folder if isinstance(f, str) and f]
-        if not default_folder:
-            default_folder = ["INBOX"]
-    else:
-        default_folder = ["INBOX"]
-
     mailboxes = await _get_mailboxes(
         hass,
         data[CONF_HOST],
@@ -486,14 +480,26 @@ async def _get_schema_step_2(
         data.get("token", {}).get("access_token"),
     )
 
-    def multi_folder_select(value):
-        if isinstance(value, str):
-            value = [value]
-        return cv.multi_select(mailboxes)(value)
+    default_folder = _get_default(CONF_FOLDER)
+    if isinstance(default_folder, str):
+        default_folder = [default_folder]
+    elif isinstance(default_folder, (list, tuple, set)):
+        default_folder = [f for f in default_folder if isinstance(f, str) and f]
+    else:
+        default_folder = []
+
+    # Clean up legacy folders that don't exist anymore/prevent validation failures
+    default_folder = [f for f in default_folder if f in mailboxes]
+
+    # Pre-select "INBOX" if default_folder is empty and "INBOX" is available
+    if not default_folder and "INBOX" in mailboxes:
+        default_folder = ["INBOX"]
 
     return vol.Schema(
         {
-            vol.Required(CONF_FOLDER, default=default_folder): multi_folder_select,
+            vol.Required(CONF_FOLDER, default=default_folder): cv.multi_select(
+                {m: m for m in mailboxes}
+            ),
             vol.Required(
                 CONF_RESOURCES,
                 default=_get_default(CONF_RESOURCES),

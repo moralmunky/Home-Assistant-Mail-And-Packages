@@ -17,11 +17,13 @@ from custom_components.mail_and_packages.utils.imap import (
     _execute_single_search,
     _parse_esearch_line,
     build_search,
+    decode_imap_utf7,
     email_fetch,
     email_fetch_batch,
     email_fetch_headers,
     email_fetch_text,
     email_search,
+    encode_imap_utf7,
     login,
     logout,
     selectfolder,
@@ -316,31 +318,17 @@ async def test_login_protocol_state_error():
 async def test_selectfolder_success():
     """Test selectfolder success branch."""
     mock_acc = AsyncMock()
-    mock_acc.list.return_value = MagicMock()
     mock_acc.select.return_value = MagicMock()
 
     result = await selectfolder(mock_acc, "INBOX")
     assert result is True
-    assert mock_acc.select.called
+    mock_acc.select.assert_called_once_with('"INBOX"')
 
 
 @pytest.mark.asyncio
 async def test_selectfolder_failure(caplog):
-    """Test selectfolder failure path."""
+    """Test selectfolder failure path when select fails."""
     mock_acc = AsyncMock()
-    mock_acc.list.side_effect = OSError("List failed")
-    caplog.set_level("ERROR")
-
-    result = await selectfolder(mock_acc, "INBOX")
-    assert result is False
-    assert "Error listing folder" in caplog.text
-
-
-@pytest.mark.asyncio
-async def test_selectfolder_select_error(caplog):
-    """Test selectfolder when select fails."""
-    mock_acc = AsyncMock()
-    mock_acc.list.return_value = MagicMock()
     mock_acc.select.side_effect = OSError("Select failed")
     caplog.set_level("ERROR")
 
@@ -829,22 +817,20 @@ def test_build_search_multi_addr_multi_subject_parentheses():
 
 @pytest.mark.asyncio
 async def test_selectfolder_caching():
-    """Test that selectfolder caches the selected folder and avoids redundant list/select calls."""
+    """Test that selectfolder caches the selected folder and avoids redundant select calls."""
     mock_account = AsyncMock()
     mock_account._current_folder = "INBOX"
 
-    # Select same folder - should return True immediately without calling list/select
+    # Select same folder - should return True immediately without calling select
     res = await selectfolder(mock_account, "INBOX")
     assert res is True
-    mock_account.list.assert_not_called()
     mock_account.select.assert_not_called()
 
-    # Select different folder - should call list and select
+    # Select different folder - should call select
     mock_account._current_folder = "INBOX"
     res = await selectfolder(mock_account, "Junk")
     assert res is True
-    mock_account.list.assert_called_once_with("Junk", "*")
-    mock_account.select.assert_called_once_with("Junk")
+    mock_account.select.assert_called_once_with('"Junk"')
     assert mock_account._current_folder == "Junk"
 
 
@@ -1043,8 +1029,8 @@ async def test_esearch_parser_malformed():
 
 
 @pytest.mark.asyncio
-async def test_email_search_sequential_fallback_capping(caplog):
-    """Test sequential fallback limit (capping at 10 folders) and warning logging."""
+async def test_email_search_sequential_fallback_no_capping(caplog):
+    """Test sequential fallback has no limit and searches all configured folders without warning logging."""
     caplog.set_level("WARNING")
     mock_account = AsyncMock()
     # 12 folders configured
@@ -1054,9 +1040,6 @@ async def test_email_search_sequential_fallback_capping(caplog):
     # Mock uid_search response for each folder
     mock_res = MagicMock(result="OK", lines=[b"1001"])
     mock_account.uid_search.return_value = mock_res
-
-    # Mock list/select calls in selectfolder
-    mock_account.list.return_value = MagicMock()
     mock_account.select.return_value = MagicMock()
 
     result = await email_search(
@@ -1064,11 +1047,11 @@ async def test_email_search_sequential_fallback_capping(caplog):
     )
 
     assert result[0] == "OK"
-    # Select should only be called for the first 10 folders (Folder0 to Folder9)
-    assert mock_account.select.call_count == 10
+    # Select should be called for all 12 folders (properly quoted)
+    assert mock_account.select.call_count == 12
     assert (
         "Configured folders count (12) exceeds the sequential search limit"
-        in caplog.text
+        not in caplog.text
     )
 
 
@@ -1284,3 +1267,28 @@ async def test_email_fetch_batch_edge_cases():
 
     res = await email_fetch_batch(mock_account, uids)
     assert res == ("BAD", "Batch command failed")
+
+
+def test_imap_utf7_encoding_decoding():
+    """Test IMAP modified UTF-7 encoding and decoding helpers."""
+    # Standard ASCII and simple special chars
+    assert encode_imap_utf7("INBOX") == "INBOX"
+    assert decode_imap_utf7("INBOX") == "INBOX"
+
+    # Ampersand (escaped to &-)
+    assert encode_imap_utf7("C&A") == "C&-A"
+    assert decode_imap_utf7("C&-A") == "C&A"
+
+    assert encode_imap_utf7("H&M") == "H&-M"
+    assert decode_imap_utf7("H&-M") == "H&M"
+
+    # Unicode / non-ASCII characters
+    assert encode_imap_utf7("Testé") == "Test&AOk-"
+    assert decode_imap_utf7("Test&AOk-") == "Testé"
+
+    # Multiple unicode portions and ampersands mixed
+    assert encode_imap_utf7("é&à") == "&AOk-&-&AOA-"
+    assert decode_imap_utf7("&AOk-&-&AOA-") == "é&à"
+
+    # Malformed inputs decode fallback
+    assert decode_imap_utf7("&invalid") == "&invalid"

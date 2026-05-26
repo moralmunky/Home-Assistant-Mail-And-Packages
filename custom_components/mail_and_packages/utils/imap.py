@@ -1,6 +1,7 @@
 """IMAP connection and search utilities for Mail and Packages."""
 
 import asyncio
+import binascii
 import logging
 import re
 
@@ -25,6 +26,82 @@ _LOGGER = logging.getLogger(__name__)
 # Register ESEARCH command if not already present in aioimaplib
 if "ESEARCH" not in aioimaplib.Commands:
     aioimaplib.Commands["ESEARCH"] = Cmd("ESEARCH", (AUTH, SELECTED), Exec.is_async)
+
+
+def encode_imap_utf7(s: str) -> str:
+    """Encode a string into IMAP modified UTF-7."""
+    res = []
+    unicode_buffer = []
+
+    def flush_unicode():
+        if unicode_buffer:
+            u_str = "".join(unicode_buffer)
+            encoded_bytes = u_str.encode("utf-16be")
+            b64 = (
+                binascii.b2a_base64(encoded_bytes)
+                .decode("ascii")
+                .rstrip("\n=")
+                .replace("/", ",")
+            )
+            res.append(f"&{b64}-")
+            unicode_buffer.clear()
+
+    for char in s:
+        ord_c = ord(char)
+        if 0x20 <= ord_c <= 0x7E:
+            if char == "&":
+                flush_unicode()
+                res.append("&-")
+            else:
+                if unicode_buffer:
+                    flush_unicode()
+                res.append(char)
+        else:
+            unicode_buffer.append(char)
+
+    flush_unicode()
+    return "".join(res)
+
+
+def decode_imap_utf7(s: str) -> str:
+    """Decode a string from IMAP modified UTF-7."""
+    res = []
+    i = 0
+    n = len(s)
+    while i < n:
+        char = s[i]
+        if char == "&":
+            end = s.find("-", i + 1)
+            if end == -1:
+                res.append("&")
+                i += 1
+            elif end == i + 1:
+                res.append("&")
+                i += 2
+            else:
+                b64_part = s[i + 1 : end]
+                b64_part = b64_part.replace(",", "/")
+                pad = len(b64_part) % 4
+                if pad:
+                    b64_part += "=" * (4 - pad)
+                try:
+                    decoded_bytes = binascii.a2b_base64(b64_part)
+                    res.append(decoded_bytes.decode("utf-16be"))
+                except (binascii.Error, UnicodeDecodeError, ValueError):
+                    res.append(s[i : end + 1])
+                i = end + 1
+        else:
+            res.append(char)
+            i += 1
+
+    return "".join(res)
+
+
+def quote_folder(folder: str) -> str:
+    """Ensure folder name is properly quoted for IMAP commands."""
+    if not (folder.startswith('"') and folder.endswith('"')):
+        return f'"{folder}"'
+    return folder
 
 
 class InvalidAuth(HomeAssistantError):
@@ -80,14 +157,11 @@ async def selectfolder(account: IMAP4_SSL, folder: str) -> bool:
     if getattr(account, "_current_folder", None) == folder:
         return True
 
-    try:
-        await account.list(folder, "*")
-    except (AioImapException, OSError) as err:
-        _LOGGER.error("Error listing folder %s: %s", folder, err)
-        return False
+    encoded_folder = encode_imap_utf7(folder)
+    quoted_folder = quote_folder(encoded_folder)
 
     try:
-        await account.select(folder)
+        await account.select(quoted_folder)
     except (AioImapException, OSError) as err:
         _LOGGER.error("Error selecting folder %s: %s", folder, err)
         return False
@@ -184,6 +258,7 @@ def _parse_esearch_line(line_bytes: bytes) -> list[bytes]:
     if not mailbox_match:
         return []
     mailbox = mailbox_match.group(1)
+    mailbox = decode_imap_utf7(mailbox)
 
     # Extract the sequence set after 'UID ALL' anywhere in the line
     seq_match = re.search(r"UID\s+ALL\s+(\S+)", line_str)
@@ -237,8 +312,8 @@ async def _execute_single_search(account: IMAP4_SSL, search_query: str) -> list[
             pass
 
     if is_multisearch:
-        # ESEARCH IN ("folder1" "folder2") query
-        folder_list = " ".join([f'"{f}"' for f in folders])
+        # ESEARCH IN ("folder1" "folder2") query - encode and quote folders
+        folder_list = " ".join([quote_folder(encode_imap_utf7(f)) for f in folders])
         args = ("IN", f"({folder_list})", search_query)
         try:
             res = await account.protocol.execute(
@@ -256,15 +331,8 @@ async def _execute_single_search(account: IMAP4_SSL, search_query: str) -> list[
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error executing ESEARCH: %s", err)
     else:
-        # Sequential select and search fallback
-        # Limit sequential search to first 10 folders to prevent performance degradation
-        if len(folders) > 10:
-            _LOGGER.warning(
-                "Configured folders count (%d) exceeds the sequential search limit. "
-                "Only the first 10 folders will be searched to prevent excessive IMAP traffic.",
-                len(folders),
-            )
-        for folder in folders[:10]:
+        # Sequential select and search fallback - no limits on configured folders
+        for folder in folders:
             select_ok = await selectfolder(account, folder)
             if not select_ok:
                 continue
