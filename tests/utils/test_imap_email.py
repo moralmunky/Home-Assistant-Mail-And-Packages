@@ -1395,3 +1395,188 @@ def test_imap_utf7_encoding_decoding():
 
     # quote_folder on non-atom folder
     assert quote_folder("INBOX/Online Shops") == '"INBOX/Online Shops"'
+
+
+@pytest.mark.asyncio
+async def test_login_timeout_error():
+    """Test login propagates TimeoutError."""
+    mock_hass = MagicMock()
+    with patch(
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+    ) as mock_imap_ssl:
+        mock_acc = AsyncMock()
+        mock_acc.login.side_effect = TimeoutError()
+        mock_acc.protocol.state = NONAUTH
+        mock_imap_ssl.return_value = mock_acc
+        with pytest.raises(TimeoutError):
+            await login(mock_hass, "host", 993, "user", "pass", "SSL")
+
+
+@pytest.mark.asyncio
+async def test_selectfolder_timeout_error():
+    """Test selectfolder propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap._current_folder = None
+    mock_imap.select.side_effect = TimeoutError()
+    with pytest.raises(TimeoutError):
+        await selectfolder(mock_imap, "Junk")
+
+
+@pytest.mark.asyncio
+async def test_execute_single_search_esearch_timeout_error():
+    """Test _execute_single_search with ESEARCH path propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap._folders = ["INBOX", "Junk"]
+    mock_imap.has_capability = MagicMock(return_value=True)
+    mock_imap.protocol.execute.side_effect = TimeoutError()
+    with pytest.raises(TimeoutError):
+        await _execute_single_search(mock_imap, "SEARCH_QUERY")
+
+
+@pytest.mark.asyncio
+async def test_execute_single_search_sequential_timeout_error():
+    """Test _execute_single_search with sequential path propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap._folders = ["INBOX", "Junk"]
+    mock_imap._current_folder = None
+    mock_imap.has_capability.return_value = False
+    mock_imap.select.return_value = MagicMock()
+    mock_imap.uid_search.side_effect = TimeoutError()
+    with pytest.raises(TimeoutError):
+        await _execute_single_search(mock_imap, "SEARCH_QUERY")
+
+
+@pytest.mark.asyncio
+async def test_email_search_timeout_error():
+    """Test email_search standard path propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap._folders = ["INBOX"]
+    mock_imap.search.side_effect = TimeoutError()
+    with pytest.raises(TimeoutError):
+        await email_search(mock_imap, ["test@example.com"], "25-Mar-2026")
+
+
+@pytest.mark.asyncio
+async def test_email_search_batch_timeout_error():
+    """Test email_search batched subjects path propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap._folders = ["INBOX"]
+    mock_imap.search.side_effect = TimeoutError()
+    subjects = [f"Subj {i}" for i in range(11)]
+    with pytest.raises(TimeoutError):
+        await email_search(
+            mock_imap, ["test@example.com"], "25-Mar-2026", subject=subjects
+        )
+
+
+@pytest.mark.asyncio
+async def test_email_search_multifolders_timeout_error():
+    """Test email_search multi-folder path propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap._folders = ["INBOX", "Junk"]
+    with (
+        patch(
+            "custom_components.mail_and_packages.utils.imap._execute_single_search",
+            side_effect=TimeoutError(),
+        ),
+        pytest.raises(TimeoutError),
+    ):
+        await email_search(mock_imap, ["test@example.com"], "25-Mar-2026")
+
+
+@pytest.mark.asyncio
+async def test_email_search_multifolders_batch_timeout_error():
+    """Test email_search multi-folder batched subjects path propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap._folders = ["INBOX", "Junk"]
+    subjects = [f"Subj {i}" for i in range(11)]
+    with (
+        patch(
+            "custom_components.mail_and_packages.utils.imap._execute_single_search",
+            side_effect=TimeoutError(),
+        ),
+        pytest.raises(TimeoutError),
+    ):
+        await email_search(
+            mock_imap, ["test@example.com"], "25-Mar-2026", subject=subjects
+        )
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_prefixed_timeout_error():
+    """Test email_fetch folder-prefixed path propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap._current_folder = "INBOX"
+    mock_imap.select.return_value = MagicMock()
+    mock_imap.uid.side_effect = TimeoutError()
+    with pytest.raises(TimeoutError):
+        await email_fetch(mock_imap, b"Junk/1001")
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_timeout_error():
+    """Test email_fetch standard path propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap.fetch.side_effect = TimeoutError()
+    with pytest.raises(TimeoutError):
+        await email_fetch(mock_imap, b"1001")
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_headers_prefixed_timeout_error():
+    """Test email_fetch_headers folder-prefixed path propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap._current_folder = "INBOX"
+    mock_imap.select.return_value = MagicMock()
+    mock_imap.uid.side_effect = TimeoutError()
+    with pytest.raises(TimeoutError):
+        await email_fetch_headers(mock_imap, b"Junk/1001")
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_headers_timeout_error():
+    """Test email_fetch_headers standard path propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap.fetch.side_effect = TimeoutError()
+    with pytest.raises(TimeoutError):
+        await email_fetch_headers(mock_imap, b"1001")
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_text_prefixed_timeout_error():
+    """Test email_fetch_text folder-prefixed path propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap._current_folder = "INBOX"
+    mock_imap.select.return_value = MagicMock()
+    mock_imap.uid.side_effect = TimeoutError()
+    with pytest.raises(TimeoutError):
+        await email_fetch_text(mock_imap, b"Junk/1001")
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_text_timeout_error():
+    """Test email_fetch_text standard path propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap.fetch.side_effect = TimeoutError()
+    with pytest.raises(TimeoutError):
+        await email_fetch_text(mock_imap, b"1001")
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_batch_timeout_error():
+    """Test email_fetch_batch standard path propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap.fetch.side_effect = TimeoutError()
+    with pytest.raises(TimeoutError):
+        await email_fetch_batch(mock_imap, [b"1001", b"1002"])
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_batch_prefixed_timeout_error():
+    """Test email_fetch_batch folder-prefixed path propagates TimeoutError."""
+    mock_imap = AsyncMock()
+    mock_imap._current_folder = "INBOX"
+    mock_imap.select.return_value = MagicMock()
+    mock_imap.uid.side_effect = TimeoutError()
+    with pytest.raises(TimeoutError):
+        await email_fetch_batch(mock_imap, [b"Junk/1001", b"Junk/1002"])
