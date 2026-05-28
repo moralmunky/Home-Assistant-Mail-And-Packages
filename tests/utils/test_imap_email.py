@@ -323,7 +323,14 @@ async def test_selectfolder_success():
 
     result = await selectfolder(mock_acc, "INBOX")
     assert result is True
-    mock_acc.select.assert_called_once_with('"INBOX"')
+    mock_acc.select.assert_called_once_with("INBOX")
+
+    mock_acc.select.reset_mock()
+    # Mock cache reset by setting _current_folder to None
+    mock_acc._current_folder = None
+    result = await selectfolder(mock_acc, "INBOX/Online Shops")
+    assert result is True
+    mock_acc.select.assert_called_once_with('"INBOX/Online Shops"')
 
 
 @pytest.mark.asyncio
@@ -348,27 +355,54 @@ def test_build_search_no_subject():
     """Test build_search without subject."""
     utf8, search = build_search(["test@example.com"], "25-Mar-2026", subject=None)
     assert "SUBJECT" not in search
-    assert 'FROM "test@example.com"' in search
+    assert search == 'FROM "test@example.com" SINCE 25-Mar-2026'
+
+    utf8, search_yahoo = build_search(
+        ["test@example.com"], "25-Mar-2026", subject=None, is_yahoo=True
+    )
+    assert "SUBJECT" not in search_yahoo
+    assert search_yahoo == '(FROM "test@example.com" SINCE 25-Mar-2026)'
 
 
 def test_build_search_multiple_no_subject():
     """Test build_search multiple addresses no subject."""
     utf8, search = build_search(["a@b.com", "c@d.com"], "25-Mar-2026", subject=None)
-    assert 'OR FROM "a@b.com" FROM "c@d.com"' in search
-    assert "SUBJECT" not in search
+    assert search == 'OR FROM "a@b.com" FROM "c@d.com" SINCE 25-Mar-2026'
+
+    utf8, search_yahoo = build_search(
+        ["a@b.com", "c@d.com"], "25-Mar-2026", subject=None, is_yahoo=True
+    )
+    assert search_yahoo == '((OR FROM "a@b.com" FROM "c@d.com") SINCE 25-Mar-2026)'
 
 
 def test_build_search_prefix_subject():
     """Test build_search with multiple addresses and subject."""
     utf8, search = build_search(["a@b.com", "c@d.com"], "25-Mar-2026", "Test")
-    assert 'OR FROM "a@b.com" FROM "c@d.com"' in search
-    assert 'SUBJECT "Test"' in search
+    assert search == 'OR FROM "a@b.com" FROM "c@d.com" SUBJECT "Test" SINCE 25-Mar-2026'
+
+    utf8, search_yahoo = build_search(
+        ["a@b.com", "c@d.com"], "25-Mar-2026", "Test", is_yahoo=True
+    )
+    assert (
+        search_yahoo
+        == '((OR FROM "a@b.com" FROM "c@d.com") SUBJECT "Test" SINCE 25-Mar-2026)'
+    )
 
 
 def test_build_search_triple_address():
     """Test build_search with 3 addresses for OR prefix coverage."""
     utf8, search = build_search(["a@b.com", "c@d.com", "e@f.com"], "25-Mar-2026")
-    assert 'OR OR FROM "a@b.com" FROM "c@d.com" FROM "e@f.com"' in search
+    assert (
+        search == 'OR OR FROM "a@b.com" FROM "c@d.com" FROM "e@f.com" SINCE 25-Mar-2026'
+    )
+
+    utf8, search_yahoo = build_search(
+        ["a@b.com", "c@d.com", "e@f.com"], "25-Mar-2026", is_yahoo=True
+    )
+    assert (
+        search_yahoo
+        == '((OR OR FROM "a@b.com" FROM "c@d.com" FROM "e@f.com") SINCE 25-Mar-2026)'
+    )
 
 
 def test_build_search_single_header():
@@ -376,9 +410,21 @@ def test_build_search_single_header():
     utf8, search = build_search(
         ["mcinfo@ups.com"], "25-Mar-2026", header="X-SimpleLogin-Original-From"
     )
-    assert 'HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com"' in search
-    assert 'FROM "mcinfo@ups.com"' in search
-    assert search.startswith("(OR HEADER")
+    assert (
+        search
+        == 'OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" SINCE 25-Mar-2026'
+    )
+
+    utf8, search_yahoo = build_search(
+        ["mcinfo@ups.com"],
+        "25-Mar-2026",
+        header="X-SimpleLogin-Original-From",
+        is_yahoo=True,
+    )
+    assert (
+        search_yahoo
+        == '((OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com") SINCE 25-Mar-2026)'
+    )
 
 
 def test_build_search_multiple_header():
@@ -389,12 +435,19 @@ def test_build_search_multiple_header():
         header="X-SimpleLogin-Original-From",
     )
     assert (
-        'OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com"'
-        in search
+        search
+        == 'OR OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" OR HEADER "X-SimpleLogin-Original-From" "pkginfo@ups.com" FROM "pkginfo@ups.com" SINCE 25-Mar-2026'
+    )
+
+    utf8, search_yahoo = build_search(
+        ["mcinfo@ups.com", "pkginfo@ups.com"],
+        "25-Mar-2026",
+        header="X-SimpleLogin-Original-From",
+        is_yahoo=True,
     )
     assert (
-        'OR HEADER "X-SimpleLogin-Original-From" "pkginfo@ups.com" FROM "pkginfo@ups.com"'
-        in search
+        search_yahoo
+        == '((OR OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" OR HEADER "X-SimpleLogin-Original-From" "pkginfo@ups.com" FROM "pkginfo@ups.com") SINCE 25-Mar-2026)'
     )
 
 
@@ -406,9 +459,22 @@ def test_build_search_header_with_subject():
         subject="UPS Ship Notification",
         header="X-SimpleLogin-Original-From",
     )
-    assert 'HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com"' in search
-    assert 'FROM "mcinfo@ups.com"' in search
-    assert 'SUBJECT "UPS Ship Notification"' in search
+    assert (
+        search
+        == 'OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" SUBJECT "UPS Ship Notification" SINCE 25-Mar-2026'
+    )
+
+    utf8, search_yahoo = build_search(
+        ["mcinfo@ups.com"],
+        "25-Mar-2026",
+        subject="UPS Ship Notification",
+        header="X-SimpleLogin-Original-From",
+        is_yahoo=True,
+    )
+    assert (
+        search_yahoo
+        == '((OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com") SUBJECT "UPS Ship Notification" SINCE 25-Mar-2026)'
+    )
 
 
 @pytest.mark.asyncio
@@ -694,17 +760,31 @@ def test_build_search_empty_safe_subjects():
 
 def test_build_search_multi_subject():
     """Test build_search with multiple subjects to verify OR prefix."""
-    # Covers lines 116-117
     subjects = ["One", "Two", "Three"]
     utf8, search = build_search(["test@example.com"], "25-Mar-2026", subject=subjects)
-    assert '(OR OR SUBJECT "One" SUBJECT "Two" SUBJECT "Three")' in search
+    assert (
+        search
+        == 'FROM "test@example.com" OR OR SUBJECT "One" SUBJECT "Two" SUBJECT "Three" SINCE 25-Mar-2026'
+    )
+
+    utf8, search_yahoo = build_search(
+        ["test@example.com"], "25-Mar-2026", subject=subjects, is_yahoo=True
+    )
+    assert (
+        search_yahoo
+        == '(FROM "test@example.com" (OR OR SUBJECT "One" SUBJECT "Two" SUBJECT "Three") SINCE 25-Mar-2026)'
+    )
 
 
 def test_build_search_single_addr_with_subject():
     """Test build_search with single address and subject."""
-    # Covers line 126
     utf8, search = build_search(["test@example.com"], "25-Mar-2026", subject="Test")
-    assert '(FROM "test@example.com" SUBJECT "Test" SINCE 25-Mar-2026)' in search
+    assert search == 'FROM "test@example.com" SUBJECT "Test" SINCE 25-Mar-2026'
+
+    utf8, search_yahoo = build_search(
+        ["test@example.com"], "25-Mar-2026", subject="Test", is_yahoo=True
+    )
+    assert search_yahoo == '(FROM "test@example.com" SUBJECT "Test" SINCE 25-Mar-2026)'
 
 
 @pytest.mark.asyncio
@@ -783,7 +863,7 @@ async def test_email_search_batching_error(caplog):
 
 
 def test_build_search_multi_addr_multi_subject_parentheses():
-    """Test that multi-address AND multi-subject queries use explicit parentheses.
+    """Test that multi-address AND multi-subject queries use explicit parentheses on Yahoo.
 
     Regression test for Yahoo IMAP misparsing where FROM OR-chain and SUBJECT
     OR-chain without explicit parentheses caused the server to match emails
@@ -799,21 +879,30 @@ def test_build_search_multi_addr_multi_subject_parentheses():
         "Your packages have been delivered",
         "Your shipment was delivered",
     ]
+    # Default behavior (is_yahoo=False)
     _utf8, search = build_search(addresses, "23-Apr-2026", subject=subjects)
-
-    # FROM group appears in search
     assert (
-        'OR OR FROM "TrackingUpdates@fedex.com" FROM "fedexcanada@fedex.com" FROM "noreply@fedex.com"'
-        in search
+        search
+        == 'OR OR FROM "TrackingUpdates@fedex.com" FROM "fedexcanada@fedex.com" FROM "noreply@fedex.com" OR OR SUBJECT "Your package has been delivered" SUBJECT "Your packages have been delivered" SUBJECT "Your shipment was delivered" SINCE 23-Apr-2026'
+    )
+
+    # Yahoo compatibility behavior (is_yahoo=True)
+    _utf8, search_yahoo = build_search(
+        addresses, "23-Apr-2026", subject=subjects, is_yahoo=True
+    )
+    # FROM group must be wrapped in parentheses
+    assert (
+        '(OR OR FROM "TrackingUpdates@fedex.com" FROM "fedexcanada@fedex.com" FROM "noreply@fedex.com")'
+        in search_yahoo
     )
     # SUBJECT group must be wrapped in parentheses
     assert (
         '(OR OR SUBJECT "Your package has been delivered" SUBJECT "Your packages have been delivered" SUBJECT "Your shipment was delivered")'
-        in search
+        in search_yahoo
     )
     # Search must be wrapped in parens and include SINCE
-    assert search.startswith("(")
-    assert "SINCE 23-Apr-2026)" in search
+    assert search_yahoo.startswith("((")
+    assert "SINCE 23-Apr-2026)" in search_yahoo
 
 
 @pytest.mark.asyncio
@@ -831,7 +920,7 @@ async def test_selectfolder_caching():
     mock_account._current_folder = "INBOX"
     res = await selectfolder(mock_account, "Junk")
     assert res is True
-    mock_account.select.assert_called_once_with('"Junk"')
+    mock_account.select.assert_called_once_with("Junk")
     assert mock_account._current_folder == "Junk"
 
 
@@ -918,7 +1007,7 @@ async def test_email_fetch_folder_prefix():
     assert result[1] == [b"RFC822", b"body"]
 
     # Verify selectfolder was called for Junk and uid fetch executed
-    mock_account.select.assert_called_once_with('"Junk"')
+    mock_account.select.assert_called_once_with("Junk")
     mock_account.uid.assert_called_once_with("FETCH", "2001", "(RFC822)")
 
 
@@ -937,7 +1026,7 @@ async def test_email_fetch_headers_folder_prefix():
     assert result[0] == "OK"
     assert result[1] == [b"Subject: Hello"]
 
-    mock_account.select.assert_called_once_with('"Junk"')
+    mock_account.select.assert_called_once_with("Junk")
     mock_account.uid.assert_called_once_with(
         "FETCH", "2001", "(BODY[HEADER.FIELDS (SUBJECT)])"
     )
@@ -958,7 +1047,7 @@ async def test_email_fetch_text_folder_prefix():
     assert result[0] == "OK"
     assert result[1] == [b"text body"]
 
-    mock_account.select.assert_called_once_with('"Junk"')
+    mock_account.select.assert_called_once_with("Junk")
     mock_account.uid.assert_called_once_with("FETCH", "2001", "(BODY[1])")
 
 
@@ -987,7 +1076,7 @@ async def test_email_fetch_batch_folder_prefix():
     assert (
         mock_account.select.call_count == 1
     )  # selectfolder called only for Junk because _current_folder was already INBOX
-    mock_account.select.assert_called_once_with('"Junk"')
+    mock_account.select.assert_called_once_with("Junk")
 
 
 @pytest.mark.asyncio
@@ -1300,3 +1389,9 @@ def test_imap_utf7_encoding_decoding():
 
     # quote_folder on already quoted folder
     assert quote_folder('"INBOX"') == '"INBOX"'
+
+    # quote_folder on atom-safe unquoted folder
+    assert quote_folder("INBOX") == "INBOX"
+
+    # quote_folder on non-atom folder
+    assert quote_folder("INBOX/Online Shops") == '"INBOX/Online Shops"'

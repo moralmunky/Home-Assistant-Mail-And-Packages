@@ -97,11 +97,19 @@ def decode_imap_utf7(s: str) -> str:
     return "".join(res)
 
 
+_ATOM_SPECIALS = frozenset('(){%*"\\] ')
+
+
+def _is_imap_atom(s: str) -> bool:
+    """Check if the string is a valid IMAP atom."""
+    return bool(s) and all(0x20 < ord(c) < 0x7F and c not in _ATOM_SPECIALS for c in s)
+
+
 def quote_folder(folder: str) -> str:
     """Ensure folder name is properly quoted for IMAP commands."""
-    if not (folder.startswith('"') and folder.endswith('"')):
-        return f'"{folder}"'
-    return folder
+    if folder.startswith('"') and folder.endswith('"'):
+        return folder
+    return folder if _is_imap_atom(folder) else f'"{folder}"'
 
 
 class InvalidAuth(HomeAssistantError):
@@ -142,6 +150,8 @@ async def login(
                 await account.xoauth2(user, oauth_token)
             else:
                 await account.login(user, pwd)
+        except TimeoutError:
+            raise
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error logging in to IMAP Server: %s", err)
             raise InvalidAuth from err
@@ -162,6 +172,8 @@ async def selectfolder(account: IMAP4_SSL, folder: str) -> bool:
 
     try:
         await account.select(quoted_folder)
+    except TimeoutError:
+        raise
     except (AioImapException, OSError) as err:
         _LOGGER.error("Error selecting folder %s: %s", folder, err)
         return False
@@ -170,11 +182,12 @@ async def selectfolder(account: IMAP4_SSL, folder: str) -> bool:
         return True
 
 
-def build_search(
+def build_search(  # noqa: C901
     address: list,
     date: str,
     subject: str | list[str] = "",
     header: str = "",
+    is_yahoo: bool = False,
 ) -> tuple:
     """Build IMAP search query.
 
@@ -204,15 +217,21 @@ def build_search(
         parts = [f'OR HEADER "{header}" "{a}" FROM "{a}"' for a in address]
         if len(parts) == 1:
             addr_clause = parts[0]
+            if is_yahoo:
+                addr_clause = f"({addr_clause})"
         else:
             or_prefix = " ".join(["OR"] * (len(parts) - 1))
             addr_clause = f"{or_prefix} {' '.join(parts)}"
+            if is_yahoo:
+                addr_clause = f"({addr_clause})"
     elif len(address) == 1:
         addr_clause = f'FROM "{address[0]}"'
     else:
         joined = '" FROM "'.join(address)
         or_prefix = " ".join(["OR"] * (len(address) - 1))
         addr_clause = f'{or_prefix} FROM "{joined}"'
+        if is_yahoo:
+            addr_clause = f"({addr_clause})"
 
     # Handle multiple subjects
     subject_part = ""
@@ -225,14 +244,24 @@ def build_search(
             subject_part = f'SUBJECT "{safe_subjects[0]}"'
         elif len(safe_subjects) > 1:
             subject_prefix = " ".join(["OR"] * (len(safe_subjects) - 1))
-            subject_part = (
-                f'({subject_prefix} SUBJECT "{'" SUBJECT "'.join(safe_subjects)}")'
-            )
+            if is_yahoo:
+                subject_part = (
+                    f'({subject_prefix} SUBJECT "{'" SUBJECT "'.join(safe_subjects)}")'
+                )
+            else:
+                subject_part = (
+                    f'{subject_prefix} SUBJECT "{'" SUBJECT "'.join(safe_subjects)}"'
+                )
 
-    if subject_part:
-        imap_search = f"({addr_clause} {subject_part} {the_date})"
+    if is_yahoo:
+        if subject_part:
+            imap_search = f"({addr_clause} {subject_part} {the_date})"
+        else:
+            imap_search = f"({addr_clause} {the_date})"
+    elif subject_part:
+        imap_search = f"{addr_clause} {subject_part} {the_date}"
     else:
-        imap_search = f"({addr_clause} {the_date})"
+        imap_search = f"{addr_clause} {the_date}"
 
     _LOGGER.debug("DEBUG imap_search: %s", imap_search)
 
@@ -328,6 +357,8 @@ async def _execute_single_search(account: IMAP4_SSL, search_query: str) -> list[
                 for line in res.lines:
                     if line:
                         all_uids.extend(_parse_esearch_line(line))
+        except TimeoutError:
+            raise
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error executing ESEARCH: %s", err)
     else:
@@ -343,6 +374,8 @@ async def _execute_single_search(account: IMAP4_SSL, search_query: str) -> list[
                         f"{folder}/{uid.decode()}".encode()
                         for uid in res.lines[0].split()
                     )
+            except TimeoutError:
+                raise
             except (AioImapException, OSError) as err:
                 _LOGGER.error("Error searching folder %s: %s", folder, err)
 
@@ -369,12 +402,20 @@ async def email_search(  # noqa: C901
     to keep the search query length safe.
     """
     folders = getattr(account, "_folders", ["INBOX"])
+    is_yahoo = False
+    if hasattr(account, "host") and isinstance(account.host, str):
+        host_lower = account.host.lower()
+        is_yahoo = "yahoo" in host_lower or "aol" in host_lower
 
     if len(folders) <= 1:
         if not isinstance(subject, list) or len(subject) <= 10:
-            _unused, search = build_search(address, date, subject, header)
+            _unused, search = build_search(
+                address, date, subject, header, is_yahoo=is_yahoo
+            )
             try:
                 res = await account.search(search, charset=None)
+            except TimeoutError:
+                raise
             except (AioImapException, OSError) as err:
                 _LOGGER.error("Error searching emails: %s", err)
                 return ("BAD", str(err))
@@ -385,11 +426,15 @@ async def email_search(  # noqa: C901
         all_matched_ids = []
         for i in range(0, len(subject), 10):
             batch = subject[i : i + 10]
-            _unused, search = build_search(address, date, batch, header)
+            _unused, search = build_search(
+                address, date, batch, header, is_yahoo=is_yahoo
+            )
             try:
                 res = await account.search(search, charset=None)
                 if res.result == "OK" and res.lines[0]:
                     all_matched_ids.extend(res.lines[0].split())
+            except TimeoutError:
+                raise
             except (AioImapException, OSError) as err:
                 _LOGGER.error("Error searching emails batch: %s", err)
 
@@ -399,9 +444,13 @@ async def email_search(  # noqa: C901
 
     # Multi-folder search logic
     if not isinstance(subject, list) or len(subject) <= 10:
-        _unused, search = build_search(address, date, subject, header)
+        _unused, search = build_search(
+            address, date, subject, header, is_yahoo=is_yahoo
+        )
         try:
             uids = await _execute_single_search(account, search)
+        except TimeoutError:
+            raise
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error searching emails: %s", err)
             return ("BAD", str(err))
@@ -411,10 +460,12 @@ async def email_search(  # noqa: C901
     all_matched_ids = []
     for i in range(0, len(subject), 10):
         batch = subject[i : i + 10]
-        _unused, search = build_search(address, date, batch, header)
+        _unused, search = build_search(address, date, batch, header, is_yahoo=is_yahoo)
         try:
             uids = await _execute_single_search(account, search)
             all_matched_ids.extend(uids)
+        except TimeoutError:
+            raise
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error searching emails batch: %s", err)
 
@@ -434,6 +485,8 @@ async def email_fetch(account: IMAP4_SSL, num, parts: str = "(RFC822)") -> tuple
         await selectfolder(account, folder)
         try:
             res = await account.uid("FETCH", num_str, parts)
+        except TimeoutError:
+            raise
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error fetching email %s: %s", num_str, err)
             return ("BAD", str(err))
@@ -442,6 +495,8 @@ async def email_fetch(account: IMAP4_SSL, num, parts: str = "(RFC822)") -> tuple
 
     try:
         res = await account.fetch(num_str, parts)
+    except TimeoutError:
+        raise
     except (AioImapException, OSError) as err:
         _LOGGER.error("Error fetching email %s: %s", num_str, err)
         return ("BAD", str(err))
@@ -457,6 +512,8 @@ async def email_fetch_headers(account: IMAP4_SSL, num) -> tuple:
         await selectfolder(account, folder)
         try:
             res = await account.uid("FETCH", num_str, "(BODY[HEADER.FIELDS (SUBJECT)])")
+        except TimeoutError:
+            raise
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error fetching email headers %s: %s", num_str, err)
             return ("BAD", str(err))
@@ -465,6 +522,8 @@ async def email_fetch_headers(account: IMAP4_SSL, num) -> tuple:
 
     try:
         res = await account.fetch(num_str, "(BODY[HEADER.FIELDS (SUBJECT)])")
+    except TimeoutError:
+        raise
     except (AioImapException, OSError) as err:
         _LOGGER.error("Error fetching email headers %s: %s", num_str, err)
         return ("BAD", str(err))
@@ -483,6 +542,8 @@ async def email_fetch_text(account: IMAP4_SSL, num, parts: str = "(BODY[1])") ->
         await selectfolder(account, folder)
         try:
             res = await account.uid("FETCH", num_str, parts)
+        except TimeoutError:
+            raise
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error fetching email text %s: %s", num_str, err)
             return ("BAD", str(err))
@@ -491,6 +552,8 @@ async def email_fetch_text(account: IMAP4_SSL, num, parts: str = "(BODY[1])") ->
 
     try:
         res = await account.fetch(num_str, parts)
+    except TimeoutError:
+        raise
     except (AioImapException, OSError) as err:
         _LOGGER.error("Error fetching email text %s: %s", num_str, err)
         return ("BAD", str(err))
@@ -523,6 +586,8 @@ async def email_fetch_batch(  # noqa: C901
         num_list_str = ",".join(num_strs)
         try:
             res = await account.fetch(num_list_str, parts)
+        except TimeoutError:
+            raise
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error fetching emails batch %s: %s", num_list_str, err)
             return ("BAD", str(err))
@@ -552,6 +617,8 @@ async def email_fetch_batch(  # noqa: C901
             if res.result != "OK":
                 overall_result = res.result
             all_results.extend(res.lines)
+        except TimeoutError:
+            raise
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error fetching emails batch %s: %s", num_list_str, err)
             return ("BAD", str(err))
