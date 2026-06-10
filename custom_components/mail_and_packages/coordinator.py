@@ -39,6 +39,7 @@ from .const import (
     CONF_IMAP_SECURITY,
     CONF_IMAP_TIMEOUT,
     DEFAULT_CUSTOM_DAYS,
+    DEFAULT_IMAP_TIMEOUT,
     DOMAIN,
     MAX_TRACKING_AGE_DAYS,
 )
@@ -74,7 +75,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         """Initialize."""
         self.interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
         self.name = f"Mail and Packages ({config.get(CONF_HOST)})"
-        self.timeout = config.get(CONF_IMAP_TIMEOUT)
+        self.timeout = config.get(CONF_IMAP_TIMEOUT, DEFAULT_IMAP_TIMEOUT)
         self.config = config
         self.config_entry = config_entry
         self.hass = hass
@@ -228,6 +229,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 config.get(CONF_IMAP_SECURITY),
                 config.get(CONF_VERIFY_SSL),
                 config.get("oauth_token"),
+                timeout=self.timeout,
             )
         except InvalidAuth as err:
             _LOGGER.error("Authentication failed: %s", err)
