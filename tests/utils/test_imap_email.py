@@ -26,6 +26,7 @@ from custom_components.mail_and_packages.utils.imap import (
     encode_imap_utf7,
     login,
     logout,
+    parse_search_response,
     quote_folder,
     selectfolder,
 )
@@ -1395,6 +1396,30 @@ def test_imap_utf7_encoding_decoding():
 
     # quote_folder on non-atom folder
     assert quote_folder("INBOX/Online Shops") == '"INBOX/Online Shops"'
+
+
+def test_parse_search_response():
+    """Test parse_search_response helper function with various inputs."""
+    # Standard server response with search results
+    assert parse_search_response([b"SEARCH 1 2 3"]) == [b"1", b"2", b"3"]
+    # Server response with multiple lines
+    assert parse_search_response([b"SEARCH 1 2", b"SEARCH 3 4"]) == [
+        b"1",
+        b"2",
+        b"3",
+        b"4",
+    ]
+    # Server response with no results
+    assert parse_search_response([b"SEARCH"]) == []
+    # Server response with status text (tagged OK response)
+    assert parse_search_response([b"SEARCH completed (took 237 ms)"]) == []
+    # Mocked test inputs (raw sequence numbers)
+    assert parse_search_response([b"1001 1002"]) == [b"1001", b"1002"]
+    # Non-search untagged response lines (should be ignored)
+    assert parse_search_response([b"23 EXISTS", b"SEARCH 5 6"]) == [b"5", b"6"]
+    # Empty lists or empty lines
+    assert parse_search_response([]) == []
+    assert parse_search_response([b"", None, b"   "]) == []
 
 
 @pytest.mark.asyncio

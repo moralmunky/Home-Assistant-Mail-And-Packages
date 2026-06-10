@@ -273,6 +273,35 @@ def build_search(  # noqa: C901
     return (False, imap_search)
 
 
+def parse_search_response(lines: list[bytes]) -> list[bytes]:
+    """Parse IMAP SEARCH response lines and return list of UID/ID bytes.
+
+    Handles both standard server responses (prefixed with b"SEARCH")
+    and mocked test inputs (which often contain raw UIDs directly).
+    Filters out the SEARCH keyword, tagged OK/status responses,
+    and any non-numeric tokens.
+    """
+    uids = []
+    for line in lines:
+        if not line:
+            continue
+        parts = line.split()
+        if not parts:
+            continue
+
+        if parts[0] == b"SEARCH":
+            # Check if this is a search result line, e.g. b"SEARCH 1001 1002"
+            # (as opposed to b"SEARCH completed")
+            if len(parts) > 1 and parts[1].isdigit():
+                uids.extend(parts[1:])
+        # Check if this line is just a list of numeric UIDs (mock/test compatibility)
+        # and ignore status/existence responses like b"23 EXISTS"
+        elif all(p.isdigit() for p in parts):
+            uids.extend(parts)
+
+    return uids
+
+
 def _parse_esearch_line(line_bytes: bytes) -> list[bytes]:
     """Parse a single ESEARCH line and return list of formatted UID bytes: b'folder/uid'."""
     line_str = line_bytes.decode("utf-8", "ignore")
@@ -326,8 +355,8 @@ async def _execute_single_search(account: IMAP4_SSL, search_query: str) -> list[
 
     if len(folders) <= 1:
         res = await account.search(search_query, charset=None)
-        if res.result == "OK" and res.lines[0]:
-            return res.lines[0].split()
+        if res.result == "OK" and res.lines:
+            return parse_search_response(res.lines)
         return []
 
     all_uids = []
@@ -378,10 +407,10 @@ async def _execute_single_search(account: IMAP4_SSL, search_query: str) -> list[
                 continue
             try:
                 res = await account.uid_search(search_query, charset=None)
-                if res.result == "OK" and res.lines[0]:
+                if res.result == "OK" and res.lines:
+                    parsed = parse_search_response(res.lines)
                     all_uids.extend(
-                        f"{folder}/{uid.decode()}".encode()
-                        for uid in res.lines[0].split()
+                        f"{folder}/{uid.decode()}".encode() for uid in parsed
                     )
             except TimeoutError:
                 raise
@@ -429,7 +458,8 @@ async def email_search(  # noqa: C901
                 _LOGGER.error("Error searching emails: %s", err)
                 return ("BAD", str(err))
             else:
-                return (res.result, res.lines)
+                parsed = parse_search_response(res.lines)
+                return (res.result, [b" ".join(parsed)])
 
         # Batch subjects in groups of 10
         all_matched_ids = []
@@ -440,8 +470,9 @@ async def email_search(  # noqa: C901
             )
             try:
                 res = await account.search(search, charset=None)
-                if res.result == "OK" and res.lines[0]:
-                    all_matched_ids.extend(res.lines[0].split())
+                if res.result == "OK" and res.lines:
+                    parsed = parse_search_response(res.lines)
+                    all_matched_ids.extend(parsed)
             except TimeoutError:
                 raise
             except (AioImapException, OSError) as err:
