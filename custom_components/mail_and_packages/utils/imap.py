@@ -21,6 +21,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import ssl
 
+from custom_components.mail_and_packages.const import DEFAULT_IMAP_TIMEOUT
+
 _LOGGER = logging.getLogger(__name__)
 
 # Register ESEARCH command if not already present in aioimaplib
@@ -125,6 +127,7 @@ async def login(
     security: str,
     verify: bool = True,
     oauth_token: str | None = None,
+    timeout: float = DEFAULT_IMAP_TIMEOUT,
 ) -> IMAP4_SSL | IMAP4:
     """Login to IMAP server asynchronously.
 
@@ -138,9 +141,11 @@ async def login(
         else ssl.create_no_verify_ssl_context()
     )
     if security == "SSL":
-        account = IMAP4_SSL(host=host, port=port, ssl_context=ssl_context)
+        account = IMAP4_SSL(
+            host=host, port=port, ssl_context=ssl_context, timeout=timeout
+        )
     else:
-        account = IMAP4(host=host, port=port)
+        account = IMAP4(host=host, port=port, timeout=timeout)
 
     await account.wait_hello_from_server()
 
@@ -345,12 +350,16 @@ async def _execute_single_search(account: IMAP4_SSL, search_query: str) -> list[
         folder_list = " ".join([quote_folder(encode_imap_utf7(f)) for f in folders])
         args = ("IN", f"({folder_list})", search_query)
         try:
+            timeout = getattr(account, "timeout", None)
+            if not isinstance(timeout, (int, float)):
+                timeout = None
             res = await account.protocol.execute(
                 Command(
                     "ESEARCH",
                     account.protocol.new_tag(),
                     *args,
                     loop=account.protocol.loop,
+                    timeout=timeout,
                 )
             )
             if res.result == "OK":
