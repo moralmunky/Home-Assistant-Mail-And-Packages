@@ -1419,7 +1419,7 @@ def test_parse_search_response():
     assert parse_search_response([b"23 EXISTS", b"SEARCH 5 6"]) == [b"5", b"6"]
     # Empty lists or empty lines
     assert parse_search_response([]) == []
-    assert parse_search_response([b"", None]) == []
+    assert parse_search_response([b"", None, b"   "]) == []
 
 
 @pytest.mark.asyncio
