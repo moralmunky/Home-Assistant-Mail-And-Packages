@@ -1,5 +1,6 @@
 """Tests for MailDataUpdateCoordinator sensor processing."""
 
+import asyncio
 import datetime
 from unittest.mock import AsyncMock, patch
 
@@ -103,6 +104,31 @@ async def test_process_emails_invalid_return(hass):
 
     # Should just not crash, missing data ok
     assert "test_sensor" not in data
+
+
+@pytest.mark.asyncio
+async def test_async_update_data_timeout_logs_and_reraises(hass, caplog):
+    """When the scan exceeds its time budget, log an actionable error and re-raise."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    # Shrink the whole-scan budget so the timeout fires immediately, and make
+    # process_emails outlast it so asyncio.timeout raises TimeoutError at the
+    # async-with boundary (the real path users hit on large mailboxes).
+    coordinator.timeout = 0.01
+
+    async def _slow_process(*args, **kwargs):
+        await asyncio.sleep(1)
+        return {}
+
+    with (
+        patch.object(coordinator, "process_emails", side_effect=_slow_process),
+        pytest.raises(TimeoutError),
+    ):
+        await coordinator._async_update_data()
+
+    assert "scan exceeded its" in caplog.text
+    assert "time budget" in caplog.text
 
 
 @pytest.mark.asyncio
