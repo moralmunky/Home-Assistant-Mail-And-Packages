@@ -972,7 +972,7 @@ class MailAndPackagesFlowHandler(
                     return await self.async_step_config_3()
 
                 return self.async_create_entry(
-                    title=self._data[CONF_HOST],
+                    title=f"Mail and Packages ({self._data[CONF_HOST]})",
                     data=self._data,
                 )
             return await self._show_config_2(user_input)
@@ -1124,7 +1124,7 @@ class MailAndPackagesFlowHandler(
             self._errors, user_input = await _validate_user_input(self._data)
             if len(self._errors) == 0:
                 return self.async_create_entry(
-                    title=self._data[CONF_HOST],
+                    title=f"Mail and Packages ({self._data[CONF_HOST]})",
                     data=self._data,
                 )
             return await self._show_config_storage(user_input)

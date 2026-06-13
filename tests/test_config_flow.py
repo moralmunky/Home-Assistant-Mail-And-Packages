@@ -141,7 +141,7 @@ _LOGGER = logging.getLogger(__name__)
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": False,
@@ -376,7 +376,7 @@ async def test_form(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": False,
@@ -604,7 +604,7 @@ async def test_form_no_fwds(
             {
                 "custom_img_file": "images/test.gif",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": False,
@@ -859,7 +859,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap_connect
             },
             "config_4",
             {},
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -1042,7 +1042,7 @@ async def test_form_invalid_ffmpeg(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": False,
@@ -1268,7 +1268,7 @@ async def test_form_index_error(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": False,
@@ -1494,7 +1494,7 @@ async def test_form_index_error_2(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "allow_external": False,
@@ -1704,7 +1704,7 @@ async def test_form_storage_error(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "allow_external": False,
@@ -1933,7 +1933,7 @@ async def test_reconfigure(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "allow_external": False,
@@ -2154,7 +2154,7 @@ async def test_reconfigure_no_amazon(
             {
                 "storage": ".storage/mail_and_packages/images",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "allow_external": False,
@@ -2436,7 +2436,7 @@ async def test_config_flow_with_amazon_custom_image_only(
         )
 
         assert result["type"] is FlowResultType.CREATE_ENTRY
-        assert result["title"] == "imap.test.email"
+        assert result["title"] == "Mail and Packages (imap.test.email)"
         actual_data = result["data"]
         expected_data = {
             "allow_external": False,
@@ -2620,7 +2620,7 @@ async def test_config_flow_with_ups_custom_image_only(
         )
 
         assert result["type"] is FlowResultType.CREATE_ENTRY
-        assert result["title"] == "imap.test.email"
+        assert result["title"] == "Mail and Packages (imap.test.email)"
         # Sort the actual data for comparison
         actual_data = result["data"].copy()
         actual_data["resources"] = sorted(actual_data["resources"])
@@ -3556,7 +3556,7 @@ async def test_walmart_custom_image_in_config_flow(hass, mock_imap_no_email):
 
         # Should create entry successfully
         assert result["type"] == "create_entry"
-        assert result["title"] == "imap.test.email"
+        assert result["title"] == "Mail and Packages (imap.test.email)"
 
         # Verify Walmart custom image settings are saved
         entry = result["result"]
@@ -3693,7 +3693,7 @@ async def test_generic_custom_image_in_config_flow(
             },
         )
         assert result["type"] == FlowResultType.CREATE_ENTRY
-        assert result["title"] == "imap.test.email"
+        assert result["title"] == "Mail and Packages (imap.test.email)"
 
         # Verify generic custom image settings are saved
         entry = result["result"]
@@ -4586,7 +4586,7 @@ async def test_validate_forwarded_emails_missing_and_invalid():
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
@@ -4833,7 +4833,7 @@ async def test_form_allow_forwarded_emails(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": False,
@@ -5063,7 +5063,7 @@ async def test_form_allowed_forwarded_emails_entered_none(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
@@ -5281,7 +5281,7 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
@@ -5503,7 +5503,7 @@ async def test_form_allow_forwarded_emails_without_custom_img(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
@@ -5732,7 +5732,7 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": False,
@@ -5956,7 +5956,7 @@ async def test_form_allow_forwarded_emails_none_entered(
             {
                 "forwarded_emails": "",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "allow_external": False,
@@ -6133,7 +6133,7 @@ async def test_form_allowed_forwards_missing_email_addresses(
             {
                 "forwarded_emails": "hello world",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
@@ -6336,7 +6336,7 @@ async def test_form_allowed_forwards_invalid_email_address_format(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
@@ -6591,7 +6591,7 @@ async def test_reconfigure_allow_forwarded_emails(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "imap.test.email",
+            "Mail and Packages (imap.test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
@@ -7063,7 +7063,7 @@ async def test_step_2_finish_flow(hass, mock_imap):
             input_2,
         )
     assert result["type"] == "create_entry"
-    assert result["title"] == "imap.test.email"
+    assert result["title"] == "Mail and Packages (imap.test.email)"
     assert result["data"]["allow_forwarded_emails"] is False
     assert result["data"]["custom_img"] is False
 
