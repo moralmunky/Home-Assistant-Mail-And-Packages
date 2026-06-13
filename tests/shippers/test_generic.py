@@ -239,6 +239,30 @@ async def test_generic_ups_exception(hass):
 
 
 @pytest.mark.asyncio
+async def test_generic_fedex_exception(hass):
+    """Test GenericShipper with FedEx exception (carrier parity with UPS)."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            new_callable=AsyncMock,
+            return_value=["123456789012"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.GenericShipper._verify_matched_subjects",
+            new_callable=AsyncMock,
+            side_effect=lambda a, b, c, d, cache=None: b,
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "fedex_exception")
+        assert result[ATTR_COUNT] == 1
+        assert result[ATTR_TRACKING] == ["123456789012"]
+
+
+@pytest.mark.asyncio
 async def test_generic_image_extraction_no_shipper(hass):
     """Test GenericShipper image extraction logic when no shipper name is found."""
     # Test path where sensor_type doesn't map to a shipper name for image extraction

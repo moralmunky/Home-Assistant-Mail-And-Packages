@@ -386,6 +386,19 @@ SENSOR_DATA = {
         ],
         "subject": ["Your shipment is on the way"],
     },
+    "fedex_exception": {
+        "email": [
+            "TrackingUpdates@fedex.com",
+            "fedexcanada@fedex.com",
+            "noreply@fedex.com",
+        ],
+        # Subject confirmed against a real FedEx delivery-exception
+        # notification (From: trackingupdates@fedex.com, Subject:
+        # "FedEx Delivery Exception"). IMAP SUBJECT search is a
+        # case-insensitive substring match, mirroring usps_exception's
+        # "Delivery Exception" fragment.
+        "subject": ["FedEx Delivery Exception"],
+    },
     "fedex_tracking": {"pattern": ["\\d{12,20}"]},
     # Canada Post
     "capost_delivered": {
@@ -1066,6 +1079,12 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="fedex_packages",
+    ),
+    "fedex_exception": SensorEntityDescription(
+        name="Mail FedEx Exception",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:archive-alert",
+        key="fedex_exception",
     ),
     # Amazon
     "amazon_packages": SensorEntityDescription(
