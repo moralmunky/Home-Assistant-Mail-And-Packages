@@ -306,18 +306,21 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             sensors = [s[1] for s in shipper_group]
 
             shipper_start = monotonic()
+            success = False
             try:
                 results = await shipper_instance.process_batch(
                     account, today, sensors, cache, since_date=since_date
                 )
                 if isinstance(results, dict):
                     data.update(results)
+                success = True
             except Exception as err:  # noqa: BLE001
                 _LOGGER.error("Error processing shipper %s: %s", shipper_name, err)
             finally:
                 _LOGGER.debug(
-                    "Shipper %s processed in %.1fs",
+                    "Shipper %s %s in %.1fs",
                     shipper_name,
+                    "processed" if success else "failed",
                     monotonic() - shipper_start,
                 )
 
