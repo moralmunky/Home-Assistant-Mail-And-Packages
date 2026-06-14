@@ -140,7 +140,9 @@ async def async_setup_entry(
     if not coordinator.last_update_success:
         if isinstance(coordinator.last_exception, ConfigEntryAuthFailed):
             raise coordinator.last_exception
-        _LOGGER.error("Error updating sensor data: %s", coordinator.last_exception)
+        exc = coordinator.last_exception
+        detail = (str(exc) or type(exc).__name__) if exc else "unknown error"
+        _LOGGER.error("Error updating sensor data: %s", detail)
         raise ConfigEntryNotReady
 
     config_entry.runtime_data = MailAndPackagesData(coordinator=coordinator, cameras=[])

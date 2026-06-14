@@ -45,7 +45,7 @@
           "image_path": "Image Path",
           "gif_duration": "Image Duration (seconds)",
           "image_security": "Random Image Filename",
-          "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+          "imap_timeout": "Mailbox scan time limit (seconds, minimum 10)",
           "generate_mp4": "Create mp4 from images",
           "allow_external": "Create image for notification apps",
           "custom_img": "Use custom USPS 'no mail' image?",
@@ -56,6 +56,9 @@
           "generic_custom_img": "Use custom 'no Generic delivery' image?",
           "generate_grid": "Create image grid for LLM vision models",
           "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
+        },
+        "data_description": {
+          "imap_timeout": "Covers the entire scan — login plus every per-carrier IMAP search — not just connecting. Raise this if large mailboxes time out; lower it to fail faster."
         },
         "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nIf using Amazon forwarded emails please separate each address with a comma.",
         "title": "Mail and Packages (Step 2 of 2)"
@@ -109,7 +112,7 @@
           "image_security": "Random Image Filename",
           "generate_mp4": "Create mp4 from images",
           "resources": "Sensors List",
-          "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+          "imap_timeout": "Mailbox scan time limit (seconds, minimum 10)",
           "allow_external": "Create image for notification apps",
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
@@ -119,6 +122,9 @@
           "generic_custom_img": "Use custom 'no Generic delivery' image?",
           "generate_grid": "Create image grid for LLM vision models",
           "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
+        },
+        "data_description": {
+          "imap_timeout": "Covers the entire scan — login plus every per-carrier IMAP search — not just connecting. Raise this if large mailboxes time out; lower it to fail faster."
         },
         "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
         "title": "Mail and Packages (Step 2 of 2)"

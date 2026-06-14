@@ -7,6 +7,7 @@ import os
 from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
+from time import monotonic
 
 import anyio
 from aioimaplib import IMAP4_SSL
@@ -109,44 +110,58 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Fetch data."""
-        async with asyncio.timeout(self.timeout):
-            try:
-                config = dict(self.config)
+        start = monotonic()
+        try:
+            async with asyncio.timeout(self.timeout):
+                try:
+                    config = dict(self.config)
 
-                # Refresh OAuth2 token if using OAuth authentication
-                auth_type = config.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
-                if auth_type != AUTH_TYPE_PASSWORD and self.config_entry:
-                    try:
-                        self.hass.data.setdefault(DOMAIN, {})
-                        self.hass.data[DOMAIN]["oauth_provider"] = auth_type
+                    # Refresh OAuth2 token if using OAuth authentication
+                    auth_type = config.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+                    if auth_type != AUTH_TYPE_PASSWORD and self.config_entry:
+                        try:
+                            self.hass.data.setdefault(DOMAIN, {})
+                            self.hass.data[DOMAIN]["oauth_provider"] = auth_type
 
-                        implementation = await config_entry_oauth2_flow.async_get_config_entry_implementation(
-                            self.hass,
-                            self.config_entry,
-                        )
-                        session = config_entry_oauth2_flow.OAuth2Session(
-                            self.hass,
-                            self.config_entry,
-                            implementation,
-                        )
-                        await session.async_ensure_token_valid()
-                        config["oauth_token"] = session.token["access_token"]
-                    except Exception as err:
-                        _LOGGER.error("Error refreshing OAuth token")
-                        _LOGGER.debug("OAuth token refresh error details: %s", err)
-                        raise UpdateFailed("OAuth token refresh failed") from err
+                            implementation = await config_entry_oauth2_flow.async_get_config_entry_implementation(
+                                self.hass,
+                                self.config_entry,
+                            )
+                            session = config_entry_oauth2_flow.OAuth2Session(
+                                self.hass,
+                                self.config_entry,
+                                implementation,
+                            )
+                            await session.async_ensure_token_valid()
+                            config["oauth_token"] = session.token["access_token"]
+                        except Exception as err:
+                            _LOGGER.error("Error refreshing OAuth token")
+                            _LOGGER.debug("OAuth token refresh error details: %s", err)
+                            raise UpdateFailed("OAuth token refresh failed") from err
 
-                data = await self.process_emails(self.hass, config)
-            except UpdateFailed:
-                raise
-            except Exception as error:
-                _LOGGER.error("Problem updating sensors: %s", error)
-                raise UpdateFailed(error) from error
+                    data = await self.process_emails(self.hass, config)
+                except UpdateFailed:
+                    raise
+                except Exception as error:
+                    _LOGGER.error("Problem updating sensors: %s", error)
+                    raise UpdateFailed(error) from error
 
-            if data:
-                self._data = data
-                await self._binary_sensor_update()
-            return self._data
+                if data:
+                    self._data = data
+                    await self._binary_sensor_update()
+                return self._data
+        except TimeoutError:
+            _LOGGER.error(
+                "Mail and Packages scan exceeded its %.0fs time budget (elapsed %.1fs). "
+                "This budget covers the ENTIRE scan (login plus every per-carrier IMAP "
+                "search), not just connecting. Increase the scan time limit in the "
+                "integration options, or reduce the mailbox size searched (use a "
+                "dedicated folder), the days-back window, or the number of enabled "
+                "carriers.",
+                self.timeout,
+                monotonic() - start,
+            )
+            raise
 
     async def process_emails(self, hass: HomeAssistant, config: dict) -> dict:
         """Process emails and update sensors."""
@@ -290,14 +305,24 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             shipper_instance = shipper_group[0][0]
             sensors = [s[1] for s in shipper_group]
 
+            shipper_start = monotonic()
+            success = False
             try:
                 results = await shipper_instance.process_batch(
                     account, today, sensors, cache, since_date=since_date
                 )
                 if isinstance(results, dict):
                     data.update(results)
+                success = True
             except Exception as err:  # noqa: BLE001
                 _LOGGER.error("Error processing shipper %s: %s", shipper_name, err)
+            finally:
+                _LOGGER.debug(
+                    "Shipper %s %s in %.1fs",
+                    shipper_name,
+                    "processed" if success else "failed",
+                    monotonic() - shipper_start,
+                )
 
         return data
 
