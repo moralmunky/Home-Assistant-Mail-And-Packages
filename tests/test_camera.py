@@ -285,30 +285,22 @@ async def test_async_camera_image_file_error(
     caplog,
 ):
     """Test async_camera_image returns None when both image and placeholder are missing."""
-    # The os.path.exists/os.access patches are integration-setup scaffolding
-    # shared by every camera test; they are not a claim about the delivery file
-    # under test. The Path(...).open FileNotFoundError below is what simulates
-    # the missing file on disk at read time.
-    with (
-        patch("os.path.exists", return_value=True),
-        patch("os.access", return_value=False),
-    ):
-        entry = integration
+    entry = integration
 
-        cameras = entry.runtime_data.cameras
-        cam = cameras[0]
-        # Force the primary and placeholder paths to differ so the fallback
-        # branch is exercised; with both reads failing the camera returns None.
-        cam._file_path = "/nonexistent/missing_delivery.jpg"
-        with patch(
-            "custom_components.mail_and_packages.camera.Path"
-        ) as mock_path_class:
-            mock_path_class.return_value.open.side_effect = FileNotFoundError
-            result = await cam.async_camera_image()
+    cameras = entry.runtime_data.cameras
+    cam = cameras[0]
+    # Force the primary and placeholder paths to differ so the fallback
+    # branch is exercised; with both reads failing the camera returns None.
+    # The missing-on-disk condition is simulated entirely by the open()
+    # FileNotFoundError below — no os.path.exists/os.access patching needed.
+    cam._file_path = "/nonexistent/missing_delivery.jpg"
+    with patch("custom_components.mail_and_packages.camera.Path") as mock_path_class:
+        mock_path_class.return_value.open.side_effect = FileNotFoundError
+        result = await cam.async_camera_image()
 
-        assert result is None
-        assert "Could not read camera" in caplog.text
-        assert "placeholder image also missing" in caplog.text
+    assert result is None
+    assert "Could not read camera" in caplog.text
+    assert "placeholder image also missing" in caplog.text
 
 
 async def test_async_camera_image_falls_back_to_placeholder(
@@ -330,40 +322,35 @@ async def test_async_camera_image_falls_back_to_placeholder(
     Regression test: a missing _file_path must NOT return None (which makes the
     HA camera proxy serve HTTP 500); it must fall back to the bundled placeholder.
     """
-    with (
-        patch("os.path.exists", return_value=True),
-        patch("os.access", return_value=False),
-    ):
-        entry = integration
+    entry = integration
 
-        cameras = entry.runtime_data.cameras
-        cam = cameras[0]
-        # Primary path points at a file that does not exist on disk; the
-        # bundled placeholder (_default_image_path) is still readable.
-        cam._file_path = "/nonexistent/missing_delivery.jpg"
-        placeholder_path = cam._default_image_path
+    cameras = entry.runtime_data.cameras
+    cam = cameras[0]
+    # Primary path points at a file that does not exist on disk; the bundled
+    # placeholder (_default_image_path) is still readable. The missing primary
+    # is simulated by the first open() raising FileNotFoundError below.
+    cam._file_path = "/nonexistent/missing_delivery.jpg"
+    placeholder_path = cam._default_image_path
 
-        # First open() (primary path) raises; second open() (placeholder)
-        # returns a readable handle with bytes.
-        placeholder_handle = MagicMock()
-        placeholder_handle.__enter__.return_value = MagicMock(
-            read=MagicMock(return_value=b"placeholder-bytes")
-        )
-        placeholder_handle.__exit__ = MagicMock(return_value=False)
+    # First open() (primary path) raises; second open() (placeholder)
+    # returns a readable handle with bytes.
+    placeholder_handle = MagicMock()
+    placeholder_handle.__enter__.return_value = MagicMock(
+        read=MagicMock(return_value=b"placeholder-bytes")
+    )
+    placeholder_handle.__exit__ = MagicMock(return_value=False)
 
-        with patch(
-            "custom_components.mail_and_packages.camera.Path"
-        ) as mock_path_class:
-            mock_path_class.return_value.open.side_effect = [
-                FileNotFoundError,
-                placeholder_handle,
-            ]
-            result = await cam.async_camera_image()
+    with patch("custom_components.mail_and_packages.camera.Path") as mock_path_class:
+        mock_path_class.return_value.open.side_effect = [
+            FileNotFoundError,
+            placeholder_handle,
+        ]
+        result = await cam.async_camera_image()
 
-        assert result == b"placeholder-bytes"
-        # Cache should now key off the placeholder path for cheap repeat reads.
-        assert cam._cached_image_path == placeholder_path
-        assert cam._cached_image_bytes == b"placeholder-bytes"
+    assert result == b"placeholder-bytes"
+    # Cache should now key off the placeholder path for cheap repeat reads.
+    assert cam._cached_image_path == placeholder_path
+    assert cam._cached_image_bytes == b"placeholder-bytes"
 
 
 async def test_async_camera_image_placeholder_is_primary_missing(
@@ -386,28 +373,22 @@ async def test_async_camera_image_placeholder_is_primary_missing(
     there is nothing to fall back to; re-reading the same missing file is skipped
     and the camera returns None.
     """
-    # See test_async_camera_image_file_error for why these patches are present.
-    with (
-        patch("os.path.exists", return_value=True),
-        patch("os.access", return_value=False),
-    ):
-        entry = integration
+    entry = integration
 
-        cameras = entry.runtime_data.cameras
-        cam = cameras[0]
-        # Make the primary path identical to the bundled placeholder.
-        cam._file_path = cam._default_image_path
+    cameras = entry.runtime_data.cameras
+    cam = cameras[0]
+    # Make the primary path identical to the bundled placeholder. The missing
+    # file is simulated by the open() FileNotFoundError below.
+    cam._file_path = cam._default_image_path
 
-        with patch(
-            "custom_components.mail_and_packages.camera.Path"
-        ) as mock_path_class:
-            mock_path_class.return_value.open.side_effect = FileNotFoundError
-            result = await cam.async_camera_image()
+    with patch("custom_components.mail_and_packages.camera.Path") as mock_path_class:
+        mock_path_class.return_value.open.side_effect = FileNotFoundError
+        result = await cam.async_camera_image()
 
-        assert result is None
-        # The fallback branch is skipped, so no second read is attempted.
-        assert mock_path_class.return_value.open.call_count == 1
-        assert "placeholder image also missing" not in caplog.text
+    assert result is None
+    # The fallback branch is skipped, so no second read is attempted.
+    assert mock_path_class.return_value.open.call_count == 1
+    assert "placeholder image also missing" not in caplog.text
 
 
 async def test_async_on_demand_update(
