@@ -284,21 +284,111 @@ async def test_async_camera_image_file_error(
     mock_update,
     caplog,
 ):
-    """Test async_camera_image function."""
-    with (
-        patch("os.path.exists", return_value=True),
-        patch("os.access", return_value=False),
-    ):
-        entry = integration
+    """Test async_camera_image returns None when both image and placeholder are missing."""
+    entry = integration
 
-        cameras = entry.runtime_data.cameras
-        with patch(
-            "custom_components.mail_and_packages.camera.Path"
-        ) as mock_path_class:
-            mock_path_class.return_value.open.side_effect = FileNotFoundError
-            await cameras[0].async_camera_image()
+    cameras = entry.runtime_data.cameras
+    cam = cameras[0]
+    # Force the primary and placeholder paths to differ so the fallback
+    # branch is exercised; with both reads failing the camera returns None.
+    # The missing-on-disk condition is simulated entirely by the open()
+    # FileNotFoundError below — no os.path.exists/os.access patching needed.
+    cam._file_path = "/nonexistent/missing_delivery.jpg"
+    with patch("custom_components.mail_and_packages.camera.Path") as mock_path_class:
+        mock_path_class.return_value.open.side_effect = FileNotFoundError
+        result = await cam.async_camera_image()
 
-        assert "Could not read camera" in caplog.text
+    assert result is None
+    assert "Could not read camera" in caplog.text
+    assert "placeholder image also missing" in caplog.text
+
+
+async def test_async_camera_image_falls_back_to_placeholder(
+    hass,
+    mock_imap_no_email,
+    integration,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_update,
+    caplog,
+):
+    """Test async_camera_image returns bundled placeholder bytes when the image file is missing.
+
+    Regression test: a missing _file_path must NOT return None (which makes the
+    HA camera proxy serve HTTP 500); it must fall back to the bundled placeholder.
+    """
+    entry = integration
+
+    cameras = entry.runtime_data.cameras
+    cam = cameras[0]
+    # Primary path points at a file that does not exist on disk; the bundled
+    # placeholder (_default_image_path) is still readable. The missing primary
+    # is simulated by the first open() raising FileNotFoundError below.
+    cam._file_path = "/nonexistent/missing_delivery.jpg"
+    placeholder_path = cam._default_image_path
+
+    # First open() (primary path) raises; second open() (placeholder)
+    # returns a readable handle with bytes.
+    placeholder_handle = MagicMock()
+    placeholder_handle.__enter__.return_value = MagicMock(
+        read=MagicMock(return_value=b"placeholder-bytes")
+    )
+    placeholder_handle.__exit__ = MagicMock(return_value=False)
+
+    with patch("custom_components.mail_and_packages.camera.Path") as mock_path_class:
+        mock_path_class.return_value.open.side_effect = [
+            FileNotFoundError,
+            placeholder_handle,
+        ]
+        result = await cam.async_camera_image()
+
+    assert result == b"placeholder-bytes"
+    # Cache should now key off the placeholder path for cheap repeat reads.
+    assert cam._cached_image_path == placeholder_path
+    assert cam._cached_image_bytes == b"placeholder-bytes"
+
+
+async def test_async_camera_image_placeholder_is_primary_missing(
+    hass,
+    mock_imap_no_email,
+    integration,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_update,
+    caplog,
+):
+    """Test async_camera_image returns None when the primary path IS the placeholder and it's missing.
+
+    For a non-custom camera the primary _file_path equals _default_image_path, so
+    there is nothing to fall back to; re-reading the same missing file is skipped
+    and the camera returns None.
+    """
+    entry = integration
+
+    cameras = entry.runtime_data.cameras
+    cam = cameras[0]
+    # Make the primary path identical to the bundled placeholder. The missing
+    # file is simulated by the open() FileNotFoundError below.
+    cam._file_path = cam._default_image_path
+
+    with patch("custom_components.mail_and_packages.camera.Path") as mock_path_class:
+        mock_path_class.return_value.open.side_effect = FileNotFoundError
+        result = await cam.async_camera_image()
+
+    assert result is None
+    # The fallback branch is skipped, so no second read is attempted.
+    assert mock_path_class.return_value.open.call_count == 1
+    assert "placeholder image also missing" not in caplog.text
 
 
 async def test_async_on_demand_update(
@@ -2352,8 +2442,13 @@ async def test_camera_file_not_found(hass, mock_update):
     cam = MailCam(hass, "amazon_camera", mock_config, mock_coordinator)
     cam._file_path = "/nonexistent/path.jpg"
 
+    # A missing primary image must fall back to the bundled placeholder
+    # (no_deliveries_amazon.jpg, shipped in the package) rather than return
+    # None, which would make the HA camera proxy serve HTTP 500.
     image = await cam.async_camera_image()
-    assert image is None
+    assert image is not None
+    assert len(image) > 0
+    assert cam._cached_image_path == cam._default_image_path
 
 
 @pytest.mark.asyncio
@@ -2368,13 +2463,16 @@ async def test_camera_image_read_error(hass, tmp_path):
     mock_config = MagicMock()
     cam = MailCam(hass, "amazon_camera", mock_config, mock_coord)
 
-    # Assign the secure temporary path
+    # Assign the secure temporary path (the file is never created, so the
+    # primary read raises FileNotFoundError).
     cam._file_path = safe_file_path
 
-    # Simulate file existing but failing to open
-    with patch("builtins.open", side_effect=FileNotFoundError):
-        image = await cam.async_camera_image()
-        assert image is None
+    # The missing primary image falls back to the bundled placeholder
+    # (no_deliveries_amazon.jpg) instead of returning None.
+    image = await cam.async_camera_image()
+    assert image is not None
+    assert len(image) > 0
+    assert cam._cached_image_path == cam._default_image_path
 
 
 @pytest.mark.asyncio

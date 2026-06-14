@@ -145,6 +145,12 @@ class MailCam(CoordinatorEntity, Camera):
         else:
             self._file_path = f"{Path(__file__).parent}/{default_image}"
 
+        # Canonical bundled placeholder for this camera. Always available
+        # regardless of later _file_path changes, so a missing delivery image
+        # can fall back to it instead of returning None (which makes the HA
+        # camera proxy serve HTTP 500).
+        self._default_image_path = f"{Path(__file__).parent}/{default_image}"
+
         self._cached_image_path: str | None = None
         self._cached_image_bytes: bytes | None = None
         self._last_delivery_images: list[str] | None = None
@@ -178,10 +184,38 @@ class MailCam(CoordinatorEntity, Camera):
             )
         except FileNotFoundError:
             _LOGGER.debug(
-                "Could not read camera %s image from file: %s",
+                "Could not read camera %s image from file: %s; "
+                "falling back to bundled placeholder %s",
                 self._name,
                 self._file_path,
+                self._default_image_path,
             )
+            # Fall back to the bundled placeholder so the camera proxy never
+            # serves HTTP 500 when a delivery image is missing on disk. Skip the
+            # fallback when the primary path already IS the placeholder (true for
+            # non-custom cameras, where _file_path and _default_image_path are
+            # both built from the same default image): re-reading the same
+            # missing file would only fail again, so return None instead.
+            if self._file_path != self._default_image_path:
+                try:
+                    image_bytes = await self.hass.async_add_executor_job(
+                        _read_file, self._default_image_path
+                    )
+                except FileNotFoundError:
+                    _LOGGER.warning(
+                        "Camera %s placeholder image also missing: %s",
+                        self._name,
+                        self._default_image_path,
+                    )
+                    return None
+                else:
+                    # Cache against the placeholder path so repeated reads are
+                    # cheap; update_file_path() invalidates the cache when the
+                    # primary path changes.
+                    self._cached_image_path = self._default_image_path
+                    self._cached_image_bytes = image_bytes
+                    return image_bytes
+            return None
         else:
             self._cached_image_path = self._file_path
             self._cached_image_bytes = image_bytes
