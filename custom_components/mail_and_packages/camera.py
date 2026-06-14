@@ -191,8 +191,12 @@ class MailCam(CoordinatorEntity, Camera):
                 self._default_image_path,
             )
             # Fall back to the bundled placeholder so the camera proxy never
-            # serves HTTP 500 when a delivery image is missing on disk.
-            if self._default_image_path and self._file_path != self._default_image_path:
+            # serves HTTP 500 when a delivery image is missing on disk. Skip the
+            # fallback when the primary path already IS the placeholder (true for
+            # non-custom cameras, where _file_path and _default_image_path are
+            # both built from the same default image): re-reading the same
+            # missing file would only fail again, so return None instead.
+            if self._file_path != self._default_image_path:
                 try:
                     image_bytes = await self.hass.async_add_executor_job(
                         _read_file, self._default_image_path
