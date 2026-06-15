@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from PIL import UnidentifiedImageError
 
 from custom_components.mail_and_packages.const import (
     CONF_DURATION,
@@ -529,7 +530,7 @@ async def test_post_de_check_save_exception(hass):
         patch("custom_components.mail_and_packages.shippers.post_de.shutil.copyfile"),
         patch(
             "custom_components.mail_and_packages.shippers.post_de.Image.open",
-            side_effect=TypeError("Mock type error"),
+            side_effect=UnidentifiedImageError("Mock unidentified image error"),
         ),
     ):
         result = await shipper.process(mock_account, "today", "post_de_mail")

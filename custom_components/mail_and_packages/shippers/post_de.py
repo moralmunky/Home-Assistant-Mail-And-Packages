@@ -11,7 +11,7 @@ from typing import Any
 
 import anyio
 from aioimaplib import IMAP4_SSL
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 from custom_components.mail_and_packages.const import (
     ATTR_IMAGE_PATH,
@@ -313,7 +313,12 @@ class PostDEShipper(Shipper):
                                     with target.open("wb") as f:
                                         f.write(img_bytes)
                                     return str(target)
-                            except (OSError, ValueError, TypeError) as err:
+                            except (
+                                OSError,
+                                ValueError,
+                                TypeError,
+                                UnidentifiedImageError,
+                            ) as err:
                                 _LOGGER.debug(
                                     "Error checking/saving Post DE image: %s", err
                                 )

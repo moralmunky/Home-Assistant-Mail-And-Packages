@@ -105,7 +105,7 @@ class MailCam(CoordinatorEntity, Camera):
 
         # Derive config keys and default image from camera type name
         # Remove "_camera" suffix to get base name (e.g., "usps_camera" -> "usps")
-        base_name = self._type.replace("_camera", "")
+        base_name = self._type.removesuffix("_camera")
 
         # USPS and Post DE use mail_none.gif, others use no_deliveries_*.jpg
         if base_name in ("usps", "post_de"):
@@ -359,7 +359,7 @@ class MailCam(CoordinatorEntity, Camera):
             if camera_type in ("generic_camera", "usps_camera", "post_de_camera"):
                 continue
 
-            base_name = camera_type.replace("_camera", "")
+            base_name = camera_type.removesuffix("_camera")
             delivered_key = f"{base_name}_delivered"
 
             # Check if this shipper's delivery sensor is enabled
@@ -419,7 +419,7 @@ class MailCam(CoordinatorEntity, Camera):
 
     async def _update_standard_camera(self) -> None:
         """Update file path for standard cameras (Amazon, UPS, etc)."""
-        base_name = self._type.replace("_camera", "")
+        base_name = self._type.removesuffix("_camera")
         if base_name == "post_de":
             self._file_path = f"{Path(__file__).parent}/mail_none.gif"
         else:
@@ -590,7 +590,7 @@ class MailCam(CoordinatorEntity, Camera):
 
         """
         # Remove "_camera" suffix to get base name
-        base_name = camera_type.replace("_camera", "")
+        base_name = camera_type.removesuffix("_camera")
 
         # Special cases for mail scans cameras
         if base_name == "usps":
