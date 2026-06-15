@@ -224,6 +224,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             "walmart_image": (False, False, True, False),
             "fedex_image": (False, False, False, True),
             "usps_image": (False, False, False, False),
+            "post_de_image": (False, False, False, False),
         }
 
         for key, params in shipper_images.items():
@@ -446,7 +447,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
         return transit
 
-    async def _binary_sensor_update(self):
+    async def _binary_sensor_update(self):  # noqa: C901
         """Update binary sensor states."""
         # USPS uses ATTR_USPS_IMAGE instead of the old ATTR_IMAGE_NAME
         _LOGGER.debug("Data: %s", self._data)
@@ -516,6 +517,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
                 if custom_img_key and self.config.get(custom_img_key):
                     none_image = self.config.get(custom_img_file_key)
+                elif base_name == "post_de":
+                    none_image = f"{Path(__file__).parent}/mail_none.gif"
                 else:
                     none_image = (
                         f"{Path(__file__).parent}/no_deliveries_{base_name}.jpg"

@@ -46,6 +46,7 @@ ATTR_WALMART_IMAGE = "walmart_image"
 ATTR_FEDEX_IMAGE = "fedex_image"
 ATTR_GENERIC_IMAGE = "generic_image"
 ATTR_USPS_IMAGE = "usps_image"
+ATTR_POST_DE_IMAGE = "post_de_image"
 
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"
@@ -62,6 +63,8 @@ CONF_FEDEX_CUSTOM_IMG = "fedex_custom_img"
 CONF_FEDEX_CUSTOM_IMG_FILE = "fedex_custom_img_file"
 CONF_GENERIC_CUSTOM_IMG = "generic_custom_img"
 CONF_GENERIC_CUSTOM_IMG_FILE = "generic_custom_img_file"
+CONF_POST_DE_CUSTOM_IMG = "post_de_custom_img"
+CONF_POST_DE_CUSTOM_IMG_FILE = "post_de_custom_img_file"
 CONF_STORAGE = "storage"
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
@@ -118,6 +121,8 @@ DEFAULT_GENERIC_CUSTOM_IMG = False
 DEFAULT_GENERIC_CUSTOM_IMG_FILE = (
     "custom_components/mail_and_packages/no_deliveries_generic.jpg"
 )
+DEFAULT_POST_DE_CUSTOM_IMG = False
+DEFAULT_POST_DE_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/mail_none.gif"
 DEFAULT_AMAZON_DAYS = 3
 DEFAULT_AMAZON_DOMAIN = "amazon.com"
 DEFAULT_STORAGE = "custom_components/mail_and_packages/images/"
@@ -901,7 +906,11 @@ SENSOR_DATA = {
     "post_nl_packages": {},
     "post_nl_tracking": {"pattern": ["3S[A-Z0-9]{10,18}"]},
     # Post DE
-    "post_de_delivering": {
+    "post_de_delivering": {},
+    "post_de_delivered": {},
+    "post_de_packages": {},
+    "post_de_tracking": {},
+    "post_de_mail": {
         "email": [
             "ankuendigung@brief.deutschepost.de",
         ],
@@ -910,9 +919,6 @@ SENSOR_DATA = {
             "Ein Brief ist unterwegs zu Ihnen",
         ],
     },
-    "post_de_delivered": {},
-    "post_de_packages": {},
-    "post_de_tracking": {},
     # Post Austria
     "post_at_delivering": {
         "email": ["MeineSendung@post.at"],
@@ -1483,6 +1489,12 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="post_de_packages",
     ),
+    "post_de_mail": SensorEntityDescription(
+        name="Mail Post DE Mail",
+        native_unit_of_measurement="piece(s)",
+        icon="mdi:mailbox-up",
+        key="post_de_mail",
+    ),
     # Post Austria
     "post_at_delivering": SensorEntityDescription(
         name="Post AT Delivering",
@@ -1591,6 +1603,13 @@ BINARY_SENSORS: Final[dict[str, MailandPackagesBinarySensorEntityDescription]] =
         selectable=False,
         entity_registry_enabled_default=False,
     ),
+    "post_de_update": MailandPackagesBinarySensorEntityDescription(
+        name="Post DE Image Updated",
+        key="post_de_update",
+        device_class=BinarySensorDeviceClass.UPDATE,
+        selectable=False,
+        entity_registry_enabled_default=False,
+    ),
     "usps_mail_delivered": MailandPackagesBinarySensorEntityDescription(
         name="USPS Mail Delivered",
         key="usps_mail_delivered",
@@ -1630,6 +1649,7 @@ CAMERA_DATA = {
     "walmart_camera": ["Mail Walmart Delivery Camera"],
     "fedex_camera": ["Mail FedEx Delivery Camera"],
     "generic_camera": ["Mail Generic Delivery Camera"],
+    "post_de_camera": ["Mail Post DE Camera"],
 }
 
 # Configuration for shipper-specific image extraction parameters

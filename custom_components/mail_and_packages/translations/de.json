@@ -34,6 +34,7 @@
           "walmart_custom_img": "Benutzerdefiniertes Walmart 'keine Lieferung' Bild verwenden?",
           "fedex_custom_img": "Benutzerdefiniertes FedEx 'keine Lieferung' Bild verwenden?",
           "generic_custom_img": "Benutzerdefiniertes generisches 'keine Lieferung' Bild verwenden?",
+          "post_de_custom_img": "Benutzerdefiniertes Post DE 'keine Post' Bild verwenden?",
           "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle",
           "allow_forwarded_emails": "Weitergeleitete E-Mails zusätzlich zu den Standardwerten eines Dienstes zulassen (z. B. no-reply@usps.com)",
           "custom_days": "Days back to check for package emails (minimum 1, default 3)"
@@ -47,7 +48,8 @@
           "amazon_custom_img_file": "Path to custom Amazon image: (ie: images/my_custom_no_amazon.jpg)",
           "ups_custom_img_file": "Path to custom UPS image: (ie: images/my_custom_no_ups.jpg)",
           "walmart_custom_img_file": "Path to custom Walmart image: (ie: images/my_custom_no_walmart.jpg)",
-          "fedex_custom_img_file": "Path to custom FedEx image: (ie: images/my_custom_no_fedex.jpg)"
+          "fedex_custom_img_file": "Path to custom FedEx image: (ie: images/my_custom_no_fedex.jpg)",
+          "post_de_custom_img_file": "Pfad zum benutzerdefinierten Post DE-Bild: (z. B.: images/my_custom_no_post_de.gif)"
         },
         "description": "Geben Sie unten den Pfad und den Dateinamen zu Ihrem benutzerdefinierten Keine-Mail-Bild ein.\n\nBeispiel: images/custom_nomail.gif",
         "title": "Post und Pakete (Schritt 3 von 3)"
@@ -78,6 +80,7 @@
           "walmart_custom_img": "Benutzerdefiniertes Walmart 'keine Lieferung' Bild verwenden?",
           "fedex_custom_img": "Benutzerdefiniertes FedEx 'keine Lieferung' Bild verwenden?",
           "generic_custom_img": "Benutzerdefiniertes generisches 'keine Lieferung' Bild verwenden?",
+          "post_de_custom_img": "Benutzerdefiniertes Post DE 'keine Post' Bild verwenden?",
           "generate_grid": "Erstellen Sie ein Bildraster für LLM-Vision-Modelle",
           "allow_forwarded_emails": "Weitergeleitete E-Mails zusätzlich zu den Standardwerten eines Dienstes zulassen (z. B. no-reply@usps.com)",
           "custom_days": "Days back to check for package emails (minimum 1, default 3)"
@@ -91,7 +94,8 @@
           "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
           "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
           "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
-          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)",
+          "post_de_custom_img_file": "Pfad zum benutzerdefinierten Post DE-Bild: (z. B.: images/my_custom_no_post_de.gif)"
         },
         "description": "Geben Sie unten den Pfad und den Dateinamen zu Ihrem benutzerdefinierten Keine-Mail-Bild ein.\n\nBeispiel: images/custom_nomail.gif",
         "title": "Post und Pakete (Schritt 3 von 3)"
