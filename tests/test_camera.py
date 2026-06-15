@@ -2710,6 +2710,7 @@ async def test_get_sensor_name_for_camera(hass, mock_imap_no_email, integration)
 
     assert camera._get_sensor_name_for_camera("amazon_camera") == "amazon_delivered"
     assert camera._get_sensor_name_for_camera("usps_camera") == "usps_mail"
+    assert camera._get_sensor_name_for_camera("post_de_camera") == "post_de_mail"
 
 
 async def test_generic_camera_gif_failure_fallback(

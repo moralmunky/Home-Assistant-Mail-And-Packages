@@ -46,6 +46,8 @@ from custom_components.mail_and_packages.const import (
     CONF_GENERATE_MP4,
     CONF_GENERIC_CUSTOM_IMG,
     CONF_GENERIC_CUSTOM_IMG_FILE,
+    CONF_POST_DE_CUSTOM_IMG,
+    CONF_POST_DE_CUSTOM_IMG_FILE,
     CONF_STORAGE,
     CONF_UPS_CUSTOM_IMG,
     CONF_UPS_CUSTOM_IMG_FILE,
@@ -196,6 +198,7 @@ _LOGGER = logging.getLogger(__name__)
                 "amazon_custom_img": False,
                 "fedex_custom_img": False,
                 "generic_custom_img": False,
+                "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
             },
@@ -431,6 +434,7 @@ async def test_form(
                 "amazon_custom_img": False,
                 "fedex_custom_img": False,
                 "generic_custom_img": False,
+                "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
             },
@@ -1096,6 +1100,7 @@ async def test_form_invalid_ffmpeg(
                 "amazon_custom_img": False,
                 "fedex_custom_img": False,
                 "generic_custom_img": False,
+                "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
             },
@@ -1322,6 +1327,7 @@ async def test_form_index_error(
                 "amazon_custom_img": False,
                 "fedex_custom_img": False,
                 "generic_custom_img": False,
+                "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
             },
@@ -2478,6 +2484,7 @@ async def test_config_flow_with_amazon_custom_image_only(
             "verify_ssl": False,
             "fedex_custom_img": False,
             "generic_custom_img": False,
+            "post_de_custom_img": False,
             "ups_custom_img": False,
             "walmart_custom_img": False,
         }
@@ -2668,6 +2675,7 @@ async def test_config_flow_with_ups_custom_image_only(
             "amazon_custom_img": False,
             "fedex_custom_img": False,
             "generic_custom_img": False,
+            "post_de_custom_img": False,
             "walmart_custom_img": False,
         }
 
@@ -3705,6 +3713,97 @@ async def test_generic_custom_image_in_config_flow(
         assert entry.version == CONFIG_VER
 
 
+async def test_post_de_custom_image_in_config_flow(
+    hass: HomeAssistant,
+    mock_imap_no_email,
+):
+    """Test Post DE custom image configuration in full config flow."""
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry",
+            return_value=True,
+        ),
+        patch("pathlib.Path.is_file", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
+        # Start the config flow
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": config_entries.SOURCE_USER},
+        )
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "user"
+
+        # Step 1: Basic IMAP settings
+        await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {"auth_type": "password"},
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+        )
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "config_2"
+
+        # Step 2: Enable post de custom image
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "allow_external": False,
+                "custom_img": False,
+                "post_de_custom_img": True,
+                "folder": "INBOX",
+                "generate_grid": False,
+                "generate_mp4": False,
+                "resources": ["post_de_mail"],
+            },
+        )
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "config_3"
+
+        # Step 3: Set post de custom image file
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "post_de_custom_img_file": "custom_components/mail_and_packages/images/post_de.jpg",
+            },
+        )
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "config_storage"
+
+        # Step 4: Storage settings
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+        )
+        assert result["type"] == FlowResultType.CREATE_ENTRY
+        assert result["title"] == "Mail and Packages (imap.test.email)"
+
+        # Verify post de custom image settings are saved
+        entry = result["result"]
+        assert entry.data[CONF_POST_DE_CUSTOM_IMG] is True
+        assert (
+            entry.data[CONF_POST_DE_CUSTOM_IMG_FILE]
+            == "custom_components/mail_and_packages/images/post_de.jpg"
+        )
+        assert entry.version == CONFIG_VER
+
+
 async def test_migration_to_version_12(hass: HomeAssistant, mock_imap_no_email):
     """Test migration to version 12 adds new Walmart and Generic camera fields."""
     # Create a mock config entry with version 11
@@ -4465,6 +4564,7 @@ async def test_reconfigure_flow_skip_to_storage(hass, mock_imap_no_email, integr
             "walmart_custom_img": False,
             "fedex_custom_img": False,
             "generic_custom_img": False,
+            "post_de_custom_img": False,
             "allow_forwarded_emails": False,
             "generate_grid": False,
         },
@@ -4642,6 +4742,7 @@ async def test_validate_forwarded_emails_missing_and_invalid():
                 "amazon_custom_img": False,
                 "fedex_custom_img": False,
                 "generic_custom_img": False,
+                "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
             },
@@ -4888,6 +4989,7 @@ async def test_form_allow_forwarded_emails(
                 "amazon_custom_img": False,
                 "fedex_custom_img": False,
                 "generic_custom_img": False,
+                "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
             },
@@ -5113,6 +5215,7 @@ async def test_form_allowed_forwarded_emails_entered_none(
                 "amazon_custom_img": False,
                 "fedex_custom_img": False,
                 "generic_custom_img": False,
+                "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
             },
@@ -5335,6 +5438,7 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
                 "amazon_custom_img": False,
                 "fedex_custom_img": False,
                 "generic_custom_img": False,
+                "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
             },
@@ -5557,6 +5661,7 @@ async def test_form_allow_forwarded_emails_without_custom_img(
                 "amazon_custom_img": False,
                 "fedex_custom_img": False,
                 "generic_custom_img": False,
+                "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
             },
@@ -5788,6 +5893,7 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
                 "amazon_custom_img": False,
                 "fedex_custom_img": False,
                 "generic_custom_img": False,
+                "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
             },
@@ -6647,6 +6753,7 @@ async def test_reconfigure_allow_forwarded_emails(
                 "amazon_custom_img": False,
                 "fedex_custom_img": False,
                 "generic_custom_img": False,
+                "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
             },
