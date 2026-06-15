@@ -168,16 +168,16 @@ class PostDEShipper(Shipper):
         delete_list: list,
     ):
         """Generate animated GIF from mail images."""
-        _LOGGER.debug("Resizing Post DE images to 724x320...")
-        all_images = await self.hass.async_add_executor_job(
-            resize_images,
-            images,
-            724,
-            320,
-        )
-        delete_list.extend(all_images)
-
         try:
+            _LOGGER.debug("Resizing Post DE images to 724x320...")
+            all_images = await self.hass.async_add_executor_job(
+                resize_images,
+                images,
+                724,
+                320,
+            )
+            delete_list.extend(all_images)
+
             _LOGGER.debug("Generating animated GIF for Post DE")
             gif_path = str(Path(path) / name)
             await self.hass.async_add_executor_job(
@@ -309,6 +309,12 @@ class PostDEShipper(Shipper):
                         ) -> str | None:
                             try:
                                 img = Image.open(io.BytesIO(img_bytes))
+                                if img.format is None:
+                                    _LOGGER.debug(
+                                        "Post DE image format is unidentified (None)"
+                                    )
+                                    return None
+
                                 # Validate format against expected content type
                                 if content_type == "image/png" and img.format != "PNG":
                                     _LOGGER.debug(

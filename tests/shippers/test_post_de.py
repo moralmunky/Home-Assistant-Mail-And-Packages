@@ -655,3 +655,46 @@ async def test_post_de_check_save_generic_exception(hass):
     ):
         result = await shipper.process(mock_account, "today", "post_de_mail")
         assert result["post_de_mail"] == 0
+
+
+@pytest.mark.asyncio
+async def test_post_de_unidentified_format(hass):
+    """Test PostDEShipper discards images with unidentified format (img.format is None)."""
+    shipper = PostDEShipper(
+        hass,
+        {
+            "image_path": "test/path/post_de/",
+            "post_de_image": "post_de_deliveries.gif",
+        },
+    )
+
+    msg = MIMEMultipart("alternative")
+    image_part = MIMEText("", _subtype="png")
+    image_part.set_type("image/png")
+    image_part.set_payload("image_data")
+    msg.attach(image_part)
+    msg_bytes = msg.as_bytes()
+
+    mock_account = AsyncMock()
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
+    mock_account.fetch.return_value = MagicMock(
+        result="OK", lines=[b"RFC822", msg_bytes]
+    )
+
+    mock_image = MagicMock()
+    mock_image.format = None  # Unidentified format
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.post_de.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.post_de.shutil.copyfile"),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.Image.open",
+            return_value=mock_image,
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "post_de_mail")
+        assert result["post_de_mail"] == 0
