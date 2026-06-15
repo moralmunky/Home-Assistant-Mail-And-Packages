@@ -298,7 +298,11 @@ class PostDEShipper(Shipper):
                             continue
 
                         # Check image dimensions to skip logos/icons
-                        def _check_and_save(img_bytes, out_path, content_type):
+                        def _check_and_save(
+                            img_bytes: bytes,
+                            out_path: str,
+                            content_type: str,
+                        ) -> str | None:
                             try:
                                 img = Image.open(io.BytesIO(img_bytes))
                                 width, height = img.size
