@@ -46,6 +46,8 @@ from custom_components.mail_and_packages.const import (
     CONF_GENERATE_MP4,
     CONF_GENERIC_CUSTOM_IMG,
     CONF_GENERIC_CUSTOM_IMG_FILE,
+    CONF_POST_DE_CUSTOM_IMG,
+    CONF_POST_DE_CUSTOM_IMG_FILE,
     CONF_STORAGE,
     CONF_UPS_CUSTOM_IMG,
     CONF_UPS_CUSTOM_IMG_FILE,
@@ -3707,6 +3709,97 @@ async def test_generic_custom_image_in_config_flow(
         assert (
             entry.data[CONF_GENERIC_CUSTOM_IMG_FILE]
             == "custom_components/mail_and_packages/images/generic.jpg"
+        )
+        assert entry.version == CONFIG_VER
+
+
+async def test_post_de_custom_image_in_config_flow(
+    hass: HomeAssistant,
+    mock_imap_no_email,
+):
+    """Test Post DE custom image configuration in full config flow."""
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.async_setup", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.async_setup_entry",
+            return_value=True,
+        ),
+        patch("pathlib.Path.is_file", return_value=True),
+        patch("pathlib.Path.exists", return_value=True),
+    ):
+        # Start the config flow
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": config_entries.SOURCE_USER},
+        )
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "user"
+
+        # Step 1: Basic IMAP settings
+        await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {"auth_type": "password"},
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "password": "notarealpassword",
+                "imap_security": "SSL",
+                "verify_ssl": False,
+            },
+        )
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "config_2"
+
+        # Step 2: Enable post de custom image
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "allow_external": False,
+                "custom_img": False,
+                "post_de_custom_img": True,
+                "folder": "INBOX",
+                "generate_grid": False,
+                "generate_mp4": False,
+                "resources": ["post_de_mail"],
+            },
+        )
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "config_3"
+
+        # Step 3: Set post de custom image file
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "post_de_custom_img_file": "custom_components/mail_and_packages/images/post_de.jpg",
+            },
+        )
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "config_storage"
+
+        # Step 4: Storage settings
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+        )
+        assert result["type"] == FlowResultType.CREATE_ENTRY
+        assert result["title"] == "Mail and Packages (imap.test.email)"
+
+        # Verify post de custom image settings are saved
+        entry = result["result"]
+        assert entry.data[CONF_POST_DE_CUSTOM_IMG] is True
+        assert (
+            entry.data[CONF_POST_DE_CUSTOM_IMG_FILE]
+            == "custom_components/mail_and_packages/images/post_de.jpg"
         )
         assert entry.version == CONFIG_VER
 

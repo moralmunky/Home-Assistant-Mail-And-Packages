@@ -540,3 +540,33 @@ async def test_get_imap_connection_folders_normalization(hass):
     ):
         await coordinator._get_imap_connection(config_invalid)
         assert mock_account._folders == ["INBOX"]
+
+
+@pytest.mark.asyncio
+async def test_coordinator_post_de_binary_sensor_update(hass):
+    """Test coordinator _binary_sensor_update correctly sets none_image for post_de."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    # Populate data with post_de_image attribute
+    coordinator._data = {
+        "post_de_image": "post_de_deliveries.gif",
+    }
+
+    # Mock the calls inside _binary_sensor_update
+    # We want it to reach lines 520-521.
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.default_image_path",
+            return_value="/fake_tmp",
+        ),
+        patch("anyio.Path.exists", return_value=True),
+        patch.object(
+            coordinator,
+            "_get_file_hash_if_changed",
+            side_effect=["hash1", "hash1"],
+        ),
+    ):
+        await coordinator._binary_sensor_update()
+
+    assert coordinator._data["post_de_update"] is False

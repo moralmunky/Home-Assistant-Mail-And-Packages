@@ -387,3 +387,150 @@ async def test_post_de_process_with_cache(hass):
             mock_account, "today", "post_de_mail", cache=cache
         )
         assert result["post_de_mail"] == 0
+
+
+@pytest.mark.asyncio
+async def test_post_de_process_unhandled_sensor(hass):
+    """Test process returns 0 early for unhandled sensors."""
+    shipper = PostDEShipper(hass, {})
+    mock_account = AsyncMock()
+    result = await shipper.process(mock_account, "today", "unsupported_sensor")
+    assert result == {"unsupported_sensor": 0}
+
+
+@pytest.mark.asyncio
+async def test_post_de_process_batch_sensor_fallback(hass):
+    """Test process_batch handles the case where a sensor is not returned in process result."""
+    shipper = PostDEShipper(hass, {})
+    mock_account = AsyncMock()
+    cache = EmailCache(mock_account)
+
+    with patch.object(shipper, "process", return_value={}) as mock_process:
+        result = await shipper.process_batch(
+            mock_account, "today", ["post_de_mail"], cache
+        )
+        assert result == {"post_de_mail": 0}
+        mock_process.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_post_de_copy_nomail_image_paths(hass):
+    """Test _copy_nomail_image behavior for non-existent dir and existing file."""
+    shipper = PostDEShipper(hass, {})
+    with (
+        patch("pathlib.Path.exists", return_value=False) as mock_exists,
+        patch("pathlib.Path.mkdir") as mock_mkdir,
+        patch("pathlib.Path.is_file", return_value=True) as mock_is_file,
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.cleanup_images",
+        ) as mock_cleanup,
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.shutil.copyfile",
+        ) as mock_copy,
+    ):
+        await shipper._copy_nomail_image("test_dir", "test.gif", None)
+        mock_exists.assert_called_once()
+        mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
+        mock_is_file.assert_called_once()
+        mock_cleanup.assert_called_once_with("test_dir/", "test.gif")
+        mock_copy.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_post_de_forwarded_emails_string(hass):
+    """Test PostDEShipper handles forwarded_emails as a comma-separated string."""
+    shipper = PostDEShipper(
+        hass,
+        {
+            "forwarded_emails": "forward1@test.com, forward2@test.com",
+            "image_path": "test/",
+        },
+    )
+    mock_account = AsyncMock()
+    mock_account.search.return_value = MagicMock(result="OK", lines=[])
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.post_de.email_search",
+        return_value=("OK", [None]),
+    ) as mock_search:
+        await shipper.process(mock_account, "today", "post_de_mail")
+        search_addresses = mock_search.call_args[0][1]
+        assert "forward1@test.com" in search_addresses
+        assert "forward2@test.com" in search_addresses
+        assert "ankuendigung@brief.deutschepost.de" in search_addresses
+
+
+@pytest.mark.asyncio
+async def test_post_de_empty_payload_attachment(hass):
+    """Test PostDEShipper ignores attachments with empty or missing payload."""
+    shipper = PostDEShipper(
+        hass,
+        {
+            "image_path": "test/path/post_de/",
+            "post_de_image": "post_de_deliveries.gif",
+        },
+    )
+
+    msg = MIMEMultipart("alternative")
+    image_part = MIMEText("", _subtype="png")
+    image_part.set_type("image/png")
+    image_part.set_payload(None)
+    msg.attach(image_part)
+    msg_bytes = msg.as_bytes()
+
+    mock_account = AsyncMock()
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
+    mock_account.fetch.return_value = MagicMock(
+        result="OK", lines=[b"RFC822", msg_bytes]
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.post_de.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.post_de.shutil.copyfile"),
+    ):
+        result = await shipper.process(mock_account, "today", "post_de_mail")
+        assert result["post_de_mail"] == 0
+
+
+@pytest.mark.asyncio
+async def test_post_de_check_save_exception(hass):
+    """Test PostDEShipper handles exceptions in _check_and_save gracefully."""
+    shipper = PostDEShipper(
+        hass,
+        {
+            "image_path": "test/path/post_de/",
+            "post_de_image": "post_de_deliveries.gif",
+        },
+    )
+
+    msg = MIMEMultipart("alternative")
+    image_part = MIMEText("", _subtype="png")
+    image_part.set_type("image/png")
+    image_part.set_payload("image_data")
+    msg.attach(image_part)
+    msg_bytes = msg.as_bytes()
+
+    mock_account = AsyncMock()
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
+    mock_account.fetch.return_value = MagicMock(
+        result="OK", lines=[b"RFC822", msg_bytes]
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.post_de.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.post_de.shutil.copyfile"),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.Image.open",
+            side_effect=TypeError("Mock type error"),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "post_de_mail")
+        assert result["post_de_mail"] == 0
