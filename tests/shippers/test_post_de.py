@@ -133,8 +133,10 @@ async def test_post_de_with_valid_images(hass):
     # We want to mock Image.open size
     mock_image_large = MagicMock()
     mock_image_large.size = (200, 150)
+    mock_image_large.format = "PNG"
     mock_image_small = MagicMock()
     mock_image_small.size = (50, 50)
+    mock_image_small.format = "PNG"
 
     def mock_open_write(self, mode="r", *args, **kwargs):
         return io.BytesIO()
@@ -197,6 +199,7 @@ async def test_post_de_resize_error(hass):
 
     mock_image = MagicMock()
     mock_image.size = (200, 150)
+    mock_image.format = "PNG"
 
     with (
         patch(
@@ -531,6 +534,123 @@ async def test_post_de_check_save_exception(hass):
         patch(
             "custom_components.mail_and_packages.shippers.post_de.Image.open",
             side_effect=UnidentifiedImageError("Mock unidentified image error"),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "post_de_mail")
+        assert result["post_de_mail"] == 0
+
+
+@pytest.mark.asyncio
+async def test_post_de_format_mismatch(hass):
+    """Test PostDEShipper discards images with format mismatch (e.g. PNG type but JPEG format)."""
+    shipper = PostDEShipper(
+        hass,
+        {
+            "image_path": "test/path/post_de/",
+            "post_de_image": "post_de_deliveries.gif",
+        },
+    )
+
+    msg = MIMEMultipart("alternative")
+    image_part = MIMEText("", _subtype="png")
+    image_part.set_type("image/png")
+    image_part.set_payload("image_data")
+    msg.attach(image_part)
+    msg_bytes = msg.as_bytes()
+
+    mock_account = AsyncMock()
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
+    mock_account.fetch.return_value = MagicMock(
+        result="OK", lines=[b"RFC822", msg_bytes]
+    )
+
+    mock_image = MagicMock()
+    mock_image.format = (
+        "JPEG"  # Mismatch (expected PNG because content type is image/png)
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.post_de.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.post_de.shutil.copyfile"),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.Image.open",
+            return_value=mock_image,
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "post_de_mail")
+        assert result["post_de_mail"] == 0
+
+    # Case 2: JPEG expected but PNG got
+    image_part = MIMEText("", _subtype="jpeg")
+    image_part.set_type("image/jpeg")
+    image_part.set_payload("image_data")
+    msg2 = MIMEMultipart("alternative")
+    msg2.attach(image_part)
+    msg2_bytes = msg2.as_bytes()
+
+    mock_account2 = AsyncMock()
+    mock_account2.search.return_value = MagicMock(result="OK", lines=[b"1"])
+    mock_account2.fetch.return_value = MagicMock(
+        result="OK", lines=[b"RFC822", msg2_bytes]
+    )
+
+    mock_image2 = MagicMock()
+    mock_image2.format = "PNG"
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.post_de.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.post_de.shutil.copyfile"),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.Image.open",
+            return_value=mock_image2,
+        ),
+    ):
+        result = await shipper.process(mock_account2, "today", "post_de_mail")
+        assert result["post_de_mail"] == 0
+
+
+@pytest.mark.asyncio
+async def test_post_de_check_save_generic_exception(hass):
+    """Test PostDEShipper handles generic exceptions (TypeError, OSError) in _check_and_save."""
+    shipper = PostDEShipper(
+        hass,
+        {
+            "image_path": "test/path/post_de/",
+            "post_de_image": "post_de_deliveries.gif",
+        },
+    )
+
+    msg = MIMEMultipart("alternative")
+    image_part = MIMEText("", _subtype="png")
+    image_part.set_type("image/png")
+    image_part.set_payload("image_data")
+    msg.attach(image_part)
+    msg_bytes = msg.as_bytes()
+
+    mock_account = AsyncMock()
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
+    mock_account.fetch.return_value = MagicMock(
+        result="OK", lines=[b"RFC822", msg_bytes]
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.post_de.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.post_de.shutil.copyfile"),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.Image.open",
+            side_effect=TypeError("Mock type error"),
         ),
     ):
         result = await shipper.process(mock_account, "today", "post_de_mail")

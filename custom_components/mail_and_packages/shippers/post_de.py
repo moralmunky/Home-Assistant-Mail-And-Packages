@@ -282,7 +282,11 @@ class PostDEShipper(Shipper):
         images: list,
         cache: EmailCache | None = None,
     ) -> tuple[int, list]:
-        """Process a single Post DE email and extract envelope scans."""
+        """Process a single Post DE email and extract envelope scans.
+
+        Expected email payload format is HTML containing inline <img> tags
+        referencing base64-encoded PNG/JPEG images.
+        """
         if cache:
             msg_parts = (await cache.fetch(num, "(RFC822)"))[1]
         else:
@@ -305,6 +309,23 @@ class PostDEShipper(Shipper):
                         ) -> str | None:
                             try:
                                 img = Image.open(io.BytesIO(img_bytes))
+                                # Validate format against expected content type
+                                if content_type == "image/png" and img.format != "PNG":
+                                    _LOGGER.debug(
+                                        "Post DE image format mismatch: expected PNG, got %s",
+                                        img.format,
+                                    )
+                                    return None
+                                if (
+                                    content_type == "image/jpeg"
+                                    and img.format != "JPEG"
+                                ):
+                                    _LOGGER.debug(
+                                        "Post DE image format mismatch: expected JPEG, got %s",
+                                        img.format,
+                                    )
+                                    return None
+
                                 width, height = img.size
                                 if width > 150 and height > 100:
                                     ext = (
@@ -317,12 +338,11 @@ class PostDEShipper(Shipper):
                                     with target.open("wb") as f:
                                         f.write(img_bytes)
                                     return str(target)
-                            except (
-                                OSError,
-                                ValueError,
-                                TypeError,
-                                UnidentifiedImageError,
-                            ) as err:
+                            except UnidentifiedImageError as err:
+                                _LOGGER.warning(
+                                    "Unidentified image found in Post DE email: %s", err
+                                )
+                            except (OSError, ValueError, TypeError) as err:
                                 _LOGGER.debug(
                                     "Error checking/saving Post DE image: %s", err
                                 )
