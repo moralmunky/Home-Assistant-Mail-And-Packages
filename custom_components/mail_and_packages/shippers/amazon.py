@@ -449,7 +449,8 @@ class AmazonShipper(Shipper):
                 address_list,
                 today,
                 search_subject,
-                forwarding_header,
+                body=AMAZON_HUB_BODY,
+                header=forwarding_header,
             )
             if server_response == "OK" and data[0] is not None:
                 for num in data[0].split():
@@ -492,7 +493,8 @@ class AmazonShipper(Shipper):
             address_list,
             today,
             AMAZON_OTP_SUBJECT,
-            forwarding_header,
+            body=AMAZON_OTP_REGEX,
+            header=forwarding_header,
         )
         if server_response == "OK" and data[0] is not None:
             for num in data[0].split():
