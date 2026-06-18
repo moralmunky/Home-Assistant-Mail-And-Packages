@@ -788,6 +788,80 @@ def test_build_search_single_addr_with_subject():
     assert search_yahoo == '(FROM "test@example.com" SUBJECT "Test" SINCE 25-Mar-2026)'
 
 
+def test_build_search_with_body():
+    """Test build_search with body parameter."""
+    # Single body string
+    utf8, search = build_search(
+        ["test@example.com"], "25-Mar-2026", body="Tracking 1Z1234567890"
+    )
+    assert 'BODY[TEXT] "Tracking 1Z1234567890"' in search
+
+    # Multiple body strings
+    utf8, search = build_search(
+        ["test@example.com"],
+        "25-Mar-2026",
+        body=["Tracking 1Z1234567890", "Order #12345"],
+    )
+    assert 'BODY[TEXT] "Tracking 1Z1234567890"' in search
+    assert 'BODY[TEXT] "Order #12345"' in search
+
+    # Yahoo IMAP with body
+    utf8, search_yahoo = build_search(
+        ["test@example.com"], "25-Mar-2026", body="Tracking 1Z1234567890", is_yahoo=True
+    )
+    assert 'BODY[TEXT] "Tracking 1Z1234567890"' in search_yahoo
+
+    # Body with subject
+    utf8, search = build_search(
+        ["test@example.com"],
+        "25-Mar-2026",
+        subject="Test",
+        body="Tracking 1Z1234567890",
+    )
+    assert 'SUBJECT "Test"' in search
+    assert 'BODY[TEXT] "Tracking 1Z1234567890"' in search
+
+    # Body with subject and Yahoo
+    utf8, search_yahoo = build_search(
+        ["test@example.com"],
+        "25-Mar-2026",
+        subject="Test",
+        body="Tracking 1Z1234567890",
+        is_yahoo=True,
+    )
+    assert 'SUBJECT "Test"' in search_yahoo
+    assert 'BODY[TEXT] "Tracking 1Z1234567890"' in search_yahoo
+
+
+def test_build_search_with_body_and_empty_body():
+    """Test build_search with empty body string."""
+    utf8, search = build_search(["test@example.com"], "25-Mar-2026", body="")
+    assert "BODY[TEXT]" not in search
+
+    # Empty list of bodies
+    utf8, search = build_search(["test@example.com"], "25-Mar-2026", body=[])
+    assert "BODY[TEXT]" not in search
+
+    # None body
+    utf8, search = build_search(["test@example.com"], "25-Mar-2026", body=None)
+    assert "BODY[TEXT]" not in search
+
+
+def test_build_search_with_body_and_non_ascii():
+    """Test build_search with non-ASCII body strings."""
+    # Non-ASCII characters should be stripped
+    utf8, search = build_search(
+        ["test@example.com"], "25-Mar-2026", body="Tracking émojis 🎉"
+    )
+    assert 'BODY[TEXT] "Tracking mojis "' in search
+
+    # Mixed ASCII and non-ASCII
+    utf8, search = build_search(
+        ["test@example.com"], "25-Mar-2026", body="Tracking 1Z1234567890 émojis"
+    )
+    assert 'BODY[TEXT] "Tracking 1Z1234567890 mojis"' in search
+
+
 @pytest.mark.asyncio
 async def test_email_search_batching():
     """Test email_search batching logic for > 10 subjects."""
