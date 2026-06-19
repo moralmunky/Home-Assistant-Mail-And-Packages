@@ -4,6 +4,7 @@ import asyncio
 import binascii
 import logging
 import re
+import unicodedata
 
 import aioimaplib
 from aioimaplib import (
@@ -187,6 +188,20 @@ async def selectfolder(account: IMAP4_SSL, folder: str) -> bool:
         return True
 
 
+def clean_search_string(val: str) -> str:
+    """Clean search string for IMAP search compatibility.
+
+    Normalizes Unicode characters to NFKD decomposed form, strips non-ASCII
+    characters to ensure compatibility with US-ASCII only IMAP servers,
+    and removes any double quotes to prevent syntax corruption.
+    """
+    if not val:
+        return ""
+    normalized = unicodedata.normalize("NFKD", val)
+    cleaned = normalized.encode("ascii", "ignore").decode("ascii")
+    return cleaned.replace('"', "")
+
+
 def build_search(  # noqa: C901
     address: list,
     date: str,
@@ -222,28 +237,22 @@ def build_search(  # noqa: C901
         # don't need separate configurations.
         parts = [f'OR HEADER "{header}" "{a}" FROM "{a}"' for a in address]
         if len(parts) == 1:
-            addr_clause = parts[0]
-            if is_yahoo:
-                addr_clause = f"({addr_clause})"
+            addr_clause = f"({parts[0]})"
         else:
             or_prefix = " ".join(["OR"] * (len(parts) - 1))
-            addr_clause = f"{or_prefix} {' '.join(parts)}"
-            if is_yahoo:
-                addr_clause = f"({addr_clause})"
+            addr_clause = f"({or_prefix} {' '.join(parts)})"
     elif len(address) == 1:
         addr_clause = f'FROM "{address[0]}"'
     else:
         joined = '" FROM "'.join(address)
         or_prefix = " ".join(["OR"] * (len(address) - 1))
-        addr_clause = f'{or_prefix} FROM "{joined}"'
-        if is_yahoo:
-            addr_clause = f"({addr_clause})"
+        addr_clause = f'({or_prefix} FROM "{joined}")'
 
     # Handle multiple subjects
     subject_part = ""
     if subject:
         subjects = [subject] if isinstance(subject, str) else subject
-        safe_subjects = [s.encode("ascii", "ignore").decode("ascii") for s in subjects]
+        safe_subjects = [clean_search_string(s) for s in subjects]
         safe_subjects = [s for s in safe_subjects if s]
 
         if len(safe_subjects) == 1:
@@ -251,16 +260,13 @@ def build_search(  # noqa: C901
         elif len(safe_subjects) > 1:
             subject_prefix = " ".join(["OR"] * (len(safe_subjects) - 1))
             subject_joined = '" SUBJECT "'.join(safe_subjects)
-            if is_yahoo:
-                subject_part = f'({subject_prefix} SUBJECT "{subject_joined}")'
-            else:
-                subject_part = f'{subject_prefix} SUBJECT "{subject_joined}"'
+            subject_part = f'({subject_prefix} SUBJECT "{subject_joined}")'
 
     # Handle multiple bodies
     body_part = ""
     if body:
         bodies = [body] if isinstance(body, str) else body
-        safe_bodies = [b.encode("ascii", "ignore").decode("ascii") for b in bodies]
+        safe_bodies = [clean_search_string(b) for b in bodies]
         safe_bodies = [b for b in safe_bodies if b]
 
         if len(safe_bodies) == 1:
@@ -268,10 +274,7 @@ def build_search(  # noqa: C901
         elif len(safe_bodies) > 1:
             body_prefix = " ".join(["OR"] * (len(safe_bodies) - 1))
             body_joined = '" BODY[TEXT] "'.join(safe_bodies)
-            if is_yahoo:
-                body_part = f'({body_prefix} BODY[TEXT] "{body_joined}")'
-            else:
-                body_part = f'{body_prefix} BODY[TEXT] "{body_joined}"'
+            body_part = f'({body_prefix} BODY[TEXT] "{body_joined}")'
 
     if is_yahoo:
         if subject_part or body_part:
