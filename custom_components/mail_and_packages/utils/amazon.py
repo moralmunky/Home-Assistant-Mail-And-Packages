@@ -89,20 +89,30 @@ def filter_amazon_strings(strings: list[str], domain: str) -> list[str]:
 def get_decoded_subject(msg: email.message.Message) -> str:
     """Decode email subject."""
     header_val = msg["subject"]
-    if not header_val:
-        return ""
-    decoded = decode_header(header_val)[0]
-    subject_bytes, encoding = decoded
-    if encoding:
-        try:
+    if header_val:
+        decoded_parts = []
+        for subject_bytes, encoding in decode_header(header_val):
             if isinstance(subject_bytes, bytes):
-                return subject_bytes.decode(encoding, "ignore")
-            return str(subject_bytes)
-        except (LookupError, UnicodeError):
-            pass
-    if isinstance(subject_bytes, bytes):
-        return subject_bytes.decode("utf-8", "ignore")
-    return str(subject_bytes)
+                if encoding:
+                    try:
+                        decoded_parts.append(subject_bytes.decode(encoding, "ignore"))
+                        continue
+                    except (LookupError, UnicodeError):
+                        pass
+                decoded_parts.append(subject_bytes.decode("utf-8", "ignore"))
+            else:
+                decoded_parts.append(str(subject_bytes))
+        return "".join(decoded_parts)
+
+    body = get_email_body(msg)
+    if not body:
+        return ""
+    title_match = re.search(
+        r"<title[^>]*>([^<]+)</title>", body, re.IGNORECASE | re.DOTALL
+    )
+    if not title_match:
+        return ""
+    return title_match.group(1).strip()
 
 
 def get_email_body(msg: email.message.Message) -> str:
