@@ -17,6 +17,7 @@ from custom_components.mail_and_packages.utils.imap import (
     _execute_single_search,
     _parse_esearch_line,
     build_search,
+    clean_search_string,
     decode_imap_utf7,
     email_fetch,
     email_fetch_batch,
@@ -897,6 +898,12 @@ def test_build_search_quotes_removed():
         ["test@example.com"], "25-Mar-2026", body="Tracking 1Z1234567890 émojis"
     )
     assert 'BODY[TEXT] "Tracking 1Z1234567890 emojis"' in search
+
+
+def test_clean_search_string_empty():
+    """Test clean_search_string with empty or falsy inputs."""
+    assert clean_search_string("") == ""
+    assert clean_search_string(None) == ""  # type: ignore[arg-type]
 
 
 @pytest.mark.asyncio
