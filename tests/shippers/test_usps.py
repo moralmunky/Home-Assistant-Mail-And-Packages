@@ -491,7 +491,7 @@ async def test_informed_delivery_forwarded_emails(hass):
         return_value=("OK", [None]),
     ) as mock_search:
         await shipper.process(mock_account, "today", "usps_mail")
-        assert "forward@test.com" in mock_search.call_args[0][1]
+        assert "forward@test.com" in mock_search.call_args.kwargs["address"]
 
 
 @pytest.mark.asyncio
@@ -508,7 +508,7 @@ async def test_informed_delivery_forwarded_emails_string(hass):
         return_value=("OK", [None]),
     ) as mock_search:
         await shipper.process(mock_account, "today", "usps_mail")
-        search_addresses = mock_search.call_args[0][1]
+        search_addresses = mock_search.call_args.kwargs["address"]
         assert "forward@test.com" in search_addresses
         assert "other@test.com" in search_addresses
 
@@ -531,11 +531,11 @@ async def test_informed_delivery_forwarding_header_mode(hass):
         return_value=("OK", [None]),
     ) as mock_search:
         await shipper.process(mock_account, "today", "usps_mail")
-        search_addresses = mock_search.call_args[0][1]
+        search_addresses = mock_search.call_args.kwargs["address"]
         assert "should-not-appear@example.com" not in search_addresses
         for addr in native_addresses:
             assert addr in search_addresses
-        assert mock_search.call_args[0][4] == "X-SimpleLogin-Original-From"
+        assert mock_search.call_args.kwargs["header"] == "X-SimpleLogin-Original-From"
 
 
 @pytest.mark.asyncio

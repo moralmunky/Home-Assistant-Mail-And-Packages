@@ -251,11 +251,11 @@ async def search_amazon_emails(
         amazon_subjects = filter_amazon_strings(amazon_subjects, domain)
 
     (server_response, sdata) = await email_search(
-        account,
-        address_list,
-        tfmt,
-        amazon_subjects,
-        forwarding_header,
+        account=account,
+        address=address_list,
+        date=tfmt,
+        subject=amazon_subjects,
+        header=forwarding_header,
     )
 
     if server_response != "OK" or not sdata[0]:

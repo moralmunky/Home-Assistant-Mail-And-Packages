@@ -285,11 +285,11 @@ class USPSShipper(Shipper):
                 email_addresses = SENSOR_DATA[ATTR_USPS_MAIL][ATTR_EMAIL]
 
         return await email_search(
-            account,
-            email_addresses,
-            get_formatted_date(),
-            SENSOR_DATA[ATTR_USPS_MAIL][ATTR_SUBJECT][0],
-            forwarding_header,
+            account=account,
+            address=email_addresses,
+            date=get_formatted_date(),
+            subject=SENSOR_DATA[ATTR_USPS_MAIL][ATTR_SUBJECT][0],
+            header=forwarding_header,
         )
 
     async def _setup_image_directory(self, path: str) -> bool:

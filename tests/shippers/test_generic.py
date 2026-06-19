@@ -338,7 +338,7 @@ async def test_generic_forwarded_emails(hass):
         return_value=("OK", [None]),
     ) as mock_search:
         await shipper.process(mock_acc, "today", "ups_delivered")
-        assert "forward@test.com" in mock_search.call_args[0][1]
+        assert "forward@test.com" in mock_search.call_args.kwargs["address"]
 
 
 @pytest.mark.asyncio
@@ -357,7 +357,7 @@ async def test_generic_forwarded_emails_string(hass):
         return_value=("OK", [None]),
     ) as mock_search:
         await shipper.process(mock_acc, "today", "ups_delivered")
-        search_addresses = mock_search.call_args[0][1]
+        search_addresses = mock_search.call_args.kwargs["address"]
         assert "forward@test.com" in search_addresses
         assert "other@test.com" in search_addresses
 
@@ -379,9 +379,9 @@ async def test_generic_forwarding_header_mode(hass):
         return_value=("OK", [None]),
     ) as mock_search:
         await shipper.process(mock_acc, "today", "ups_delivered")
-        search_addresses = mock_search.call_args[0][1]
+        search_addresses = mock_search.call_args.kwargs["address"]
         assert "should-not-appear@example.com" not in search_addresses
-        assert mock_search.call_args[0][4] == "X-SimpleLogin-Original-From"
+        assert mock_search.call_args.kwargs["header"] == "X-SimpleLogin-Original-From"
 
 
 @pytest.mark.asyncio
@@ -859,7 +859,7 @@ async def test_ups_packages_searches_imap(hass):
         mock_search.assert_called_once()
         call_args = mock_search.call_args
         # Verify UPS emails are passed
-        assert "mcinfo@ups.com" in call_args.args[1]
+        assert "mcinfo@ups.com" in call_args.kwargs["address"]
 
 
 @pytest.mark.asyncio
@@ -873,7 +873,7 @@ async def test_ups_packages_with_forwarded_emails_includes_both(hass):
     ) as mock_search:
         await shipper.process(mock_account, "today", "ups_packages")
         mock_search.assert_called_once()
-        email_list = mock_search.call_args.args[1]
+        email_list = mock_search.call_args.kwargs["address"]
         assert "forwarder@example.com" in email_list
         assert "mcinfo@ups.com" in email_list
 
@@ -920,7 +920,7 @@ async def test_process_delivering_uses_since_date(hass):
         )
 
     # The search date passed to IMAP should be since_date, not today
-    call_date = mock_search.call_args[0][2]
+    call_date = mock_search.call_args.kwargs["date"]
     assert call_date == "19-Apr-2026"
 
 
@@ -948,9 +948,9 @@ async def test_process_delivered_uses_since_date(hass):
 
     assert mock_search.call_count == 2
     # First call: extended window for tracking deduplication
-    assert mock_search.call_args_list[0][0][2] == "19-Apr-2026"
+    assert mock_search.call_args_list[0].kwargs["date"] == "19-Apr-2026"
     # Second call: today only so the count resets at midnight
-    assert mock_search.call_args_list[1][0][2] == "22-Apr-2026"
+    assert mock_search.call_args_list[1].kwargs["date"] == "22-Apr-2026"
 
 
 @pytest.mark.asyncio
@@ -970,7 +970,7 @@ async def test_process_exception_uses_since_date(hass):
             since_date="19-Apr-2026",
         )
 
-    call_date = mock_search.call_args[0][2]
+    call_date = mock_search.call_args.kwargs["date"]
     assert call_date == "19-Apr-2026"
 
 
@@ -1013,7 +1013,7 @@ async def test_ups_packages_uses_since_date(hass):
 
     mock_search.assert_called_once()
     # since_date should be passed as the search date, not the regular date
-    assert mock_search.call_args.args[2] == "19-Apr-2026"
+    assert mock_search.call_args.kwargs["date"] == "19-Apr-2026"
 
 
 @pytest.mark.asyncio

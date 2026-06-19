@@ -390,11 +390,12 @@ class GenericShipper(Shipper):
         image_found = False
 
         (server_response, sdata) = await email_search(
-            account,
-            email_addresses,
-            date,
-            subjects,
-            forwarding_header,
+            account=account,
+            address=email_addresses,
+            date=date,
+            subject=subjects,
+            body=config.get(ATTR_BODY, ""),
+            header=forwarding_header,
         )
 
         if server_response == "OK" and sdata[0]:
