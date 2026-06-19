@@ -251,7 +251,7 @@ async def test_post_de_forwarded_emails(hass):
         return_value=("OK", [None]),
     ) as mock_search:
         await shipper.process(mock_account, "today", "post_de_mail")
-        search_addresses = mock_search.call_args[0][1]
+        search_addresses = mock_search.call_args.kwargs["address"]
         assert "forward@test.com" in search_addresses
         assert "ankuendigung@brief.deutschepost.de" in search_addresses
 
@@ -275,10 +275,10 @@ async def test_post_de_forwarding_header_mode(hass):
         return_value=("OK", [None]),
     ) as mock_search:
         await shipper.process(mock_account, "today", "post_de_mail")
-        search_addresses = mock_search.call_args[0][1]
+        search_addresses = mock_search.call_args.kwargs["address"]
         assert "ignored@test.com" not in search_addresses
         assert "ankuendigung@brief.deutschepost.de" in search_addresses
-        assert mock_search.call_args[0][4] == "X-SimpleLogin-Original-From"
+        assert mock_search.call_args.kwargs["header"] == "X-SimpleLogin-Original-From"
 
 
 @pytest.mark.asyncio
@@ -306,7 +306,7 @@ async def test_post_de_ignores_since_date(hass):
             since_date="01-Jun-2026",
         )
         # Search date should be current formatted date (15-Jun-2026), ignoring since_date
-        assert mock_search.call_args[0][2] == "15-Jun-2026"
+        assert mock_search.call_args.kwargs["date"] == "15-Jun-2026"
 
 
 @pytest.mark.asyncio
@@ -458,7 +458,7 @@ async def test_post_de_forwarded_emails_string(hass):
         return_value=("OK", [None]),
     ) as mock_search:
         await shipper.process(mock_account, "today", "post_de_mail")
-        search_addresses = mock_search.call_args[0][1]
+        search_addresses = mock_search.call_args.kwargs["address"]
         assert "forward1@test.com" in search_addresses
         assert "forward2@test.com" in search_addresses
         assert "ankuendigung@brief.deutschepost.de" in search_addresses

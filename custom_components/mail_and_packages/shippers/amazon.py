@@ -331,11 +331,11 @@ class AmazonShipper(Shipper):
         address_list = amazon_email_addresses(fwds, amazon_domain)
         _LOGGER.debug("Amazon email search addresses: %s", address_list)
         (server_response, data) = await email_search(
-            account,
-            address_list,
-            today,
-            subjects,
-            forwarding_header,
+            account=account,
+            address=address_list,
+            date=today,
+            subject=subjects,
+            header=forwarding_header,
         )
         if server_response == "OK" and data[0]:
             for email_id in data[0].split():
@@ -526,11 +526,11 @@ class AmazonShipper(Shipper):
         today = get_today().strftime("%d-%b-%Y")
         address_list = amazon_email_addresses(fwds, domain)
         (server_response, data) = await email_search(
-            account,
-            address_list,
-            today,
-            AMAZON_EXCEPTION_SUBJECT,
-            forwarding_header,
+            account=account,
+            address=address_list,
+            date=today,
+            subject=AMAZON_EXCEPTION_SUBJECT,
+            header=forwarding_header,
         )
         if server_response == "OK" and data[0] is not None:
             order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")

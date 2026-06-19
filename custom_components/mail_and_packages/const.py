@@ -977,6 +977,7 @@ SENSOR_DATA = {
         "email": [
             "noreply@bol.com",
             "service@bol.com",
+            "automail@bol.com",
         ],
         "subject": ["bezorgd", "afgeleverd", "delivered"],
     },
@@ -984,12 +985,15 @@ SENSOR_DATA = {
         "email": [
             "noreply@bol.com",
             "service@bol.com",
+            "automail@bol.com",
         ],
         "subject": [
             "verzonden",
             "onderweg",
             "wordt bezorgd",
             "meegegeven met",
+            "bij PostNL",
+            "bij DHL",
         ],
         "body": [
             "nu bij PostNL",

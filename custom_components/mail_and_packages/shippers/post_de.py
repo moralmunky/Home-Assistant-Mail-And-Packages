@@ -253,11 +253,11 @@ class PostDEShipper(Shipper):
                 email_addresses = forwarded_emails + email_addresses
 
         return await email_search(
-            account,
-            email_addresses,
-            get_formatted_date(),
-            subjects,
-            forwarding_header,
+            account=account,
+            address=email_addresses,
+            date=get_formatted_date(),
+            subject=subjects,
+            header=forwarding_header,
         )
 
     async def _setup_image_directory(self, path: str) -> bool:
