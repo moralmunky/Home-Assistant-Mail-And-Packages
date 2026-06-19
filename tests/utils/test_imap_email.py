@@ -811,6 +811,18 @@ def test_build_search_with_body():
     )
     assert 'BODY[TEXT] "Tracking 1Z1234567890"' in search_yahoo
 
+    # Yahoo IMAP with multiple bodies
+    utf8, search_yahoo_multi = build_search(
+        ["test@example.com"],
+        "25-Mar-2026",
+        body=["Tracking 1Z1234567890", "Order #12345"],
+        is_yahoo=True,
+    )
+    assert (
+        '(OR BODY[TEXT] "Tracking 1Z1234567890" BODY[TEXT] "Order #12345")'
+        in search_yahoo_multi
+    )
+
     # Body with subject
     utf8, search = build_search(
         ["test@example.com"],
