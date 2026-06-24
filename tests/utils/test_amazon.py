@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import aiohttp
 import pytest
 
+from custom_components.mail_and_packages.const import AMAZON_SHIPMENT_SUBJECT
 from custom_components.mail_and_packages.utils.amazon import (
     _extract_hub_code,
     amazon_date_regex,
@@ -79,6 +80,33 @@ async def test_search_amazon_emails_invalid_days():
         )
         # Should default to DEFAULT_AMAZON_DAYS (3)
         assert mock_search.called
+
+
+def test_amazon_shipment_subject_matches_real_shipped_subjects():
+    """Regression: AMAZON_SHIPMENT_SUBJECT must match real 'has shipped' subjects.
+
+    The IMAP SUBJECT filter built from these keywords is a case-insensitive
+    substring match performed server-side. Amazon's current shipped-notification
+    subject looks like:
+
+        Your Amazon.com order of "<item>" and 1 more item has shipped!
+
+    which contains none of the legacy keywords ("Shipped:", etc.), so the email
+    was silently filtered out before it ever reached parsing. The existing
+    search tests mock ``email_search`` and never exercise the subject criteria,
+    so this asserts the keyword list directly against real subjects.
+    """
+    real_shipped_subjects = [
+        'Your Amazon.com order of "Lash Next Door Coquette..." and 1 more '
+        "item has shipped!",
+        "Your Amazon.com order #123-1234567-1234567 has shipped",
+        "Your Amazon order has shipped",
+    ]
+    for subject in real_shipped_subjects:
+        assert any(
+            keyword.lower() in subject.lower()
+            for keyword in AMAZON_SHIPMENT_SUBJECT
+        ), f"No AMAZON_SHIPMENT_SUBJECT keyword matches subject: {subject!r}"
 
 
 def test_extract_hub_code():

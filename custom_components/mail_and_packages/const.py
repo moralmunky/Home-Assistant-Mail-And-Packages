@@ -173,6 +173,8 @@ AMAZON_SHIPMENT_SUBJECT = [
     "Shipped:",
     "Enviado:",
     "Out for delivery:",
+    "Your Amazon.com order",
+    "Your Amazon order",
 ]
 AMAZON_ORDERED_SUBJECT = ["Ordered:", "Pedido efetuado:"]
 AMAZON_EMAIL = [
