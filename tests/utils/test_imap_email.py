@@ -798,7 +798,7 @@ def test_build_search_with_body():
     utf8, search = build_search(
         ["test@example.com"], "25-Mar-2026", body="Tracking 1Z1234567890"
     )
-    assert 'BODY[TEXT] "Tracking 1Z1234567890"' in search
+    assert 'BODY "Tracking 1Z1234567890"' in search
 
     # Multiple body strings
     utf8, search = build_search(
@@ -806,14 +806,14 @@ def test_build_search_with_body():
         "25-Mar-2026",
         body=["Tracking 1Z1234567890", "Order #12345"],
     )
-    assert 'BODY[TEXT] "Tracking 1Z1234567890"' in search
-    assert 'BODY[TEXT] "Order #12345"' in search
+    assert 'BODY "Tracking 1Z1234567890"' in search
+    assert 'BODY "Order #12345"' in search
 
     # Yahoo IMAP with body
     utf8, search_yahoo = build_search(
         ["test@example.com"], "25-Mar-2026", body="Tracking 1Z1234567890", is_yahoo=True
     )
-    assert 'BODY[TEXT] "Tracking 1Z1234567890"' in search_yahoo
+    assert 'BODY "Tracking 1Z1234567890"' in search_yahoo
 
     # Yahoo IMAP with multiple bodies
     utf8, search_yahoo_multi = build_search(
@@ -822,10 +822,7 @@ def test_build_search_with_body():
         body=["Tracking 1Z1234567890", "Order #12345"],
         is_yahoo=True,
     )
-    assert (
-        '(OR BODY[TEXT] "Tracking 1Z1234567890" BODY[TEXT] "Order #12345")'
-        in search_yahoo_multi
-    )
+    assert '(OR BODY "Tracking 1Z1234567890" BODY "Order #12345")' in search_yahoo_multi
 
     # Body with subject
     utf8, search = build_search(
@@ -835,7 +832,7 @@ def test_build_search_with_body():
         body="Tracking 1Z1234567890",
     )
     assert 'SUBJECT "Test"' in search
-    assert 'BODY[TEXT] "Tracking 1Z1234567890"' in search
+    assert 'BODY "Tracking 1Z1234567890"' in search
 
     # Body with subject and Yahoo
     utf8, search_yahoo = build_search(
@@ -846,21 +843,21 @@ def test_build_search_with_body():
         is_yahoo=True,
     )
     assert 'SUBJECT "Test"' in search_yahoo
-    assert 'BODY[TEXT] "Tracking 1Z1234567890"' in search_yahoo
+    assert 'BODY "Tracking 1Z1234567890"' in search_yahoo
 
 
 def test_build_search_with_body_and_empty_body():
     """Test build_search with empty body string."""
     utf8, search = build_search(["test@example.com"], "25-Mar-2026", body="")
-    assert "BODY[TEXT]" not in search
+    assert "BODY" not in search
 
     # Empty list of bodies
     utf8, search = build_search(["test@example.com"], "25-Mar-2026", body=[])
-    assert "BODY[TEXT]" not in search
+    assert "BODY" not in search
 
     # None body
     utf8, search = build_search(["test@example.com"], "25-Mar-2026", body=None)
-    assert "BODY[TEXT]" not in search
+    assert "BODY" not in search
 
 
 def test_build_search_with_body_and_non_ascii():
@@ -869,7 +866,7 @@ def test_build_search_with_body_and_non_ascii():
     utf8, search = build_search(
         ["test@example.com"], "25-Mar-2026", body="Tracking émojis 🎉"
     )
-    assert 'BODY[TEXT] "Tracking emojis "' in search
+    assert 'BODY "Tracking emojis "' in search
 
 
 def test_build_search_unicode_normalization():
@@ -878,7 +875,7 @@ def test_build_search_unicode_normalization():
     assert 'SUBJECT "Livre"' in search
 
     utf8, search2 = build_search(["test@example.com"], "25-Mar-2026", body="Café")
-    assert 'BODY[TEXT] "Cafe"' in search2
+    assert 'BODY "Cafe"' in search2
 
 
 def test_build_search_quotes_removed():
@@ -891,13 +888,13 @@ def test_build_search_quotes_removed():
     utf8, search2 = build_search(
         ["test@example.com"], "25-Mar-2026", body='order "123"'
     )
-    assert 'BODY[TEXT] "order 123"' in search2
+    assert 'BODY "order 123"' in search2
 
     # Mixed ASCII and non-ASCII
     utf8, search = build_search(
         ["test@example.com"], "25-Mar-2026", body="Tracking 1Z1234567890 émojis"
     )
-    assert 'BODY[TEXT] "Tracking 1Z1234567890 emojis"' in search
+    assert 'BODY "Tracking 1Z1234567890 emojis"' in search
 
 
 def test_clean_search_string_empty():

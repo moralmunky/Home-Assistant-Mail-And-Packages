@@ -22,6 +22,10 @@ This repository is a **Home Assistant Custom Integration** that connects to an I
   - `conftest.py`: Shared testing fixtures and mock IMAP client overrides.
   - `test_init.py`, `test_config_flow.py`, etc.: Integration and unit tests.
 
+### IMAP Integration & Compatibility Guidelines
+- **IMAP RFC Compliance**: All IMAP query keys and arguments used in search commands (e.g. `search()`) must strictly conform to the IMAP RFC specifications (e.g., RFC 3501). Do not use FETCH-specific section/body specifiers (like `BODY[TEXT]`) inside `SEARCH` commands; instead, use standard search keys such as `BODY` or `TEXT` to prevent setup/login timeouts or parse errors on strictly compliant IMAP servers.
+- **Test Fidelity**: Keep mock IMAP structures and test assertions aligned with standard RFC query formatting so invalid query structures are not masked by test mocks.
+
 ---
 
 ## 2. Python Environment & Dependency Management
@@ -123,3 +127,33 @@ permissions:
 All pull request titles must follow the Conventional Commits specification (e.g., `feat: ...`, `fix: ...`, `ci: ...`).
 - Workflow checks: Managed via the `Semantic PR Check` action in `.github/workflows/semantic-pr.yaml`.
 - Auto-labeling: Handled automatically by the built-in autolabeler in `.github/release-drafter.yml`.
+
+---
+
+## 7. Pull Request & Contribution Guidelines
+
+To maintain code quality and ensure a smooth review process, all pull requests must follow these guidelines:
+
+### A. Pre-submission Checklist
+Before submitting a pull request, run the following verification steps locally:
+1. **Formatting & Linting**: Auto-format and resolve all fixable lint issues:
+   ```bash
+   ruff check --fix . && ruff format .
+   ```
+2. **Type Safety**: Verify that no new type errors are introduced:
+   ```bash
+   mypy custom_components/mail_and_packages/
+   ```
+3. **Unit Tests**: Ensure all tests run and pass:
+   ```bash
+   uv run pytest
+   ```
+4. **Pre-commit Hooks**: Run git hooks against all files to ensure formatting/checkers pass:
+   ```bash
+   pre-commit run --all-files
+   ```
+
+### B. Pull Request Scope & Structure
+* **Keep PRs Atomic**: Avoid combining unrelated refactoring, styling fixes, or multiple feature requests into a single PR. Keep changes focused and small where possible.
+* **PR Templates**: Pull requests must use the repository's PR template, leaving nothing out unless the template explicitly states that it is optional or can be skipped.
+* **Commit Messages**: Write descriptive commit messages. Ensure the PR title matches the Conventional Commits specification (e.g., `fix(imap): handle body search syntax error`).
