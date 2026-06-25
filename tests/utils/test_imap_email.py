@@ -369,7 +369,7 @@ def test_build_search_no_subject():
 def test_build_search_multiple_no_subject():
     """Test build_search multiple addresses no subject."""
     utf8, search = build_search(["a@b.com", "c@d.com"], "25-Mar-2026", subject=None)
-    assert search == '(OR FROM "a@b.com" FROM "c@d.com") SINCE 25-Mar-2026'
+    assert search == 'OR FROM "a@b.com" FROM "c@d.com" SINCE 25-Mar-2026'
 
     utf8, search_yahoo = build_search(
         ["a@b.com", "c@d.com"], "25-Mar-2026", subject=None, is_yahoo=True
@@ -380,9 +380,7 @@ def test_build_search_multiple_no_subject():
 def test_build_search_prefix_subject():
     """Test build_search with multiple addresses and subject."""
     utf8, search = build_search(["a@b.com", "c@d.com"], "25-Mar-2026", "Test")
-    assert (
-        search == '(OR FROM "a@b.com" FROM "c@d.com") SUBJECT "Test" SINCE 25-Mar-2026'
-    )
+    assert search == 'OR FROM "a@b.com" FROM "c@d.com" SUBJECT "Test" SINCE 25-Mar-2026'
 
     utf8, search_yahoo = build_search(
         ["a@b.com", "c@d.com"], "25-Mar-2026", "Test", is_yahoo=True
@@ -397,8 +395,7 @@ def test_build_search_triple_address():
     """Test build_search with 3 addresses for OR prefix coverage."""
     utf8, search = build_search(["a@b.com", "c@d.com", "e@f.com"], "25-Mar-2026")
     assert (
-        search
-        == '(OR OR FROM "a@b.com" FROM "c@d.com" FROM "e@f.com") SINCE 25-Mar-2026'
+        search == 'OR OR FROM "a@b.com" FROM "c@d.com" FROM "e@f.com" SINCE 25-Mar-2026'
     )
 
     utf8, search_yahoo = build_search(
@@ -417,7 +414,7 @@ def test_build_search_single_header():
     )
     assert (
         search
-        == '(OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com") SINCE 25-Mar-2026'
+        == 'OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" SINCE 25-Mar-2026'
     )
 
     utf8, search_yahoo = build_search(
@@ -441,7 +438,7 @@ def test_build_search_multiple_header():
     )
     assert (
         search
-        == '(OR OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" OR HEADER "X-SimpleLogin-Original-From" "pkginfo@ups.com" FROM "pkginfo@ups.com") SINCE 25-Mar-2026'
+        == 'OR OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" OR HEADER "X-SimpleLogin-Original-From" "pkginfo@ups.com" FROM "pkginfo@ups.com" SINCE 25-Mar-2026'
     )
 
     utf8, search_yahoo = build_search(
@@ -466,7 +463,7 @@ def test_build_search_header_with_subject():
     )
     assert (
         search
-        == '(OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com") SUBJECT "UPS Ship Notification" SINCE 25-Mar-2026'
+        == 'OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" SUBJECT "UPS Ship Notification" SINCE 25-Mar-2026'
     )
 
     utf8, search_yahoo = build_search(
@@ -769,7 +766,7 @@ def test_build_search_multi_subject():
     utf8, search = build_search(["test@example.com"], "25-Mar-2026", subject=subjects)
     assert (
         search
-        == 'FROM "test@example.com" (OR OR SUBJECT "One" SUBJECT "Two" SUBJECT "Three") SINCE 25-Mar-2026'
+        == 'FROM "test@example.com" OR OR SUBJECT "One" SUBJECT "Two" SUBJECT "Three" SINCE 25-Mar-2026'
     )
 
     utf8, search_yahoo = build_search(
@@ -999,7 +996,7 @@ def test_build_search_multi_addr_multi_subject_parentheses():
     _utf8, search = build_search(addresses, "23-Apr-2026", subject=subjects)
     assert (
         search
-        == '(OR OR FROM "TrackingUpdates@fedex.com" FROM "fedexcanada@fedex.com" FROM "noreply@fedex.com") (OR OR SUBJECT "Your package has been delivered" SUBJECT "Your packages have been delivered" SUBJECT "Your shipment was delivered") SINCE 23-Apr-2026'
+        == 'OR OR FROM "TrackingUpdates@fedex.com" FROM "fedexcanada@fedex.com" FROM "noreply@fedex.com" OR OR SUBJECT "Your package has been delivered" SUBJECT "Your packages have been delivered" SUBJECT "Your shipment was delivered" SINCE 23-Apr-2026'
     )
 
     # Yahoo compatibility behavior (is_yahoo=True)
