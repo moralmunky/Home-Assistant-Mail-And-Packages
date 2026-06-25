@@ -1717,3 +1717,36 @@ async def test_email_fetch_batch_prefixed_timeout_error():
     mock_imap.uid.side_effect = TimeoutError()
     with pytest.raises(TimeoutError):
         await email_fetch_batch(mock_imap, [b"Junk/1001", b"Junk/1002"])
+
+
+@pytest.mark.asyncio
+async def test_email_search_body_threshold():
+    """Test that email_search only does server-side body search if <= 2 body patterns are specified."""
+    mock_imap = AsyncMock()
+    mock_imap._folders = ["INBOX"]
+    mock_imap.search.return_value = MagicMock(result="OK", lines=[b"1"])
+
+    # 1 body pattern -> should include BODY in search query
+    await email_search(mock_imap, ["test@example.com"], "25-Mar-2026", body="Pattern1")
+    search_query = mock_imap.search.call_args.args[0]
+    assert 'BODY "Pattern1"' in search_query
+
+    # 2 body patterns -> should include BODY in search query
+    mock_imap.search.reset_mock()
+    await email_search(
+        mock_imap, ["test@example.com"], "25-Mar-2026", body=["Pattern1", "Pattern2"]
+    )
+    search_query = mock_imap.search.call_args.args[0]
+    assert 'BODY "Pattern1"' in search_query
+    assert 'BODY "Pattern2"' in search_query
+
+    # 3 body patterns -> should NOT include BODY in search query
+    mock_imap.search.reset_mock()
+    await email_search(
+        mock_imap,
+        ["test@example.com"],
+        "25-Mar-2026",
+        body=["Pattern1", "Pattern2", "Pattern3"],
+    )
+    search_query = mock_imap.search.call_args.args[0]
+    assert "BODY" not in search_query

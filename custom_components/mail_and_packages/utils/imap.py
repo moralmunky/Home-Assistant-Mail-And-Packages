@@ -482,10 +482,19 @@ async def email_search(  # noqa: C901
         host_lower = account.host.lower()
         is_yahoo = "yahoo" in host_lower or "aol" in host_lower
 
+    # If there are more than 2 body patterns, do not search them server-side
+    # to prevent slow query execution and timeouts on standard IMAP servers.
+    # Instead, we let the shipper's client-side text filtering handle it.
+    body_search = body
+    if body:
+        bodies = [body] if isinstance(body, str) else body
+        if len(bodies) > 2:
+            body_search = ""
+
     if len(folders) <= 1:
         if not isinstance(subject, list) or len(subject) <= 10:
             _unused, search = build_search(
-                address, date, subject, body, header, is_yahoo=is_yahoo
+                address, date, subject, body_search, header, is_yahoo=is_yahoo
             )
             try:
                 res = await account.search(search, charset=None)
@@ -503,7 +512,7 @@ async def email_search(  # noqa: C901
         for i in range(0, len(subject), 10):
             batch = subject[i : i + 10]
             _unused, search = build_search(
-                address, date, batch, body, header, is_yahoo=is_yahoo
+                address, date, batch, body_search, header, is_yahoo=is_yahoo
             )
             try:
                 res = await account.search(search, charset=None)
@@ -522,7 +531,7 @@ async def email_search(  # noqa: C901
     # Multi-folder search logic
     if not isinstance(subject, list) or len(subject) <= 10:
         _unused, search = build_search(
-            address, date, subject, body, header, is_yahoo=is_yahoo
+            address, date, subject, body_search, header, is_yahoo=is_yahoo
         )
         try:
             uids = await _execute_single_search(account, search)
@@ -538,7 +547,7 @@ async def email_search(  # noqa: C901
     for i in range(0, len(subject), 10):
         batch = subject[i : i + 10]
         _unused, search = build_search(
-            address, date, batch, body, header, is_yahoo=is_yahoo
+            address, date, batch, body_search, header, is_yahoo=is_yahoo
         )
         try:
             uids = await _execute_single_search(account, search)
