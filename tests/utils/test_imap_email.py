@@ -369,7 +369,7 @@ def test_build_search_no_subject():
 def test_build_search_multiple_no_subject():
     """Test build_search multiple addresses no subject."""
     utf8, search = build_search(["a@b.com", "c@d.com"], "25-Mar-2026", subject=None)
-    assert search == '(OR FROM "a@b.com" FROM "c@d.com") SINCE 25-Mar-2026'
+    assert search == 'OR FROM "a@b.com" FROM "c@d.com" SINCE 25-Mar-2026'
 
     utf8, search_yahoo = build_search(
         ["a@b.com", "c@d.com"], "25-Mar-2026", subject=None, is_yahoo=True
@@ -380,9 +380,7 @@ def test_build_search_multiple_no_subject():
 def test_build_search_prefix_subject():
     """Test build_search with multiple addresses and subject."""
     utf8, search = build_search(["a@b.com", "c@d.com"], "25-Mar-2026", "Test")
-    assert (
-        search == '(OR FROM "a@b.com" FROM "c@d.com") SUBJECT "Test" SINCE 25-Mar-2026'
-    )
+    assert search == 'OR FROM "a@b.com" FROM "c@d.com" SUBJECT "Test" SINCE 25-Mar-2026'
 
     utf8, search_yahoo = build_search(
         ["a@b.com", "c@d.com"], "25-Mar-2026", "Test", is_yahoo=True
@@ -397,8 +395,7 @@ def test_build_search_triple_address():
     """Test build_search with 3 addresses for OR prefix coverage."""
     utf8, search = build_search(["a@b.com", "c@d.com", "e@f.com"], "25-Mar-2026")
     assert (
-        search
-        == '(OR OR FROM "a@b.com" FROM "c@d.com" FROM "e@f.com") SINCE 25-Mar-2026'
+        search == 'OR OR FROM "a@b.com" FROM "c@d.com" FROM "e@f.com" SINCE 25-Mar-2026'
     )
 
     utf8, search_yahoo = build_search(
@@ -417,7 +414,7 @@ def test_build_search_single_header():
     )
     assert (
         search
-        == '(OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com") SINCE 25-Mar-2026'
+        == 'OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" SINCE 25-Mar-2026'
     )
 
     utf8, search_yahoo = build_search(
@@ -441,7 +438,7 @@ def test_build_search_multiple_header():
     )
     assert (
         search
-        == '(OR OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" OR HEADER "X-SimpleLogin-Original-From" "pkginfo@ups.com" FROM "pkginfo@ups.com") SINCE 25-Mar-2026'
+        == 'OR OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" OR HEADER "X-SimpleLogin-Original-From" "pkginfo@ups.com" FROM "pkginfo@ups.com" SINCE 25-Mar-2026'
     )
 
     utf8, search_yahoo = build_search(
@@ -466,7 +463,7 @@ def test_build_search_header_with_subject():
     )
     assert (
         search
-        == '(OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com") SUBJECT "UPS Ship Notification" SINCE 25-Mar-2026'
+        == 'OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" SUBJECT "UPS Ship Notification" SINCE 25-Mar-2026'
     )
 
     utf8, search_yahoo = build_search(
@@ -769,7 +766,7 @@ def test_build_search_multi_subject():
     utf8, search = build_search(["test@example.com"], "25-Mar-2026", subject=subjects)
     assert (
         search
-        == 'FROM "test@example.com" (OR OR SUBJECT "One" SUBJECT "Two" SUBJECT "Three") SINCE 25-Mar-2026'
+        == 'FROM "test@example.com" OR OR SUBJECT "One" SUBJECT "Two" SUBJECT "Three" SINCE 25-Mar-2026'
     )
 
     utf8, search_yahoo = build_search(
@@ -999,7 +996,7 @@ def test_build_search_multi_addr_multi_subject_parentheses():
     _utf8, search = build_search(addresses, "23-Apr-2026", subject=subjects)
     assert (
         search
-        == '(OR OR FROM "TrackingUpdates@fedex.com" FROM "fedexcanada@fedex.com" FROM "noreply@fedex.com") (OR OR SUBJECT "Your package has been delivered" SUBJECT "Your packages have been delivered" SUBJECT "Your shipment was delivered") SINCE 23-Apr-2026'
+        == 'OR OR FROM "TrackingUpdates@fedex.com" FROM "fedexcanada@fedex.com" FROM "noreply@fedex.com" OR OR SUBJECT "Your package has been delivered" SUBJECT "Your packages have been delivered" SUBJECT "Your shipment was delivered" SINCE 23-Apr-2026'
     )
 
     # Yahoo compatibility behavior (is_yahoo=True)
@@ -1720,3 +1717,36 @@ async def test_email_fetch_batch_prefixed_timeout_error():
     mock_imap.uid.side_effect = TimeoutError()
     with pytest.raises(TimeoutError):
         await email_fetch_batch(mock_imap, [b"Junk/1001", b"Junk/1002"])
+
+
+@pytest.mark.asyncio
+async def test_email_search_body_threshold():
+    """Test that email_search only does server-side body search if <= 2 body patterns are specified."""
+    mock_imap = AsyncMock()
+    mock_imap._folders = ["INBOX"]
+    mock_imap.search.return_value = MagicMock(result="OK", lines=[b"1"])
+
+    # 1 body pattern -> should include BODY in search query
+    await email_search(mock_imap, ["test@example.com"], "25-Mar-2026", body="Pattern1")
+    search_query = mock_imap.search.call_args.args[0]
+    assert 'BODY "Pattern1"' in search_query
+
+    # 2 body patterns -> should include BODY in search query
+    mock_imap.search.reset_mock()
+    await email_search(
+        mock_imap, ["test@example.com"], "25-Mar-2026", body=["Pattern1", "Pattern2"]
+    )
+    search_query = mock_imap.search.call_args.args[0]
+    assert 'BODY "Pattern1"' in search_query
+    assert 'BODY "Pattern2"' in search_query
+
+    # 3 body patterns -> should NOT include BODY in search query
+    mock_imap.search.reset_mock()
+    await email_search(
+        mock_imap,
+        ["test@example.com"],
+        "25-Mar-2026",
+        body=["Pattern1", "Pattern2", "Pattern3"],
+    )
+    search_query = mock_imap.search.call_args.args[0]
+    assert "BODY" not in search_query

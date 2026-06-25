@@ -237,16 +237,24 @@ def build_search(  # noqa: C901
         # don't need separate configurations.
         parts = [f'OR HEADER "{header}" "{a}" FROM "{a}"' for a in address]
         if len(parts) == 1:
-            addr_clause = f"({parts[0]})"
+            addr_clause = f"({parts[0]})" if is_yahoo else parts[0]
         else:
             or_prefix = " ".join(["OR"] * (len(parts) - 1))
-            addr_clause = f"({or_prefix} {' '.join(parts)})"
+            addr_clause = (
+                f"({or_prefix} {' '.join(parts)})"
+                if is_yahoo
+                else f"{or_prefix} {' '.join(parts)}"
+            )
     elif len(address) == 1:
         addr_clause = f'FROM "{address[0]}"'
     else:
         joined = '" FROM "'.join(address)
         or_prefix = " ".join(["OR"] * (len(address) - 1))
-        addr_clause = f'({or_prefix} FROM "{joined}")'
+        addr_clause = (
+            f'({or_prefix} FROM "{joined}")'
+            if is_yahoo
+            else f'{or_prefix} FROM "{joined}"'
+        )
 
     # Handle multiple subjects
     subject_part = ""
@@ -260,7 +268,11 @@ def build_search(  # noqa: C901
         elif len(safe_subjects) > 1:
             subject_prefix = " ".join(["OR"] * (len(safe_subjects) - 1))
             subject_joined = '" SUBJECT "'.join(safe_subjects)
-            subject_part = f'({subject_prefix} SUBJECT "{subject_joined}")'
+            subject_part = (
+                f'({subject_prefix} SUBJECT "{subject_joined}")'
+                if is_yahoo
+                else f'{subject_prefix} SUBJECT "{subject_joined}"'
+            )
 
     # Handle multiple bodies
     body_part = ""
@@ -274,7 +286,11 @@ def build_search(  # noqa: C901
         elif len(safe_bodies) > 1:
             body_prefix = " ".join(["OR"] * (len(safe_bodies) - 1))
             body_joined = '" BODY "'.join(safe_bodies)
-            body_part = f'({body_prefix} BODY "{body_joined}")'
+            body_part = (
+                f'({body_prefix} BODY "{body_joined}")'
+                if is_yahoo
+                else f'{body_prefix} BODY "{body_joined}"'
+            )
 
     if is_yahoo:
         if subject_part or body_part:
@@ -466,10 +482,19 @@ async def email_search(  # noqa: C901
         host_lower = account.host.lower()
         is_yahoo = "yahoo" in host_lower or "aol" in host_lower
 
+    # If there are more than 2 body patterns, do not search them server-side
+    # to prevent slow query execution and timeouts on standard IMAP servers.
+    # Instead, we let the shipper's client-side text filtering handle it.
+    body_search = body
+    if body:
+        bodies = [body] if isinstance(body, str) else body
+        if len(bodies) > 2:
+            body_search = ""
+
     if len(folders) <= 1:
         if not isinstance(subject, list) or len(subject) <= 10:
             _unused, search = build_search(
-                address, date, subject, body, header, is_yahoo=is_yahoo
+                address, date, subject, body_search, header, is_yahoo=is_yahoo
             )
             try:
                 res = await account.search(search, charset=None)
@@ -487,7 +512,7 @@ async def email_search(  # noqa: C901
         for i in range(0, len(subject), 10):
             batch = subject[i : i + 10]
             _unused, search = build_search(
-                address, date, batch, body, header, is_yahoo=is_yahoo
+                address, date, batch, body_search, header, is_yahoo=is_yahoo
             )
             try:
                 res = await account.search(search, charset=None)
@@ -506,7 +531,7 @@ async def email_search(  # noqa: C901
     # Multi-folder search logic
     if not isinstance(subject, list) or len(subject) <= 10:
         _unused, search = build_search(
-            address, date, subject, body, header, is_yahoo=is_yahoo
+            address, date, subject, body_search, header, is_yahoo=is_yahoo
         )
         try:
             uids = await _execute_single_search(account, search)
@@ -522,7 +547,7 @@ async def email_search(  # noqa: C901
     for i in range(0, len(subject), 10):
         batch = subject[i : i + 10]
         _unused, search = build_search(
-            address, date, batch, body, header, is_yahoo=is_yahoo
+            address, date, batch, body_search, header, is_yahoo=is_yahoo
         )
         try:
             uids = await _execute_single_search(account, search)
