@@ -270,11 +270,11 @@ def build_search(  # noqa: C901
         safe_bodies = [b for b in safe_bodies if b]
 
         if len(safe_bodies) == 1:
-            body_part = f'BODY[TEXT] "{safe_bodies[0]}"'
+            body_part = f'BODY "{safe_bodies[0]}"'
         elif len(safe_bodies) > 1:
             body_prefix = " ".join(["OR"] * (len(safe_bodies) - 1))
-            body_joined = '" BODY[TEXT] "'.join(safe_bodies)
-            body_part = f'({body_prefix} BODY[TEXT] "{body_joined}")'
+            body_joined = '" BODY "'.join(safe_bodies)
+            body_part = f'({body_prefix} BODY "{body_joined}")'
 
     if is_yahoo:
         if subject_part or body_part:
