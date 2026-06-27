@@ -85,7 +85,10 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         self.data = self.coordinator.data
         parts = self.type.split("_")
         if len(parts) > 1:
-            self._tracking_key = f"{'_'.join(parts[:-1])}_tracking"
+            if parts[-1] == "delivered":
+                self._tracking_key = f"{self.type}_tracking"
+            else:
+                self._tracking_key = f"{'_'.join(parts[:-1])}_tracking"
         else:
             self._tracking_key = f"{self.type}_tracking"
 

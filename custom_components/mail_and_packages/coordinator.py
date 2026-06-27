@@ -313,6 +313,10 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                     account, today, sensors, cache, since_date=since_date
                 )
                 if isinstance(results, dict):
+                    if "_tracking_details" in results:
+                        data.setdefault("_tracking_details", {}).update(
+                            results.pop("_tracking_details")
+                        )
                     data.update(results)
                 success = True
             except Exception as err:  # noqa: BLE001
@@ -334,7 +338,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         today_iso: str,
     ) -> None:
         """Update in-transit tracking state and override sensor counts."""
-        prefixes: set[str] = set()
+        prefixes: set[str] = set(self._in_transit_tracking.keys())
         for sensor_key in tracking_details:
             prefix = "_".join(sensor_key.split("_")[:-1])
             if prefix:
