@@ -690,3 +690,49 @@ async def test_process_emails_delivered_tracking(hass):
     assert set(data["ups_tracking"]) == {"UPS_IN_TRANSIT"}
     # Delivered tracking should show today's delivered packages
     assert set(data["ups_delivered_tracking"]) == {"UPS_DELIVERED_TODAY"}
+
+
+@pytest.mark.asyncio
+async def test_process_emails_delivered_tracking_reversed_order(hass):
+    """Test process_emails isolates delivered tracking even with reversed insertion order."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    # Mock a shipper that returns delivered details before delivering details in the dict
+    mock_shipper = AsyncMock()
+    mock_shipper.name = "ups"
+    mock_shipper.process_batch.return_value = {
+        "_tracking_details": {
+            "ups_delivered": ["UPS_DELIVERED_TODAY", "UPS_DELIVERED_OLD"],
+            "ups_delivering": ["UPS_IN_TRANSIT"],
+        },
+        "ups_delivering": 1,
+        "ups_delivered": 1,
+        "ups_delivered_tracking": ["UPS_DELIVERED_TODAY"],
+        "ups_delivering_tracking": ["UPS_IN_TRANSIT"],
+    }
+
+    config = {
+        **FAKE_CONFIG_DATA,
+        "resources": ["ups_delivering", "ups_delivered"],
+    }
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.get_shipper_for_sensor",
+            return_value=mock_shipper,
+        ),
+    ):
+        data = await coordinator.process_emails(hass, config)
+
+    # In-transit tracking should still correctly exclude the delivered ones
+    assert set(data["ups_tracking"]) == {"UPS_IN_TRANSIT"}
+    assert set(data["ups_delivered_tracking"]) == {"UPS_DELIVERED_TODAY"}

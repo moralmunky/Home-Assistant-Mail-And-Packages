@@ -345,6 +345,17 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 prefixes.add(prefix)
 
         for prefix in prefixes:
+            if prefix in self._in_transit_tracking and not (
+                f"{prefix}_delivering" in tracking_details
+                or f"{prefix}_exception" in tracking_details
+                or f"{prefix}_delivered" in tracking_details
+            ):
+                _LOGGER.debug(
+                    "Prefix '%s' has no tracking_details entries — "
+                    "may be a removed carrier; tracking will persist until TTL expiry",
+                    prefix,
+                )
+
             delivering = list(tracking_details.get(f"{prefix}_delivering", []))
             delivering += list(tracking_details.get(f"{prefix}_exception", []))
             delivered = list(tracking_details.get(f"{prefix}_delivered", []))

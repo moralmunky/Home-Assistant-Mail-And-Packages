@@ -226,7 +226,7 @@ class GenericShipper(Shipper):
         res = {}
         for sensor, sensor_res in batch_results:
             tracking = (
-                sensor_res.pop("pre_filtered_tracking", None)
+                sensor_res.pop("pre_filtered_tracking", [])
                 if sensor.endswith("_delivered")
                 else sensor_res.get(ATTR_TRACKING)
             )
@@ -263,6 +263,9 @@ class GenericShipper(Shipper):
             if sensor not in sensor_res and ATTR_COUNT in sensor_res:
                 sensor_res[sensor] = sensor_res[ATTR_COUNT]
 
+            # Capture today-only tracking for _delivered sensors BEFORE
+            # _deduplicate_batch_tracking runs (which currently only modifies
+            # _delivering and _packages sensor results).
             if ATTR_TRACKING in sensor_res and sensor.endswith("_delivered"):
                 sensor_res[f"{sensor}_tracking"] = sensor_res[ATTR_TRACKING]
 
