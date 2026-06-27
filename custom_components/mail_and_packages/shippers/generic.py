@@ -266,14 +266,14 @@ class GenericShipper(Shipper):
             # Capture today-only tracking for _delivered sensors BEFORE
             # _deduplicate_batch_tracking runs (which currently only modifies
             # _delivering and _packages sensor results).
-            if ATTR_TRACKING in sensor_res and sensor.endswith("_delivered"):
+            if sensor_res.get(ATTR_TRACKING) and sensor.endswith("_delivered"):
                 sensor_res[f"{sensor}_tracking"] = sensor_res[ATTR_TRACKING]
 
             # Record results for post-processing
             batch_results.append((sensor, sensor_res))
 
             # Aggregate all tracking numbers found
-            if ATTR_TRACKING in sensor_res:
+            if sensor_res.get(ATTR_TRACKING):
                 all_tracking.update(sensor_res[ATTR_TRACKING])
 
         return batch_results, all_tracking
