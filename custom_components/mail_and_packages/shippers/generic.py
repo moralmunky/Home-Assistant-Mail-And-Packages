@@ -149,7 +149,7 @@ class GenericShipper(Shipper):
             count = len(result[ATTR_TRACKING])
 
         if is_delivered:
-            result["extended_tracking"] = result[ATTR_TRACKING]
+            result["pre_filtered_tracking"] = result[ATTR_TRACKING]
 
         # For _delivered sensors, the extended-window search gives us tracking
         # numbers needed for deduplication (above), but the count must reflect
@@ -225,12 +225,14 @@ class GenericShipper(Shipper):
         # Merge results and aggregate global tracking
         res = {}
         for sensor, sensor_res in batch_results:
+            tracking = (
+                sensor_res.pop("pre_filtered_tracking", None)
+                if sensor.endswith("_delivered")
+                else sensor_res.get(ATTR_TRACKING)
+            )
             res.update(sensor_res)
             # Expose per-sensor raw tracking for coordinator state management.
             # Keyed as "_tracking_details" to distinguish from the public data dict.
-            tracking = sensor_res.get(
-                "extended_tracking" if sensor.endswith("_delivered") else ATTR_TRACKING
-            )
             if tracking and sensor.endswith(
                 ("_delivering", "_delivered", "_exception")
             ):
@@ -261,7 +263,7 @@ class GenericShipper(Shipper):
             if sensor not in sensor_res and ATTR_COUNT in sensor_res:
                 sensor_res[sensor] = sensor_res[ATTR_COUNT]
 
-            if ATTR_TRACKING in sensor_res:
+            if ATTR_TRACKING in sensor_res and sensor.endswith("_delivered"):
                 sensor_res[f"{sensor}_tracking"] = sensor_res[ATTR_TRACKING]
 
             # Record results for post-processing
