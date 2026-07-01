@@ -36,7 +36,7 @@ The image will revert back to the no mail graphic after the first email check af
 * **No external services are used to process your email.**
 * **No data is sent outside of your local instance of Home Assistant**
 
-##### *Privacy / Security Note
+##### Privacy / Security Note
 Please note that files stored in the `www` Home Assistant folder are [publicly accessible](https://www.home-assistant.io/integrations/http/#hosting-files) unless you have taken security measures outside of Home Assistant to secure it. For increased security and simplicity the USPS Informed Delivery image name is random by default and no longer has the option to turn it on/off. Two new sensors have been created that provide the local file path or a web accessible url for use in displaying or sending in various Home Assistant notification methods.
 
 * `sensor.mail_image_system_path`
@@ -54,4 +54,4 @@ Please note that files stored in the `www` Home Assistant folder are [publicly a
 
 [Text Summary](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Mail-Summary-Message)
 
-[Notificaions](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Notifications)
+[Notifications](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Notifications)
