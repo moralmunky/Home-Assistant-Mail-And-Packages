@@ -801,6 +801,15 @@ async def test_amazon_search_delivered(
     assert mock_download_img.called
 
 
+async def test_amazon_search_delivered_ssrf(
+    hass, mock_imap_amazon_delivered_ssrf, mock_download_img
+):
+    # The delivery image URL points at "https://<s3-bucket>@evil.example/...".
+    # The real host is evil.example, so the image must NOT be downloaded.
+    amazon_search(mock_imap_amazon_delivered_ssrf, "test/path", hass, "testfilename.jpg")
+    assert not mock_download_img.called
+
+
 async def test_amazon_search_delivered_it(
     hass, mock_imap_amazon_delivered_it, mock_download_img
 ):

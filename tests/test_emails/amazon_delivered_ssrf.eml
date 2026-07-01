@@ -1,0 +1,13 @@
+From: "auto-confirm@amazon.com" <auto-confirm@amazon.com>
+To: test@example.com
+Subject: Delivered: Your Amazon.com order
+Date: Fri, 11 Sep 2020 18:51:19 +0000
+MIME-Version: 1.0
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+<html><body>
+<a href="https://www.amazon.com/gp/css/shiptrack/view.html">
+<img class="largeImage" src="https://us-prod-temp.s3.amazonaws.com@evil.example/imageId-abc123?X-Amz-Algorithm=AWS4-HMAC-SHA256&amp;X-Amz-Signature=deadbeefdeadbeefdeadbeefdeadbeef" alt="A photo of your delivery location" style="border: 0" />
+</a>
+</body></html>

@@ -15,6 +15,7 @@ from datetime import timezone
 from email.header import decode_header
 from shutil import copyfile, copytree, which
 from typing import Any, List, Optional, Type, Union
+from urllib.parse import urlparse
 
 import aiohttp
 import imageio as io
@@ -1063,9 +1064,18 @@ def get_amazon_image(
                     pattern = re.compile(rf"{AMAZON_IMG_PATTERN}")
                     found = pattern.findall(part)
                     for url in found:
-                        if url[1] != "us-prod-temp.s3.amazonaws.com":
+                        candidate = url[0] + url[1] + url[2]
+                        # Only fetch the delivery photo from Amazon's S3 bucket.
+                        # Parse the assembled URL and compare the *real* host so a
+                        # crafted "https://<bucket>@attacker/..." (userinfo) URL
+                        # can't smuggle the request to another host (SSRF).
+                        parsed = urlparse(candidate)
+                        if (
+                            parsed.hostname != "us-prod-temp.s3.amazonaws.com"
+                            or parsed.username is not None
+                        ):
                             continue
-                        img_url = url[0] + url[1] + url[2]
+                        img_url = candidate
                         _LOGGER.debug("Amazon img URL: %s", img_url)
                         break
 
