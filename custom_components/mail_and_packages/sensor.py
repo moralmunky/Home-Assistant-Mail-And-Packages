@@ -87,10 +87,11 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         self.data = self.coordinator.data
         parts = self.type.split("_")
         if len(parts) > 1:
+            prefix = "_".join(parts[:-1])
             if parts[-1] in DELIVERED_SUFFIXES:
-                self._tracking_key = f"{self.type}_tracking"
+                self._tracking_key = f"{prefix}_delivered_tracking"
             else:
-                self._tracking_key = f"{'_'.join(parts[:-1])}_tracking"
+                self._tracking_key = f"{prefix}_tracking"
         else:
             self._tracking_key = f"{self.type}_tracking"
 

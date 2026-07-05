@@ -372,7 +372,6 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 data[f"{prefix}_packages"] = len(in_transit) + (
                     delivered_count if isinstance(delivered_count, int) else 0
                 )
-        data.pop("_tracking_details", None)
 
     def _update_tracking_for_prefix(
         self,
