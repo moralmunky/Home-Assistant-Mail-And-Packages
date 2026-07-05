@@ -930,6 +930,30 @@ def mock_imap_hermes_out_for_delivery(mock_imap):
 
 
 @pytest.fixture
+def mock_imap_hermes_de_delivered(mock_imap):
+    """Mock IMAP search with Hermes Germany delivered email."""
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+    email_file = Path("tests/test_emails/hermes_de_delivered.eml").read_text(
+        encoding="utf-8",
+    )
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+    return mock_imap
+
+
+@pytest.fixture
+def mock_imap_hermes_de_delivering_today(mock_imap):
+    """Mock IMAP search with Hermes Germany delivering today email."""
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+    email_file = Path("tests/test_emails/hermes_de_delivering_today.eml").read_text(
+        encoding="utf-8",
+    )
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+    return mock_imap
+
+
+@pytest.fixture
 def mock_imap_evri_out_for_delivery(mock_imap):
     """Mock IMAP search with Evri out for delivery email."""
     mock_imap.select.return_value = ("OK", [b""])
