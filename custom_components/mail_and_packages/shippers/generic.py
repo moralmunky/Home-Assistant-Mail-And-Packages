@@ -149,7 +149,7 @@ class GenericShipper(Shipper):
             count = len(result[ATTR_TRACKING])
 
         if is_delivered:
-            result["pre_filtered_tracking"] = result[ATTR_TRACKING]
+            result["pre_filtered_tracking"] = result.get(ATTR_TRACKING, [])
 
         # For _delivered sensors, the extended-window search gives us tracking
         # numbers needed for deduplication (above), but the count must reflect
