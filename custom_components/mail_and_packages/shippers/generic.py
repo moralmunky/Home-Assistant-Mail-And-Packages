@@ -148,6 +148,9 @@ class GenericShipper(Shipper):
         if result[ATTR_TRACKING]:
             count = len(result[ATTR_TRACKING])
 
+        if is_delivered:
+            result["pre_filtered_tracking"] = result.get(ATTR_TRACKING, [])
+
         # For _delivered sensors, the extended-window search gives us tracking
         # numbers needed for deduplication (above), but the count must reflect
         # only today's deliveries so the sensor resets at midnight.
@@ -169,6 +172,7 @@ class GenericShipper(Shipper):
                 sensor_type, today_found, account, cache
             )
             count = len(today_tracking) if today_tracking else today_count
+            result[ATTR_TRACKING] = today_tracking
 
         result[ATTR_COUNT] = count
         if shipper_cfg:
@@ -221,10 +225,14 @@ class GenericShipper(Shipper):
         # Merge results and aggregate global tracking
         res = {}
         for sensor, sensor_res in batch_results:
+            tracking = (
+                sensor_res.pop("pre_filtered_tracking", [])
+                if sensor.endswith("_delivered")
+                else sensor_res.get(ATTR_TRACKING)
+            )
             res.update(sensor_res)
             # Expose per-sensor raw tracking for coordinator state management.
             # Keyed as "_tracking_details" to distinguish from the public data dict.
-            tracking = sensor_res.get(ATTR_TRACKING)
             if tracking and sensor.endswith(
                 ("_delivering", "_delivered", "_exception")
             ):
@@ -255,11 +263,17 @@ class GenericShipper(Shipper):
             if sensor not in sensor_res and ATTR_COUNT in sensor_res:
                 sensor_res[sensor] = sensor_res[ATTR_COUNT]
 
+            # Capture today-only tracking for _delivered sensors BEFORE
+            # _deduplicate_batch_tracking runs (which currently only modifies
+            # _delivering and _packages sensor results).
+            if sensor_res.get(ATTR_TRACKING) and sensor.endswith("_delivered"):
+                sensor_res[f"{sensor}_tracking"] = sensor_res[ATTR_TRACKING]
+
             # Record results for post-processing
             batch_results.append((sensor, sensor_res))
 
             # Aggregate all tracking numbers found
-            if ATTR_TRACKING in sensor_res:
+            if sensor_res.get(ATTR_TRACKING):
                 all_tracking.update(sensor_res[ATTR_TRACKING])
 
         return batch_results, all_tracking
