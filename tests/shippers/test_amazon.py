@@ -546,10 +546,31 @@ async def test_amazon_search_delivered_it(hass, mock_imap_amazon_delivered_it):
 async def test_parse_amazon_arrival_date(hass):
     """Test parse_amazon_arrival_date utility."""
     email_date = datetime.date(2020, 9, 25)
+
+    # 1. Standard absolute date parsing
     body = "Your order has shipped. Arriving: Saturday, September 26."
-    # With Arriving: in pattern, it should find September 26
     result = await parse_amazon_arrival_date(hass, body, email_date)
     assert result == datetime.date(2020, 9, 26)
+
+    # 2. English "today" relative date
+    body_today = "Your order has shipped. Arriving today by 8 PM."
+    result_today = await parse_amazon_arrival_date(hass, body_today, email_date)
+    assert result_today == email_date
+
+    # 3. English "tomorrow" relative date
+    body_tomorrow = "Your order has shipped. Arriving tomorrow by 8 PM."
+    result_tomorrow = await parse_amazon_arrival_date(hass, body_tomorrow, email_date)
+    assert result_tomorrow == email_date + datetime.timedelta(days=1)
+
+    # 4. Dutch "vandaag" relative date
+    body_vandaag = "Je pakket wordt vandaag bezorgd."
+    result_vandaag = await parse_amazon_arrival_date(hass, body_vandaag, email_date)
+    assert result_vandaag == email_date
+
+    # 5. Dutch "morgen" relative date
+    body_morgen = "Je pakket wordt morgen bezorgd."
+    result_morgen = await parse_amazon_arrival_date(hass, body_morgen, email_date)
+    assert result_morgen == email_date + datetime.timedelta(days=1)
 
 
 @pytest.mark.asyncio
