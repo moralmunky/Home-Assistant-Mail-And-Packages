@@ -249,11 +249,9 @@ AMAZON_TIME_PATTERN_REGEX = [
     "Arrivée (\\w+ \\d+)",
     "Arrivée (\\w+ \\d*)",
     "Chega ((\\w+(-\\w+)?))",
-    "Arriving (tomorrow)",
-    "Arriving (today)",
     "Wordt bezorgd op (\\w+ \\d+ \\w+)",
     "Wordt bezorgd op (\\w+ \\d+)",
-    "Wordt (vandaag) bezorgd",
+    "Wordt (\\w+) bezorgd",
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
