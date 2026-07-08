@@ -171,6 +171,7 @@ async def parse_amazon_arrival_date(
         if dateobj:
             parsed_date = dateobj.date()
             base_date = email_date or today_date
+            # Only accept matches that resolve to email_date (today) or email_date + 1 day (tomorrow)
             if (
                 parsed_date == base_date
                 or parsed_date == base_date + datetime.timedelta(days=1)
