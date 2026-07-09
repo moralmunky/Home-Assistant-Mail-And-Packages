@@ -648,6 +648,42 @@ async def test_amazon_order_list(hass, mock_imap_amazon_shipped):
 
 
 @pytest.mark.asyncio
+async def test_amazon_order_list_filtering(hass, mock_imap_amazon_shipped):
+    """Test Amazon order list filtering when delivered."""
+    shipper = AmazonShipper(hass, {})
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            new_callable=AsyncMock,
+            side_effect=[
+                (
+                    "OK",
+                    [
+                        b"Header",
+                        b"Subject: Shipped:\n\nYour order 111-1234567-1234567 has shipped.",
+                    ],
+                ),
+                (
+                    "OK",
+                    [
+                        b"Header",
+                        b"Subject: Delivered: Your Amazon order has arrived!\n\nYour order 111-1234567-1234567 was delivered.",
+                    ],
+                ),
+            ],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search_amazon_emails",
+            new_callable=AsyncMock,
+            return_value=[b"1", b"2"],
+        ),
+    ):
+        result = await shipper.process(mock_imap_amazon_shipped, "today", AMAZON_ORDER)
+        # The order was shipped and delivered, so it should be filtered out
+        assert "111-1234567-1234567" not in result[AMAZON_ORDER]
+
+
+@pytest.mark.asyncio
 async def test_amazon_hub_multi(hass, mock_imap_amazon_the_hub):
     """Test Amazon Hub with multiple codes and deduplication."""
     shipper = AmazonShipper(hass, {})
