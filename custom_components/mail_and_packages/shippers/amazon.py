@@ -210,7 +210,17 @@ class AmazonShipper(Shipper):
 
         if param == "count":
             return final_count
-        return list(context["all_shipped_orders"])
+
+        return [
+            order_id
+            for order_id in context["all_shipped_orders"]
+            if context["packages_arriving_today"].get(order_id, 0)
+            > context["delivered_packages"].get(order_id, 0)
+            or (
+                context["packages_arriving_today"].get(order_id, 0) == 0
+                and context["delivered_packages"].get(order_id, 0) == 0
+            )
+        ]
 
     async def _process_amazon_email(
         self,
