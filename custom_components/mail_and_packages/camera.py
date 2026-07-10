@@ -182,7 +182,13 @@ class MailCam(CoordinatorEntity, Camera):
 
         def _read_file(path: str) -> bytes:
             with Path(path).open("rb") as f:
-                return f.read()
+                data = f.read()
+            if not data:
+                # A 0-byte image (e.g. a failed extraction that wrote an empty
+                # file) is as unservable as a missing one — raise so it routes
+                # through the same placeholder fallback below.
+                raise FileNotFoundError(f"empty image file: {path}")
+            return data
 
         try:
             image_bytes = await self.hass.async_add_executor_job(

@@ -1,7 +1,7 @@
 """Tests for camera component."""
 
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, mock_open, patch
+from unittest.mock import AsyncMock, MagicMock, call, mock_open, patch
 
 import pytest
 from homeassistant.const import ATTR_ENTITY_ID
@@ -351,6 +351,63 @@ async def test_async_camera_image_falls_back_to_placeholder(
     # Cache should now key off the placeholder path for cheap repeat reads.
     assert cam._cached_image_path == placeholder_path
     assert cam._cached_image_bytes == b"placeholder-bytes"
+
+
+async def test_async_camera_image_empty_file_falls_back_to_placeholder(
+    hass,
+    mock_imap_no_email,
+    integration,
+    mock_osremove,
+    mock_osmakedir,
+    mock_listdir,
+    mock_update_time,
+    mock_copy_overlays,
+    mock_hash_file,
+    mock_getctime_today,
+    mock_update,
+    caplog,
+):
+    """Test async_camera_image treats a 0-byte image file like a missing one.
+
+    Regression test: a failed extraction can leave a 0-byte file on disk
+    (empty base64 data URI). Serving it renders a broken image in the
+    frontend — it must fall back to the bundled placeholder instead.
+    """
+    entry = integration
+
+    cameras = entry.runtime_data.cameras
+    cam = cameras[0]
+    cam._file_path = "/exists/but/empty_delivery.jpg"
+    placeholder_path = cam._default_image_path
+
+    # First open() (primary path) reads 0 bytes; second open() (placeholder)
+    # returns real bytes.
+    empty_handle = MagicMock()
+    empty_handle.__enter__.return_value = MagicMock(read=MagicMock(return_value=b""))
+    empty_handle.__exit__ = MagicMock(return_value=False)
+    placeholder_handle = MagicMock()
+    placeholder_handle.__enter__.return_value = MagicMock(
+        read=MagicMock(return_value=b"placeholder-bytes")
+    )
+    placeholder_handle.__exit__ = MagicMock(return_value=False)
+
+    with patch("custom_components.mail_and_packages.camera.Path") as mock_path_class:
+        mock_path_class.return_value.open.side_effect = [
+            empty_handle,
+            placeholder_handle,
+        ]
+        result = await cam.async_camera_image()
+
+    assert result == b"placeholder-bytes"
+    assert cam._cached_image_path == placeholder_path
+    assert cam._cached_image_bytes == b"placeholder-bytes"
+    # The empty PRIMARY file must be read first, then the placeholder —
+    # an implementation that wrongly re-read the primary for the fallback
+    # would dispense the right handles in the wrong order.
+    assert mock_path_class.call_args_list == [
+        call(cam._file_path),
+        call(placeholder_path),
+    ]
 
 
 async def test_async_camera_image_placeholder_is_primary_missing(
