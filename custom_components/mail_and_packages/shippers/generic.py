@@ -662,7 +662,11 @@ class GenericShipper(Shipper):
                 msg_parts = (await email_fetch(account, eid, "(RFC822)"))[1]
             for response_part in msg_parts:
                 if isinstance(response_part, (bytes, bytearray)):
-                    if generic_delivery_image_extraction(
+                    # The extraction does blocking file I/O (the image
+                    # write) and CPU-heavy email parsing — run the whole
+                    # sync function off the event loop.
+                    if await self.hass.async_add_executor_job(
+                        generic_delivery_image_extraction,
                         response_part,
                         s_config["image_path"],
                         s_config["image_name"],

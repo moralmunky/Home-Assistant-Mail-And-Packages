@@ -1,5 +1,6 @@
 """Tests for generic shipper utilities."""
 
+import threading
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -76,6 +77,59 @@ async def test_fedex_delivered_class(hass, mock_imap_fedex_delivered_with_photo)
         )
         assert result[ATTR_COUNT] == 1
         assert result[ATTR_TRACKING] == ["885814254426"]
+
+
+@pytest.mark.asyncio
+async def test_image_extraction_runs_off_event_loop(
+    hass, mock_imap_fedex_delivered_with_photo
+):
+    """generic_delivery_image_extraction must run in an executor thread.
+
+    Regression test: it parses the full email and writes the image with
+    blocking file I/O; calling it directly from the coordinator path
+    triggers HA's blocking-call-in-event-loop detection. The probe records
+    which thread each extraction call runs on and asserts none of them is
+    the event-loop thread.
+
+    The probe is installed with ``new=`` (a plain function, not a Mock) on
+    purpose: the test harness's ``async_add_executor_job`` wrapper runs
+    Mock targets inline on the loop, which would defeat the thread check.
+    """
+    shipper = GenericShipper(
+        hass,
+        {
+            "image_path": "test/path/fedex/",
+            "image_name": "testfilename.jpg",
+        },
+    )
+
+    loop_thread = threading.get_ident()
+    extract_threads: list[int] = []
+
+    def _extract_probe(*args):
+        extract_threads.append(threading.get_ident())
+        return True
+
+    with (
+        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.generic_delivery_image_extraction",
+            new=_extract_probe,
+        ),
+    ):
+        result = await shipper.process(
+            mock_imap_fedex_delivered_with_photo,
+            "today",
+            "fedex_delivered",
+        )
+
+    assert result[ATTR_COUNT] == 1
+    # The fixture email yields one extraction call per bytes response part.
+    assert len(extract_threads) >= 1
+    assert all(tid != loop_thread for tid in extract_threads), (
+        "generic_delivery_image_extraction ran on the event-loop thread "
+        "instead of an executor thread"
+    )
 
 
 @pytest.mark.asyncio
