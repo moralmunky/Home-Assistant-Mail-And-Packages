@@ -365,9 +365,34 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             )
 
             in_transit = self._in_transit_tracking.get(prefix, {})
-            if in_transit:
+            # A carrier that reported DELIVERING/EXCEPTION tracking details
+            # this scan must have its count overridden even when the
+            # in-transit map ends up EMPTY: when every tracked package has a
+            # delivered notification, the raw IMAP count (which cannot dedup
+            # prior-day deliveries) would otherwise leak through as the
+            # sensor value. Batch-level dedup already zeroes the count for
+            # shippers that emit tracking details, so this is defense in
+            # depth at the state-machine layer. Delivered-only details must
+            # NOT trigger the override: a carrier whose delivering emails
+            # yielded no extractable tracking numbers has a legitimate
+            # email-based count that tracking-level dedup cannot verify —
+            # and carriers with no tracking details at all keep their
+            # email-count value untouched.
+            has_details = any(
+                f"{prefix}_{suffix}" in tracking_details
+                for suffix in ("delivering", "exception")
+            )
+            if in_transit or has_details:
+                if not in_transit and data.get(f"{prefix}_delivering"):
+                    _LOGGER.debug(
+                        "Prefix '%s': no tracked packages remain in transit — "
+                        "overriding delivering count %s -> 0",
+                        prefix,
+                        data.get(f"{prefix}_delivering"),
+                    )
                 data[f"{prefix}_tracking"] = list(in_transit.keys())
                 data[f"{prefix}_delivering"] = len(in_transit)
+            if in_transit:
                 delivered_count = data.get(f"{prefix}_delivered", 0)
                 data[f"{prefix}_packages"] = len(in_transit) + (
                     delivered_count if isinstance(delivered_count, int) else 0

@@ -673,6 +673,46 @@ async def test_process_batch_deduplication(hass):
 
 
 @pytest.mark.asyncio
+async def test_process_batch_dedup_uses_extended_window_delivered(hass):
+    """Dedup subtracts packages delivered on PRIOR days, not just today.
+
+    Regression test: ATTR_TRACKING on _delivered sensors holds only
+    today's deliveries (the sensor resets at midnight); the dedup set
+    must come from pre_filtered_tracking (the extended-window list) or
+    packages delivered yesterday stay in _delivering until they age out.
+    """
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_cache = MagicMock()
+
+    async def _mock_process(account, date, sensor, cache, **kwargs):
+        if sensor == "fedex_delivered":
+            # Delivered emails exist for F1+F2 earlier in the window; none today
+            return {
+                "fedex_delivered": 0,
+                ATTR_TRACKING: [],
+                "pre_filtered_tracking": ["F1", "F2"],
+            }
+        if sensor == "fedex_delivering":
+            return {
+                "fedex_delivering": 2,
+                ATTR_TRACKING: ["F1", "F2"],
+                ATTR_COUNT: 2,
+            }
+        return {sensor: 0, ATTR_TRACKING: []}
+
+    with patch.object(shipper, "process", side_effect=_mock_process):
+        result = await shipper.process_batch(
+            mock_account, "today", ["fedex_delivered", "fedex_delivering"], mock_cache
+        )
+
+        assert result["fedex_delivered"] == 0
+        assert result["fedex_delivering"] == 0  # F1+F2 delivered on prior days
+        assert result["_tracking_details"]["fedex_delivered"] == ["F1", "F2"]
+        assert "fedex_delivering" not in result["_tracking_details"]
+
+
+@pytest.mark.asyncio
 async def test_generic_image_reset_on_zero_count(hass):
     """Test GenericShipper camera image resets when count is zero."""
     shipper = GenericShipper(

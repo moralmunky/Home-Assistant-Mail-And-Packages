@@ -297,7 +297,14 @@ class GenericShipper(Shipper):
 
             tracking = set(sensor_res.get(ATTR_TRACKING, []))
             if sensor.endswith("_delivered"):
-                shippers[prefix]["delivered"].update(tracking)
+                # ATTR_TRACKING on _delivered sensors holds only TODAY's
+                # deliveries (so the sensor resets at midnight); dedup must
+                # use the extended-window list or packages delivered on a
+                # previous day are never subtracted from _delivering.
+                extended = sensor_res.get("pre_filtered_tracking")
+                shippers[prefix]["delivered"].update(
+                    tracking if extended is None else set(extended)
+                )
             elif sensor.endswith(("_delivering", "_exception")):
                 shippers[prefix]["delivering"].update(tracking)
                 shippers[prefix]["update_targets"].append((sensor, sensor_res))
