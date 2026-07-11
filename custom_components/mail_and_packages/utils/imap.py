@@ -5,6 +5,7 @@ import binascii
 import logging
 import re
 import unicodedata
+from urllib.parse import quote, unquote
 
 import aioimaplib
 from aioimaplib import (
@@ -113,6 +114,30 @@ def quote_folder(folder: str) -> str:
     if folder.startswith('"') and folder.endswith('"'):
         return folder
     return folder if _is_imap_atom(folder) else f'"{folder}"'
+
+
+def encode_folder_ref(folder: str) -> str:
+    """Percent-encode a folder name for use in a composite ``folder/uid`` ID.
+
+    Multi-folder searches tag each UID with its source folder as
+    ``folder/uid``. Those composite IDs are space-joined and re-split on
+    whitespace at several call sites, and split on ``/`` to recover the
+    folder — so the folder component must contain neither whitespace nor
+    ``/``. A folder named ``# - Projects`` would otherwise shatter into
+    ``#``, ``-``, ``Projects/55`` when the joined ID list is ``.split()``.
+    ``quote(..., safe="")`` escapes both (and ``%`` itself, keeping the
+    round-trip lossless for any folder name).
+    """
+    return quote(folder, safe="")
+
+
+def decode_folder_ref(folder: str) -> str:
+    """Decode the percent-encoded folder component of a composite ID.
+
+    Takes the already-split folder component (everything before the final
+    ``/`` of a ``folder/uid`` ID), not the full composite ID.
+    """
+    return unquote(folder)
 
 
 class InvalidAuth(HomeAssistantError):
@@ -382,7 +407,7 @@ def _parse_esearch_line(line_bytes: bytes) -> list[bytes]:
                 pass
         else:
             uids.append(part)
-    return [f"{mailbox}/{uid}".encode() for uid in uids]
+    return [f"{encode_folder_ref(mailbox)}/{uid}".encode() for uid in uids]
 
 
 async def _execute_single_search(account: IMAP4_SSL, search_query: str) -> list[bytes]:  # noqa: C901
@@ -446,7 +471,8 @@ async def _execute_single_search(account: IMAP4_SSL, search_query: str) -> list[
                 if res.result == "OK" and res.lines:
                     parsed = parse_search_response(res.lines)
                     all_uids.extend(
-                        f"{folder}/{uid.decode()}".encode() for uid in parsed
+                        f"{encode_folder_ref(folder)}/{uid.decode()}".encode()
+                        for uid in parsed
                     )
             except TimeoutError:
                 raise
@@ -570,7 +596,7 @@ async def email_fetch(account: IMAP4_SSL, num, parts: str = "(RFC822)") -> tuple
     num_str = num.decode() if isinstance(num, bytes) else str(num)
     if "/" in num_str:
         folder, num_str = num_str.rsplit("/", 1)
-        await selectfolder(account, folder)
+        await selectfolder(account, decode_folder_ref(folder))
         try:
             res = await account.uid("FETCH", num_str, parts)
         except TimeoutError:
@@ -597,7 +623,7 @@ async def email_fetch_headers(account: IMAP4_SSL, num) -> tuple:
     num_str = num.decode() if isinstance(num, bytes) else str(num)
     if "/" in num_str:
         folder, num_str = num_str.rsplit("/", 1)
-        await selectfolder(account, folder)
+        await selectfolder(account, decode_folder_ref(folder))
         try:
             res = await account.uid("FETCH", num_str, "(BODY[HEADER.FIELDS (SUBJECT)])")
         except TimeoutError:
@@ -627,7 +653,7 @@ async def email_fetch_text(account: IMAP4_SSL, num, parts: str = "(BODY[1])") ->
     num_str = num.decode() if isinstance(num, bytes) else str(num)
     if "/" in num_str:
         folder, num_str = num_str.rsplit("/", 1)
-        await selectfolder(account, folder)
+        await selectfolder(account, decode_folder_ref(folder))
         try:
             res = await account.uid("FETCH", num_str, parts)
         except TimeoutError:
@@ -688,6 +714,7 @@ async def email_fetch_batch(  # noqa: C901
         num_str = num.decode() if isinstance(num, bytes) else str(num)
         if "/" in num_str:
             folder, actual_num = num_str.rsplit("/", 1)
+            folder = decode_folder_ref(folder)
         else:
             folder, actual_num = None, num_str
         folder_to_nums.setdefault(folder, []).append(actual_num)
