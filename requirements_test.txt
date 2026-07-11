@@ -6,7 +6,14 @@ pytest
 pytest-aiohttp
 pytest-asyncio
 pytest-cov
-pytest-homeassistant-custom-component
+# Floor pytest-homeassistant-custom-component so the test stack resolves
+# deterministically across pip and uv. Without a floor, a highest-version
+# resolver (e.g. `uv pip install -r requirements_test.txt`) backtracks the
+# whole set to a 2016-era stack (homeassistant 0.31, pytest 6) that will not
+# import on modern Python; this pin drags a matching modern homeassistant +
+# pytest ecosystem (and the `homeassistant` line below) via phcc's exact
+# dependency pins, matching CI.
+pytest-homeassistant-custom-component>=0.13.300
 homeassistant
 freezegun
 cython
