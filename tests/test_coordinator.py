@@ -386,6 +386,81 @@ async def test_apply_tracking_state_removes_delivered(hass):
 
 
 @pytest.mark.asyncio
+async def test_apply_tracking_state_all_delivered_zeroes_count(hass):
+    """Delivering count is zeroed when every in-transit package is delivered.
+
+    Regression test: the override must fire even when the in-transit map
+    becomes EMPTY, otherwise the raw IMAP count (which cannot dedup
+    prior-day deliveries) leaks through as the sensor value.
+    """
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    coordinator._in_transit_tracking["fedex"] = {
+        "9261290": "2026-04-20",
+        "9261999": "2026-04-21",
+    }
+
+    # Raw IMAP counts still see both delivering emails in the window;
+    # delivered notifications exist for BOTH packages (on prior days, so
+    # the fedex_delivered today-count is 0).
+    data = {"fedex_delivering": 2, "fedex_delivered": 0, "fedex_packages": 2}
+    tracking_details = {
+        "fedex_delivering": ["9261290", "9261999"],
+        "fedex_delivered": ["9261290", "9261999"],
+    }
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+
+    assert coordinator._in_transit_tracking["fedex"] == {}
+    assert data["fedex_delivering"] == 0
+    assert data["fedex_tracking"] == []
+    # _packages is NOT recomputed when the map is empty: the batch-level
+    # dedup (which subtracts the extended-window delivered set) already
+    # made it the shipped-but-not-yet-out count, and len(in_transit) +
+    # delivered_today would wrongly zero genuinely shipped packages.
+    assert data["fedex_packages"] == 2
+
+
+@pytest.mark.asyncio
+async def test_apply_tracking_state_delivered_only_details_keeps_count(hass):
+    """Delivered-only tracking details must NOT zero the delivering count.
+
+    Regression test: a carrier whose delivering emails yield no extractable
+    tracking numbers (no delivering entry in tracking_details) still has a
+    legitimate email-based count. A delivered notification for an unrelated
+    package must not force-override that count to len(in_transit) == 0.
+    """
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    # Two delivering emails matched but tracking extraction found nothing;
+    # an unrelated package delivered earlier in the window has a number.
+    data = {"fedex_delivering": 2, "fedex_delivered": 0}
+    tracking_details = {"fedex_delivered": ["9260000"]}
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+
+    assert data["fedex_delivering"] == 2
+    assert "fedex_tracking" not in data
+
+
+@pytest.mark.asyncio
+async def test_apply_tracking_state_no_details_keeps_email_count(hass):
+    """Carriers with no tracking details keep their email-based counts."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    # walmart has no tracking-number extraction this scan; its email-based
+    # count must not be clobbered by an override to zero.
+    data = {"walmart_delivering": 3, "ups_delivering": 1}
+    tracking_details = {"ups_delivering": ["1Z111"]}
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+
+    assert data["walmart_delivering"] == 3
+    assert "walmart_tracking" not in data
+    assert data["ups_delivering"] == 1
+
+
+@pytest.mark.asyncio
 async def test_apply_tracking_state_no_tracking_details(hass):
     """With empty tracking_details, data is unchanged."""
     with patch("homeassistant.helpers.frame.report_usage"):
