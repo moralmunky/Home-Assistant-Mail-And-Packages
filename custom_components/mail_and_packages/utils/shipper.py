@@ -114,8 +114,21 @@ def _find_tracking_in_body(
     return None
 
 
-def save_image_data_to_disk(shipper_name: str, path: str, image_data: bytes) -> bool:
+def save_image_data_to_disk(
+    shipper_name: str, path: str, image_data: bytes | None
+) -> bool:
     """Write image bytes to disk and verify."""
+    if not image_data:
+        # Extraction can hand us zero bytes (e.g. a bare/empty base64 data URI
+        # in the email HTML). Writing that produces a 0-byte "photo" the
+        # camera then serves as a broken image — report failure instead so
+        # the caller falls through to the next extraction pass.
+        _LOGGER.debug(
+            "%s - No image data extracted; not writing %s",
+            shipper_name,
+            path,
+        )
+        return False
     try:
         # Ensure directory exists
         directory = Path(path).parent
@@ -240,8 +253,11 @@ def _extract_from_html(
             else str(payload)
         )
 
-        # Base64 check
-        if matches := re.findall(base64_pattern, content):
+        # Base64 check. Skip empty matches: a bare "data:image/...;base64,"
+        # URI (seen in real FedEx delivered emails) matches zero characters,
+        # and taking it would discard a real photo later in the same part.
+        matches = [m for m in re.findall(base64_pattern, content) if m]
+        if matches:
             try:
                 base64_data = matches[0].replace(" ", "").replace("=3D", "=")
                 return save_image_data_to_disk(

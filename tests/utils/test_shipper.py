@@ -112,6 +112,53 @@ def test_save_image_data_to_disk_errors(caplog):
         assert "Error saving test delivery photo" in caplog.text
 
 
+def test_save_image_data_to_disk_rejects_empty_data(caplog):
+    """Empty image data must not be written to disk.
+
+    Regression test: a bare `data:image/jpeg;base64,` URI in email HTML
+    decodes to b"" — writing it produced a 0-byte "delivery photo" that the
+    camera then served as a broken image (HTTP 500 pre-placeholder-fallback).
+    """
+    caplog.set_level("DEBUG")
+    with patch("custom_components.mail_and_packages.utils.shipper.Path") as mock_path:
+        assert save_image_data_to_disk("fedex", "/p/fedex/photo.jpg", b"") is False
+        assert save_image_data_to_disk("fedex", "/p/fedex/photo.jpg", None) is False
+        mock_path.return_value.open.assert_not_called()
+        assert "No image data extracted" in caplog.text
+
+
+def test_extract_from_html_skips_empty_base64_before_real_image():
+    """An empty base64 data URI must not shadow a real photo after it.
+
+    Regression test: matches[0] was taken blindly, so an email whose HTML
+    contains a bare `data:image/jpeg;base64,` spacer BEFORE the actual
+    delivery photo discarded the real image (save of b"" failed and the
+    whole HTML pass returned False).
+    """
+    real_jpeg_b64 = "aGVsbG8="  # b"hello" — content is irrelevant, size isn't
+    html = (
+        '<img src="data:image/jpeg;base64," />'
+        f'<img src="data:image/jpeg;base64,{real_jpeg_b64}" />'
+    )
+    sdata = f"Content-Type: text/html\n\n{html}".encode()
+
+    with patch(
+        "custom_components.mail_and_packages.utils.shipper.save_image_data_to_disk",
+        return_value=True,
+    ) as mock_save:
+        result = generic_delivery_image_extraction(
+            sdata,
+            "/p/",
+            "photo.jpg",
+            "fedex",
+            "jpeg",
+        )
+
+    assert result is True
+    mock_save.assert_called_once()
+    assert mock_save.call_args[0][2] == b"hello"
+
+
 @pytest.mark.asyncio
 async def test_generic_image_extraction_errors(caplog):
     """Test generic_delivery_image_extraction error paths."""
@@ -355,8 +402,9 @@ async def test_get_tracking_non_bytes():
 async def test_extract_from_html_decode_error(caplog):
     """Test _extract_from_html error handling (Line 225-229)."""
     caplog.set_level("ERROR")
-    sdata = b'Content-Type: text/html\n\n<html><body><img src="data:image/jpeg;base64,bad-base64!"></body></html>'
-    # base64.b64decode will raise error for "bad-base64!" if padding is wrong or invalid chars
+    # Well-formed base64 charset so the (non-empty) match reaches b64decode,
+    # which is mocked to raise — exercising the error-handling branch.
+    sdata = b'Content-Type: text/html\n\n<html><body><img src="data:image/jpeg;base64,YWJjZA=="></body></html>'
     with patch("base64.b64decode", side_effect=TypeError("Mocked error")):
         result = generic_delivery_image_extraction(sdata, "/p/", "i.jpg", "t", "jpeg")
         assert result is False
