@@ -261,7 +261,9 @@ async def test_migration_from_version_16_to_18():
 async def test_setup_entry_coordinator_failure():
     """Test setup_entry when coordinator fails to update."""
     mock_hass = MagicMock()
+    mock_hass.config_entries.async_forward_entry_setups = AsyncMock()
     mock_config_entry = MagicMock()
+    mock_config_entry.domain = DOMAIN
     mock_config_entry.data = FAKE_CONFIG_DATA.copy()
     mock_config_entry.data["resources"] = ["usps_mail"]  # Override for this test
     mock_config_entry.entry_id = "test_entry_id"
@@ -288,7 +290,9 @@ async def test_setup_entry_coordinator_failure():
 async def test_setup_entry_auth_failure():
     """Test setup_entry when coordinator fails with ConfigEntryAuthFailed."""
     mock_hass = MagicMock()
+    mock_hass.config_entries.async_forward_entry_setups = AsyncMock()
     mock_config_entry = MagicMock()
+    mock_config_entry.domain = DOMAIN
     mock_config_entry.data = FAKE_CONFIG_DATA.copy()
     mock_config_entry.entry_id = "test_entry_id"
 
@@ -565,6 +569,8 @@ async def test_coordinator_binary_sensor_update_amazon_same_hashes():
 async def test_setup_entry_refresh_failure(hass):
     """Test setup_entry when the coordinator fails to refresh data."""
     mock_config_entry = MagicMock()
+    mock_config_entry.domain = DOMAIN
+    mock_config_entry.async_setup = AsyncMock()
     mock_config_entry.data = {
         "host": "imap.test.com",
         "scan_interval": 5,

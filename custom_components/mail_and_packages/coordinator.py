@@ -23,6 +23,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_entry_oauth2_flow
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import (
     ConfigEntryAuthFailed,
     DataUpdateCoordinator,
@@ -149,6 +150,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 if data:
                     self._data = data
                     await self._binary_sensor_update()
+                    # Delete the auth_failed repairs issue if it exists
+                    ir.async_delete_issue(self.hass, DOMAIN, "auth_failed")
                 return self._data
         except TimeoutError:
             _LOGGER.error(
@@ -249,6 +252,18 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             )
         except InvalidAuth as err:
             _LOGGER.error("Authentication failed: %s", err)
+            # Create a repairs issue for authentication failure
+            ir.async_create_issue(
+                self.hass,
+                DOMAIN,
+                "auth_failed",
+                is_fixable=True,
+                severity=ir.IssueSeverity.ERROR,
+                translation_key="auth_failed",
+                data={"entry_id": self.config_entry.entry_id}
+                if self.config_entry
+                else None,
+            )
             raise ConfigEntryAuthFailed from err
         except Exception as err:
             _LOGGER.error("Error logging into IMAP: %s", err)
