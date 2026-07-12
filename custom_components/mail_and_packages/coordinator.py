@@ -267,18 +267,18 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             _LOGGER.error("Error logging into IMAP: %s", err)
             raise UpdateFailed(f"Login failed: {err}") from err
         # Login succeeded, delete the issue if it exists
-        ir.async_delete_issue(self.hass, DOMAIN, "auth_failed")
+        issue_registry = ir.async_get(self.hass)
+        if (DOMAIN, "auth_failed") in issue_registry.issues:
+            ir.async_delete_issue(self.hass, DOMAIN, "auth_failed")
 
         folders = config.get(CONF_FOLDER)
-        if not folders:
-            folders = ["INBOX"]
-        elif isinstance(folders, str):
+        if isinstance(folders, str):
             folders = [folders]
         elif isinstance(folders, (list, tuple, set)):
             folders = [f for f in folders if isinstance(f, str) and f]
-            if not folders:
-                folders = ["INBOX"]
         else:
+            folders = []
+        if not folders:
             folders = ["INBOX"]
         account._folders = folders  # noqa: SLF001
         account._current_folder = None  # noqa: SLF001

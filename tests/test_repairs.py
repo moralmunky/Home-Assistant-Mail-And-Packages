@@ -43,8 +43,8 @@ async def test_auth_repair_flow(hass: HomeAssistant):
     assert result["type"] == "form"
     assert result["step_id"] == "confirm"
 
-    # Test step_confirm show form
-    result = await flow.async_step_confirm()
+    # Test step_confirm show form when user_input is None
+    result = await flow.async_step_confirm(user_input=None)
     assert result["type"] == "form"
     assert result["step_id"] == "confirm"
 
