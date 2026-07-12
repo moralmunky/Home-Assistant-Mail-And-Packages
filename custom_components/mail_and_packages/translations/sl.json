@@ -202,12 +202,12 @@
   },
   "issues": {
     "auth_failed": {
-      "title": "Mail and Packages authentication failed",
+      "title": "Preverjanje pristnosti za Mail and Packages ni uspelo",
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Re-authenticate Mail Server",
-            "description": "Authentication to your IMAP mail server has failed. Click submit to start the re-authentication flow."
+            "title": "Ponovno preveri poštni strežnik",
+            "description": "Preverjanje pristnosti z vašim poštnim strežnikom IMAP ni uspelo. Kliknite Pošlji, če želite začeti potek ponovnega preverjanja pristnosti."
           }
         }
       }

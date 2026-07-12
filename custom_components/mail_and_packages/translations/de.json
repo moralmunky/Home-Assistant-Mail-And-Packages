@@ -206,12 +206,12 @@
   },
   "issues": {
     "auth_failed": {
-      "title": "Mail and Packages authentication failed",
+      "title": "Mail and Packages Authentifizierung fehlgeschlagen",
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Re-authenticate Mail Server",
-            "description": "Authentication to your IMAP mail server has failed. Click submit to start the re-authentication flow."
+            "title": "Mailserver neu authentifizieren",
+            "description": "Die Authentifizierung bei Ihrem IMAP-Mailserver ist fehlgeschlagen. Klicken Sie auf Senden, um den Reauthentifizierungs-Flow zu starten."
           }
         }
       }

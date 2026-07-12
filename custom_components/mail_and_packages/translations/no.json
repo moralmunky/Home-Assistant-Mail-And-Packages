@@ -202,12 +202,12 @@
   },
   "issues": {
     "auth_failed": {
-      "title": "Mail and Packages authentication failed",
+      "title": "Autentisering for Mail and Packages mislyktes",
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Re-authenticate Mail Server",
-            "description": "Authentication to your IMAP mail server has failed. Click submit to start the re-authentication flow."
+            "title": "Autentiser e-postserver på nytt",
+            "description": "Autentisering mot din IMAP-e-postserver mislyktes. Klikk på send for å starte reautentiseringsflyten."
           }
         }
       }

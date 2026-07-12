@@ -268,12 +268,12 @@
   },
   "issues": {
     "auth_failed": {
-      "title": "Mail and Packages authentication failed",
+      "title": "Ověření Mail and Packages selhalo",
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Re-authenticate Mail Server",
-            "description": "Authentication to your IMAP mail server has failed. Click submit to start the re-authentication flow."
+            "title": "Znovu ověřit poštovní server",
+            "description": "Ověření k vašemu poštovnímu serveru IMAP selhalo. Kliknutím na odeslat spustíte proces opětovného ověření."
           }
         }
       }
