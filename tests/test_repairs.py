@@ -7,12 +7,19 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import issue_registry as ir
 
-from custom_components.mail_and_packages.const import DOMAIN
+from custom_components.mail_and_packages.binary_sensor import PackagesBinarySensor
+from custom_components.mail_and_packages.const import (
+    BINARY_SENSORS,
+    DOMAIN,
+    IMAGE_SENSORS,
+    SENSOR_TYPES,
+)
 from custom_components.mail_and_packages.coordinator import MailDataUpdateCoordinator
 from custom_components.mail_and_packages.repairs import (
     AuthRepairFlow,
     async_create_fix_flow,
 )
+from custom_components.mail_and_packages.sensor import ImagePathSensors, PackagesSensor
 from custom_components.mail_and_packages.utils.imap import InvalidAuth
 
 
@@ -96,3 +103,29 @@ async def test_auth_failure_creates_repairs_issue(hass: HomeAssistant):
         await coordinator._async_update_data()
 
     assert (DOMAIN, "auth_failed") not in issue_registry.issues
+
+
+async def test_sensors_unpopulated_coordinator(hass: HomeAssistant):
+    """Test sensors when coordinator data is None."""
+
+    mock_coordinator = MagicMock()
+    mock_coordinator.data = None
+
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "test_entry_id"
+
+    # Test PackagesSensor
+    sensor = PackagesSensor(mock_entry, SENSOR_TYPES["usps_mail"], mock_coordinator)
+    assert sensor.native_value is None
+
+    # Test ImagePathSensors
+    image_sensor = ImagePathSensors(
+        hass, mock_entry, IMAGE_SENSORS["usps_mail_image_system_path"], mock_coordinator
+    )
+    assert image_sensor.native_value is None
+
+    # Test PackagesBinarySensor
+    binary_sensor = PackagesBinarySensor(
+        BINARY_SENSORS["post_de_update"], mock_coordinator, mock_entry
+    )
+    assert binary_sensor.is_on is False
