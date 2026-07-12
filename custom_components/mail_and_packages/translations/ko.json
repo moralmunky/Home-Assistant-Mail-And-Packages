@@ -199,5 +199,18 @@
         "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
+  },
+  "issues": {
+    "auth_failed": {
+      "title": "Mail and Packages 인증 실패",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "메일 서버 재인증",
+            "description": "IMAP 메일 서버 인증에 실패했습니다. 제출을 클릭하여 재인증 흐름을 시작하십시오."
+          }
+        }
+      }
+    }
   }
 }

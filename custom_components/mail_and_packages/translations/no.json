@@ -199,5 +199,18 @@
         "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
+  },
+  "issues": {
+    "auth_failed": {
+      "title": "Autentisering for Mail and Packages mislyktes",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Autentiser e-postserver på nytt",
+            "description": "Autentisering mot din IMAP-e-postserver mislyktes. Klikk på send for å starte reautentiseringsflyten."
+          }
+        }
+      }
+    }
   }
 }

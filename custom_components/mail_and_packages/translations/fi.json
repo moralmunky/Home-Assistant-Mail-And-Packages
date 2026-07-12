@@ -199,5 +199,18 @@
         "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
+  },
+  "issues": {
+    "auth_failed": {
+      "title": "Mail and Packages -autentikointi epäonnistui",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Tunnistaudu uudelleen sähköpostipalvelimeen",
+            "description": "Autentikointi IMAP-sähköpostipalvelimeesi epäonnistui. Napsauta Lähetä aloittaaksesi uudelleentunnistautumisen."
+          }
+        }
+      }
+    }
   }
 }

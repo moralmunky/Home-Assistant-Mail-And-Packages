@@ -199,5 +199,18 @@
         "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
+  },
+  "issues": {
+    "auth_failed": {
+      "title": "Overenie Mail and Packages zlyhalo",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Znovu overiť poštový server",
+            "description": "Overenie k vášmu poštovému serveru IMAP zlyhalo. Kliknutím na odoslať spustíte proces opätovného overenia."
+          }
+        }
+      }
+    }
   }
 }

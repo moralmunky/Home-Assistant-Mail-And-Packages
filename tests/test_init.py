@@ -261,10 +261,14 @@ async def test_migration_from_version_16_to_18():
 async def test_setup_entry_coordinator_failure():
     """Test setup_entry when coordinator fails to update."""
     mock_hass = MagicMock()
-    mock_config_entry = MagicMock()
-    mock_config_entry.data = FAKE_CONFIG_DATA.copy()
-    mock_config_entry.data["resources"] = ["usps_mail"]  # Override for this test
-    mock_config_entry.entry_id = "test_entry_id"
+    mock_hass.config_entries.async_forward_entry_setups = AsyncMock()
+    data = FAKE_CONFIG_DATA.copy()
+    data["resources"] = ["usps_mail"]  # Override for this test
+    mock_config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data=data,
+        entry_id="test_entry_id",
+    )
 
     # Mock coordinator that fails to update
     mock_coordinator = MagicMock()
@@ -288,9 +292,12 @@ async def test_setup_entry_coordinator_failure():
 async def test_setup_entry_auth_failure():
     """Test setup_entry when coordinator fails with ConfigEntryAuthFailed."""
     mock_hass = MagicMock()
-    mock_config_entry = MagicMock()
-    mock_config_entry.data = FAKE_CONFIG_DATA.copy()
-    mock_config_entry.entry_id = "test_entry_id"
+    mock_hass.config_entries.async_forward_entry_setups = AsyncMock()
+    mock_config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data=FAKE_CONFIG_DATA.copy(),
+        entry_id="test_entry_id",
+    )
 
     # Mock coordinator that fails with ConfigEntryAuthFailed
     mock_coordinator = MagicMock()
@@ -561,16 +568,19 @@ async def test_coordinator_binary_sensor_update_amazon_same_hashes():
             assert coordinator._data["amazon_update"] is False
 
 
-@pytest.mark.asyncio
-async def test_setup_entry_refresh_failure(hass):
+async def test_setup_entry_refresh_failure():
     """Test setup_entry when the coordinator fails to refresh data."""
-    mock_config_entry = MagicMock()
-    mock_config_entry.data = {
-        "host": "imap.test.com",
-        "scan_interval": 5,
-        "resources": [],
-    }
-    mock_config_entry.entry_id = "test_entry"
+    mock_hass = MagicMock()
+    mock_hass.config_entries.async_forward_entry_setups = AsyncMock()
+    mock_config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "host": "imap.test.com",
+            "scan_interval": 5,
+            "resources": [],
+        },
+        entry_id="test_entry",
+    )
     with (
         patch("homeassistant.helpers.frame.report_usage"),
         patch(
@@ -582,7 +592,7 @@ async def test_setup_entry_refresh_failure(hass):
         mock_coordinator.last_exception = "IMAP Timeout"
         mock_coordinator.async_refresh = AsyncMock()
         with pytest.raises(ConfigEntryNotReady):
-            await async_setup_entry(hass, mock_config_entry)
+            await async_setup_entry(mock_hass, mock_config_entry)
 
 
 @pytest.mark.asyncio

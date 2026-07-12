@@ -23,6 +23,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_entry_oauth2_flow
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import (
     ConfigEntryAuthFailed,
     DataUpdateCoordinator,
@@ -249,21 +250,35 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             )
         except InvalidAuth as err:
             _LOGGER.error("Authentication failed: %s", err)
+            # Create a repairs issue for authentication failure
+            ir.async_create_issue(
+                self.hass,
+                DOMAIN,
+                "auth_failed",
+                is_fixable=True,
+                severity=ir.IssueSeverity.ERROR,
+                translation_key="auth_failed",
+                data={"entry_id": self.config_entry.entry_id}
+                if self.config_entry
+                else None,
+            )
             raise ConfigEntryAuthFailed from err
         except Exception as err:
             _LOGGER.error("Error logging into IMAP: %s", err)
             raise UpdateFailed(f"Login failed: {err}") from err
+        # Login succeeded, delete the issue if it exists
+        issue_registry = ir.async_get(self.hass)
+        if (DOMAIN, "auth_failed") in issue_registry.issues:
+            ir.async_delete_issue(self.hass, DOMAIN, "auth_failed")
 
         folders = config.get(CONF_FOLDER)
-        if not folders:
-            folders = ["INBOX"]
-        elif isinstance(folders, str):
+        if isinstance(folders, str):
             folders = [folders]
         elif isinstance(folders, (list, tuple, set)):
             folders = [f for f in folders if isinstance(f, str) and f]
-            if not folders:
-                folders = ["INBOX"]
         else:
+            folders = []
+        if not folders:
             folders = ["INBOX"]
         account._folders = folders  # noqa: SLF001
         account._current_folder = None  # noqa: SLF001

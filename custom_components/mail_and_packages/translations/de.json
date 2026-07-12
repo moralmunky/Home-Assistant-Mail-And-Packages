@@ -203,5 +203,18 @@
         "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
+  },
+  "issues": {
+    "auth_failed": {
+      "title": "Mail and Packages Authentifizierung fehlgeschlagen",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Mailserver neu authentifizieren",
+            "description": "Die Authentifizierung bei Ihrem IMAP-Mailserver ist fehlgeschlagen. Klicken Sie auf Senden, um den Reauthentifizierungs-Flow zu starten."
+          }
+        }
+      }
+    }
   }
 }

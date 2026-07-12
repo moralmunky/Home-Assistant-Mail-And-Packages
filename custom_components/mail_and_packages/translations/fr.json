@@ -199,5 +199,18 @@
         "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
+  },
+  "issues": {
+    "auth_failed": {
+      "title": "Échec de l'authentification de Mail and Packages",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Ré-authentifier le serveur de messagerie",
+            "description": "L'authentification sur votre serveur de messagerie IMAP a échoué. Cliquez sur soumettre pour démarrer le flux de ré-authentification."
+          }
+        }
+      }
+    }
   }
 }

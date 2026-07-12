@@ -118,6 +118,8 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         """Return the state of the sensor."""
+        if self.coordinator.data is None:
+            return None
         value = self.coordinator.data.get(self.type)
 
         if self.type == "mail_updated":
@@ -146,6 +148,8 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         """Return device specific state attributes."""
         attr = {}
         data = self.coordinator.data
+        if data is None:
+            return attr
 
         if any(
             sensor in self.type
@@ -153,10 +157,6 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         ):
             if tracking := data.get(self._tracking_key):
                 attr[ATTR_TRACKING_NUM] = tracking
-
-        # Catch no data entries
-        if self.data is None:
-            return attr
 
         if "Amazon" in self._name:
             self._add_amazon_attributes(attr, data)
@@ -225,6 +225,9 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the state of the sensor."""
+        if self.coordinator.data is None:
+            return None
+
         image = ""
         the_path = None
 

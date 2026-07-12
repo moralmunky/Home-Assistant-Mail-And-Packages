@@ -199,5 +199,18 @@
         "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
+  },
+  "issues": {
+    "auth_failed": {
+      "title": "Preverjanje pristnosti za Mail and Packages ni uspelo",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Ponovno preveri poštni strežnik",
+            "description": "Preverjanje pristnosti z vašim poštnim strežnikom IMAP ni uspelo. Kliknite Pošlji, če želite začeti potek ponovnega preverjanja pristnosti."
+          }
+        }
+      }
+    }
   }
 }

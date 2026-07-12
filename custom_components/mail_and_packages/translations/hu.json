@@ -199,5 +199,18 @@
         "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
+  },
+  "issues": {
+    "auth_failed": {
+      "title": "Mail and Packages hitelesítés sikertelen",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Levelezőszerver újrahitelesítése",
+            "description": "Nem sikerült a hitelesítés az IMAP levelezőszerveren. Kattintson a küldésre az újrahitelesítési folyamat elindításához."
+          }
+        }
+      }
+    }
   }
 }

@@ -7,7 +7,15 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_RESOURCES
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import (
+    config_validation as cv,
+)
+from homeassistant.helpers import (
+    device_registry as dr,
+)
+from homeassistant.helpers import (
+    issue_registry as ir,
+)
 
 from . import const
 from .const import (
@@ -103,6 +111,9 @@ __all__ = [
 _LOGGER = logging.getLogger(__name__)
 
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+
 async def async_setup(hass: HomeAssistant, config_entry: MailAndPackagesConfigEntry):  # pylint: disable=unused-argument
     """Disallow configuration via YAML."""
     return True
@@ -133,21 +144,32 @@ async def async_setup_entry(
     # Setup the data coordinator
     coordinator = MailDataUpdateCoordinator(hass, config, config_entry)
 
+    config_entry.runtime_data = MailAndPackagesData(coordinator=coordinator, cameras=[])
+
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
+
     # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
 
     # Raise ConfigEntryNotReady if coordinator didn't update
     if not coordinator.last_update_success:
         if isinstance(coordinator.last_exception, ConfigEntryAuthFailed):
+            # Create a repairs issue for authentication failure
+            ir.async_create_issue(
+                hass,
+                DOMAIN,
+                "auth_failed",
+                is_fixable=True,
+                severity=ir.IssueSeverity.ERROR,
+                translation_key="auth_failed",
+                data={"entry_id": config_entry.entry_id},
+            )
             raise coordinator.last_exception
         exc = coordinator.last_exception
         detail = (str(exc) or type(exc).__name__) if exc else "unknown error"
         _LOGGER.error("Error updating sensor data: %s", detail)
         raise ConfigEntryNotReady
 
-    config_entry.runtime_data = MailAndPackagesData(coordinator=coordinator, cameras=[])
-
-    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
     return True
 
 

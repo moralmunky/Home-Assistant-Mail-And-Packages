@@ -199,5 +199,18 @@
         "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
+  },
+  "issues": {
+    "auth_failed": {
+      "title": "Mail and Packages authenticatie mislukt",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "E-mailserver opnieuw verifiëren",
+            "description": "Authenticatie bij uw IMAP-mailserver is mislukt. Klik op verzenden om de herauthenticatiestroom te starten."
+          }
+        }
+      }
+    }
   }
 }

@@ -209,5 +209,18 @@
         "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
+  },
+  "issues": {
+    "auth_failed": {
+      "title": "Mail and Packages authentication failed",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Re-authenticate Mail Server",
+            "description": "Authentication to your IMAP mail server has failed. Click submit to start the re-authentication flow."
+          }
+        }
+      }
+    }
   }
 }

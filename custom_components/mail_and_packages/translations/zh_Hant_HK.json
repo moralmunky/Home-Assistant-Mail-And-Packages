@@ -199,5 +199,18 @@
         "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
+  },
+  "issues": {
+    "auth_failed": {
+      "title": "Mail and Packages 認證失敗",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "重新認證郵件伺服器",
+            "description": "認證 IMAP 郵件伺服器失敗。請按提交以啟動重新認證流程。"
+          }
+        }
+      }
+    }
   }
 }

@@ -78,6 +78,8 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return True if the image is updated."""
+        if self.coordinator.data is None:
+            return False
         if self._type in self.coordinator.data:
             _LOGGER.debug(
                 "binary_sensor: %s value: %s",
