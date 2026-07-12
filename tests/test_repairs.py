@@ -1,6 +1,6 @@
 """Test the Repairs platform and flow for Mail and Packages."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -94,13 +94,15 @@ async def test_auth_failure_creates_repairs_issue(hass: HomeAssistant):
     issue_registry = ir.async_get(hass)
     assert (DOMAIN, "auth_failed") in issue_registry.issues
 
-    # Test that the issue is deleted on successful update
-    coordinator._data = {}
-    with (
-        patch.object(coordinator, "process_emails", return_value={"test": "data"}),
-        patch.object(coordinator, "_binary_sensor_update", return_value=None),
-    ):
-        await coordinator._async_update_data()
+    # Test that the issue is deleted on successful login
+    with patch(
+        "custom_components.mail_and_packages.coordinator.login",
+        new_callable=AsyncMock,
+    ) as mock_login:
+        mock_account = MagicMock()
+        mock_account.select = AsyncMock()
+        mock_login.return_value = mock_account
+        await coordinator._get_imap_connection({})
 
     assert (DOMAIN, "auth_failed") not in issue_registry.issues
 

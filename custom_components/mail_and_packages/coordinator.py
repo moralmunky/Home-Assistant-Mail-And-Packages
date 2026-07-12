@@ -150,8 +150,6 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 if data:
                     self._data = data
                     await self._binary_sensor_update()
-                    # Delete the auth_failed repairs issue if it exists
-                    ir.async_delete_issue(self.hass, DOMAIN, "auth_failed")
                 return self._data
         except TimeoutError:
             _LOGGER.error(
@@ -268,6 +266,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         except Exception as err:
             _LOGGER.error("Error logging into IMAP: %s", err)
             raise UpdateFailed(f"Login failed: {err}") from err
+        # Login succeeded, delete the issue if it exists
+        ir.async_delete_issue(self.hass, DOMAIN, "auth_failed")
 
         folders = config.get(CONF_FOLDER)
         if not folders:
