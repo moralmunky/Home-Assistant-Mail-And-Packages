@@ -241,6 +241,8 @@ async def test_image_path_sensor_url_ha_cloud(hass):
     coordinator.data = {"usps_image": "test_image.gif", "image_path": "images/"}
     hass.config.external_url = None
     hass.config.internal_url = None
+    # Enable cloud component so get_url() can resolve Nabu Casa's remote UI URL
+    hass.config.components.add("cloud")
 
     sensor = ImagePathSensors(
         hass,
@@ -275,6 +277,8 @@ async def test_image_path_sensor_url_ha_cloud_unavailable(hass):
     coordinator.data = {"usps_image": "test_image.gif", "image_path": "images/"}
     hass.config.external_url = None
     hass.config.internal_url = "http://internal.hass.url"
+    # Enable cloud component so get_url() can resolve Nabu Casa's remote UI URL
+    hass.config.components.add("cloud")
 
     sensor = ImagePathSensors(
         hass,
