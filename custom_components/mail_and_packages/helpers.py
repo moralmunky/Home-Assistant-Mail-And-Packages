@@ -114,7 +114,7 @@ def get_resources(hass: HomeAssistant | None = None) -> dict:
 
 def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
     """Copy processed images to www directory."""
-    image_path = Path(hass.config.path()) / default_image_path(hass, config)
+    image_path = Path(hass.config.path(default_image_path(hass, config)))
     www_path = Path(hass.config.path()) / "www" / "mail_and_packages"
 
     if not www_path.is_dir():
