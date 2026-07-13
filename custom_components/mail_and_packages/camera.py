@@ -279,7 +279,7 @@ class MailCam(CoordinatorEntity, Camera):
         if required_keys.issubset(self.coordinator.data):
             image = self.coordinator.data[ATTR_USPS_IMAGE]
             path = self.coordinator.data[ATTR_IMAGE_PATH]
-            self._file_path = f"{self.hass.config.path()}/{path}{image}"
+            self._file_path = self.hass.config.path(path, image)
             self._is_generic = not self.coordinator.data.get("usps_update", False)
             _LOGGER.debug(
                 "usps_camera camera - file path set to: %s",
@@ -319,7 +319,7 @@ class MailCam(CoordinatorEntity, Camera):
             return
 
         image_path = self.coordinator.data.get(ATTR_IMAGE_PATH, "")
-        full_storage_path = Path(f"{self.hass.config.path()}/{image_path}")
+        full_storage_path = Path(self.hass.config.path(image_path))
         gif_path = str(full_storage_path / "generic_deliveries.gif")
 
         resized_images = await self.hass.async_add_executor_job(
@@ -389,7 +389,7 @@ class MailCam(CoordinatorEntity, Camera):
 
             image = self.coordinator.data[image_attr]
             path = f"{self.coordinator.data[ATTR_IMAGE_PATH]}{path_suffix}"
-            delivery_file_path = f"{self.hass.config.path()}/{path}{image}"
+            delivery_file_path = self.hass.config.path(path, image)
 
             is_no_mail = image.startswith(
                 no_mail_check,
@@ -454,7 +454,7 @@ class MailCam(CoordinatorEntity, Camera):
         image = self.coordinator.data[image_attr]
         image_path = self.coordinator.data[ATTR_IMAGE_PATH].rstrip("/") + "/"
         path = f"{image_path}{base_name}/"
-        coordinator_file_path = f"{self.hass.config.path()}/{path}{image}"
+        coordinator_file_path = self.hass.config.path(path, image)
 
         _LOGGER.debug(
             "=== %s CAMERA UPDATE === coordinator %s = '%s'",

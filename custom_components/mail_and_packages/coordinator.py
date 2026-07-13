@@ -563,7 +563,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 path = f"{image_path}{base_name}/"
                 # Use absolute path for file existence check
                 delivery_image_relative = f"{path}{image}"
-                delivery_image = f"{self.hass.config.path()}/{delivery_image_relative}"
+                delivery_image = self.hass.config.path(delivery_image_relative)
                 _LOGGER.debug(
                     "Full %s image path: %s",
                     base_name.title(),

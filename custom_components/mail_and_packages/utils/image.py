@@ -374,7 +374,7 @@ def _get_courier_info(
         ),
     ]
 
-    base_path = f"{hass.config.path()}/{default_image_path(hass, config)}"
+    base_path = hass.config.path(default_image_path(hass, config))
 
     for (
         active,

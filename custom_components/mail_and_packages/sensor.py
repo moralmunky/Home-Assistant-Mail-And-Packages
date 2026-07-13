@@ -242,10 +242,10 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
 
         if self.type == "usps_mail_image_system_path" and image:
             _LOGGER.debug("Updating system image path to: %s", path)
-            the_path = f"{self.hass.config.path()}/{path}{image}"
+            the_path = self.hass.config.path(path, image)
         elif self.type == "usps_mail_grid_image_path" and grid_image:
             _LOGGER.debug("Updating grid image path to: %s", path)
-            the_path = f"{self.hass.config.path()}/{path}{grid_image}"
+            the_path = self.hass.config.path(path, grid_image)
         elif self.type == "usps_mail_image_url" and image:
             url = self._get_base_url()
             if url:
