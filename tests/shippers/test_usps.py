@@ -780,7 +780,7 @@ async def test_process_with_cache(hass):
 
 
 @pytest.mark.asyncio
-async def test_usps_placeholder_disabled(hass, mock_imap_usps_informed_digest):
+async def test_usps_placeholder_disabled(hass, mock_imap_usps_informed_digest_missing):
     """Test USPS shipper processing when usps_placeholder option is disabled."""
     shipper = USPSShipper(
         hass,
@@ -817,12 +817,12 @@ async def test_usps_placeholder_disabled(hass, mock_imap_usps_informed_digest):
         ),
     ):
         result = await shipper.process(
-            mock_imap_usps_informed_digest,
+            mock_imap_usps_informed_digest_missing,
             "today",
             "usps_mail",
         )
-        # Total count should still be 3 (2 scanned + 1 unscanned placeholder)
-        assert result[ATTR_COUNT] == 3
+        # Total count should still be 5 (scanned + unscanned placeholder)
+        assert result[ATTR_COUNT] == 5
 
         # But the generated GIF images should NOT include the placeholder
         called_images = mock_generate_gif.call_args[0][0]
