@@ -146,8 +146,6 @@ async def async_setup_entry(
 
     config_entry.runtime_data = MailAndPackagesData(coordinator=coordinator, cameras=[])
 
-    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
-
     # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
 
@@ -169,6 +167,8 @@ async def async_setup_entry(
         detail = (str(exc) or type(exc).__name__) if exc else "unknown error"
         _LOGGER.error("Error updating sensor data: %s", detail)
         raise ConfigEntryNotReady
+
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
     return True
 
