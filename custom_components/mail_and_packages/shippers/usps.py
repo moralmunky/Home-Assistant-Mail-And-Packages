@@ -87,17 +87,18 @@ class USPSShipper(Shipper):
             return {ATTR_COUNT: image_count}
 
         all_msg_content = ""
-        _LOGGER.debug("Informed Delivery email found processing...")
-        for num in data[0].split():
-            (image_count, images, email_content) = await self._process_usps_email(
-                account,
-                num,
-                config["image_output_path"],
-                image_count,
-                images,
-                cache,
-            )
-            all_msg_content += email_content
+        if server_response == "OK":
+            _LOGGER.debug("Informed Delivery email found processing...")
+            for num in data[0].split():
+                (image_count, images, email_content) = await self._process_usps_email(
+                    account,
+                    num,
+                    config["image_output_path"],
+                    image_count,
+                    images,
+                    cache,
+                )
+                all_msg_content += email_content
 
         # Process images
         images = await self._process_usps_images(all_msg_content, images)
