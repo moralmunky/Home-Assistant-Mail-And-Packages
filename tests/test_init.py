@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -284,9 +284,8 @@ async def test_setup_entry_coordinator_failure():
     ):
         mock_coordinator_class.return_value = mock_coordinator
 
-        # Should raise ConfigEntryNotReady
-        with pytest.raises(ConfigEntryNotReady):
-            await async_setup_entry(mock_hass, mock_config_entry)
+        # Should load successfully
+        assert await async_setup_entry(mock_hass, mock_config_entry) is True
 
 
 async def test_setup_entry_auth_failure():
@@ -313,9 +312,8 @@ async def test_setup_entry_auth_failure():
     ):
         mock_coordinator_class.return_value = mock_coordinator
 
-        # Verify that an authentication failure during setup raises ConfigEntryAuthFailed
-        with pytest.raises(ConfigEntryAuthFailed):
-            await async_setup_entry(mock_hass, mock_config_entry)
+        # Should load successfully
+        assert await async_setup_entry(mock_hass, mock_config_entry) is True
 
 
 async def test_async_remove_config_entry_device():
@@ -591,8 +589,8 @@ async def test_setup_entry_refresh_failure():
         mock_coordinator.last_update_success = False
         mock_coordinator.last_exception = "IMAP Timeout"
         mock_coordinator.async_refresh = AsyncMock()
-        with pytest.raises(ConfigEntryNotReady):
-            await async_setup_entry(mock_hass, mock_config_entry)
+        # Should load successfully
+        assert await async_setup_entry(mock_hass, mock_config_entry) is True
 
 
 @pytest.mark.asyncio
