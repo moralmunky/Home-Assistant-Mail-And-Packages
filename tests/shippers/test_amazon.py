@@ -572,6 +572,16 @@ async def test_parse_amazon_arrival_date(hass):
     result_morgen = await parse_amazon_arrival_date(hass, body_morgen, email_date)
     assert result_morgen == email_date + datetime.timedelta(days=1)
 
+    # 6. Italian "domani" relative date
+    body_domani = "In arrivo domani"
+    result_domani = await parse_amazon_arrival_date(hass, body_domani, email_date)
+    assert result_domani == email_date + datetime.timedelta(days=1)
+
+    # 7. Italian "oggi" relative date
+    body_oggi = "In arrivo oggi"
+    result_oggi = await parse_amazon_arrival_date(hass, body_oggi, email_date)
+    assert result_oggi == email_date
+
 
 @pytest.mark.asyncio
 async def test_amazon_search_no_emails_found_copy(hass):
