@@ -36,7 +36,8 @@
           "generic_custom_img": "Uporabite prilagojeno splošno sliko 'brez dostave'?",
           "generate_grid": "Ustvari mrežo slik za vizualne modele LLM",
           "allow_forwarded_emails": "Dovoli posredovane e-poštne sporočila poleg privzete vrednosti storitve (npr. no-reply@usps.com)",
-          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "usps_placeholder": "Ali naj se v GIF vključi nadomestni znak USPS brez slike?"
         },
         "description": "Končajte konfiguracijo s prilagoditvijo naslednjih na podlagi strukture e-pošte in namestitve Home Assistant. \n\n Za podrobnosti o možnostih [Integracija pošte in paketov] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) preglejte [konfiguracijo, predloge in oddelku za avtomatizacije] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
         "title": "Pošta in paketi (2. korak od 2)"
@@ -80,7 +81,8 @@
           "generic_custom_img": "Uporabite prilagojeno splošno sliko 'brez dostave'?",
           "generate_grid": "Ustvari mrežo slik za vizualne modele LLM",
           "allow_forwarded_emails": "Dovoli posredovane e-poštne sporočila poleg privzete vrednosti storitve (npr. no-reply@usps.com)",
-          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "usps_placeholder": "Ali naj se v GIF vključi nadomestni znak USPS brez slike?"
         },
         "description": "Konfiguracijo dokončajte z prilagajanjem naslednjega glede na strukturo vašega e-poštnega sporočila in namestitev Home Assistant.\n\nZa podrobnosti o možnostih [integracije Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) si oglejte [razdelek o konfiguraciji, predlogah in avtomatizacijah](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
         "title": "Pošta in paketi (2. korak od 2)"

@@ -777,3 +777,53 @@ async def test_process_with_cache(hass):
     ):
         result = await shipper.process(mock_account, "today", "usps_mail", cache=cache)
         assert result[ATTR_COUNT] == 0  # "No mail today"
+
+
+@pytest.mark.asyncio
+async def test_usps_placeholder_disabled(hass, mock_imap_usps_informed_digest_missing):
+    """Test USPS shipper processing when usps_placeholder option is disabled."""
+    shipper = USPSShipper(
+        hass,
+        {
+            "image_path": "test/path/usps/",
+            "usps_image": "mail_today.gif",
+            CONF_DURATION: 5,
+            "forwarded_emails": [],
+            "usps_placeholder": False,
+        },
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.io_save_file",
+            new_callable=MagicMock,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.resize_images",
+            return_value=["test/path/usps/img1.jpg"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif",
+        ) as mock_generate_gif,
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
+            return_value="25-Sep-2020",
+        ),
+    ):
+        result = await shipper.process(
+            mock_imap_usps_informed_digest_missing,
+            "today",
+            "usps_mail",
+        )
+        # Total count should still be 5 (scanned + unscanned placeholder)
+        assert result[ATTR_COUNT] == 5
+
+        # But the generated GIF images should NOT include the placeholder
+        called_images = mock_generate_gif.call_args[0][0]
+        assert not any("image-no-mailpieces700.jpg" in img for img in called_images)

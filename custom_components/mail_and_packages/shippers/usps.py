@@ -27,6 +27,7 @@ from custom_components.mail_and_packages.const import (
     CONF_FORWARDING_HEADER,
     CONF_GENERATE_GRID,
     CONF_GENERATE_MP4,
+    CONF_USPS_PLACEHOLDER,
     DEFAULT_CUSTOM_IMG_FILE,
     SENSOR_DATA,
 )
@@ -103,32 +104,17 @@ class USPSShipper(Shipper):
         images = await self._process_usps_images(all_msg_content, images)
         image_count = len(images)
 
-        if image_count > 0:
-            await self._generate_mail_image(
-                images,
-                config["image_output_path"],
-                config["image_name"],
-                config["gif_duration"],
-                images_delete,
+        # Generate filtered list for GIF/MP4/Grid
+        gif_images = images.copy()
+        if not config.get("usps_placeholder", True):
+            placeholder_str = str(
+                Path(__file__).parent.parent / "image-no-mailpieces700.jpg"
             )
-        elif image_count == 0:
-            await self._copy_nomail_image(
-                config["image_output_path"],
-                config["image_name"],
-                config["custom_img"],
-            )
+            if placeholder_str in gif_images:
+                gif_images.remove(placeholder_str)
 
-        if config["gen_mp4"]:
-            await self._generate_mp4_video(
-                config["image_output_path"],
-                config["image_name"],
-            )
-        if config["gen_grid"]:
-            await self._generate_grid_image(
-                config["image_output_path"],
-                config["image_name"],
-                image_count,
-            )
+        # Generate camera media
+        await self._create_camera_media(gif_images, config, images_delete)
 
         return {
             ATTR_COUNT: image_count,
@@ -158,6 +144,40 @@ class USPSShipper(Shipper):
                     # coordinator used to pop it via explicit assignment
 
         return res
+
+    async def _create_camera_media(
+        self,
+        gif_images: list,
+        config: dict,
+        images_delete: list,
+    ):
+        """Create camera media (GIF, MP4, and Grid)."""
+        if len(gif_images) > 0:
+            await self._generate_mail_image(
+                gif_images,
+                config["image_output_path"],
+                config["image_name"],
+                config["gif_duration"],
+                images_delete,
+            )
+        else:
+            await self._copy_nomail_image(
+                config["image_output_path"],
+                config["image_name"],
+                config["custom_img"],
+            )
+
+        if config["gen_mp4"]:
+            await self._generate_mp4_video(
+                config["image_output_path"],
+                config["image_name"],
+            )
+        if config["gen_grid"]:
+            await self._generate_grid_image(
+                config["image_output_path"],
+                config["image_name"],
+                len(gif_images),
+            )
 
     async def _generate_mp4_video(self, path: str, name: str):
         """Generate MP4 video from images."""
@@ -260,6 +280,7 @@ class USPSShipper(Shipper):
             "custom_img": self.config.get(CONF_CUSTOM_IMG_FILE)
             or DEFAULT_CUSTOM_IMG_FILE,
             "gen_grid": self.config.get(CONF_GENERATE_GRID),
+            "usps_placeholder": self.config.get(CONF_USPS_PLACEHOLDER, True),
         }
 
     async def _search_informed_delivery(self, account: IMAP4_SSL) -> tuple:

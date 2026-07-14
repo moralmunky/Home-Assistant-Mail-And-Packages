@@ -83,6 +83,7 @@ CONF_ALLOW_FORWARDED_EMAILS = "allow_forwarded_emails"
 CONF_FORWARDED_EMAILS = "forwarded_emails"
 CONF_FORWARDING_HEADER = "forwarding_header"
 CONF_CUSTOM_DAYS = "custom_days"
+CONF_USPS_PLACEHOLDER = "usps_placeholder"
 
 # Defaults
 DEFAULT_CAMERA_NAME = "Mail USPS Camera"
@@ -130,6 +131,7 @@ DEFAULT_STORAGE = "custom_components/mail_and_packages/images/"
 DEFAULT_ALLOW_FORWARDED_EMAILS = False
 DEFAULT_FORWARDED_EMAILS = "(none)"
 DEFAULT_FORWARDING_HEADER = "(none)"
+DEFAULT_USPS_PLACEHOLDER = True
 
 # Amazon
 AMAZON_DOMAINS = [
