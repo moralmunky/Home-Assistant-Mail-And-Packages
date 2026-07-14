@@ -18,6 +18,7 @@ from custom_components.mail_and_packages.const import (
     CONF_FOLDER,
     CONF_FORWARDED_EMAILS,
     DOMAIN,
+    PLATFORMS,
 )
 from custom_components.mail_and_packages.coordinator import (
     MailDataUpdateCoordinator,
@@ -286,6 +287,11 @@ async def test_setup_entry_coordinator_failure():
 
         # Should load successfully
         assert await async_setup_entry(mock_hass, mock_config_entry) is True
+        mock_hass.async_create_task.assert_called_once()
+        mock_coordinator.async_refresh.assert_called_once()
+        mock_hass.config_entries.async_forward_entry_setups.assert_called_once_with(
+            mock_config_entry, PLATFORMS
+        )
 
 
 async def test_setup_entry_auth_failure():
@@ -314,6 +320,11 @@ async def test_setup_entry_auth_failure():
 
         # Should load successfully
         assert await async_setup_entry(mock_hass, mock_config_entry) is True
+        mock_hass.async_create_task.assert_called_once()
+        mock_coordinator.async_refresh.assert_called_once()
+        mock_hass.config_entries.async_forward_entry_setups.assert_called_once_with(
+            mock_config_entry, PLATFORMS
+        )
 
 
 async def test_async_remove_config_entry_device():
@@ -591,6 +602,11 @@ async def test_setup_entry_refresh_failure():
         mock_coordinator.async_refresh = AsyncMock()
         # Should load successfully
         assert await async_setup_entry(mock_hass, mock_config_entry) is True
+        mock_hass.async_create_task.assert_called_once()
+        mock_coordinator.async_refresh.assert_called_once()
+        mock_hass.config_entries.async_forward_entry_setups.assert_called_once_with(
+            mock_config_entry, PLATFORMS
+        )
 
 
 @pytest.mark.asyncio
