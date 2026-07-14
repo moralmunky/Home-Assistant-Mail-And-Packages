@@ -43,7 +43,12 @@ _MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 DOMAIN_LANG_MAP = {
     "amazon.de": ["versandbestaetigung", "Geliefert:", "Zugestellt:"],
-    "amazon.it": ["conferma-spedizione", "Consegna effettuata:", "Arriverà"],
+    "amazon.it": [
+        "conferma-spedizione",
+        "Consegna effettuata:",
+        "Arriverà",
+        "Spedito:",
+    ],
     "amazon.nl": [
         "update-bestelling",
         "verzending-volgen",

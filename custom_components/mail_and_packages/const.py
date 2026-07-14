@@ -173,6 +173,7 @@ AMAZON_SHIPMENT_SUBJECT = [
     "Shipped:",
     "Enviado:",
     "Out for delivery:",
+    "Spedito:",
 ]
 AMAZON_ORDERED_SUBJECT = ["Ordered:", "Pedido efetuado:"]
 AMAZON_EMAIL = [
@@ -218,6 +219,7 @@ AMAZON_TIME_PATTERN = [
     "Chega ",
     "Verwachte bezorgdatum:",
     "Votre date de livraison prévue est :",
+    "In arrivo",
 ]
 AMAZON_TIME_PATTERN_END = [
     "Previously expected:",
@@ -252,6 +254,10 @@ AMAZON_TIME_PATTERN_REGEX = [
     "Wordt bezorgd op (\\w+ \\d+ \\w+)",
     "Wordt bezorgd op (\\w+ \\d+)",
     "Wordt (\\w+) bezorgd",
+    "In arrivo (\\w+ \\d+) - (\\w+ \\d+)",
+    "In arrivo (\\w+ \\d+)",
+    "In arrivo (\\w+ \\d*)",
+    "In arrivo (\\w+)",
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
