@@ -1154,3 +1154,62 @@ async def test_is_amazon_delivered_skips_non_bytes_response_parts(hass):
 
     assert is_delivered is True
     assert isinstance(urls, list)
+
+
+@pytest.mark.asyncio
+async def test_amazon_de_emails(hass):
+    """Test that amazon.de German-language emails are parsed and counted correctly."""
+    shipper = AmazonShipper(
+        hass,
+        {
+            "amazon_fwds": "",
+            "amazon_domain": "amazon.de",
+        },
+    )
+    mock_account = AsyncMock()
+
+    # 1. Test Shipped/Versandt email with "Zustellung: Montag"
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            return_value=datetime.date(2026, 7, 13),  # 2026-07-13 is a Monday
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1 2"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            new_callable=AsyncMock,
+        ) as mock_fetch,
+    ):
+
+        async def _mock_fetch(account, email_id, parts):
+            if email_id == "1":
+                # Versandt email
+                content = (
+                    b"Subject: =?utf-8?Q?Versandt:_=E2=80=9Eitem=E2=80=9C_und_1_weiterer_Artikel?=\n"
+                    b"Date: Mon, 13 Jul 2026 12:00:00 +0200\n"
+                    b"Content-Type: text/plain; charset=utf-8\n\n"
+                    b"Dein Paket wurde versendet!\n"
+                    b"Zustellung: Montag\n"
+                    b"Order: 123-4567890-1234567"
+                )
+            else:
+                # In Zustellung email
+                content = (
+                    b"Subject: =?utf-8?Q?In_Zustellung:_=E2=80=9Eitem=E2=80=9C_und_1_weiterer_Artikel?=\n"
+                    b"Date: Mon, 13 Jul 2026 13:00:00 +0200\n"
+                    b"Content-Type: text/plain; charset=utf-8\n\n"
+                    b"Paket befindet sich in Zustellung!\n"
+                    b"Zustellung heute 10:00 - 11:00\n"
+                    b"Order: 123-4567890-1234567"
+                )
+            return ("OK", [b"RFC822", content])
+
+        mock_fetch.side_effect = _mock_fetch
+
+        result = await shipper.process(mock_account, "today", AMAZON_PACKAGES)
+        assert result[AMAZON_PACKAGES] == 2
+        assert result[AMAZON_ORDER] == ["123-4567890-1234567"]

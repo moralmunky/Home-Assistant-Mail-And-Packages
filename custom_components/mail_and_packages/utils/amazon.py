@@ -42,7 +42,14 @@ _LOGGER = logging.getLogger(__name__)
 _MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 DOMAIN_LANG_MAP = {
-    "amazon.de": ["versandbestaetigung", "Geliefert:", "Zugestellt:"],
+    "amazon.de": [
+        "versandbestaetigung",
+        "Geliefert:",
+        "Zugestellt:",
+        "Versandt:",
+        "In Zustellung:",
+        "Zustellung:",
+    ],
     "amazon.it": [
         "conferma-spedizione",
         "Consegna effettuata:",
