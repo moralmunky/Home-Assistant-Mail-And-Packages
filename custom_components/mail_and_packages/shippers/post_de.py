@@ -207,6 +207,8 @@ class PostDEShipper(Shipper):
             if target.is_file():
                 cleanup_images(path + "/", name)
             src = custom_img or str(Path(__file__).parent.parent / "mail_none.gif")
+            if not Path(src).is_absolute():
+                src = self.hass.config.path(src)
             shutil.copyfile(src, str(target))
 
         _LOGGER.debug("No Post DE mail found.")

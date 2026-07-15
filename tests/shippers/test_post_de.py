@@ -698,3 +698,24 @@ async def test_post_de_unidentified_format(hass):
     ):
         result = await shipper.process(mock_account, "today", "post_de_mail")
         assert result["post_de_mail"] == 0
+
+
+@pytest.mark.asyncio
+async def test_post_de_copy_nomail_image_relative_path(hass):
+    """Test _copy_nomail_image resolves relative path relative to config directory for Post DE."""
+    shipper = PostDEShipper(hass, {})
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("pathlib.Path.is_file", return_value=False),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.cleanup_images",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.shutil.copyfile",
+        ) as mock_copy,
+    ):
+        relative_path = "custom_components/mail_and_packages/mail_none.gif"
+        expected_resolved_path = hass.config.path(relative_path)
+
+        await shipper._copy_nomail_image("test_dir", "test.gif", relative_path)
+        mock_copy.assert_called_once_with(expected_resolved_path, "test_dir/test.gif")
