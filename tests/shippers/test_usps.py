@@ -827,3 +827,28 @@ async def test_usps_placeholder_disabled(hass, mock_imap_usps_informed_digest_mi
         # But the generated GIF images should NOT include the placeholder
         called_images = mock_generate_gif.call_args[0][0]
         assert not any("image-no-mailpieces700.jpg" in img for img in called_images)
+
+
+@pytest.mark.asyncio
+async def test_copy_nomail_image_relative_path(hass):
+    """Test _copy_nomail_image resolves relative path relative to config directory."""
+    shipper = USPSShipper(hass, {})
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.Path.exists",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.Path.is_file",
+            return_value=False,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.shutil.copyfile"
+        ) as mock_copyfile,
+        patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
+    ):
+        relative_path = "custom_components/mail_and_packages/mail_none.gif"
+        expected_resolved_path = hass.config.path(relative_path)
+
+        await shipper._copy_nomail_image("test/", "test.gif", relative_path)
+        mock_copyfile.assert_called_once_with(expected_resolved_path, "test/test.gif")
