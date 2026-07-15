@@ -808,6 +808,7 @@ SENSOR_DATA = {
             "notifications@dragonflyshipping.ca",
             "notifications@dragonflyshipping.com",
             "notifications@nl.dragonflyinternational.com",
+            "notifications@ca.dragonflyinternational.com",
         ],
         "subject": [
             "Your order has been delivered!",
@@ -816,6 +817,7 @@ SENSOR_DATA = {
             "Votre commande a été livrée!",
             "Votre colis a été livré!",
             "We hebben je pakket bezorgd!",
+            "Hooray! Your package was delivered!",
         ],
     },
     "intelcom_delivering": {
@@ -824,6 +826,7 @@ SENSOR_DATA = {
             "notifications@dragonflyshipping.ca",
             "notifications@dragonflyshipping.com",
             "notifications@nl.dragonflyinternational.com",
+            "notifications@ca.dragonflyinternational.com",
         ],
         "subject": [
             "Your package is on the way!",
@@ -831,6 +834,8 @@ SENSOR_DATA = {
             "Votre colis est en chemin!",
             "package is on its way",
             "Vandaag bezorgen we je pakket",
+            "Your delivery is scheduled for today",
+            "Your package will be there in the next hour!",
         ],
     },
     "intelcom_packages": {
@@ -839,6 +844,7 @@ SENSOR_DATA = {
             "notifications@dragonflyshipping.ca",
             "notifications@dragonflyshipping.com",
             "notifications@nl.dragonflyinternational.com",
+            "notifications@ca.dragonflyinternational.com",
         ],
         "subject": [
             "Your package has been received!",
@@ -847,7 +853,9 @@ SENSOR_DATA = {
             "Je pakket is bij ons aangekomen",
         ],
     },
-    "intelcom_tracking": {"pattern": ["(NSPRSO[0-9]{10}|AMZNL[0-9]{12})"]},
+    "intelcom_tracking": {
+        "pattern": ["(NSPRSO[0-9]{10}|AMZNL[0-9]{12}|INTLCMI[0-9]+)"]
+    },
     # Walmart
     "walmart_delivering": {
         "email": ["help@walmart.com"],
