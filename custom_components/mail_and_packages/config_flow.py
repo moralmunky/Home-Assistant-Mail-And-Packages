@@ -858,6 +858,12 @@ class MailAndPackagesFlowHandler(
                     "prompt": "consent",
                 }
             )
+        elif auth_type == AUTH_TYPE_OAUTH_MICROSOFT:
+            data.update(
+                {
+                    "prompt": "select_account",
+                }
+            )
         return data
 
     def __init__(self):
