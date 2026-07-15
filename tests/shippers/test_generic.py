@@ -1142,3 +1142,71 @@ async def test_aliexpress_delivered_class(hass):
         result = await shipper.process(mock_account, "today", "aliexpress_delivered")
         assert result[ATTR_COUNT] == 1
         assert result[ATTR_TRACKING] == ["LP123456789DE"]
+
+
+@pytest.mark.asyncio
+async def test_intelcom_dragonfly_delivered(hass):
+    """Test Dragonfly (Intelcom) delivered email parsing."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    mock_account = AsyncMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch.object(
+            shipper,
+            "_verify_matched_subjects",
+            new_callable=AsyncMock,
+            return_value=[b"1"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.find_text_matches",
+            new_callable=AsyncMock,
+            return_value=(1, [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            new_callable=AsyncMock,
+            return_value=["INTLCMI19292929"],
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "intelcom_delivered")
+        assert result[ATTR_COUNT] == 1
+        assert result[ATTR_TRACKING] == ["INTLCMI19292929"]
+
+
+@pytest.mark.asyncio
+async def test_intelcom_dragonfly_delivering(hass):
+    """Test Dragonfly (Intelcom) delivering email parsing."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    mock_account = AsyncMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch.object(
+            shipper,
+            "_verify_matched_subjects",
+            new_callable=AsyncMock,
+            return_value=[b"1"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.find_text_matches",
+            new_callable=AsyncMock,
+            return_value=(1, [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            new_callable=AsyncMock,
+            return_value=["INTLCMI19292929"],
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "intelcom_delivering")
+        assert result[ATTR_COUNT] == 1
+        assert result[ATTR_TRACKING] == ["INTLCMI19292929"]
