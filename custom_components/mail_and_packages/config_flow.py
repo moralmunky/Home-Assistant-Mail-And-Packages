@@ -1212,6 +1212,16 @@ class MailAndPackagesFlowHandler(
             auth_type = self._data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
 
             if auth_type != AUTH_TYPE_PASSWORD:
+                if (
+                    self._entry
+                    and self._entry.data.get(CONF_AUTH_TYPE) == auth_type
+                    and self._entry.data.get(CONF_HOST) == self._data.get(CONF_HOST)
+                    and self._entry.data.get(CONF_USERNAME)
+                    == self._data.get(CONF_USERNAME)
+                    and "token" in self._data
+                ):
+                    return await self.async_step_reconfig_2()
+
                 self._data[CONF_VERIFY_SSL] = True
                 self.hass.data.setdefault(DOMAIN, {})
                 self.hass.data[DOMAIN]["oauth_provider"] = auth_type
