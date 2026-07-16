@@ -19,7 +19,7 @@ from homeassistant.const import (
     CONF_RESOURCES,
     CONF_USERNAME,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_entry_oauth2_flow, selector
 
 from .const import (
@@ -840,6 +840,14 @@ class MailAndPackagesFlowHandler(
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
     DOMAIN = DOMAIN
 
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> config_entries.OptionsFlow:
+        """Get the options flow for this handler."""
+        return MailAndPackagesOptionsFlow(config_entry)
+
     @property
     def logger(self) -> logging.Logger:
         """Return logger."""
@@ -951,12 +959,16 @@ class MailAndPackagesFlowHandler(
         """Handle OAuth2 completion — store token and continue to step 2."""
         self._data.update(data)
         if self._entry:
-            if self.source == config_entries.SOURCE_REAUTH:
-                return self.async_update_reload_and_abort(
-                    self._entry,
-                    data=self._data,
-                )
-            return await self.async_step_reconfig_2()
+            # Reconfigure or Reauth flow: update entry and reload
+            self.hass.config_entries.async_update_entry(
+                self._entry,
+                data=self._data,
+            )
+            await self.hass.config_entries.async_reload(self._entry.entry_id)
+            if self.context.get("source") == config_entries.SOURCE_REAUTH:
+                return self.async_abort(reason="reauth_successful")
+            _LOGGER.debug("%s reconfigured.", DOMAIN)
+            return self.async_abort(reason="reconfigure_successful")
         return await self.async_step_config_2()
 
     async def _show_auth_form(self, user_input):
@@ -1229,7 +1241,13 @@ class MailAndPackagesFlowHandler(
 
             self._errors = await _validate_login(self.hass, self._data)
             if self._errors == {}:
-                return await self.async_step_reconfig_2()
+                self.hass.config_entries.async_update_entry(
+                    self._entry,
+                    data=self._data,
+                )
+                await self.hass.config_entries.async_reload(self._entry.entry_id)
+                _LOGGER.debug("%s reconfigured.", DOMAIN)
+                return self.async_abort(reason="reconfigure_successful")
 
             return await self._show_reconfig_imap_form(user_input)
 
@@ -1449,6 +1467,194 @@ class MailAndPackagesFlowHandler(
         """Step 3 setup."""
         return self.async_show_form(
             step_id="reconfig_storage",
+            data_schema=_get_schema_step_storage(user_input, self._data),
+            errors=self._errors,
+        )
+
+
+class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
+    """Options flow for Mail and Packages."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self._entry = config_entry
+        self._data = dict(config_entry.data)
+        self._errors = {}
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Manage the options."""
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            if self._data.get("generate_mp4", False):
+                if not await _check_ffmpeg():
+                    self._errors["generate_mp4"] = "ffmpeg_not_found"
+            if len(self._errors) == 0:
+                if self._data.get(CONF_ALLOW_FORWARDED_EMAILS, False):
+                    return await self.async_step_options_forwarded_emails()
+                if any(
+                    sensor in self._data[CONF_RESOURCES] for sensor in AMAZON_SENSORS
+                ):
+                    return await self.async_step_options_amazon()
+                if self._data.get(CONF_CUSTOM_IMG, False):
+                    return await self.async_step_options_3()
+                return await self.async_step_options_storage()
+
+            return await self._show_options_2(user_input)
+
+        return await self._show_options_2(user_input)
+
+    async def _show_options_2(self, user_input):
+        """Step 2 of options."""
+        if self._data.get(CONF_AMAZON_FWDS) == []:
+            self._data[CONF_AMAZON_FWDS] = "(none)"
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=await _get_schema_step_2(
+                self._data, user_input, self._data, self.hass
+            ),
+            errors=self._errors,
+        )
+
+    async def async_step_options_forwarded_emails(self, user_input=None):
+        """Configure forwarded emails."""
+        self._errors = {}
+        if user_input is not None:
+            if user_input.get(CONF_FORWARDED_EMAILS) == "(none)":
+                user_input[CONF_FORWARDED_EMAILS] = []
+            self._data.update(user_input)
+            if len(self._errors) == 0:
+                if any(
+                    sensor in self._data[CONF_RESOURCES] for sensor in AMAZON_SENSORS
+                ):
+                    return await self.async_step_options_amazon()
+                if self._data.get(CONF_CUSTOM_IMG, False):
+                    return await self.async_step_options_3()
+                return await self.async_step_options_storage()
+            return await self._show_options_forwarded_emails(user_input)
+        return await self._show_options_forwarded_emails(user_input)
+
+    async def _show_options_forwarded_emails(self, user_input=None):
+        """Step forwarded emails."""
+        if self._data.get(CONF_FORWARDED_EMAILS, []) == []:
+            self._data[CONF_FORWARDED_EMAILS] = "(none)"
+
+        return self.async_show_form(
+            step_id="options_forwarded_emails",
+            data_schema=_get_schema_step_forwarded_emails(user_input, self._data),
+            errors=self._errors,
+        )
+
+    async def async_step_options_amazon(self, user_input=None):
+        """Configure amazon options."""
+        self._errors = {}
+        if user_input is not None:
+            if user_input.get(CONF_AMAZON_FWDS) == "(none)":
+                user_input[CONF_AMAZON_FWDS] = []
+            self._data.update(user_input)
+            self._errors, user_input = await _validate_user_input(self._data, self.hass)
+            if len(self._errors) == 0:
+                if self._data.get(CONF_CUSTOM_IMG, False):
+                    return await self.async_step_options_3()
+                return await self.async_step_options_storage()
+            return await self._show_options_amazon(user_input)
+        return await self._show_options_amazon(user_input)
+
+    async def _show_options_amazon(self, user_input):
+        """Step Amazon setup."""
+        if self._data.get(CONF_AMAZON_FWDS) == []:
+            self._data[CONF_AMAZON_FWDS] = "(none)"
+
+        return self.async_show_form(
+            step_id="options_amazon",
+            data_schema=_get_schema_step_amazon(
+                user_input,
+                self._data,
+                forwarding_header=self._data.get(CONF_FORWARDING_HEADER, ""),
+            ),
+            errors=self._errors,
+        )
+
+    async def async_step_options_3(self, user_input=None):
+        """Configure custom image files."""
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            self._errors, user_input = await _validate_user_input(self._data, self.hass)
+            if len(self._errors) == 0:
+                return await self.async_step_options_storage()
+            return await self._show_options_3(user_input)
+        return await self._show_options_3(user_input)
+
+    async def _show_options_3(self, user_input):
+        """Step 3 setup."""
+        return self.async_show_form(
+            step_id="options_3",
+            data_schema=_get_schema_step_3(self._data, self._data),
+            errors=self._errors,
+        )
+
+    async def async_step_options_storage(self, user_input=None):
+        """Configure storage options."""
+        self._errors = {}
+        if user_input is not None:
+            self._data.update(user_input)
+            self._errors, user_input = await _validate_user_input(self._data, self.hass)
+            if len(self._errors) == 0:
+                # Remove config flow only fields to not pollute options
+                options_keys = {
+                    CONF_FOLDER,
+                    CONF_SCAN_INTERVAL,
+                    CONF_RESOURCES,
+                    CONF_CUSTOM_IMG,
+                    CONF_AMAZON_CUSTOM_IMG,
+                    CONF_UPS_CUSTOM_IMG,
+                    CONF_WALMART_CUSTOM_IMG,
+                    CONF_FEDEX_CUSTOM_IMG,
+                    CONF_GENERIC_CUSTOM_IMG,
+                    CONF_POST_DE_CUSTOM_IMG,
+                    CONF_CUSTOM_IMG_FILE,
+                    CONF_AMAZON_CUSTOM_IMG_FILE,
+                    CONF_UPS_CUSTOM_IMG_FILE,
+                    CONF_WALMART_CUSTOM_IMG_FILE,
+                    CONF_FEDEX_CUSTOM_IMG_FILE,
+                    CONF_GENERIC_CUSTOM_IMG_FILE,
+                    CONF_POST_DE_CUSTOM_IMG_FILE,
+                    CONF_ALLOW_FORWARDED_EMAILS,
+                    CONF_FORWARDED_EMAILS,
+                    CONF_FORWARDING_HEADER,
+                    CONF_AMAZON_FWDS,
+                    CONF_AMAZON_DOMAIN,
+                    CONF_AMAZON_DAYS,
+                    CONF_STORAGE,
+                    "generate_mp4",
+                    "generate_grid",
+                    "gif_duration",
+                    "custom_days",
+                    "allow_external",
+                    "image_security",
+                    "imap_timeout",
+                    "image_name",
+                    "image_path",
+                    "usps_placeholder",
+                }
+                for key in list(self._data.keys()):
+                    if key not in options_keys:
+                        self._data.pop(key, None)
+
+                return self.async_create_entry(title="", data=self._data)
+
+            return await self._show_options_storage(user_input)
+
+        return await self._show_options_storage(user_input)
+
+    async def _show_options_storage(self, user_input):
+        """Step storage setup."""
+        return self.async_show_form(
+            step_id="options_storage",
             data_schema=_get_schema_step_storage(user_input, self._data),
             errors=self._errors,
         )

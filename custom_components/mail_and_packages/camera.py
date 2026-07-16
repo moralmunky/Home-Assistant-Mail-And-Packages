@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
+from typing import Any
 
 import anyio
 import voluptuous as vol
@@ -85,6 +86,11 @@ async def async_setup_entry(
 class MailCam(CoordinatorEntity, Camera):
     """Representation of a local file camera."""
 
+    @property
+    def config_data(self) -> dict[str, Any]:
+        """Return merged data and options."""
+        return {**self.config.data, **self.config.options}
+
     def __init__(
         self,
         hass,
@@ -100,7 +106,7 @@ class MailCam(CoordinatorEntity, Camera):
         self.config = config
         self._name = CAMERA_DATA[name][SENSOR_NAME]
         self._type = name
-        self._host = config.data.get(CONF_HOST)
+        self._host = self.config_data.get(CONF_HOST)
         self._unique_id = config.entry_id
 
         # Derive config keys and default image from camera type name
@@ -132,8 +138,8 @@ class MailCam(CoordinatorEntity, Camera):
 
         # Set custom image paths
         self._no_mail = None
-        if custom_img_key and config.data.get(custom_img_key):
-            self._no_mail = config.data.get(custom_img_file_key)
+        if custom_img_key and self.config_data.get(custom_img_key):
+            self._no_mail = self.config_data.get(custom_img_file_key)
             _LOGGER.debug(
                 "%s camera - custom image enabled: %s",
                 self._type,
@@ -141,8 +147,8 @@ class MailCam(CoordinatorEntity, Camera):
             )
 
         # Set initial file path based on camera type and custom settings
-        if custom_img_key and config.data.get(custom_img_key):
-            self._file_path = config.data.get(custom_img_file_key)
+        if custom_img_key and self.config_data.get(custom_img_key):
+            self._file_path = self.config_data.get(custom_img_file_key)
             _LOGGER.debug(
                 "%s camera - initial file path set to: %s",
                 self._type,
@@ -326,7 +332,7 @@ class MailCam(CoordinatorEntity, Camera):
             resize_images, delivery_images, 800, 600
         )
 
-        duration = self.config.data.get(CONF_DURATION, 5) * 1000
+        duration = self.config_data.get(CONF_DURATION, 5) * 1000
         gif_created = await self.hass.async_add_executor_job(
             generate_delivery_gif,
             resized_images,
@@ -358,7 +364,7 @@ class MailCam(CoordinatorEntity, Camera):
     def _collect_generic_delivery_images(self) -> list[str]:
         """Collect delivery images for the generic camera."""
         delivery_images = []
-        enabled_resources = self.config.data.get("resources", [])
+        enabled_resources = self.config_data.get("resources", [])
 
         for camera_type in CAMERA_DATA:
             # Skip generic, USPS, and Post DE cameras
@@ -576,9 +582,9 @@ class MailCam(CoordinatorEntity, Camera):
         if (
             custom_img_conf
             and custom_img_file_conf
-            and self.config.data.get(custom_img_conf)
+            and self.config_data.get(custom_img_conf)
         ):
-            custom_file_path = self.config.data.get(custom_img_file_conf)
+            custom_file_path = self.config_data.get(custom_img_file_conf)
             if custom_file_path and Path(custom_file_path).exists():
                 # Check if the file path matches the custom "no mail" image
                 return Path(file_path).resolve() == Path(custom_file_path).resolve()

@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -14,9 +15,13 @@ from custom_components.mail_and_packages import (
     async_setup_entry,
 )
 from custom_components.mail_and_packages.const import (
+    CONF_AMAZON_DOMAIN,
     CONF_AUTH_TYPE,
     CONF_FOLDER,
     CONF_FORWARDED_EMAILS,
+    CONF_IMAP_SECURITY,
+    CONF_SCAN_INTERVAL,
+    CONF_VERIFY_SSL,
     DOMAIN,
     PLATFORMS,
 )
@@ -231,7 +236,7 @@ async def test_migration_from_version_14_to_18():
     args, kwargs = mock_hass.config_entries.async_update_entry.call_args
     assert kwargs["data"]["imap_security"] == "SSL"
     assert kwargs["data"]["auth_type"] == "password"
-    assert kwargs["version"] == 19
+    assert kwargs["version"] == 20
 
 
 async def test_migration_from_version_16_to_18():
@@ -256,7 +261,7 @@ async def test_migration_from_version_16_to_18():
     assert "auth" not in kwargs["data"]
     assert kwargs["data"]["token"] == "test_token"
     assert kwargs["data"]["access_token"] == "test_access_token"
-    assert kwargs["version"] == 19
+    assert kwargs["version"] == 20
 
 
 async def test_setup_entry_coordinator_failure():
@@ -886,7 +891,7 @@ async def test_migrate_version_17_string_to_list():
     result = await async_migrate_entry(mock_hass, mock_entry)
     assert result is True
     _, kwargs = mock_hass.config_entries.async_update_entry.call_args
-    assert kwargs["data"][CONF_FORWARDED_EMAILS] == ["a@test.com", "b@test.com"]
+    assert kwargs["options"][CONF_FORWARDED_EMAILS] == ["a@test.com", "b@test.com"]
 
 
 @pytest.mark.asyncio
@@ -900,7 +905,7 @@ async def test_migrate_version_17_none_string_removed():
     result = await async_migrate_entry(mock_hass, mock_entry)
     assert result is True
     _, kwargs = mock_hass.config_entries.async_update_entry.call_args
-    assert CONF_FORWARDED_EMAILS not in kwargs["data"]
+    assert CONF_FORWARDED_EMAILS not in kwargs["options"]
 
 
 @pytest.mark.asyncio
@@ -914,7 +919,7 @@ async def test_migrate_version_18_string():
     result = await async_migrate_entry(mock_hass, mock_entry)
     assert result is True
     _, kwargs = mock_hass.config_entries.async_update_entry.call_args
-    assert kwargs["data"][CONF_FOLDER] == "INBOX"
+    assert kwargs["options"][CONF_FOLDER] == "INBOX"
 
 
 @pytest.mark.asyncio
@@ -928,4 +933,37 @@ async def test_migrate_version_18_list():
     result = await async_migrate_entry(mock_hass, mock_entry)
     assert result is True
     _, kwargs = mock_hass.config_entries.async_update_entry.call_args
-    assert kwargs["data"][CONF_FOLDER] == ["INBOX", "Junk"]
+    assert kwargs["options"][CONF_FOLDER] == ["INBOX", "Junk"]
+
+
+@pytest.mark.asyncio
+async def test_migrate_version_20():
+    """Test migration from version 19 to 20 splits non-IMAP options out of data."""
+    mock_entry = MagicMock()
+    mock_entry.version = 19
+    mock_entry.data = {
+        CONF_HOST: "imap.test.email",
+        CONF_PORT: 993,
+        CONF_USERNAME: "test@test.email",
+        CONF_PASSWORD: "password",
+        CONF_IMAP_SECURITY: "SSL",
+        CONF_VERIFY_SSL: True,
+        CONF_AUTH_TYPE: "password",
+        CONF_SCAN_INTERVAL: 30,
+        CONF_AMAZON_DOMAIN: "amazon.com",
+    }
+    mock_entry.options = {}
+    mock_hass = MagicMock()
+
+    result = await async_migrate_entry(mock_hass, mock_entry)
+    assert result is True
+    _, kwargs = mock_hass.config_entries.async_update_entry.call_args
+    # Connection fields should remain in data
+    assert kwargs["data"][CONF_HOST] == "imap.test.email"
+    assert kwargs["data"][CONF_PASSWORD] == "password"
+    # Options fields should move to options
+    assert kwargs["options"][CONF_SCAN_INTERVAL] == 30
+    assert kwargs["options"][CONF_AMAZON_DOMAIN] == "amazon.com"
+    # Options fields should be removed from data
+    assert CONF_SCAN_INTERVAL not in kwargs["data"]
+    assert CONF_AMAZON_DOMAIN not in kwargs["data"]

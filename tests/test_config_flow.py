@@ -1837,42 +1837,50 @@ async def test_reconfigure(
             reconfigure_result["flow_id"],
             input_1,
         )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_2
-
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_2,
-        )
-
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_3
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_3,
-        )
-
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_4
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_4,
-        )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_5
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_5,
-        )
-        # assert "errors" not in result
-
         assert result["type"] is FlowResultType.ABORT
         assert result["reason"] == "reconfigure_successful"
         await hass.async_block_till_done()
 
+        # Options flow
+        options_result = await hass.config_entries.options.async_init(entry.entry_id)
+        assert options_result["type"] is FlowResultType.FORM
+        assert options_result["step_id"] == "init"
+
+        opt_step_3 = step_id_3.replace("reconfig_", "options_")
+        opt_step_4 = step_id_4.replace("reconfig_", "options_")
+        opt_step_5 = step_id_5.replace("reconfig_", "options_")
+
+        result = await hass.config_entries.options.async_configure(
+            options_result["flow_id"],
+            input_2,
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == opt_step_3
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            input_3,
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == opt_step_4
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            input_4,
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == opt_step_5
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            input_5,
+        )
+        assert result["type"] is FlowResultType.CREATE_ENTRY
+        await hass.async_block_till_done()
+
         _LOGGER.debug("Entries: %s", len(hass.config_entries.async_entries(DOMAIN)))
         entry = hass.config_entries.async_entries(DOMAIN)[0]
-        assert entry.data.copy() == data
+        assert {**entry.data, **entry.options} == data
 
 
 @pytest.mark.parametrize(
@@ -2063,35 +2071,42 @@ async def test_reconfigure_no_amazon(
             reconfigure_result["flow_id"],
             input_1,
         )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_2
-
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_2,
-        )
-
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_3
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_3,
-        )
-
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_4
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_4,
-        )
-
         assert result["type"] is FlowResultType.ABORT
         assert result["reason"] == "reconfigure_successful"
         await hass.async_block_till_done()
 
+        # Options flow
+        options_result = await hass.config_entries.options.async_init(entry.entry_id)
+        assert options_result["type"] is FlowResultType.FORM
+        assert options_result["step_id"] == "init"
+
+        opt_step_3 = step_id_3.replace("reconfig_", "options_")
+        opt_step_4 = step_id_4.replace("reconfig_", "options_")
+
+        result = await hass.config_entries.options.async_configure(
+            options_result["flow_id"],
+            input_2,
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == opt_step_3
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            input_3,
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == opt_step_4
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            input_4,
+        )
+        assert result["type"] is FlowResultType.CREATE_ENTRY
+        await hass.async_block_till_done()
+
         _LOGGER.debug("Entries: %s", len(hass.config_entries.async_entries(DOMAIN)))
         entry = hass.config_entries.async_entries(DOMAIN)[0]
-        assert entry.data.copy() == data
+        assert {**entry.data, **entry.options} == data
 
 
 @pytest.mark.parametrize(
@@ -2285,34 +2300,41 @@ async def test_reconfigure_with_default_images(
             reconfigure_result["flow_id"],
             input_1,
         )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_2
-
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_2,
-        )
-
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_3
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_3,
-        )
-
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_4
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_4,
-        )
-
         assert result["type"] is FlowResultType.ABORT
         assert result["reason"] == "reconfigure_successful"
         await hass.async_block_till_done()
 
+        # Options flow
+        options_result = await hass.config_entries.options.async_init(entry.entry_id)
+        assert options_result["type"] is FlowResultType.FORM
+        assert options_result["step_id"] == "init"
+
+        opt_step_3 = step_id_3.replace("reconfig_", "options_")
+        opt_step_4 = step_id_4.replace("reconfig_", "options_")
+
+        result = await hass.config_entries.options.async_configure(
+            options_result["flow_id"],
+            input_2,
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == opt_step_3
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            input_3,
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == opt_step_4
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            input_4,
+        )
+        assert result["type"] is FlowResultType.CREATE_ENTRY
+        await hass.async_block_till_done()
+
         entry = hass.config_entries.async_entries(DOMAIN)[0]
-        actual_data = entry.data.copy()
+        actual_data = {**entry.data, **entry.options}
         # Compare dictionaries by checking each key-value pair
         for key in data:
             assert key in actual_data, f"Missing key: {key}"
@@ -2877,26 +2899,27 @@ async def test_migration_from_version_10_to_11(hass, caplog):
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
 
     # Verify the new fields were added with correct defaults
-    assert CONF_AMAZON_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_AMAZON_CUSTOM_IMG] is False
-    assert CONF_AMAZON_CUSTOM_IMG_FILE in entry.data
+    config = {**entry.data, **entry.options}
+    assert CONF_AMAZON_CUSTOM_IMG in config
+    assert config[CONF_AMAZON_CUSTOM_IMG] is False
+    assert CONF_AMAZON_CUSTOM_IMG_FILE in config
     assert (
-        entry.data[CONF_AMAZON_CUSTOM_IMG_FILE]
+        config[CONF_AMAZON_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_amazon.jpg"
     )
 
-    assert CONF_UPS_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_UPS_CUSTOM_IMG] is False
-    assert CONF_UPS_CUSTOM_IMG_FILE in entry.data
+    assert CONF_UPS_CUSTOM_IMG in config
+    assert config[CONF_UPS_CUSTOM_IMG] is False
+    assert CONF_UPS_CUSTOM_IMG_FILE in config
     assert (
-        entry.data[CONF_UPS_CUSTOM_IMG_FILE]
+        config[CONF_UPS_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_ups.jpg"
     )
-    assert CONF_WALMART_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_WALMART_CUSTOM_IMG] is False
-    assert CONF_WALMART_CUSTOM_IMG_FILE in entry.data
+    assert CONF_WALMART_CUSTOM_IMG in config
+    assert config[CONF_WALMART_CUSTOM_IMG] is False
+    assert CONF_WALMART_CUSTOM_IMG_FILE in config
     assert (
-        entry.data[CONF_WALMART_CUSTOM_IMG_FILE]
+        config[CONF_WALMART_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
     )
 
@@ -2904,8 +2927,8 @@ async def test_migration_from_version_10_to_11(hass, caplog):
     assert entry.version == CONFIG_VER
 
     # Verify existing fields were preserved
-    assert entry.data["amazon_days"] == 3
-    assert entry.data["amazon_domain"] == "amazon.com"
+    assert config["amazon_days"] == 3
+    assert config["amazon_domain"] == "amazon.com"
     assert entry.data["host"] == "imap.test.email"
 
 
@@ -2965,29 +2988,30 @@ async def test_migration_from_version_9_to_11(hass, caplog):
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
 
     # Verify all missing fields were added
-    assert "storage" in entry.data
-    assert entry.data["storage"] == "custom_components/mail_and_packages/images/"
+    config = {**entry.data, **entry.options}
+    assert "storage" in config
+    assert config["storage"] == "custom_components/mail_and_packages/images/"
 
-    assert CONF_AMAZON_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_AMAZON_CUSTOM_IMG] is False
-    assert CONF_AMAZON_CUSTOM_IMG_FILE in entry.data
+    assert CONF_AMAZON_CUSTOM_IMG in config
+    assert config[CONF_AMAZON_CUSTOM_IMG] is False
+    assert CONF_AMAZON_CUSTOM_IMG_FILE in config
     assert (
-        entry.data[CONF_AMAZON_CUSTOM_IMG_FILE]
+        config[CONF_AMAZON_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_amazon.jpg"
     )
 
-    assert CONF_UPS_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_UPS_CUSTOM_IMG] is False
-    assert CONF_UPS_CUSTOM_IMG_FILE in entry.data
+    assert CONF_UPS_CUSTOM_IMG in config
+    assert config[CONF_UPS_CUSTOM_IMG] is False
+    assert CONF_UPS_CUSTOM_IMG_FILE in config
     assert (
-        entry.data[CONF_UPS_CUSTOM_IMG_FILE]
+        config[CONF_UPS_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_ups.jpg"
     )
-    assert CONF_WALMART_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_WALMART_CUSTOM_IMG] is False
-    assert CONF_WALMART_CUSTOM_IMG_FILE in entry.data
+    assert CONF_WALMART_CUSTOM_IMG in config
+    assert config[CONF_WALMART_CUSTOM_IMG] is False
+    assert CONF_WALMART_CUSTOM_IMG_FILE in config
     assert (
-        entry.data[CONF_WALMART_CUSTOM_IMG_FILE]
+        config[CONF_WALMART_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
     )
 
@@ -3052,26 +3076,27 @@ async def test_migration_from_version_11_no_changes(hass, caplog):
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
 
     # Verify all fields are still present and unchanged
-    assert CONF_AMAZON_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_AMAZON_CUSTOM_IMG] is False
-    assert CONF_AMAZON_CUSTOM_IMG_FILE in entry.data
+    config = {**entry.data, **entry.options}
+    assert CONF_AMAZON_CUSTOM_IMG in config
+    assert config[CONF_AMAZON_CUSTOM_IMG] is False
+    assert CONF_AMAZON_CUSTOM_IMG_FILE in config
     assert (
-        entry.data[CONF_AMAZON_CUSTOM_IMG_FILE]
+        config[CONF_AMAZON_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_amazon.jpg"
     )
 
-    assert CONF_UPS_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_UPS_CUSTOM_IMG] is False
-    assert CONF_UPS_CUSTOM_IMG_FILE in entry.data
+    assert CONF_UPS_CUSTOM_IMG in config
+    assert config[CONF_UPS_CUSTOM_IMG] is False
+    assert CONF_UPS_CUSTOM_IMG_FILE in config
     assert (
-        entry.data[CONF_UPS_CUSTOM_IMG_FILE]
+        config[CONF_UPS_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_ups.jpg"
     )
-    assert CONF_WALMART_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_WALMART_CUSTOM_IMG] is False
-    assert CONF_WALMART_CUSTOM_IMG_FILE in entry.data
+    assert CONF_WALMART_CUSTOM_IMG in config
+    assert config[CONF_WALMART_CUSTOM_IMG] is False
+    assert CONF_WALMART_CUSTOM_IMG_FILE in config
     assert (
-        entry.data[CONF_WALMART_CUSTOM_IMG_FILE]
+        config[CONF_WALMART_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
     )
 
@@ -3138,19 +3163,20 @@ async def test_migration_preserves_existing_custom_image_settings(hass, caplog):
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
 
     # Verify existing custom image settings were preserved
-    assert CONF_AMAZON_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_AMAZON_CUSTOM_IMG] is True  # Preserved
-    assert CONF_AMAZON_CUSTOM_IMG_FILE in entry.data
+    config = {**entry.data, **entry.options}
+    assert CONF_AMAZON_CUSTOM_IMG in config
+    assert config[CONF_AMAZON_CUSTOM_IMG] is True  # Preserved
+    assert CONF_AMAZON_CUSTOM_IMG_FILE in config
     assert (
-        entry.data[CONF_AMAZON_CUSTOM_IMG_FILE] == "images/custom_amazon.jpg"
+        config[CONF_AMAZON_CUSTOM_IMG_FILE] == "images/custom_amazon.jpg"
     )  # Preserved
 
     # Verify UPS fields were added with defaults
-    assert CONF_UPS_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_UPS_CUSTOM_IMG] is False  # Default
-    assert CONF_UPS_CUSTOM_IMG_FILE in entry.data
+    assert CONF_UPS_CUSTOM_IMG in config
+    assert config[CONF_UPS_CUSTOM_IMG] is False  # Default
+    assert CONF_UPS_CUSTOM_IMG_FILE in config
     assert (
-        entry.data[CONF_UPS_CUSTOM_IMG_FILE]
+        config[CONF_UPS_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_ups.jpg"
     )  # Default
 
@@ -3193,17 +3219,18 @@ async def test_migration_with_minimal_config(hass, caplog):
     )
 
     # Verify all required fields were added
-    assert "amazon_days" in entry.data
-    assert "amazon_domain" in entry.data
+    config = {**entry.data, **entry.options}
+    assert "amazon_days" in config
+    assert "amazon_domain" in config
     assert "imap_security" in entry.data
     assert "verify_ssl" in entry.data
-    assert "storage" in entry.data
-    assert CONF_AMAZON_CUSTOM_IMG in entry.data
-    assert CONF_AMAZON_CUSTOM_IMG_FILE in entry.data
-    assert CONF_UPS_CUSTOM_IMG in entry.data
-    assert CONF_UPS_CUSTOM_IMG_FILE in entry.data
-    assert CONF_WALMART_CUSTOM_IMG in entry.data
-    assert CONF_WALMART_CUSTOM_IMG_FILE in entry.data
+    assert "storage" in config
+    assert CONF_AMAZON_CUSTOM_IMG in config
+    assert CONF_AMAZON_CUSTOM_IMG_FILE in config
+    assert CONF_UPS_CUSTOM_IMG in config
+    assert CONF_UPS_CUSTOM_IMG_FILE in config
+    assert CONF_WALMART_CUSTOM_IMG in config
+    assert CONF_WALMART_CUSTOM_IMG_FILE in config
 
     # Verify version was updated
     assert entry.version == CONFIG_VER
@@ -3253,9 +3280,9 @@ async def test_migration_with_minimal_config(hass, caplog):
             },
             "reconfig_amazon",
             {
-                "amazon_domain": "",  # Invalid domain to trigger error
+                "amazon_domain": "",
                 "amazon_days": 3,
-                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
+                "amazon_fwds": "fakeuser",  # Invalid email format to trigger error
             },
             None,
             None,
@@ -3299,19 +3326,36 @@ async def test_reconfig_amazon_error(
         if isinstance(input_1, dict)
         else {"auth_type": "password"}
     )
-    await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], auth_input
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "reconfig_imap"
+
     result = await hass.config_entries.flow.async_configure(result["flow_id"], input_1)
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    await hass.async_block_till_done()
 
+    # Options flow
+    options_result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert options_result["type"] is FlowResultType.FORM
+    assert options_result["step_id"] == "init"
+
+    result = await hass.config_entries.options.async_configure(
+        options_result["flow_id"],
+        input_2,
+    )
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_2"
+    assert result["step_id"] == "options_amazon"
 
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_2)
-    assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_amazon"
-
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        input_3,
+    )
     # The flow is still on Amazon step because of invalid domain
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_amazon"
+    assert result["step_id"] == "options_amazon"
 
 
 @pytest.mark.parametrize(
@@ -3394,25 +3438,42 @@ async def test_reconfig_storage_error(
         if isinstance(input_1, dict)
         else {"auth_type": "password"}
     )
-    await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], auth_input
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "reconfig_imap"
+
     result = await hass.config_entries.flow.async_configure(result["flow_id"], input_1)
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    await hass.async_block_till_done()
 
+    # Options flow
+    options_result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert options_result["type"] is FlowResultType.FORM
+    assert options_result["step_id"] == "init"
+
+    opt_step_3 = step_id_3.replace("reconfig_", "options_")
+    opt_step_4 = step_id_4.replace("reconfig_", "options_")
+
+    result = await hass.config_entries.options.async_configure(
+        options_result["flow_id"], input_2
+    )
     assert result["type"] == "form"
-    assert result["step_id"] == step_id_2
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_2)
+    assert result["step_id"] == opt_step_3
 
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], input_3
+    )
     assert result["type"] == "form"
-    assert result["step_id"] == step_id_3
+    assert result["step_id"] == opt_step_4
 
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_3)
-
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], input_4
+    )
     assert result["type"] == "form"
-    assert result["step_id"] == step_id_4
-
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_4)
-
-    assert result["type"] == "form"
-    assert result["step_id"] == step_id_4
+    assert result["step_id"] == opt_step_4
     assert result["errors"] == {"storage": "path_not_found"}
 
 
@@ -3851,27 +3912,28 @@ async def test_migration_to_version_12(hass: HomeAssistant, mock_imap_no_email):
     assert entry.version == CONFIG_VER
 
     # Verify new Walmart camera fields were added with defaults
-    assert CONF_WALMART_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_WALMART_CUSTOM_IMG] is False
-    assert CONF_WALMART_CUSTOM_IMG_FILE in entry.data
+    config = {**entry.data, **entry.options}
+    assert CONF_WALMART_CUSTOM_IMG in config
+    assert config[CONF_WALMART_CUSTOM_IMG] is False
+    assert CONF_WALMART_CUSTOM_IMG_FILE in config
     assert (
-        entry.data[CONF_WALMART_CUSTOM_IMG_FILE]
+        config[CONF_WALMART_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
     )
 
     # Verify new Generic camera fields were added with defaults
-    assert CONF_GENERIC_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_GENERIC_CUSTOM_IMG] is False
-    assert CONF_GENERIC_CUSTOM_IMG_FILE in entry.data
+    assert CONF_GENERIC_CUSTOM_IMG in config
+    assert config[CONF_GENERIC_CUSTOM_IMG] is False
+    assert CONF_GENERIC_CUSTOM_IMG_FILE in config
     assert (
-        entry.data[CONF_GENERIC_CUSTOM_IMG_FILE]
+        config[CONF_GENERIC_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_generic.jpg"
     )
 
     # Verify existing fields were preserved
     assert entry.data["host"] == "imap.test.email"
-    assert entry.data["amazon_custom_img"] is False
-    assert entry.data["ups_custom_img"] is False
+    assert config["amazon_custom_img"] is False
+    assert config["ups_custom_img"] is False
 
 
 async def test_migration_to_version_13(hass: HomeAssistant, mock_imap_no_email):
@@ -3909,18 +3971,19 @@ async def test_migration_to_version_13(hass: HomeAssistant, mock_imap_no_email):
     assert entry.version == CONFIG_VER
 
     # Verify new generic camera fields were added with defaults
-    assert CONF_GENERIC_CUSTOM_IMG in entry.data
-    assert entry.data[CONF_GENERIC_CUSTOM_IMG] is False
-    assert CONF_GENERIC_CUSTOM_IMG_FILE in entry.data
+    config = {**entry.data, **entry.options}
+    assert CONF_GENERIC_CUSTOM_IMG in config
+    assert config[CONF_GENERIC_CUSTOM_IMG] is False
+    assert CONF_GENERIC_CUSTOM_IMG_FILE in config
     assert (
-        entry.data[CONF_GENERIC_CUSTOM_IMG_FILE]
+        config[CONF_GENERIC_CUSTOM_IMG_FILE]
         == "custom_components/mail_and_packages/no_deliveries_generic.jpg"
     )
 
     # Verify existing fields were preserved
     assert entry.data["host"] == "imap.test.email"
-    assert entry.data["amazon_custom_img"] is False
-    assert entry.data["walmart_custom_img"] is False
+    assert config["amazon_custom_img"] is False
+    assert config["walmart_custom_img"] is False
 
 
 async def test_walmart_config_flow_integration():
@@ -4368,9 +4431,8 @@ async def test_reconfigure_flow_mailbox_success(hass, mock_imap_no_email, integr
         },
     )
 
-    assert result["type"] == "form"
-    assert result["errors"] == {}
-    assert result["step_id"] == "reconfig_2"
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
 
 
 @pytest.mark.asyncio
@@ -4495,34 +4557,13 @@ async def test_reconfig_2_schema_validation(hass, integration, mock_imap):
             return_value=["INBOX"],
         ),
     ):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN,
-            context={
-                "source": config_entries.SOURCE_RECONFIGURE,
-                "entry_id": entry.entry_id,
-            },
-        )
-
-        # Advance to step 2
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {"auth_type": "password"},
-        )
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                "host": "imap.test.com",
-                "port": 993,
-                "username": "test",
-                "password": "pwd",
-                "imap_security": "SSL",
-                "verify_ssl": True,
-            },
-        )
+        result = await hass.config_entries.options.async_init(entry.entry_id)
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "init"
 
         # Catch the expected schema validation failure
         with pytest.raises(InvalidData):
-            await hass.config_entries.flow.async_configure(
+            await hass.config_entries.options.async_configure(
                 result["flow_id"],
                 {
                     "scan_interval": 1,
@@ -4562,11 +4603,17 @@ async def test_reconfigure_flow_skip_to_storage(hass, mock_imap_no_email, integr
         result["flow_id"],
         reconfig_login_data,
     )
-    assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_2"
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    await hass.async_block_till_done()
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
+    # Options flow
+    options_result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert options_result["type"] is FlowResultType.FORM
+    assert options_result["step_id"] == "init"
+
+    result = await hass.config_entries.options.async_configure(
+        options_result["flow_id"],
         {
             "folder": "INBOX",
             "resources": ["mail_updated", "usps_mail"],
@@ -4583,7 +4630,7 @@ async def test_reconfigure_flow_skip_to_storage(hass, mock_imap_no_email, integr
         },
     )
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_storage"
+    assert result["step_id"] == "options_storage"
 
 
 @pytest.mark.asyncio
@@ -6587,51 +6634,58 @@ async def test_reconfigure_allow_forwarded_emails(
             reconfigure_result["flow_id"],
             input_1,
         )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_2
-
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_2,
-        )
-
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_3
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_3,
-        )
-
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_4
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_4,
-        )
-
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_5
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_5,
-        )
-
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_6
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_6,
-        )
-
-        # assert "errors" not in result
-
         assert result["type"] is FlowResultType.ABORT
         assert result["reason"] == "reconfigure_successful"
         await hass.async_block_till_done()
 
+        # Options flow
+        options_result = await hass.config_entries.options.async_init(entry.entry_id)
+        assert options_result["type"] is FlowResultType.FORM
+        assert options_result["step_id"] == "init"
+
+        opt_step_3 = step_id_3.replace("reconfig_", "options_")
+        opt_step_4 = step_id_4.replace("reconfig_", "options_")
+        opt_step_5 = step_id_5.replace("reconfig_", "options_")
+        opt_step_6 = step_id_6.replace("reconfig_", "options_")
+
+        result = await hass.config_entries.options.async_configure(
+            options_result["flow_id"],
+            input_2,
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == opt_step_3
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            input_3,
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == opt_step_4
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            input_4,
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == opt_step_5
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            input_5,
+        )
+        assert result["type"] == "form"
+        assert result["step_id"] == opt_step_6
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            input_6,
+        )
+        assert result["type"] is FlowResultType.CREATE_ENTRY
+        await hass.async_block_till_done()
+
         entry = hass.config_entries.async_entries(DOMAIN)[0]
 
-        assert entry.data.copy() == data
+        assert {**entry.data, **entry.options} == data
 
 
 @pytest.mark.parametrize(
@@ -7251,34 +7305,14 @@ async def test_step_forwarded_emails_skip_amazon(hass, mock_imap):
 async def test_reconfig_2_validation_error(hass, mock_imap_no_email, integration):
     """Test step 2 validiation errors."""
     entry = integration
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={
-            "source": config_entries.SOURCE_RECONFIGURE,
-            "entry_id": entry.entry_id,
-        },
-    )
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {"auth_type": "password"},
-    )
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {
-            "host": "imap.test.email",
-            "port": 993,
-            "username": "test@test.email",
-            "password": "password",
-            "imap_security": "SSL",
-            "verify_ssl": True,
-        },
-    )
-    assert result["step_id"] == "reconfig_2"
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "init"
     with patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=False,
     ):
-        result = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {
                 "folder": "INBOX",
@@ -7290,7 +7324,7 @@ async def test_reconfig_2_validation_error(hass, mock_imap_no_email, integration
         )
 
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_2"
+    assert result["step_id"] == "init"
     assert result["errors"] == {"generate_mp4": "ffmpeg_not_found"}
 
 
@@ -7298,38 +7332,15 @@ async def test_reconfig_2_validation_error(hass, mock_imap_no_email, integration
 async def test_reconfig_3_validation_error(hass, mock_imap_no_email, integration):
     """Test step 3 validation errors."""
     entry = integration
-
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={
-            "source": config_entries.SOURCE_RECONFIGURE,
-            "entry_id": entry.entry_id,
-        },
-    )
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {"auth_type": "password"},
-    )
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {
-            "host": "imap.test.email",
-            "port": 993,
-            "username": "test@test.email",
-            "password": "password",
-            "imap_security": "SSL",
-            "verify_ssl": True,
-        },
-    )
-
-    assert result["step_id"] == "reconfig_2"
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "init"
 
     with patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
     ):
-        result = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {
                 "folder": "INBOX",
@@ -7340,10 +7351,10 @@ async def test_reconfig_3_validation_error(hass, mock_imap_no_email, integration
             },
         )
 
-    assert result["step_id"] == "reconfig_3"
+    assert result["step_id"] == "options_3"
 
     with patch("pathlib.Path.is_file", return_value=False):
-        result = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {
                 "custom_img_file": "non_existent_file.gif",
@@ -7351,7 +7362,7 @@ async def test_reconfig_3_validation_error(hass, mock_imap_no_email, integration
         )
 
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_3"
+    assert result["step_id"] == "options_3"
     assert result["errors"] == {
         "custom_img_file": "file_not_found",
     }
@@ -7365,34 +7376,15 @@ async def test_reconfig_forwarded_emails_to_reconfig_3(
 ):
     """Test transition from reconfig forwarded emails to reconfig 3."""
     entry = integration
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={
-            "source": config_entries.SOURCE_RECONFIGURE,
-            "entry_id": entry.entry_id,
-        },
-    )
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {"auth_type": "password"},
-    )
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {
-            "host": "imap.test.email",
-            "port": 993,
-            "username": "test@test.email",
-            "password": "password",
-            "imap_security": "SSL",
-            "verify_ssl": True,
-        },
-    )
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "init"
 
     with patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
     ):
-        result = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {
                 "allow_external": False,
@@ -7406,7 +7398,7 @@ async def test_reconfig_forwarded_emails_to_reconfig_3(
         )
 
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_forwarded_emails"
+    assert result["step_id"] == "options_forwarded_emails"
 
     with (
         patch(
@@ -7416,48 +7408,29 @@ async def test_reconfig_forwarded_emails_to_reconfig_3(
         patch("pathlib.Path.exists", return_value=True),
         patch("os.path.isfile", return_value=True),
     ):
-        result = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {
                 "forwarded_emails": "forwarder@example.com",
             },
         )
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_3"
+    assert result["step_id"] == "options_3"
 
 
 @pytest.mark.asyncio
 async def test_reconfig_storage_validation_error(hass, mock_imap_no_email, integration):
     """Test validation error in reconfig storage step."""
     entry = integration
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={
-            "source": config_entries.SOURCE_RECONFIGURE,
-            "entry_id": entry.entry_id,
-        },
-    )
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "init"
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {"auth_type": "password"},
-    )
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {
-            "host": "imap.test.email",
-            "port": 993,
-            "username": "test@test.email",
-            "password": "password",
-            "imap_security": "SSL",
-            "verify_ssl": True,
-        },
-    )
     with patch(
         "custom_components.mail_and_packages.config_flow._check_ffmpeg",
         return_value=True,
     ):
-        result = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {
                 "allow_external": False,
@@ -7477,34 +7450,34 @@ async def test_reconfig_storage_validation_error(hass, mock_imap_no_email, integ
         patch("pathlib.Path.exists", return_value=True),
         patch("os.path.isfile", return_value=True),
     ):
-        result = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {
                 "forwarded_emails": "forwarder@example.com",
             },
         )
-    assert result["step_id"] == "reconfig_3"
+    assert result["step_id"] == "options_3"
     with (
         patch("pathlib.Path.is_file", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
     ):
-        result = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {
                 "custom_img_file": "test_image.gif",
             },
         )
     assert result["errors"] == {}
-    assert result["step_id"] == "reconfig_storage"
+    assert result["step_id"] == "options_storage"
     with patch("pathlib.Path.exists", return_value=False):
-        result = await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {
                 "storage": "/invalid/path/does/not/exist",
             },
         )
     assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_storage"
+    assert result["step_id"] == "options_storage"
     assert result["errors"] != {}
 
 
@@ -7635,8 +7608,8 @@ async def test_oauth_reconfig_flow_selection(hass, mock_imap_no_email, integrati
             return_value=["INBOX"],
         ):
             result2 = await handler.async_oauth_create_entry({"access_token": "fake"})
-            assert result2["type"] == "form"
-            assert result2["step_id"] == "reconfig_2"
+            assert result2["type"] is FlowResultType.ABORT
+            assert result2["reason"] == "reconfigure_successful"
 
 
 @pytest.mark.asyncio
