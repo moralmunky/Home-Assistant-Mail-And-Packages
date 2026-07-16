@@ -1,0 +1,43 @@
+Delivered-To: redacted@gmail.com
+Received: from us-fbcw-206.mail.aliexpress.com (us-fbcw-206.mail.aliexpress.com. [47.90.207.206])
+        by mx.google.com with ESMTPS id abc123def456
+        for <redacted@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 02 Jul 2026 04:40:56 -0700 (PDT)
+Return-Path: <transaction@notice.aliexpress.com>
+From: AliExpress <transaction@notice.aliexpress.com>
+To: redacted@gmail.com
+Subject: Package JY26CAA0D000551012 has been delivered
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Message-ID: <1234567890.123456789.1783424456789@notice.aliexpress.com>
+Date: Thu, 2 Jul 2026 11:40:56 +0000 (UTC)
+
+<!doctype html>
+<html xmlns=3D"http://www.w3.org/1999/xhtml">
+  <head>
+    <title>AliExpress</title>
+  </head>
+  <body style=3D"word-spacing:normal;background-color:#F5F5F5;">
+    <div style=3D"display:none;font-size:1px;">Hope you enjoy your new purc=
+hase</div>
+    <div style=3D"background-color:#F5F5F5;">
+      <h1 style=3D"font-family:Roboto;font-size:24px;">Package delivered</=
+h1>
+      <p style=3D"font-family:Roboto;font-size:14px;">Hi John Doe,</p>
+      <p style=3D"font-family:Roboto;font-size:14px;">Your package JY26CAA=
+0D000551012 has been successfully delivered! Please let us know that you'v=
+e received your package by clicking the button below. We hope you enjoy yo=
+ur new purchase!</p>
+      <a href=3D"https://www.aliexpress.com/p/order/detail.html" style=3D"=
+background:#D3031C;color:#ffffff;">Check details</a>
+      <p style=3D"font-family:Roboto;font-size:12px;">Package details</p>
+      <p style=3D"font-family:Roboto;font-size:12px;">Ship to 123 Main St.=
+ Springfield John Doe (+1) 5555555555</p>
+      <p style=3D"font-family:Roboto;font-size:10px;">Prices, deals and av=
+ailability shown in this email reflect offers at send time and are subject=
+ to change.</p>
+    </div>
+  </body>
+</html>

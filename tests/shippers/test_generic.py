@@ -1,5 +1,6 @@
 """Tests for generic shipper utilities."""
 
+import re
 import threading
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -7,8 +8,10 @@ import pytest
 
 from custom_components.mail_and_packages.const import (
     ATTR_COUNT,
+    ATTR_SUBJECT,
     ATTR_TRACKING,
     CONF_FORWARDING_HEADER,
+    SENSOR_DATA,
 )
 from custom_components.mail_and_packages.shippers import generic
 from custom_components.mail_and_packages.shippers.generic import GenericShipper
@@ -40,9 +43,7 @@ async def test_ups_delivered_class(hass, mock_imap_ups_delivered):
         },
     )
 
-    with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
-    ):
+    with (patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),):
         result = await shipper.process(
             mock_imap_ups_delivered,
             "today",
@@ -142,9 +143,7 @@ async def test_usps_delivered_class(hass, mock_imap_usps_delivered_individual):
         },
     )
 
-    with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
-    ):
+    with (patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),):
         result = await shipper.process(
             mock_imap_usps_delivered_individual,
             "today",
@@ -164,9 +163,7 @@ async def test_usps_exception_class(hass, mock_imap_usps_exception):
         },
     )
 
-    with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
-    ):
+    with (patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),):
         result = await shipper.process(
             mock_imap_usps_exception,
             "today",
@@ -1244,3 +1241,108 @@ async def test_purolator_delivering_alternate_subject(hass):
         result = await shipper.process(mock_account, "today", "purolator_delivering")
         assert result[ATTR_COUNT] == 1
         assert result[ATTR_TRACKING] == ["BVH001683614"]
+
+
+@pytest.mark.asyncio
+async def test_aliexpress_delivered_2026_format(hass, mock_imap_aliexpress_delivered):
+    """Test AliExpress delivered email parsing (2026 subject format)."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_aliexpress_delivered,
+        "today",
+        "aliexpress_delivered",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["JY26CAA0D000551012"]
+
+
+@pytest.mark.asyncio
+async def test_aliexpress_with_local_carrier_2026_format(
+    hass, mock_imap_aliexpress_with_local_carrier
+):
+    """Test AliExpress with-local-carrier email parsing (2026 subject format)."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_aliexpress_with_local_carrier,
+        "today",
+        "aliexpress_delivering",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["JY26CAA0D000551012"]
+
+
+@pytest.mark.asyncio
+async def test_aliexpress_order_shipped_2026_format(
+    hass, mock_imap_aliexpress_order_shipped
+):
+    """Test AliExpress order-shipped email parsing (2026 subject format)."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_aliexpress_order_shipped,
+        "today",
+        "aliexpress_delivering",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert len(result[ATTR_TRACKING]) == 1
+
+
+@pytest.mark.parametrize(
+    ("subject", "expected_sensor"),
+    [
+        ("Order 8211968327931234: order shipped", "aliexpress_delivering"),
+        ("Order 8211968327931234: collected by the carrier", "aliexpress_delivering"),
+        (
+            "Package JY26CAA0D000551012: left the departure region",
+            "aliexpress_delivering",
+        ),
+        ("Package JY26CAA0D000551012: at customs", "aliexpress_delivering"),
+        ("Package JY26CAA0D000551012 has cleared customs", "aliexpress_delivering"),
+        ("Package JY26CAA0D000551012: in your country/region", "aliexpress_delivering"),
+        ("Package HM0000010001198611: in local transit", "aliexpress_delivering"),
+        ("Package JY26CAA0D000551012: with local carrier", "aliexpress_delivering"),
+        ("Package JY26CAA0D000551012 has been delivered", "aliexpress_delivered"),
+        # Non-shipping notifications from the same sender must not match
+        ("Order 8211968327931234: order confirmed", None),
+        ("Order 8211968327931234: awaiting confirmation", None),
+        ("Order 8211968327931234: how did it go?", None),
+        ("Your delayed delivery coupon code", None),
+    ],
+)
+def test_aliexpress_2026_subject_patterns(subject, expected_sensor):
+    """Each real 2026 AliExpress subject maps to exactly one sensor (or none)."""
+    matched = [
+        sensor
+        for sensor in ("aliexpress_delivered", "aliexpress_delivering")
+        if any(
+            expected.lower() in subject.lower()
+            for expected in SENSOR_DATA[sensor][ATTR_SUBJECT]
+        )
+    ]
+    if expected_sensor is None:
+        assert matched == []
+    else:
+        assert matched == [expected_sensor]
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # 2026 package IDs (letters+digits, 16-18 chars)
+        ("Package JY26CAA0D000551012 has been delivered", "JY26CAA0D000551012"),
+        ("Package HM0000010001198611: in local transit", "HM0000010001198611"),
+        ("Package AP00823271816356: at customs", "AP00823271816356"),
+        # UPU S10 format (pre-existing) still matches
+        ("Sendung LP123456789DE zugestellt", "LP123456789DE"),
+        # Plain 13-digit numeric (pre-existing) still matches
+        ("tracking 1234567890123 status", "1234567890123"),
+    ],
+)
+def test_aliexpress_tracking_pattern(text, expected):
+    """The AliExpress tracking pattern extracts old and new tracking formats."""
+    pattern = SENSOR_DATA["aliexpress_tracking"]["pattern"][0]
+    match = re.search(pattern, text)
+    assert match is not None
+    assert match.group(0) == expected
