@@ -7640,6 +7640,60 @@ async def test_oauth_reconfig_flow_selection(hass, mock_imap_no_email, integrati
 
 
 @pytest.mark.asyncio
+async def test_oauth_reconfig_flow_skip_oauth(hass, mock_imap_no_email, integration):
+    """Test that reconfigure flow skips OAuth step when details are unchanged."""
+    entry = integration
+    # Update the entry with OAuth token and type to mock an existing OAuth setup
+    hass.config_entries.async_update_entry(
+        entry,
+        data={
+            **entry.data,
+            "auth_type": "oauth2_google",
+            "token": {"access_token": "fake_token"},
+            "host": "imap.test.email",
+            "username": "test@test.email",
+        },
+    )
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
+    )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfigure"
+
+    # Select google oauth (unchanged)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {"auth_type": "oauth2_google"},
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfig_imap"
+
+    # Configure IMAP with the exact same host/username (unchanged)
+    with patch(
+        "homeassistant.helpers.config_entry_oauth2_flow.AbstractOAuth2FlowHandler.async_step_pick_implementation"
+    ) as mock_pick:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "imap_security": "SSL",
+            },
+        )
+        # Should not call async_step_pick_implementation and should go to reconfig_2
+        assert mock_pick.call_count == 0
+        assert result["type"] == "form"
+        assert result["step_id"] == "reconfig_2"
+
+
+@pytest.mark.asyncio
 async def test_validate_login_oauth(hass):
     """Test _validate_login with OAuth2."""
     user_input = {"auth_type": "oauth2_google"}
