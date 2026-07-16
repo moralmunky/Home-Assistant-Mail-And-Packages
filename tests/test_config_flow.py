@@ -7,11 +7,10 @@ import tempfile
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-import voluptuous as vol
 from aioimaplib import AioImapException
 from anyio import Path
 from homeassistant import config_entries, setup
-from homeassistant.const import CONF_HOST, CONF_RESOURCES
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType, InvalidData
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -19,6 +18,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.mail_and_packages.config_flow import (
     DEFAULT_FOLDER,
     MailAndPackagesFlowHandler,
+    MailAndPackagesOptionsFlow,
     _check_forwarded_emails,
     _get_mailboxes,
     _get_schema_step_2,
@@ -36,6 +36,7 @@ from custom_components.mail_and_packages.const import (
     CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
     CONF_AMAZON_FWDS,
+    CONF_AUTH_TYPE,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
     CONF_FEDEX_CUSTOM_IMG,
@@ -4148,89 +4149,6 @@ async def test_get_schema_step_3_none_input():
     assert result is not None
 
 
-async def test_config_flow_step_amazon_empty_fwds():
-    """Test config flow step amazon with empty amazon_fwds."""
-    flow = MailAndPackagesFlowHandler()
-    flow._data = {"amazon_fwds": []}
-
-    # Mock the async_show_form method
-    with patch.object(flow, "async_show_form") as mock_show_form:
-        await flow._show_reconfig_amazon({})
-
-        # Should set amazon_fwds to "(none)" when empty
-        assert flow._data["amazon_fwds"] == "(none)"
-        mock_show_form.assert_called_once()
-
-
-async def test_config_flow_reconfig_storage_validation_error():
-    """Test reconfig storage step with validation errors."""
-    flow = MailAndPackagesFlowHandler()
-    flow._data = {}
-    flow._errors = {"test_error": "validation_failed"}
-
-    # Mock the async_show_form method
-    with patch.object(flow, "async_show_form") as mock_show_form:
-        await flow._show_reconfig_storage({"test": "data"})
-
-        # Should show form with errors
-        mock_show_form.assert_called_once()
-
-
-async def test_config_flow_reconfig_amazon_validation_error():
-    """Test reconfig amazon step with validation errors."""
-    flow = MailAndPackagesFlowHandler()
-    flow._data = {"amazon_fwds": ["test@example.com"]}
-    flow._errors = {"test_error": "validation_failed"}
-
-    # Mock the async_show_form method
-    with patch.object(flow, "async_show_form") as mock_show_form:
-        await flow._show_reconfig_amazon({"test": "data"})
-
-        # Should show form with errors
-        mock_show_form.assert_called_once()
-
-
-async def test_config_flow_reconfig_3_validation_error():
-    """Test reconfig step 3 with validation errors."""
-    flow = MailAndPackagesFlowHandler()
-    flow._data = {}
-    flow._errors = {"test_error": "validation_failed"}
-
-    # Mock the async_show_form method
-    with patch.object(flow, "async_show_form") as mock_show_form:
-        await flow._show_reconfig_3({"test": "data"})
-
-        # Should show form with errors
-        mock_show_form.assert_called_once()
-
-
-async def test_config_flow_reconfig_2_validation_error():
-    """Test reconfig step 2 with validation errors."""
-    flow = MailAndPackagesFlowHandler()
-    flow._data = {
-        "host": "imap.test.com",
-        "port": 993,
-        "username": "test@test.com",
-        "password": "password",
-        "imap_security": "SSL",
-        "verify_ssl": True,
-    }
-    flow._errors = {"test_error": "validation_failed"}
-
-    # Mock the _get_mailboxes function and async_show_form method
-    with (
-        patch(
-            "custom_components.mail_and_packages.config_flow._get_mailboxes",
-            return_value=["INBOX"],
-        ),
-        patch.object(flow, "async_show_form") as mock_show_form,
-    ):
-        await flow._show_reconfig_2({"test": "data"})
-
-        # Should show form with errors
-        mock_show_form.assert_called_once()
-
-
 @pytest.mark.asyncio
 async def test_get_mailboxes_generic_exception(hass, caplog):
     """Test _get_mailboxes handles generic exception during parsing."""
@@ -4467,7 +4385,7 @@ async def test_validate_user_input_forwarded_emails_saved_as_list():
     assert result_input[CONF_FORWARDED_EMAILS] == ["forward@test.com", "other@test.com"]
 
 
-def test_get_schema_step_forwarded_emails_list_to_string():
+async def test_get_schema_step_forwarded_emails_list_to_string():
     """Test that a stored list is joined to a comma-separated string for form pre-fill."""
     default_dict = {CONF_FORWARDED_EMAILS: ["forward@test.com", "other@test.com"]}
     schema = _get_schema_step_forwarded_emails(None, default_dict)
@@ -7062,67 +6980,6 @@ async def test_step_config_amazon_validation_error(hass):
 
 
 @pytest.mark.asyncio
-async def test_reconfig_forwarded_emails_routing_failure(hass, integration):
-    """Test reconfig forwarded emails failure path."""
-    entry = integration
-    flow = MailAndPackagesFlowHandler()
-    flow.hass = hass
-    flow._entry = entry
-    flow._data = dict(entry.data)
-
-    # Ensure dependencies are set to avoid KeyErrors or wrong paths
-    flow._data[CONF_RESOURCES] = ["mail_updated"]
-    flow._data[CONF_CUSTOM_IMG] = False
-    flow._data[CONF_GENERATE_MP4] = False
-
-    user_input_error = {CONF_FORWARDED_EMAILS: "bad-email"}
-
-    with (
-        patch.object(flow, "async_show_form") as mock_show_form,
-        patch(
-            "custom_components.mail_and_packages.config_flow.validate_email_address",
-            return_value=False,
-        ),
-    ):
-        await flow.async_step_reconfig_forwarded_emails(user_input_error)
-
-        mock_show_form.assert_called_once()
-        assert flow._errors[CONF_FORWARDED_EMAILS] == "invalid_email_format"
-
-
-@pytest.mark.asyncio
-async def test_reconfig_forwarded_emails_routing_success(hass, integration):
-    """Test reconfig forwarded emails success path routing to storage."""
-    entry = integration
-    flow = MailAndPackagesFlowHandler()
-    flow.hass = hass
-    flow._entry = entry
-    flow._data = dict(entry.data)
-
-    # Ensure data ensures routing to storage (No Amazon sensors, No Custom Img)
-    flow._data[CONF_RESOURCES] = ["mail_updated"]
-    flow._data[CONF_CUSTOM_IMG] = False
-    flow._data[CONF_GENERATE_MP4] = False
-
-    user_input_success = {CONF_FORWARDED_EMAILS: "good@email.com"}
-
-    with (
-        patch(
-            "custom_components.mail_and_packages.config_flow.validate_email_address",
-            return_value=True,
-        ),
-        patch(
-            "custom_components.mail_and_packages.config_flow._validate_path_input",
-        ),
-    ):
-        result = await flow.async_step_reconfig_forwarded_emails(user_input_success)
-
-        # Expectation: The flow proceeds to the storage step, which returns a form
-        assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == "reconfig_storage"
-
-
-@pytest.mark.asyncio
 async def test_get_mailboxes_connection_exceptions(hass, caplog):
     """Test get_mailboxes handling of connection exceptions from aioimaplib."""
     # Test triggering the specific exception block with AioImapException
@@ -7674,87 +7531,7 @@ async def test_validate_login_oauth(hass):
     assert errors == {}
 
 
-async def test_step_reconfig_amazon_error_final(hass):
-    """Test async_step_reconfig_amazon with validation error to ensure form is re-shown."""
-    flow = MailAndPackagesFlowHandler()
-    flow.hass = hass
-    user_input = {"amazon_domain": "bad"}
-    flow._data = {
-        "amazon_fwds": [],
-        "generate_mp4": False,
-        "gif_duration": 5,
-        "image_path": "images/",
-        "scan_interval": 5,
-        "custom_days": 3,
-    }
-    # Mock validation to return a tuple (errors, user_input)
-    with patch(
-        "custom_components.mail_and_packages.config_flow._validate_user_input",
-        return_value=({"base": "invalid"}, user_input),
-    ):
-        result = await flow.async_step_reconfig_amazon(user_input=user_input)
-
-    assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_amazon"
-
-
-@pytest.mark.asyncio
-async def test_show_reconfig_amazon_no_key(hass):
-    """Test that _show_reconfig_amazon doesn't crash if CONF_AMAZON_FWDS is missing."""
-    handler = MailAndPackagesFlowHandler()
-    handler.hass = hass
-    handler._data = {}  # Missing CONF_AMAZON_FWDS
-    handler._errors = {}
-
-    with patch(
-        "custom_components.mail_and_packages.config_flow._get_schema_step_amazon"
-    ) as mock_schema:
-        mock_schema.return_value = vol.Schema({})
-        # This should not raise KeyError
-        result = await handler._show_reconfig_amazon(None)
-
-    assert result["type"] == "form"
-    assert result["step_id"] == "reconfig_amazon"
-    assert handler._data[CONF_AMAZON_FWDS] == "(none)"
-
-
-@pytest.mark.asyncio
-async def test_async_step_reconfig_2_no_keys(hass):
-    """Test that async_step_reconfig_2 doesn't crash if keys are missing."""
-    handler = MailAndPackagesFlowHandler()
-    handler.hass = hass
-    handler._data = {}  # Missing optional keys
-    handler._errors = {}
-
-    with patch.object(handler, "_show_reconfig_2", return_value={"type": "form"}):
-        # This should not raise KeyError
-        result = await handler.async_step_reconfig_2(None)
-
-    assert result["type"] == "form"
-
-
-@pytest.mark.asyncio
-async def test_async_step_reconfig_forwarded_emails_no_keys(hass):
-    """Test that async_step_reconfig_forwarded_emails doesn't crash if keys are missing."""
-    handler = MailAndPackagesFlowHandler()
-    handler.hass = hass
-    handler._data = {}  # Missing CONF_RESOURCES, CONF_CUSTOM_IMG
-    handler._errors = {}
-
-    with (
-        patch(
-            "custom_components.mail_and_packages.config_flow._validate_user_input",
-            return_value=({}, {}),
-        ),
-        patch.object(handler, "_show_reconfig_storage", return_value={"type": "form"}),
-    ):
-        # This should not raise KeyError
-        result = await handler.async_step_reconfig_forwarded_emails({"some": "input"})
-
-    assert result["type"] == "form"
-
-
-def test_get_schema_step_amazon_hides_fwds_in_header_mode():
+async def test_get_schema_step_amazon_hides_fwds_in_header_mode():
     """CONF_AMAZON_FWDS is absent from the schema when forwarding_header is active."""
     schema = _get_schema_step_amazon(
         {},
@@ -7765,7 +7542,7 @@ def test_get_schema_step_amazon_hides_fwds_in_header_mode():
     assert CONF_AMAZON_FWDS not in keys
 
 
-def test_get_schema_step_amazon_shows_fwds_without_header_mode():
+async def test_get_schema_step_amazon_shows_fwds_without_header_mode():
     """CONF_AMAZON_FWDS is present in the schema when no forwarding_header is set."""
     schema = _get_schema_step_amazon(
         {},
@@ -7830,7 +7607,7 @@ async def test_get_schema_step_2_folders(hass):
         assert mock_get_mailboxes.call_count == 3
 
 
-def test_multi_folder_select_validator():
+async def test_multi_folder_select_validator():
     """Test multi_folder_select validator."""
     validator = multi_folder_select({"INBOX": "INBOX", "Junk": "Junk"})
 
@@ -7845,3 +7622,353 @@ def test_multi_folder_select_validator():
 
     # Test tuple
     assert validator(('"INBOX"',)) == ["INBOX"]
+
+
+@pytest.mark.asyncio
+async def test_options_flow_edge_cases(
+    hass: HomeAssistant,
+    integration,
+    mock_imap_no_email,
+    mock_update,
+) -> None:
+    """Test options flow edge cases to cover remaining paths."""
+    entry = integration
+
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("pathlib.Path.is_file", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.config_flow._get_mailboxes",
+            return_value=["INBOX"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+            return_value=True,
+        ),
+    ):
+        # Start options flow
+        result = await hass.config_entries.options.async_init(entry.entry_id)
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "init"
+
+        # Submit options_2 with allow_forwarded_emails=True and custom_img=True
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                "folder": "INBOX",
+                "scan_interval": 10,
+                "resources": ["amazon_delivered", "usps_mail"],
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "allow_external": True,
+                "usps_placeholder": True,
+                "custom_img": True,
+                "allow_forwarded_emails": True,
+            },
+        )
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "options_forwarded_emails"
+
+        # Submit "(none)" to options_forwarded_emails
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                "forwarded_emails": "(none)",
+            },
+        )
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "options_amazon"
+
+        # Submit "(none)" to options_amazon
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                "amazon_domain": "amazon.com",
+                "amazon_fwds": "(none)",
+                "amazon_days": 2,
+            },
+        )
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "options_3"
+
+        # Submit custom images step
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                "custom_img_file": "images/custom_usps.jpg",
+            },
+        )
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "options_storage"
+
+        # Submit storage path to complete flow
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                "storage": "custom_components/mail_and_packages/images/",
+            },
+        )
+        assert result["type"] is FlowResultType.CREATE_ENTRY
+        await hass.async_block_till_done()
+
+
+@pytest.mark.asyncio
+async def test_options_flow_edge_cases_2(
+    hass: HomeAssistant,
+    integration,
+    mock_imap_no_email,
+    mock_update,
+) -> None:
+    """Test options flow edge cases (no amazon sensors, custom_img=True)."""
+    entry = integration
+
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("pathlib.Path.is_file", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.config_flow._get_mailboxes",
+            return_value=["INBOX"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+            return_value=True,
+        ),
+    ):
+        result = await hass.config_entries.options.async_init(entry.entry_id)
+        assert result["type"] is FlowResultType.FORM
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                "folder": "INBOX",
+                "scan_interval": 10,
+                "resources": ["usps_mail"],  # No Amazon sensor!
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "allow_external": True,
+                "usps_placeholder": True,
+                "custom_img": True,
+                "allow_forwarded_emails": True,
+            },
+        )
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "options_forwarded_emails"
+
+        # Submit forwarded emails, should route to options_3 because custom_img=True
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                "forwarded_emails": "good@email.com",
+            },
+        )
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "options_3"
+
+
+@pytest.mark.asyncio
+async def test_options_flow_edge_cases_3(
+    hass: HomeAssistant,
+    integration,
+    mock_imap_no_email,
+    mock_update,
+) -> None:
+    """Test options flow edge cases (no amazon sensors, custom_img=False)."""
+    entry = integration
+
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("pathlib.Path.is_file", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.config_flow._get_mailboxes",
+            return_value=["INBOX"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+            return_value=True,
+        ),
+    ):
+        result = await hass.config_entries.options.async_init(entry.entry_id)
+        assert result["type"] is FlowResultType.FORM
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                "folder": "INBOX",
+                "scan_interval": 10,
+                "resources": ["usps_mail"],  # No Amazon sensor!
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "allow_external": True,
+                "usps_placeholder": True,
+                "custom_img": False,  # False!
+                "allow_forwarded_emails": True,
+            },
+        )
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "options_forwarded_emails"
+
+        # Submit forwarded emails, should route directly to options_storage
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                "forwarded_emails": "good@email.com",
+            },
+        )
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "options_storage"
+
+
+@pytest.mark.asyncio
+async def test_options_flow_empty_amazon_fwds(
+    hass: HomeAssistant,
+    integration,
+    mock_imap_no_email,
+    mock_update,
+) -> None:
+    """Test options flow when amazon_fwds is empty list."""
+    entry = integration
+
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("pathlib.Path.is_file", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.config_flow._get_mailboxes",
+            return_value=["INBOX"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow._check_ffmpeg",
+            return_value=True,
+        ),
+    ):
+        # Update entry data inside the patch context so any reload uses mocked IMAP
+        hass.config_entries.async_update_entry(
+            entry, data={**entry.data, CONF_AMAZON_FWDS: []}
+        )
+        await hass.async_block_till_done()
+
+        result = await hass.config_entries.options.async_init(entry.entry_id)
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "init"
+
+        # Submit options step 1 with Amazon sensors
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                "folder": "INBOX",
+                "scan_interval": 10,
+                "resources": ["amazon_delivered", "usps_mail"],
+                "gif_duration": 5,
+                "imap_timeout": 30,
+                "allow_external": True,
+                "usps_placeholder": True,
+                "custom_img": False,
+                "allow_forwarded_emails": False,
+            },
+        )
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "options_amazon"
+
+
+@pytest.mark.asyncio
+async def test_reauth_flow(
+    hass: HomeAssistant,
+    integration,
+    mock_imap_no_email,
+    mock_update,
+) -> None:
+    """Test reauth flow."""
+    entry = integration
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_REAUTH,
+            "entry_id": entry.entry_id,
+            "unique_id": entry.unique_id,
+        },
+        data=entry.data,
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "reauth_confirm"
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._validate_login",
+        return_value={},
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_USERNAME: entry.data[CONF_USERNAME],
+                CONF_PASSWORD: "newpassword",
+            },
+        )
+        await hass.async_block_till_done()
+
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reauth_successful"
+
+
+@pytest.mark.asyncio
+async def test_reauth_flow_oauth(
+    hass: HomeAssistant,
+    integration,
+    mock_imap_no_email,
+    mock_update,
+) -> None:
+    """Test reauth flow with OAuth."""
+    entry = integration
+    # Pass the modified auth_type in the flow init data without touching the live entry
+    oauth_data = {**entry.data, CONF_AUTH_TYPE: "oauth2_google"}
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_REAUTH,
+            "entry_id": entry.entry_id,
+            "unique_id": entry.unique_id,
+        },
+        data=oauth_data,
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "reauth_confirm"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {},
+    )
+    # In the test environment there is no OAuth provider registered so
+    # async_step_pick_implementation aborts immediately.
+    assert result["type"] in (FlowResultType.EXTERNAL_STEP, FlowResultType.ABORT)
+
+
+@pytest.mark.asyncio
+async def test_oauth_reauth_complete(hass, integration):
+    """Test OAuth reauth completion."""
+    entry = integration
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    flow._entry = entry
+    flow.context = {"source": config_entries.SOURCE_REAUTH}
+    flow._data = dict(entry.data)
+
+    result = await flow.async_oauth_create_entry({"token": "new_token"})
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reauth_successful"
+
+
+@pytest.mark.asyncio
+async def test_options_amazon_empty_fwds_normalised(hass, integration):
+    """Test _show_options_amazon normalises [] CONF_AMAZON_FWDS to '(none)' (line 1380)."""
+    entry = integration
+    handler = MailAndPackagesOptionsFlow(entry)
+    handler.hass = hass
+    # Simulate _data having an empty list for CONF_AMAZON_FWDS
+    handler._data = {**dict(entry.data), CONF_AMAZON_FWDS: []}
+    handler._errors = {}
+
+    result = await handler._show_options_amazon(None)
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "options_amazon"
+    # The empty list should have been normalised to "(none)"
+    assert handler._data[CONF_AMAZON_FWDS] == "(none)"
