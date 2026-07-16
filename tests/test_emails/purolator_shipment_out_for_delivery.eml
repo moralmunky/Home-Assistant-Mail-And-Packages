@@ -1,0 +1,46 @@
+Delivered-To: redacted@gmail.com
+Received: from mta1.notifications.purolator.com (mta1.notifications.purolator.com. [192.0.2.10])
+        by mx.google.com with ESMTPS id pur123abc457
+        for <redacted@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256/256);
+        Fri, 13 Mar 2026 05:02:59 -0700 (PDT)
+Return-Path: <notificationservice@purolator.com>
+From: Purolator <notificationservice@purolator.com>
+To: redacted@gmail.com
+Subject: =?UTF-8?Q?Purolator_shipment_RKP000051945:_Your_package_is_now_out_f?=
+ =?UTF-8?Q?or_delivery/_Envoi_de_Purolator_RKP000051945_:_Votre_colis_est_?=
+ =?UTF-8?Q?en_cours_de_livraison?=
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Message-ID: <20260313120259.ABCDEF123457@notifications.purolator.com>
+Date: Fri, 13 Mar 2026 12:02:59 +0000 (UTC)
+
+<!doctype html>
+<html>
+  <head>
+    <title>Purolator</title>
+  </head>
+  <body style=3D"margin:0;padding:0;">
+    <img src=3D"https://www.purolator.com/logo.png" alt=3D"Purolator header=
+ logo" />
+    <p>Veuillez faire d=C3=A9filer l'=C3=AAcran vers le bas pour afficher l=
+a version fran=C3=A7aise.</p>
+    <h1>Your package is out for delivery</h1>
+    <p>To ensure a seamless delivery experience, we offer you the convenien=
+ce of managing your preferences with Purolator Your Way, while your package=
+ is on the way</p>
+    <p>Delivery Date 03/13/2026<br />
+       Tracking Number: RKP000051945<br />
+       Ship Date: 03/12/2026<br />
+       Origin: Not Available/Pas Disponible<br />
+       Number of Pieces: 1</p>
+    <hr />
+    <h1>Votre colis est en cours de livraison</h1>
+    <p>Date de livraison 03/13/2026<br />
+       Num=C3=A9ro de suivi: RKP000051945<br />
+       Date d=E2=80=99exp=C3=A9dition: 03/12/2026<br />
+       Origine: Not Available/Pas Disponible<br />
+       Nombre de pi=C3=A8ces: 1</p>
+  </body>
+</html>

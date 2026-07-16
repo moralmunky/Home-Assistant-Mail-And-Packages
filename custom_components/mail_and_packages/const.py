@@ -792,20 +792,29 @@ SENSOR_DATA = {
     # Purolator
     "purolator_delivered": {
         "email": ["NotificationService@purolator.com"],
-        "subject": ["Purolator - Your shipment is delivered"],
+        "subject": [
+            "Purolator - Your shipment is delivered",
+            # 2026 format: "Purolator shipment <PIN>: Your package has been
+            # delivered /Envoi de Purolator <PIN> : Votre colis a été livré"
+            "Your package has been delivered",
+        ],
     },
     "purolator_delivering": {
         "email": ["NotificationService@purolator.com"],
         "subject": [
             "Purolator - Your shipment is out for delivery",
             "Purolator - Your shipment is on its way",
+            # 2026 format: "Purolator shipment <PIN>: Your package is now out
+            # for delivery/ Envoi de Purolator <PIN> : Votre colis est en
+            # cours de livraison"
+            "Your package is now out for delivery",
         ],
     },
     "purolator_packages": {
         "email": ["NotificationService@purolator.com"],
         "subject": ["Purolator - Your shipment has been picked up"],
     },
-    "purolator_tracking": {"pattern": ["\\d{12,15}"]},
+    "purolator_tracking": {"pattern": ["(?:[A-Z]{3}\\d{9}|\\d{12,15})"]},
     # Intelcom
     "intelcom_delivered": {
         "email": [
