@@ -43,9 +43,7 @@ async def test_ups_delivered_class(hass, mock_imap_ups_delivered):
         },
     )
 
-    with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
-    ):
+    with (patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),):
         result = await shipper.process(
             mock_imap_ups_delivered,
             "today",
@@ -145,9 +143,7 @@ async def test_usps_delivered_class(hass, mock_imap_usps_delivered_individual):
         },
     )
 
-    with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
-    ):
+    with (patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),):
         result = await shipper.process(
             mock_imap_usps_delivered_individual,
             "today",
@@ -167,9 +163,7 @@ async def test_usps_exception_class(hass, mock_imap_usps_exception):
         },
     )
 
-    with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
-    ):
+    with (patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),):
         result = await shipper.process(
             mock_imap_usps_exception,
             "today",
@@ -1327,6 +1321,34 @@ async def test_purolator_shipment_out_for_delivery_2026_format(
     assert result[ATTR_TRACKING] == ["RKP000051945"]
 
 
+@pytest.mark.asyncio
+async def test_etsy_delivered_class(hass, mock_imap_etsy_delivered):
+    """Test Etsy delivered email parsing via GenericShipper."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_etsy_delivered,
+        "today",
+        "etsy_delivered",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["3869977574"]
+
+
+@pytest.mark.asyncio
+async def test_etsy_on_the_way_class(hass, mock_imap_etsy_on_the_way):
+    """Test Etsy on-the-way email parsing via GenericShipper."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_etsy_on_the_way,
+        "today",
+        "etsy_delivering",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["3869977574"]
+
+
 @pytest.mark.parametrize(
     ("subject", "expected_sensor"),
     [
@@ -1466,6 +1488,44 @@ def test_purolator_2026_subject_patterns(subject, expected_sensor):
 
 
 @pytest.mark.parametrize(
+    ("subject", "expected_sensor"),
+    [
+        (
+            "It's here! Your order from YverInc has been delivered.",
+            "etsy_delivered",
+        ),
+        (
+            "Another package for your Etsy order is on the way (Receipt #3869977574)",
+            "etsy_delivering",
+        ),
+        ("Your Etsy order is on the way (Receipt #3620921447)", "etsy_delivering"),
+        ("Your Etsy Order dispatched (Receipt #3620921447)", "etsy_delivering"),
+        ("And it’s off! Deutsche Post has your order 🚚", "etsy_delivering"),
+        ("Ding! Order updates are waiting in the app 📦", "etsy_delivering"),
+        # Non-shipping notifications from Etsy senders must not match
+        ("Your Etsy Purchase from TheVinc (4106538106)", None),
+        ("John Doe, you have a new item to review.", None),
+        ("John Doe, did you recently sign into Etsy?", None),
+        ("Sports + vintage = winning combo", None),
+    ],
+)
+def test_etsy_subject_patterns(subject, expected_sensor):
+    """Each real Etsy subject maps to exactly one sensor (or none)."""
+    matched = [
+        sensor
+        for sensor in ("etsy_delivered", "etsy_delivering")
+        if any(
+            expected.lower() in subject.lower()
+            for expected in SENSOR_DATA[sensor][ATTR_SUBJECT]
+        )
+    ]
+    if expected_sensor is None:
+        assert matched == []
+    else:
+        assert matched == [expected_sensor]
+
+
+@pytest.mark.parametrize(
     ("text", "expected"),
     [
         # 2026 package IDs (letters+digits, 16-18 chars)
@@ -1507,3 +1567,25 @@ def test_purolator_tracking_pattern(text, expected):
     match = re.search(pattern, text)
     assert match is not None
     assert match.group(0) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # Subject form
+        ("Your Etsy order is on the way (Receipt #3869977574)", "3869977574"),
+        # Body form ("Order" and number split across lines)
+        ("h001.token )\nOrder\n#3869977574 (\nhttps://etsy.com", "3869977574"),
+        # Purchase-receipt style parenthesised number must NOT match
+        ("Your Etsy Purchase from TheVinc (4106538106)", None),
+    ],
+)
+def test_etsy_tracking_pattern(text, expected):
+    """The Etsy tracking pattern extracts receipt numbers from subject or body."""
+    pattern = SENSOR_DATA["etsy_tracking"]["pattern"][0]
+    match = re.search(pattern, text)
+    if expected is None:
+        assert match is None
+    else:
+        assert match is not None
+        assert match.group(1) == expected
