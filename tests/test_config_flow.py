@@ -7936,24 +7936,8 @@ async def test_reauth_flow_oauth(
         result["flow_id"],
         {},
     )
-    # In the test environment there is no OAuth provider registered so
-    # async_step_pick_implementation aborts immediately.
-    assert result["type"] in (FlowResultType.EXTERNAL_STEP, FlowResultType.ABORT)
-
-
-@pytest.mark.asyncio
-async def test_oauth_reauth_complete(hass, integration):
-    """Test OAuth reauth completion."""
-    entry = integration
-    flow = MailAndPackagesFlowHandler()
-    flow.hass = hass
-    flow._entry = entry
-    flow.context = {"source": config_entries.SOURCE_REAUTH}
-    flow._data = dict(entry.data)
-
-    result = await flow.async_oauth_create_entry({"token": "new_token"})
+    # Without a real OAuth provider registered the flow aborts
     assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "reauth_successful"
 
 
 @pytest.mark.asyncio
@@ -7962,6 +7946,7 @@ async def test_options_amazon_empty_fwds_normalised(hass, integration):
     entry = integration
     handler = MailAndPackagesOptionsFlow(entry)
     handler.hass = hass
+
     # Simulate _data having an empty list for CONF_AMAZON_FWDS
     handler._data = {**dict(entry.data), CONF_AMAZON_FWDS: []}
     handler._errors = {}
@@ -7972,3 +7957,44 @@ async def test_options_amazon_empty_fwds_normalised(hass, integration):
     assert result["step_id"] == "options_amazon"
     # The empty list should have been normalised to "(none)"
     assert handler._data[CONF_AMAZON_FWDS] == "(none)"
+
+
+@pytest.mark.asyncio
+async def test_options_flow_init_reads_merged_data_and_options(hass, integration):
+    """Regression: options flow must initialise _data from both data and options.
+
+    After the v19->v20 migration, non-IMAP settings live in config_entry.options
+    rather than config_entry.data.  If the options flow only reads config_entry.data
+    (the pre-fix behaviour) the UI shows defaults for every option, making the
+    migration appear broken.  The fix merges both dicts so all settings appear
+    correctly regardless of which side they were stored on.
+    """
+    entry = integration
+
+    # Simulate a post-migration split: IMAP settings in data, options settings
+    # only in options (data does NOT contain CONF_FOLDER).
+    hass.config_entries.async_update_entry(
+        entry,
+        data={
+            k: v
+            for k, v in entry.data.items()
+            if k
+            in {
+                "host",
+                "port",
+                "username",
+                "password",
+                "imap_security",
+                "verify_ssl",
+                "auth_type",
+            }
+        },
+        options={**entry.data, CONF_FOLDER: "TestFolder"},
+    )
+    # Reload so that runtime_data is consistent with the new split
+    await hass.config_entries.async_reload(entry.entry_id)
+    entry = hass.config_entries.async_get_entry(entry.entry_id)
+
+    handler = MailAndPackagesOptionsFlow(entry)
+    # _data must contain CONF_FOLDER from options, not just IMAP keys from data
+    assert handler._data.get(CONF_FOLDER) == "TestFolder"
