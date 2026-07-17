@@ -358,7 +358,7 @@ async def _get_mailboxes(
             oauth_token=oauth_token,
         )
 
-    except (TimeoutError, AioImapException, ConnectionRefusedError) as err:
+    except (TimeoutError, AioImapException, ConnectionRefusedError, InvalidAuth) as err:
         _LOGGER.error("Unable to connect: %s", err)
         return []
 
