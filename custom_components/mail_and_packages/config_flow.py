@@ -1232,7 +1232,13 @@ class MailAndPackagesFlowHandler(
                     == self._data.get(CONF_USERNAME)
                     and "token" in self._data
                 ):
-                    return await self.async_step_reconfig_2()
+                    self.hass.config_entries.async_update_entry(
+                        self._entry,
+                        data=self._data,
+                    )
+                    await self.hass.config_entries.async_reload(self._entry.entry_id)
+                    _LOGGER.debug("%s reconfigured (oauth skip).", DOMAIN)
+                    return self.async_abort(reason="reconfigure_successful")
 
                 self._data[CONF_VERIFY_SSL] = True
                 self.hass.data.setdefault(DOMAIN, {})

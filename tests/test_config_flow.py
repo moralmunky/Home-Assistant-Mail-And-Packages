@@ -7517,10 +7517,10 @@ async def test_oauth_reconfig_flow_skip_oauth(hass, mock_imap_no_email, integrat
                 "imap_security": "SSL",
             },
         )
-        # Should not call async_step_pick_implementation and should go to reconfig_2
+        # Should not call async_step_pick_implementation; should save and abort
         assert mock_pick.call_count == 0
-        assert result["type"] == "form"
-        assert result["step_id"] == "reconfig_2"
+        assert result["type"] == "abort"
+        assert result["reason"] == "reconfigure_successful"
 
 
 @pytest.mark.asyncio
