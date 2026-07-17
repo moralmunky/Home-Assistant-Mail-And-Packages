@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed.",
-      "reconfigure_successful": "Reconfigure Successful"
+      "reconfigure_successful": "Reconfigure Successful",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Unable to connect or login to the mail server. Please check the log for details.",

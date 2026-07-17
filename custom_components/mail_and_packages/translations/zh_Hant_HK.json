@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "僅允許郵件和軟件包的單個配置。",
-      "reconfigure_successful": "重新配置成功"
+      "reconfigure_successful": "重新配置成功",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "無法連接或登錄到郵件服務器。請檢查日誌以獲取詳細信息。",

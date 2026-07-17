@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Разрешена только одна конфигурация Почты и Пакетов.",
-      "reconfigure_successful": "Перенастройка успешно завершена"
+      "reconfigure_successful": "Перенастройка успешно завершена",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Невозможно подключиться или войти на почтовый сервер. Пожалуйста, проверьте журнал для деталей.",

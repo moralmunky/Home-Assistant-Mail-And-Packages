@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Dozwolona jest tylko jedna konfiguracja poczty i pakietów.",
-      "reconfigure_successful": "Pomyślnie przekonfigurowano"
+      "reconfigure_successful": "Pomyślnie przekonfigurowano",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Nie można połączyć się lub zalogować do serwera pocztowego. Sprawdź szczegóły w dzienniku.",

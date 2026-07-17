@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Endast en enda konfiguration av post och paket är tillåten.",
-      "reconfigure_successful": "Omkonfigurering lyckades"
+      "reconfigure_successful": "Omkonfigurering lyckades",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Det går inte att ansluta eller logga in på e-postservern. Kontrollera loggen för mer information.",

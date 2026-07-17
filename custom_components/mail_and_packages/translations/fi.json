@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Vain yksi posti- ja pakettien kokoonpano on sallittu.",
-      "reconfigure_successful": "Uudelleenmääritys onnistui"
+      "reconfigure_successful": "Uudelleenmääritys onnistui",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Ei voida muodostaa yhteyttä tai kirjautua sisään postipalvelimeen. Tarkista lokista yksityiskohdat.",

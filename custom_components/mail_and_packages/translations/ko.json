@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "메일 및 패키지의 단일 구성 만 허용됩니다.",
-      "reconfigure_successful": "재구성 성공"
+      "reconfigure_successful": "재구성 성공",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "메일 서버에 연결하거나 로그인 할 수 없습니다. 자세한 내용은 로그를 확인하십시오.",

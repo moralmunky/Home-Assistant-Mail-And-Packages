@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "È consentita una sola configurazione di posta e pacchetti.",
-      "reconfigure_successful": "Riconfigurazione Riuscita"
+      "reconfigure_successful": "Riconfigurazione Riuscita",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Impossibile connettersi o accedere al server di posta. Si prega di controllare il registro per i dettagli.",
