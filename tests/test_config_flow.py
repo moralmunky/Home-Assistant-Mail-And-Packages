@@ -7391,6 +7391,7 @@ async def test_oauth_config_flow_selection(hass, mock_imap_no_email):
         if hasattr(handler, "extra_authorize_data"):
             auth_data = handler.extra_authorize_data
             assert "scope" in auth_data
+            assert auth_data.get("prompt") == "select_account"
 
         # And async_oauth_create_entry triggers config_2
         # Mock _get_mailboxes to avoid network calls
@@ -7459,6 +7460,8 @@ async def test_oauth_reconfig_flow_selection(hass, mock_imap_no_email, integrati
         if hasattr(handler, "extra_authorize_data"):
             auth_data = handler.extra_authorize_data
             assert "scope" in auth_data
+            assert auth_data.get("prompt") == "consent"
+            assert auth_data.get("access_type") == "offline"
 
         with patch(
             "custom_components.mail_and_packages.config_flow._get_mailboxes",
