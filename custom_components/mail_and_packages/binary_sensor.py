@@ -21,7 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, entry: MailAndPackagesConfigEntry, async_add_devices):
     """Initialize binary_sensor platform."""
     coordinator = entry.runtime_data.coordinator
-    resources = entry.data.get(CONF_RESOURCES, [])
+    resources = coordinator.config.get(CONF_RESOURCES, [])
 
     binary_sensors = [
         PackagesBinarySensor(value, coordinator, entry)

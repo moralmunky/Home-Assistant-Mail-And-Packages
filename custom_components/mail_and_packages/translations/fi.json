@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Vain yksi posti- ja pakettien kokoonpano on sallittu.",
-      "reconfigure_successful": "Uudelleenmääritys onnistui"
+      "reconfigure_successful": "Uudelleenmääritys onnistui",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Ei voida muodostaa yhteyttä tai kirjautua sisään postipalvelimeen. Tarkista lokista yksityiskohdat.",
@@ -211,6 +212,74 @@
             "title": "Tunnistaudu uudelleen sähköpostipalvelimeen",
             "description": "Autentikointi IMAP-sähköpostipalvelimeesi epäonnistui. Napsauta Lähetä aloittaaksesi uudelleentunnistautumisen."
           }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Posti ja paketit (vaihe 2/2)",
+        "description": "Suorita määritys loppuun mukauttamalla seuraavat sähköpostirakenteeseesi ja Home Assistant -asennukseesi perustuen.\n\nLisätietoja [Mail and Packages -integraation](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) vaihtoehdoista löydät GitHubista [määritys-, mallit- ja automaatiot-osiossa](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration).\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai syötä (none) tyhjentääksesi tämän asetuksen.",
+        "data": {
+          "folder": "Mail-kansio",
+          "resources": "Anturiluettelo",
+          "scan_interval": "Skannausväli (minuutit)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "image_path": "Kuvan polku",
+          "gif_duration": "Kuvan kesto (sekunteina)",
+          "image_security": "Satunnainen kuvatiedostonimi",
+          "imap_timeout": "Aika sekunneissa ennen yhteyden aikakatkaisua (sekuntia, vähintään 10)",
+          "generate_mp4": "Luo mp4 kuvista",
+          "allow_external": "Luo kuva ilmoitussovelluksille",
+          "usps_placeholder": "Sisällytä USPS:n ei-kuvaa -paikkamerkki GIF-tiedostoon?",
+          "custom_img": "Käytä mukautettua USPS 'ei postia' kuvaa?",
+          "amazon_custom_img": "Käytä mukautettua Amazon 'ei toimituksia' kuvaa?",
+          "ups_custom_img": "Käytä mukautettua UPS 'ei toimituksia' kuvaa?",
+          "walmart_custom_img": "Käytä mukautettua Walmart 'ei toimituksia' kuvaa?",
+          "fedex_custom_img": "Käytä mukautettua FedEx 'ei toimituksia' kuvaa?",
+          "generic_custom_img": "Käytä mukautettua yleistä 'ei toimituksia' kuvaa?",
+          "generate_grid": "Luo kuvaverkko LLM-näkömalleille",
+          "allow_forwarded_emails": "Salli edelleenlähetetyt sähköpostit palvelun oletusarvon lisäksi (esim. no-reply@usps.com)"
+        }
+      },
+      "options_3": {
+        "title": "Posti ja paketit (vaihe 3/3)",
+        "description": "Syötä alla olevaan kenttään polku ja tiedostonimi mukautetulle ei-postia -kuvallesi.\n\nEsimerkki: kuvat/mukautettu_eipostia.gif",
+        "data": {
+          "custom_img_file": "Polku mukautettuun kuvaan: (esim.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
+        }
+      },
+      "options_amazon": {
+        "title": "Amazonin asetukset",
+        "description": "Anna domaini, josta Amazon lähettää sähköposteja (esim: amazon.com tai amazon.de)\n\nJos käytät Amazonin välittämiä sähköposteja, erottele jokainen osoite pilkulla tai kirjoita (none) tyhjentääksesi tämän asetuksen.\n\nHuomio: jos määritit edelleenlähetyksen otsikon edellisessä vaiheessa, edelleenlähetysosoite-kenttä ei näy — otsikko käsittelee Amazon-sähköpostien täsmäytyksen automaattisesti.",
+        "data": {
+          "amazon_domain": "Amazonin verkkotunnus",
+          "amazon_fwds": "Amazon välitti sähköpostiosoitteet",
+          "amazon_days": "Päiviä, joiden aikana tarkistetaan Amazonin sähköpostit"
+        }
+      },
+      "options_storage": {
+        "title": "Kuvien tallennuspaikka",
+        "description": "Anna hakemisto, johon haluat kuviesi tallentuvan.\nOletusarvo täytetään automaattisesti.",
+        "data": {
+          "storage": "Hakemisto kuvien tallentamiseen"
+        }
+      },
+      "options_forwarded_emails": {
+        "title": "Välitettyjen sähköpostien asetukset",
+        "description": "Valitse, miten välitetyt sähköpostit yhdistetään.\n\n**Vaihtoehto 1 — Välitysotsake**: Jos palvelusi (esim. SimpleLogin) sisältää alkuperäisen lähettäjän mukautetussa otsakkeessa, syötä kyseinen otsakkeen nimi. Mail and Packages käyttää sitä kuriiriosoitteiden automaattiseen yhdistämiseen.\n\n**Vaihtoehto 2 — Osoitelista**: Syötä välitysosoitteet, jotka palvelusi on määrittänyt kullekin kuriirille, pilkuilla eroteltuna.",
+        "data": {
+          "forwarding_header": "Välitysotsake (esim. X-SimpleLogin-Original-From)",
+          "forwarded_emails": "Edelleenlähetetyt sähköpostiosoitteet"
+        },
+        "data_description": {
+          "forwarding_header": "Jos välityspalvelusi sisältää alkuperäisen lähettäjän otsikossa, syötä otsikon nimi tähän. Tämä ohittaa alla olevan osoitelistan. Syötä '(none)' tai jätä tyhjäksi käyttääksesi osoitelistaa.",
+          "forwarded_emails": "Pilkuilla eroteltu lista välitysosoitteista, joista viestit saapuvat. Jätä '(none)', jos käytät yllä olevaa välitysotsiketta."
         }
       }
     }

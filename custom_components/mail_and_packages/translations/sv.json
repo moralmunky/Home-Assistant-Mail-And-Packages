@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Endast en enda konfiguration av post och paket är tillåten.",
-      "reconfigure_successful": "Omkonfigurering lyckades"
+      "reconfigure_successful": "Omkonfigurering lyckades",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Det går inte att ansluta eller logga in på e-postservern. Kontrollera loggen för mer information.",
@@ -211,6 +212,74 @@
             "title": "Återautentisera e-postserver",
             "description": "Autentisering mot din IMAP-e-postserver misslyckades. Klicka på skicka för att starta återautentiseringsflödet."
           }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Mail och paket (steg 2 av 2)",
+        "description": "Slutför konfigurationen genom att anpassa följande baserat på din e-poststruktur och Home Assistant-installation.\n\nFör detaljer om [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) alternativen granska [konfiguration, mallar och automatiseringssektionen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.\n\nOm du använder vidarebefordrade e-postmeddelanden från Amazon, separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
+        "data": {
+          "folder": "E-postmapp",
+          "resources": "Sensorlista",
+          "scan_interval": "Skanningsintervall (minuter)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "image_path": "Bildväg",
+          "gif_duration": "Bildens längd (sekunder)",
+          "image_security": "Slumpmässig bildfilnamn",
+          "imap_timeout": "Tid i sekunder innan anslutningen kopplas från (sekunder, minst 10)",
+          "generate_mp4": "Skapa mp4 från bilder",
+          "allow_external": "Skapa bild för notifikationsappar",
+          "usps_placeholder": "Inkludera USPS platshållare utan bild i GIF?",
+          "custom_img": "Använd anpassad USPS 'inget post' bild?",
+          "amazon_custom_img": "Använd anpassad Amazon 'ingen leverans' bild?",
+          "ups_custom_img": "Använd anpassad UPS 'ingen leverans' bild?",
+          "walmart_custom_img": "Använd anpassad Walmart 'ingen leverans' bild?",
+          "fedex_custom_img": "Använd anpassad FedEx 'ingen leverans' bild?",
+          "generic_custom_img": "Använd anpassad generisk 'ingen leverans' bild?",
+          "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller",
+          "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänsts standardvärde (t.ex. no-reply@usps.com)"
+        }
+      },
+      "options_3": {
+        "title": "Post och paket (Steg 3 av 3)",
+        "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder/anpassad_nomail.gif",
+        "data": {
+          "custom_img_file": "Sökväg till anpassad bild: (t.ex.: bilder/min_anpassade_ingen_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
+        }
+      },
+      "options_amazon": {
+        "title": "Amazon-inställningar",
+        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.\n\nObs: om du konfigurerade ett vidarebefordringshuvud i föregående steg kommer fältet för vidarebefordringsadress inte att visas — huvudet hanterar Amazon e-postkopplingen automatiskt.",
+        "data": {
+          "amazon_domain": "Amazon domän",
+          "amazon_fwds": "Amazon vidarebefordrade e-postadresser",
+          "amazon_days": "Dagar tillbaka för att kontrollera Amazon-e-postmeddelanden"
+        }
+      },
+      "options_storage": {
+        "title": "Bildlagringsplats",
+        "description": "Vänligen ange den katalog du vill att dina bilder ska lagras i.\nStandardinställningen är automatiskt ifylld.",
+        "data": {
+          "storage": "Katalog för att lagra bilder"
+        }
+      },
+      "options_forwarded_emails": {
+        "title": "Inställningar för vidarebefordrade e-postmeddelanden",
+        "description": "Välj hur vidarebefordrade e-postmeddelanden ska matchas.\n\n**Alternativ 1 — Vidarebefordringshuvud**: Om din tjänst (t.ex. SimpleLogin) inkluderar den ursprungliga avsändaren i ett anpassat huvud, ange det huvud-namnet. Mail and Packages kommer att använda det för att automatiskt matcha transportörernas adresser.\n\n**Alternativ 2 — Adresslista**: Ange de vidarebefordringsadresser som din tjänst har tilldelat varje transportör, separerade med kommatecken.",
+        "data": {
+          "forwarding_header": "Vidarebefordringshuvud (t.ex. X-SimpleLogin-Original-From)",
+          "forwarded_emails": "Vidarebefordrade e-postadresser"
+        },
+        "data_description": {
+          "forwarding_header": "Om din vidarebefordringstjänst inkluderar den ursprungliga avsändaren i ett huvud, ange huvud-namnet här. Detta har företräde framför adresslistan nedan. Ange '(none)' eller lämna tomt för att använda adresslistan istället.",
+          "forwarded_emails": "Kommaseparerad lista över vidarebefordringsadresser som meddelanden kommer att anlända från. Lämna '(none)' om du använder vidarebefordringshuvudet ovan."
         }
       }
     }

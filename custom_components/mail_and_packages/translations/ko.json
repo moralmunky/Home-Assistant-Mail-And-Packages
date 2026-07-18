@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "메일 및 패키지의 단일 구성 만 허용됩니다.",
-      "reconfigure_successful": "재구성 성공"
+      "reconfigure_successful": "재구성 성공",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "메일 서버에 연결하거나 로그인 할 수 없습니다. 자세한 내용은 로그를 확인하십시오.",
@@ -211,6 +212,74 @@
             "title": "메일 서버 재인증",
             "description": "IMAP 메일 서버 인증에 실패했습니다. 제출을 클릭하여 재인증 흐름을 시작하십시오."
           }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "메일 및 패키지 (2/2 단계)",
+        "description": "이메일 구조와 Home Assistant 설치에 따라 다음을 사용자 정의하여 구성을 완료하십시오.\n\n[Mail and Packages 통합](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) 옵션에 대한 자세한 내용은 GitHub의 [구성, 템플릿, 자동화 섹션](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)을 참조하십시오.\n\nAmazon에서 전달된 이메일을 사용하는 경우 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 (none)을 입력하십시오.",
+        "data": {
+          "folder": "메일 폴더",
+          "resources": "센서 목록",
+          "scan_interval": "스캔 간격 (분)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "image_path": "이미지 경로",
+          "gif_duration": "이미지 지속 시간 (초)",
+          "image_security": "임의의 이미지 파일 이름",
+          "imap_timeout": "연결 시간 초과 전 시간(초, 최소 10)",
+          "generate_mp4": "이미지에서 mp4 만들기",
+          "allow_external": "알림 앱용 이미지 생성",
+          "usps_placeholder": "GIF에 USPS 이미지 없음 자리 표시자를 포함하시겠습니까?",
+          "custom_img": "사용자 정의 USPS '우편 없음' 이미지를 사용하시겠습니까?",
+          "amazon_custom_img": "사용자 정의 Amazon '배송 없음' 이미지를 사용하시겠습니까?",
+          "ups_custom_img": "사용자 정의 UPS '배송 없음' 이미지를 사용하시겠습니까?",
+          "walmart_custom_img": "사용자 정의 Walmart '배송 없음' 이미지를 사용하시겠습니까?",
+          "fedex_custom_img": "사용자 정의 FedEx '배송 없음' 이미지를 사용하시겠습니까?",
+          "generic_custom_img": "사용자 정의 일반 '배송 없음' 이미지를 사용하시겠습니까?",
+          "generate_grid": "LLM 비전 모델을 위한 이미지 그리드 생성",
+          "allow_forwarded_emails": "서비스 기본값 외에 전달된 이메일 허용 (예: no-reply@usps.com)"
+        }
+      },
+      "options_3": {
+        "title": "우편 및 패키지 (3단계 중 3단계)",
+        "description": "아래에 사용자 정의 '메일 없음' 이미지의 경로와 파일 이름을 입력하세요.\n\n예시: images/custom_nomail.gif",
+        "data": {
+          "custom_img_file": "사용자 정의 이미지 경로: (예: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
+        }
+      },
+      "options_amazon": {
+        "title": "아마존 설정",
+        "description": "Amazon이 이메일을 보내는 도메인을 입력해 주세요 (예: amazon.com 또는 amazon.de)\n\nAmazon에서 전달된 이메일을 사용하는 경우 각 주소를 쉼표로 구분하거나 이 설정을 지우려면 (none)을 입력하세요.\n\n참고: 이전 단계에서 전달 헤더를 구성한 경우 전달 주소 필드가 표시되지 않습니다 — 헤더가 Amazon 이메일 매칭을 자동으로 처리합니다.",
+        "data": {
+          "amazon_domain": "아마존 도메인",
+          "amazon_fwds": "Amazon이 전달한 이메일 주소",
+          "amazon_days": "Amazon 이메일을 확인하기 위해 돌아가야 할 날짜"
+        }
+      },
+      "options_storage": {
+        "title": "이미지 저장 위치",
+        "description": "이미지를 저장할 디렉토리를 입력해 주세요.\n기본값은 자동으로 채워집니다.",
+        "data": {
+          "storage": "이미지를 저장할 디렉토리"
+        }
+      },
+      "options_forwarded_emails": {
+        "title": "전달 이메일 설정",
+        "description": "전달된 이메일을 일치시키는 방법을 선택하세요.\n\n**옵션 1 — 전달 헤더**: 서비스(예: SimpleLogin)가 사용자 지정 헤더에 원래 발신자를 포함하는 경우, 해당 헤더 이름을 입력하세요. Mail and Packages가 이를 사용하여 배송사 주소를 자동으로 일치시킵니다.\n\n**옵션 2 — 주소 목록**: 서비스가 각 배송사에 할당한 전달 주소를 쉼표로 구분하여 입력하세요.",
+        "data": {
+          "forwarding_header": "전달 헤더 (예: X-SimpleLogin-Original-From)",
+          "forwarded_emails": "전달된 이메일 주소"
+        },
+        "data_description": {
+          "forwarding_header": "전달 서비스가 헤더에 원래 발신자를 포함하는 경우, 여기에 헤더 이름을 입력하세요. 이는 아래 주소 목록보다 우선합니다. 주소 목록을 사용하려면 '(none)'을 입력하거나 비워두세요.",
+          "forwarded_emails": "메시지가 도착할 전달 주소의 쉼표로 구분된 목록입니다. 위의 전달 헤더를 사용하는 경우 '(none)'으로 두세요."
         }
       }
     }

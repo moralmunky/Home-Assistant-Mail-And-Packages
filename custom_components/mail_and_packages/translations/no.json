@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Bare en enkelt konfigurasjon av e-post og pakker er tillatt.",
-      "reconfigure_successful": "Omkonfigurering vellykket"
+      "reconfigure_successful": "Omkonfigurering vellykket",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Kan ikke koble til eller logge inn på postserveren. Vennligst sjekk loggen for detaljer.",
@@ -211,6 +212,74 @@
             "title": "Autentiser e-postserver på nytt",
             "description": "Autentisering mot din IMAP-e-postserver mislyktes. Klikk på send for å starte reautentiseringsflyten."
           }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "E-post og pakker (trinn 2 av 2)",
+        "description": "Fullfør konfigurasjonen ved å tilpasse følgende basert på din e-poststruktur og Home Assistant-installasjon.\n\nFor detaljer om [Mail and Packages-integrasjonen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) alternativene, se gjennom [konfigurasjon, maler og automatiseringsseksjonen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma eller skriv inn (ingen) for å tømme denne innstillingen.",
+        "data": {
+          "folder": "E-postmappe",
+          "resources": "Sensorliste",
+          "scan_interval": "Skanneintervall (minutter)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "image_path": "Bildevei",
+          "gif_duration": "Bildets varighet (sekunder)",
+          "image_security": "Tilfeldig bilde filnavn",
+          "imap_timeout": "Tid i sekunder før tilkoblingen tidsavbrudd (sekunder, minimum 10)",
+          "generate_mp4": "Lag mp4 fra bilder",
+          "allow_external": "Lag bilde for varslingsapper",
+          "usps_placeholder": "Inkluder USPS plassholder uten bilde i GIF?",
+          "custom_img": "Bruk tilpasset USPS 'ingen post' bilde?",
+          "amazon_custom_img": "Bruk tilpasset Amazon 'ingen levering' bilde?",
+          "ups_custom_img": "Bruk tilpasset UPS 'ingen levering' bilde?",
+          "walmart_custom_img": "Bruk tilpasset Walmart 'ingen levering' bilde?",
+          "fedex_custom_img": "Bruk tilpasset FedEx 'ingen levering' bilde?",
+          "generic_custom_img": "Bruk tilpasset generisk 'ingen levering' bilde?",
+          "generate_grid": "Opprett bildegitter for LLM-visjonsmodeller",
+          "allow_forwarded_emails": "Tillat videresendte e-poster i tillegg til en tjenestes standardverdi (f.eks. no-reply@usps.com)"
+        }
+      },
+      "options_3": {
+        "title": "Post og pakker (Trinn 3 av 3)",
+        "description": "Skriv inn stien og filnavnet til ditt tilpassede ingen post-bilde nedenfor.\n\nEksempel: bilder/tilpasset_ingenpost.gif",
+        "data": {
+          "custom_img_file": "Sti til tilpasset bilde: (dvs.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
+        }
+      },
+      "options_amazon": {
+        "title": "Amazon-innstillinger",
+        "description": "Vennligst skriv inn domenet amazon sender e-poster fra (f.eks: amazon.com eller amazon.de)\n\nHvis du bruker Amazon videresendte e-poster, vennligst skill hver adresse med et komma, eller skriv inn (ingen) for å tømme denne innstillingen.\n\nMerk: hvis du konfigurerte et videresendingshode i forrige trinn, vil feltet for videresendingsadresse ikke vises — hodet håndterer Amazon e-postkoblingen automatisk.",
+        "data": {
+          "amazon_domain": "Amazon-domene",
+          "amazon_fwds": "Amazon videresendte e-postadresser",
+          "amazon_days": "Dager tilbake for å sjekke Amazon-e-poster"
+        }
+      },
+      "options_storage": {
+        "title": "Bildelagringssted",
+        "description": "Vennligst oppgi mappen du vil at bildene dine skal lagres i.\nStandard er automatisk fylt ut.",
+        "data": {
+          "storage": "Katalog for å lagre bilder"
+        }
+      },
+      "options_forwarded_emails": {
+        "title": "Innstillinger for videresendte e-poster",
+        "description": "Velg hvordan videresendte e-poster skal matches.\n\n**Alternativ 1 — Videresendingshode**: Hvis tjenesten din (f.eks. SimpleLogin) inkluderer den opprinnelige avsenderen i et tilpasset hode, skriv inn det hodet. Mail and Packages vil bruke det til å matche fraktadresser automatisk.\n\n**Alternativ 2 — Adresseliste**: Skriv inn videresendingsadressene tjenesten din har tildelt hver fraktfører, atskilt med komma.",
+        "data": {
+          "forwarding_header": "Videresendingshode (f.eks. X-SimpleLogin-Original-From)",
+          "forwarded_emails": "Videresendte e-postadresser"
+        },
+        "data_description": {
+          "forwarding_header": "Hvis videresendingstjenesten din inkluderer den opprinnelige avsenderen i en topptekst, skriv inn topptekstnavnet her. Dette har forrang over adresselisten nedenfor. Skriv inn '(none)' eller la det stå tomt for å bruke adresselisten i stedet.",
+          "forwarded_emails": "Kommaseparert liste over videresendingsadresser meldinger vil komme fra. La '(none)' stå hvis du bruker videresendingshodet ovenfor."
         }
       }
     }

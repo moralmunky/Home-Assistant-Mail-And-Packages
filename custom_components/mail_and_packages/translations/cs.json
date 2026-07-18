@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Je povolena pouze jedna konfigurace Mail and Packages.",
-      "reconfigure_successful": "Rekonfigurace úspěšná"
+      "reconfigure_successful": "Rekonfigurace úspěšná",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Nelze se připojit nebo přihlásit k poštovnímu serveru. Podrobnosti naleznete v logu.",
@@ -205,56 +206,70 @@
     "title": "Mail and Packages"
   },
   "options": {
-    "error": {
-      "cannot_connect": "Nelze se připojit nebo přihlásit k poštovnímu serveru. Podrobnosti naleznete v logu.",
-      "invalid_path": "Prosím uložte obrázky do jiného adresáře.",
-      "ffmpeg_not_found": "Generování MP4 vyžaduje ffmpeg",
-      "amazon_domain": "Neplatná e-mailová adresa pro přeposílání.",
-      "file_not_found": "Soubor obrázku nebyl nalezen",
-      "missing_forwarded_emails": "Chybí přeposílané e-mailové adresy. Můžete zadat '(none)' pro vymazání tohoto nastavení.",
-      "scan_too_low": "Interval skenování je příliš nízký (minimum 5)",
-      "timeout_too_low": "IMAP timeout je příliš nízký (minimum 10)"
-    },
     "step": {
       "init": {
+        "title": "Mail and Packages (Step 2 of 2)",
+        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
         "data": {
-          "host": "Host",
-          "password": "Heslo",
-          "port": "Port",
-          "username": "Uživatelské jméno"
-        },
-        "description": "Zadejte prosím informace o připojení vašeho poštovního serveru.",
-        "title": "Mail and Packages (Krok 1 ze 3)"
-      },
-      "options_2": {
-        "data": {
-          "folder": "Poštovní složka",
-          "scan_interval": "Interval skenování (minuty)",
-          "image_path": "Cesta obrázku",
-          "gif_duration": "Trvání obrázku (sekund)",
-          "image_security": "Jméno náhodného obrázku",
-          "generate_mp4": "Vytvořit mp4 z obrázku",
-          "resources": "Seznam senzorů",
-          "imap_timeout": "Čas v sekundách před vypršením časového limitu připojení (sekund, minimum 10)",
-          "amazon_fwds": "Amazon předal e-mailové adresy",
-          "allow_external": "Vytvořte obrázek pro oznamovací aplikaci",
-          "amazon_days": "Dny zpět ke kontrole e-mailů Amazon",
-          "custom_img": "Použít vlastní obrázek USPS 'bez pošty'?",
-          "amazon_custom_img": "Použít vlastní obrázek Amazon 'bez dodání'?",
-          "ups_custom_img": "Použít vlastní obrázek UPS 'bez dodání'?",
-          "walmart_custom_img": "Použít vlastní obrázek Walmart 'bez dodání'?",
+          "folder": "Mail Folder",
+          "resources": "Sensors List",
+          "scan_interval": "Scanning Interval (minutes, minimum 5)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "image_path": "Image Path",
+          "gif_duration": "Image Duration (seconds)",
+          "image_security": "Random Image Filename",
+          "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
+          "generate_mp4": "Create mp4 from images",
+          "allow_external": "Create image for notification apps",
+          "usps_placeholder": "Zahrnout zástupný symbol USPS bez obrázku do GIF?",
+          "custom_img": "Use custom USPS 'no mail' image?",
+          "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
+          "ups_custom_img": "Use custom 'no UPS delivery' image?",
+          "walmart_custom_img": "Use custom 'no Walmart delivery' image?",
+          "fedex_custom_img": "Use custom 'no FedEx delivery' image?",
           "generic_custom_img": "Použít vlastní obrázek obecný 'bez dodání'?",
-          "allow_forwarded_emails": "Povolit přeposílané e-maily kromě výchozí hodnoty služby (např. no-reply@usps.com)"
-        },
-        "description": "Dokončete konfiguraci přizpůsobením následujících položek na základě struktury e-mailu a instalace Home Assistant.\n\nPodrobnosti o [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) můžete zkontrolovat na [configurace, styly a automatizace](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.",
-        "title": "Mail and Packages (Krok 2 ze 3)"
+          "generate_grid": "Create image grid for LLM vision models",
+          "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
+        }
       },
       "options_3": {
+        "title": "Mail and Packages (Step 3 of 3)",
+        "description": "Enter the path and file name to your custom no delivery images below.\n\nExample: images/custom_nomail.gif",
         "data": {
-          "custom_img_file": "Cesta k vlastnímu obrázku: (např.: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "Path to custom USPS image: (i.e.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
+        }
+      },
+      "options_amazon": {
+        "title": "Amazon Settings",
+        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.\n\nNote: if you configured a forwarding header in the previous step, the forwarding address field will not appear — the header handles Amazon email matching automatically.",
+        "data": {
+          "amazon_domain": "Amazon domain",
+          "amazon_fwds": "Amazon forwarded email addresses",
+          "amazon_days": "Days back to check for Amazon emails"
+        }
+      },
+      "options_storage": {
+        "title": "Image storage location",
+        "description": "Please enter the directory you'd like your images to be stored in.\nThe default is auto populated.",
+        "data": {
+          "storage": "Directory to store images"
+        }
+      },
+      "options_forwarded_emails": {
+        "title": "Nastavení přeposlaných e-mailů",
+        "description": "Vyberte způsob porovnávání přeposlaných e-mailů.\n\n**Možnost 1 — Hlavička přesměrování**: Pokud vaše služba (např. SimpleLogin) zahrnuje původního odesílatele do vlastního záhlaví, zadejte název tohoto záhlaví. Mail and Packages ho použije k automatickému přiřazení adres dopravců.\n\n**Možnost 2 — Seznam adres**: Zadejte přeposílací adresy, které vaše služba přidělila každému dopravci, oddělené čárkami.",
+        "data": {
+          "forwarding_header": "Hlavička přesměrování (např. X-SimpleLogin-Original-From)",
+          "forwarded_emails": "Přeposílané e-mailové adresy"
         },
-        "description": "Níže zadejte cestu a název souboru k vlastnímu obrázku bez pošty.\n\nPříklad: images/custom_nomail.gif",
-        "title": "Mail and Packages (Krok 3 ze 3)"
+        "data_description": {
+          "forwarding_header": "Pokud vaše přeposílací služba zahrnuje původního odesílatele do záhlaví, zadejte zde název záhlaví. To má přednost před níže uvedeným seznamem adres. Zadejte '(none)' nebo nechte prázdné, chcete-li místo toho použít seznam adres.",
+          "forwarded_emails": "Seznam přeposílacích adres oddělených čárkami, ze kterých budou přicházet zprávy. Ponechejte '(none)', pokud používáte výše uvedenou hlavičku přesměrování."
+        }
       }
     }
   },

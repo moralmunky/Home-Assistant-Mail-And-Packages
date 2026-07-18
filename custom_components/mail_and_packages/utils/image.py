@@ -1,5 +1,6 @@
 """Image processing and management utilities for Mail and Packages."""
 
+import contextlib
 import datetime
 import hashlib
 import logging
@@ -56,9 +57,12 @@ def default_image_path(
     """
     storage = None
     try:
-        storage = config_entry.get(CONF_STORAGE)
+        storage = config_entry.options.get(CONF_STORAGE) or config_entry.data.get(
+            CONF_STORAGE
+        )
     except AttributeError:
-        storage = config_entry.data[CONF_STORAGE]
+        with contextlib.suppress(AttributeError):
+            storage = config_entry.get(CONF_STORAGE)
 
     if storage:
         return storage

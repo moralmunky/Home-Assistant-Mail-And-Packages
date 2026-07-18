@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Slechts een enkele configuratie van Mail en pakketten is toegestaan.",
-      "reconfigure_successful": "Herconfiguratie succesvol"
+      "reconfigure_successful": "Herconfiguratie succesvol",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Kan geen verbinding maken met of inloggen op de mailserver. Controleer het logboek voor details.",
@@ -211,6 +212,74 @@
             "title": "E-mailserver opnieuw verifiëren",
             "description": "Authenticatie bij uw IMAP-mailserver is mislukt. Klik op verzenden om de herauthenticatiestroom te starten."
           }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Mail en pakketten (stap 2 van 2)",
+        "description": "Rond de configuratie af door het volgende aan te passen op basis van uw e-mailstructuur en Home Assistant-installatie.\n\nVoor details over de [Mail en Packages integratie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) opties, bekijk de [configuratie, sjablonen en automatiseringen sectie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) op GitHub.\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.",
+        "data": {
+          "folder": "E-mailmap",
+          "resources": "Lijst van sensoren",
+          "scan_interval": "Scaninterval (minuten)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "image_path": "Afbeeldingspad",
+          "gif_duration": "Beeldduur (seconden)",
+          "image_security": "Bestandsnaam willekeurige afbeelding",
+          "imap_timeout": "Tijd in seconden voordat de verbinding verloopt (seconden, minimaal 10)",
+          "generate_mp4": "Maak mp4 van afbeeldingen",
+          "allow_external": "Maak afbeelding voor meldingsapps",
+          "usps_placeholder": "USPS tijdelijke aanduiding zonder afbeelding opnemen in GIF?",
+          "custom_img": "Gebruik aangepaste USPS 'geen post' afbeelding?",
+          "amazon_custom_img": "Gebruik aangepaste Amazon 'geen levering' afbeelding?",
+          "ups_custom_img": "Gebruik aangepaste UPS 'geen levering' afbeelding?",
+          "walmart_custom_img": "Gebruik aangepaste Walmart 'geen levering' afbeelding?",
+          "fedex_custom_img": "Gebruik aangepaste FedEx 'geen levering' afbeelding?",
+          "generic_custom_img": "Gebruik aangepaste generieke 'geen levering' afbeelding?",
+          "generate_grid": "Maak een afbeeldingsraster voor LLM-visiemodellen",
+          "allow_forwarded_emails": "Doorgestuurde e-mails toestaan naast de standaardwaarde van een service (bijv. no-reply@usps.com)"
+        }
+      },
+      "options_3": {
+        "title": "Mail en Pakketten (Stap 3 van 3)",
+        "description": "Voer hieronder het pad en de bestandsnaam in voor uw aangepaste afbeelding voor geen mail.\n\nVoorbeeld: images/custom_nomail.gif",
+        "data": {
+          "custom_img_file": "Pad naar aangepaste afbeelding: (bijv.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
+        }
+      },
+      "options_amazon": {
+        "title": "Amazon Instellingen",
+        "description": "Voer het domein in waarvan Amazon e-mails verstuurt (bijv: amazon.com of amazon.de)\n\nAls u doorgestuurde e-mails van Amazon gebruikt, scheid dan elk adres met een komma of voer (geen) in om deze instelling te wissen.\n\nOpmerking: als u in de vorige stap een doorstuurheader hebt geconfigureerd, verschijnt het doorstuuradresveld niet — de header verwerkt de Amazon e-mailkoppeling automatisch.",
+        "data": {
+          "amazon_domain": "Amazon domein",
+          "amazon_fwds": "Amazon stuurde e-mailadressen door",
+          "amazon_days": "Dagen terug om te controleren op Amazon e-mails"
+        }
+      },
+      "options_storage": {
+        "title": "Locatie voor afbeeldingsopslag",
+        "description": "Voer de map in waar u uw afbeeldingen wilt opslaan.\nDe standaard is automatisch ingevuld.",
+        "data": {
+          "storage": "Map om afbeeldingen op te slaan"
+        }
+      },
+      "options_forwarded_emails": {
+        "title": "Instellingen doorgestuurde e-mails",
+        "description": "Kies hoe doorgestuurde e-mails worden gekoppeld.\n\n**Optie 1 — Doorstuurkoptekst**: Als uw dienst (bijv. SimpleLogin) de oorspronkelijke afzender in een aangepaste koptekst opneemt, voer dan die koptekstnaam in. Mail and Packages zal die gebruiken om vervoerdersadressen automatisch te koppelen.\n\n**Optie 2 — Adreslijst**: Voer de doorstuuradressen in die uw dienst aan elke vervoerder heeft toegewezen, gescheiden door komma's.",
+        "data": {
+          "forwarding_header": "Doorstuurkoptekst (bijv. X-SimpleLogin-Original-From)",
+          "forwarded_emails": "Doorgestuurde e-mailadressen"
+        },
+        "data_description": {
+          "forwarding_header": "Als uw doorstuurdienst de oorspronkelijke afzender in een koptekst opneemt, voer dan hier de naam van de koptekst in. Dit heeft voorrang op de onderstaande adreslijst. Voer '(none)' in of laat leeg om de adreslijst te gebruiken.",
+          "forwarded_emails": "Kommagescheiden lijst van doorstuuradressen waarvan berichten zullen aankomen. Laat '(none)' staan als u de bovenstaande doorstuurkoptekst gebruikt."
         }
       }
     }

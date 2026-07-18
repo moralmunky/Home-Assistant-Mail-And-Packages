@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed.",
-      "reconfigure_successful": "Reconfigure Successful"
+      "reconfigure_successful": "Reconfigure Successful",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Unable to connect or login to the mail server. Please check the log for details.",
@@ -200,6 +201,79 @@
           "password": "Password"
         },
         "title": "Re-authenticate Mail Server"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Mail and Packages (Step 2 of 2)",
+        "description": "Finish the configuration by customizing the following based on your email structure and Home Assistant installation.\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.",
+        "data": {
+          "folder": "Mail Folder",
+          "resources": "Sensors List",
+          "scan_interval": "Scanning Interval (minutes, minimum 5)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "image_path": "Image Path",
+          "gif_duration": "Image Duration (seconds)",
+          "image_security": "Random Image Filename",
+          "imap_timeout": "Mailbox scan time limit (seconds, minimum 10)",
+          "generate_mp4": "Create mp4 from images",
+          "allow_external": "Create image for notification apps",
+          "usps_placeholder": "Include USPS no-image placeholder in GIF?",
+          "custom_img": "Use custom USPS 'no mail' image?",
+          "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
+          "ups_custom_img": "Use custom 'no UPS delivery' image?",
+          "walmart_custom_img": "Use custom 'no Walmart delivery' image?",
+          "fedex_custom_img": "Use custom 'no FedEx delivery' image?",
+          "generic_custom_img": "Use custom 'no Generic delivery' image?",
+          "post_de_custom_img": "Use custom Post DE 'no mail' image?",
+          "generate_grid": "Create image grid for LLM vision models",
+          "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
+        },
+        "data_description": {
+          "imap_timeout": "Covers the entire scan — login plus every per-carrier IMAP search — not just connecting. Raise this if large mailboxes time out; lower it to fail faster."
+        }
+      },
+      "options_3": {
+        "title": "Mail and Packages (Step 3 of 3)",
+        "description": "Enter the path and file name to your custom no mail image below.\n\nExample: images/custom_nomail.gif",
+        "data": {
+          "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)",
+          "post_de_custom_img_file": "Path to custom Post DE image: (i.e.: images/my_custom_no_post_de.gif)"
+        }
+      },
+      "options_amazon": {
+        "title": "Amazon Settings",
+        "description": "Please enter the domain Amazon sends email's from (ie: amazon.com or amazon.de)\n\nIf using Amazon forwarded emails please separate each address with a comma or enter (none) to clear this setting.\n\nNote: if you configured a forwarding header in the previous step, the forwarding address field will not appear — the header handles Amazon email matching automatically.",
+        "data": {
+          "amazon_domain": "Amazon domain",
+          "amazon_fwds": "Amazon forwarded email addresses",
+          "amazon_days": "Days back to check for Amazon emails"
+        }
+      },
+      "options_storage": {
+        "title": "Image storage location",
+        "description": "Please enter the directory you'd like your images to be stored in.\nThe default is auto populated.",
+        "data": {
+          "storage": "Directory to store images"
+        }
+      },
+      "options_forwarded_emails": {
+        "title": "Forwarded Email Settings",
+        "description": "Choose how to match forwarded emails.\n\n**Option 1 — Forwarding header**: If your service (e.g. SimpleLogin) includes the original sender in a custom header, enter that header name. Mail and Packages will use it to match carrier addresses automatically.\n\n**Option 2 — Address list**: Enter the forwarding addresses your service assigned to each carrier, separated by commas.",
+        "data": {
+          "forwarding_header": "Forwarding Header (e.g. X-SimpleLogin-Original-From)",
+          "forwarded_emails": "Forwarded Email Addresses"
+        },
+        "data_description": {
+          "forwarding_header": "If your forwarding service includes the original sender in a header, enter the header name here. This takes precedence over the address list below. Enter '(none)' or leave blank to use the address list instead.",
+          "forwarded_emails": "Comma-separated list of forwarded addresses messages will arrive from. Leave as '(none)' if using the forwarding header above."
+        }
       }
     }
   },

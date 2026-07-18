@@ -161,6 +161,7 @@ async def test_default_image_path():
     mock_config = MagicMock()
 
     # Test with storage config in data
+    mock_config.options = {}
     mock_config.data = {"storage": "/config/images/"}
     # Delete get to trigger AttributeError
     del mock_config.get
@@ -168,6 +169,8 @@ async def test_default_image_path():
 
     # Test without storage config
     mock_config = MagicMock()
+    mock_config.options = {}
+    mock_config.data = {}
     mock_config.get.return_value = None
     assert "custom_components/mail_and_packages/images/" in default_image_path(
         mock_hass,

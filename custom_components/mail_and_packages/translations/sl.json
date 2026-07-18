@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Dovoljena je samo ena konfiguracija pošte in paketov.",
-      "reconfigure_successful": "Prekonfiguracija uspešna"
+      "reconfigure_successful": "Prekonfiguracija uspešna",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Poštnega strežnika ni mogoče povezati ali prijaviti. Za podrobnosti preverite dnevnik.",
@@ -211,6 +212,74 @@
             "title": "Ponovno preveri poštni strežnik",
             "description": "Preverjanje pristnosti z vašim poštnim strežnikom IMAP ni uspelo. Kliknite Pošlji, če želite začeti potek ponovnega preverjanja pristnosti."
           }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Pošta in paketi (2. korak od 2)",
+        "description": "Konfiguracijo dokončajte z prilagajanjem naslednjega glede na strukturo vašega e-poštnega sporočila in namestitev Home Assistant.\n\nZa podrobnosti o možnostih [integracije Mail and Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) si oglejte [razdelek o konfiguraciji, predlogah in avtomatizacijah](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHubu.\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.",
+        "data": {
+          "folder": "Mapa mape",
+          "resources": "Seznam senzorjev",
+          "scan_interval": "Interval optičnega branja (minute)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "image_path": "Pot slike",
+          "gif_duration": "Trajanje slike (sekunde)",
+          "image_security": "Naključno ime datoteke",
+          "imap_timeout": "Čas v sekundah pred prekinitvijo povezave (sekunde, najmanj 10)",
+          "generate_mp4": "Ustvari mp4 iz slik",
+          "allow_external": "Ustvari sliko za aplikacije za obvestila",
+          "usps_placeholder": "Ali naj se v GIF vključi nadomestni znak USPS brez slike?",
+          "custom_img": "Uporabite prilagojeno sliko USPS 'brez pošte'?",
+          "amazon_custom_img": "Uporabite prilagojeno sliko Amazon 'brez dostave'?",
+          "ups_custom_img": "Uporabite prilagojeno sliko UPS 'brez dostave'?",
+          "walmart_custom_img": "Uporabite prilagojeno sliko Walmart 'brez dostave'?",
+          "fedex_custom_img": "Uporabite prilagojeno sliko FedEx 'brez dostave'?",
+          "generic_custom_img": "Uporabite prilagojeno splošno sliko 'brez dostave'?",
+          "generate_grid": "Ustvari mrežo slik za vizualne modele LLM",
+          "allow_forwarded_emails": "Dovoli posredovane e-poštne sporočila poleg privzete vrednosti storitve (npr. no-reply@usps.com)"
+        }
+      },
+      "options_3": {
+        "title": "Pošta in paketi (korak 3 od 3)",
+        "description": "V spodnje polje vnesite pot in ime datoteke do vaše prilagojene slike brez pošte.\n\nPrimer: images/custom_nomail.gif",
+        "data": {
+          "custom_img_file": "Pot do prilagojene slike: (npr.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
+        }
+      },
+      "options_amazon": {
+        "title": "Nastavitve Amazon",
+        "description": "Prosimo, vnesite domeno, s katere Amazon pošilja e-pošto (npr.: amazon.com ali amazon.de)\n\nČe uporabljate preusmerjena e-poštna sporočila Amazon, ločite vsak naslov z vejico ali vnesite (noben) za izbris te nastavitve.\n\nOpomba: če ste v prejšnjem koraku konfigurirali glavo posredovanja, polje z naslovom posredovanja ne bo prikazano — glava samodejno obravnava ujemanje Amazonovih e-poštnih sporočil.",
+        "data": {
+          "amazon_domain": "Amazon domena",
+          "amazon_fwds": "Amazon je posredoval e-poštne naslove",
+          "amazon_days": "Dnevi nazaj za preverjanje Amazonovih e-poštnih sporočil"
+        }
+      },
+      "options_storage": {
+        "title": "Lokacija shranjevanja slik",
+        "description": "Prosimo, vnesite imenik, v katerem želite shraniti svoje slike.\nPrivzeto je samodejno izpolnjeno.",
+        "data": {
+          "storage": "Mapa za shranjevanje slik"
+        }
+      },
+      "options_forwarded_emails": {
+        "title": "Nastavitve posredovane e-pošte",
+        "description": "Izberite, kako ujemati posredovana e-poštna sporočila.\n\n**Možnost 1 — Glava za posredovanje**: Če vaša storitev (npr. SimpleLogin) vključuje izvirnega pošiljatelja v glavo po meri, vnesite ime te glave. Mail and Packages jo bo uporabil za samodejno ujemanje naslovov prevoznikov.\n\n**Možnost 2 — Seznam naslovov**: Vnesite naslove za posredovanje, ki jih je vaša storitev dodelila vsakemu prevozniku, ločene z vejicami.",
+        "data": {
+          "forwarding_header": "Glava za posredovanje (npr. X-SimpleLogin-Original-From)",
+          "forwarded_emails": "Posredovani e-poštni naslovi"
+        },
+        "data_description": {
+          "forwarding_header": "Če vaša storitev posredovanja vključuje izvirnega pošiljatelja v glavi, vnesite tukaj ime glave. To ima prednost pred spodnjim seznamom naslovov. Vnesite '(none)' ali pustite prazno, da namesto tega uporabite seznam naslovov.",
+          "forwarded_emails": "Z vejicami ločen seznam naslovov za posredovanje, od katerih bodo prihajala sporočila. Pustite '(none)', če uporabljate zgornjo glavo za posredovanje."
         }
       }
     }

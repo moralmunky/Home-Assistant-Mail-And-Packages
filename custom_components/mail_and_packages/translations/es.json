@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Solo se permite una única configuración de correo y paquetes.",
-      "reconfigure_successful": "Reconfiguración Exitosa"
+      "reconfigure_successful": "Reconfiguración Exitosa",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "No se puede conectar o iniciar sesión en el servidor de correo. Por favor, consulte el registro para más detalles.",
@@ -211,6 +212,74 @@
             "title": "Volver a autenticar el servidor de correo",
             "description": "Error al autenticar en su servidor de correo IMAP. Haga clic en enviar para iniciar el flujo de reautenticación."
           }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Correo y paquetes (Paso 2 de 2)",
+        "description": "Finalice la configuración personalizando lo siguiente en función de la estructura de su correo electrónico y la instalación de Home Assistant.\n\nPara obtener detalles sobre las opciones de [integración de correo y paquetes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), revise la [sección de configuración, plantillas y automatizaciones](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) en GitHub.\n\nSi utiliza correos electrónicos reenviados de Amazon, separe cada dirección con una coma o ingrese (ninguno) para borrar esta configuración.",
+        "data": {
+          "folder": "Carpeta de correo",
+          "resources": "Lista de Sensores",
+          "scan_interval": "Intervalo de escaneo (minutos)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "image_path": "Ruta de la imagen",
+          "gif_duration": "Duración de la imagen (segundos)",
+          "image_security": "Nombre de archivo de imagen aleatoria",
+          "imap_timeout": "Tiempo en segundos antes del tiempo de espera de la conexión (segundos, mínimo 10)",
+          "generate_mp4": "Crea mp4 a partir de imágenes",
+          "allow_external": "Crea imagen para aplicaciones de notificación",
+          "usps_placeholder": "¿Incluir marcador de posición sin imagen de USPS en el GIF?",
+          "custom_img": "¿Usar imagen personalizada de USPS 'sin correo'?",
+          "amazon_custom_img": "¿Usar imagen personalizada de Amazon 'sin entrega'?",
+          "ups_custom_img": "¿Usar imagen personalizada de UPS 'sin entrega'?",
+          "walmart_custom_img": "¿Usar imagen personalizada de Walmart 'sin entrega'?",
+          "fedex_custom_img": "¿Usar imagen personalizada de FedEx 'sin entrega'?",
+          "generic_custom_img": "¿Usar imagen personalizada genérica 'sin entrega'?",
+          "generate_grid": "Crear cuadrícula de imágenes para modelos de visión LLM",
+          "allow_forwarded_emails": "Permitir correos electrónicos reenviados además del valor predeterminado de un servicio (p. ej., no-reply@usps.com)"
+        }
+      },
+      "options_3": {
+        "title": "Correo y Paquetes (Paso 3 de 3)",
+        "description": "Ingrese la ruta y el nombre del archivo de su imagen personalizada de no correo a continuación.\n\nEjemplo: images/custom_nomail.gif",
+        "data": {
+          "custom_img_file": "Ruta a la imagen personalizada: (es decir: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
+        }
+      },
+      "options_amazon": {
+        "title": "Configuración de Amazon",
+        "description": "Por favor, introduzca el dominio desde el cual Amazon envía correos electrónicos (es decir: amazon.com o amazon.de)\n\nSi utiliza correos electrónicos reenviados por Amazon, separe cada dirección con una coma o introduzca (ninguno) para borrar esta configuración.\n\nNota: si configuró un encabezado de reenvío en el paso anterior, el campo de dirección de reenvío no aparecerá — el encabezado gestiona la coincidencia de correos electrónicos de Amazon automáticamente.",
+        "data": {
+          "amazon_domain": "Dominio de Amazon",
+          "amazon_fwds": "Amazon reenvió direcciones de correo electrónico",
+          "amazon_days": "Días atrás para verificar los correos electrónicos de Amazon"
+        }
+      },
+      "options_storage": {
+        "title": "Ubicación de almacenamiento de imágenes",
+        "description": "Por favor, introduzca el directorio en el que le gustaría almacenar sus imágenes. \nEl valor predeterminado se rellena automáticamente.",
+        "data": {
+          "storage": "Directorio para almacenar imágenes"
+        }
+      },
+      "options_forwarded_emails": {
+        "title": "Configuración de correos electrónicos reenviados",
+        "description": "Elija cómo hacer coincidir los correos electrónicos reenviados.\n\n**Opción 1 — Cabecera de reenvío**: Si su servicio (p. ej. SimpleLogin) incluye el remitente original en una cabecera personalizada, ingrese ese nombre de cabecera. Mail and Packages lo usará para hacer coincidir las direcciones de los transportistas automáticamente.\n\n**Opción 2 — Lista de direcciones**: Ingrese las direcciones de reenvío que su servicio asignó a cada transportista, separadas por comas.",
+        "data": {
+          "forwarding_header": "Cabecera de reenvío (p. ej. X-SimpleLogin-Original-From)",
+          "forwarded_emails": "Direcciones de correo electrónico reenviadas"
+        },
+        "data_description": {
+          "forwarding_header": "Si su servicio de reenvío incluye el remitente original en una cabecera, ingrese el nombre de la cabecera aquí. Esto tiene prioridad sobre la lista de direcciones a continuación. Ingrese '(none)' o deje en blanco para usar la lista de direcciones en su lugar.",
+          "forwarded_emails": "Lista separada por comas de las direcciones de reenvío de las que llegarán los mensajes. Deje '(none)' si usa la cabecera de reenvío de arriba."
         }
       }
     }

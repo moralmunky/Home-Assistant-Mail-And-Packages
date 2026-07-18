@@ -176,7 +176,7 @@ async def integration_fixture_4(integration_factory, caplog):
     assert "Migrating from version 3" in caplog.text
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
 
-    assert CONF_AMAZON_DOMAIN in entry.data
+    assert CONF_AMAZON_DOMAIN in entry.options
 
     return entry
 

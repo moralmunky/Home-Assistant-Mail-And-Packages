@@ -1,7 +1,7 @@
 """Tests for camera component."""
 
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, call, mock_open, patch
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, call, mock_open, patch
 
 import pytest
 from homeassistant.const import ATTR_ENTITY_ID
@@ -1471,18 +1471,6 @@ async def test_generic_camera_respects_enabled_sensors(
         "image_path": "custom_components/mail_and_packages/images/",
     }
 
-    # Mock config to only enable Amazon and Walmart sensors
-    # Create a new data dict with only Amazon and Walmart enabled
-    new_data = entry.data.copy()
-    new_data["resources"] = [
-        "amazon_delivered",
-        "walmart_delivered",
-    ]  # Only Amazon and Walmart enabled
-
-    # Update the entry using the proper Home Assistant method
-    hass.config_entries.async_update_entry(entry, data=new_data)
-    await hass.async_block_till_done()
-
     # Get the camera reference before patching
     cameras = entry.runtime_data.cameras
     generic_camera = None
@@ -1495,6 +1483,13 @@ async def test_generic_camera_respects_enabled_sensors(
         patch("os.path.exists", return_value=True),
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.camera.MailCam.config_data",
+            new_callable=PropertyMock,
+            return_value={
+                "resources": ["amazon_delivered", "walmart_delivered"],
+            },
+        ),
         patch(
             "custom_components.mail_and_packages.camera.resize_images",
             return_value=[

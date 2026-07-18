@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "È consentita una sola configurazione di posta e pacchetti.",
-      "reconfigure_successful": "Riconfigurazione Riuscita"
+      "reconfigure_successful": "Riconfigurazione Riuscita",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Impossibile connettersi o accedere al server di posta. Si prega di controllare il registro per i dettagli.",
@@ -211,6 +212,74 @@
             "title": "Riautentica il server di posta",
             "description": "L'autenticazione al server di posta IMAP è fallita. Clicca su invia per avviare la procedura di riautenticazione."
           }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Posta e pacchi (passaggio 2 di 2)",
+        "description": "Termina la configurazione personalizzando quanto segue in base alla struttura della tua email e all'installazione di Home Assistant.\n\nPer i dettagli sulle opzioni di [integrazione Mail e Pacchetti](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) consulta la [sezione configurazione, modelli e automazioni](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) su GitHub.\n\nSe utilizzi email inoltrate da Amazon, separa ogni indirizzo con una virgola o inserisci (nessuno) per cancellare questa impostazione.",
+        "data": {
+          "folder": "Cartella posta",
+          "resources": "Elenco dei sensori",
+          "scan_interval": "Intervallo di scansione (minuti)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "image_path": "Percorso immagine",
+          "gif_duration": "Durata immagine (secondi)",
+          "image_security": "Nome file immagine casuale",
+          "imap_timeout": "Tempo in secondi prima del timeout di connessione (secondi, minimo 10)",
+          "generate_mp4": "Crea mp4 dalle immagini",
+          "allow_external": "Crea immagine per le app di notifica",
+          "usps_placeholder": "Includere il segnaposto USPS senza immagine nella GIF?",
+          "custom_img": "Usare l'immagine personalizzata USPS 'nessuna posta'?",
+          "amazon_custom_img": "Usare l'immagine personalizzata Amazon 'nessuna consegna'?",
+          "ups_custom_img": "Usare l'immagine personalizzata UPS 'nessuna consegna'?",
+          "walmart_custom_img": "Usare l'immagine personalizzata Walmart 'nessuna consegna'?",
+          "fedex_custom_img": "Usare l'immagine personalizzata FedEx 'nessuna consegna'?",
+          "generic_custom_img": "Usare l'immagine personalizzata generica 'nessuna consegna'?",
+          "generate_grid": "Crea una griglia di immagini per i modelli di visione LLM",
+          "allow_forwarded_emails": "Consenti email inoltrate oltre al valore predefinito di un servizio (ad es. no-reply@usps.com)"
+        }
+      },
+      "options_3": {
+        "title": "Posta e Pacchetti (Passaggio 3 di 3)",
+        "description": "Inserisci il percorso e il nome del file per la tua immagine personalizzata di nessuna mail qui sotto.\n\nEsempio: images/custom_nomail.gif",
+        "data": {
+          "custom_img_file": "Percorso per l'immagine personalizzata: (ad es.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
+        }
+      },
+      "options_amazon": {
+        "title": "Impostazioni Amazon",
+        "description": "Inserisci il dominio da cui Amazon invia le email (ad esempio: amazon.com o amazon.de)\n\nSe stai utilizzando email inoltrate da Amazon, separa ogni indirizzo con una virgola o inserisci (nessuno) per cancellare questa impostazione.\n\nNota: se hai configurato un'intestazione di inoltro nel passaggio precedente, il campo dell'indirizzo di inoltro non apparirà — l'intestazione gestisce automaticamente la corrispondenza delle email Amazon.",
+        "data": {
+          "amazon_domain": "Dominio Amazon",
+          "amazon_fwds": "Amazon ha inoltrato gli indirizzi email",
+          "amazon_days": "Giorni precedenti da controllare per le email di Amazon"
+        }
+      },
+      "options_storage": {
+        "title": "Posizione di archiviazione delle immagini",
+        "description": "Inserisci la directory in cui desideri che le tue immagini vengano memorizzate.\nIl valore predefinito viene popolato automaticamente.",
+        "data": {
+          "storage": "Cartella per memorizzare le immagini"
+        }
+      },
+      "options_forwarded_emails": {
+        "title": "Impostazioni email inoltrate",
+        "description": "Scegli come abbinare le email inoltrate.\n\n**Opzione 1 — Intestazione di inoltro**: Se il tuo servizio (es. SimpleLogin) include il mittente originale in un'intestazione personalizzata, inserisci il nome di quell'intestazione. Mail and Packages lo utilizzerà per abbinare automaticamente gli indirizzi dei corrieri.\n\n**Opzione 2 — Elenco di indirizzi**: Inserisci gli indirizzi di inoltro che il tuo servizio ha assegnato a ciascun corriere, separati da virgole.",
+        "data": {
+          "forwarding_header": "Intestazione di inoltro (es. X-SimpleLogin-Original-From)",
+          "forwarded_emails": "Indirizzi email inoltrati"
+        },
+        "data_description": {
+          "forwarding_header": "Se il tuo servizio di inoltro include il mittente originale in un'intestazione, inserisci qui il nome dell'intestazione. Questo ha la precedenza sull'elenco di indirizzi seguente. Inserisci '(none)' o lascia vuoto per usare l'elenco di indirizzi.",
+          "forwarded_emails": "Elenco separato da virgole degli indirizzi di inoltro da cui arriveranno i messaggi. Lascia '(none)' se stai usando l'intestazione di inoltro sopra."
         }
       }
     }

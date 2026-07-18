@@ -4,7 +4,13 @@ import asyncio
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_RESOURCES
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_PASSWORD,
+    CONF_PORT,
+    CONF_RESOURCES,
+    CONF_USERNAME,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import (
     config_validation as cv,
@@ -125,17 +131,24 @@ async def async_setup_entry(
         VERSION,
         ISSUE_URL,
     )
-    hass.data.setdefault(DOMAIN, {})
-    updated_config = config_entry.data.copy()
+    # Merge data and options
+    config = {**config_entry.data, **config_entry.options}
 
     # Sort the resources
-    updated_config[CONF_RESOURCES] = sorted(updated_config[CONF_RESOURCES])
-
-    if updated_config != config_entry.data:
-        hass.config_entries.async_update_entry(config_entry, data=updated_config)
-
-    # Variables for data coordinator
-    config = config_entry.data
+    if CONF_RESOURCES in config:
+        sorted_resources = sorted(config[CONF_RESOURCES])
+        if sorted_resources != config[CONF_RESOURCES]:
+            config[CONF_RESOURCES] = sorted_resources
+            if CONF_RESOURCES in config_entry.options:
+                hass.config_entries.async_update_entry(
+                    config_entry,
+                    options={**config_entry.options, CONF_RESOURCES: sorted_resources},
+                )
+            else:
+                hass.config_entries.async_update_entry(
+                    config_entry,
+                    data={**config_entry.data, CONF_RESOURCES: sorted_resources},
+                )
 
     # Setup the data coordinator
     coordinator = MailDataUpdateCoordinator(hass, config, config_entry)
@@ -147,7 +160,17 @@ async def async_setup_entry(
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
+    config_entry.async_on_unload(config_entry.add_update_listener(update_listener))
+
     return True
+
+
+async def update_listener(
+    hass: HomeAssistant, config_entry: MailAndPackagesConfigEntry
+) -> None:
+    """Update listener."""
+    _LOGGER.debug("Attempting to reload sensors from the %s integration", DOMAIN)
+    await hass.config_entries.async_reload(config_entry.entry_id)
 
 
 async def async_remove_config_entry_device(  # pylint: disable-next=unused-argument
@@ -193,14 +216,35 @@ async def async_migrate_entry(hass, config_entry):
 
     _LOGGER.debug("Migrating from version %s", version)
     updated_config = {**config_entry.data}
+    updated_options = {**config_entry.options}
 
     _migrate_legacy_versions(updated_config, version, config_entry)
     _apply_default_config(updated_config)
 
-    if updated_config != config_entry.data:
+    # Version 20 migration: split non-IMAP options out of data
+    if version < 20:
+        imap_keys = {
+            CONF_HOST,
+            CONF_PORT,
+            CONF_USERNAME,
+            CONF_PASSWORD,
+            CONF_IMAP_SECURITY,
+            CONF_VERIFY_SSL,
+            CONF_AUTH_TYPE,
+            "token",
+            "access_token",
+            "refresh_token",
+            "auth_implementation",
+        }
+        for key in list(updated_config.keys()):
+            if key not in imap_keys:
+                updated_options[key] = updated_config.pop(key)
+
+    if updated_config != config_entry.data or updated_options != config_entry.options:
         hass.config_entries.async_update_entry(
             config_entry,
             data=updated_config,
+            options=updated_options,
             version=new_version,
         )
 

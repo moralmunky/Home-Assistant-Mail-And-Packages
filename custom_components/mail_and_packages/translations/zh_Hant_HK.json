@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "僅允許郵件和軟件包的單個配置。",
-      "reconfigure_successful": "重新配置成功"
+      "reconfigure_successful": "重新配置成功",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "無法連接或登錄到郵件服務器。請檢查日誌以獲取詳細信息。",
@@ -211,6 +212,74 @@
             "title": "重新認證郵件伺服器",
             "description": "認證 IMAP 郵件伺服器失敗。請按提交以啟動重新認證流程。"
           }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "郵件和包裹（第2步，共2步）",
+        "description": "根據您的電郵結構和Home Assistant安裝來完成配置。\n\n有關[郵件和包裹整合](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)選項的詳情，請查閱GitHub上的[配置、模板和自動化部分](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration)。\n\n如果使用Amazon轉發的電郵，請用逗號分隔每個地址，或輸入(none)以清除此設定。",
+        "data": {
+          "folder": "郵件文件夾",
+          "resources": "感應器列表",
+          "scan_interval": "掃描間隔（分鐘）",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "image_path": "圖像路徑",
+          "gif_duration": "圖像持續時間（秒）",
+          "image_security": "隨機圖像文件名",
+          "imap_timeout": "連接超時前的時間（秒，最少10秒）",
+          "generate_mp4": "從圖像創建mp4",
+          "allow_external": "為通知應用程式創建圖像",
+          "usps_placeholder": "在 GIF 中包含 USPS 無圖像預留位置？",
+          "custom_img": "使用自訂的 USPS「無郵件」圖像？",
+          "amazon_custom_img": "使用自訂的 Amazon「無送貨」圖像？",
+          "ups_custom_img": "使用自訂的 UPS「無送貨」圖像？",
+          "walmart_custom_img": "使用自訂的 Walmart「無送貨」圖像？",
+          "fedex_custom_img": "使用自訂的 FedEx「無送貨」圖像？",
+          "generic_custom_img": "使用自訂的通用「無送貨」圖像？",
+          "generate_grid": "為LLM視覺模型創建圖像網格",
+          "allow_forwarded_emails": "允許轉發的電郵，除了服務的預設值（例如 no-reply@usps.com）"
+        }
+      },
+      "options_3": {
+        "title": "郵件和包裹（第3步，共3步）",
+        "description": "在下方輸入您的自訂無郵件圖像的路徑和檔案名稱。\n\n例如：images/custom_nomail.gif",
+        "data": {
+          "custom_img_file": "Path to custom image: (i.e.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
+        }
+      },
+      "options_amazon": {
+        "title": "Amazon 設定",
+        "description": "請輸入亞馬遜發送電子郵件的域名（例如：amazon.com或amazon.de）\n\n如果使用亞馬遜轉發的電子郵件，請用逗號分隔每個地址，或輸入（無）以清除此設定。\n\n注意：如果您在上一步中設定了轉寄標頭，轉寄地址欄位將不會顯示 — 標頭會自動處理 Amazon 電郵的配對。",
+        "data": {
+          "amazon_domain": "Amazon 域名",
+          "amazon_fwds": "Amazon 轉發的電郵地址",
+          "amazon_days": "檢查Amazon電郵的天數"
+        }
+      },
+      "options_storage": {
+        "title": "圖像儲存位置",
+        "description": "請輸入您希望存儲圖像的目錄。\n預設值會自動填充。",
+        "data": {
+          "storage": "儲存圖片的目錄"
+        }
+      },
+      "options_forwarded_emails": {
+        "title": "轉寄電子郵件設定",
+        "description": "選擇如何匹配轉寄的電子郵件。\n\n**選項 1 — 轉寄標頭**：如果您的服務（例如 SimpleLogin）在自訂標頭中包含原始寄件者，請輸入該標頭名稱。Mail and Packages 將使用它自動匹配快遞公司地址。\n\n**選項 2 — 地址清單**：輸入您的服務為每個快遞公司分配的轉寄地址，以逗號分隔。",
+        "data": {
+          "forwarding_header": "轉寄標頭 (例如 X-SimpleLogin-Original-From)",
+          "forwarded_emails": "轉發的電郵地址"
+        },
+        "data_description": {
+          "forwarding_header": "如果您的轉寄服務在標頭中包含原始寄件者，請在此輸入標頭名稱。這優先於下方的地址清單。輸入「(none)」或留空以改用地址清單。",
+          "forwarded_emails": "以逗號分隔的轉寄地址清單，訊息將從這些地址發送。如果使用上方的轉寄標頭，請保留「(none)」。"
         }
       }
     }

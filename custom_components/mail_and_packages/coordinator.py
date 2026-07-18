@@ -141,7 +141,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                             raise UpdateFailed("OAuth token refresh failed") from err
 
                     data = await self.process_emails(self.hass, config)
-                except UpdateFailed:
+                except (UpdateFailed, ConfigEntryAuthFailed):
                     raise
                 except Exception as error:
                     _LOGGER.error("Problem updating sensors: %s", error)

@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Somente uma única configuração de correio e pacotes é permitida.",
-      "reconfigure_successful": "Reconfiguração bem-sucedida"
+      "reconfigure_successful": "Reconfiguração bem-sucedida",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Não foi possível conectar ou fazer login no servidor de email. Por favor, verifique o log para obter detalhes.",
@@ -211,6 +212,74 @@
             "title": "Reautenticar o Servidor de E-mail",
             "description": "A autenticação no seu servidor de e-mail IMAP falhou. Clique em enviar para iniciar o fluxo de reautenticação."
           }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Correio e pacotes (Etapa 2 de 2)",
+        "description": "Conclua a configuração personalizando o seguinte com base na estrutura do seu email e na instalação do Home Assistant.\n\nPara detalhes sobre as opções de [integração de Correio e Pacotes](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), consulte a [seção de configuração, modelos e automações](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) no GitHub.\n\nSe estiver usando emails encaminhados da Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.",
+        "data": {
+          "folder": "Pasta de Correio",
+          "resources": "Lista de Sensores",
+          "scan_interval": "Intervalo de digitalização (minutos)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "image_path": "Caminho da imagem",
+          "gif_duration": "Duração da imagem (segundos)",
+          "image_security": "Nome da imagem aleatória",
+          "imap_timeout": "Tempo em segundos antes do tempo limite de conexão (segundos, mínimo 10)",
+          "generate_mp4": "Crie mp4 a partir de imagens",
+          "allow_external": "Crie imagem para aplicativos de notificação",
+          "usps_placeholder": "Incluir marcador de posição sem imagem USPS no GIF?",
+          "custom_img": "Usar imagem personalizada USPS 'sem correio'?",
+          "amazon_custom_img": "Usar imagem personalizada Amazon 'sem entrega'?",
+          "ups_custom_img": "Usar imagem personalizada UPS 'sem entrega'?",
+          "walmart_custom_img": "Usar imagem personalizada Walmart 'sem entrega'?",
+          "fedex_custom_img": "Usar imagem personalizada FedEx 'sem entrega'?",
+          "generic_custom_img": "Usar imagem personalizada genérica 'sem entrega'?",
+          "generate_grid": "Criar grade de imagens para modelos de visão LLM",
+          "allow_forwarded_emails": "Permitir emails encaminhados além do padrão de um serviço (ex: no-reply@usps.com)"
+        }
+      },
+      "options_3": {
+        "title": "Correio e Pacotes (Etapa 3 de 3)",
+        "description": "Insira o caminho e o nome do arquivo para a sua imagem personalizada de sem correio abaixo.\n\nExemplo: images/custom_nomail.gif",
+        "data": {
+          "custom_img_file": "Caminho para imagem personalizada: (ex.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
+        }
+      },
+      "options_amazon": {
+        "title": "Configurações da Amazon",
+        "description": "Por favor, insira o domínio de onde a Amazon envia e-mails (por exemplo: amazon.com ou amazon.de)\n\nSe estiver usando e-mails encaminhados pela Amazon, separe cada endereço com uma vírgula ou insira (nenhum) para limpar essa configuração.\n\nNota: se configurou um cabeçalho de reencaminhamento no passo anterior, o campo de endereço de reencaminhamento não aparecerá — o cabeçalho trata automaticamente da correspondência de e-mails da Amazon.",
+        "data": {
+          "amazon_domain": "Domínio da Amazon",
+          "amazon_fwds": "A Amazon encaminhou endereços de email",
+          "amazon_days": "Dias atrás para verificar emails da Amazon"
+        }
+      },
+      "options_storage": {
+        "title": "Local de armazenamento de imagens",
+        "description": "Por favor, insira o diretório em que você gostaria que suas imagens fossem armazenadas.\nO padrão é preenchido automaticamente.",
+        "data": {
+          "storage": "Diretório para armazenar imagens"
+        }
+      },
+      "options_forwarded_emails": {
+        "title": "Definições de e-mails reencaminhados",
+        "description": "Escolha como fazer a correspondência dos e-mails reencaminhados.\n\n**Opção 1 — Cabeçalho de reencaminhamento**: Se o seu serviço (ex. SimpleLogin) inclui o remetente original num cabeçalho personalizado, introduza esse nome de cabeçalho. O Mail and Packages irá utilizá-lo para fazer a correspondência automática dos endereços das transportadoras.\n\n**Opção 2 — Lista de endereços**: Introduza os endereços de reencaminhamento que o seu serviço atribuiu a cada transportadora, separados por vírgulas.",
+        "data": {
+          "forwarding_header": "Cabeçalho de reencaminhamento (ex. X-SimpleLogin-Original-From)",
+          "forwarded_emails": "Endereços de email encaminhados"
+        },
+        "data_description": {
+          "forwarding_header": "Se o seu serviço de reencaminhamento inclui o remetente original num cabeçalho, introduza aqui o nome do cabeçalho. Isto tem prioridade sobre a lista de endereços abaixo. Introduza '(none)' ou deixe em branco para usar a lista de endereços.",
+          "forwarded_emails": "Lista separada por vírgulas dos endereços de reencaminhamento de onde chegarão as mensagens. Deixe '(none)' se estiver a usar o cabeçalho de reencaminhamento acima."
         }
       }
     }

@@ -2,7 +2,8 @@
   "config": {
     "abort": {
       "single_instance_allowed": "Une seule configuration de Mail et Packages est autorisée.",
-      "reconfigure_successful": "Reconfiguration réussie"
+      "reconfigure_successful": "Reconfiguration réussie",
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
     },
     "error": {
       "cannot_connect": "Impossible de se connecter ou de se connecter au serveur de messagerie. Veuillez consulter le journal pour plus de détails.",
@@ -211,6 +212,74 @@
             "title": "Ré-authentifier le serveur de messagerie",
             "description": "L'authentification sur votre serveur de messagerie IMAP a échoué. Cliquez sur soumettre pour démarrer le flux de ré-authentification."
           }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Courrier et colis (étape 2 sur 2)",
+        "description": "Terminez la configuration en personnalisant ce qui suit en fonction de la structure de votre courrier électronique et de l'installation de Home Assistant.\n\nPour plus de détails sur les options d'[intégration de courrier et de colis](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration), consultez la [section configuration, modèles et automatisations](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) sur GitHub.\n\nSi vous utilisez des courriels transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.",
+        "data": {
+          "folder": "Dossier de messagerie",
+          "resources": "Liste des capteurs",
+          "scan_interval": "Intervalle de numérisation (minutes)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)",
+          "image_path": "Chemin de l'image",
+          "gif_duration": "Durée de l'image (secondes)",
+          "image_security": "Nom de fichier d'image aléatoire",
+          "imap_timeout": "Temps en secondes avant la fin de la connexion (secondes, minimum 10)",
+          "generate_mp4": "Créer mp4 à partir d'images",
+          "allow_external": "Créer une image pour les applications de notification",
+          "usps_placeholder": "Inclure l'image d'emplacement sans image USPS dans le GIF ?",
+          "custom_img": "Utiliser une image personnalisée USPS 'pas de courrier' ?",
+          "amazon_custom_img": "Utiliser une image personnalisée Amazon 'pas de livraison' ?",
+          "ups_custom_img": "Utiliser une image personnalisée UPS 'pas de livraison' ?",
+          "walmart_custom_img": "Utiliser une image personnalisée Walmart 'pas de livraison' ?",
+          "fedex_custom_img": "Utiliser une image personnalisée FedEx 'pas de livraison' ?",
+          "generic_custom_img": "Utiliser une image personnalisée générique 'pas de livraison' ?",
+          "generate_grid": "Créer une grille d'images pour les modèles de vision LLM",
+          "allow_forwarded_emails": "Autoriser les e-mails transférés en plus de la valeur par défaut d'un service (par ex. no-reply@usps.com)"
+        }
+      },
+      "options_3": {
+        "title": "Courrier et colis (Étape 3 sur 3)",
+        "description": "Entrez le chemin et le nom de fichier de votre image personnalisée de non-réception de courrier ci-dessous.\n\nExemple : images/custom_nomail.gif",
+        "data": {
+          "custom_img_file": "Chemin vers l'image personnalisée : (par exemple : images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
+        }
+      },
+      "options_amazon": {
+        "title": "Paramètres Amazon",
+        "description": "Veuillez entrer le domaine à partir duquel Amazon envoie des emails (par exemple : amazon.com ou amazon.de)\n\nSi vous utilisez des emails transférés par Amazon, veuillez séparer chaque adresse par une virgule ou entrer (aucun) pour effacer ce paramètre.\n\nRemarque : si vous avez configuré un en-tête de transfert dans l'étape précédente, le champ d'adresse de transfert n'apparaîtra pas — l'en-tête gère automatiquement la correspondance des e-mails Amazon.",
+        "data": {
+          "amazon_domain": "Domaine Amazon",
+          "amazon_fwds": "Amazon a transmis des adresses e-mail",
+          "amazon_days": "Jours en arrière pour vérifier les emails Amazon"
+        }
+      },
+      "options_storage": {
+        "title": "Emplacement de stockage des images",
+        "description": "Veuillez entrer le répertoire dans lequel vous souhaitez que vos images soient stockées.\nLa valeur par défaut est automatiquement remplie.",
+        "data": {
+          "storage": "Répertoire pour stocker les images"
+        }
+      },
+      "options_forwarded_emails": {
+        "title": "Paramètres des e-mails transférés",
+        "description": "Choisissez comment faire correspondre les e-mails transférés.\n\n**Option 1 — En-tête de transfert** : Si votre service (ex. SimpleLogin) inclut l'expéditeur original dans un en-tête personnalisé, entrez ce nom d'en-tête. Mail and Packages l'utilisera pour faire correspondre automatiquement les adresses des transporteurs.\n\n**Option 2 — Liste d'adresses** : Entrez les adresses de transfert que votre service a attribuées à chaque transporteur, séparées par des virgules.",
+        "data": {
+          "forwarding_header": "En-tête de transfert (ex. X-SimpleLogin-Original-From)",
+          "forwarded_emails": "Adresses e-mail transférées"
+        },
+        "data_description": {
+          "forwarding_header": "Si votre service de transfert inclut l'expéditeur original dans un en-tête, entrez le nom de l'en-tête ici. Cela a la priorité sur la liste d'adresses ci-dessous. Entrez '(none)' ou laissez vide pour utiliser la liste d'adresses à la place.",
+          "forwarded_emails": "Liste séparée par des virgules des adresses de transfert dont proviendront les messages. Laissez '(none)' si vous utilisez l'en-tête de transfert ci-dessus."
         }
       }
     }
