@@ -45,9 +45,7 @@ async def test_ups_delivered_class(hass, mock_imap_ups_delivered):
         },
     )
 
-    with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
-    ):
+    with (patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),):
         result = await shipper.process(
             mock_imap_ups_delivered,
             "today",
@@ -147,9 +145,7 @@ async def test_usps_delivered_class(hass, mock_imap_usps_delivered_individual):
         },
     )
 
-    with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
-    ):
+    with (patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),):
         result = await shipper.process(
             mock_imap_usps_delivered_individual,
             "today",
@@ -169,9 +165,7 @@ async def test_usps_exception_class(hass, mock_imap_usps_exception):
         },
     )
 
-    with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
-    ):
+    with (patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),):
         result = await shipper.process(
             mock_imap_usps_exception,
             "today",
@@ -1357,6 +1351,34 @@ async def test_etsy_on_the_way_class(hass, mock_imap_etsy_on_the_way):
     assert result[ATTR_TRACKING] == ["3869977574"]
 
 
+@pytest.mark.asyncio
+async def test_shopify_on_the_way_class(hass, mock_imap_shopify_on_the_way):
+    """Test standard Shopify on-the-way email parsing via GenericShipper."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_shopify_on_the_way,
+        "today",
+        "shopify_packages",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["MC1605"]
+
+
+@pytest.mark.asyncio
+async def test_shopify_delivered_class(hass, mock_imap_shopify_delivered):
+    """Test standard Shopify delivered email parsing via GenericShipper."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_shopify_delivered,
+        "today",
+        "shopify_delivered",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["53495"]
+
+
 @pytest.mark.parametrize(
     ("subject", "expected_sensor"),
     [
@@ -1522,6 +1544,36 @@ def test_etsy_subject_patterns(subject, expected_sensor):
     matched = [
         sensor
         for sensor in ("etsy_delivered", "etsy_delivering")
+        if any(
+            expected.lower() in subject.lower()
+            for expected in SENSOR_DATA[sensor][ATTR_SUBJECT]
+        )
+    ]
+    if expected_sensor is None:
+        assert matched == []
+    else:
+        assert matched == [expected_sensor]
+
+
+@pytest.mark.parametrize(
+    ("subject", "expected_sensor"),
+    [
+        ("A shipment from order MC1605 is on the way", "shopify_packages"),
+        ("A shipment from order #24498 is on the way", "shopify_packages"),
+        ("A shipment from order BAK(2)-563319 is on the way", "shopify_packages"),
+        ("A shipment from order MC1605 is out for delivery", "shopify_delivering"),
+        ("A shipment from order #53495 has been delivered", "shopify_delivered"),
+        # Non-shipping mail from Shopify's shared senders must not match
+        ("Order #77220 confirmed", None),
+        ("Your GreenPan cart? Saved ✅ over on Shop.", None),
+        ("Customer account confirmation", None),
+    ],
+)
+def test_shopify_subject_patterns(subject, expected_sensor):
+    """Each standard Shopify template subject maps to exactly one sensor."""
+    matched = [
+        sensor
+        for sensor in ("shopify_delivered", "shopify_delivering", "shopify_packages")
         if any(
             expected.lower() in subject.lower()
             for expected in SENSOR_DATA[sensor][ATTR_SUBJECT]
@@ -1766,3 +1818,20 @@ async def test_collect_carrier_tracking_with_cache_and_empty_tracking(hass):
 
     assert res == {"etsy_carrier_tracking": {"3869977574": "9999888877776666"}}
     mock_cache.fetch.assert_called_once_with(b"2", "(RFC822)")
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("A shipment from order #53495 has been delivered", "53495"),
+        ("A shipment from order MC1605 is on the way", "MC1605"),
+        ("A shipment from order BAK(2)-563319 is on the way", "BAK(2)-563319"),
+        ("A shipment from order PP3024 is on the way", "PP3024"),
+    ],
+)
+def test_shopify_tracking_pattern(text, expected):
+    """The Shopify tracking pattern extracts the order id from the subject."""
+    pattern = SENSOR_DATA["shopify_tracking"]["pattern"][0]
+    match = re.search(pattern, text)
+    assert match is not None
+    assert match.group(1) == expected
