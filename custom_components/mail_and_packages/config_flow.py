@@ -359,7 +359,16 @@ async def _get_mailboxes(
         )
 
     except (TimeoutError, AioImapException, ConnectionRefusedError, InvalidAuth) as err:
-        _LOGGER.error("Unable to connect: %s", err)
+        _LOGGER.error(
+            "Unable to connect: %s (IMAP server %s:%s as %s, security: %s, oauth: %s, class: %s)",
+            err,
+            host,
+            port,
+            user,
+            security,
+            oauth_token is not None,
+            type(err).__name__,
+        )
         return []
 
     _LOGGER.debug("Attempting to get mailbox list...")

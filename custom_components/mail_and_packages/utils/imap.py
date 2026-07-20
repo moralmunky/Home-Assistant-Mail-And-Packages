@@ -178,7 +178,13 @@ async def login(
     if account.protocol.state == NONAUTH:
         try:
             if oauth_token:
-                await account.xoauth2(user, oauth_token)
+                res = await account.xoauth2(user, oauth_token)
+                if account.protocol.state not in {AUTH, SELECTED}:
+                    _LOGGER.error(
+                        "OAuth login failed. Result: %s, Lines: %s",
+                        getattr(res, "result", None),
+                        getattr(res, "lines", None),
+                    )
             else:
                 await account.login(user, pwd)
         except TimeoutError:
@@ -188,7 +194,9 @@ async def login(
             raise InvalidAuth from err
 
     if account.protocol.state not in {AUTH, SELECTED}:
-        _LOGGER.error("Error logging in to IMAP Server")
+        _LOGGER.error(
+            "Error logging in to IMAP Server. State: %s", account.protocol.state
+        )
         raise InvalidAuth
     return account
 
