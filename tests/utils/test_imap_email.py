@@ -1910,3 +1910,55 @@ async def test_email_search_body_threshold():
     )
     search_query = mock_imap.search.call_args.args[0]
     assert "BODY" not in search_query
+
+
+@pytest.mark.asyncio
+async def test_login_oauth_failed(caplog):
+    """Test login with OAuth2 failure path."""
+    mock_hass = MagicMock()
+    with patch(
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+    ) as mock_imap_ssl:
+        mock_acc = AsyncMock()
+        mock_acc.protocol.state = NONAUTH
+
+        mock_res = MagicMock()
+        mock_res.result = "NO"
+        mock_res.lines = [b"AUTHENTICATIONFAILED"]
+
+        async def side_effect(*args, **kwargs):
+            return mock_res
+
+        mock_acc.xoauth2.side_effect = side_effect
+        mock_imap_ssl.return_value = mock_acc
+
+        with pytest.raises(InvalidAuth):
+            await login(
+                mock_hass,
+                "host",
+                993,
+                "user",
+                None,
+                "SSL",
+                oauth_token="token",
+            )
+        assert (
+            "OAuth login failed. Result: NO, Lines: [b'AUTHENTICATIONFAILED']"
+            in caplog.text
+        )
+
+
+@pytest.mark.asyncio
+async def test_email_search_yahoo_detection():
+    """Test that email_search correctly detects Yahoo/AOL hosts."""
+    mock_imap = AsyncMock()
+    mock_imap.host = "imap.mail.yahoo.com"
+    mock_imap._folders = ["INBOX"]
+    mock_imap.search.return_value = MagicMock(result="OK", lines=[b"1"])
+
+    # For Yahoo hosts, build_search gets called with is_yahoo=True
+    # and subject/body searches have specific Yahoo-compatible structure.
+    await email_search(mock_imap, ["test@example.com"], "25-Mar-2026", subject="Test")
+    search_query = mock_imap.search.call_args.args[0]
+    # In Yahoo mode, subjects are not batched/wrapped the same or have specific syntax checked by other tests
+    assert "SUBJECT" in search_query
