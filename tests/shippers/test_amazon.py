@@ -4,6 +4,7 @@ import datetime
 import re
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -15,6 +16,7 @@ from custom_components.mail_and_packages.const import (
     AMAZON_HUB,
     AMAZON_HUB_CODE,
     AMAZON_ORDER,
+    AMAZON_ORDER_DETAILS,
     AMAZON_OTP,
     AMAZON_OTP_CODE,
     AMAZON_PACKAGES,
@@ -1377,3 +1379,51 @@ async def test_amazon_hub_and_otp_domain(hass):
             mock_search.call_args.kwargs.get("address") or mock_search.call_args.args[1]
         )
         assert "order-update@amazon.fr" in search_addresses
+
+
+@pytest.mark.asyncio
+async def test_amazon_packages_order_details(hass):
+    """AMAZON_PACKAGES processing exposes item name and image per order."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_account.host = "imap.gmail.com"
+
+    raw = await hass.async_add_executor_job(
+        Path("tests/test_emails/amazon_shipped_details.eml").read_bytes
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [bytearray(raw)]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            return_value=datetime.date(2026, 7, 15),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.get_today",
+            return_value=datetime.date(2026, 7, 15),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", AMAZON_PACKAGES)
+
+    # Shipped Wed Jul 15, arriving Mon Jul 20 -> not arriving today
+    assert result[AMAZON_PACKAGES] == 0
+    assert result[AMAZON_ORDER] == ["702-4925201-8953856"]
+    details = result[AMAZON_ORDER_DETAILS]
+    assert details["702-4925201-8953856"]["name"].startswith("OLSA Giant Tumble Tower")
+    assert details["702-4925201-8953856"]["image"].startswith(
+        "https://m.media-amazon.com/images/I/"
+    )

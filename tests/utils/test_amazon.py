@@ -1,6 +1,7 @@
 """Tests for Amazon utility functions."""
 
 import email
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiohttp
@@ -12,6 +13,7 @@ from custom_components.mail_and_packages.utils.amazon import (
     amazon_date_search,
     amazon_email_addresses,
     download_amazon_img,
+    extract_amazon_order_details,
     extract_order_numbers,
     filter_amazon_strings,
     get_amazon_image_urls,
@@ -586,3 +588,23 @@ def test_amazon_date_regex_fr():
     assert amazon_date_regex("Livraison prévue : 17 août") == "17 août"
     assert amazon_date_regex("Arrivée prévue demain") == "demain"
     assert amazon_date_regex("Arrivée prévue aujourd'hui") == "aujourd'hui"
+
+
+def test_extract_amazon_order_details():
+    """Item names and product image are extracted from a shipping email."""
+    raw = Path("tests/test_emails/amazon_shipped_details.eml").read_bytes()
+    msg = email.message_from_bytes(raw)
+    body = get_email_body(msg)
+    subject = "Shipped: “OLSA Giant Tumble Tower,...”"
+
+    details = extract_amazon_order_details(subject, body, msg)
+    assert details is not None
+    assert details["name"].startswith("OLSA Giant Tumble Tower, Toppling Timber")
+    assert details["image"].startswith("https://m.media-amazon.com/images/I/")
+
+    # Subject fallback when the body has no item lines
+    fallback = extract_amazon_order_details(subject, "", None)
+    assert fallback == {"name": "OLSA Giant Tumble Tower,..."}
+
+    # Nothing extractable
+    assert extract_amazon_order_details("Delivery update", "", None) is None
