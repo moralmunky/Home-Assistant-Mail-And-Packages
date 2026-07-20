@@ -493,6 +493,7 @@ async def _get_schema_step_2(
     user_input: list,
     default_dict: list,
     hass: HomeAssistant,
+    entry: config_entries.ConfigEntry | None = None,
 ) -> Any:
     """Get a schema using the default_dict as a backup."""
     if user_input is None:
@@ -502,6 +503,31 @@ async def _get_schema_step_2(
         """Get default value for key."""
         return user_input.get(key, default_dict.get(key, fallback_default))
 
+    oauth_token = None
+    if entry:
+        try:
+            implementation = (
+                await config_entry_oauth2_flow.async_get_config_entry_implementation(
+                    hass,
+                    entry,
+                )
+            )
+            session = config_entry_oauth2_flow.OAuth2Session(
+                hass,
+                entry,
+                implementation,
+            )
+            await session.async_ensure_token_valid()
+            oauth_token = session.token.get("access_token")
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.error("Error refreshing OAuth token: %s", err)
+
+    if not oauth_token:
+        if "token" in data and isinstance(data["token"], dict):
+            oauth_token = data["token"].get("access_token")
+        else:
+            oauth_token = data.get("access_token")
+
     mailboxes = await _get_mailboxes(
         hass,
         data[CONF_HOST],
@@ -510,7 +536,7 @@ async def _get_schema_step_2(
         data.get(CONF_PASSWORD, ""),
         data[CONF_IMAP_SECURITY],
         data[CONF_VERIFY_SSL],
-        data.get("token", {}).get("access_token"),
+        oauth_token,
     )
 
     default_folder = _get_default(CONF_FOLDER)
@@ -1071,6 +1097,7 @@ class MailAndPackagesFlowHandler(
                 user_input,
                 defaults,
                 self.hass,
+                getattr(self, "_entry", None),
             ),
             errors=self._errors,
         )
@@ -1348,7 +1375,7 @@ class MailAndPackagesOptionsFlow(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="init",
             data_schema=await _get_schema_step_2(
-                self._data, user_input, self._data, self.hass
+                self._data, user_input, self._data, self.hass, self._entry
             ),
             errors=self._errors,
         )

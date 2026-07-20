@@ -8001,3 +8001,87 @@ async def test_options_flow_init_reads_merged_data_and_options(hass, integration
     handler = MailAndPackagesOptionsFlow(entry)
     # _data must contain CONF_FOLDER from options, not just IMAP keys from data
     assert handler._data.get(CONF_FOLDER) == "TestFolder"
+
+
+@pytest.mark.asyncio
+async def test_get_schema_step_2_oauth_token_sources(hass):
+    """Test that _get_schema_step_2 extracts oauth token from various sources correctly."""
+    # Mock _get_mailboxes to inspect the token argument
+    with patch(
+        "custom_components.mail_and_packages.config_flow._get_mailboxes",
+        AsyncMock(return_value=["INBOX"]),
+    ) as mock_get_mailboxes:
+        # Case 1: Flat token (e.g. from initial config flow)
+        data = {
+            "host": "imap.test.email",
+            "port": 993,
+            "username": "test@test.email",
+            "imap_security": "SSL",
+            "verify_ssl": True,
+            "access_token": "flat_access_token",
+        }
+        await _get_schema_step_2(data, None, {}, hass)
+        mock_get_mailboxes.assert_called_with(
+            hass,
+            "imap.test.email",
+            993,
+            "test@test.email",
+            "",
+            "SSL",
+            True,
+            "flat_access_token",
+        )
+
+        mock_get_mailboxes.reset_mock()
+
+        # Case 2: Nested token (e.g. stored in config entry data)
+        data = {
+            "host": "imap.test.email",
+            "port": 993,
+            "username": "test@test.email",
+            "imap_security": "SSL",
+            "verify_ssl": True,
+            "token": {"access_token": "nested_access_token"},
+        }
+        await _get_schema_step_2(data, None, {}, hass)
+        mock_get_mailboxes.assert_called_with(
+            hass,
+            "imap.test.email",
+            993,
+            "test@test.email",
+            "",
+            "SSL",
+            True,
+            "nested_access_token",
+        )
+
+        mock_get_mailboxes.reset_mock()
+
+        # Case 3: Token refresh from ConfigEntry (e.g. in OptionsFlow)
+        mock_entry = MagicMock()
+        mock_session = MagicMock()
+        mock_session.async_ensure_token_valid = AsyncMock()
+        mock_session.token = {"access_token": "refreshed_access_token"}
+
+        with (
+            patch(
+                "homeassistant.helpers.config_entry_oauth2_flow.async_get_config_entry_implementation",
+                AsyncMock(),
+            ),
+            patch(
+                "homeassistant.helpers.config_entry_oauth2_flow.OAuth2Session",
+                return_value=mock_session,
+            ),
+        ):
+            await _get_schema_step_2(data, None, {}, hass, entry=mock_entry)
+            mock_session.async_ensure_token_valid.assert_called_once()
+            mock_get_mailboxes.assert_called_with(
+                hass,
+                "imap.test.email",
+                993,
+                "test@test.email",
+                "",
+                "SSL",
+                True,
+                "refreshed_access_token",
+            )
