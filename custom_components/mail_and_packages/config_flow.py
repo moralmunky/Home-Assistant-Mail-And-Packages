@@ -361,7 +361,7 @@ async def _get_mailboxes(
     except (TimeoutError, AioImapException, ConnectionRefusedError, InvalidAuth) as err:
         _LOGGER.error(
             "Unable to connect: %s (IMAP server %s:%s as %s, security: %s, oauth: %s, class: %s)",
-            err,
+            err if str(err) else "Authentication failed or timed out",
             host,
             port,
             user,

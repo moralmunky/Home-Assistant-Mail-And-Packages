@@ -178,13 +178,25 @@ async def login(
     if account.protocol.state == NONAUTH:
         try:
             if oauth_token:
-                res = await account.xoauth2(user, oauth_token)
-                if account.protocol.state not in {AUTH, SELECTED}:
-                    _LOGGER.error(
-                        "OAuth login failed. Result: %s, Lines: %s",
-                        getattr(res, "result", None),
-                        getattr(res, "lines", None),
+                try:
+                    res = await asyncio.wait_for(
+                        account.xoauth2(user, oauth_token),
+                        timeout=min(timeout, 15.0),
                     )
+                    if account.protocol.state not in {AUTH, SELECTED}:
+                        _LOGGER.error(
+                            "OAuth login failed. Result: %s, Lines: %s",
+                            getattr(res, "result", None),
+                            getattr(res, "lines", None),
+                        )
+                except TimeoutError as err:
+                    _LOGGER.error(
+                        "OAuth authentication timed out for %s. This typically indicates invalid OAuth credentials, missing 'https://mail.google.com/' scope, or a mismatched email address.",
+                        user,
+                    )
+                    raise InvalidAuth(
+                        "OAuth authentication timed out or failed"
+                    ) from err
             else:
                 await account.login(user, pwd)
         except TimeoutError:
