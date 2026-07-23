@@ -44,6 +44,8 @@ _MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
 DOMAIN_LANG_MAP = {
     "amazon.de": [
         "versandbestaetigung",
+        "shipment-tracking",
+        "order-update",
         "Geliefert:",
         "Zugestellt:",
         "Versandt:",
@@ -251,7 +253,11 @@ def amazon_email_addresses(
     if not domains:
         domains = ["amazon.com"]
 
-    # Use both AMAZON_EMAIL and AMAZON_SHIPMENT_TRACKING for prefixes
+    # Use both AMAZON_EMAIL and AMAZON_SHIPMENT_TRACKING for prefixes.
+    # Do NOT language-filter address prefixes: amazon.de OFD mails come from
+    # shipment-tracking@amazon.de (English local-part), while shipped mails use
+    # versandbestaetigung@amazon.de. Filtering prefixes via DOMAIN_LANG_MAP drops
+    # shipment-tracking@ for amazon.de and misses "In Zustellung" emails.
     base_prefixes = list(AMAZON_EMAIL)
     for p in AMAZON_SHIPMENT_TRACKING:
         if f"{p}@" not in base_prefixes:
@@ -259,16 +265,14 @@ def amazon_email_addresses(
 
     value: list[str] = []
     for dom in domains:
-        prefixes = filter_amazon_strings(base_prefixes, dom)
-        value.extend(f"{e}{dom}" for e in prefixes)
+        value.extend(f"{prefix}{dom}" for prefix in base_prefixes)
     if fwds:
         for fwd in fwds:
             if "@" in fwd:
                 value.append(fwd)
             elif any(f in fwd for f in AMAZON_DOMAINS):
                 for dom in domains:
-                    prefixes = filter_amazon_strings(base_prefixes, dom)
-                    value.extend(f"{e}{fwd}" for e in prefixes)
+                    value.extend(f"{prefix}{fwd}" for prefix in base_prefixes)
     return list(dict.fromkeys(value))
 
 

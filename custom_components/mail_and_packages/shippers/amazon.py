@@ -309,19 +309,24 @@ class AmazonShipper(Shipper):
         parsed_arrival = None
         if body:
             parsed_arrival = await parse_amazon_arrival_date(self.hass, body, date)
-            if parsed_arrival == ctx["today"]:
-                if order_id:
-                    ctx["packages_arriving_today"][order_id] = (
-                        ctx["packages_arriving_today"].get(order_id, 0) + 1
-                    )
-                else:
-                    ctx["deliveries_today"].append("Amazon Order")
+
+        # OFD emails received today imply delivery today, even if the body
+        # time-window parsing fails (e.g. "Zustellung heute 15:15 - 17:15").
+        if is_delivering and date == ctx["today"] and parsed_arrival is None:
+            parsed_arrival = ctx["today"]
+
+        if parsed_arrival == ctx["today"]:
+            if order_id:
+                ctx["packages_arriving_today"][order_id] = (
+                    ctx["packages_arriving_today"].get(order_id, 0) + 1
+                )
+            else:
+                ctx["deliveries_today"].append("Amazon Order")
 
         # Out-for-delivery emails count as delivering when arriving today,
-        # or when no arrival date was parsed but the email itself is from today.
+        # or when the OFD email itself arrived today.
         if is_delivering and (
-            parsed_arrival == ctx["today"]
-            or (parsed_arrival is None and date == ctx["today"])
+            parsed_arrival == ctx["today"] or date == ctx["today"]
         ):
             if order_id:
                 ctx["packages_delivering_today"][order_id] = (
