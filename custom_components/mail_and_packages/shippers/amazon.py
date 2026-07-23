@@ -119,10 +119,13 @@ class AmazonShipper(Shipper):
             }
 
         if sensor_type == AMAZON_DELIVERING:
-            count = await self._parse_amazon_emails(
+            count, orders = await self._parse_amazon_emails(
                 account, "delivering", fwds, days, domain, cache, forwarding_header
             )
-            return {AMAZON_DELIVERING: count}
+            return {
+                AMAZON_DELIVERING: count,
+                "amazon_delivering_order": orders,
+            }
 
         if sensor_type == AMAZON_ORDER:
             result = await self._parse_amazon_emails(
@@ -217,7 +220,8 @@ class AmazonShipper(Shipper):
             await self._process_amazon_email(account, email_id, context, cache)
 
         if param == "delivering":
-            return self._calculate_delivering_count(context)
+            orders = list(context["packages_delivering_today"].keys())
+            return self._calculate_delivering_count(context), orders
 
         final_count = self._calculate_final_count(context)
 

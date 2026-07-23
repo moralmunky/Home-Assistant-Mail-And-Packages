@@ -20,6 +20,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import MailAndPackagesConfigEntry
 from .const import (
+    AMAZON_DELIVERING,
     AMAZON_EXCEPTION,
     AMAZON_EXCEPTION_ORDER,
     AMAZON_HUB,
@@ -178,6 +179,9 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
         """Add Amazon specific attributes to the sensor."""
         if self.type == AMAZON_EXCEPTION:
             if order := data.get(AMAZON_EXCEPTION_ORDER, data.get(ATTR_ORDER)):
+                attr[ATTR_ORDER] = order
+        elif self.type == AMAZON_DELIVERING:
+            if order := data.get("amazon_delivering_order"):
                 attr[ATTR_ORDER] = order
         elif order := data.get(AMAZON_ORDER):
             attr[ATTR_ORDER] = order
