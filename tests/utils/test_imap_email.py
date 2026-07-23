@@ -1962,3 +1962,28 @@ async def test_email_search_yahoo_detection():
     search_query = mock_imap.search.call_args.args[0]
     # In Yahoo mode, subjects are not batched/wrapped the same or have specific syntax checked by other tests
     assert "SUBJECT" in search_query
+
+
+@pytest.mark.asyncio
+async def test_login_oauth_timeout(caplog):
+    """Test login with OAuth2 timeout path."""
+    mock_hass = MagicMock()
+    with patch(
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+    ) as mock_imap_ssl:
+        mock_acc = AsyncMock()
+        mock_acc.protocol.state = NONAUTH
+        mock_acc.xoauth2.side_effect = TimeoutError("Timeout during xoauth2")
+        mock_imap_ssl.return_value = mock_acc
+
+        with pytest.raises(InvalidAuth):
+            await login(
+                mock_hass,
+                "host",
+                993,
+                "user",
+                None,
+                "SSL",
+                oauth_token="token",
+            )
+        assert "OAuth authentication timed out for user" in caplog.text
