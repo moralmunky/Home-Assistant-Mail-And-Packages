@@ -1214,6 +1214,11 @@ async def test_amazon_de_emails(hass):
         assert result[AMAZON_PACKAGES] == 2
         assert result[AMAZON_ORDER] == ["123-4567890-1234567"]
 
+        result_delivering = await shipper.process(
+            mock_account, "today", "amazon_delivering"
+        )
+        assert result_delivering["amazon_delivering"] == 1
+
 
 @pytest.mark.asyncio
 async def test_amazon_de_versendet_ankunft_emails(hass):
@@ -1255,3 +1260,8 @@ async def test_amazon_de_versendet_ankunft_emails(hass):
         result = await shipper.process(mock_account, "today", AMAZON_PACKAGES)
         assert result[AMAZON_PACKAGES] == 1
         assert result[AMAZON_ORDER] == ["303-1873062-3277126"]
+
+        result_delivering = await shipper.process(
+            mock_account, "today", "amazon_delivering"
+        )
+        assert result_delivering["amazon_delivering"] == 0
