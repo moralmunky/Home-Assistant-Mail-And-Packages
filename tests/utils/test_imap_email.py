@@ -1960,8 +1960,15 @@ async def test_email_search_yahoo_detection():
     # and subject/body searches have specific Yahoo-compatible structure.
     await email_search(mock_imap, ["test@example.com"], "25-Mar-2026", subject="Test")
     search_query = mock_imap.search.call_args.args[0]
-    # In Yahoo mode, subjects are not batched/wrapped the same or have specific syntax checked by other tests
-    assert "SUBJECT" in search_query
+    # In Yahoo mode, the search query is enclosed in outer parens: (FROM ... SUBJECT ... SINCE ...)
+    assert search_query.startswith("(") and search_query.endswith(")")
+
+    # Non-Yahoo host does NOT enclose the query in outer parens
+    mock_imap.host = "imap.gmail.com"
+    mock_imap.search.reset_mock()
+    await email_search(mock_imap, ["test@example.com"], "25-Mar-2026", subject="Test")
+    non_yahoo_query = mock_imap.search.call_args.args[0]
+    assert not non_yahoo_query.startswith("(")
 
 
 @pytest.mark.asyncio
