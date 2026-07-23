@@ -65,6 +65,19 @@ def test_amazon_email_addresses_str_input():
     assert "order-update@forward.com" not in result
 
 
+def test_amazon_email_addresses_comma_separated_domains():
+    """Comma-separated amazon_domain values should expand into per-domain addresses."""
+    result = amazon_email_addresses(domain="amazon.com,amazon.de")
+    assert "order-update@amazon.com" in result
+    assert "versandbestaetigung@amazon.de" in result
+    assert not any("," in address for address in result)
+
+
+def test_amazon_date_regex_ankunft():
+    """German Ankunft arrival wording should be parsed."""
+    assert amazon_date_regex("Ankunft heute") == "heute"
+
+
 @pytest.mark.asyncio
 async def test_search_amazon_emails_invalid_days():
     """Test search_amazon_emails with invalid days input."""

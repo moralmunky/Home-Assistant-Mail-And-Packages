@@ -47,8 +47,10 @@ DOMAIN_LANG_MAP = {
         "Geliefert:",
         "Zugestellt:",
         "Versandt:",
+        "Versendet:",
         "In Zustellung:",
         "Zustellung:",
+        "Ankunft",
     ],
     "amazon.it": [
         "conferma-spedizione",
@@ -245,22 +247,29 @@ def amazon_email_addresses(
     if domain is None:
         domain = "amazon.com"
 
+    domains = [d.strip() for d in str(domain).split(",") if d.strip()]
+    if not domains:
+        domains = ["amazon.com"]
+
     # Use both AMAZON_EMAIL and AMAZON_SHIPMENT_TRACKING for prefixes
-    prefixes = list(AMAZON_EMAIL)
+    base_prefixes = list(AMAZON_EMAIL)
     for p in AMAZON_SHIPMENT_TRACKING:
-        if f"{p}@" not in prefixes:
-            prefixes.append(f"{p}@")
+        if f"{p}@" not in base_prefixes:
+            base_prefixes.append(f"{p}@")
 
-    prefixes = filter_amazon_strings(prefixes, domain)
-
-    value = [f"{e}{domain}" for e in prefixes]
+    value: list[str] = []
+    for dom in domains:
+        prefixes = filter_amazon_strings(base_prefixes, dom)
+        value.extend(f"{e}{dom}" for e in prefixes)
     if fwds:
         for fwd in fwds:
             if "@" in fwd:
                 value.append(fwd)
             elif any(f in fwd for f in AMAZON_DOMAINS):
-                value.extend(f"{e}{fwd}" for e in prefixes)
-    return value
+                for dom in domains:
+                    prefixes = filter_amazon_strings(base_prefixes, dom)
+                    value.extend(f"{e}{fwd}" for e in prefixes)
+    return list(dict.fromkeys(value))
 
 
 async def search_amazon_emails(
@@ -284,7 +293,14 @@ async def search_amazon_emails(
         AMAZON_DELIVERED_SUBJECT + AMAZON_SHIPMENT_SUBJECT + AMAZON_ORDERED_SUBJECT
     )
     if domain:
-        amazon_subjects = filter_amazon_strings(amazon_subjects, domain)
+        domains = [d.strip() for d in str(domain).split(",") if d.strip()]
+        if len(domains) == 1:
+            amazon_subjects = filter_amazon_strings(amazon_subjects, domains[0])
+        else:
+            filtered: list[str] = []
+            for dom in domains:
+                filtered.extend(filter_amazon_strings(amazon_subjects, dom))
+            amazon_subjects = list(dict.fromkeys(filtered))
 
     (server_response, sdata) = await email_search(
         account=account,

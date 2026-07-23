@@ -178,6 +178,7 @@ AMAZON_SHIPMENT_SUBJECT = [
     "Out for delivery:",
     "Spedito:",
     "Versandt:",
+    "Versendet:",
     "In Zustellung:",
 ]
 AMAZON_ORDERED_SUBJECT = ["Ordered:", "Pedido efetuado:"]
@@ -226,6 +227,7 @@ AMAZON_TIME_PATTERN = [
     "Votre date de livraison prévue est :",
     "In arrivo",
     "Zustellung:",
+    "Ankunft",
 ]
 AMAZON_TIME_PATTERN_END = [
     "Previously expected:",
@@ -251,6 +253,10 @@ AMAZON_TIME_PATTERN_REGEX = [
     "Zustellung:? (\\w+ \\d+)",
     "Zustellung:? (\\w+ ?\\d*)",
     "Zustellung:? (\\w+)",
+    "Ankunft:? (\\w+ \\d+) - (\\w+ \\d+)",
+    "Ankunft:? (\\w+ \\d+)",
+    "Ankunft:? (\\w+ ?\\d*)",
+    "Ankunft:? (\\w+)",
     "Arriverà (\\w+ \\d+) - (\\w+ \\d+)",
     "Arriverà (\\w+ \\d+)",
     "Arriverà (\\w+ \\d*)",

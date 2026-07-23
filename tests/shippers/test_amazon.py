@@ -1213,3 +1213,45 @@ async def test_amazon_de_emails(hass):
         result = await shipper.process(mock_account, "today", AMAZON_PACKAGES)
         assert result[AMAZON_PACKAGES] == 2
         assert result[AMAZON_ORDER] == ["123-4567890-1234567"]
+
+
+@pytest.mark.asyncio
+async def test_amazon_de_versendet_ankunft_emails(hass):
+    """Test amazon.de emails using Versendet subject and Ankunft arrival wording."""
+    shipper = AmazonShipper(
+        hass,
+        {
+            "amazon_fwds": "",
+            "amazon_domain": "amazon.de",
+        },
+    )
+    mock_account = AsyncMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            return_value=datetime.date(2026, 7, 22),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            new_callable=AsyncMock,
+        ) as mock_fetch,
+    ):
+        content = (
+            b"Subject: =?utf-8?Q?Versendet:_=E2=80=9EHASKYY_Goldband=E2=80=9C?=\n"
+            b"Date: Wed, 22 Jul 2026 03:19:00 +0200\n"
+            b"Content-Type: text/plain; charset=utf-8\n\n"
+            b"Dein Paket wurde versendet!\n"
+            b"Ankunft heute\n"
+            b"Order: 303-1873062-3277126"
+        )
+        mock_fetch.return_value = ("OK", [b"RFC822", content])
+
+        result = await shipper.process(mock_account, "today", AMAZON_PACKAGES)
+        assert result[AMAZON_PACKAGES] == 1
+        assert result[AMAZON_ORDER] == ["303-1873062-3277126"]
