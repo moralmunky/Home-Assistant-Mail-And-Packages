@@ -794,7 +794,10 @@ SENSOR_DATA = {
     },
     "purolator_delivering": {
         "email": ["NotificationService@purolator.com"],
-        "subject": ["Purolator - Your shipment is out for delivery"],
+        "subject": [
+            "Purolator - Your shipment is out for delivery",
+            "Purolator - Your shipment is on its way",
+        ],
     },
     "purolator_packages": {
         "email": ["NotificationService@purolator.com"],

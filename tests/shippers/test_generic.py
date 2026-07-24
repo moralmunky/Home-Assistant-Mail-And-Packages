@@ -1210,3 +1210,37 @@ async def test_intelcom_dragonfly_delivering(hass):
         result = await shipper.process(mock_account, "today", "intelcom_delivering")
         assert result[ATTR_COUNT] == 1
         assert result[ATTR_TRACKING] == ["INTLCMI19292929"]
+
+
+@pytest.mark.asyncio
+async def test_purolator_delivering_alternate_subject(hass):
+    """Test Purolator delivering email parsing with alternate subject line."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    mock_account = AsyncMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch.object(
+            shipper,
+            "_verify_matched_subjects",
+            new_callable=AsyncMock,
+            return_value=[b"1"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.find_text_matches",
+            new_callable=AsyncMock,
+            return_value=(1, [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            new_callable=AsyncMock,
+            return_value=["BVH001683614"],
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "purolator_delivering")
+        assert result[ATTR_COUNT] == 1
+        assert result[ATTR_TRACKING] == ["BVH001683614"]
