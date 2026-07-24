@@ -147,6 +147,7 @@ AMAZON_DOMAINS = [
     "amazon.fr",
     "amazon.ae",
     "amazon.nl",
+    "amazon.se",
 ]
 AMAZON_DELIVERED_SUBJECT = [
     "Delivered: ",
@@ -1088,6 +1089,89 @@ SENSOR_DATA = {
     },
     "bolcom_packages": {},
     "bolcom_tracking": {"pattern": ["3S[A-Z0-9]{10,18}", "JJD\\d{14,25}", "\\d{14}"]},
+    # PostNord (Sweden)
+    "postnord_delivered": {
+        "email": [
+            "no-reply@postnord.com",
+            "avisering@postnord.se",
+        ],
+        "subject": [
+            "finns att hämta",
+            "finns att hamta",
+            "har levererats",
+            "Levererad",
+        ],
+    },
+    "postnord_delivering": {
+        "email": [
+            "no-reply@postnord.com",
+            "avisering@postnord.se",
+        ],
+        "subject": [
+            "Leverans på väg",
+            "Leverans pa vag",
+            "är på väg",
+            "ar pa vag",
+            "på väg till dig",
+            "pa vag till dig",
+        ],
+    },
+    "postnord_packages": {},
+    "postnord_tracking": {"pattern": ["[0-9]{13,18}SE", "SE[0-9]{9}SE"]},
+    # Bring (Sweden/Norway)
+    "bring_delivered": {
+        "email": [
+            "no-reply@bring.com",
+            "notification@bring.com",
+        ],
+        "subject": [
+            "paket att hämta",
+            "paket att hamta",
+            "har levererats",
+        ],
+    },
+    "bring_delivering": {
+        "email": [
+            "no-reply@bring.com",
+            "notification@bring.com",
+        ],
+        "subject": [
+            "sändning är på väg",
+            "sandning ar pa vag",
+            "sändning har skickats",
+            "sandning har skickats",
+            "Paket på väg",
+            "Paket pa vag",
+        ],
+    },
+    "bring_packages": {},
+    "bring_tracking": {"pattern": ["PARCEL[0-9A-Z]{10,20}", "CT[0-9]{9}NO"]},
+    # DB Schenker (Sweden)
+    "db_schenker_delivered": {
+        "email": [
+            "no-reply@dbschenker.com",
+            "no-reply@dsv.com",
+        ],
+        "subject": [
+            "finns nu att hämta",
+            "finns nu att hamta",
+            "har levererats",
+        ],
+    },
+    "db_schenker_delivering": {
+        "email": [
+            "no-reply@dbschenker.com",
+            "no-reply@dsv.com",
+        ],
+        "subject": [
+            "Avisering om paket",
+            "Leveransbesked",
+            "är på väg",
+            "ar pa vag",
+        ],
+    },
+    "db_schenker_packages": {},
+    "db_schenker_tracking": {"pattern": ["\\d{10,16}"]},
 }
 
 # Sensor definitions
@@ -1774,6 +1858,63 @@ CAMERA_EXTRACTION_CONFIG = {
         "image_type": "jpeg",
         "attachment_filename_pattern": "delivery",
     },
+    # PostNord
+    "postnord_delivered": SensorEntityDescription(
+        name="Mail PostNord Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="postnord_delivered",
+    ),
+    "postnord_delivering": SensorEntityDescription(
+        name="Mail PostNord Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="postnord_delivering",
+    ),
+    "postnord_packages": SensorEntityDescription(
+        name="Mail PostNord Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="postnord_packages",
+    ),
+    # Bring
+    "bring_delivered": SensorEntityDescription(
+        name="Mail Bring Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="bring_delivered",
+    ),
+    "bring_delivering": SensorEntityDescription(
+        name="Mail Bring Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="bring_delivering",
+    ),
+    "bring_packages": SensorEntityDescription(
+        name="Mail Bring Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="bring_packages",
+    ),
+    # DB Schenker
+    "db_schenker_delivered": SensorEntityDescription(
+        name="Mail DB Schenker Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="db_schenker_delivered",
+    ),
+    "db_schenker_delivering": SensorEntityDescription(
+        name="Mail DB Schenker Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="db_schenker_delivering",
+    ),
+    "db_schenker_packages": SensorEntityDescription(
+        name="Mail DB Schenker Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="db_schenker_packages",
+    ),
 }
 
 # Sensor Index
@@ -1809,6 +1950,9 @@ SHIPPERS = [
     "poczta_polska",
     "buildinglink",
     "post_de",
+    "postnord",
+    "bring",
+    "db_schenker",
 ]
 
 # Authentication types
