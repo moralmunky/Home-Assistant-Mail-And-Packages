@@ -8085,3 +8085,39 @@ async def test_get_schema_step_2_oauth_token_sources(hass):
                 True,
                 "refreshed_access_token",
             )
+
+
+@pytest.mark.asyncio
+async def test_get_schema_step_2_password_auth_skips_oauth_refresh(hass, caplog):
+    """Password-auth entries must not attempt an OAuth token refresh.
+
+    Regression test: passing an entry without oauth data used to raise
+    KeyError('auth_implementation') inside the refresh attempt, logging
+    "Error refreshing OAuth token" on every options/reconfigure pass.
+    """
+    data = {
+        CONF_HOST: "imap.example.com",
+        "port": 993,
+        "username": "test@example.com",
+        "password": "password",
+        "imap_security": "SSL",
+        "verify_ssl": True,
+        "auth_type": "password",
+    }
+    entry = MockConfigEntry(domain=DOMAIN, data=data)
+    entry.add_to_hass(hass)
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow._get_mailboxes",
+            return_value=["INBOX"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow."
+            "config_entry_oauth2_flow.async_get_config_entry_implementation",
+        ) as mock_get_impl,
+    ):
+        await _get_schema_step_2(data, {}, {}, hass, entry=entry)
+
+    mock_get_impl.assert_not_called()
+    assert "Error refreshing OAuth token" not in caplog.text

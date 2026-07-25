@@ -513,7 +513,11 @@ async def _get_schema_step_2(
         return user_input.get(key, default_dict.get(key, fallback_default))
 
     oauth_token = None
-    if entry:
+    auth_type = data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+    uses_oauth = auth_type in (AUTH_TYPE_OAUTH_MICROSOFT, AUTH_TYPE_OAUTH_GOOGLE) or (
+        "token" in data or "access_token" in data
+    )
+    if entry and uses_oauth:
         try:
             implementation = (
                 await config_entry_oauth2_flow.async_get_config_entry_implementation(
