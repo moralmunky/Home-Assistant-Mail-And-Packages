@@ -45,7 +45,9 @@ async def test_ups_delivered_class(hass, mock_imap_ups_delivered):
         },
     )
 
-    with (patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),):
+    with (
+        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+    ):
         result = await shipper.process(
             mock_imap_ups_delivered,
             "today",
@@ -145,7 +147,9 @@ async def test_usps_delivered_class(hass, mock_imap_usps_delivered_individual):
         },
     )
 
-    with (patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),):
+    with (
+        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+    ):
         result = await shipper.process(
             mock_imap_usps_delivered_individual,
             "today",
@@ -165,7 +169,9 @@ async def test_usps_exception_class(hass, mock_imap_usps_exception):
         },
     )
 
-    with (patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),):
+    with (
+        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+    ):
         result = await shipper.process(
             mock_imap_usps_exception,
             "today",
