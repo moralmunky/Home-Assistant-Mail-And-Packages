@@ -196,6 +196,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             )
             tracking_details = shipper_data.pop("_tracking_details", {})
             data.update(shipper_data)
+            self._dedupe_marketplace_duplicates(data, tracking_details)
             self._apply_tracking_state(data, tracking_details, today_iso)
 
             # Aggregate global transit and delivered sensors
@@ -356,6 +357,61 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 )
 
         return data
+
+    @staticmethod
+    def _dedupe_marketplace_duplicates(
+        data: dict,
+        tracking_details: dict[str, list],
+    ) -> None:
+        """Drop marketplace packages already counted by a carrier shipper.
+
+        Marketplace shippers (see MARKETPLACE_CARRIER_TRACKING) extract the
+        physical carrier's tracking number from their emails. If that number
+        also appears in a carrier shipper's results, the same package would
+        be counted twice; the carrier entry is treated as authoritative and
+        the marketplace entry is removed from counts and tracking lists.
+        Users without carrier notifications enabled are unaffected.
+        """
+        marketplace_prefixes = tuple(const.MARKETPLACE_CARRIER_TRACKING)
+        if not marketplace_prefixes:
+            return
+
+        carrier_numbers = {
+            str(num).upper()
+            for sensor, ids in tracking_details.items()
+            if not sensor.startswith(marketplace_prefixes)
+            for num in ids or []
+        }
+        if not carrier_numbers:
+            for prefix in marketplace_prefixes:
+                data.pop(f"{prefix}_carrier_tracking", None)
+            return
+
+        for prefix in marketplace_prefixes:
+            mapping = data.pop(f"{prefix}_carrier_tracking", None) or {}
+            for marketplace_id, carrier_num in mapping.items():
+                if str(carrier_num).upper() not in carrier_numbers:
+                    continue
+                removed = False
+                for suffix in ("_delivering", "_delivered"):
+                    sensor = f"{prefix}{suffix}"
+                    ids = tracking_details.get(sensor)
+                    if ids and marketplace_id in ids:
+                        ids.remove(marketplace_id)
+                        if isinstance(data.get(sensor), int):
+                            data[sensor] = max(0, data[sensor] - 1)
+                        removed = True
+                        _LOGGER.debug(
+                            "De-duplicated %s package %s (carrier tracking %s "
+                            "already counted by a carrier shipper)",
+                            prefix,
+                            marketplace_id,
+                            carrier_num,
+                        )
+                packages_sensor = f"{prefix}_packages"
+                if removed and not const.SENSOR_DATA.get(packages_sensor):
+                    if isinstance(data.get(packages_sensor), int):
+                        data[packages_sensor] = max(0, data[packages_sensor] - 1)
 
     def _apply_tracking_state(
         self,

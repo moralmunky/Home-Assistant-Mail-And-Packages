@@ -2,6 +2,7 @@
 
 import re
 import threading
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -16,6 +17,7 @@ from custom_components.mail_and_packages.const import (
 from custom_components.mail_and_packages.shippers import generic
 from custom_components.mail_and_packages.shippers.generic import GenericShipper
 from custom_components.mail_and_packages.utils.cache import EmailCache
+from tests.conftest import _generate_fetch_side_effect
 
 
 @pytest.mark.asyncio
@@ -1595,3 +1597,34 @@ def test_etsy_tracking_pattern(text, expected):
     else:
         assert match is not None
         assert match.group(1) == expected
+
+
+@pytest.mark.asyncio
+async def test_etsy_carrier_tracking_extraction(hass, mock_imap):
+    """A carrier tracking number embedded in a marketplace email is mapped."""
+    email_file = Path("tests/test_emails/etsy_on_the_way.eml").read_text(
+        encoding="utf-8",
+    )
+    email_file = email_file.replace(
+        "Track your package for the latest updates.",
+        "Canada Post tracking number: 1234567890123456",
+    )
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = await shipper.process(mock_imap, "today", "etsy_delivering")
+
+    assert result[ATTR_COUNT] == 1
+    assert result["etsy_carrier_tracking"] == {"3869977574": "1234567890123456"}
+
+
+@pytest.mark.asyncio
+async def test_etsy_no_carrier_tracking_is_noop(hass, mock_imap_etsy_on_the_way):
+    """Marketplace emails without a carrier tracking number map nothing."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = await shipper.process(
+        mock_imap_etsy_on_the_way, "today", "etsy_delivering"
+    )
+    assert result[ATTR_COUNT] == 1
+    assert "etsy_carrier_tracking" not in result

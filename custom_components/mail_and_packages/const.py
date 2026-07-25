@@ -2000,6 +2000,16 @@ SENSOR_NAME = 0
 SENSOR_UNIT = 1
 SENSOR_ICON = 2
 
+# Marketplace shippers whose emails embed the physical carrier's tracking
+# number in the body. Used to de-duplicate against carrier shippers: when the
+# extracted number already appears in a carrier shipper's results, the
+# marketplace entry is dropped so the package is only counted once.
+# Regexes are applied case-insensitively to the email text parts; group 1 is
+# the carrier tracking number.
+MARKETPLACE_CARRIER_TRACKING = {
+    "etsy": r"tracking number:?\s*#?([A-Za-z0-9]{8,34})",
+}
+
 # For sensors with delivering and delivered statuses
 SHIPPERS = [
     "aliexpress",
