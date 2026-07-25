@@ -2054,6 +2054,7 @@ SENSOR_ICON = 2
 # the carrier tracking number.
 MARKETPLACE_CARRIER_TRACKING = {
     "etsy": r"tracking number:?\s*#?([A-Za-z0-9]{8,34})",
+    "shopify": r"tracking number:?\s*#?([A-Za-z0-9]{8,34})",
 }
 
 # For sensors with delivering and delivered statuses

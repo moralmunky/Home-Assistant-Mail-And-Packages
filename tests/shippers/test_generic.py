@@ -1841,3 +1841,32 @@ def test_shopify_tracking_pattern(text, expected):
     match = re.search(pattern, text)
     assert match is not None
     assert match.group(1) == expected
+
+
+@pytest.mark.asyncio
+async def test_shopify_carrier_tracking_extraction(hass, mock_imap_shopify_on_the_way):
+    """The carrier tracking number embedded in a Shopify email is mapped."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = await shipper.process(
+        mock_imap_shopify_on_the_way, "today", "shopify_packages"
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result["shopify_carrier_tracking"] == {"MC1605": "9443743716845537"}
+
+
+@pytest.mark.asyncio
+async def test_shopify_no_carrier_tracking_is_noop(hass, mock_imap):
+    """Shopify emails without a carrier tracking number map nothing."""
+    email_file = await hass.async_add_executor_job(
+        Path("tests/test_emails/shopify_on_the_way.eml").read_text
+    )
+    email_file = email_file.replace(
+        "Canada post tracking number: 9443743716845537", "Track your shipment"
+    )
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = await shipper.process(mock_imap, "today", "shopify_packages")
+    assert result[ATTR_COUNT] == 1
+    assert "shopify_carrier_tracking" not in result

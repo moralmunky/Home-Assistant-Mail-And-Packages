@@ -816,8 +816,8 @@ async def test_process_emails_delivered_tracking_reversed_order(hass):
     assert set(data["ups_delivered_tracking"]) == {"UPS_DELIVERED_TODAY"}
 
 
-def test_dedupe_marketplace_duplicates():
-    """Marketplace packages already counted by a carrier shipper are dropped."""
+def test_dedupe_marketplace_duplicates_etsy():
+    """Marketplace packages already counted by a carrier shipper are dropped (Etsy)."""
     data = {
         "etsy_delivering": 2,
         "etsy_delivered": 0,
@@ -843,6 +843,31 @@ def test_dedupe_marketplace_duplicates():
     # carrier side untouched; mapping consumed
     assert data["capost_delivering"] == 1
     assert "etsy_carrier_tracking" not in data
+
+
+def test_dedupe_marketplace_duplicates_shopify():
+    """Marketplace packages already counted by a carrier shipper are dropped (Shopify)."""
+    data = {
+        "shopify_delivering": 2,
+        "shopify_delivered": 0,
+        "shopify_carrier_tracking": {
+            "MC1605": "9443743716845537",
+            "PP3024": "YT2434221266046281",
+        },
+    }
+    tracking_details = {
+        "shopify_delivering": ["MC1605", "PP3024"],
+        "capost_delivering": ["9443743716845537"],
+    }
+
+    MailDataUpdateCoordinator._dedupe_marketplace_duplicates(data, tracking_details)
+
+    # MC1605's carrier number is counted by Canada Post -> dropped
+    assert data["shopify_delivering"] == 1
+    assert tracking_details["shopify_delivering"] == ["PP3024"]
+    # carrier side untouched; mapping consumed
+    assert tracking_details["capost_delivering"] == ["9443743716845537"]
+    assert "shopify_carrier_tracking" not in data
 
 
 def test_dedupe_marketplace_no_carriers_is_noop():
