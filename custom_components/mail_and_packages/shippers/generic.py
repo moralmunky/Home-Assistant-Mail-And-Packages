@@ -46,6 +46,24 @@ from .base import Shipper
 _LOGGER = logging.getLogger(__name__)
 
 
+def _find_carrier_number(msg_parts: list, carrier_re: re.Pattern) -> str | None:
+    """Return the first carrier tracking number found in an email's text parts."""
+    for response_part in msg_parts:
+        if not isinstance(response_part, (bytes, bytearray)):
+            continue
+        msg = email.message_from_bytes(response_part)
+        for part in msg.walk():
+            if part.get_content_type() not in ("text/plain", "text/html"):
+                continue
+            try:
+                text = part.get_payload(decode=True).decode("utf-8", "ignore")
+            except (AttributeError, ValueError):
+                continue
+            if found := carrier_re.search(text):
+                return found.group(1)
+    return None
+
+
 class GenericShipper(Shipper):
     """Generic Shipper class for UPS, FedEx, Walmart, etc."""
 
@@ -650,22 +668,8 @@ class GenericShipper(Shipper):
                     msg_parts = (await cache.fetch(eid, "(RFC822)"))[1]
                 else:
                     msg_parts = (await email_fetch(account, eid, "(RFC822)"))[1]
-                for response_part in msg_parts:
-                    if not isinstance(response_part, (bytes, bytearray)):
-                        continue
-                    msg = email.message_from_bytes(response_part)
-                    for part in msg.walk():
-                        if part.get_content_type() not in ("text/plain", "text/html"):
-                            continue
-                        try:
-                            text = part.get_payload(decode=True).decode(
-                                "utf-8", "ignore"
-                            )
-                        except (AttributeError, ValueError):
-                            continue
-                        if found := carrier_re.search(text):
-                            mapping.setdefault(tracking[0], found.group(1))
-                            break
+                if number := _find_carrier_number(msg_parts, carrier_re):
+                    mapping.setdefault(tracking[0], number)
         if not mapping:
             return {}
         return {f"{prefix}_carrier_tracking": mapping}

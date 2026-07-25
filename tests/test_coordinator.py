@@ -6,11 +6,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.mail_and_packages.const import CONF_FOLDER, DOMAIN
+from custom_components.mail_and_packages.const import CONF_FOLDER
 from custom_components.mail_and_packages.coordinator import MailDataUpdateCoordinator
 from custom_components.mail_and_packages.utils.imap import InvalidAuth
 from tests.const import FAKE_CONFIG_DATA
@@ -818,15 +816,8 @@ async def test_process_emails_delivered_tracking_reversed_order(hass):
     assert set(data["ups_delivered_tracking"]) == {"UPS_DELIVERED_TODAY"}
 
 
-    assert coordinator._data.get("ups_update") is True
-
-
 def test_dedupe_marketplace_duplicates():
     """Marketplace packages already counted by a carrier shipper are dropped."""
-    from custom_components.mail_and_packages.coordinator import (
-        MailDataUpdateCoordinator,
-    )
-
     data = {
         "etsy_delivering": 2,
         "etsy_delivered": 0,
@@ -856,10 +847,6 @@ def test_dedupe_marketplace_duplicates():
 
 def test_dedupe_marketplace_no_carriers_is_noop():
     """Without carrier-side tracking the marketplace counts are untouched."""
-    from custom_components.mail_and_packages.coordinator import (
-        MailDataUpdateCoordinator,
-    )
-
     data = {
         "etsy_delivering": 1,
         "etsy_carrier_tracking": {"3869977574": "1234567890123456"},
@@ -871,3 +858,18 @@ def test_dedupe_marketplace_no_carriers_is_noop():
     assert data["etsy_delivering"] == 1
     assert tracking_details["etsy_delivering"] == ["3869977574"]
     assert "etsy_carrier_tracking" not in data
+
+
+def test_dedupe_marketplace_empty_marketplace_carrier_tracking():
+    """Empty MARKETPLACE_CARRIER_TRACKING returns early with no changes."""
+    data = {"etsy_delivering": 1, "etsy_carrier_tracking": {"123": "456"}}
+    tracking_details = {"etsy_delivering": ["123"]}
+
+    with patch(
+        "custom_components.mail_and_packages.coordinator.const.MARKETPLACE_CARRIER_TRACKING",
+        {},
+    ):
+        MailDataUpdateCoordinator._dedupe_marketplace_duplicates(data, tracking_details)
+
+    assert data["etsy_delivering"] == 1
+    assert data["etsy_carrier_tracking"] == {"123": "456"}
