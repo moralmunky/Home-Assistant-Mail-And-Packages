@@ -140,11 +140,6 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         return False
 
     @property
-    def available(self) -> bool:
-        """Return if entity is available."""
-        return self.coordinator.data is not None
-
-    @property
     def extra_state_attributes(self) -> str | None:
         """Return device specific state attributes."""
         attr = {}
@@ -265,8 +260,3 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
     def should_poll(self) -> bool:
         """No need to poll. Coordinator notifies entity of updates."""
         return False
-
-    @property
-    def available(self) -> bool:
-        """Return if entity is available."""
-        return self.coordinator.data is not None
