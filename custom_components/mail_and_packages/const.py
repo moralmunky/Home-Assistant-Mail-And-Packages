@@ -461,6 +461,7 @@ SENSOR_DATA = {
             "DHL Shipment Notification",
             "liegt am gewünschten Ablageort",
             "Ihre Sendung liegt im Briefkasten",
+            "Sendung liegt im Briefkasten",
             "Zustellung an Ablageort",
             "Ablageort",
             "Sendung zugestellt",
