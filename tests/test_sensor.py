@@ -472,3 +472,29 @@ async def test_image_path_sensor_grid(hass):
     )
     expected = f"{hass.config.path()}/images/test_grid.png"
     assert sensor.native_value == expected
+
+
+@pytest.mark.asyncio
+async def test_image_path_sensor_state_retention(hass):
+    """Test that ImagePathSensors retains last known good state when image is missing."""
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
+    coordinator = MagicMock()
+    coordinator.data = {
+        "usps_image": "test.gif",
+        "image_path": "images/",
+    }
+
+    sensor = ImagePathSensors(
+        hass,
+        entry,
+        MagicMock(
+            key="usps_mail_image_system_path", name="USPS Mail Image System Path"
+        ),
+        coordinator,
+    )
+    expected = f"{hass.config.path()}/images/test.gif"
+    assert sensor.native_value == expected
+
+    # Simulate next update having no new usps_image data
+    coordinator.data = {"image_path": "images/"}
+    assert sensor.native_value == expected
