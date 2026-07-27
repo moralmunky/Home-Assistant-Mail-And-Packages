@@ -254,7 +254,7 @@ async def test_aggregate_package_counts_no_resource(hass):
 
 @pytest.mark.asyncio
 async def test_get_imap_connection_selectfolder_exception(hass):
-    """Test _get_imap_connection handles exception from selectfolder (lines 229-231)."""
+    """Test _get_imap_connection handles exception from selectfolder."""
     with patch("homeassistant.helpers.frame.report_usage"):
         coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
@@ -635,7 +635,6 @@ async def test_coordinator_post_de_binary_sensor_update(hass):
     }
 
     # Mock the calls inside _binary_sensor_update
-    # We want it to reach lines 520-521.
     with (
         patch(
             "custom_components.mail_and_packages.coordinator.default_image_path",
@@ -963,7 +962,7 @@ async def test_coordinator_get_imap_connection_folder_failures(hass):
 
 @pytest.mark.asyncio
 async def test_coordinator_get_imap_connection_deletes_auth_failed_issue(hass):
-    """Test _get_imap_connection deletes auth_failed issue if present (line 276)."""
+    """Test _get_imap_connection deletes auth_failed issue if present."""
     with patch("homeassistant.helpers.frame.report_usage"):
         coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
@@ -1000,7 +999,7 @@ async def test_coordinator_get_imap_connection_deletes_auth_failed_issue(hass):
 async def test_coordinator_async_update_data_error_with_cached_data_and_auth_failed(
     hass,
 ):
-    """Test _async_update_data re-raises ConfigEntryAuthFailed and returns cached data on generic error (lines 145, 149)."""
+    """Test _async_update_data re-raises ConfigEntryAuthFailed and returns cached data on generic error."""
     with patch("homeassistant.helpers.frame.report_usage"):
         coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
@@ -1028,7 +1027,7 @@ async def test_coordinator_async_update_data_error_with_cached_data_and_auth_fai
 
 @pytest.mark.asyncio
 async def test_coordinator_binary_sensor_update_different_hash_and_post_de(hass):
-    """Test _binary_sensor_update when image hash differs from none hash for USPS and post_de (lines 529, 582, 597)."""
+    """Test _binary_sensor_update when image hash differs from none hash for USPS and post_de."""
     with patch("homeassistant.helpers.frame.report_usage"):
         coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
@@ -1058,7 +1057,7 @@ async def test_coordinator_binary_sensor_update_different_hash_and_post_de(hass)
 
 @pytest.mark.asyncio
 async def test_coordinator_binary_sensor_update_same_hash_and_custom_img(hass):
-    """Test _binary_sensor_update when image hash equals none hash and custom image is configured (lines 531, 546, 578)."""
+    """Test _binary_sensor_update when image hash equals none hash and custom image is configured."""
     config = {
         **FAKE_CONFIG_DATA,
         "amazon_custom_img": True,
@@ -1091,7 +1090,7 @@ async def test_coordinator_binary_sensor_update_same_hash_and_custom_img(hass):
 
 @pytest.mark.asyncio
 async def test_coordinator_binary_sensor_update_fallback_and_invalid_attr(hass):
-    """Test _binary_sensor_update fallback no_deliveries image and invalid attr skip (lines 546, 582)."""
+    """Test _binary_sensor_update fallback no_deliveries image and invalid attr skip."""
     with patch("homeassistant.helpers.frame.report_usage"):
         coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 

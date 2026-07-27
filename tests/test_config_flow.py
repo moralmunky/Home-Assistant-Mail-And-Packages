@@ -7945,7 +7945,7 @@ async def test_reauth_flow_oauth(
 
 @pytest.mark.asyncio
 async def test_options_amazon_empty_fwds_normalised(hass, integration):
-    """Test _show_options_amazon normalises [] CONF_AMAZON_FWDS to '(none)' (line 1380)."""
+    """Test _show_options_amazon normalises [] CONF_AMAZON_FWDS to '(none)'."""
     entry = integration
     handler = MailAndPackagesOptionsFlow(entry)
     handler.hass = hass
@@ -8170,7 +8170,7 @@ async def test_reauth_flow_reauth_successful(
 
 @pytest.mark.asyncio
 async def test_get_schema_step_2_oauth_refresh_exception(hass, caplog):
-    """Test OAuth token refresh exception handling in _get_schema_step_2 (lines 535-536)."""
+    """Test OAuth token refresh exception handling in _get_schema_step_2."""
     data = {
         CONF_HOST: "imap.example.com",
         "port": 993,
@@ -8207,7 +8207,7 @@ async def test_get_schema_step_2_oauth_refresh_exception(hass, caplog):
 
 @pytest.mark.asyncio
 async def test_async_oauth_create_entry_reauth_successful(hass):
-    """Test async_oauth_create_entry reauth_successful abort (line 1022)."""
+    """Test async_oauth_create_entry reauth_successful abort."""
     entry = MockConfigEntry(domain=DOMAIN, data={})
     entry.add_to_hass(hass)
 
