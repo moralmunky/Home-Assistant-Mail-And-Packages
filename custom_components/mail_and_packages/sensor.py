@@ -4,17 +4,18 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 
-import contextlib
 import datetime
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import (
+    RestoreSensor,
+    SensorEntityDescription,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import NoURLAvailableError, get_url
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import MailAndPackagesConfigEntry
@@ -69,7 +70,7 @@ async def async_setup_entry(
     async_add_entities(sensors, False)
 
 
-class PackagesSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
+class PackagesSensor(CoordinatorEntity, RestoreSensor):
     """Representation of a sensor."""
 
     def __init__(
@@ -101,17 +102,8 @@ class PackagesSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added to hass."""
         await super().async_added_to_hass()
-        if (state := await self.async_get_last_state()) is not None:
-            if self.type == "mail_updated":
-                with contextlib.suppress(ValueError):
-                    self._attr_native_value = datetime.datetime.fromisoformat(
-                        state.state
-                    )
-            elif self.entity_description.native_unit_of_measurement:
-                with contextlib.suppress(ValueError):
-                    self._attr_native_value = int(state.state)
-            else:
-                self._attr_native_value = state.state
+        if (sensor_data := await self.async_get_last_sensor_data()) is not None:
+            self._attr_native_value = sensor_data.native_value
 
     @property
     def device_info(self) -> dict:
@@ -197,7 +189,7 @@ class PackagesSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
                 attr[ATTR_CODE] = code
 
 
-class ImagePathSensors(CoordinatorEntity, RestoreEntity, SensorEntity):
+class ImagePathSensors(CoordinatorEntity, RestoreSensor):
     """Representation of a sensor."""
 
     def __init__(
@@ -221,8 +213,8 @@ class ImagePathSensors(CoordinatorEntity, RestoreEntity, SensorEntity):
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added to hass."""
         await super().async_added_to_hass()
-        if (state := await self.async_get_last_state()) is not None:
-            self._attr_native_value = state.state
+        if (sensor_data := await self.async_get_last_sensor_data()) is not None:
+            self._attr_native_value = sensor_data.native_value
 
     @property
     def device_info(self) -> dict:
