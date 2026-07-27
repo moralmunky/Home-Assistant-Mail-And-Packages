@@ -107,28 +107,32 @@ async def test_process_emails_invalid_return(hass):
 
 
 @pytest.mark.asyncio
-async def test_async_update_data_timeout_logs_and_reraises(hass, caplog):
-    """When the scan exceeds its time budget, log an actionable error and re-raise."""
+async def test_async_update_data_timeout_logs_and_returns_cached_data(hass, caplog):
+    """When the scan exceeds its time budget, log an error and return cached data if available."""
     with patch("homeassistant.helpers.frame.report_usage"):
         coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
-    # Shrink the whole-scan budget so the timeout fires immediately, and make
-    # process_emails outlast it so asyncio.timeout raises TimeoutError at the
-    # async-with boundary (the real path users hit on large mailboxes).
     coordinator.timeout = 0.01
 
     async def _slow_process(*args, **kwargs):
         await asyncio.sleep(1)
         return {}
 
+    # Initial scan without prior data raises UpdateFailed
     with (
         patch.object(coordinator, "process_emails", side_effect=_slow_process),
-        pytest.raises(TimeoutError),
+        pytest.raises(UpdateFailed),
     ):
         await coordinator._async_update_data()
 
     assert "scan exceeded its" in caplog.text
     assert "time budget" in caplog.text
+
+    # Scan with prior cached data returns cached data instead of raising
+    coordinator._data = {"mail_updated": "test_time", "usps_mail": 2}
+    with patch.object(coordinator, "process_emails", side_effect=_slow_process):
+        res = await coordinator._async_update_data()
+        assert res == {"mail_updated": "test_time", "usps_mail": 2}
 
 
 @pytest.mark.asyncio
