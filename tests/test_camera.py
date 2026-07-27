@@ -250,7 +250,7 @@ async def test_async_camera_image_cache_hit(
     mock_getctime_today,
     mock_update,
 ):
-    """Test async_camera_image returns cached bytes on second call (line 162)."""
+    """Test async_camera_image returns cached bytes on second call."""
     entry = integration
     cameras = entry.runtime_data.cameras
     cam = cameras[0]

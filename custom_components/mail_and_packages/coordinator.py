@@ -141,10 +141,12 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                             raise UpdateFailed("OAuth token refresh failed") from err
 
                     data = await self.process_emails(self.hass, config)
-                except (UpdateFailed, ConfigEntryAuthFailed):
+                except ConfigEntryAuthFailed:
                     raise
                 except Exception as error:
                     _LOGGER.error("Problem updating sensors: %s", error)
+                    if self._data:
+                        return self._data
                     raise UpdateFailed(error) from error
 
                 if data:
@@ -162,7 +164,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 self.timeout,
                 monotonic() - start,
             )
-            raise
+            if self._data:
+                return self._data
+            raise UpdateFailed("Scan timed out and no prior data available") from None
 
     async def process_emails(self, hass: HomeAssistant, config: dict) -> dict:
         """Process emails and update sensors."""

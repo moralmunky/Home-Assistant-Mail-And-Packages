@@ -7945,7 +7945,7 @@ async def test_reauth_flow_oauth(
 
 @pytest.mark.asyncio
 async def test_options_amazon_empty_fwds_normalised(hass, integration):
-    """Test _show_options_amazon normalises [] CONF_AMAZON_FWDS to '(none)' (line 1380)."""
+    """Test _show_options_amazon normalises [] CONF_AMAZON_FWDS to '(none)'."""
     entry = integration
     handler = MailAndPackagesOptionsFlow(entry)
     handler.hass = hass
@@ -8121,3 +8121,103 @@ async def test_get_schema_step_2_password_auth_skips_oauth_refresh(hass, caplog)
 
     mock_get_impl.assert_not_called()
     assert "Error refreshing OAuth token" not in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_reauth_flow_reauth_successful(
+    hass: HomeAssistant,
+    integration,
+    mock_imap_no_email,
+    mock_update,
+) -> None:
+    """Test reauth flow aborts with reauth_successful when source is SOURCE_REAUTH."""
+    entry = integration
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow._get_mailboxes",
+            return_value=["INBOX"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow._validate_login",
+            return_value={},
+        ),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={
+                "source": config_entries.SOURCE_REAUTH,
+                "entry_id": entry.entry_id,
+                "unique_id": entry.unique_id,
+            },
+            data=entry.data,
+        )
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "reauth_confirm"
+
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_USERNAME: entry.data[CONF_USERNAME],
+                CONF_PASSWORD: "newpassword",
+            },
+        )
+        await hass.async_block_till_done()
+
+        assert result2["type"] is FlowResultType.ABORT
+        assert result2["reason"] == "reauth_successful"
+
+
+@pytest.mark.asyncio
+async def test_get_schema_step_2_oauth_refresh_exception(hass, caplog):
+    """Test OAuth token refresh exception handling in _get_schema_step_2."""
+    data = {
+        CONF_HOST: "imap.example.com",
+        "port": 993,
+        "username": "test@example.com",
+        "imap_security": "SSL",
+        "verify_ssl": True,
+        "auth_type": "oauth2_google",
+        "auth_implementation": "google",
+    }
+    entry = MockConfigEntry(domain=DOMAIN, data=data)
+    entry.add_to_hass(hass)
+
+    mock_session = AsyncMock()
+    mock_session.async_ensure_token_valid.side_effect = Exception("Refresh failure")
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow._get_mailboxes",
+            return_value=["INBOX"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow.config_entry_oauth2_flow.async_get_config_entry_implementation",
+            return_value=MagicMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow.config_entry_oauth2_flow.OAuth2Session",
+            return_value=mock_session,
+        ),
+    ):
+        await _get_schema_step_2(data, {}, {}, hass, entry=entry)
+
+    assert "Error refreshing OAuth token: Refresh failure" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_async_oauth_create_entry_reauth_successful(hass):
+    """Test async_oauth_create_entry reauth_successful abort."""
+    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry.add_to_hass(hass)
+
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    flow._entry = entry
+    flow.context = {"source": config_entries.SOURCE_REAUTH}
+
+    with patch.object(hass.config_entries, "async_reload", AsyncMock()):
+        result = await flow.async_oauth_create_entry({"token": "fake_token"})
+
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reauth_successful"

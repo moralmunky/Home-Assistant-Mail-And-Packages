@@ -7,6 +7,15 @@ repos:
       - id: trailing-whitespace
       - id: debug-statements
 
+  - repo: local
+    hooks:
+      - id: pyclean
+        name: Clean Python bytecode & __pycache__
+        entry: find . -type d -name "__pycache__" -exec rm -rf {} +
+        language: system
+        always_run: true
+        pass_filenames: false
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.2
     hooks:
