@@ -6,9 +6,11 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import UpdateFailed
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.mail_and_packages.const import CONF_FOLDER
+from custom_components.mail_and_packages.const import CONF_FOLDER, DOMAIN
 from custom_components.mail_and_packages.coordinator import MailDataUpdateCoordinator
 from custom_components.mail_and_packages.utils.imap import InvalidAuth
 from tests.const import FAKE_CONFIG_DATA
@@ -815,3 +817,303 @@ async def test_process_emails_delivered_tracking_reversed_order(hass):
     # In-transit tracking should still correctly exclude the delivered ones
     assert set(data["ups_tracking"]) == {"UPS_IN_TRANSIT"}
     assert set(data["ups_delivered_tracking"]) == {"UPS_DELIVERED_TODAY"}
+
+
+@pytest.mark.asyncio
+async def test_coordinator_get_file_hash_if_changed(hass):
+    """Test _get_file_hash_if_changed caching and error paths."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    with (
+        patch("os.path.getmtime", return_value=12345),
+        patch(
+            "custom_components.mail_and_packages.coordinator.hash_file",
+            return_value="hash_abc",
+        ),
+    ):
+        hash1 = await coordinator._get_file_hash_if_changed("test_file.gif")
+        assert hash1 == "hash_abc"
+
+        # Repeated call returns cached hash directly without re-hashing
+        hash2 = await coordinator._get_file_hash_if_changed("test_file.gif")
+        assert hash2 == "hash_abc"
+
+    # OSError returns None
+    with patch("os.path.getmtime", side_effect=OSError("File missing")):
+        assert (await coordinator._get_file_hash_if_changed("missing.gif")) is None
+
+
+@pytest.mark.asyncio
+async def test_coordinator_oauth_token_refresh(hass):
+    """Test _async_update_data OAuth2 token refresh success and failure paths."""
+    config = {**FAKE_CONFIG_DATA, "auth_type": "oauth2_google"}
+    entry = MockConfigEntry(domain="mail_and_packages", data=config)
+    entry.add_to_hass(hass)
+
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, config)
+        coordinator.config_entry = entry
+
+    mock_session = AsyncMock()
+    mock_session.token = {"access_token": "refreshed_oauth_token"}
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.config_entry_oauth2_flow.async_get_config_entry_implementation",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.config_entry_oauth2_flow.OAuth2Session",
+            return_value=mock_session,
+        ),
+        patch.object(
+            coordinator, "process_emails", AsyncMock(return_value={"test": 1})
+        ),
+        patch.object(coordinator, "_binary_sensor_update", AsyncMock()),
+    ):
+        res = await coordinator._async_update_data()
+        assert res == {"test": 1}
+
+    # Error during OAuth refresh raises UpdateFailed when no cached _data exists
+    coordinator._data = {}
+    mock_session_fail = AsyncMock()
+    mock_session_fail.async_ensure_token_valid.side_effect = Exception(
+        "OAuth refresh error"
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.config_entry_oauth2_flow.async_get_config_entry_implementation",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.config_entry_oauth2_flow.OAuth2Session",
+            return_value=mock_session_fail,
+        ),
+        pytest.raises(UpdateFailed),
+    ):
+        await coordinator._async_update_data()
+
+
+@pytest.mark.asyncio
+async def test_coordinator_process_emails_copy_external_images_error(hass, caplog):
+    """Test process_emails handles copy_images OSError/ValueError gracefully."""
+    config = {**FAKE_CONFIG_DATA, "allow_external": True}
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, config)
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.copy_images",
+            side_effect=OSError("Copy error"),
+        ),
+    ):
+        await coordinator.process_emails(hass, config)
+
+    assert "Problem creating: Copy error" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_coordinator_get_imap_connection_folder_failures(hass):
+    """Test _get_imap_connection folder selection exception and invalid folder return."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    # 1. Folder selection exception
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            side_effect=Exception("IMAP select error"),
+        ),
+        pytest.raises(UpdateFailed, match="Folder selection failed: IMAP select error"),
+    ):
+        await coordinator._get_imap_connection(
+            {**FAKE_CONFIG_DATA, CONF_FOLDER: "INBOX"}
+        )
+
+    # 2. Folder selection returns False
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=False,
+        ),
+        pytest.raises(UpdateFailed, match="Folder selection failed: INBOX"),
+    ):
+        await coordinator._get_imap_connection(
+            {**FAKE_CONFIG_DATA, CONF_FOLDER: "INBOX"}
+        )
+
+
+@pytest.mark.asyncio
+async def test_coordinator_get_imap_connection_deletes_auth_failed_issue(hass):
+    """Test _get_imap_connection deletes auth_failed issue if present (line 276)."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    # Pre-register issue in registry
+    issue_registry = ir.async_get(hass)
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        "auth_failed",
+        is_fixable=True,
+        severity=ir.IssueSeverity.ERROR,
+        translation_key="auth_failed",
+    )
+    assert (DOMAIN, "auth_failed") in issue_registry.issues
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+    ):
+        await coordinator._get_imap_connection(
+            {**FAKE_CONFIG_DATA, CONF_FOLDER: "INBOX"}
+        )
+
+    assert (DOMAIN, "auth_failed") not in issue_registry.issues
+
+
+@pytest.mark.asyncio
+async def test_coordinator_async_update_data_error_with_cached_data_and_auth_failed(
+    hass,
+):
+    """Test _async_update_data re-raises ConfigEntryAuthFailed and returns cached data on generic error (lines 145, 149)."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    # 1. ConfigEntryAuthFailed is re-raised
+    with (
+        patch.object(
+            coordinator,
+            "process_emails",
+            AsyncMock(side_effect=ConfigEntryAuthFailed("Auth failed")),
+        ),
+        pytest.raises(ConfigEntryAuthFailed),
+    ):
+        await coordinator._async_update_data()
+
+    # 2. Generic Exception with pre-existing cached _data returns cached _data
+    coordinator._data = {"cached": "value"}
+    with patch.object(
+        coordinator,
+        "process_emails",
+        AsyncMock(side_effect=Exception("Generic update error")),
+    ):
+        res = await coordinator._async_update_data()
+        assert res == {"cached": "value"}
+
+
+@pytest.mark.asyncio
+async def test_coordinator_binary_sensor_update_different_hash_and_post_de(hass):
+    """Test _binary_sensor_update when image hash differs from none hash for USPS and post_de (lines 529, 582, 597)."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    coordinator._data = {
+        "usps_image": "mail_123.jpg",
+        "post_de_image": "post_de_123.jpg",
+    }
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
+            AsyncMock(return_value=True),
+        ),
+        patch.object(
+            coordinator,
+            "_get_file_hash_if_changed",
+            AsyncMock(
+                side_effect=["hash_img1", "hash_none1", "hash_img2", "hash_none2"]
+            ),
+        ),
+    ):
+        await coordinator._binary_sensor_update()
+
+    assert coordinator._data.get("usps_update") is True
+    assert coordinator._data.get("post_de_update") is True
+
+
+@pytest.mark.asyncio
+async def test_coordinator_binary_sensor_update_same_hash_and_custom_img(hass):
+    """Test _binary_sensor_update when image hash equals none hash and custom image is configured (lines 531, 546, 578)."""
+    config = {
+        **FAKE_CONFIG_DATA,
+        "amazon_custom_img": True,
+        "amazon_custom_img_file": "/custom/no_delivery.jpg",
+    }
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, config)
+
+    coordinator._data = {
+        "usps_image": "mail_123.jpg",
+        "amazon_image": "amazon_123.jpg",
+    }
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
+            AsyncMock(return_value=True),
+        ),
+        patch.object(
+            coordinator,
+            "_get_file_hash_if_changed",
+            AsyncMock(return_value="same_hash"),
+        ),
+    ):
+        await coordinator._binary_sensor_update()
+
+    assert coordinator._data.get("usps_update") is False
+    assert coordinator._data.get("amazon_update") is False
+
+
+@pytest.mark.asyncio
+async def test_coordinator_binary_sensor_update_fallback_and_invalid_attr(hass):
+    """Test _binary_sensor_update fallback no_deliveries image and invalid attr skip (lines 546, 582)."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    coordinator._data = {
+        "ups_image": "ups_123.jpg",
+    }
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.const.CAMERA_DATA",
+            {"ups_camera": "ups", "invalid_camera": "invalid"},
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
+            AsyncMock(return_value=True),
+        ),
+        patch.object(
+            coordinator,
+            "_get_file_hash_if_changed",
+            AsyncMock(side_effect=["hash_img", "hash_none"]),
+        ),
+    ):
+        await coordinator._binary_sensor_update()
+
+    assert coordinator._data.get("ups_update") is True
