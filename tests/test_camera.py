@@ -2827,3 +2827,22 @@ async def test_is_camera_enabled_helpers():
     # Generic camera disabled when no _delivered sensor is present
     no_del_resources = ["usps_mail", "post_de_mail"]
     assert not _is_camera_enabled("generic_camera", no_del_resources)
+
+
+async def test_post_de_camera_and_on_demand_update(hass, integration):
+    """Test post_de_camera initialization, file path update, and async_on_demand_update."""
+    entry = integration
+    coordinator = entry.runtime_data.coordinator
+
+    cam = MailCam(hass, "post_de_camera", entry, coordinator)
+    cam.entity_id = "camera.post_de"
+    assert cam.name == "Mail Post DE Camera"
+    assert "mail_none.gif" in cam._file_path
+
+    coordinator.data = {}
+    await cam.update_file_path()
+    assert "mail_none.gif" in cam._file_path
+
+    cam.async_schedule_update_ha_state = MagicMock()
+    await cam.async_on_demand_update()
+    cam.async_schedule_update_ha_state.assert_called_once_with(True)

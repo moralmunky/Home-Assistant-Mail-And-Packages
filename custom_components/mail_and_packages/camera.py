@@ -53,9 +53,8 @@ def _is_camera_enabled(camera_type: str, resources: list[str]) -> bool:
     """Check if a camera entity should be enabled based on resources."""
     if camera_type == "generic_camera":
         return any(res.endswith("_delivered") for res in resources)
-    if (sensor_name := _get_sensor_name_for_camera(camera_type)) is not None:
-        return sensor_name in resources
-    return False
+    sensor_name = _get_sensor_name_for_camera(camera_type)
+    return bool(sensor_name and sensor_name in resources)
 
 
 async def async_setup_entry(
