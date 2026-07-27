@@ -40,3 +40,8 @@ Ensure all IMAP mock objects (such as mock connections or mock responses in `tes
 * Verify that test mocks explicitly assert that the generated search query uses correct keys (like `BODY` instead of `BODY[TEXT]`).
 * Do not write mocks that silently succeed on incorrect syntax.
 * Refer to [test_imap_email.py](file:///home/firstof9/github/Home-Assistant-Mail-And-Packages/tests/utils/test_imap_email.py) for examples of standard search string assertion assertions.
+
+### 6. Persistent Email Caching
+All email fetch calls (`email_fetch`, `email_fetch_headers`, `email_fetch_text`) should be routed through `EmailCache.fetch()`:
+* Cache keys store distinct payload sections via `f"{eid_str}:{parts}"`.
+* Raw byte structures must be preserved across storage operations using `latin-1` encoding (see [email_cache_architecture](file:///home/firstof9/github/Home-Assistant-Mail-And-Packages/.agents/skills/email_cache_architecture/SKILL.md)).
