@@ -1,45 +1,159 @@
 """Email caching utility for Mail and Packages."""
 
+import datetime
 import logging
+from typing import Any
 
 from aioimaplib import IMAP4_SSL
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.storage import Store
 
 from .imap import email_fetch, email_fetch_batch, email_fetch_headers, email_fetch_text
 
 _LOGGER = logging.getLogger(__name__)
 
+STORAGE_VERSION = 1
+STORAGE_KEY = "mail_and_packages.email_cache"
+
 
 class EmailCache:
-    """Cache for IMAP email fetches to avoid duplicate downloads."""
+    """Cache for IMAP email fetches to avoid duplicate downloads across scans."""
 
-    def __init__(self, account: IMAP4_SSL) -> None:
+    def __init__(
+        self,
+        account: IMAP4_SSL | None = None,
+        hass: HomeAssistant | None = None,
+        store_key: str = STORAGE_KEY,
+    ) -> None:
         """Initialize the cache."""
         self.account = account
+        self.hass = hass
+        self._store: Store | None = (
+            Store(hass, STORAGE_VERSION, store_key) if hass else None
+        )
         self._cache_rfc822: dict[str, tuple] = {}
         self._cache_text: dict[str, tuple] = {}
         self._cache_headers: dict[str, tuple] = {}
+        # Persistent metadata mapping: eid_str -> {"fetched_at": iso_str, "shipper": name, "data": tuple}
+        self._persistent_store: dict[str, dict[str, Any]] = {}
 
-    async def fetch(self, email_id: str | bytes, parts: str = "(RFC822)") -> tuple:  # noqa: C901
+    def set_account(self, account: IMAP4_SSL) -> None:
+        """Set active IMAP account for the current scan cycle."""
+        self.account = account
+        # Clear transient per-scan caches while preserving persistent records
+        self._cache_rfc822.clear()
+        self._cache_text.clear()
+        self._cache_headers.clear()
+
+    async def async_load(self) -> None:
+        """Load persistent cache from storage."""
+        if not self._store:
+            return
+        try:
+            data = await self._store.async_load()
+            if isinstance(data, dict):
+                self._persistent_store = data.get("entries", {})
+        except OSError as err:
+            _LOGGER.warning("Failed to load email cache: %s", err)
+            self._persistent_store = {}
+
+    async def async_save(self) -> None:
+        """Save persistent cache to storage."""
+        if not self._store:
+            return
+        try:
+            await self._store.async_save({"entries": self._persistent_store})
+        except OSError as err:
+            _LOGGER.warning("Failed to save email cache: %s", err)
+
+    async def async_purge_expired(self, custom_days: int = 3) -> None:
+        """Purge expired cache entries based on carrier expiration rules."""
+        now = datetime.datetime.now(datetime.UTC)
+        midnight_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        custom_days_cutoff = now - datetime.timedelta(days=custom_days)
+
+        expired_keys = []
+        for key, entry in self._persistent_store.items():
+            fetched_at_str = entry.get("fetched_at")
+            if not fetched_at_str:
+                expired_keys.append(key)
+                continue
+            try:
+                fetched_at = datetime.datetime.fromisoformat(fetched_at_str)
+            except ValueError:
+                expired_keys.append(key)
+                continue
+
+            shipper = entry.get("shipper", "unknown")
+            if shipper == "amazon":
+                if fetched_at < custom_days_cutoff:
+                    expired_keys.append(key)
+            elif fetched_at < midnight_today:
+                expired_keys.append(key)
+
+        for key in expired_keys:
+            self._persistent_store.pop(key, None)
+
+        if expired_keys and self._store:
+            await self.async_save()
+
+    async def fetch(  # noqa: C901
+        self,
+        email_id: str | bytes,
+        parts: str = "(RFC822)",
+        shipper: str = "generic",
+    ) -> tuple:
         """Fetch email content or return from cache."""
         eid_str = email_id.decode() if isinstance(email_id, bytes) else str(email_id)
+
+        cache_key = f"{eid_str}:{parts}"
+
+        # Check persistent cache first if available
+        if cache_key in self._persistent_store:
+            entry = self._persistent_store[cache_key]
+            cached_data = entry.get("data")
+            if cached_data and isinstance(cached_data, list) and len(cached_data) == 2:
+                status, response_list = cached_data
+                restored_list = []
+                if isinstance(response_list, list):
+                    for item in response_list:
+                        if isinstance(item, list):
+                            restored_list.append(
+                                tuple(
+                                    x.encode("latin-1") if isinstance(x, str) else x
+                                    for x in item
+                                )
+                            )
+                        elif isinstance(item, str):
+                            restored_list.append(item.encode("latin-1"))
+                        else:
+                            restored_list.append(item)
+                else:
+                    restored_list = response_list
+                return (status, restored_list)
 
         if parts in ("(RFC822)", "BODY[]"):
             if eid_str in self._cache_rfc822:
                 return self._cache_rfc822[eid_str]
+            if self.account is None:
+                return ("NO", ["No active IMAP connection"])
             res = await email_fetch(self.account, eid_str, parts)
             if res[0] == "OK":
                 self._cache_rfc822[eid_str] = res
+                self._store_persistent(cache_key, res, shipper)
             return res
 
         if "HEADER" in parts:
             if eid_str in self._cache_headers:
                 return self._cache_headers[eid_str]
-            # fallback to RFC822 cache if we already have it
             if eid_str in self._cache_rfc822:
                 return self._cache_rfc822[eid_str]
+            if self.account is None:
+                return ("NO", ["No active IMAP connection"])
             res = await email_fetch_headers(self.account, eid_str)
             if res[0] == "OK":
                 self._cache_headers[eid_str] = res
+                self._store_persistent(cache_key, res, shipper)
             return res
 
         if "TEXT" in parts or parts == "(BODY[1])":
@@ -47,58 +161,53 @@ class EmailCache:
                 return self._cache_text[eid_str]
             if eid_str in self._cache_rfc822:
                 return self._cache_rfc822[eid_str]
+            if self.account is None:
+                return ("NO", ["No active IMAP connection"])
             res = await email_fetch_text(self.account, eid_str, parts)
             if res[0] == "OK":
                 self._cache_text[eid_str] = res
+                self._store_persistent(cache_key, res, shipper)
             return res
 
-        # Unknown part, bypass cache
+        if self.account is None:
+            return ("NO", ["No active IMAP connection"])
         return await email_fetch(self.account, eid_str, parts)
+
+    def _store_persistent(self, eid_str: str, data: tuple, shipper: str) -> None:
+        """Store fetched email data in persistent structure."""
+        # Convert bytes objects inside tuple response for JSON serialization safety using latin-1 encoding to preserve exact 1-to-1 byte representations
+        status, response_list = data
+        serializable_list = []
+        if isinstance(response_list, list):
+            for item in response_list:
+                if isinstance(item, tuple):
+                    serialized_tuple = tuple(
+                        x.decode("latin-1") if isinstance(x, bytes) else x for x in item
+                    )
+                    serializable_list.append(serialized_tuple)
+                elif isinstance(item, bytes):
+                    serializable_list.append(item.decode("latin-1"))
+                else:
+                    serializable_list.append(item)
+        else:
+            serializable_list = response_list
+
+        self._persistent_store[eid_str] = {
+            "fetched_at": datetime.datetime.now(datetime.UTC).isoformat(),
+            "shipper": shipper,
+            "data": [status, serializable_list],
+        }
 
     async def fetch_batch(
         self, email_ids: list[str | bytes], parts: str = "(RFC822)"
     ) -> tuple:
-        """Fetch multiple emails in a batch, retrieving from cache if applicable."""
-        # For simplicity, if we don't have all of them, fetch the missing ones in batch
-        missing_ids = []
-        eid_strs = [e.decode() if isinstance(e, bytes) else str(e) for e in email_ids]
-
-        # Determine which ones we already have
-        for eid_str in eid_strs:
-            if parts in ("(RFC822)", "BODY[]"):
-                if eid_str not in self._cache_rfc822:
-                    missing_ids.append(eid_str)
-            elif "HEADER" in parts:
-                if (
-                    eid_str not in self._cache_headers
-                    and eid_str not in self._cache_rfc822
-                ):
-                    missing_ids.append(eid_str)
-            elif "TEXT" in parts or parts == "(BODY[1])":
-                if (
-                    eid_str not in self._cache_text
-                    and eid_str not in self._cache_rfc822
-                ):
-                    missing_ids.append(eid_str)
-            else:
-                missing_ids.append(eid_str)
-
-        # Batch fetch only what is missing
-        if missing_ids:
-            # Just use fetch() internally for now to populate individual items since fetch_batch
-            # returns combined lines which might be tricky to parse.
-            # Wait, email_fetch_batch might be tricky to cache without parsing the response to separate emails.
-            # So actually we will just loop `fetch` for batch if we want it cleanly cached, or we don't cache
-            # `fetch_batch` if we aren't parsing it.
-            # Actually `fetch_batch` isn't needed if we just do individual fetches? No, batch is faster.
-            # But parsing batch response to stick into cache is annoying.
-            pass
-
-        # For this version, let's keep fetch_batch simple and bypass cache.
+        """Fetch multiple emails in a batch."""
+        if self.account is None:
+            return ("NO", ["No active IMAP connection"])
         return await email_fetch_batch(self.account, email_ids, parts)
 
     def clear(self) -> None:
-        """Clear the cache."""
+        """Clear the transient per-scan cache."""
         self._cache_rfc822.clear()
         self._cache_text.clear()
         self._cache_headers.clear()

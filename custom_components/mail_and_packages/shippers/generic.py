@@ -489,7 +489,11 @@ class GenericShipper(Shipper):
             try:
                 if cache:
                     header_data = (
-                        await cache.fetch(eid, "(BODY[HEADER.FIELDS (SUBJECT)])")
+                        await cache.fetch(
+                            eid,
+                            "(BODY[HEADER.FIELDS (SUBJECT)])",
+                            shipper=self.name,
+                        )
                     )[1]
                 else:
                     header_data = (await email_fetch_headers(account, eid))[1]
@@ -664,7 +668,7 @@ class GenericShipper(Shipper):
         image_found = False
         for eid in ids:
             if cache:
-                msg_parts = (await cache.fetch(eid, "(RFC822)"))[1]
+                msg_parts = (await cache.fetch(eid, "(RFC822)", shipper=self.name))[1]
             else:
                 msg_parts = (await email_fetch(account, eid, "(RFC822)"))[1]
             for response_part in msg_parts:
