@@ -53,8 +53,9 @@ def _is_camera_enabled(camera_type: str, resources: list[str]) -> bool:
     """Check if a camera entity should be enabled based on resources."""
     if camera_type == "generic_camera":
         return any(res.endswith("_delivered") for res in resources)
-    sensor_name = _get_sensor_name_for_camera(camera_type)
-    return sensor_name in resources if sensor_name else False
+    if (sensor_name := _get_sensor_name_for_camera(camera_type)) is not None:
+        return sensor_name in resources
+    return False
 
 
 async def async_setup_entry(
@@ -68,10 +69,11 @@ async def async_setup_entry(
     camera = []
 
     for variable in CAMERA_DATA:
-        if _is_camera_enabled(variable, resources):
-            temp_cam = MailCam(hass, variable, config, coordinator)
-            camera.append(temp_cam)
-            config.runtime_data.cameras.append(temp_cam)
+        if not _is_camera_enabled(variable, resources):
+            continue
+        temp_cam = MailCam(hass, variable, config, coordinator)
+        camera.append(temp_cam)
+        config.runtime_data.cameras.append(temp_cam)
 
     async def _update_image(service: ServiceCall) -> None:
         """Refresh camera image."""

@@ -2819,11 +2819,11 @@ async def test_is_camera_enabled_helpers():
     # Test resource matching
     resources = ["usps_mail", "amazon_delivered"]
 
-    assert _is_camera_enabled("usps_camera", resources) is True
-    assert _is_camera_enabled("amazon_camera", resources) is True
-    assert _is_camera_enabled("ups_camera", resources) is False
-    assert _is_camera_enabled("generic_camera", resources) is True
+    assert _is_camera_enabled("usps_camera", resources)
+    assert _is_camera_enabled("amazon_camera", resources)
+    assert not _is_camera_enabled("ups_camera", resources)
+    assert _is_camera_enabled("generic_camera", resources)
 
     # Generic camera disabled when no _delivered sensor is present
     no_del_resources = ["usps_mail", "post_de_mail"]
-    assert _is_camera_enabled("generic_camera", no_del_resources) is False
+    assert not _is_camera_enabled("generic_camera", no_del_resources)
