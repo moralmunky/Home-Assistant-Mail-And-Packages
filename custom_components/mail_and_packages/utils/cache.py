@@ -120,12 +120,12 @@ class EmailCache:
                         if isinstance(item, list):
                             restored_list.append(
                                 tuple(
-                                    x.encode("utf-8") if isinstance(x, str) else x
+                                    x.encode("latin-1") if isinstance(x, str) else x
                                     for x in item
                                 )
                             )
                         elif isinstance(item, str):
-                            restored_list.append(item.encode("utf-8"))
+                            restored_list.append(item.encode("latin-1"))
                         else:
                             restored_list.append(item)
                 else:
@@ -175,21 +175,18 @@ class EmailCache:
 
     def _store_persistent(self, eid_str: str, data: tuple, shipper: str) -> None:
         """Store fetched email data in persistent structure."""
-        # Convert bytes objects inside tuple response for JSON serialization safety
+        # Convert bytes objects inside tuple response for JSON serialization safety using latin-1 encoding to preserve exact 1-to-1 byte representations
         status, response_list = data
         serializable_list = []
         if isinstance(response_list, list):
             for item in response_list:
                 if isinstance(item, tuple):
                     serialized_tuple = tuple(
-                        x.decode("utf-8", errors="replace")
-                        if isinstance(x, bytes)
-                        else x
-                        for x in item
+                        x.decode("latin-1") if isinstance(x, bytes) else x for x in item
                     )
                     serializable_list.append(serialized_tuple)
                 elif isinstance(item, bytes):
-                    serializable_list.append(item.decode("utf-8", errors="replace"))
+                    serializable_list.append(item.decode("latin-1"))
                 else:
                     serializable_list.append(item)
         else:

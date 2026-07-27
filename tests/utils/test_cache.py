@@ -66,6 +66,11 @@ async def test_email_cache_persistent_store_and_purge(hass):
 @pytest.mark.asyncio
 async def test_email_cache_load_and_save_errors(caplog):
     """Test EmailCache OSError handling on load and save."""
+    # Test when self._store is None
+    cache_no_store = EmailCache()
+    await cache_no_store.async_load()
+    await cache_no_store.async_save()
+
     mock_store = AsyncMock()
     mock_store.async_load.side_effect = OSError("Load error")
     mock_store.async_save.side_effect = OSError("Save error")
