@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -49,7 +50,7 @@ def _get_sensor_name_for_camera(camera_type: str) -> str | None:
     return f"{base_name}_delivered"
 
 
-def _is_camera_enabled(camera_type: str, resources: list[str]) -> bool:
+def _is_camera_enabled(camera_type: str, resources: Sequence[str]) -> bool:
     """Check if a camera entity should be enabled based on resources."""
     if camera_type == "generic_camera":
         return any(res.endswith("_delivered") for res in resources)
