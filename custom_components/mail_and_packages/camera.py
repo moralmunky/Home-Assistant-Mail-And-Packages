@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -11,7 +12,7 @@ import anyio
 import voluptuous as vol
 from homeassistant.components.camera import Camera
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_ENTITY_ID, CONF_HOST
+from homeassistant.const import ATTR_ENTITY_ID, CONF_HOST, CONF_RESOURCES
 from homeassistant.core import ServiceCall
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -35,6 +36,28 @@ SERVICE_UPDATE_IMAGE = "update_image"
 _LOGGER = logging.getLogger(__name__)
 
 
+def _get_sensor_name_for_camera(camera_type: str) -> str | None:
+    """Get the sensor name that corresponds to a camera type."""
+    base_name = camera_type.removesuffix("_camera")
+
+    if base_name == "usps":
+        return "usps_mail"
+    if base_name == "post_de":
+        return "post_de_mail"
+    if base_name == "generic":
+        return None
+
+    return f"{base_name}_delivered"
+
+
+def _is_camera_enabled(camera_type: str, resources: Sequence[str]) -> bool:
+    """Check if a camera entity should be enabled based on resources."""
+    if camera_type == "generic_camera":
+        return any(res.endswith("_delivered") for res in resources)
+    sensor_name = _get_sensor_name_for_camera(camera_type)
+    return bool(sensor_name and sensor_name in resources)
+
+
 async def async_setup_entry(
     hass,
     config: MailAndPackagesConfigEntry,
@@ -42,9 +65,12 @@ async def async_setup_entry(
 ):
     """Set up the Camera that works with local files."""
     coordinator = config.runtime_data.coordinator
+    resources = coordinator.config.get(CONF_RESOURCES, [])
     camera = []
 
     for variable in CAMERA_DATA:
+        if not _is_camera_enabled(variable, resources):
+            continue
         temp_cam = MailCam(hass, variable, config, coordinator)
         camera.append(temp_cam)
         config.runtime_data.cameras.append(temp_cam)
@@ -591,7 +617,7 @@ class MailCam(CoordinatorEntity, Camera):
 
         return False
 
-    def _get_sensor_name_for_camera(self, camera_type: str) -> str:
+    def _get_sensor_name_for_camera(self, camera_type: str) -> str | None:
         """Get the sensor name that corresponds to a camera type.
 
         Args:
@@ -601,17 +627,7 @@ class MailCam(CoordinatorEntity, Camera):
             The corresponding sensor name, or None if no mapping exists
 
         """
-        # Remove "_camera" suffix to get base name
-        base_name = camera_type.removesuffix("_camera")
-
-        # Special cases for mail scans cameras
-        if base_name == "usps":
-            return "usps_mail"
-        if base_name == "post_de":
-            return "post_de_mail"
-
-        # For other cameras, use the pattern: {base_name}_delivered
-        return f"{base_name}_delivered"
+        return _get_sensor_name_for_camera(camera_type)
 
     async def async_added_to_hass(self) -> None:
         """Run when entity is added to hass."""

@@ -8,7 +8,11 @@ from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.mail_and_packages.camera import MailCam
+from custom_components.mail_and_packages.camera import (
+    MailCam,
+    _get_sensor_name_for_camera,
+    _is_camera_enabled,
+)
 from custom_components.mail_and_packages.const import (
     ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_PATH,
@@ -2802,3 +2806,43 @@ async def test_generic_camera_gif_failure_fallback(
         assert "amazon" in str(generic_camera._file_path) or "mail_none.gif" in str(
             generic_camera._file_path
         )
+
+
+async def test_is_camera_enabled_helpers():
+    """Test _get_sensor_name_for_camera and _is_camera_enabled helper functions."""
+    assert _get_sensor_name_for_camera("usps_camera") == "usps_mail"
+    assert _get_sensor_name_for_camera("post_de_camera") == "post_de_mail"
+    assert _get_sensor_name_for_camera("amazon_camera") == "amazon_delivered"
+    assert _get_sensor_name_for_camera("ups_camera") == "ups_delivered"
+    assert _get_sensor_name_for_camera("generic_camera") is None
+
+    # Test resource matching
+    resources = ["usps_mail", "amazon_delivered"]
+
+    assert _is_camera_enabled("usps_camera", resources)
+    assert _is_camera_enabled("amazon_camera", resources)
+    assert not _is_camera_enabled("ups_camera", resources)
+    assert _is_camera_enabled("generic_camera", resources)
+
+    # Generic camera disabled when no _delivered sensor is present
+    no_del_resources = ["usps_mail", "post_de_mail"]
+    assert not _is_camera_enabled("generic_camera", no_del_resources)
+
+
+async def test_post_de_camera_and_on_demand_update(hass, integration):
+    """Test post_de_camera initialization, file path update, and async_on_demand_update."""
+    entry = integration
+    coordinator = entry.runtime_data.coordinator
+
+    cam = MailCam(hass, "post_de_camera", entry, coordinator)
+    cam.entity_id = "camera.post_de"
+    assert cam.name == "Mail Post DE Camera"
+    assert "mail_none.gif" in cam._file_path
+
+    coordinator.data = {}
+    await cam.update_file_path()
+    assert "mail_none.gif" in cam._file_path
+
+    cam.async_schedule_update_ha_state = MagicMock()
+    await cam.async_on_demand_update()
+    cam.async_schedule_update_ha_state.assert_called_once_with(True)
