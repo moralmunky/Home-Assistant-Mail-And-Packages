@@ -1911,6 +1911,17 @@ async def test_email_search_body_threshold():
     search_query = mock_imap.search.call_args.args[0]
     assert "BODY" not in search_query
 
+    # Regex body pattern -> should NOT include BODY in search query
+    mock_imap.search.reset_mock()
+    await email_search(
+        mock_imap,
+        ["test@example.com"],
+        "25-Mar-2026",
+        body=[r"\sYou have (\d) piece|pieces of mail\s"],
+    )
+    search_query = mock_imap.search.call_args.args[0]
+    assert "BODY" not in search_query
+
 
 @pytest.mark.asyncio
 async def test_login_oauth_failed(caplog):

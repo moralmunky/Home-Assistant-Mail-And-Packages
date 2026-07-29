@@ -967,3 +967,12 @@ async def test_migrate_version_20():
     # Options fields should be removed from data
     assert CONF_SCAN_INTERVAL not in kwargs["data"]
     assert CONF_AMAZON_DOMAIN not in kwargs["data"]
+
+
+@pytest.mark.asyncio
+async def test_capost_mail_processing(hass, mock_imap_capost_mail, integration_capost):
+    """Test processing of Canada Post mail emails."""
+    entry = integration_capost
+    coordinator = entry.runtime_data.coordinator
+    await coordinator.async_refresh()
+    assert coordinator.data["capost_mail"] == 3
