@@ -528,13 +528,13 @@ async def email_search(  # noqa: C901
         host_lower = account.host.lower()
         is_yahoo = "yahoo" in host_lower or "aol" in host_lower
 
-    # If there are more than 2 body patterns, do not search them server-side
-    # to prevent slow query execution and timeouts on standard IMAP servers.
+    # If there are more than 2 body patterns or if patterns contain regex metacharacters,
+    # do not search them server-side to prevent IMAP search failures and query timeouts.
     # Instead, we let the shipper's client-side text filtering handle it.
     body_search = body
     if body:
         bodies = [body] if isinstance(body, str) else body
-        if len(bodies) > 2:
+        if len(bodies) > 2 or any(re.search(r"[()|\[\]?*+^$\\]", b) for b in bodies):
             body_search = ""
 
     if len(folders) <= 1:
