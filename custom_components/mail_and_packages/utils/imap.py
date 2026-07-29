@@ -534,9 +534,7 @@ async def email_search(  # noqa: C901
     body_search = body
     if body:
         bodies = [body] if isinstance(body, str) else body
-        if len(bodies) > 2 or any(
-            re.search(r"[\(\)\|\\\[\]\?\*\+\^\$]", b) for b in bodies
-        ):
+        if len(bodies) > 2 or any(re.search(r"[()|\[\]?*+^$\\]", b) for b in bodies):
             body_search = ""
 
     if len(folders) <= 1:
