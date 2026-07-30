@@ -117,7 +117,7 @@ class EmailCache:
                 restored_list = []
                 if isinstance(response_list, list):
                     for item in response_list:
-                        if isinstance(item, list):
+                        if isinstance(item, (list, tuple)):
                             restored_list.append(
                                 tuple(
                                     x.encode("latin-1") if isinstance(x, str) else x
@@ -182,10 +182,11 @@ class EmailCache:
             for item in response_list:
                 if isinstance(item, tuple):
                     serialized_tuple = tuple(
-                        x.decode("latin-1") if isinstance(x, bytes) else x for x in item
+                        x.decode("latin-1") if isinstance(x, (bytes, bytearray)) else x
+                        for x in item
                     )
                     serializable_list.append(serialized_tuple)
-                elif isinstance(item, bytes):
+                elif isinstance(item, (bytes, bytearray)):
                     serializable_list.append(item.decode("latin-1"))
                 else:
                     serializable_list.append(item)

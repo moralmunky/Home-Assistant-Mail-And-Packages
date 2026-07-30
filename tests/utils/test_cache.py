@@ -158,6 +158,33 @@ async def test_email_cache_fetch_variations(hass):
         res_other = await cache.fetch("9", "OTHER_PARTS")
         assert res_other[0] == "OK"
 
+    # 3b. Test IMAP fetch with bytearray response data
+    with patch(
+        "custom_components.mail_and_packages.utils.cache.email_fetch",
+        AsyncMock(
+            return_value=(
+                "OK",
+                [
+                    (b"header", bytearray(b"bytearray_body")),
+                    bytearray(b"raw_bytearray"),
+                ],
+            )
+        ),
+    ):
+        res_ba_fetch = await cache.fetch("12", "(RFC822)")
+        assert res_ba_fetch[0] == "OK"
+        assert "12:(RFC822)" in cache._persistent_store
+        # Verify store entry contains JSON-serializable strings instead of bytearray
+        stored_entry = cache._persistent_store["12:(RFC822)"]["data"]
+        assert stored_entry[1][0] == ("header", "bytearray_body")
+        assert stored_entry[1][1] == "raw_bytearray"
+
+        # Verify restoration on re-fetch returns bytes
+        res_ba_restore = await cache.fetch("12", "(RFC822)")
+        assert res_ba_restore[0] == "OK"
+        assert res_ba_restore[1][0] == (b"header", b"bytearray_body")
+        assert res_ba_restore[1][1] == b"raw_bytearray"
+
     # 4. Test fetch_batch with active account
     with patch(
         "custom_components.mail_and_packages.utils.cache.email_fetch_batch",
