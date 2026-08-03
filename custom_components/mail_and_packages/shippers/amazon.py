@@ -329,9 +329,7 @@ class AmazonShipper(Shipper):
 
         # Out-for-delivery emails count as delivering when arriving today,
         # or when the OFD email itself arrived today.
-        if is_delivering and (
-            parsed_arrival == ctx["today"] or date == ctx["today"]
-        ):
+        if is_delivering and (parsed_arrival == ctx["today"] or date == ctx["today"]):
             if order_id:
                 ctx["packages_delivering_today"][order_id] = (
                     ctx["packages_delivering_today"].get(order_id, 0) + 1
@@ -463,7 +461,12 @@ class AmazonShipper(Shipper):
                 s.lower() in subject.lower() for s in AMAZON_DELIVERING_SUBJECT
             )
 
-            if has_delivered and not has_ordered and not has_shipped and not has_delivering:
+            if (
+                has_delivered
+                and not has_ordered
+                and not has_shipped
+                and not has_delivering
+            ):
                 urls = self._extract_amazon_image_urls(msg)
                 return True, urls
         return False, []

@@ -44,8 +44,6 @@ _MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
 DOMAIN_LANG_MAP = {
     "amazon.de": [
         "versandbestaetigung",
-        "shipment-tracking",
-        "order-update",
         "Geliefert:",
         "Zugestellt:",
         "Versandt:",
@@ -236,6 +234,30 @@ async def parse_amazon_arrival_date(
     return None
 
 
+def _split_amazon_domains(domain: str | None) -> list[str]:
+    """Split a possibly comma-separated amazon_domain into domain list."""
+    if domain is None:
+        domain = "amazon.com"
+    domains = [d.strip() for d in str(domain).split(",") if d.strip()]
+    return domains or ["amazon.com"]
+
+
+def _amazon_address_prefixes() -> list[str]:
+    """Build Amazon local-part prefixes used for IMAP FROM searches.
+
+    Do NOT language-filter address prefixes: amazon.de OFD mails come from
+    shipment-tracking@amazon.de (English local-part), while shipped mails use
+    versandbestaetigung@amazon.de. Filtering prefixes via DOMAIN_LANG_MAP drops
+    shipment-tracking@ for amazon.de and misses "In Zustellung" emails.
+    """
+    prefixes = list(AMAZON_EMAIL)
+    for local_part in AMAZON_SHIPMENT_TRACKING:
+        prefix = f"{local_part}@"
+        if prefix not in prefixes:
+            prefixes.append(prefix)
+    return prefixes
+
+
 def amazon_email_addresses(
     fwds: list[str] | str | None = None,
     domain: str | None = None,
@@ -246,33 +268,16 @@ def amazon_email_addresses(
     elif not isinstance(fwds, (list, tuple)):
         fwds = None
 
-    if domain is None:
-        domain = "amazon.com"
+    domains = _split_amazon_domains(domain)
+    base_prefixes = _amazon_address_prefixes()
+    value = [f"{prefix}{dom}" for dom in domains for prefix in base_prefixes]
 
-    domains = [d.strip() for d in str(domain).split(",") if d.strip()]
-    if not domains:
-        domains = ["amazon.com"]
-
-    # Use both AMAZON_EMAIL and AMAZON_SHIPMENT_TRACKING for prefixes.
-    # Do NOT language-filter address prefixes: amazon.de OFD mails come from
-    # shipment-tracking@amazon.de (English local-part), while shipped mails use
-    # versandbestaetigung@amazon.de. Filtering prefixes via DOMAIN_LANG_MAP drops
-    # shipment-tracking@ for amazon.de and misses "In Zustellung" emails.
-    base_prefixes = list(AMAZON_EMAIL)
-    for p in AMAZON_SHIPMENT_TRACKING:
-        if f"{p}@" not in base_prefixes:
-            base_prefixes.append(f"{p}@")
-
-    value: list[str] = []
-    for dom in domains:
-        value.extend(f"{prefix}{dom}" for prefix in base_prefixes)
     if fwds:
         for fwd in fwds:
             if "@" in fwd:
                 value.append(fwd)
-            elif any(f in fwd for f in AMAZON_DOMAINS):
-                for dom in domains:
-                    value.extend(f"{prefix}{fwd}" for prefix in base_prefixes)
+            elif any(amazon_domain in fwd for amazon_domain in AMAZON_DOMAINS):
+                value.extend(f"{prefix}{fwd}" for prefix in base_prefixes)
     return list(dict.fromkeys(value))
 
 
@@ -297,7 +302,7 @@ async def search_amazon_emails(
         AMAZON_DELIVERED_SUBJECT + AMAZON_SHIPMENT_SUBJECT + AMAZON_ORDERED_SUBJECT
     )
     if domain:
-        domains = [d.strip() for d in str(domain).split(",") if d.strip()]
+        domains = _split_amazon_domains(domain)
         if len(domains) == 1:
             amazon_subjects = filter_amazon_strings(amazon_subjects, domains[0])
         else:

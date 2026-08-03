@@ -190,11 +190,15 @@ def test_get_decoded_subject_from_html_title():
 
 
 def test_amazon_email_addresses_various_fwds():
-    """Test amazon_email_addresses with various fwd types (Line 119)."""
-    # Test with None (triggers Line 119)
-    assert len(amazon_email_addresses(fwds=None)) == 3
-    # Test with non-list/tuple (triggers Line 119)
-    assert len(amazon_email_addresses(fwds=123)) == 3
+    """Test amazon_email_addresses with various fwd types."""
+    # Prefixes are not language-filtered so English + localized local-parts
+    # (AMAZON_EMAIL + AMAZON_SHIPMENT_TRACKING) are all expanded.
+    none_result = amazon_email_addresses(fwds=None)
+    assert "order-update@amazon.com" in none_result
+    assert "shipment-tracking@amazon.com" in none_result
+    assert "versandbestaetigung@amazon.com" in none_result
+    # Non-list/tuple fwds are ignored the same as None
+    assert amazon_email_addresses(fwds=123) == none_result
 
 
 @pytest.mark.asyncio
