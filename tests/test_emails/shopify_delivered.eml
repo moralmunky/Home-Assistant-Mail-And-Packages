@@ -1,0 +1,30 @@
+Delivered-To: redacted@gmail.com
+Received: from mail.parcelpanel.net (mail.parcelpanel.net. [192.0.2.81])
+        by mx.google.com with ESMTPS id shopify123abc457
+        for <redacted@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 02 Apr 2026 11:20:19 -0700 (PDT)
+Return-Path: <no-reply@parcelpanel.net>
+From: Example Store <no-reply@parcelpanel.net>
+To: redacted@gmail.com
+Subject: A shipment from order #53495 has been delivered
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Message-ID: <20260402182019.shopify.delivered@parcelpanel.net>
+Date: Thu, 2 Apr 2026 18:20:19 +0000
+
+<!doctype html>
+<html>
+  <body>
+    <p>Order #53495</p>
+    <h1>The last item in your order has been delivered</h1>
+    <p>Haven't received your package yet? Let us know</p>
+    <a href=3D"https://examplestore.com/orders/track">View your order</a> =
+or <a href=3D"https://examplestore.com">Visit our store</a>
+    <p>ICS tracking number: ND6EV0V3JWBEYVK1B3B7</p>
+    <p>Items in this shipment</p>
+    <p>Example Widget x1</p>
+    <p>Ship to: John Doe, 123 Main St. Springfield</p>
+  </body>
+</html>
