@@ -6,10 +6,12 @@ import logging
 import os
 from dataclasses import dataclass
 from datetime import timedelta
+from http import HTTPStatus
 from pathlib import Path
 from time import monotonic
 
 import anyio
+from aiohttp import ClientResponseError
 from aioimaplib import IMAP4_SSL
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -112,6 +114,51 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         else:
             return file_hash
 
+    async def _async_oauth_access_token(self, auth_type: str) -> str:
+        """Return a valid OAuth2 access token, refreshing it when required.
+
+        Raises ConfigEntryAuthFailed when the grant itself is gone, so Home
+        Assistant starts a reauth flow instead of retrying forever.
+        """
+        try:
+            self.hass.data.setdefault(DOMAIN, {})
+            self.hass.data[DOMAIN]["oauth_provider"] = auth_type
+
+            implementation = (
+                await config_entry_oauth2_flow.async_get_config_entry_implementation(
+                    self.hass,
+                    self.config_entry,
+                )
+            )
+            session = config_entry_oauth2_flow.OAuth2Session(
+                self.hass,
+                self.config_entry,
+                implementation,
+            )
+            await session.async_ensure_token_valid()
+        except ClientResponseError as err:
+            # The token endpoint rejecting the grant (typically "invalid_grant")
+            # means the refresh token has been revoked or has expired. Retrying
+            # can never recover from that, so surface it as an auth failure and
+            # let Home Assistant start a reauth flow.
+            if err.status in (HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED):
+                _LOGGER.error(
+                    "OAuth token refresh was rejected (HTTP %s): %s. "
+                    "Reauthentication is required",
+                    err.status,
+                    err.message,
+                )
+                raise ConfigEntryAuthFailed(
+                    "OAuth token refresh failed, reauthentication required"
+                ) from err
+            _LOGGER.error("Error refreshing OAuth token: %s", err)
+            raise UpdateFailed("OAuth token refresh failed") from err
+        except Exception as err:
+            _LOGGER.error("Error refreshing OAuth token: %s", err)
+            raise UpdateFailed("OAuth token refresh failed") from err
+
+        return session.token["access_token"]
+
     async def _async_update_data(self):
         """Fetch data."""
         start = monotonic()
@@ -123,25 +170,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                     # Refresh OAuth2 token if using OAuth authentication
                     auth_type = config.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
                     if auth_type != AUTH_TYPE_PASSWORD and self.config_entry:
-                        try:
-                            self.hass.data.setdefault(DOMAIN, {})
-                            self.hass.data[DOMAIN]["oauth_provider"] = auth_type
-
-                            implementation = await config_entry_oauth2_flow.async_get_config_entry_implementation(
-                                self.hass,
-                                self.config_entry,
-                            )
-                            session = config_entry_oauth2_flow.OAuth2Session(
-                                self.hass,
-                                self.config_entry,
-                                implementation,
-                            )
-                            await session.async_ensure_token_valid()
-                            config["oauth_token"] = session.token["access_token"]
-                        except Exception as err:
-                            _LOGGER.error("Error refreshing OAuth token")
-                            _LOGGER.debug("OAuth token refresh error details: %s", err)
-                            raise UpdateFailed("OAuth token refresh failed") from err
+                        config["oauth_token"] = await self._async_oauth_access_token(
+                            auth_type
+                        )
 
                     data = await self.process_emails(self.hass, config)
                 except ConfigEntryAuthFailed:
