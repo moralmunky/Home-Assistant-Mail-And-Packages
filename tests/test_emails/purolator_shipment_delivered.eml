@@ -1,0 +1,45 @@
+Delivered-To: redacted@gmail.com
+Received: from mta1.notifications.purolator.com (mta1.notifications.purolator.com. [192.0.2.10])
+        by mx.google.com with ESMTPS id pur123abc456
+        for <redacted@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256/256);
+        Fri, 13 Mar 2026 06:17:51 -0700 (PDT)
+Return-Path: <notificationservice@purolator.com>
+From: Purolator <notificationservice@purolator.com>
+To: redacted@gmail.com
+Subject: =?UTF-8?Q?Purolator_shipment_RKP000051945:_Your_package_has_been_del?=
+ =?UTF-8?Q?ivered_/Envoi_de_Purolator_RKP000051945_:_Votre_colis_a_=C3=A9t?=
+ =?UTF-8?Q?=C3=A9_livr=C3=A9?=
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Message-ID: <20260313131751.ABCDEF123456@notifications.purolator.com>
+Date: Fri, 13 Mar 2026 13:17:51 +0000 (UTC)
+
+<!doctype html>
+<html>
+  <head>
+    <title>Purolator</title>
+  </head>
+  <body style=3D"margin:0;padding:0;">
+    <img src=3D"https://www.purolator.com/logo.png" alt=3D"Purolator header=
+ logo" />
+    <p>Veuillez faire d=C3=A9filer l'=C3=AAcran vers le bas pour afficher l=
+a version fran=C3=A7aise.</p>
+    <h1>Your package has been delivered!</h1>
+    <p>Hello,</p>
+    <p>Tracking Number: RKP000051945<br />
+       Delivery Address: ANYTOWN,ON<br />
+       Number of Pieces: 1</p>
+    <p>Thank you and have a great day!<br />Team Purolator</p>
+    <p>It's not a package. It's a promise.</p>
+    <hr />
+    <h1>Votre colis a =C3=A9t=C3=A9 livr=C3=A9!</h1>
+    <p>Bonjour,</p>
+    <p>Num=C3=A9ro de suivi: RKP000051945<br />
+       Adresse de livraison: ANYTOWN,ON<br />
+       Nombre de pi=C3=A8ces: 1</p>
+    <p>Cordialement,<br />L=E2=80=99=C3=A9quipe Purolator</p>
+    <p>Ce n=E2=80=99est pas un colis. C=E2=80=99est une promesse.</p>
+  </body>
+</html>

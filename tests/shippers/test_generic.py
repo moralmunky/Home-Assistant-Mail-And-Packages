@@ -1295,6 +1295,38 @@ async def test_aliexpress_order_shipped_2026_format(
     assert len(result[ATTR_TRACKING]) == 1
 
 
+@pytest.mark.asyncio
+async def test_purolator_shipment_delivered_2026_format(
+    hass, mock_imap_purolator_shipment_delivered
+):
+    """Test Purolator delivered email parsing (2026 bilingual subject format)."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_purolator_shipment_delivered,
+        "today",
+        "purolator_delivered",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["RKP000051945"]
+
+
+@pytest.mark.asyncio
+async def test_purolator_shipment_out_for_delivery_2026_format(
+    hass, mock_imap_purolator_shipment_out_for_delivery
+):
+    """Test Purolator out-for-delivery email parsing (2026 bilingual format)."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_purolator_shipment_out_for_delivery,
+        "today",
+        "purolator_delivering",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["RKP000051945"]
+
+
 @pytest.mark.parametrize(
     ("subject", "expected_sensor"),
     [
@@ -1334,6 +1366,106 @@ def test_aliexpress_2026_subject_patterns(subject, expected_sensor):
 
 
 @pytest.mark.parametrize(
+    ("subject", "expected_sensor"),
+    [
+        # 2026 "Purolator shipment <PIN>:" bilingual format
+        (
+            (
+                "Purolator shipment RKP000051945: Your package has been delivered "
+                "/Envoi de Purolator RKP000051945 : Votre colis a été livré"
+            ),
+            "purolator_delivered",
+        ),
+        (
+            (
+                "Purolator shipment RKP000051945: Your package is now out for delivery"
+                "/ Envoi de Purolator RKP000051945 : Votre colis est en cours de livraison"
+            ),
+            "purolator_delivering",
+        ),
+        # Older "Purolator - " format (still observed mid-2025)
+        (
+            (
+                "Purolator - Your shipment is delivered / Votre envoi a été livré"
+                "- +/- PIN/NIC:335596611426"
+            ),
+            "purolator_delivered",
+        ),
+        (
+            (
+                "Purolator - Your shipment is out for delivery / Votre envoi est en "
+                "voie d'être livré - - PIN/NIC:607828110629"
+            ),
+            "purolator_delivering",
+        ),
+        (
+            (
+                "Purolator - Your shipment is on its way / Votre envoi est en route "
+                "- PIN/NIC:335596611426"
+            ),
+            "purolator_delivering",
+        ),
+        (
+            (
+                "Purolator - Your shipment has been picked up / Votre envoi a été "
+                "ramassé - PIN/NIC:335596611426"
+            ),
+            "purolator_packages",
+        ),
+        # Non-shipping notifications from the same sender must not match
+        (
+            (
+                "Access Your Purolator Your Way Account /Accédez à votre compte "
+                "Purolator Votre façon"
+            ),
+            None,
+        ),
+        (
+            (
+                "Verify your email to track and customize your Purolator delivery "
+                "preferences/Vérifiez votre adresse courriel pour faire le suivi de "
+                "vos préférences de livraison de Purolator et les personnaliser"
+            ),
+            None,
+        ),
+        (
+            (
+                "Purolator PIN/NIC 335596611426  - A summary of your shipment "
+                "/ Un résumé de votre envoi"
+            ),
+            None,
+        ),
+        ("Shipment Update / Mise à jour d' expédition - PIN/NIC: 335596611426", None),
+        (
+            (
+                "Purolator - Your shipment is ready for pickup / Votre colis est "
+                "prêt pour la cueillette - PIN/NIC:335596611426"
+            ),
+            None,
+        ),
+    ],
+)
+def test_purolator_2026_subject_patterns(subject, expected_sensor):
+    """Each real Purolator subject maps to exactly one sensor (or none)."""
+    matched = [
+        sensor
+        for sensor in (
+            "purolator_delivered",
+            "purolator_delivering",
+            "purolator_packages",
+        )
+        if any(
+            expected.lower() in subject.lower()
+            for expected in SENSOR_DATA[sensor][ATTR_SUBJECT]
+        )
+    ]
+    if expected_sensor is None:
+        assert matched == []
+    else:
+        assert matched == [expected_sensor]
+
+
+@pytest.mark.parametrize(
     ("text", "expected"),
     [
         # 2026 package IDs (letters+digits, 16-18 chars)
@@ -1349,6 +1481,29 @@ def test_aliexpress_2026_subject_patterns(subject, expected_sensor):
 def test_aliexpress_tracking_pattern(text, expected):
     """The AliExpress tracking pattern extracts old and new tracking formats."""
     pattern = SENSOR_DATA["aliexpress_tracking"]["pattern"][0]
+    match = re.search(pattern, text)
+    assert match is not None
+    assert match.group(0) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # 2026 alphanumeric PIN (3 letters + 9 digits)
+        (
+            "Purolator shipment RKP000051945: Your package has been delivered",
+            "RKP000051945",
+        ),
+        # Older alphanumeric PIN format
+        ("PIN/NIC:CFY002985537", "CFY002985537"),
+        # Numeric PINs (pre-existing pattern) still match
+        ("PIN/NIC:335596611426", "335596611426"),
+        ("PIN/NIC:607828110629123", "607828110629123"),
+    ],
+)
+def test_purolator_tracking_pattern(text, expected):
+    """The Purolator tracking pattern extracts old and new PIN formats."""
+    pattern = SENSOR_DATA["purolator_tracking"]["pattern"][0]
     match = re.search(pattern, text)
     assert match is not None
     assert match.group(0) == expected
