@@ -1363,3 +1363,39 @@ def mock_imap_list_result_error(mock_imap):
         lines=[b"Could not list folders"],
     )
     return mock_imap
+
+
+@pytest.fixture
+def mock_imap_aliexpress_delivered(mock_imap):
+    """Mock IMAP search with AliExpress delivered email (2026 format)."""
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+    email_file = Path("tests/test_emails/aliexpress_delivered.eml").read_text(
+        encoding="utf-8",
+    )
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+    return mock_imap
+
+
+@pytest.fixture
+def mock_imap_aliexpress_with_local_carrier(mock_imap):
+    """Mock IMAP search with AliExpress with-local-carrier email (2026 format)."""
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+    email_file = Path("tests/test_emails/aliexpress_with_local_carrier.eml").read_text(
+        encoding="utf-8",
+    )
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+    return mock_imap
+
+
+@pytest.fixture
+def mock_imap_aliexpress_order_shipped(mock_imap):
+    """Mock IMAP search with AliExpress order-shipped email (2026 format)."""
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+    email_file = Path("tests/test_emails/aliexpress_order_shipped.eml").read_text(
+        encoding="utf-8",
+    )
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+    return mock_imap

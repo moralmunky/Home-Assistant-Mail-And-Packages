@@ -999,6 +999,8 @@ SENSOR_DATA = {
         "subject": [
             "Package delivered",
             "Your package has been delivered",
+            # 2026 format: "Package <ID> has been delivered"
+            "has been delivered",
             "Sendung zugestellt",
         ],
         "body": [
@@ -1018,16 +1020,32 @@ SENSOR_DATA = {
             "Your package is on the way",
             "Ihre Sendung ist unterwegs",
             "Sendung wird versandt",
+            # 2026 formats: "Order <N>: <status>" and "Package <ID>: <status>"
+            "order shipped",
+            "collected by the carrier",
+            "left the departure region",
+            "at customs",
+            "has cleared customs",
+            "in your country/region",
+            "in local transit",
+            "with local carrier",
         ],
         "body": [
             "on the way",
             "unterwegs",
             "wird versandt",
+            "shipped",
+            "carrier",
+            "customs",
+            "transit",
+            "departure",
         ],
     },
     "aliexpress_packages": {},
     "aliexpress_tracking": {
-        "pattern": ["(?:[A-Z]{2}[0-9]{9}[A-Z]{2}|[0-9]{13}|[0-9]{20})"],
+        "pattern": [
+            "(?:[A-Z]{2}[0-9][0-9A-Z]{13,15}|[A-Z]{2}[0-9]{9}[A-Z]{2}|[0-9]{13}|[0-9]{20})"
+        ],
     },
     # DPD Netherlands
     "dpd_nl_delivered": {
@@ -1925,6 +1943,7 @@ SENSOR_ICON = 2
 
 # For sensors with delivering and delivered statuses
 SHIPPERS = [
+    "aliexpress",
     "amazon",
     "capost",
     "dhl",
