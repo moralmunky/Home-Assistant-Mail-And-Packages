@@ -115,6 +115,15 @@ _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
+OAUTH_TOKEN_KEYS = {
+    "token",
+    "access_token",
+    "refresh_token",
+    "expires_at",
+    "expires_in",
+    "auth_implementation",
+}
+
 
 async def async_setup(hass: HomeAssistant, config_entry: MailAndPackagesConfigEntry):  # pylint: disable=unused-argument
     """Disallow configuration via YAML."""
@@ -153,7 +162,15 @@ async def async_setup_entry(
     # Setup the data coordinator
     coordinator = MailDataUpdateCoordinator(hass, config, config_entry)
 
-    config_entry.runtime_data = MailAndPackagesData(coordinator=coordinator, cameras=[])
+    last_data = {
+        k: v for k, v in config_entry.data.items() if k not in OAUTH_TOKEN_KEYS
+    }
+    config_entry.runtime_data = MailAndPackagesData(
+        coordinator=coordinator,
+        cameras=[],
+        last_options=dict(config_entry.options),
+        last_data=last_data,
+    )
 
     # Fetch initial data in the background so setup doesn't block
     hass.async_create_task(coordinator.async_refresh())
@@ -169,6 +186,17 @@ async def update_listener(
     hass: HomeAssistant, config_entry: MailAndPackagesConfigEntry
 ) -> None:
     """Update listener."""
+    if config_entry.runtime_data:
+        current_non_oauth_data = {
+            k: v for k, v in config_entry.data.items() if k not in OAUTH_TOKEN_KEYS
+        }
+        if (
+            config_entry.options == config_entry.runtime_data.last_options
+            and current_non_oauth_data == config_entry.runtime_data.last_data
+        ):
+            _LOGGER.debug("Config entry update was token-only refresh; skipping reload")
+            return
+
     _LOGGER.debug("Attempting to reload sensors from the %s integration", DOMAIN)
     await hass.config_entries.async_reload(config_entry.entry_id)
 

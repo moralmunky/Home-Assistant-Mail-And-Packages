@@ -60,6 +60,8 @@ class MailAndPackagesData:
 
     coordinator: "MailDataUpdateCoordinator"
     cameras: list
+    last_options: dict | None = None
+    last_data: dict | None = None
 
 
 type MailAndPackagesConfigEntry = ConfigEntry[MailAndPackagesData]
