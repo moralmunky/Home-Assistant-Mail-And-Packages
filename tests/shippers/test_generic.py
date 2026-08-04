@@ -2,6 +2,7 @@
 
 import re
 import threading
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -16,6 +17,7 @@ from custom_components.mail_and_packages.const import (
 from custom_components.mail_and_packages.shippers import generic
 from custom_components.mail_and_packages.shippers.generic import GenericShipper
 from custom_components.mail_and_packages.utils.cache import EmailCache
+from tests.conftest import _generate_fetch_side_effect
 
 
 @pytest.mark.asyncio
@@ -1327,6 +1329,34 @@ async def test_purolator_shipment_out_for_delivery_2026_format(
     assert result[ATTR_TRACKING] == ["RKP000051945"]
 
 
+@pytest.mark.asyncio
+async def test_etsy_delivered_class(hass, mock_imap_etsy_delivered):
+    """Test Etsy delivered email parsing via GenericShipper."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_etsy_delivered,
+        "today",
+        "etsy_delivered",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["3869977574"]
+
+
+@pytest.mark.asyncio
+async def test_etsy_on_the_way_class(hass, mock_imap_etsy_on_the_way):
+    """Test Etsy on-the-way email parsing via GenericShipper."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_etsy_on_the_way,
+        "today",
+        "etsy_delivering",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["3869977574"]
+
+
 @pytest.mark.parametrize(
     ("subject", "expected_sensor"),
     [
@@ -1466,6 +1496,44 @@ def test_purolator_2026_subject_patterns(subject, expected_sensor):
 
 
 @pytest.mark.parametrize(
+    ("subject", "expected_sensor"),
+    [
+        (
+            "It's here! Your order from YverInc has been delivered.",
+            "etsy_delivered",
+        ),
+        (
+            "Another package for your Etsy order is on the way (Receipt #3869977574)",
+            "etsy_delivering",
+        ),
+        ("Your Etsy order is on the way (Receipt #3620921447)", "etsy_delivering"),
+        ("Your Etsy Order dispatched (Receipt #3620921447)", "etsy_delivering"),
+        ("And it’s off! Deutsche Post has your order 🚚", "etsy_delivering"),
+        ("Ding! Order updates are waiting in the app 📦", "etsy_delivering"),
+        # Non-shipping notifications from Etsy senders must not match
+        ("Your Etsy Purchase from TheVinc (4106538106)", None),
+        ("John Doe, you have a new item to review.", None),
+        ("John Doe, did you recently sign into Etsy?", None),
+        ("Sports + vintage = winning combo", None),
+    ],
+)
+def test_etsy_subject_patterns(subject, expected_sensor):
+    """Each real Etsy subject maps to exactly one sensor (or none)."""
+    matched = [
+        sensor
+        for sensor in ("etsy_delivered", "etsy_delivering")
+        if any(
+            expected.lower() in subject.lower()
+            for expected in SENSOR_DATA[sensor][ATTR_SUBJECT]
+        )
+    ]
+    if expected_sensor is None:
+        assert matched == []
+    else:
+        assert matched == [expected_sensor]
+
+
+@pytest.mark.parametrize(
     ("text", "expected"),
     [
         # 2026 package IDs (letters+digits, 16-18 chars)
@@ -1507,3 +1575,194 @@ def test_purolator_tracking_pattern(text, expected):
     match = re.search(pattern, text)
     assert match is not None
     assert match.group(0) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # Subject form
+        ("Your Etsy order is on the way (Receipt #3869977574)", "3869977574"),
+        # Body form ("Order" and number split across lines)
+        ("h001.token )\nOrder\n#3869977574 (\nhttps://etsy.com", "3869977574"),
+        # Purchase-receipt style parenthesised number must NOT match
+        ("Your Etsy Purchase from TheVinc (4106538106)", None),
+    ],
+)
+def test_etsy_tracking_pattern(text, expected):
+    """The Etsy tracking pattern extracts receipt numbers from subject or body."""
+    pattern = SENSOR_DATA["etsy_tracking"]["pattern"][0]
+    match = re.search(pattern, text)
+    if expected is None:
+        assert match is None
+    else:
+        assert match is not None
+        assert match.group(1) == expected
+
+
+@pytest.mark.asyncio
+async def test_etsy_carrier_tracking_extraction(hass, mock_imap):
+    """A carrier tracking number embedded in a marketplace email is mapped."""
+    email_file = await hass.async_add_executor_job(
+        Path("tests/test_emails/etsy_on_the_way.eml").read_text
+    )
+    email_file = email_file.replace(
+        "Track your package for the latest updates.",
+        "Canada Post tracking number: 1234567890123456",
+    )
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = await shipper.process(mock_imap, "today", "etsy_delivering")
+
+    assert result[ATTR_COUNT] == 1
+    assert result["etsy_carrier_tracking"] == {"3869977574": "1234567890123456"}
+
+
+@pytest.mark.asyncio
+async def test_etsy_no_carrier_tracking_is_noop(hass, mock_imap_etsy_on_the_way):
+    """Marketplace emails without a carrier tracking number map nothing."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = await shipper.process(
+        mock_imap_etsy_on_the_way, "today", "etsy_delivering"
+    )
+    assert result[ATTR_COUNT] == 1
+    assert "etsy_carrier_tracking" not in result
+
+
+@pytest.mark.asyncio
+async def test_etsy_carrier_tracking_without_cache(hass, mock_imap):
+    """Test carrier tracking extraction when cache is None (hits email_fetch path)."""
+    email_file = await hass.async_add_executor_job(
+        Path("tests/test_emails/etsy_on_the_way.eml").read_text
+    )
+    email_file = email_file.replace(
+        "Track your package for the latest updates.",
+        "Canada Post tracking number: 1234567890123456",
+    )
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email_search",
+        AsyncMock(return_value=("OK", [b"1"])),
+    ):
+        result = await shipper.process(
+            mock_imap, "today", "etsy_delivering", cache=None
+        )
+
+    assert result[ATTR_COUNT] == 1
+    assert result["etsy_carrier_tracking"] == {"3869977574": "1234567890123456"}
+
+
+def test_find_carrier_number_payload_decode_errors():
+    """Test _find_carrier_number handles AttributeError and ValueError during payload decode."""
+    part1 = MagicMock()
+    part1.get_content_type.return_value = "text/plain"
+    part1.get_payload.side_effect = AttributeError("No payload")
+
+    part2 = MagicMock()
+    part2.get_content_type.return_value = "text/plain"
+    part2.get_payload.side_effect = ValueError("Invalid payload")
+
+    part3 = MagicMock()
+    part3.get_content_type.return_value = "text/plain"
+    part3.get_payload.return_value.decode.return_value = (
+        "Canada Post tracking number: 9876543210987654"
+    )
+
+    mock_msg = MagicMock()
+    mock_msg.walk.return_value = [part1, part2, part3]
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email.message_from_bytes",
+        return_value=mock_msg,
+    ):
+        pattern = re.compile(r"Canada Post tracking number:\s*(\d{16})")
+        res = generic._find_carrier_number([b"dummy email bytes"], pattern)
+        assert res == "9876543210987654"
+
+
+@pytest.mark.asyncio
+async def test_generic_shipper_process_batch_merges_carrier_tracking(hass):
+    """Test process_batch merges multiple sensor _carrier_tracking results."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    mock_account = AsyncMock()
+
+    with patch.object(
+        shipper,
+        "process",
+        AsyncMock(
+            side_effect=[
+                {
+                    ATTR_COUNT: 1,
+                    ATTR_TRACKING: ["111"],
+                    "etsy_carrier_tracking": {"111": "222"},
+                },
+                {
+                    ATTR_COUNT: 1,
+                    ATTR_TRACKING: ["333"],
+                    "etsy_carrier_tracking": {"333": "444"},
+                },
+            ]
+        ),
+    ):
+        res = await shipper.process_batch(
+            mock_account,
+            "today",
+            ["etsy_delivering", "etsy_delivered"],
+            cache=AsyncMock(),
+        )
+
+    assert res["etsy_carrier_tracking"] == {"111": "222", "333": "444"}
+
+
+def test_find_carrier_number_non_bytes_and_non_text_parts():
+    """Test _find_carrier_number skips non-bytes response parts and non-text MIME parts."""
+    part_image = MagicMock()
+    part_image.get_content_type.return_value = "image/png"
+
+    part_text = MagicMock()
+    part_text.get_content_type.return_value = "text/plain"
+    part_text.get_payload.return_value.decode.return_value = (
+        "Canada Post tracking number: 1111222233334444"
+    )
+
+    mock_msg = MagicMock()
+    mock_msg.walk.return_value = [part_image, part_text]
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.email.message_from_bytes",
+        return_value=mock_msg,
+    ):
+        pattern = re.compile(r"Canada Post tracking number:\s*(\d{16})")
+        # Passing integer 123 (non-bytes) and dummy bytes
+        res = generic._find_carrier_number([123, b"dummy email bytes"], pattern)
+        assert res == "1111222233334444"
+
+
+@pytest.mark.asyncio
+async def test_collect_carrier_tracking_with_cache_and_empty_tracking(hass):
+    """Test _collect_carrier_tracking with cache branch and empty get_tracking branch."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    mock_account = AsyncMock()
+    mock_cache = AsyncMock()
+    mock_cache.fetch.return_value = ("OK", [b"dummy email content"])
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            AsyncMock(side_effect=[[], ["3869977574"]]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic._find_carrier_number",
+            return_value="9999888877776666",
+        ),
+    ):
+        res = await shipper._collect_carrier_tracking(
+            "etsy_delivering", [b"1 2"], mock_account, cache=mock_cache
+        )
+
+    assert res == {"etsy_carrier_tracking": {"3869977574": "9999888877776666"}}
+    mock_cache.fetch.assert_called_once_with(b"2", "(RFC822)")

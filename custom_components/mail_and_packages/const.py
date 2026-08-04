@@ -870,6 +870,37 @@ SENSOR_DATA = {
     "intelcom_tracking": {
         "pattern": ["(NSPRSO[0-9]{10}|AMZNL[0-9]{12}|INTLCMI[0-9]+)"]
     },
+    # Etsy
+    "etsy_delivered": {
+        "email": [
+            "no-reply@account.etsy.com",
+            "noreply@account.etsy.com",
+            "noreply@etsy.com",
+        ],
+        "subject": [
+            # "It's here! Your order from <Shop> has been delivered."
+            "has been delivered",
+        ],
+    },
+    "etsy_delivering": {
+        "email": [
+            "no-reply@account.etsy.com",
+            "noreply@account.etsy.com",
+            "noreply@etsy.com",
+            "email@email.etsy.com",
+        ],
+        "subject": [
+            # "[Another package for] Your Etsy order is on the way (Receipt #N)"
+            "your Etsy order is on the way",
+            "Etsy Order dispatched",
+            # "And it's off! <Carrier> has your order"
+            "has your order",
+            # App-nag template used for dispatch notices
+            "Order updates are waiting in the app",
+        ],
+    },
+    "etsy_packages": {},
+    "etsy_tracking": {"pattern": ["(?:Receipt|Order)\\s*#(\\d{9,11})"]},
     # Walmart
     "walmart_delivering": {
         "email": ["help@walmart.com"],
@@ -1790,6 +1821,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="bolcom_packages",
     ),
+    # Etsy
+    "etsy_delivered": SensorEntityDescription(
+        name="Mail Etsy Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="etsy_delivered",
+    ),
+    "etsy_delivering": SensorEntityDescription(
+        name="Mail Etsy Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="etsy_delivering",
+    ),
+    "etsy_packages": SensorEntityDescription(
+        name="Mail Etsy Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="etsy_packages",
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -1950,6 +2000,16 @@ SENSOR_NAME = 0
 SENSOR_UNIT = 1
 SENSOR_ICON = 2
 
+# Marketplace shippers whose emails embed the physical carrier's tracking
+# number in the body. Used to de-duplicate against carrier shippers: when the
+# extracted number already appears in a carrier shipper's results, the
+# marketplace entry is dropped so the package is only counted once.
+# Regexes are applied case-insensitively to the email text parts; group 1 is
+# the carrier tracking number.
+MARKETPLACE_CARRIER_TRACKING = {
+    "etsy": r"tracking number:?\s*#?([A-Za-z0-9]{8,34})",
+}
+
 # For sensors with delivering and delivered statuses
 SHIPPERS = [
     "aliexpress",
@@ -1971,6 +2031,7 @@ SHIPPERS = [
     "bonshaw_distribution_network",
     "purolator",
     "intelcom",
+    "etsy",
     "post_nl",
     "post_at",
     "rewe_lieferservice",

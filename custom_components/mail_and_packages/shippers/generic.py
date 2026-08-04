@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import email
 import logging
+import re
 from email.header import decode_header
 from pathlib import Path
 from shutil import copyfile
@@ -25,6 +26,7 @@ from custom_components.mail_and_packages.const import (
     CAMERA_DATA,
     CAMERA_EXTRACTION_CONFIG,
     CONF_FORWARDING_HEADER,
+    MARKETPLACE_CARRIER_TRACKING,
     SENSOR_DATA,
 )
 from custom_components.mail_and_packages.utils.cache import EmailCache
@@ -42,6 +44,24 @@ from custom_components.mail_and_packages.utils.shipper import (
 from .base import Shipper
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _find_carrier_number(msg_parts: list, carrier_re: re.Pattern) -> str | None:
+    """Return the first carrier tracking number found in an email's text parts."""
+    for response_part in msg_parts:
+        if not isinstance(response_part, (bytes, bytearray)):
+            continue
+        msg = email.message_from_bytes(response_part)
+        for part in msg.walk():
+            if part.get_content_type() not in ("text/plain", "text/html"):
+                continue
+            try:
+                text = part.get_payload(decode=True).decode("utf-8", "ignore")
+            except (AttributeError, ValueError):
+                continue
+            if found := carrier_re.search(text):
+                return found.group(1)
+    return None
 
 
 class GenericShipper(Shipper):
@@ -148,6 +168,12 @@ class GenericShipper(Shipper):
         if result[ATTR_TRACKING]:
             count = len(result[ATTR_TRACKING])
 
+        result.update(
+            await self._collect_carrier_tracking(
+                sensor_type, found_data, account, cache
+            )
+        )
+
         if is_delivered:
             result["pre_filtered_tracking"] = result.get(ATTR_TRACKING, [])
 
@@ -230,6 +256,9 @@ class GenericShipper(Shipper):
                 if sensor.endswith("_delivered")
                 else sensor_res.get(ATTR_TRACKING)
             )
+            for key, value in list(sensor_res.items()):
+                if key.endswith("_carrier_tracking") and isinstance(res.get(key), dict):
+                    sensor_res[key] = {**res[key], **value}
             res.update(sensor_res)
             # Expose per-sensor raw tracking for coordinator state management.
             # Keyed as "_tracking_details" to distinguish from the public data dict.
@@ -597,6 +626,53 @@ class GenericShipper(Shipper):
             )
 
         return list(dict.fromkeys(tracking_nums))
+
+    async def _collect_carrier_tracking(
+        self,
+        sensor_type: str,
+        found_data: list,
+        account: IMAP4_SSL,
+        cache: EmailCache | None = None,
+    ) -> dict[str, dict]:
+        """Map marketplace tracking id -> embedded carrier tracking number.
+
+        Only runs for shippers listed in MARKETPLACE_CARRIER_TRACKING.
+        Fetches are served by the email cache, so this adds no extra IMAP
+        round-trips beyond what tracking extraction already required.
+        """
+        prefix = "_".join(sensor_type.split("_")[:-1])
+        pattern = MARKETPLACE_CARRIER_TRACKING.get(prefix)
+        tracking_key = f"{prefix}_tracking"
+        if (
+            not pattern
+            or not found_data
+            or tracking_key not in SENSOR_DATA
+            or ATTR_PATTERN not in SENSOR_DATA[tracking_key]
+        ):
+            return {}
+
+        carrier_re = re.compile(pattern, re.IGNORECASE)
+        id_pattern = SENSOR_DATA[tracking_key][ATTR_PATTERN][0]
+        mapping: dict[str, str] = {}
+        for sdata in found_data:
+            for eid in sdata.split():
+                tracking = await get_tracking(
+                    eid.decode() if isinstance(eid, bytes) else str(eid),
+                    account,
+                    id_pattern,
+                    cache,
+                )
+                if not tracking:
+                    continue
+                if cache:
+                    msg_parts = (await cache.fetch(eid, "(RFC822)"))[1]
+                else:
+                    msg_parts = (await email_fetch(account, eid, "(RFC822)"))[1]
+                if number := _find_carrier_number(msg_parts, carrier_re):
+                    mapping.setdefault(tracking[0], number)
+        if not mapping:
+            return {}
+        return {f"{prefix}_carrier_tracking": mapping}
 
     async def _setup_image_extraction(
         self,
