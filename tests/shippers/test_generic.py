@@ -1399,6 +1399,7 @@ async def test_shopify_delivered_class(hass, mock_imap_shopify_delivered):
         ("Package JY26CAA0D000551012: in your country/region", "aliexpress_delivering"),
         ("Package HM0000010001198611: in local transit", "aliexpress_delivering"),
         ("Package JY26CAA0D000551012: with local carrier", "aliexpress_delivering"),
+        ("Package JY26CAA0D000551012 is out for delivery", "aliexpress_delivering"),
         ("Package JY26CAA0D000551012 has been delivered", "aliexpress_delivered"),
         # Non-shipping notifications from the same sender must not match
         ("Order 8211968327931234: order confirmed", None),
