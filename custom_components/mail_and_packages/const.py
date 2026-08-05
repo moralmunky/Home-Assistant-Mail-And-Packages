@@ -1096,6 +1096,7 @@ SENSOR_DATA = {
             "in your country/region",
             "in local transit",
             "with local carrier",
+            "out for delivery",
         ],
         "body": [
             "on the way",
@@ -1106,6 +1107,7 @@ SENSOR_DATA = {
             "customs",
             "transit",
             "departure",
+            "out for delivery",
         ],
     },
     "aliexpress_packages": {},
