@@ -709,12 +709,14 @@ SENSOR_DATA = {
             "no-reply@gls-pakete.de",
             "noreply@gls-group.nl",
             "noreply@gls.nl",
+            "pakke-shop@pakkeshop.dk",
         ],
         "subject": [
             "informacja o dostawie",
             "wurde durch GLS",
             "bezorgd",
             "afgeleverd",
+            "Du kan nu hente pakke",
         ],
         "body": [
             "została dzisiaj dostarczona",
@@ -731,6 +733,7 @@ SENSOR_DATA = {
             "no-reply@gls-pakete.de",
             "noreply@gls-group.nl",
             "noreply@gls.nl",
+            "noreply@gls-denmark.com",
         ],
         "subject": [
             "paczka w drodze",
@@ -738,6 +741,7 @@ SENSOR_DATA = {
             "kommt heute",
             "pakket onderweg",
             "bezorging vandaag",
+            "GLS pakke",
         ],
         "body": [
             "Zespół GLS",
@@ -1188,7 +1192,7 @@ SENSOR_DATA = {
     },
     "bolcom_packages": {},
     "bolcom_tracking": {"pattern": ["3S[A-Z0-9]{10,18}", "JJD\\d{14,25}", "\\d{14}"]},
-    # PostNord (Sweden)
+    # PostNord (Sweden/Denmark)
     "postnord_delivered": {
         "email": [
             "no-reply@postnord.com",
@@ -1199,6 +1203,7 @@ SENSOR_DATA = {
             "finns att hamta",
             "har levererats",
             "Levererad",
+            "klar til afhentning",
         ],
     },
     "postnord_delivering": {
@@ -1213,26 +1218,32 @@ SENSOR_DATA = {
             "ar pa vag",
             "på väg till dig",
             "pa vag till dig",
+            "Der er nyt om din PostNord-pakke",
         ],
     },
     "postnord_packages": {},
-    "postnord_tracking": {"pattern": ["[0-9]{13,18}SE", "SE[0-9]{9}SE"]},
-    # Bring (Sweden/Norway)
+    "postnord_tracking": {
+        "pattern": ["[0-9]{13,18}SE", "SE[0-9]{9}SE", "[0-9]{13,18}DK"]
+    },
+    # Bring (Sweden/Norway/Denmark)
     "bring_delivered": {
         "email": [
             "no-reply@bring.com",
             "notification@bring.com",
+            "noreply@bring.com",
         ],
         "subject": [
             "paket att hämta",
             "paket att hamta",
             "har levererats",
+            "Nu kan du hente din pakke fra",
         ],
     },
     "bring_delivering": {
         "email": [
             "no-reply@bring.com",
             "notification@bring.com",
+            "noreply@bring.com",
         ],
         "subject": [
             "sändning är på väg",
@@ -1241,10 +1252,51 @@ SENSOR_DATA = {
             "sandning har skickats",
             "Paket på väg",
             "Paket pa vag",
+            "er på vej",
         ],
     },
     "bring_packages": {},
     "bring_tracking": {"pattern": ["PARCEL[0-9A-Z]{10,20}", "CT[0-9]{9}NO"]},
+    # DAO (Denmark)
+    "dao_delivered": {
+        "email": ["no-reply@dao.as"],
+        "subject": ["Nu kan du hente din pakke fra"],
+    },
+    "dao_delivering": {
+        "body": ["Forsendelsen sendes med: DAO-DK-DIREKTE"],
+    },
+    "dao_packages": {},
+    "dao_tracking": {},
+    # Budbee
+    "budbee_delivering": {
+        "email": ["no-reply@budbee.com"],
+        "subject": ["er nu registreret hos Budbee"],
+    },
+    "budbee_delivered": {},
+    "budbee_packages": {},
+    "budbee_tracking": {},
+    # Airmee
+    "airmee_delivered": {
+        "email": ["no-reply@airmee.com"],
+        "subject": ["Airmee har leveret din pakke"],
+    },
+    "airmee_delivering": {
+        "email": ["no-reply@airmee.com"],
+        "subject": ["Levering booket av Amazon med Airmee"],
+    },
+    "airmee_packages": {},
+    "airmee_tracking": {},
+    # Burd Delivery
+    "burd_delivered": {
+        "email": ["support@burd.dk"],
+        "subject": ["Din pakke er leveret"],
+    },
+    "burd_delivering": {
+        "email": ["support@burd.dk"],
+        "subject": ["Din pakke fra"],
+    },
+    "burd_packages": {},
+    "burd_tracking": {},
     # DB Schenker (Sweden)
     "db_schenker_delivered": {
         "email": [
@@ -1904,6 +1956,82 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="etsy_packages",
+    ),
+    # DAO
+    "dao_delivering": SensorEntityDescription(
+        name="Mail DAO Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="dao_delivering",
+    ),
+    "dao_delivered": SensorEntityDescription(
+        name="Mail DAO Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="dao_delivered",
+    ),
+    "dao_packages": SensorEntityDescription(
+        name="Mail DAO Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="dao_packages",
+    ),
+    # Budbee
+    "budbee_delivering": SensorEntityDescription(
+        name="Mail Budbee Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="budbee_delivering",
+    ),
+    "budbee_delivered": SensorEntityDescription(
+        name="Mail Budbee Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="budbee_delivered",
+    ),
+    "budbee_packages": SensorEntityDescription(
+        name="Mail Budbee Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="budbee_packages",
+    ),
+    # Airmee
+    "airmee_delivering": SensorEntityDescription(
+        name="Mail Airmee Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="airmee_delivering",
+    ),
+    "airmee_delivered": SensorEntityDescription(
+        name="Mail Airmee Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="airmee_delivered",
+    ),
+    "airmee_packages": SensorEntityDescription(
+        name="Mail Airmee Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="airmee_packages",
+    ),
+    # Burd Delivery
+    "burd_delivering": SensorEntityDescription(
+        name="Mail Burd Delivery Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="burd_delivering",
+    ),
+    "burd_delivered": SensorEntityDescription(
+        name="Mail Burd Delivery Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="burd_delivered",
+    ),
+    "burd_packages": SensorEntityDescription(
+        name="Mail Burd Delivery Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="burd_packages",
     ),
     ###
     # !!! Insert new sensors above these summary sensors !!!
