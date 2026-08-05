@@ -1871,3 +1871,79 @@ async def test_shopify_no_carrier_tracking_is_noop(hass, mock_imap):
     result = await shipper.process(mock_imap, "today", "shopify_packages")
     assert result[ATTR_COUNT] == 1
     assert "shopify_carrier_tracking" not in result
+
+
+def test_danish_carrier_patterns():
+    """Test matching Danish carrier subjects, emails, and bodies against SENSOR_DATA."""
+    # DAO
+    dao_del_subj = "Nu kan du hente din pakke fra TestShop"
+    dao_del_email = "no-reply@dao.as"
+    dao_deliv_body = "Forsendelsen sendes med: DAO-DK-DIREKTE\nTrackingnummer: 12345"
+
+    assert any(s in dao_del_subj for s in SENSOR_DATA["dao_delivered"]["subject"])
+    assert dao_del_email in SENSOR_DATA["dao_delivered"]["email"]
+    assert any(b in dao_deliv_body for b in SENSOR_DATA["dao_delivering"]["body"])
+
+    # Bring DK
+    bring_deliv_email = "noreply@bring.com"
+    bring_deliv_subj = "En pakke fra Sender is er på vej"
+    bring_del_subj = "Nu kan du hente din pakke fra Sender"
+
+    assert bring_deliv_email in SENSOR_DATA["bring_delivering"]["email"]
+    assert any(
+        s in bring_deliv_subj for s in SENSOR_DATA["bring_delivering"]["subject"]
+    )
+    assert bring_deliv_email in SENSOR_DATA["bring_delivered"]["email"]
+    assert any(s in bring_del_subj for s in SENSOR_DATA["bring_delivered"]["subject"])
+
+    # PostNord DK
+    pn_deliv_email = "no-reply@postnord.com"
+    pn_deliv_subj = "Der er nyt om din PostNord-pakke"
+    pn_del_subj = "Din PostNord-pakke er klar til afhentning"
+
+    assert pn_deliv_email in SENSOR_DATA["postnord_delivering"]["email"]
+    assert any(
+        s in pn_deliv_subj for s in SENSOR_DATA["postnord_delivering"]["subject"]
+    )
+    assert pn_deliv_email in SENSOR_DATA["postnord_delivered"]["email"]
+    assert any(s in pn_del_subj for s in SENSOR_DATA["postnord_delivered"]["subject"])
+
+    # Budbee
+    budbee_email = "no-reply@budbee.com"
+    budbee_subj = "Din ordre fra SENDER er nu registreret hos Budbee"
+
+    assert budbee_email in SENSOR_DATA["budbee_delivering"]["email"]
+    assert any(s in budbee_subj for s in SENSOR_DATA["budbee_delivering"]["subject"])
+
+    # Airmee
+    airmee_email = "no-reply@airmee.com"
+    airmee_deliv_subj = "Levering booket av Amazon med Airmee"
+    airmee_del_subj = "Airmee har leveret din pakke"
+
+    assert airmee_email in SENSOR_DATA["airmee_delivering"]["email"]
+    assert any(
+        s in airmee_deliv_subj for s in SENSOR_DATA["airmee_delivering"]["subject"]
+    )
+    assert airmee_email in SENSOR_DATA["airmee_delivered"]["email"]
+    assert any(s in airmee_del_subj for s in SENSOR_DATA["airmee_delivered"]["subject"])
+
+    # Burd Delivery
+    burd_email = "support@burd.dk"
+    burd_deliv_subj = "Din pakke fra SENDER"
+    burd_del_subj = "Din pakke er leveret"
+
+    assert burd_email in SENSOR_DATA["burd_delivering"]["email"]
+    assert any(s in burd_deliv_subj for s in SENSOR_DATA["burd_delivering"]["subject"])
+    assert burd_email in SENSOR_DATA["burd_delivered"]["email"]
+    assert any(s in burd_del_subj for s in SENSOR_DATA["burd_delivered"]["subject"])
+
+    # GLS Denmark
+    gls_deliv_email = "noreply@gls-denmark.com"
+    gls_deliv_subj = "GLS pakke"
+    gls_del_email = "pakke-shop@pakkeshop.dk"
+    gls_del_subj = "Du kan nu hente pakke 12345678"
+
+    assert gls_deliv_email in SENSOR_DATA["gls_delivering"]["email"]
+    assert any(s in gls_deliv_subj for s in SENSOR_DATA["gls_delivering"]["subject"])
+    assert gls_del_email in SENSOR_DATA["gls_delivered"]["email"]
+    assert any(s in gls_del_subj for s in SENSOR_DATA["gls_delivered"]["subject"])
