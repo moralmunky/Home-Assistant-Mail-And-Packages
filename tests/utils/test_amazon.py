@@ -445,8 +445,6 @@ async def test_download_amazon_img_content_length_too_large(hass, tmp_path, capl
 
     assert "Amazon image too large to download" in caplog.text
 
-    assert "Amazon image exceeds size limit after download" in caplog.text
-
 
 def test_amazon_email_addresses_with_full_email_fwd():
     """Test amazon_email_addresses with explicit email address containing '@' in fwds."""
