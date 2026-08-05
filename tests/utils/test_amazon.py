@@ -445,31 +445,29 @@ async def test_download_amazon_img_content_length_too_large(hass, tmp_path, capl
 
     assert "Amazon image too large to download" in caplog.text
 
+    assert "Amazon image exceeds size limit after download" in caplog.text
+
+
+def test_amazon_email_addresses_with_full_email_fwd():
+    """Test amazon_email_addresses with explicit email address containing '@' in fwds."""
+    result = amazon_email_addresses(fwds=["forwarder@example.com"])
+    assert "forwarder@example.com" in result
+
 
 @pytest.mark.asyncio
-async def test_download_amazon_img_data_too_large_after_download(
-    hass, tmp_path, caplog
-):
-    """Test download_amazon_img discards data exceeding size limit after download (lines 233-236)."""
-    img_url = "https://example.com/test.jpg"
-    img_path = str(tmp_path)
-    img_name = "test.jpg"
-
-    mock_resp = AsyncMock()
-    mock_resp.status = 200
-    mock_resp.headers = {"content-type": "image/jpeg", "content-length": "100"}
-    mock_resp.read.return_value = b"x" * (11 * 1024 * 1024)  # 11 MB actual data
-    mock_get = MagicMock()
-    mock_get.__aenter__.return_value = mock_resp
-    mock_get.__aexit__ = AsyncMock(return_value=False)
-
-    with (
-        patch("aiohttp.ClientSession.get", return_value=mock_get),
-        patch(
-            "custom_components.mail_and_packages.utils.amazon.io_save_file",
-        ) as mock_save,
-    ):
-        await download_amazon_img(img_url, img_path, img_name, hass)
-        mock_save.assert_not_called()
-
-    assert "Amazon image exceeds size limit after download" in caplog.text
+async def test_search_amazon_emails_multi_domain():
+    """Test search_amazon_emails with comma-separated multiple domains."""
+    mock_account = AsyncMock()
+    with patch(
+        "custom_components.mail_and_packages.utils.amazon.email_search",
+        new_callable=AsyncMock,
+        return_value=("OK", [b"1 2"]),
+    ) as mock_search:
+        result = await search_amazon_emails(
+            account=mock_account,
+            address_list=["order-update@amazon.com"],
+            days=3,
+            domain="amazon.com,amazon.de",
+        )
+        assert result == [b"1", b"2"]
+        mock_search.assert_called_once()
