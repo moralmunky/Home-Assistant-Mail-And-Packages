@@ -1313,3 +1313,36 @@ async def test_amazon_delivering_order_subtraction(hass):
         )
         # Order was delivered so delivering count for order 123-4567890-1234567 should be max(0, 1 - 1) = 0
         assert res_delivering["amazon_delivering"] == 0
+
+
+@pytest.mark.asyncio
+async def test_amazon_delivering_no_order_id_no_arrival_date(hass):
+    """Test OFD email received today without order ID or body arrival date (lines 320 and 338)."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            return_value=datetime.date(2026, 7, 22),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            new_callable=AsyncMock,
+        ) as mock_fetch,
+    ):
+        email_ofd = (
+            b"Subject: Out for delivery: Your package\n"
+            b"Date: Wed, 22 Jul 2026 08:00:00 -0000\n"
+            b"Content-Type: text/plain\n\n"
+        )
+        mock_fetch.return_value = ("OK", [b"RFC822", email_ofd])
+
+        res = await shipper.process(mock_account, "today", "amazon_delivering")
+        assert res["amazon_delivering"] == 1
+        assert res["amazon_delivering_order"] == []
