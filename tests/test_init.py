@@ -13,6 +13,7 @@ from custom_components.mail_and_packages import (
     async_migrate_entry,
     async_remove_config_entry_device,
     async_setup_entry,
+    update_listener,
 )
 from custom_components.mail_and_packages.const import (
     CONF_AMAZON_DOMAIN,
@@ -976,3 +977,56 @@ async def test_capost_mail_processing(hass, mock_imap_capost_mail, integration_c
     coordinator = entry.runtime_data.coordinator
     await coordinator.async_refresh()
     assert coordinator.data["capost_mail"] == 3
+
+
+@pytest.mark.asyncio
+async def test_update_listener_token_refresh_skips_reload():
+    """Test that update_listener skips async_reload on token-only updates."""
+    mock_hass = MagicMock()
+    mock_hass.config_entries.async_reload = AsyncMock()
+
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "test_entry"
+    mock_entry.options = {"scan_interval": 15}
+    mock_entry.data = {
+        "host": "imap.test.email",
+        "token": {"access_token": "token1"},
+    }
+
+    mock_runtime_data = MagicMock()
+    mock_runtime_data.last_options = {"scan_interval": 15}
+    mock_runtime_data.last_data = {"host": "imap.test.email"}
+    mock_entry.runtime_data = mock_runtime_data
+
+    # Simulate token refresh updating entry data
+    mock_entry.data = {
+        "host": "imap.test.email",
+        "token": {"access_token": "token2"},
+    }
+
+    await update_listener(mock_hass, mock_entry)
+
+    # async_reload should NOT have been called
+    mock_hass.config_entries.async_reload.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_update_listener_options_change_triggers_reload():
+    """Test that update_listener triggers async_reload when options change."""
+    mock_hass = MagicMock()
+    mock_hass.config_entries.async_reload = AsyncMock()
+
+    mock_entry = MagicMock()
+    mock_entry.entry_id = "test_entry"
+    mock_entry.options = {"scan_interval": 30}
+    mock_entry.data = {"host": "imap.test.email"}
+
+    mock_runtime_data = MagicMock()
+    mock_runtime_data.last_options = {"scan_interval": 15}
+    mock_runtime_data.last_data = {"host": "imap.test.email"}
+    mock_entry.runtime_data = mock_runtime_data
+
+    await update_listener(mock_hass, mock_entry)
+
+    # async_reload SHOULD be called
+    mock_hass.config_entries.async_reload.assert_called_once_with("test_entry")
