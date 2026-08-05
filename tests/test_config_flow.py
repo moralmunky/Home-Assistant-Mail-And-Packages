@@ -7474,7 +7474,7 @@ async def test_oauth_reconfig_flow_selection(hass, mock_imap_no_email, integrati
 
 @pytest.mark.asyncio
 async def test_oauth_reconfig_flow_skip_oauth(hass, mock_imap_no_email, integration):
-    """Test that reconfigure flow skips OAuth step when details are unchanged."""
+    """Test reconfigure skips OAuth when details are unchanged and the token works."""
     entry = integration
     # Update the entry with OAuth token and type to mock an existing OAuth setup
     hass.config_entries.async_update_entry(
@@ -7508,9 +7508,16 @@ async def test_oauth_reconfig_flow_skip_oauth(hass, mock_imap_no_email, integrat
     assert result["step_id"] == "reconfig_imap"
 
     # Configure IMAP with the exact same host/username (unchanged)
-    with patch(
-        "homeassistant.helpers.config_entry_oauth2_flow.AbstractOAuth2FlowHandler.async_step_pick_implementation"
-    ) as mock_pick:
+    with (
+        patch(
+            "homeassistant.helpers.config_entry_oauth2_flow.AbstractOAuth2FlowHandler.async_step_pick_implementation"
+        ) as mock_pick,
+        patch.object(
+            MailAndPackagesFlowHandler,
+            "_async_valid_oauth_token",
+            AsyncMock(return_value={"access_token": "fake_token"}),
+        ),
+    ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
@@ -7524,6 +7531,75 @@ async def test_oauth_reconfig_flow_skip_oauth(hass, mock_imap_no_email, integrat
         assert mock_pick.call_count == 0
         assert result["type"] == "abort"
         assert result["reason"] == "reconfigure_successful"
+
+
+@pytest.mark.asyncio
+async def test_oauth_reconfig_flow_no_skip_when_token_dead(
+    hass, mock_imap_no_email, integration
+):
+    """Reconfigure must fall through to OAuth when the stored token is dead.
+
+    Same unchanged host/username as the skip test above -- only the token's
+    usability differs, which is what decides whether consent is needed.
+    """
+    entry = integration
+    hass.config_entries.async_update_entry(
+        entry,
+        data={
+            **entry.data,
+            "auth_type": "oauth2_google",
+            "token": {"access_token": "revoked_token"},
+            "host": "imap.test.email",
+            "username": "test@test.email",
+        },
+    )
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {"auth_type": "oauth2_google"},
+    )
+    assert result["step_id"] == "reconfig_imap"
+
+    pick_calls = []
+
+    async def _fake_pick_implementation(self, *args, **kwargs):
+        """Stand in for the external consent round-trip."""
+        pick_calls.append(True)
+        return self.async_abort(reason="oauth_started")
+
+    with (
+        patch.object(
+            MailAndPackagesFlowHandler,
+            "async_step_pick_implementation",
+            _fake_pick_implementation,
+        ),
+        patch.object(
+            MailAndPackagesFlowHandler,
+            "_async_valid_oauth_token",
+            AsyncMock(return_value=None),
+        ),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "imap.test.email",
+                "port": 993,
+                "username": "test@test.email",
+                "imap_security": "SSL",
+            },
+        )
+
+    # A dead token must force a fresh consent round-trip, not a bogus
+    # "reconfigure_successful" that writes the dead token straight back.
+    assert pick_calls == [True]
+    assert result["reason"] == "oauth_started"
 
 
 @pytest.mark.asyncio
@@ -8221,3 +8297,140 @@ async def test_async_oauth_create_entry_reauth_successful(hass):
 
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reauth_successful"
+
+
+@pytest.mark.asyncio
+async def test_reconfig_imap_reruns_oauth_when_token_dead(hass):
+    """Reconfigure must re-run OAuth when the stored token no longer refreshes.
+
+    Regression test: the skip branch used to check only that a token was
+    present, so a user reconfiguring to recover from a revoked or expired grant
+    was told "reconfigure_successful" while the dead token was written straight
+    back and the integration stayed broken.
+    """
+    data = {
+        CONF_HOST: "imap.test.email",
+        CONF_USERNAME: "test@test.email",
+        CONF_AUTH_TYPE: "oauth2_google",
+        "token": {"access_token": "dead", "refresh_token": "revoked"},
+    }
+    entry = MockConfigEntry(domain=DOMAIN, data=data)
+    entry.add_to_hass(hass)
+
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    flow._entry = entry
+    flow._data = dict(data)
+    flow._errors = {}
+
+    with (
+        patch.object(
+            MailAndPackagesFlowHandler,
+            "_async_valid_oauth_token",
+            AsyncMock(return_value=None),
+        ),
+        patch.object(
+            MailAndPackagesFlowHandler,
+            "async_step_pick_implementation",
+            AsyncMock(return_value={"type": FlowResultType.EXTERNAL_STEP}),
+        ) as pick_implementation,
+    ):
+        result = await flow.async_step_reconfig_imap(
+            {
+                CONF_HOST: "imap.test.email",
+                CONF_USERNAME: "test@test.email",
+                CONF_AUTH_TYPE: "oauth2_google",
+            }
+        )
+
+    assert pick_implementation.called
+    assert result["type"] is FlowResultType.EXTERNAL_STEP
+
+
+@pytest.mark.asyncio
+async def test_reconfig_imap_skips_oauth_when_token_valid(hass):
+    """A working token still skips consent, and the refreshed token is kept."""
+    data = {
+        CONF_HOST: "imap.test.email",
+        CONF_USERNAME: "test@test.email",
+        CONF_AUTH_TYPE: "oauth2_google",
+        "token": {"access_token": "stale", "refresh_token": "good"},
+    }
+    entry = MockConfigEntry(domain=DOMAIN, data=data)
+    entry.add_to_hass(hass)
+
+    refreshed = {"access_token": "refreshed", "refresh_token": "good"}
+
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    flow._entry = entry
+    flow._data = dict(data)
+    flow._errors = {}
+
+    with (
+        patch.object(
+            MailAndPackagesFlowHandler,
+            "_async_valid_oauth_token",
+            AsyncMock(return_value=refreshed),
+        ),
+        patch.object(hass.config_entries, "async_reload", AsyncMock()),
+    ):
+        result = await flow.async_step_reconfig_imap(
+            {
+                CONF_HOST: "imap.test.email",
+                CONF_USERNAME: "test@test.email",
+                CONF_AUTH_TYPE: "oauth2_google",
+            }
+        )
+
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    # The refreshed token must survive: saving the pre-refresh copy of _data
+    # would silently roll the entry back to the stale access token.
+    assert entry.data["token"] == refreshed
+
+
+@pytest.mark.asyncio
+async def test_valid_oauth_token_helper(hass):
+    """_async_valid_oauth_token returns the token only when it still refreshes."""
+    entry = MockConfigEntry(domain=DOMAIN, data={"token": {"access_token": "x"}})
+    entry.add_to_hass(hass)
+
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    flow._entry = entry
+
+    # No entry -> nothing to validate.
+    flow._entry = None
+    assert await flow._async_valid_oauth_token("oauth2_google") is None
+    flow._entry = entry
+
+    good_session = AsyncMock()
+    good_session.token = {"access_token": "refreshed"}
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow.config_entry_oauth2_flow.async_get_config_entry_implementation",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow.config_entry_oauth2_flow.OAuth2Session",
+            return_value=good_session,
+        ),
+    ):
+        assert await flow._async_valid_oauth_token("oauth2_google") == {
+            "access_token": "refreshed"
+        }
+
+    bad_session = AsyncMock()
+    bad_session.async_ensure_token_valid.side_effect = Exception("invalid_grant")
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow.config_entry_oauth2_flow.async_get_config_entry_implementation",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow.config_entry_oauth2_flow.OAuth2Session",
+            return_value=bad_session,
+        ),
+    ):
+        assert await flow._async_valid_oauth_token("oauth2_google") is None

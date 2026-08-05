@@ -1274,6 +1274,37 @@ class MailAndPackagesFlowHandler(
 
         return await self._show_reconfig_auth_form(user_input)
 
+    async def _async_valid_oauth_token(self, auth_type: str) -> dict | None:
+        """Return the entry's OAuth token if it is still usable, else None.
+
+        Refreshes the token when it has expired. A refresh failure means the
+        grant is gone (revoked, or expired because the provider's OAuth app is
+        still in a testing/unpublished state) and the user has to re-consent.
+        """
+        if not self._entry:
+            return None
+
+        try:
+            self.hass.data.setdefault(DOMAIN, {})
+            self.hass.data[DOMAIN]["oauth_provider"] = auth_type
+            implementation = (
+                await config_entry_oauth2_flow.async_get_config_entry_implementation(
+                    self.hass,
+                    self._entry,
+                )
+            )
+            session = config_entry_oauth2_flow.OAuth2Session(
+                self.hass,
+                self._entry,
+                implementation,
+            )
+            await session.async_ensure_token_valid()
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.debug("Stored OAuth token is no longer usable: %s", err)
+            return None
+
+        return session.token
+
     async def async_step_reconfig_imap(self, user_input=None):
         """Handle IMAP step for reconfigure."""
         self._errors = {}
@@ -1283,6 +1314,7 @@ class MailAndPackagesFlowHandler(
             auth_type = self._data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
 
             if auth_type != AUTH_TYPE_PASSWORD:
+                token = None
                 if (
                     self._entry
                     and self._entry.data.get(CONF_AUTH_TYPE) == auth_type
@@ -1291,6 +1323,18 @@ class MailAndPackagesFlowHandler(
                     == self._data.get(CONF_USERNAME)
                     and "token" in self._data
                 ):
+                    # Nothing OAuth-relevant changed, so a consent round-trip can
+                    # be skipped -- but only if the stored token actually still
+                    # works. Skipping on mere presence of a token means a user
+                    # reconfiguring to recover from a revoked/expired grant is
+                    # told "reconfigure_successful" while the dead token is
+                    # written straight back and the integration stays broken.
+                    token = await self._async_valid_oauth_token(auth_type)
+
+                if token is not None:
+                    # Carry the (possibly refreshed) token forward so saving
+                    # self._data cannot clobber it with the pre-refresh copy.
+                    self._data["token"] = token
                     self.hass.config_entries.async_update_entry(
                         self._entry,
                         data=self._data,
