@@ -446,26 +446,35 @@ async def test_download_amazon_img_content_length_too_large(hass, tmp_path, capl
     assert "Amazon image too large to download" in caplog.text
 
 
-def test_amazon_email_addresses_with_full_email_fwd():
-    """Test amazon_email_addresses with explicit email address containing '@' in fwds."""
-    result = amazon_email_addresses(fwds=["forwarder@example.com"])
+def test_amazon_email_addresses_with_fwds_list():
+    """Test amazon_email_addresses with list containing full email and domain substring."""
+    result = amazon_email_addresses(fwds=["forwarder@example.com", "amazon.de"])
     assert "forwarder@example.com" in result
+    assert "versandbestaetigung@amazon.de" in result
 
 
 @pytest.mark.asyncio
-async def test_search_amazon_emails_multi_domain():
-    """Test search_amazon_emails with comma-separated multiple domains."""
+async def test_search_amazon_emails_single_and_multi_domain():
+    """Test search_amazon_emails with single domain and multi-domain."""
     mock_account = AsyncMock()
     with patch(
         "custom_components.mail_and_packages.utils.amazon.email_search",
         new_callable=AsyncMock,
         return_value=("OK", [b"1 2"]),
     ) as mock_search:
-        result = await search_amazon_emails(
+        res_single = await search_amazon_emails(
+            account=mock_account,
+            address_list=["order-update@amazon.de"],
+            days=3,
+            domain="amazon.de",
+        )
+        assert res_single == [b"1", b"2"]
+
+        res_multi = await search_amazon_emails(
             account=mock_account,
             address_list=["order-update@amazon.com"],
             days=3,
             domain="amazon.com,amazon.de",
         )
-        assert result == [b"1", b"2"]
-        mock_search.assert_called_once()
+        assert res_multi == [b"1", b"2"]
+        assert mock_search.call_count == 2
