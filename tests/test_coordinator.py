@@ -906,7 +906,7 @@ async def test_coordinator_oauth_token_refresh(hass):
 def _oauth_error(status: int) -> ClientResponseError:
     """Build a token endpoint error response."""
     return ClientResponseError(
-        request_info=None,
+        request_info=AsyncMock(),
         history=(),
         status=status,
         message="invalid_grant",
@@ -1128,15 +1128,109 @@ async def test_coordinator_binary_sensor_update_different_hash_and_post_de(hass)
         "post_de_image": "post_de_123.jpg",
     }
 
-    # Mock hash_file to return non-none hash
-    with patch(
-        "custom_components.mail_and_packages.coordinator.hash_file",
-        return_value="new_hash",
+    # Mock image exists check and hash_file
+    with (
+        patch("anyio.Path.exists", return_value=True),
+        patch(
+            "custom_components.mail_and_packages.coordinator.hash_file",
+            side_effect=["hash_a", "hash_b", "hash_c", "hash_d"],
+        ),
     ):
         await coordinator._binary_sensor_update()
 
-    assert coordinator.hass.states.get("binary_sensor.mail_usps_mail").state == "on"
-    assert coordinator.hass.states.get("binary_sensor.mail_post_de_mail").state == "on"
+    assert coordinator._data.get("usps_update") is True
+    assert coordinator._data.get("post_de_update") is True
+
+
+@pytest.mark.asyncio
+async def test_coordinator_binary_sensor_update_same_hash_and_custom_img(hass):
+    """Test _binary_sensor_update false branches for image hashes equal and custom image settings."""
+    config = {
+        **FAKE_CONFIG_DATA,
+        "amazon_custom_img": True,
+        "amazon_custom_img_file": "custom_amazon.jpg",
+    }
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, config)
+
+    coordinator._data = {
+        "usps_image": "mail_123.jpg",
+        "amazon_image": "amazon_123.jpg",
+    }
+
+    with (
+        patch("anyio.Path.exists", return_value=True),
+        patch.object(
+            coordinator,
+            "_get_file_hash_if_changed",
+            AsyncMock(return_value="same_hash"),
+        ),
+    ):
+        await coordinator._binary_sensor_update()
+
+    assert coordinator._data.get("usps_update") is False
+    assert coordinator._data.get("amazon_update") is False
+
+
+@pytest.mark.asyncio
+async def test_coordinator_oauth_token_refresh_client_response_error_non_400_401(
+    hass,
+):
+    """Test client response error with non-400/401 status raises UpdateFailed (line 155)."""
+    config = {**FAKE_CONFIG_DATA, "auth_type": "oauth2_google"}
+    entry = MockConfigEntry(domain="mail_and_packages", data=config)
+    entry.add_to_hass(hass)
+
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, config)
+        coordinator.config_entry = entry
+
+    mock_session = AsyncMock()
+    mock_session.async_ensure_token_valid.side_effect = _oauth_error(
+        HTTPStatus.BAD_GATEWAY
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.config_entry_oauth2_flow.async_get_config_entry_implementation",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.config_entry_oauth2_flow.OAuth2Session",
+            return_value=mock_session,
+        ),
+        pytest.raises(UpdateFailed, match="OAuth token refresh failed"),
+    ):
+        await coordinator._async_oauth_access_token("oauth2_google")
+
+
+@pytest.mark.asyncio
+async def test_coordinator_binary_sensor_update_missing_image_attr_and_default_none_image(
+    hass,
+):
+    """Test _binary_sensor_update when image attribute isn't in const (line 668) and standard default none image (line 704)."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    coordinator._data = {
+        "ups_image": "ups_123.jpg",
+    }
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.const.CAMERA_DATA",
+            {"fake_camera": {}, "ups_camera": {}},
+        ),
+        patch("anyio.Path.exists", return_value=True),
+        patch.object(
+            coordinator,
+            "_get_file_hash_if_changed",
+            AsyncMock(side_effect=["hash_ups", "hash_none"]),
+        ),
+    ):
+        await coordinator._binary_sensor_update()
+
+    assert coordinator._data.get("ups_update") is True
 
 
 def test_dedupe_marketplace_duplicates_etsy():
