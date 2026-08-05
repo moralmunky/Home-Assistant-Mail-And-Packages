@@ -452,6 +452,19 @@ async def test_packages_sensor_attributes_edge_cases(hass):
     attrs_otp = sensor_otp.extra_state_attributes
     assert attrs_otp["code"] == ["654321"]
 
+    # Test attributes for Amazon Delivering
+    coord_delivering = MagicMock()
+    coord_delivering.data = {"amazon_delivering_order": ["303-1873062-3277126"]}
+    sensor_delivering_desc = MagicMock(key="amazon_delivering")
+    sensor_delivering_desc.name = "Mail Amazon Packages Delivering"
+    sensor_delivering = PackagesSensor(
+        entry,
+        sensor_delivering_desc,
+        coord_delivering,
+    )
+    attrs_delivering = sensor_delivering.extra_state_attributes
+    assert attrs_delivering[ATTR_ORDER] == ["303-1873062-3277126"]
+
 
 @pytest.mark.asyncio
 async def test_image_path_sensor_grid(hass):

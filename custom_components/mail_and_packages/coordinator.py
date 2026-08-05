@@ -529,6 +529,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         # Only update if sensors were requested in initialize_data
         if "zpackages_transit" in data:
             data["zpackages_transit"] = self._sum_transit_counts(data)
+        if "zpackages_delivering" in data:
+            data["zpackages_delivering"] = self._sum_delivering_counts(data)
         if "zpackages_delivered" in data:
             data["zpackages_delivered"] = self._sum_delivered_counts(data)
 
@@ -550,6 +552,19 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             ):
                 delivered += value
         return delivered
+
+    def _sum_delivering_counts(self, data: dict) -> int:
+        """Sum out-for-delivery packages from all shippers."""
+        delivering = 0
+        for key, value in data.items():
+            if (
+                isinstance(value, int)
+                and value > 0
+                and key.endswith("_delivering")
+                and key != "zpackages_delivering"
+            ):
+                delivering += value
+        return delivering
 
     def _sum_transit_counts(self, data: dict) -> int:
         """Sum transit and exception packages from all shippers."""

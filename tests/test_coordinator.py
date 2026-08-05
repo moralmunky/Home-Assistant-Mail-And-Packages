@@ -202,6 +202,7 @@ async def test_aggregate_package_counts(hass):
     # Mock data to be aggregated
     test_data = {
         "zpackages_transit": 0,
+        "zpackages_delivering": 0,
         "zpackages_delivered": 0,
         "usps_delivering": 1,
         "usps_delivered": 1,
@@ -210,6 +211,7 @@ async def test_aggregate_package_counts(hass):
         "fedex_packages": 3,
         "fedex_delivered": 2,
         "amazon_packages": 5,
+        "amazon_delivering": 2,
         "amazon_delivered": 1,
         "amazon_exception": 1,
         "dhl_exception": 1,
@@ -225,6 +227,10 @@ async def test_aggregate_package_counts(hass):
     # + amazon_exception (1) + dhl_exception (1)
     # = 1 + 2 + 3 + 5 + 1 + 1 = 13
     assert test_data["zpackages_transit"] == 13
+
+    # Expected Delivering:
+    # usps_delivering (1) + ups_delivering (2) + amazon_delivering (2) = 5
+    assert test_data["zpackages_delivering"] == 5
 
     # Expected Delivered:
     # usps_delivered (1) + fedex_delivered (2) + amazon_delivered (1)

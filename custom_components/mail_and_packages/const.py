@@ -172,13 +172,17 @@ AMAZON_SHIPMENT_TRACKING = [
     "verzending-volgen",
     "update-bestelling",
 ]
+AMAZON_DELIVERING_SUBJECT = [
+    "Out for delivery:",
+    "In Zustellung:",
+]
 AMAZON_SHIPMENT_SUBJECT = [
     "Shipped:",
     "Enviado:",
-    "Out for delivery:",
     "Spedito:",
     "Versandt:",
-    "In Zustellung:",
+    "Versendet:",
+    *AMAZON_DELIVERING_SUBJECT,
 ]
 AMAZON_ORDERED_SUBJECT = ["Ordered:", "Pedido efetuado:"]
 AMAZON_EMAIL = [
@@ -191,6 +195,7 @@ AMAZON_EMAIL = [
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
 AMAZON_DELIVERED = "amazon_delivered"
+AMAZON_DELIVERING = "amazon_delivering"
 AMAZON_IMG_LIST = [
     "us-prod-temp.s3.amazonaws.com",
     "gb-prod-temp.s3.eu-west-1.amazonaws.com",
@@ -226,6 +231,7 @@ AMAZON_TIME_PATTERN = [
     "Votre date de livraison prévue est :",
     "In arrivo",
     "Zustellung:",
+    "Ankunft",
 ]
 AMAZON_TIME_PATTERN_END = [
     "Previously expected:",
@@ -247,10 +253,15 @@ AMAZON_TIME_PATTERN_REGEX = [
     "Arriving (\\w+ \\d+)",
     "Arriving (\\w+ ?\\d*)",
     "Arriving (\\w+)",
+    "Zustellung:? (heute)",
     "Zustellung:? (\\w+ \\d+) - (\\w+ \\d+)",
     "Zustellung:? (\\w+ \\d+)",
     "Zustellung:? (\\w+ ?\\d*)",
     "Zustellung:? (\\w+)",
+    "Ankunft:? (\\w+ \\d+) - (\\w+ \\d+)",
+    "Ankunft:? (\\w+ \\d+)",
+    "Ankunft:? (\\w+ ?\\d*)",
+    "Ankunft:? (\\w+)",
     "Arriverà (\\w+ \\d+) - (\\w+ \\d+)",
     "Arriverà (\\w+ \\d+)",
     "Arriverà (\\w+ \\d*)",
@@ -1359,6 +1370,12 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package",
         key="amazon_packages",
     ),
+    "amazon_delivering": SensorEntityDescription(
+        name="Mail Amazon Packages Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="amazon_delivering",
+    ),
     "amazon_delivered": SensorEntityDescription(
         name="Mail Amazon Packages Delivered",
         native_unit_of_measurement="package(s)",
@@ -1889,13 +1906,19 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         key="etsy_packages",
     ),
     ###
-    # !!! Insert new sensors above these two !!!
+    # !!! Insert new sensors above these summary sensors !!!
     ###
     "zpackages_delivered": SensorEntityDescription(
         name="Mail Packages Delivered",
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant",
         key="zpackages_delivered",
+    ),
+    "zpackages_delivering": SensorEntityDescription(
+        name="Mail Packages Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="zpackages_delivering",
     ),
     "zpackages_transit": SensorEntityDescription(
         name="Mail Packages In Transit",

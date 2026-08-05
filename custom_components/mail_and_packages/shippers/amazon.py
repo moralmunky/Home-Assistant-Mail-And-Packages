@@ -19,6 +19,8 @@ from custom_components.mail_and_packages import const
 from custom_components.mail_and_packages.const import (
     AMAZON_DELIVERED,
     AMAZON_DELIVERED_SUBJECT,
+    AMAZON_DELIVERING,
+    AMAZON_DELIVERING_SUBJECT,
     AMAZON_EXCEPTION,
     AMAZON_EXCEPTION_BODY,
     AMAZON_EXCEPTION_ORDER,
@@ -116,6 +118,15 @@ class AmazonShipper(Shipper):
                 AMAZON_ORDER: orders,
             }
 
+        if sensor_type == AMAZON_DELIVERING:
+            count, orders = await self._parse_amazon_emails(
+                account, "delivering", fwds, days, domain, cache, forwarding_header
+            )
+            return {
+                AMAZON_DELIVERING: count,
+                "amazon_delivering_order": orders,
+            }
+
         if sensor_type == AMAZON_ORDER:
             result = await self._parse_amazon_emails(
                 account, "order", fwds, days, domain, cache, forwarding_header
@@ -196,15 +207,21 @@ class AmazonShipper(Shipper):
         context = {
             "today": today_date,
             "packages_arriving_today": {},
+            "packages_delivering_today": {},
             "delivered_packages": {},
             "amazon_delivered": [],
             "deliveries_today": [],
+            "delivering_today": [],
             "all_shipped_orders": set(),
             "order_pattern": order_pattern,
         }
 
         for email_id in unique_emails:
             await self._process_amazon_email(account, email_id, context, cache)
+
+        if param == "delivering":
+            orders = list(context["packages_delivering_today"].keys())
+            return self._calculate_delivering_count(context), orders
 
         final_count = self._calculate_final_count(context)
 
@@ -289,15 +306,36 @@ class AmazonShipper(Shipper):
         if order_id:
             ctx["all_shipped_orders"].add(order_id)
 
+        is_delivering = any(
+            s.lower() in subject.lower() for s in AMAZON_DELIVERING_SUBJECT
+        )
+
+        parsed_arrival = None
         if body:
             parsed_arrival = await parse_amazon_arrival_date(self.hass, body, date)
-            if parsed_arrival == ctx["today"]:
-                if order_id:
-                    ctx["packages_arriving_today"][order_id] = (
-                        ctx["packages_arriving_today"].get(order_id, 0) + 1
-                    )
-                else:
-                    ctx["deliveries_today"].append("Amazon Order")
+
+        # OFD emails received today imply delivery today, even if the body
+        # time-window parsing fails (e.g. "Zustellung heute 15:15 - 17:15").
+        if is_delivering and date == ctx["today"] and parsed_arrival is None:
+            parsed_arrival = ctx["today"]
+
+        if parsed_arrival == ctx["today"]:
+            if order_id:
+                ctx["packages_arriving_today"][order_id] = (
+                    ctx["packages_arriving_today"].get(order_id, 0) + 1
+                )
+            else:
+                ctx["deliveries_today"].append("Amazon Order")
+
+        # Out-for-delivery emails count as delivering when arriving today,
+        # or when the OFD email itself arrived today.
+        if is_delivering and (parsed_arrival == ctx["today"] or date == ctx["today"]):
+            if order_id:
+                ctx["packages_delivering_today"][order_id] = (
+                    ctx["packages_delivering_today"].get(order_id, 0) + 1
+                )
+            else:
+                ctx["delivering_today"].append("Amazon Order")
 
     def _extract_first_order_id(
         self,
@@ -327,6 +365,19 @@ class AmazonShipper(Shipper):
             delivered_count = ctx["delivered_packages"].get(order_id, 0)
             final_count += max(0, arriving_count - delivered_count)
         return final_count + len(deliveries_today)
+
+    def _calculate_delivering_count(self, ctx: dict) -> int:
+        """Calculate packages currently out for delivery today."""
+        delivering_today = [
+            item
+            for item in ctx["delivering_today"]
+            if item not in ctx["amazon_delivered"]
+        ]
+        final_count = 0
+        for order_id, delivering_count in ctx["packages_delivering_today"].items():
+            delivered_count = ctx["delivered_packages"].get(order_id, 0)
+            final_count += max(0, delivering_count - delivered_count)
+        return final_count + len(delivering_today)
 
     async def _amazon_search(
         self,
@@ -406,8 +457,16 @@ class AmazonShipper(Shipper):
             has_shipped = any(
                 s.lower() in subject.lower() for s in AMAZON_SHIPMENT_SUBJECT
             )
+            has_delivering = any(
+                s.lower() in subject.lower() for s in AMAZON_DELIVERING_SUBJECT
+            )
 
-            if has_delivered and not has_ordered and not has_shipped:
+            if (
+                has_delivered
+                and not has_ordered
+                and not has_shipped
+                and not has_delivering
+            ):
                 urls = self._extract_amazon_image_urls(msg)
                 return True, urls
         return False, []

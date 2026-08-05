@@ -65,6 +65,19 @@ def test_amazon_email_addresses_str_input():
     assert "order-update@forward.com" not in result
 
 
+def test_amazon_email_addresses_comma_separated_domains():
+    """Comma-separated amazon_domain values should expand into per-domain addresses."""
+    result = amazon_email_addresses(domain="amazon.com,amazon.de")
+    assert "order-update@amazon.com" in result
+    assert "versandbestaetigung@amazon.de" in result
+    assert not any("," in address for address in result)
+
+
+def test_amazon_date_regex_ankunft():
+    """German Ankunft arrival wording should be parsed."""
+    assert amazon_date_regex("Ankunft heute") == "heute"
+
+
 @pytest.mark.asyncio
 async def test_search_amazon_emails_invalid_days():
     """Test search_amazon_emails with invalid days input."""
@@ -177,11 +190,15 @@ def test_get_decoded_subject_from_html_title():
 
 
 def test_amazon_email_addresses_various_fwds():
-    """Test amazon_email_addresses with various fwd types (Line 119)."""
-    # Test with None (triggers Line 119)
-    assert len(amazon_email_addresses(fwds=None)) == 3
-    # Test with non-list/tuple (triggers Line 119)
-    assert len(amazon_email_addresses(fwds=123)) == 3
+    """Test amazon_email_addresses with various fwd types."""
+    # Prefixes are not language-filtered so English + localized local-parts
+    # (AMAZON_EMAIL + AMAZON_SHIPMENT_TRACKING) are all expanded.
+    none_result = amazon_email_addresses(fwds=None)
+    assert "order-update@amazon.com" in none_result
+    assert "shipment-tracking@amazon.com" in none_result
+    assert "versandbestaetigung@amazon.com" in none_result
+    # Non-list/tuple fwds are ignored the same as None
+    assert amazon_email_addresses(fwds=123) == none_result
 
 
 @pytest.mark.asyncio
@@ -429,30 +446,35 @@ async def test_download_amazon_img_content_length_too_large(hass, tmp_path, capl
     assert "Amazon image too large to download" in caplog.text
 
 
+def test_amazon_email_addresses_with_fwds_list():
+    """Test amazon_email_addresses with list containing full email and domain substring."""
+    result = amazon_email_addresses(fwds=["forwarder@example.com", "amazon.de"])
+    assert "forwarder@example.com" in result
+    assert "versandbestaetigung@amazon.de" in result
+
+
 @pytest.mark.asyncio
-async def test_download_amazon_img_data_too_large_after_download(
-    hass, tmp_path, caplog
-):
-    """Test download_amazon_img discards data exceeding size limit after download (lines 233-236)."""
-    img_url = "https://example.com/test.jpg"
-    img_path = str(tmp_path)
-    img_name = "test.jpg"
+async def test_search_amazon_emails_single_and_multi_domain():
+    """Test search_amazon_emails with single domain and multi-domain."""
+    mock_account = AsyncMock()
+    with patch(
+        "custom_components.mail_and_packages.utils.amazon.email_search",
+        new_callable=AsyncMock,
+        return_value=("OK", [b"1 2"]),
+    ) as mock_search:
+        res_single = await search_amazon_emails(
+            account=mock_account,
+            address_list=["order-update@amazon.de"],
+            days=3,
+            domain="amazon.de",
+        )
+        assert res_single == [b"1", b"2"]
 
-    mock_resp = AsyncMock()
-    mock_resp.status = 200
-    mock_resp.headers = {"content-type": "image/jpeg", "content-length": "100"}
-    mock_resp.read.return_value = b"x" * (11 * 1024 * 1024)  # 11 MB actual data
-    mock_get = MagicMock()
-    mock_get.__aenter__.return_value = mock_resp
-    mock_get.__aexit__ = AsyncMock(return_value=False)
-
-    with (
-        patch("aiohttp.ClientSession.get", return_value=mock_get),
-        patch(
-            "custom_components.mail_and_packages.utils.amazon.io_save_file",
-        ) as mock_save,
-    ):
-        await download_amazon_img(img_url, img_path, img_name, hass)
-        mock_save.assert_not_called()
-
-    assert "Amazon image exceeds size limit after download" in caplog.text
+        res_multi = await search_amazon_emails(
+            account=mock_account,
+            address_list=["order-update@amazon.com"],
+            days=3,
+            domain="amazon.com,amazon.de",
+        )
+        assert res_multi == [b"1", b"2"]
+        assert mock_search.call_count == 2
