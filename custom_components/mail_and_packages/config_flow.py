@@ -860,7 +860,7 @@ async def _validate_login(
         errors[CONF_USERNAME] = errors[CONF_PASSWORD] = "invalid_auth"
     except ssl.SSLError:
         errors["base"] = "ssl_error"
-    except (TimeoutError, AioImapException, ConnectionRefusedError) as err:
+    except (TimeoutError, AioImapException, ConnectionRefusedError, OSError) as err:
         _LOGGER.error(
             "Unable to connect: %s (IMAP server %s:%s as %s, security: %s, oauth: False, class: %s)",
             err if str(err) else "Authentication failed or timed out",
