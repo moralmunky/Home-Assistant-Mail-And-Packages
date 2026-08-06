@@ -532,7 +532,7 @@ async def test_login_exception(caplog):
         mock_acc.protocol.state = NONAUTH
         mock_imap_ssl.return_value = mock_acc
 
-        with pytest.raises(InvalidAuth):
+        with pytest.raises(OSError):
             await login(mock_hass, "host", 993, "user", "pass", "SSL")
         assert "Error logging in to IMAP Server" in caplog.text
 

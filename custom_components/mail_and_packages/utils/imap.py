@@ -199,11 +199,9 @@ async def login(
                     ) from err
             else:
                 await account.login(user, pwd)
-        except TimeoutError:
-            raise
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error logging in to IMAP Server: %s", err)
-            raise InvalidAuth from err
+            raise
 
     if account.protocol.state not in {AUTH, SELECTED}:
         _LOGGER.error(
