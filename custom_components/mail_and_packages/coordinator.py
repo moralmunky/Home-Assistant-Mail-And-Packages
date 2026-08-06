@@ -89,6 +89,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self._file_mtime_cache = {}
         self._hash_cache = {}
         self._in_transit_tracking: dict[str, dict[str, str]] = {}
+        self._mail_delivered_latch_date: str | None = None
+        self._mail_delivered_latched = False
         self.email_cache = EmailCache(hass=hass)
 
         _LOGGER.debug("Data will be update every %s", self.interval)
@@ -231,6 +233,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             data.update(shipper_data)
             self._dedupe_marketplace_duplicates(data, tracking_details)
             self._apply_tracking_state(data, tracking_details, today_iso)
+            self._latch_mail_delivered(data, today_iso)
 
             # Aggregate global transit and delivered sensors
             self._aggregate_package_counts(data)
@@ -523,6 +526,31 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 data[f"{prefix}_packages"] = len(in_transit) + (
                     delivered_count if isinstance(delivered_count, int) else 0
                 )
+
+    def _latch_mail_delivered(self, data: dict, today_iso: str) -> None:
+        """Latch usps_mail_delivered on for the rest of the day once seen.
+
+        The generic shipper recomputes this sensor from a live "delivered
+        today" IMAP search on every poll, so a transient search/verification
+        miss (or simply the message no longer matching by the time the next
+        poll runs) can flip it back to falsy even though the mail was
+        genuinely delivered earlier today. That makes off->on state-trigger
+        automations re-fire on every scan cycle instead of once per delivery.
+        Latch it: once truthy for today, keep it truthy until the date
+        changes, which is the same day boundary the underlying search
+        already resets on at midnight.
+        """
+        if "usps_mail_delivered" not in data:
+            return
+
+        if self._mail_delivered_latch_date != today_iso:
+            self._mail_delivered_latch_date = today_iso
+            self._mail_delivered_latched = False
+
+        self._mail_delivered_latched = self._mail_delivered_latched or bool(
+            data["usps_mail_delivered"]
+        )
+        data["usps_mail_delivered"] = int(self._mail_delivered_latched)
 
     def _update_tracking_for_prefix(
         self,

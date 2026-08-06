@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from aiohttp import ClientResponseError
+from freezegun import freeze_time
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -15,7 +16,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.mail_and_packages.const import CONF_FOLDER, DOMAIN
 from custom_components.mail_and_packages.coordinator import MailDataUpdateCoordinator
 from custom_components.mail_and_packages.utils.imap import InvalidAuth
-from tests.const import FAKE_CONFIG_DATA
+from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_USPS_DELIVERED
 
 
 @pytest.mark.asyncio
@@ -108,6 +109,103 @@ async def test_process_emails_invalid_return(hass):
 
     # Should just not crash, missing data ok
     assert "test_sensor" not in data
+
+
+@pytest.mark.asyncio
+async def test_mail_delivered_latches_on_across_polls(hass):
+    """usps_mail_delivered should stay on for the rest of the day once seen.
+
+    The underlying IMAP search is re-run and re-verified on every poll, so a
+    transient miss must not flip a real delivery back to off — that would
+    make an off->on state-trigger automation re-fire on every scan cycle.
+    """
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA_USPS_DELIVERED)
+
+    mock_shipper = AsyncMock()
+    mock_shipper.name = "usps"
+    mock_shipper.process_batch.side_effect = [
+        {"usps_mail_delivered": 1},
+        {"usps_mail_delivered": 0},
+        {"usps_mail_delivered": 0},
+    ]
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.get_shipper_for_sensor",
+            return_value=mock_shipper,
+        ),
+        freeze_time("2026-08-05 14:17:32"),
+    ):
+        first = await coordinator.process_emails(hass, FAKE_CONFIG_DATA_USPS_DELIVERED)
+        assert first["usps_mail_delivered"] == 1
+
+        # Two subsequent polls where the live search comes back empty (the
+        # flaky re-evaluation this bug is about) must not clear the flag.
+        second = await coordinator.process_emails(hass, FAKE_CONFIG_DATA_USPS_DELIVERED)
+        assert second["usps_mail_delivered"] == 1
+
+        third = await coordinator.process_emails(hass, FAKE_CONFIG_DATA_USPS_DELIVERED)
+        assert third["usps_mail_delivered"] == 1
+
+
+@pytest.mark.asyncio
+async def test_mail_delivered_latch_resets_on_new_day(hass):
+    """usps_mail_delivered latch must reset once the day rolls over."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA_USPS_DELIVERED)
+
+    mock_shipper = AsyncMock()
+    mock_shipper.name = "usps"
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.get_shipper_for_sensor",
+            return_value=mock_shipper,
+        ),
+    ):
+        mock_shipper.process_batch.return_value = {"usps_mail_delivered": 1}
+        with freeze_time("2026-08-05 14:17:32"):
+            day_one = await coordinator.process_emails(
+                hass, FAKE_CONFIG_DATA_USPS_DELIVERED
+            )
+        assert day_one["usps_mail_delivered"] == 1
+
+        # New day, no mail delivered yet — the latch from yesterday must not
+        # leak through even though it's the same coordinator instance.
+        mock_shipper.process_batch.return_value = {"usps_mail_delivered": 0}
+        with freeze_time("2026-08-06 08:00:00"):
+            day_two = await coordinator.process_emails(
+                hass, FAKE_CONFIG_DATA_USPS_DELIVERED
+            )
+        assert day_two["usps_mail_delivered"] == 0
+
+
+def test_latch_mail_delivered_noop_when_sensor_not_present(hass):
+    """_latch_mail_delivered must not add the key when the sensor isn't in use."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    data = {"some_other_sensor": 1}
+    coordinator._latch_mail_delivered(data, "2026-08-05")
+
+    assert "usps_mail_delivered" not in data
 
 
 @pytest.mark.asyncio
