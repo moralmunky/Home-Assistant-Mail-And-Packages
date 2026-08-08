@@ -35,7 +35,7 @@ From your Home Assistant instance, the integration connects via IMAP to the emai
 
 See the [wiki](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki) for full details.
 
-> **Note:** Emails cannot be deleted until the next day, but you can filter them into a dedicated folder and point the integration at that folder. Delivery images revert to the no-mail placeholder after the first scan past midnight, local time.
+> **Note:** The integration does not delete or modify your emails. Do not delete delivery emails on the day they arrive, as the integration needs to find them during its scans. You can filter shipping notifications into a dedicated folder and point the integration at that folder. Delivery images revert to the no-mail placeholder after the first scan past midnight, local time.
 
 > **Privacy / Security:** All processing is done locally. No data is sent outside your Home Assistant instance. Files stored in the `www` folder are [publicly accessible](https://www.home-assistant.io/integrations/http/#hosting-files) by default — image filenames are randomised to reduce exposure. Two sensors are available for use in notifications:
 > - `sensor.mail_image_system_path`
