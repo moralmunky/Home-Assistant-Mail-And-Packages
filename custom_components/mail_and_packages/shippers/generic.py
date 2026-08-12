@@ -246,6 +246,7 @@ class GenericShipper(Shipper):
         )
 
         self._deduplicate_batch_tracking(batch_results)
+        self._sync_packages_tracking(batch_results)
         self._compute_package_totals(batch_results)
 
         # Merge results and aggregate global tracking
@@ -347,6 +348,20 @@ class GenericShipper(Shipper):
             # so _packages only shows packages not yet out for delivery or delivered
             in_pipeline = data["delivering"] | data["delivered"]
             self._apply_deduplication(data["package_targets"], in_pipeline)
+
+    def _sync_packages_tracking(
+        self,
+        batch_results: list[tuple[str, dict[str, Any]]],
+    ) -> None:
+        """Store IMAP-backed packages tracking after OFD/delivered dedup."""
+        for sensor, sensor_res in batch_results:
+            if not sensor.endswith("_packages"):
+                continue
+            config = SENSOR_DATA.get(sensor, {})
+            if config.get(ATTR_EMAIL) or config.get(ATTR_SUBJECT):
+                sensor_res[f"{sensor}_tracking"] = list(
+                    sensor_res.get(ATTR_TRACKING, [])
+                )
 
     def _apply_deduplication(
         self,

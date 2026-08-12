@@ -29,16 +29,19 @@ from .const import (
     AMAZON_OTP,
     AMAZON_OTP_CODE,
     ATTR_CODE,
+    ATTR_EMAIL,
     ATTR_GRID_IMAGE_NAME,
     ATTR_IMAGE,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
     ATTR_ORDER,
+    ATTR_SUBJECT,
     ATTR_TRACKING_NUM,
     ATTR_USPS_IMAGE,
     CONF_PATH,
     DOMAIN,
     IMAGE_SENSORS,
+    SENSOR_DATA,
     SENSOR_TYPES,
     VERSION,
 )
@@ -95,6 +98,14 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
             prefix = "_".join(parts[:-1])
             if parts[-1] in DELIVERED_SUFFIXES:
                 self._tracking_key = f"{prefix}_delivered_tracking"
+            elif parts[-1] == "packages":
+                packages_cfg = SENSOR_DATA.get(self.type, {})
+                # IMAP-backed packages (e.g. DHL "ist unterwegs") keep their
+                # own tracking list; empty-config packages still mirror OFD.
+                if packages_cfg.get(ATTR_EMAIL) or packages_cfg.get(ATTR_SUBJECT):
+                    self._tracking_key = f"{self.type}_tracking"
+                else:
+                    self._tracking_key = f"{prefix}_tracking"
             else:
                 self._tracking_key = f"{prefix}_tracking"
         else:

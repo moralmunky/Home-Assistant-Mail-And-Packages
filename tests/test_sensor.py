@@ -115,8 +115,8 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
 
     state = s("mail_dhl_packages")
     assert state
-    assert state.state == "2"
-    assert state.attributes["tracking_#"] == ["1234567890"]
+    assert state.state == "1"
+    assert state.attributes["tracking_#"] == ["00340435071043104047"]
 
     state = s("mail_auspost_delivered")
     assert state

@@ -980,8 +980,8 @@ async def test_ups_packages_with_forwarded_emails_includes_both(hass):
 def test_compute_package_totals(hass):
     """Test _compute_package_totals sets _packages as delivering + delivered for carriers with empty config."""
     shipper = GenericShipper(hass, {})
-    # capost_packages still has {} config — should be computed as delivering + delivered
-    # dhl_packages also has {} config
+    # capost_packages / hermes_packages still have {} config — computed totals
+    # dhl_packages is IMAP-backed ("ist unterwegs") and must keep its own count
     batch_results = [
         (
             "capost_delivering",
@@ -989,9 +989,15 @@ def test_compute_package_totals(hass):
         ),
         ("capost_delivered", {"capost_delivered": 1, ATTR_COUNT: 1, ATTR_TRACKING: []}),
         ("capost_packages", {"capost_packages": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
+        (
+            "hermes_delivering",
+            {"hermes_delivering": 2, ATTR_COUNT: 2, ATTR_TRACKING: []},
+        ),
+        ("hermes_delivered", {"hermes_delivered": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
+        ("hermes_packages", {"hermes_packages": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
         ("dhl_delivering", {"dhl_delivering": 2, ATTR_COUNT: 2, ATTR_TRACKING: []}),
         ("dhl_delivered", {"dhl_delivered": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
-        ("dhl_packages", {"dhl_packages": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
+        ("dhl_packages", {"dhl_packages": 5, ATTR_COUNT: 5, ATTR_TRACKING: ["T1"]}),
     ]
     shipper._compute_package_totals(batch_results)
 
@@ -999,9 +1005,58 @@ def test_compute_package_totals(hass):
     assert capost_res["capost_packages"] == 4  # 3 delivering + 1 delivered
     assert capost_res[ATTR_COUNT] == 4
 
+    _, hermes_res = next(r for r in batch_results if r[0] == "hermes_packages")
+    assert hermes_res["hermes_packages"] == 2  # 2 delivering + 0 delivered
+    assert hermes_res[ATTR_COUNT] == 2
+
     _, dhl_res = next(r for r in batch_results if r[0] == "dhl_packages")
-    assert dhl_res["dhl_packages"] == 2  # 2 delivering + 0 delivered
-    assert dhl_res[ATTR_COUNT] == 2
+    assert dhl_res["dhl_packages"] == 5
+    assert dhl_res[ATTR_COUNT] == 5
+
+
+def test_dhl_ofd_vs_unterwegs_subject_split():
+    """DHL OFD subjects stay on delivering; 'ist unterwegs' is packages-only."""
+    delivering = SENSOR_DATA["dhl_delivering"]["subject"]
+    packages = SENSOR_DATA["dhl_packages"]["subject"]
+
+    assert "kommt heute" in delivering
+    assert "ist unterwegs" not in delivering
+    assert "Jetzt Live verfolgen" not in delivering
+
+    assert "ist unterwegs" in packages
+    assert "kommt heute" not in packages
+    assert "Jetzt Live verfolgen" not in packages
+    assert SENSOR_DATA["dhl_packages"].get("email")
+
+
+def test_sync_packages_tracking_after_dedup(hass):
+    """IMAP-backed packages tracking is stored after OFD numbers are removed."""
+    shipper = GenericShipper(hass, {})
+    batch_results = [
+        (
+            "dhl_delivering",
+            {
+                "dhl_delivering": 1,
+                ATTR_COUNT: 1,
+                ATTR_TRACKING: ["OFD1"],
+            },
+        ),
+        (
+            "dhl_packages",
+            {
+                "dhl_packages": 2,
+                ATTR_COUNT: 2,
+                ATTR_TRACKING: ["OFD1", "TRANSIT1"],
+            },
+        ),
+    ]
+    shipper._deduplicate_batch_tracking(batch_results)
+    shipper._sync_packages_tracking(batch_results)
+
+    _, packages_res = next(r for r in batch_results if r[0] == "dhl_packages")
+    assert packages_res["dhl_packages"] == 1
+    assert packages_res[ATTR_TRACKING] == ["TRANSIT1"]
+    assert packages_res["dhl_packages_tracking"] == ["TRANSIT1"]
 
 
 @pytest.mark.asyncio
