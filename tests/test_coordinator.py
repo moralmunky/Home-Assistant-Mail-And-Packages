@@ -598,6 +598,32 @@ async def test_apply_tracking_state_preserves_imap_backed_dhl_packages(hass):
 
 
 @pytest.mark.asyncio
+async def test_apply_tracking_state_overwrites_empty_config_packages(hass):
+    """Empty-config *_packages are still derived from OFD transit + delivered."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    coordinator._in_transit_tracking["hermes"] = {
+        "H1": "2026-04-20",
+        "H2": "2026-04-21",
+    }
+    data = {
+        "hermes_delivering": 1,
+        "hermes_delivered": 1,
+        "hermes_packages": 0,
+    }
+    tracking_details = {
+        "hermes_delivering": ["H3"],
+        "hermes_delivered": [],
+    }
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+
+    assert data["hermes_delivering"] == 3
+    assert data["hermes_packages"] == 4  # 3 in transit + 1 delivered
+    assert set(data["hermes_tracking"]) == {"H1", "H2", "H3"}
+
+
+@pytest.mark.asyncio
 async def test_sum_transit_counts_adds_imap_backed_packages(hass):
     """Transit total includes delivering plus IMAP-backed packages."""
     with patch("homeassistant.helpers.frame.report_usage"):
@@ -610,6 +636,20 @@ async def test_sum_transit_counts_adds_imap_backed_packages(hass):
         "hermes_packages": 9,  # empty config; ignored once delivering counted
     }
     assert coordinator._sum_transit_counts(data) == 4  # dhl 1+2 + hermes 1
+
+
+@pytest.mark.asyncio
+async def test_sum_transit_counts_packages_only_and_non_int_imap_packages(hass):
+    """Cover packages-only shippers and non-int IMAP-backed packages values."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    data = {
+        "hermes_packages": 2,  # empty-config packages-only
+        "dhl_delivering": 1,
+        "dhl_packages": "oops",  # IMAP-backed but not an int — ignored
+    }
+    assert coordinator._sum_transit_counts(data) == 3  # hermes 2 + dhl delivering 1
 
 
 @pytest.mark.asyncio
