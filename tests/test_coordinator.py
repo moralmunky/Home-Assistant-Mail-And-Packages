@@ -470,7 +470,8 @@ async def test_apply_tracking_state_overrides_delivering(hass):
 
     # 1Z111, 1Z222 carried over + 1Z333 newly added = 3
     assert data["ups_delivering"] == 3
-    assert data["ups_packages"] == 3
+    # ups_packages is IMAP-backed — preserve its own count
+    assert data["ups_packages"] == 1
     assert set(data["ups_tracking"]) == {"1Z111", "1Z222", "1Z333"}
 
 
@@ -494,7 +495,8 @@ async def test_apply_tracking_state_removes_delivered(hass):
 
     assert "9261290" not in coordinator._in_transit_tracking["fedex"]
     assert data["fedex_delivering"] == 1
-    assert data["fedex_packages"] == 2  # 1 delivering + 1 delivered
+    # fedex_packages is IMAP-backed — preserve its own count
+    assert data["fedex_packages"] == 3
 
 
 @pytest.mark.asyncio
