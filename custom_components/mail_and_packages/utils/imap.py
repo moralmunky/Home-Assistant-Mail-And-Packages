@@ -189,14 +189,9 @@ async def login(
                             getattr(res, "result", None),
                             getattr(res, "lines", None),
                         )
-                except TimeoutError as err:
-                    _LOGGER.error(
-                        "OAuth authentication timed out for %s. This typically indicates invalid OAuth credentials, missing 'https://mail.google.com/' scope, or a mismatched email address.",
-                        user,
-                    )
-                    raise InvalidAuth(
-                        "OAuth authentication timed out or failed"
-                    ) from err
+                except TimeoutError:
+                    _LOGGER.warning("OAuth authentication timed out for %s", user)
+                    raise
             else:
                 await account.login(user, pwd)
         except (AioImapException, OSError) as err:

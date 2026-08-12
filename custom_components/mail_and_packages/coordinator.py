@@ -172,9 +172,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                     # Refresh OAuth2 token if using OAuth authentication
                     auth_type = config.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
                     if auth_type != AUTH_TYPE_PASSWORD and self.config_entry:
-                        config["oauth_token"] = await self._async_oauth_access_token(
-                            auth_type
-                        )
+                        oauth_token = await self._async_oauth_access_token(auth_type)
+                        config["oauth_token"] = oauth_token
+                        self.config["oauth_token"] = oauth_token
 
                     data = await self.process_emails(self.hass, config)
                 except ConfigEntryAuthFailed:
