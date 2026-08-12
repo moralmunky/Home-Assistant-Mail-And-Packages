@@ -522,10 +522,14 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 data[f"{prefix}_tracking"] = list(in_transit.keys())
                 data[f"{prefix}_delivering"] = len(in_transit)
             if in_transit:
-                delivered_count = data.get(f"{prefix}_delivered", 0)
-                data[f"{prefix}_packages"] = len(in_transit) + (
-                    delivered_count if isinstance(delivered_count, int) else 0
-                )
+                packages_cfg = const.SENSOR_DATA.get(f"{prefix}_packages", {})
+                # Keep IMAP-backed packages sensors (e.g. DHL "ist unterwegs")
+                # instead of overwriting them with OFD tracking totals.
+                if not (packages_cfg.get("email") or packages_cfg.get("subject")):
+                    delivered_count = data.get(f"{prefix}_delivered", 0)
+                    data[f"{prefix}_packages"] = len(in_transit) + (
+                        delivered_count if isinstance(delivered_count, int) else 0
+                    )
 
     def _latch_mail_delivered(self, data: dict, today_iso: str) -> None:
         """Latch usps_mail_delivered on for the rest of the day once seen.
@@ -649,8 +653,16 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             if not shipper or shipper in shippers_counted:
                 continue
 
-            # Priority: _delivering (preferred generic state) or _packages
-            if key.endswith(("_delivering", "_packages")):
+            if key.endswith("_delivering"):
+                transit += value
+                packages_cfg = const.SENSOR_DATA.get(f"{shipper}_packages", {})
+                # IMAP-backed packages (e.g. DHL "ist unterwegs") are additive.
+                if packages_cfg.get("email") or packages_cfg.get("subject"):
+                    packages_val = data.get(f"{shipper}_packages", 0)
+                    if isinstance(packages_val, int) and packages_val > 0:
+                        transit += packages_val
+                shippers_counted.add(shipper)
+            elif key.endswith("_packages"):
                 transit += value
                 shippers_counted.add(shipper)
 

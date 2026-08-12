@@ -573,6 +573,44 @@ async def test_apply_tracking_state_no_details_keeps_email_count(hass):
 
 
 @pytest.mark.asyncio
+async def test_apply_tracking_state_preserves_imap_backed_dhl_packages(hass):
+    """IMAP-backed dhl_packages must not be overwritten by OFD transit totals."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    coordinator._in_transit_tracking["dhl"] = {"OFD1": "2026-04-20"}
+    data = {
+        "dhl_delivering": 1,
+        "dhl_delivered": 0,
+        "dhl_packages": 3,
+    }
+    tracking_details = {
+        "dhl_delivering": ["OFD1"],
+        "dhl_delivered": [],
+    }
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+
+    assert data["dhl_delivering"] == 1
+    assert data["dhl_packages"] == 3
+    assert data["dhl_tracking"] == ["OFD1"]
+
+
+@pytest.mark.asyncio
+async def test_sum_transit_counts_adds_imap_backed_packages(hass):
+    """Transit total includes delivering plus IMAP-backed packages."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    data = {
+        "dhl_delivering": 1,
+        "dhl_packages": 2,
+        "hermes_delivering": 1,
+        "hermes_packages": 9,  # empty config; ignored once delivering counted
+    }
+    assert coordinator._sum_transit_counts(data) == 4  # dhl 1+2 + hermes 1
+
+
+@pytest.mark.asyncio
 async def test_apply_tracking_state_no_tracking_details(hass):
     """With empty tracking_details, data is unchanged."""
     with patch("homeassistant.helpers.frame.report_usage"):

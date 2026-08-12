@@ -95,6 +95,8 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
             prefix = "_".join(parts[:-1])
             if parts[-1] in DELIVERED_SUFFIXES:
                 self._tracking_key = f"{prefix}_delivered_tracking"
+            elif parts[-1] == "packages":
+                self._tracking_key = f"{self.type}_tracking"
             else:
                 self._tracking_key = f"{prefix}_tracking"
         else:
