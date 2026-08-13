@@ -329,6 +329,12 @@ SENSOR_DATA = {
         "email": ["auto-reply@usps.com", "auto-reply@tracking.usps.com"],
         "subject": ["Expected Delivery by"],
     },
+    "usps_pickup": {
+        "email": ["auto-reply@usps.com"],
+        "subject": ["USPS - Your Package Pickup Request"],
+        "body": ["Total Packages: (\\d+)"],
+        "body_count": True,
+    },
     "usps_tracking": {"pattern": ["9[2345]\\d{15,26}"]},
     "usps_mail": {
         "email": [
@@ -1381,6 +1387,12 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="usps_packages",
+    ),
+    "usps_pickup": SensorEntityDescription(
+        name="Mail USPS Scheduled Pickup",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-up",
+        key="usps_pickup",
     ),
     # UPS
     "ups_delivered": SensorEntityDescription(
