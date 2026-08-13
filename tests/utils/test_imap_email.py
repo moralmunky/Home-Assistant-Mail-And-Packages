@@ -1994,7 +1994,7 @@ async def test_login_oauth_timeout(caplog):
         mock_acc.xoauth2.side_effect = TimeoutError("Timeout during xoauth2")
         mock_imap_ssl.return_value = mock_acc
 
-        with pytest.raises(InvalidAuth):
+        with pytest.raises(TimeoutError):
             await login(
                 mock_hass,
                 "host",
