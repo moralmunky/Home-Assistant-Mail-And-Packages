@@ -64,7 +64,15 @@ DOMAIN_LANG_MAP = {
         "auto-bevestiging",
         "Bezorgd:",
     ],
-    "amazon.fr": ["confirmation-commande", "Livré", "Livraison : Votre", "Arrivée :"],
+    "amazon.fr": [
+        "Livré",
+        "Livraison : Votre",
+        "Arrivée :",
+        "Expédié:",
+        "Expédié",
+        "En cours de livraison:",
+        "Commandé:",
+    ],
     "amazon.ca": ["confirmation-commande", "Livré", "Livraison : Votre", "Arrivée :"],
     "amazon.es": [
         "confirmar-envio",

@@ -1346,3 +1346,34 @@ async def test_amazon_delivering_no_order_id_no_arrival_date(hass):
         res = await shipper.process(mock_account, "today", "amazon_delivering")
         assert res["amazon_delivering"] == 1
         assert res["amazon_delivering_order"] == []
+
+
+@pytest.mark.asyncio
+async def test_amazon_hub_and_otp_domain(hass):
+    """Test AmazonShipper passes configured amazon_domain to _amazon_hub and _amazon_otp."""
+    shipper = AmazonShipper(hass, {"amazon_domain": "amazon.fr"})
+    mock_account = AsyncMock()
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        new_callable=AsyncMock,
+        return_value=("OK", [None]),
+    ) as mock_search:
+        await shipper.process(mock_account, "today", "amazon_hub")
+        assert mock_search.called
+        search_addresses = (
+            mock_search.call_args.kwargs.get("address") or mock_search.call_args.args[1]
+        )
+        assert "pickup-point@amazon.fr" in search_addresses
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        new_callable=AsyncMock,
+        return_value=("OK", [None]),
+    ) as mock_search:
+        await shipper.process(mock_account, "today", "amazon_otp")
+        assert mock_search.called
+        search_addresses = (
+            mock_search.call_args.kwargs.get("address") or mock_search.call_args.args[1]
+        )
+        assert "order-update@amazon.fr" in search_addresses

@@ -134,10 +134,14 @@ class AmazonShipper(Shipper):
             return {AMAZON_ORDER: result}
 
         if sensor_type == AMAZON_HUB:
-            return await self._amazon_hub(account, fwds, cache, forwarding_header)
+            return await self._amazon_hub(
+                account, fwds, domain, cache, forwarding_header
+            )
 
         if sensor_type == AMAZON_OTP:
-            result = await self._amazon_otp(account, fwds, cache, forwarding_header)
+            result = await self._amazon_otp(
+                account, fwds, domain, cache, forwarding_header
+            )
             return {sensor_type: result}
 
         if sensor_type == AMAZON_EXCEPTION:
@@ -572,6 +576,7 @@ class AmazonShipper(Shipper):
         self,
         account: IMAP4_SSL,
         fwds: list[str] | None = None,
+        domain: str | None = None,
         cache: EmailCache | None = None,
         forwarding_header: str = "",
     ) -> dict[str, Any]:
@@ -581,7 +586,7 @@ class AmazonShipper(Shipper):
         code = []
         processed_ids = []
         today = get_today().strftime("%d-%b-%Y")
-        address_list = amazon_email_addresses(fwds, "amazon.com")
+        address_list = amazon_email_addresses(fwds, domain)
         for search_subject in AMAZON_HUB_SUBJECT:
             (server_response, data) = await email_search(
                 account,
@@ -620,13 +625,14 @@ class AmazonShipper(Shipper):
         self,
         account: IMAP4_SSL,
         fwds: list[str] | None = None,
+        domain: str | None = None,
         cache: EmailCache | None = None,
         forwarding_header: str = "",
     ) -> dict[str, Any]:
         """Find Amazon OTP code."""
         code = []
         today = get_today().strftime("%d-%b-%Y")
-        address_list = amazon_email_addresses(fwds, "amazon.com")
+        address_list = amazon_email_addresses(fwds, domain)
         (server_response, data) = await email_search(
             account,
             address_list,
