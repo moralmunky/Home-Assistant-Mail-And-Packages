@@ -36,6 +36,8 @@ from .const import (
     CONF_FORWARDED_EMAILS,
     CONF_GENERIC_CUSTOM_IMG,
     CONF_GENERIC_CUSTOM_IMG_FILE,
+    CONF_HOME_DEPOT_CUSTOM_IMG,
+    CONF_HOME_DEPOT_CUSTOM_IMG_FILE,
     CONF_IMAGE_SECURITY,
     CONF_IMAP_SECURITY,
     CONF_IMAP_TIMEOUT,
@@ -52,6 +54,7 @@ from .const import (
     DEFAULT_AMAZON_DAYS,
     DEFAULT_FEDEX_CUSTOM_IMG_FILE,
     DEFAULT_GENERIC_CUSTOM_IMG_FILE,
+    DEFAULT_HOME_DEPOT_CUSTOM_IMG_FILE,
     DEFAULT_UPS_CUSTOM_IMG_FILE,
     DEFAULT_WALMART_CUSTOM_IMG_FILE,
     DOMAIN,
@@ -440,3 +443,9 @@ def _apply_walmart_generic_fedex_defaults(updated_config):
         updated_config[CONF_FEDEX_CUSTOM_IMG] = False
     if CONF_FEDEX_CUSTOM_IMG_FILE not in updated_config:
         updated_config[CONF_FEDEX_CUSTOM_IMG_FILE] = DEFAULT_FEDEX_CUSTOM_IMG_FILE
+    if CONF_HOME_DEPOT_CUSTOM_IMG not in updated_config:
+        updated_config[CONF_HOME_DEPOT_CUSTOM_IMG] = False
+    if CONF_HOME_DEPOT_CUSTOM_IMG_FILE not in updated_config:
+        updated_config[CONF_HOME_DEPOT_CUSTOM_IMG_FILE] = (
+            DEFAULT_HOME_DEPOT_CUSTOM_IMG_FILE
+        )
