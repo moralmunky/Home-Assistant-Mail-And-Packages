@@ -478,3 +478,29 @@ async def test_search_amazon_emails_single_and_multi_domain():
         )
         assert res_multi == [b"1", b"2"]
         assert mock_search.call_count == 2
+
+
+def test_amazon_email_addresses_fr():
+    """Test amazon_email_addresses for amazon.fr includes all required French senders."""
+    addresses = amazon_email_addresses(domain="amazon.fr")
+    assert "confirmation-commande@amazon.fr" in addresses
+    assert "order-update@amazon.fr" in addresses
+    assert "shipment-tracking@amazon.fr" in addresses
+    assert "pickup-point@amazon.fr" in addresses
+
+
+def test_filter_amazon_strings_fr():
+    """Test filter_amazon_strings for amazon.fr retains French subject strings."""
+    subjects = [
+        "Expédié:",
+        "En cours de livraison:",
+        "Livré",
+        "Commandé:",
+        "Shipped:",
+    ]
+    filtered = filter_amazon_strings(subjects, "amazon.fr")
+    assert "Expédié:" in filtered
+    assert "En cours de livraison:" in filtered
+    assert "Livré" in filtered
+    assert "Commandé:" in filtered
+    assert "Shipped:" not in filtered

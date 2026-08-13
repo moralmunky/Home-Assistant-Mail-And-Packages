@@ -171,10 +171,12 @@ AMAZON_SHIPMENT_TRACKING = [
     "confirmation-commande",
     "verzending-volgen",
     "update-bestelling",
+    "pickup-point",
 ]
 AMAZON_DELIVERING_SUBJECT = [
     "Out for delivery:",
     "In Zustellung:",
+    "En cours de livraison:",
 ]
 AMAZON_SHIPMENT_SUBJECT = [
     "Shipped:",
@@ -182,9 +184,10 @@ AMAZON_SHIPMENT_SUBJECT = [
     "Spedito:",
     "Versandt:",
     "Versendet:",
+    "Expédié:",
     *AMAZON_DELIVERING_SUBJECT,
 ]
-AMAZON_ORDERED_SUBJECT = ["Ordered:", "Pedido efetuado:"]
+AMAZON_ORDERED_SUBJECT = ["Ordered:", "Pedido efetuado:", "Commandé:"]
 AMAZON_EMAIL = [
     "order-update@",
     "update-bestelling@",
