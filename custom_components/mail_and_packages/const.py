@@ -47,6 +47,7 @@ ATTR_FEDEX_IMAGE = "fedex_image"
 ATTR_GENERIC_IMAGE = "generic_image"
 ATTR_USPS_IMAGE = "usps_image"
 ATTR_POST_DE_IMAGE = "post_de_image"
+ATTR_HOME_DEPOT_IMAGE = "home_depot_image"
 
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"
@@ -65,6 +66,8 @@ CONF_GENERIC_CUSTOM_IMG = "generic_custom_img"
 CONF_GENERIC_CUSTOM_IMG_FILE = "generic_custom_img_file"
 CONF_POST_DE_CUSTOM_IMG = "post_de_custom_img"
 CONF_POST_DE_CUSTOM_IMG_FILE = "post_de_custom_img_file"
+CONF_HOME_DEPOT_CUSTOM_IMG = "home_depot_custom_img"
+CONF_HOME_DEPOT_CUSTOM_IMG_FILE = "home_depot_custom_img_file"
 CONF_STORAGE = "storage"
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
@@ -124,6 +127,10 @@ DEFAULT_GENERIC_CUSTOM_IMG_FILE = (
 )
 DEFAULT_POST_DE_CUSTOM_IMG = False
 DEFAULT_POST_DE_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/mail_none.gif"
+DEFAULT_HOME_DEPOT_CUSTOM_IMG = False
+DEFAULT_HOME_DEPOT_CUSTOM_IMG_FILE = (
+    "custom_components/mail_and_packages/no_deliveries_generic.jpg"
+)
 DEFAULT_AMAZON_DAYS = 3
 DEFAULT_AMAZON_DOMAIN = "amazon.com"
 DEFAULT_STORAGE = "custom_components/mail_and_packages/images/"
@@ -960,6 +967,36 @@ SENSOR_DATA = {
         "subject": ["delivery is delayed"],
     },
     "walmart_tracking": {"pattern": [r"\b#?[0-9]{7}-[0-9]{7,8}\b"]},
+    # Home Depot
+    "home_depot_delivering": {
+        "email": ["homedepot@order.homedepot.com", "order.homedepot.com"],
+        "subject": [
+            "out for delivery",
+            "arrives today",
+        ],
+    },
+    "home_depot_delivered": {
+        "email": ["homedepot@order.homedepot.com", "order.homedepot.com"],
+        "subject": [
+            "delivered",
+            "has arrived",
+        ],
+    },
+    "home_depot_packages": {
+        "email": ["homedepot@order.homedepot.com", "order.homedepot.com"],
+        "subject": [
+            "Shipped:",
+            "on its way",
+        ],
+    },
+    "home_depot_exception": {
+        "email": ["homedepot@order.homedepot.com", "order.homedepot.com"],
+        "subject": [
+            "delayed",
+            "delay",
+        ],
+    },
+    "home_depot_tracking": {"pattern": [r"\bWK\d{8}\b"]},
     # Shopify (standard order-notification templates). Sender varies per
     # store; these cover Shopify's shared sending infrastructure. Stores
     # sending from their own domain need their sender added here.
@@ -1803,6 +1840,31 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:archive-alert",
         key="walmart_exception",
     ),
+    # Home Depot
+    "home_depot_delivering": SensorEntityDescription(
+        name="Mail Home Depot Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="home_depot_delivering",
+    ),
+    "home_depot_delivered": SensorEntityDescription(
+        name="Mail Home Depot Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="home_depot_delivered",
+    ),
+    "home_depot_packages": SensorEntityDescription(
+        name="Mail Home Depot Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="home_depot_packages",
+    ),
+    "home_depot_exception": SensorEntityDescription(
+        name="Mail Home Depot Exception",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:archive-alert",
+        key="home_depot_exception",
+    ),
     # Shopify
     "shopify_delivered": SensorEntityDescription(
         name="Mail Shopify Delivered",
@@ -2132,6 +2194,7 @@ CAMERA_DATA = {
     "ups_camera": ["Mail UPS Camera"],
     "amazon_camera": ["Mail Amazon Delivery Camera"],
     "walmart_camera": ["Mail Walmart Delivery Camera"],
+    "home_depot_camera": ["Mail Home Depot Delivery Camera"],
     "fedex_camera": ["Mail FedEx Delivery Camera"],
     "generic_camera": ["Mail Generic Delivery Camera"],
     "post_de_camera": ["Mail Post DE Camera"],
@@ -2225,6 +2288,7 @@ SENSOR_ICON = 2
 MARKETPLACE_CARRIER_TRACKING = {
     "etsy": r"tracking number:?\s*#?([A-Za-z0-9]{8,34})",
     "shopify": r"tracking number:?\s*#?([A-Za-z0-9]{8,34})",
+    "home_depot": r"Tracking ID:?\s*#?([A-Za-z0-9]{8,34})",
 }
 
 # For sensors with delivering and delivered statuses
@@ -2237,6 +2301,7 @@ SHIPPERS = [
     "ups",
     "usps",
     "walmart",
+    "home_depot",
     "hermes",
     "royal",
     "auspost",

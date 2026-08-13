@@ -274,6 +274,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             "fedex_image": (False, False, False, True),
             "usps_image": (False, False, False, False),
             "post_de_image": (False, False, False, False),
+            "home_depot_image": (False, False, False, False),
         }
 
         for key, params in shipper_images.items():
