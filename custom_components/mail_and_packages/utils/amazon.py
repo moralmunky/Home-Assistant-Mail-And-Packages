@@ -84,6 +84,33 @@ DOMAIN_LANG_MAP = {
     "amazon.pl": ["Dostarczono:"],
 }
 
+BASE_AMAZON_PREFIXES = [
+    "order-update@",
+    "shipment-tracking@",
+    "auto-confirm@",
+    "pickup-point@",
+]
+
+DOMAIN_SENDER_MAP = {
+    "amazon.fr": ["confirmation-commande@", *BASE_AMAZON_PREFIXES],
+    "amazon.de": ["versandbestaetigung@", *BASE_AMAZON_PREFIXES],
+    "amazon.it": ["conferma-spedizione@", *BASE_AMAZON_PREFIXES],
+    "amazon.es": ["confirmar-envio@", *BASE_AMAZON_PREFIXES],
+    "amazon.nl": [
+        "update-bestelling@",
+        "verzending-volgen@",
+        "auto-bevestiging@",
+        *BASE_AMAZON_PREFIXES,
+    ],
+    "amazon.com.be": [
+        "update-bestelling@",
+        "verzending-volgen@",
+        "auto-bevestiging@",
+        "confirmation-commande@",
+        *BASE_AMAZON_PREFIXES,
+    ],
+}
+
 
 def filter_amazon_strings(strings: list[str], domain: str) -> list[str]:
     """Filter list of strings based on the domain language."""
@@ -240,34 +267,6 @@ async def parse_amazon_arrival_date(
         if dateobj:
             return dateobj.date()
     return None
-
-
-BASE_AMAZON_PREFIXES = [
-    "order-update@",
-    "shipment-tracking@",
-    "auto-confirm@",
-    "pickup-point@",
-]
-
-DOMAIN_SENDER_MAP = {
-    "amazon.fr": ["confirmation-commande@", *BASE_AMAZON_PREFIXES],
-    "amazon.de": ["versandbestaetigung@", *BASE_AMAZON_PREFIXES],
-    "amazon.it": ["conferma-spedizione@", *BASE_AMAZON_PREFIXES],
-    "amazon.es": ["confirmar-envio@", *BASE_AMAZON_PREFIXES],
-    "amazon.nl": [
-        "update-bestelling@",
-        "verzending-volgen@",
-        "auto-bevestiging@",
-        *BASE_AMAZON_PREFIXES,
-    ],
-    "amazon.com.be": [
-        "update-bestelling@",
-        "verzending-volgen@",
-        "auto-bevestiging@",
-        "confirmation-commande@",
-        *BASE_AMAZON_PREFIXES,
-    ],
-}
 
 
 def _split_amazon_domains(domain: str | None) -> list[str]:
