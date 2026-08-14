@@ -27,6 +27,9 @@ from custom_components.mail_and_packages.const import DEFAULT_IMAP_TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)
 
+IMAP_SUBJECT_BATCH_SIZE = 5
+IMAP_ADDRESS_BATCH_SIZE = 5
+
 # Register ESEARCH command if not already present in aioimaplib
 if "ESEARCH" not in aioimaplib.Commands:
     aioimaplib.Commands["ESEARCH"] = Cmd("ESEARCH", (AUTH, SELECTED), Exec.is_async)
@@ -537,8 +540,29 @@ async def email_search(  # noqa: C901
         # Deduplicate while deterministically preserving insertion order
         subject_search = list(dict.fromkeys(s for s in cleaned_subjects if s))
 
+    address_batches = (
+        [
+            address[i : i + IMAP_ADDRESS_BATCH_SIZE]
+            for i in range(0, len(address), IMAP_ADDRESS_BATCH_SIZE)
+        ]
+        if isinstance(address, list) and len(address) > IMAP_ADDRESS_BATCH_SIZE
+        else [address]
+    )
+
+    subject_batches = (
+        [
+            subject_search[i : i + IMAP_SUBJECT_BATCH_SIZE]
+            for i in range(0, len(subject_search), IMAP_SUBJECT_BATCH_SIZE)
+        ]
+        if isinstance(subject_search, list)
+        and len(subject_search) > IMAP_SUBJECT_BATCH_SIZE
+        else [subject_search]
+    )
+
+    is_batched = len(address_batches) > 1 or len(subject_batches) > 1
+
     if len(folders) <= 1:
-        if not isinstance(subject_search, list) or len(subject_search) <= 10:
+        if not is_batched:
             _unused, search = build_search(
                 address, date, subject_search, body_search, header, is_yahoo=is_yahoo
             )
@@ -553,29 +577,34 @@ async def email_search(  # noqa: C901
                 parsed = parse_search_response(res.lines)
                 return (res.result, [b" ".join(parsed)])
 
-        # Batch subjects in groups of 10
-        all_matched_ids = []
-        for i in range(0, len(subject_search), 10):
-            batch = subject_search[i : i + 10]
-            _unused, search = build_search(
-                address, date, batch, body_search, header, is_yahoo=is_yahoo
-            )
-            try:
-                res = await account.search(search, charset=None)
-                if res.result == "OK" and res.lines:
-                    parsed = parse_search_response(res.lines)
-                    all_matched_ids.extend(parsed)
-            except TimeoutError:
-                raise
-            except (AioImapException, OSError) as err:
-                _LOGGER.error("Error searching emails batch: %s", err)
+        # Batch subjects and addresses in small groups to prevent query complexity timeouts (e.g. on Outlook O365)
+        all_matched_ids: list[str] = []
+        for addr_batch in address_batches:
+            for subj_batch in subject_batches:
+                _unused, search = build_search(
+                    addr_batch,
+                    date,
+                    subj_batch,
+                    body_search,
+                    header,
+                    is_yahoo=is_yahoo,
+                )
+                try:
+                    res = await account.search(search, charset=None)
+                    if res.result == "OK" and res.lines:
+                        parsed = parse_search_response(res.lines)
+                        all_matched_ids.extend(parsed)
+                except TimeoutError:
+                    raise
+                except (AioImapException, OSError) as err:
+                    _LOGGER.error("Error searching emails batch: %s", err)
 
         # Deduplicate and return in same format as individual search
         unique_ids = list(dict.fromkeys(all_matched_ids))
         return ("OK", [b" ".join(unique_ids)])
 
     # Multi-folder search logic
-    if not isinstance(subject_search, list) or len(subject_search) <= 10:
+    if not is_batched:
         _unused, search = build_search(
             address, date, subject_search, body_search, header, is_yahoo=is_yahoo
         )
@@ -588,20 +617,25 @@ async def email_search(  # noqa: C901
             return ("BAD", str(err))
         return ("OK", [b" ".join(uids)])
 
-    # Batch subjects in groups of 10
+    # Batch subjects and addresses in small groups to prevent query complexity timeouts (e.g. on Outlook O365)
     all_matched_ids = []
-    for i in range(0, len(subject_search), 10):
-        batch = subject_search[i : i + 10]
-        _unused, search = build_search(
-            address, date, batch, body_search, header, is_yahoo=is_yahoo
-        )
-        try:
-            uids = await _execute_single_search(account, search)
-            all_matched_ids.extend(uids)
-        except TimeoutError:
-            raise
-        except (AioImapException, OSError) as err:
-            _LOGGER.error("Error searching emails batch: %s", err)
+    for addr_batch in address_batches:
+        for subj_batch in subject_batches:
+            _unused, search = build_search(
+                addr_batch,
+                date,
+                subj_batch,
+                body_search,
+                header,
+                is_yahoo=is_yahoo,
+            )
+            try:
+                uids = await _execute_single_search(account, search)
+                all_matched_ids.extend(uids)
+            except TimeoutError:
+                raise
+            except (AioImapException, OSError) as err:
+                _LOGGER.error("Error searching emails batch: %s", err)
 
     # Deduplicate and return in same format as individual search
     unique_ids = list(dict.fromkeys(all_matched_ids))

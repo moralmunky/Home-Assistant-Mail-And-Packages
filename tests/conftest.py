@@ -619,8 +619,8 @@ def mock_imap_amazon_delivered(mock_imap):
     email_file = Path("tests/test_emails/amazon_delivered.eml").read_text(
         encoding="utf-8",
     )
-    # Amazon search expects to find 10 emails in tests, so return unique IDs for 20 calls to be safe
-    mock_imap.search.side_effect = _generate_search_side_effect(count=20, unique=True)
+    # Amazon search returns matching email ID 1 across search batches
+    mock_imap.search.side_effect = _generate_search_side_effect(count=20, unique=False)
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
 
@@ -633,8 +633,8 @@ def mock_imap_amazon_delivered_it(mock_imap):
     email_file = Path("tests/test_emails/amazon_delivered_it.eml").read_text(
         encoding="utf-8",
     )
-    # Amazon search expects to find 10 emails in tests
-    mock_imap.search.side_effect = _generate_search_side_effect(count=20, unique=True)
+    # Amazon search returns matching email ID 1 across search batches
+    mock_imap.search.side_effect = _generate_search_side_effect(count=20, unique=False)
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
 
