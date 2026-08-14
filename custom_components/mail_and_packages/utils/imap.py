@@ -299,6 +299,7 @@ def build_search(  # noqa: C901
     if subject:
         subjects = [subject] if isinstance(subject, str) else subject
         safe_subjects = [clean_search_string(s) for s in subjects]
+        # Deduplicate while deterministically preserving insertion order
         safe_subjects = list(dict.fromkeys(s for s in safe_subjects if s))
 
         if len(safe_subjects) == 1:
@@ -533,6 +534,7 @@ async def email_search(  # noqa: C901
     subject_search = subject
     if isinstance(subject, list):
         cleaned_subjects = [clean_search_string(s) for s in subject]
+        # Deduplicate while deterministically preserving insertion order
         subject_search = list(dict.fromkeys(s for s in cleaned_subjects if s))
 
     if len(folders) <= 1:
