@@ -483,10 +483,25 @@ async def test_search_amazon_emails_single_and_multi_domain():
 def test_amazon_email_addresses_fr():
     """Test amazon_email_addresses for amazon.fr includes all required French senders."""
     addresses = amazon_email_addresses(domain="amazon.fr")
-    assert "confirmation-commande@amazon.fr" in addresses
-    assert "order-update@amazon.fr" in addresses
-    assert "shipment-tracking@amazon.fr" in addresses
-    assert "pickup-point@amazon.fr" in addresses
+    assert addresses == [
+        "confirmation-commande@amazon.fr",
+        "order-update@amazon.fr",
+        "shipment-tracking@amazon.fr",
+        "auto-confirm@amazon.fr",
+        "pickup-point@amazon.fr",
+    ]
+
+
+def test_amazon_email_addresses_de():
+    """Test amazon_email_addresses for amazon.de includes German senders."""
+    addresses = amazon_email_addresses(domain="amazon.de")
+    assert addresses == [
+        "versandbestaetigung@amazon.de",
+        "order-update@amazon.de",
+        "shipment-tracking@amazon.de",
+        "auto-confirm@amazon.de",
+        "pickup-point@amazon.de",
+    ]
 
 
 def test_filter_amazon_strings_fr():

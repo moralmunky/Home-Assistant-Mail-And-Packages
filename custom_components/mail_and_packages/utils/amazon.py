@@ -242,6 +242,34 @@ async def parse_amazon_arrival_date(
     return None
 
 
+BASE_AMAZON_PREFIXES = [
+    "order-update@",
+    "shipment-tracking@",
+    "auto-confirm@",
+    "pickup-point@",
+]
+
+DOMAIN_SENDER_MAP = {
+    "amazon.fr": ["confirmation-commande@", *BASE_AMAZON_PREFIXES],
+    "amazon.de": ["versandbestaetigung@", *BASE_AMAZON_PREFIXES],
+    "amazon.it": ["conferma-spedizione@", *BASE_AMAZON_PREFIXES],
+    "amazon.es": ["confirmar-envio@", *BASE_AMAZON_PREFIXES],
+    "amazon.nl": [
+        "update-bestelling@",
+        "verzending-volgen@",
+        "auto-bevestiging@",
+        *BASE_AMAZON_PREFIXES,
+    ],
+    "amazon.com.be": [
+        "update-bestelling@",
+        "verzending-volgen@",
+        "auto-bevestiging@",
+        "confirmation-commande@",
+        *BASE_AMAZON_PREFIXES,
+    ],
+}
+
+
 def _split_amazon_domains(domain: str | None) -> list[str]:
     """Split a possibly comma-separated amazon_domain into domain list."""
     if domain is None:
@@ -250,14 +278,11 @@ def _split_amazon_domains(domain: str | None) -> list[str]:
     return domains or ["amazon.com"]
 
 
-def _amazon_address_prefixes() -> list[str]:
-    """Build Amazon local-part prefixes used for IMAP FROM searches.
+def _amazon_address_prefixes(domain: str | None = None) -> list[str]:
+    """Build Amazon local-part prefixes used for IMAP FROM searches."""
+    if domain and domain in DOMAIN_SENDER_MAP:
+        return DOMAIN_SENDER_MAP[domain]
 
-    Do NOT language-filter address prefixes: amazon.de OFD mails come from
-    shipment-tracking@amazon.de (English local-part), while shipped mails use
-    versandbestaetigung@amazon.de. Filtering prefixes via DOMAIN_LANG_MAP drops
-    shipment-tracking@ for amazon.de and misses "In Zustellung" emails.
-    """
     prefixes = list(AMAZON_EMAIL)
     for local_part in AMAZON_SHIPMENT_TRACKING:
         prefix = f"{local_part}@"
@@ -277,14 +302,17 @@ def amazon_email_addresses(
         fwds = None
 
     domains = _split_amazon_domains(domain)
-    base_prefixes = _amazon_address_prefixes()
-    value = [f"{prefix}{dom}" for dom in domains for prefix in base_prefixes]
+    value = []
+    for dom in domains:
+        base_prefixes = _amazon_address_prefixes(dom)
+        value.extend(f"{prefix}{dom}" for prefix in base_prefixes)
 
     if fwds:
         for fwd in fwds:
             if "@" in fwd:
                 value.append(fwd)
             elif any(amazon_domain in fwd for amazon_domain in AMAZON_DOMAINS):
+                base_prefixes = _amazon_address_prefixes(domain)
                 value.extend(f"{prefix}{fwd}" for prefix in base_prefixes)
     return list(dict.fromkeys(value))
 
