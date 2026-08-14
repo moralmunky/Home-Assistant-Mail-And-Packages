@@ -911,8 +911,7 @@ def test_clean_search_string_empty():
 
 @pytest.mark.asyncio
 async def test_email_search_batching():
-    """Test email_search batching logic for > 10 subjects."""
-    # Covers lines 163-176
+    """Test email_search batching logic for > 5 subjects."""
     mock_acc = AsyncMock()
 
     # Mocking two batches: first with IDs 1 2, second with ID 3
@@ -926,8 +925,8 @@ async def test_email_search_batching():
 
     mock_acc.search.side_effect = [res1, res2]
 
-    # 11 subjects will trigger 2 batches (10 + 1)
-    subjects = [f"Sub{i}" for i in range(11)]
+    # 6 subjects will trigger 2 batches (5 + 1)
+    subjects = [f"Sub{i}" for i in range(6)]
     result = await email_search(
         mock_acc, ["test@example.com"], "25-Mar-2026", subject=subjects
     )
@@ -952,7 +951,7 @@ async def test_email_search_batching_partially_no_results():
 
     mock_acc.search.side_effect = [res1, res2]
 
-    subjects = [f"Sub{i}" for i in range(11)]
+    subjects = [f"Sub{i}" for i in range(6)]
     result = await email_search(
         mock_acc, ["test@example.com"], "25-Mar-2026", subject=subjects
     )
@@ -964,7 +963,6 @@ async def test_email_search_batching_partially_no_results():
 @pytest.mark.asyncio
 async def test_email_search_batching_error(caplog):
     """Test email_search batching with an error in one batch."""
-    # Covers lines 171-172
     mock_acc = AsyncMock()
     caplog.set_level("ERROR")
 
@@ -972,16 +970,39 @@ async def test_email_search_batching_error(caplog):
     res1.result = "OK"
     res1.lines = [b"1 2"]
 
-    mock_acc.search.side_effect = [res1, AioImapException("Batch failed")]
+    mock_acc.search.side_effect = [res1, OSError("Batch failure")]
 
-    subjects = [f"Sub{i}" for i in range(11)]
+    subjects = [f"Sub{i}" for i in range(6)]
     result = await email_search(
         mock_acc, ["test@example.com"], "25-Mar-2026", subject=subjects
     )
 
     assert result[0] == "OK"
     assert result[1] == [b"1 2"]
-    assert "Error searching emails batch: Batch failed" in caplog.text
+    assert "Error searching emails batch: Batch failure" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_email_search_address_batching():
+    """Test email_search batching logic for > 5 sender addresses."""
+    mock_acc = AsyncMock()
+
+    res1 = MagicMock()
+    res1.result = "OK"
+    res1.lines = [b"1 2"]
+
+    res2 = MagicMock()
+    res2.result = "OK"
+    res2.lines = [b"3"]
+
+    mock_acc.search.side_effect = [res1, res2]
+
+    addresses = [f"sender{i}@example.com" for i in range(6)]
+    result = await email_search(mock_acc, addresses, "25-Mar-2026", subject="Test")
+
+    assert result[0] == "OK"
+    assert result[1] == [b"1 2 3"]
+    assert mock_acc.search.call_count == 2
 
 
 def test_build_search_multi_addr_multi_subject_parentheses():
@@ -1555,8 +1576,8 @@ async def test_email_search_batch_and_exceptions():
         )
         assert res == ("BAD", "Search error")
 
-    # Case 2: Batching subjects (more than 10 subjects)
-    subjects = [f"Sub{i}" for i in range(12)]
+    # Case 2: Batching subjects (more than 5 subjects)
+    subjects = [f"Sub{i}" for i in range(6)]
     # Mock successful returns for both batches
     with patch(
         "custom_components.mail_and_packages.utils.imap._execute_single_search",
