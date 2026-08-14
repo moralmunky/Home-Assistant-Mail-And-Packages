@@ -492,16 +492,67 @@ def test_amazon_email_addresses_fr():
     ]
 
 
-def test_amazon_email_addresses_de():
-    """Test amazon_email_addresses for amazon.de includes German senders."""
-    addresses = amazon_email_addresses(domain="amazon.de")
+def test_amazon_email_addresses_it():
+    """Test amazon_email_addresses for amazon.it includes Italian senders."""
+    addresses = amazon_email_addresses(domain="amazon.it")
     assert addresses == [
-        "versandbestaetigung@amazon.de",
-        "order-update@amazon.de",
-        "shipment-tracking@amazon.de",
-        "auto-confirm@amazon.de",
-        "pickup-point@amazon.de",
+        "conferma-spedizione@amazon.it",
+        "order-update@amazon.it",
+        "shipment-tracking@amazon.it",
+        "auto-confirm@amazon.it",
+        "pickup-point@amazon.it",
     ]
+
+
+def test_amazon_email_addresses_es():
+    """Test amazon_email_addresses for amazon.es includes Spanish senders."""
+    addresses = amazon_email_addresses(domain="amazon.es")
+    assert addresses == [
+        "confirmar-envio@amazon.es",
+        "order-update@amazon.es",
+        "shipment-tracking@amazon.es",
+        "auto-confirm@amazon.es",
+        "pickup-point@amazon.es",
+    ]
+
+
+def test_amazon_email_addresses_nl():
+    """Test amazon_email_addresses for amazon.nl includes Dutch senders."""
+    addresses = amazon_email_addresses(domain="amazon.nl")
+    assert addresses == [
+        "update-bestelling@amazon.nl",
+        "verzending-volgen@amazon.nl",
+        "auto-bevestiging@amazon.nl",
+        "order-update@amazon.nl",
+        "shipment-tracking@amazon.nl",
+        "auto-confirm@amazon.nl",
+        "pickup-point@amazon.nl",
+    ]
+
+
+def test_amazon_email_addresses_com_be():
+    """Test amazon_email_addresses for amazon.com.be includes Belgian senders."""
+    addresses = amazon_email_addresses(domain="amazon.com.be")
+    assert addresses == [
+        "update-bestelling@amazon.com.be",
+        "verzending-volgen@amazon.com.be",
+        "auto-bevestiging@amazon.com.be",
+        "confirmation-commande@amazon.com.be",
+        "order-update@amazon.com.be",
+        "shipment-tracking@amazon.com.be",
+        "auto-confirm@amazon.com.be",
+        "pickup-point@amazon.com.be",
+    ]
+
+
+def test_amazon_email_addresses_fwds():
+    """Test amazon_email_addresses with user forwarder addresses."""
+    addresses = amazon_email_addresses(
+        fwds=["custom-forwarder@example.com", "amazon.de"], domain="amazon.fr"
+    )
+    assert "custom-forwarder@example.com" in addresses
+    assert "versandbestaetigung@amazon.de" in addresses
+    assert "confirmation-commande@amazon.fr" in addresses
 
 
 def test_filter_amazon_strings_fr():

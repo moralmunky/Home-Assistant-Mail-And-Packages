@@ -311,8 +311,8 @@ def amazon_email_addresses(
             if "@" in fwd:
                 value.append(fwd)
             elif any(amazon_domain in fwd for amazon_domain in AMAZON_DOMAINS):
-                base_prefixes = _amazon_address_prefixes(domain)
-                value.extend(f"{prefix}{fwd}" for prefix in base_prefixes)
+                fwd_prefixes = _amazon_address_prefixes(fwd)
+                value.extend(f"{prefix}{fwd}" for prefix in fwd_prefixes)
     return list(dict.fromkeys(value))
 
 
