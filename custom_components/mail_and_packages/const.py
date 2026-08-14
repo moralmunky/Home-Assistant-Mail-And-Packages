@@ -163,7 +163,7 @@ AMAZON_DELIVERED_SUBJECT = [
     "Dostarczono:",
     "Geliefert:",
     "Livré",
-    "Livraison",
+    "Livrés",
     "Entregado:",
     "Bezorgd:",
     "Zugestellt:",
