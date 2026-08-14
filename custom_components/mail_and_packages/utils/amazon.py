@@ -66,12 +66,12 @@ DOMAIN_LANG_MAP = {
     ],
     "amazon.fr": [
         "Livré",
-        "Livraison : Votre",
-        "Arrivée :",
-        "Expédié:",
+        "Livrés",
+        "Livraison",
+        "Arrivée",
         "Expédié",
-        "En cours de livraison:",
-        "Commandé:",
+        "En cours de livraison",
+        "Commandé",
     ],
     "amazon.ca": ["confirmation-commande", "Livré", "Livraison : Votre", "Arrivée :"],
     "amazon.es": [

@@ -492,15 +492,27 @@ def test_amazon_email_addresses_fr():
 def test_filter_amazon_strings_fr():
     """Test filter_amazon_strings for amazon.fr retains French subject strings."""
     subjects = [
-        "Expédié:",
-        "En cours de livraison:",
+        "Expédié",
+        "En cours de livraison",
         "Livré",
-        "Commandé:",
+        "Livrés",
+        "Livraison",
+        "Commandé",
         "Shipped:",
     ]
     filtered = filter_amazon_strings(subjects, "amazon.fr")
-    assert "Expédié:" in filtered
-    assert "En cours de livraison:" in filtered
+    assert "Expédié" in filtered
+    assert "En cours de livraison" in filtered
     assert "Livré" in filtered
-    assert "Commandé:" in filtered
+    assert "Livrés" in filtered
+    assert "Livraison" in filtered
+    assert "Commandé" in filtered
     assert "Shipped:" not in filtered
+
+
+def test_amazon_date_regex_fr():
+    """Test amazon_date_regex for French date formats."""
+    assert amazon_date_regex("Arrivée : aujourd'hui") == "aujourd'hui"
+    assert amazon_date_regex("Arrivée : 14 août") == "14 août"
+    assert amazon_date_regex("Livraison : aujourd'hui") == "aujourd'hui"
+    assert amazon_date_regex("Livraison : 15 août") == "15 août"

@@ -780,6 +780,13 @@ def test_build_search_multi_subject():
     )
 
 
+def test_build_search_deduplicate_subjects():
+    """Test build_search deduplicates safe subjects after ASCII normalization."""
+    subjects = ["Commandé:", "Commandé :", "Commandé"]
+    utf8, search = build_search(["test@example.com"], "25-Mar-2026", subject=subjects)
+    assert search == 'FROM "test@example.com" SUBJECT "Commande" SINCE 25-Mar-2026'
+
+
 def test_build_search_single_addr_with_subject():
     """Test build_search with single address and subject."""
     utf8, search = build_search(["test@example.com"], "25-Mar-2026", subject="Test")
@@ -865,7 +872,7 @@ def test_build_search_with_body_and_non_ascii():
     utf8, search = build_search(
         ["test@example.com"], "25-Mar-2026", body="Tracking émojis 🎉"
     )
-    assert 'BODY "Tracking emojis "' in search
+    assert 'BODY "Tracking emojis"' in search
 
 
 def test_build_search_unicode_normalization():

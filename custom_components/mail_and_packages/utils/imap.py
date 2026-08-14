@@ -231,13 +231,13 @@ def clean_search_string(val: str) -> str:
 
     Normalizes Unicode characters to NFKD decomposed form, strips non-ASCII
     characters to ensure compatibility with US-ASCII only IMAP servers,
-    and removes any double quotes to prevent syntax corruption.
+    and removes any double quotes and colons to prevent syntax corruption.
     """
     if not val:
         return ""
     normalized = unicodedata.normalize("NFKD", val)
     cleaned = normalized.encode("ascii", "ignore").decode("ascii")
-    return cleaned.replace('"', "")
+    return cleaned.replace('"', "").replace(":", "").strip()
 
 
 def build_search(  # noqa: C901
@@ -299,7 +299,7 @@ def build_search(  # noqa: C901
     if subject:
         subjects = [subject] if isinstance(subject, str) else subject
         safe_subjects = [clean_search_string(s) for s in subjects]
-        safe_subjects = [s for s in safe_subjects if s]
+        safe_subjects = list(dict.fromkeys(s for s in safe_subjects if s))
 
         if len(safe_subjects) == 1:
             subject_part = f'SUBJECT "{safe_subjects[0]}"'
@@ -530,10 +530,15 @@ async def email_search(  # noqa: C901
         if len(bodies) > 2 or any(re.search(r"[()|\[\]?*+^$\\]", b) for b in bodies):
             body_search = ""
 
+    subject_search = subject
+    if isinstance(subject, list):
+        cleaned_subjects = [clean_search_string(s) for s in subject]
+        subject_search = list(dict.fromkeys(s for s in cleaned_subjects if s))
+
     if len(folders) <= 1:
-        if not isinstance(subject, list) or len(subject) <= 10:
+        if not isinstance(subject_search, list) or len(subject_search) <= 10:
             _unused, search = build_search(
-                address, date, subject, body_search, header, is_yahoo=is_yahoo
+                address, date, subject_search, body_search, header, is_yahoo=is_yahoo
             )
             try:
                 res = await account.search(search, charset=None)
@@ -548,8 +553,8 @@ async def email_search(  # noqa: C901
 
         # Batch subjects in groups of 10
         all_matched_ids = []
-        for i in range(0, len(subject), 10):
-            batch = subject[i : i + 10]
+        for i in range(0, len(subject_search), 10):
+            batch = subject_search[i : i + 10]
             _unused, search = build_search(
                 address, date, batch, body_search, header, is_yahoo=is_yahoo
             )
@@ -568,9 +573,9 @@ async def email_search(  # noqa: C901
         return ("OK", [b" ".join(unique_ids)])
 
     # Multi-folder search logic
-    if not isinstance(subject, list) or len(subject) <= 10:
+    if not isinstance(subject_search, list) or len(subject_search) <= 10:
         _unused, search = build_search(
-            address, date, subject, body_search, header, is_yahoo=is_yahoo
+            address, date, subject_search, body_search, header, is_yahoo=is_yahoo
         )
         try:
             uids = await _execute_single_search(account, search)
@@ -583,8 +588,8 @@ async def email_search(  # noqa: C901
 
     # Batch subjects in groups of 10
     all_matched_ids = []
-    for i in range(0, len(subject), 10):
-        batch = subject[i : i + 10]
+    for i in range(0, len(subject_search), 10):
+        batch = subject_search[i : i + 10]
         _unused, search = build_search(
             address, date, batch, body_search, header, is_yahoo=is_yahoo
         )
