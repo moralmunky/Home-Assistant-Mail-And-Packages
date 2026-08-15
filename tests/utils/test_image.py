@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from custom_components.mail_and_packages.const import GENERIC_DELIVERIES_GIF
 from custom_components.mail_and_packages.utils.image import (
     _check_ffmpeg,
     _generate_mp4,
@@ -790,6 +791,48 @@ async def test_get_image_name_from_directory_skips_generic():
         )
         # Should skip generic_deliveries.gif and return valid_image.gif
         assert result == "valid_image.gif"
+
+
+def test_cleanup_images_preserves_generic_deliveries_gif(tmp_path):
+    """Test cleanup_images leaves the generic delivery camera's GIF in place.
+
+    The generic delivery camera assembles generic_deliveries.gif into the shared
+    image directory and only rebuilds it when its source images change. A
+    shipper sweeping that directory (USPS does on every scan) must not delete
+    it, or the camera keeps pointing at a file that no longer exists and serves
+    the no-deliveries placeholder for the rest of the day.
+    """
+    generic_gif = tmp_path / GENERIC_DELIVERIES_GIF
+    generic_gif.write_bytes(b"GIF89a")
+    swept = [
+        tmp_path / "mail.gif",
+        tmp_path / "informed_delivery.jpg",
+        tmp_path / "overlay.png",
+        tmp_path / "clip.mp4",
+    ]
+    for path in swept:
+        path.write_bytes(b"x")
+
+    cleanup_images(f"{tmp_path}/")
+
+    assert generic_gif.is_file()
+    assert generic_gif.read_bytes() == b"GIF89a"
+    for path in swept:
+        assert not path.exists()
+
+
+def test_cleanup_images_removes_generic_gif_when_named(tmp_path):
+    """Test the single-file form still deletes the GIF when asked by name.
+
+    The skip belongs to the directory-wide sweep only; an explicit request to
+    remove that file must still be honoured.
+    """
+    generic_gif = tmp_path / GENERIC_DELIVERIES_GIF
+    generic_gif.write_bytes(b"GIF89a")
+
+    cleanup_images(f"{tmp_path}/", GENERIC_DELIVERIES_GIF)
+
+    assert not generic_gif.exists()
 
 
 def test_generate_grid_img_ffmpeg_error(caplog):

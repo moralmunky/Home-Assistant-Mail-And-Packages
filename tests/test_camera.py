@@ -17,6 +17,7 @@ from custom_components.mail_and_packages.const import (
     ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_PATH,
     DOMAIN,
+    GENERIC_DELIVERIES_GIF,
 )
 from tests.conftest import resolve_entity_id
 from tests.const import FAKE_CONFIG_DATA_CUSTOM_IMG
@@ -2365,6 +2366,68 @@ async def test_generic_camera_skip_conditions(hass, caplog):
         "Generic camera - filtered out amazon (no current deliveries, count=0)"
         in caplog.text
     )
+
+
+async def test_generic_camera_rebuilds_gif_when_missing(hass, caplog):
+    """Test the generic camera rebuilds its GIF if the file was removed.
+
+    The delivery images can stay identical all day (the same filename is reused
+    while a package is still reported as delivered), so the unchanged-images
+    short circuit would otherwise never rebuild. If something else removed the
+    GIF from the shared image directory in the meantime, the camera would keep
+    pointing at a deleted file and serve the no-deliveries placeholder.
+    """
+    config = MockConfigEntry(
+        domain=DOMAIN,
+        data={"resources": ["amazon_delivered"], "amazon_custom_img": False},
+    )
+    coordinator = MagicMock()
+    coordinator.last_update_success = True
+    coordinator.data = {
+        ATTR_IMAGE_PATH: "custom_components/mail_and_packages/images/",
+        ATTR_AMAZON_IMAGE: "package_arrived.jpg",
+        "amazon_delivered": 1,
+    }
+
+    camera = MailCam(hass, "generic_camera", config, coordinator)
+
+    gif_exists = True
+
+    def _exists(self) -> bool:
+        """Report the delivery image as present, the GIF per gif_exists."""
+        if GENERIC_DELIVERIES_GIF in str(self):
+            return gif_exists
+        return True
+
+    with (
+        patch("pathlib.Path.exists", _exists),
+        patch(
+            "custom_components.mail_and_packages.camera.resize_images",
+            return_value=[],
+        ),
+        patch(
+            "custom_components.mail_and_packages.camera.generate_delivery_gif",
+            return_value=True,
+        ) as mock_gif,
+        patch.object(camera, "check_file_path_access"),
+        patch.object(camera, "schedule_update_ha_state"),
+    ):
+        await camera.update_file_path()
+        assert mock_gif.call_count == 1
+        assert camera._file_path.endswith(GENERIC_DELIVERIES_GIF)
+
+        # Same delivery images and the GIF still on disk: skip the rebuild.
+        await camera.update_file_path()
+        assert mock_gif.call_count == 1
+        assert "delivery images unchanged, skipping GIF regeneration" in caplog.text
+
+        # Same delivery images but the GIF was swept away: rebuild it.
+        gif_exists = False
+        caplog.clear()
+        await camera.update_file_path()
+        assert mock_gif.call_count == 2
+        assert "delivery images unchanged, skipping GIF regeneration" not in caplog.text
+        assert camera._file_path.endswith(GENERIC_DELIVERIES_GIF)
 
 
 async def test_camera_fallback_to_recent_file(

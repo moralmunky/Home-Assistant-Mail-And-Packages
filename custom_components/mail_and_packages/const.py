@@ -19,6 +19,9 @@ PLATFORMS = ["binary_sensor", "camera", "sensor"]
 DATA = "data"
 COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
+# The generic delivery camera assembles its animated GIF into the shared image
+# directory, so shipper code that sweeps that directory has to leave it alone.
+GENERIC_DELIVERIES_GIF = "generic_deliveries.gif"
 SERVICE_UPDATE_FILE_PATH = "update_file_path"
 CAMERA = "cameras"
 CONFIG_VER = 20
