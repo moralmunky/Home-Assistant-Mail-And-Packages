@@ -31,6 +31,7 @@ from custom_components.mail_and_packages.const import (
     DEFAULT_FEDEX_CUSTOM_IMG_FILE,
     DEFAULT_UPS_CUSTOM_IMG_FILE,
     DEFAULT_WALMART_CUSTOM_IMG_FILE,
+    GENERIC_DELIVERIES_GIF,
     OVERLAY,
 )
 
@@ -116,6 +117,11 @@ def _cleanup_directory(path: str) -> None:
             files_before,
         )
         for file in files_before:
+            # The generic delivery camera owns this file and only rebuilds it
+            # when its source images change, so a shipper's directory-wide
+            # sweep of the shared image directory must not delete it.
+            if file == GENERIC_DELIVERIES_GIF:
+                continue
             if file.endswith((".gif", ".mp4", ".jpg", ".png")):
                 full_path = Path(path) / file
                 _delete_file(full_path, "cleanup_images")
@@ -419,7 +425,7 @@ def _get_image_name_from_directory(
             if not file_path.is_file():
                 continue
             filename = file_path.name
-            if filename == "generic_deliveries.gif":
+            if filename == GENERIC_DELIVERIES_GIF:
                 continue
             is_image_file = filename.endswith(".gif") or (
                 filename.endswith(".jpg") and ext == ".jpg"

@@ -27,6 +27,7 @@ from .const import (
     CONF_POST_DE_CUSTOM_IMG,
     CONF_POST_DE_CUSTOM_IMG_FILE,
     DOMAIN,
+    GENERIC_DELIVERIES_GIF,
     SENSOR_NAME,
     VERSION,
 )
@@ -333,7 +334,12 @@ class MailCam(CoordinatorEntity, Camera):
         if (
             self._last_delivery_images is not None
             and delivery_images == self._last_delivery_images
+            and await anyio.Path(self._file_path).exists()
         ):
+            # Only skip the rebuild while the GIF we last built is still on
+            # disk. Another shipper's cleanup can remove it from the shared
+            # image directory, and without this check the camera would keep
+            # pointing at a deleted file and serve the placeholder instead.
             _LOGGER.debug(
                 "Generic camera - delivery images unchanged, skipping GIF regeneration"
             )
@@ -352,7 +358,7 @@ class MailCam(CoordinatorEntity, Camera):
 
         image_path = self.coordinator.data.get(ATTR_IMAGE_PATH, "")
         full_storage_path = Path(self.hass.config.path(image_path))
-        gif_path = str(full_storage_path / "generic_deliveries.gif")
+        gif_path = str(full_storage_path / GENERIC_DELIVERIES_GIF)
 
         resized_images = await self.hass.async_add_executor_job(
             resize_images, delivery_images, 800, 600
