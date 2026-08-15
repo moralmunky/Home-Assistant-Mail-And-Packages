@@ -991,6 +991,7 @@ SENSOR_DATA = {
         "email": ["homedepot@order.homedepot.com", "order.homedepot.com"],
         "subject": [
             "Shipped:",
+            "order shipped!",
             "on its way",
         ],
     },
