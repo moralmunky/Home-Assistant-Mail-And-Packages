@@ -582,3 +582,7 @@ def test_amazon_date_regex_fr():
     assert amazon_date_regex("Arrivée : 14 août") == "14 août"
     assert amazon_date_regex("Livraison : aujourd'hui") == "aujourd'hui"
     assert amazon_date_regex("Livraison : 15 août") == "15 août"
+    assert amazon_date_regex("Livraison prévue demain") == "demain"
+    assert amazon_date_regex("Livraison prévue : 17 août") == "17 août"
+    assert amazon_date_regex("Arrivée prévue demain") == "demain"
+    assert amazon_date_regex("Arrivée prévue aujourd'hui") == "aujourd'hui"
