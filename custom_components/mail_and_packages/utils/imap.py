@@ -27,7 +27,7 @@ from custom_components.mail_and_packages.const import DEFAULT_IMAP_TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)
 
-IMAP_SUBJECT_BATCH_SIZE = 5
+IMAP_SUBJECT_BATCH_SIZE = 1
 IMAP_ADDRESS_BATCH_SIZE = 5
 
 # Register ESEARCH command if not already present in aioimaplib
@@ -579,6 +579,7 @@ async def email_search(  # noqa: C901
 
         # Batch subjects and addresses in small groups to prevent query complexity timeouts (e.g. on Outlook O365)
         all_matched_ids: list[str] = []
+        batch_success = False
         for addr_batch in address_batches:
             for subj_batch in subject_batches:
                 _unused, search = build_search(
@@ -591,13 +592,18 @@ async def email_search(  # noqa: C901
                 )
                 try:
                     res = await account.search(search, charset=None)
-                    if res.result == "OK" and res.lines:
-                        parsed = parse_search_response(res.lines)
-                        all_matched_ids.extend(parsed)
+                    if res.result == "OK":
+                        batch_success = True
+                        if res.lines:
+                            parsed = parse_search_response(res.lines)
+                            all_matched_ids.extend(parsed)
                 except TimeoutError:
                     raise
                 except (AioImapException, OSError) as err:
                     _LOGGER.error("Error searching emails batch: %s", err)
+
+        if not batch_success and not all_matched_ids:
+            return ("BAD", "All search batches failed")
 
         # Deduplicate and return in same format as individual search
         unique_ids = list(dict.fromkeys(all_matched_ids))
@@ -619,6 +625,7 @@ async def email_search(  # noqa: C901
 
     # Batch subjects and addresses in small groups to prevent query complexity timeouts (e.g. on Outlook O365)
     all_matched_ids = []
+    batch_success = False
     for addr_batch in address_batches:
         for subj_batch in subject_batches:
             _unused, search = build_search(
@@ -631,11 +638,15 @@ async def email_search(  # noqa: C901
             )
             try:
                 uids = await _execute_single_search(account, search)
+                batch_success = True
                 all_matched_ids.extend(uids)
             except TimeoutError:
                 raise
             except (AioImapException, OSError) as err:
                 _LOGGER.error("Error searching emails batch: %s", err)
+
+    if not batch_success and not all_matched_ids:
+        return ("BAD", "All search batches failed")
 
     # Deduplicate and return in same format as individual search
     unique_ids = list(dict.fromkeys(all_matched_ids))
