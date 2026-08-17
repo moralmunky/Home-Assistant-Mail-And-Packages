@@ -983,6 +983,20 @@ async def test_email_search_batching_error(caplog):
 
 
 @pytest.mark.asyncio
+async def test_email_search_batching_all_error():
+    """Test email_search batching when all batches fail."""
+    mock_acc = AsyncMock()
+    mock_acc.search.side_effect = OSError("Batch failure")
+
+    subjects = [f"Sub{i}" for i in range(2)]
+    result = await email_search(
+        mock_acc, ["test@example.com"], "25-Mar-2026", subject=subjects
+    )
+
+    assert result == ("BAD", "All search batches failed")
+
+
+@pytest.mark.asyncio
 async def test_email_search_address_batching():
     """Test email_search batching logic for > 5 sender addresses."""
     mock_acc = AsyncMock()
@@ -1601,6 +1615,16 @@ async def test_email_search_batch_and_exceptions():
         assert res[0] == "OK"
         # The failed batch is ignored, returns only first batch result
         assert res[1] == [b"INBOX/1001"]
+
+    # Case 4: All multi-folder search batches fail
+    with patch(
+        "custom_components.mail_and_packages.utils.imap._execute_single_search",
+        side_effect=OSError("All batches failed"),
+    ):
+        res = await email_search(
+            mock_account, ["test@example.com"], "25-Mar-2026", subject=subjects
+        )
+        assert res == ("BAD", "All search batches failed")
 
 
 @pytest.mark.asyncio
