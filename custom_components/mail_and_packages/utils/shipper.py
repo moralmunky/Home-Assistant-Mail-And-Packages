@@ -29,7 +29,7 @@ def get_decoded_subject(header_val: str | bytes | email.message.Message | None) 
         try:
             msg = email.message_from_bytes(header_val)
             header_val = msg.get("subject", "")
-        except Exception:
+        except (TypeError, UnicodeError):
             header_val = str(header_val, "utf-8", errors="ignore")
 
     header_str = str(header_val)
@@ -45,7 +45,7 @@ def get_decoded_subject(header_val: str | bytes | email.message.Message | None) 
             else:
                 text_parts.append(str(part))
         return "".join(text_parts).strip()
-    except Exception:
+    except (LookupError, UnicodeError, TypeError):
         return header_str.strip()
 
 

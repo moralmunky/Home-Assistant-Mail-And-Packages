@@ -509,7 +509,7 @@ class GenericShipper(Shipper):
                 else:
                     text_parts.append(str(part))
             return "".join(text_parts).strip()
-        except Exception:
+        except (LookupError, UnicodeError, TypeError):
             return str(header_val).strip()
 
     async def _verify_matched_subjects(
