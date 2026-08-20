@@ -4,6 +4,7 @@ import asyncio
 import binascii
 import logging
 import re
+import ssl as ssl_lib
 import unicodedata
 from urllib.parse import quote, unquote
 
@@ -21,7 +22,6 @@ from aioimaplib import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.util import ssl
 
 from custom_components.mail_and_packages.const import DEFAULT_IMAP_TIMEOUT
 
@@ -143,6 +143,21 @@ def decode_folder_ref(folder: str) -> str:
     return unquote(folder)
 
 
+def _build_ssl_context(verify: bool) -> ssl_lib.SSLContext:
+    """Build a new SSLContext for a single IMAP connection.
+
+    The context must not be shared between connections. aioimaplib holds it for
+    the lifetime of the transport, and a context that has already served a
+    closed connection never completes the next handshake, so the server
+    greeting never arrives and the caller waits forever.
+    """
+    context = ssl_lib.create_default_context()
+    if not verify:
+        context.check_hostname = False
+        context.verify_mode = ssl_lib.CERT_NONE
+    return context
+
+
 class InvalidAuth(HomeAssistantError):
     """Raise exception for invalid credentials."""
 
@@ -164,11 +179,7 @@ async def login(
     If oauth_token is provided, uses XOAUTH2 SASL mechanism.
     Otherwise falls back to standard LOGIN command.
     """
-    ssl_context = (
-        ssl.client_context(ssl.SSLCipherList.PYTHON_DEFAULT)
-        if verify
-        else ssl.create_no_verify_ssl_context()
-    )
+    ssl_context = await hass.async_add_executor_job(_build_ssl_context, verify)
     if security == "SSL":
         account = IMAP4_SSL(
             host=host, port=port, ssl_context=ssl_context, timeout=timeout
@@ -176,7 +187,7 @@ async def login(
     else:
         account = IMAP4(host=host, port=port, timeout=timeout)
 
-    await account.wait_hello_from_server()
+    await asyncio.wait_for(account.wait_hello_from_server(), timeout=min(timeout, 15.0))
 
     if account.protocol.state == NONAUTH:
         try:
@@ -810,5 +821,9 @@ async def logout(account: IMAP4_SSL | IMAP4) -> None:
     """Logout from IMAP server asynchronously."""
     try:
         await account.logout()
-    except (TimeoutError, AioImapException, OSError, asyncio.CancelledError) as err:
+    except asyncio.CancelledError:
+        # Runs from a finally during timeout teardown; suppressing cancellation
+        # here leaves the coordinator wedged until Home Assistant restarts.
+        raise
+    except (TimeoutError, AioImapException, OSError) as err:
         _LOGGER.debug("Error logging out of IMAP Server: %s", err)
