@@ -752,14 +752,17 @@ async def test_logout_timeout(caplog):
 
 
 @pytest.mark.asyncio
-async def test_logout_cancelled(caplog):
-    """Test logout cancellation handling."""
+async def test_logout_cancelled():
+    """Cancellation must propagate out of logout.
+
+    logout() runs from a finally while the scan is being cancelled by its
+    timeout, so swallowing CancelledError here leaves the coordinator wedged.
+    """
     mock_acc = AsyncMock()
     mock_acc.logout.side_effect = asyncio.CancelledError()
-    caplog.set_level("DEBUG")
 
-    await logout(mock_acc)
-    assert "Error logging out of IMAP Server" in caplog.text
+    with pytest.raises(asyncio.CancelledError):
+        await logout(mock_acc)
 
 
 @pytest.mark.asyncio
