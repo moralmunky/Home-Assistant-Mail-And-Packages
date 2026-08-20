@@ -334,10 +334,7 @@ SENSOR_DATA = {
         "email": ["auto-reply@usps.com", "auto-reply@tracking.usps.com"],
         "subject": ["Delivery Exception"],
     },
-    "usps_packages": {
-        "email": ["auto-reply@usps.com", "auto-reply@tracking.usps.com"],
-        "subject": ["Expected Delivery by"],
-    },
+    "usps_packages": {},
     "usps_pickup": {
         "email": ["auto-reply@usps.com"],
         "subject": ["USPS - Your Package Pickup Request"],
