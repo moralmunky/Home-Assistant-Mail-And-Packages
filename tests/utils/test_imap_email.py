@@ -1,6 +1,7 @@
 """Tests for IMAP and email utilities."""
 
 import asyncio
+import ssl
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -188,10 +189,17 @@ async def test_email_fetch_me_com():
     mock_imap.fetch.assert_called_with("1", "BODY[]")
 
 
+def _mock_hass() -> MagicMock:
+    """Return a hass mock whose executor jobs can be awaited."""
+    hass = MagicMock()
+    hass.async_add_executor_job = AsyncMock(side_effect=lambda func, *args: func(*args))
+    return hass
+
+
 @pytest.mark.asyncio
 async def test_login_success():
     """Test login success path."""
-    mock_hass = MagicMock()
+    mock_hass = _mock_hass()
     with patch(
         "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
     ) as mock_imap_ssl:
@@ -213,7 +221,7 @@ async def test_login_success():
 @pytest.mark.asyncio
 async def test_login_oauth_success():
     """Test login with OAuth2 success path."""
-    mock_hass = MagicMock()
+    mock_hass = _mock_hass()
     with patch(
         "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
     ) as mock_imap_ssl:
@@ -242,25 +250,45 @@ async def test_login_oauth_success():
 @pytest.mark.asyncio
 async def test_login_no_verify():
     """Test login without SSL verification."""
-    mock_hass = MagicMock()
-    with (
-        patch(
-            "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
-        ) as mock_imap_ssl,
-        patch("homeassistant.util.ssl.create_no_verify_ssl_context") as mock_ssl_ctx,
-    ):
+    mock_hass = _mock_hass()
+    with patch(
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+    ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = AUTH
         mock_imap_ssl.return_value = mock_acc
 
         await login(mock_hass, "host", 993, "user", "pass", "SSL", verify=False)
-        assert mock_ssl_ctx.called
+
+        context = mock_imap_ssl.call_args.kwargs["ssl_context"]
+        assert context.verify_mode == ssl.CERT_NONE
+        assert context.check_hostname is False
+
+
+@pytest.mark.asyncio
+async def test_login_builds_new_ssl_context_each_call():
+    """A context must not be reused: a shared one stalls the next handshake."""
+    mock_hass = _mock_hass()
+    with patch(
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+    ) as mock_imap_ssl:
+        mock_acc = AsyncMock()
+        mock_acc.protocol.state = AUTH
+        mock_imap_ssl.return_value = mock_acc
+
+        await login(mock_hass, "host", 993, "user", "pass", "SSL")
+        await login(mock_hass, "host", 993, "user", "pass", "SSL")
+
+    first, second = (
+        call.kwargs["ssl_context"] for call in mock_imap_ssl.call_args_list
+    )
+    assert first is not second
 
 
 @pytest.mark.asyncio
 async def test_login_non_ssl():
     """Test login with STARTTLS/Plain (non-SSL class)."""
-    mock_hass = MagicMock()
+    mock_hass = _mock_hass()
     with patch("custom_components.mail_and_packages.utils.imap.IMAP4") as mock_imap:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = AUTH
@@ -274,7 +302,7 @@ async def test_login_non_ssl():
 @pytest.mark.asyncio
 async def test_login_failure_no_auth(caplog):
     """Test login failure when state doesn't change to AUTH."""
-    mock_hass = MagicMock()
+    mock_hass = _mock_hass()
     caplog.set_level("ERROR")
     with patch(
         "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
@@ -291,7 +319,7 @@ async def test_login_failure_no_auth(caplog):
 @pytest.mark.asyncio
 async def test_login_protocol_auth_state():
     """Test login when protocol state is already AUTH."""
-    mock_hass = MagicMock()
+    mock_hass = _mock_hass()
     with patch(
         "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
     ) as mock_imap_ssl:
@@ -307,7 +335,7 @@ async def test_login_protocol_auth_state():
 @pytest.mark.asyncio
 async def test_login_protocol_state_error():
     """Test login when protocol state is unexpected."""
-    mock_hass = MagicMock()
+    mock_hass = _mock_hass()
     with patch(
         "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
     ) as mock_imap_ssl:
@@ -522,7 +550,7 @@ async def test_email_search_error_branch(caplog):
 @pytest.mark.asyncio
 async def test_login_exception(caplog):
     """Test login with exception (Line 51)."""
-    mock_hass = MagicMock()
+    mock_hass = _mock_hass()
     caplog.set_level("ERROR")
     with patch(
         "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
@@ -540,7 +568,7 @@ async def test_login_exception(caplog):
 @pytest.mark.asyncio
 async def test_login_state_fail(caplog):
     """Test login when state doesn't change (Line 55)."""
-    mock_hass = MagicMock()
+    mock_hass = _mock_hass()
     caplog.set_level("ERROR")
     with patch(
         "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
@@ -1749,7 +1777,7 @@ def test_parse_search_response():
 @pytest.mark.asyncio
 async def test_login_timeout_error():
     """Test login propagates TimeoutError."""
-    mock_hass = MagicMock()
+    mock_hass = _mock_hass()
     with patch(
         "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
     ) as mock_imap_ssl:
@@ -1978,7 +2006,7 @@ async def test_email_search_body_threshold():
 @pytest.mark.asyncio
 async def test_login_oauth_failed(caplog):
     """Test login with OAuth2 failure path."""
-    mock_hass = MagicMock()
+    mock_hass = _mock_hass()
     with patch(
         "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
     ) as mock_imap_ssl:
@@ -2037,7 +2065,7 @@ async def test_email_search_yahoo_detection():
 @pytest.mark.asyncio
 async def test_login_oauth_timeout(caplog):
     """Test login with OAuth2 timeout path."""
-    mock_hass = MagicMock()
+    mock_hass = _mock_hass()
     with patch(
         "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
     ) as mock_imap_ssl:

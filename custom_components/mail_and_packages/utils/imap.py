@@ -187,9 +187,7 @@ async def login(
     else:
         account = IMAP4(host=host, port=port, timeout=timeout)
 
-    await asyncio.wait_for(
-        account.wait_hello_from_server(), timeout=min(timeout, 15.0)
-    )
+    await asyncio.wait_for(account.wait_hello_from_server(), timeout=min(timeout, 15.0))
 
     if account.protocol.state == NONAUTH:
         try:
