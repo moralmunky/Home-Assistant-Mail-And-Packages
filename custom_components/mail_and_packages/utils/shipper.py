@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import email
+import email.header
 import logging
 import re
 from pathlib import Path
@@ -16,6 +17,36 @@ from custom_components.mail_and_packages.utils.cache import EmailCache
 from .imap import email_fetch
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def get_decoded_subject(header_val: str | bytes | email.message.Message | None) -> str:
+    """Decode RFC2047 MIME encoded email subject."""
+    if header_val is None:
+        return ""
+    if hasattr(header_val, "get"):
+        header_val = header_val.get("subject", "")
+    if isinstance(header_val, (bytes, bytearray)):
+        try:
+            msg = email.message_from_bytes(header_val)
+            header_val = msg.get("subject", "")
+        except (TypeError, UnicodeError):
+            header_val = str(header_val, "utf-8", errors="ignore")
+
+    header_str = str(header_val)
+    if not header_str:
+        return ""
+
+    try:
+        decoded_parts = email.header.decode_header(header_str)
+        text_parts = []
+        for part, encoding in decoded_parts:
+            if isinstance(part, bytes):
+                text_parts.append(part.decode(encoding or "utf-8", errors="ignore"))
+            else:
+                text_parts.append(str(part))
+        return "".join(text_parts).strip()
+    except (LookupError, UnicodeError, TypeError):
+        return header_str.strip()
 
 
 async def get_tracking(
@@ -68,9 +99,8 @@ def _find_tracking_in_subject(
     pattern: re.Pattern,
 ) -> str | None:
     """Find tracking number in email subject."""
-    email_subject = msg["subject"]
+    email_subject = get_decoded_subject(msg.get("subject"))
     if email_subject:
-        email_subject = str(email_subject)
         if (found := pattern.findall(email_subject)) and len(found) > 0:
             _LOGGER.debug("Found tracking number in email subject: %s", found[0])
             return found[0]

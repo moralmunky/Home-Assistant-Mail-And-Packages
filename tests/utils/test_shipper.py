@@ -36,6 +36,28 @@ async def test_get_tracking_subject():
 
 
 @pytest.mark.asyncio
+async def test_get_tracking_subject_mime_encoded():
+    """Test get_tracking finds tracking number in multi-line RFC2047 MIME encoded subject."""
+    mock_acc = AsyncMock()
+    sdata = "1"
+    the_format = r"(93[0-9]{20})"
+
+    raw_email = (
+        b"Subject: =?UTF-8?q?USPS=C2=AE_Item_Delivered,_Front_Door/Porch_9305520845500011006?=\r\n"
+        b" =?UTF-8?q?969?=\r\n\r\n"
+        b"Body"
+    )
+
+    with patch(
+        "custom_components.mail_and_packages.utils.shipper.email_fetch",
+        new_callable=AsyncMock,
+    ) as mock_fetch:
+        mock_fetch.return_value = ("OK", [raw_email])
+        result = await get_tracking(sdata, mock_acc, the_format)
+        assert result == ["9305520845500011006969"]
+
+
+@pytest.mark.asyncio
 async def test_get_tracking_body_ups():
     """Test get_tracking finds UPS number in body (simplified logic)."""
     mock_acc = AsyncMock()
