@@ -719,3 +719,23 @@ async def test_post_de_copy_nomail_image_relative_path(hass):
 
         await shipper._copy_nomail_image("test_dir", "test.gif", relative_path)
         mock_copy.assert_called_once_with(expected_resolved_path, "test_dir/test.gif")
+
+
+@pytest.mark.asyncio
+async def test_process_post_de_email_non_bytes(hass):
+    """Test _process_post_de_email ignores non-bytes parts."""
+    shipper = PostDEShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_account.fetch.return_value = MagicMock(
+        result="OK", lines=[None, "not-bytes", 123]
+    )
+
+    image_count, images = await shipper._process_post_de_email(
+        account=mock_account,
+        num="1",
+        image_output_path="/test",
+        image_count=0,
+        images=[],
+    )
+    assert image_count == 0
+    assert images == []

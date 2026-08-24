@@ -669,32 +669,56 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
         return transit
 
-    async def _binary_sensor_update(self):  # noqa: C901
+    async def _check_camera_update(self, base_name: str) -> None:
+        """Check image hash changes for a specific delivery camera."""
+        image_attr_name = f"ATTR_{base_name.upper()}_IMAGE"
+        image_attr = getattr(const, image_attr_name, None)
+        if not image_attr:
+            return
+
+        image = self._data.get(image_attr)
+        _LOGGER.debug("%s image from data: %s", base_name.title(), image)
+        if not image:
+            return
+
+        image_path = default_image_path(self.hass, self.config).rstrip("/") + "/"
+        path = f"{image_path}{base_name}/"
+        delivery_image = self.hass.config.path(f"{path}{image}")
+        _LOGGER.debug("Full %s image path: %s", base_name.title(), delivery_image)
+
+        custom_img_key = getattr(const, f"CONF_{base_name.upper()}_CUSTOM_IMG", None)
+        custom_img_file_key = getattr(
+            const, f"CONF_{base_name.upper()}_CUSTOM_IMG_FILE", None
+        )
+        if custom_img_key and self.config.get(custom_img_key):
+            none_image = self.config.get(custom_img_file_key)
+        elif base_name == "post_de":
+            none_image = f"{Path(__file__).parent}/mail_none.gif"
+        else:
+            none_image = f"{Path(__file__).parent}/no_deliveries_{base_name}.jpg"
+
+        if await anyio.Path(delivery_image).exists():
+            image_hash = await self._get_file_hash_if_changed(delivery_image)
+            none_hash = await self._get_file_hash_if_changed(none_image)
+            _LOGGER.debug("%s Image hash: %s", base_name.title(), image_hash)
+            _LOGGER.debug("%s None hash: %s", base_name.title(), none_hash)
+            self._data[f"{base_name}_update"] = image_hash != none_hash
+
+    async def _binary_sensor_update(self):
         """Update binary sensor states."""
-        # USPS uses ATTR_USPS_IMAGE instead of the old ATTR_IMAGE_NAME
         _LOGGER.debug("Data: %s", self._data)
         image = self._data.get(ATTR_USPS_IMAGE)
         if image:
             path = default_image_path(self.hass, self.config)
             usps_image = f"{path}/{image}"
             usps_none = f"{Path(__file__).parent}/mail_none.gif"
-            usps_check = await anyio.Path(usps_image).exists()
-            _LOGGER.debug("USPS Check: %s", usps_check)
-            if usps_check:
-                # Optimized: Use _get_file_hash_if_changed
+            if await anyio.Path(usps_image).exists():
                 image_hash = await self._get_file_hash_if_changed(usps_image)
                 none_hash = await self._get_file_hash_if_changed(usps_none)
-
                 _LOGGER.debug("USPS Image hash: %s", image_hash)
                 _LOGGER.debug("USPS None hash: %s", none_hash)
+                self._data["usps_update"] = image_hash != none_hash
 
-                if image_hash != none_hash:
-                    self._data["usps_update"] = True
-                else:
-                    self._data["usps_update"] = False
-
-        # Handle generic delivery cameras (Amazon, UPS, Walmart, FedEx, Generic) with unified logic
-        # Derive camera list dynamically from CAMERA_DATA, excluding usps_camera and generic_camera
         delivery_cameras = [
             camera_type.replace("_camera", "")
             for camera_type in const.CAMERA_DATA
@@ -702,61 +726,4 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         ]
 
         for base_name in delivery_cameras:
-            # Derive attribute and config keys dynamically
-            image_attr_name = f"ATTR_{base_name.upper()}_IMAGE"
-            image_attr = getattr(const, image_attr_name, None)
-            if not image_attr:
-                continue
-
-            custom_img_key = getattr(
-                const,
-                f"CONF_{base_name.upper()}_CUSTOM_IMG",
-                None,
-            )
-            custom_img_file_key = getattr(
-                const,
-                f"CONF_{base_name.upper()}_CUSTOM_IMG_FILE",
-                None,
-            )
-            update_key = f"{base_name}_update"
-
-            image = self._data.get(image_attr)
-            _LOGGER.debug("%s image from data: %s", base_name.title(), image)
-            if image:
-                # Normalize path to avoid double slashes
-                image_path = (
-                    default_image_path(self.hass, self.config).rstrip("/") + "/"
-                )
-                path = f"{image_path}{base_name}/"
-                # Use absolute path for file existence check
-                delivery_image_relative = f"{path}{image}"
-                delivery_image = self.hass.config.path(delivery_image_relative)
-                _LOGGER.debug(
-                    "Full %s image path: %s",
-                    base_name.title(),
-                    delivery_image,
-                )
-
-                if custom_img_key and self.config.get(custom_img_key):
-                    none_image = self.config.get(custom_img_file_key)
-                elif base_name == "post_de":
-                    none_image = f"{Path(__file__).parent}/mail_none.gif"
-                else:
-                    none_image = (
-                        f"{Path(__file__).parent}/no_deliveries_{base_name}.jpg"
-                    )
-
-                image_check = await anyio.Path(delivery_image).exists()
-                _LOGGER.debug("%s Check: %s", base_name.title(), image_check)
-                if image_check:
-                    # Optimized: Use _get_file_hash_if_changed
-                    image_hash = await self._get_file_hash_if_changed(delivery_image)
-                    none_hash = await self._get_file_hash_if_changed(none_image)
-
-                    _LOGGER.debug("%s Image hash: %s", base_name.title(), image_hash)
-                    _LOGGER.debug("%s None hash: %s", base_name.title(), none_hash)
-
-                    if image_hash != none_hash:
-                        self._data[update_key] = True
-                    else:
-                        self._data[update_key] = False
+            await self._check_camera_update(base_name)
