@@ -4,6 +4,7 @@ import asyncio
 import binascii
 import logging
 import re
+import ssl as ssl_lib
 import unicodedata
 from urllib.parse import quote, unquote
 
@@ -21,7 +22,6 @@ from aioimaplib import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.util import ssl
 
 from custom_components.mail_and_packages.const import DEFAULT_IMAP_TIMEOUT
 
@@ -143,6 +143,21 @@ def decode_folder_ref(folder: str) -> str:
     return unquote(folder)
 
 
+def _build_ssl_context(verify: bool) -> ssl_lib.SSLContext:
+    """Build a new SSLContext for a single IMAP connection.
+
+    The context must not be shared between connections. aioimaplib holds it for
+    the lifetime of the transport, and a context that has already served a
+    closed connection never completes the next handshake, so the server
+    greeting never arrives and the caller waits forever.
+    """
+    context = ssl_lib.create_default_context()
+    if not verify:
+        context.check_hostname = False
+        context.verify_mode = ssl_lib.CERT_NONE
+    return context
+
+
 class InvalidAuth(HomeAssistantError):
     """Raise exception for invalid credentials."""
 
@@ -164,11 +179,7 @@ async def login(
     If oauth_token is provided, uses XOAUTH2 SASL mechanism.
     Otherwise falls back to standard LOGIN command.
     """
-    ssl_context = (
-        ssl.client_context(ssl.SSLCipherList.PYTHON_DEFAULT)
-        if verify
-        else ssl.create_no_verify_ssl_context()
-    )
+    ssl_context = await hass.async_add_executor_job(_build_ssl_context, verify)
     if security == "SSL":
         account = IMAP4_SSL(
             host=host, port=port, ssl_context=ssl_context, timeout=timeout
@@ -176,7 +187,7 @@ async def login(
     else:
         account = IMAP4(host=host, port=port, timeout=timeout)
 
-    await account.wait_hello_from_server()
+    await asyncio.wait_for(account.wait_hello_from_server(), timeout=min(timeout, 15.0))
 
     if account.protocol.state == NONAUTH:
         try:
@@ -520,7 +531,7 @@ async def _execute_single_search(account: IMAP4_SSL, search_query: str) -> list[
     return await _execute_sequential_search(account, folders, search_query)
 
 
-async def _search_all_batches(
+async def _search_all_batches_concurrent(
     account: IMAP4_SSL,
     address_batches: list[list[str]],
     subject_batches: list[list[str] | str],
@@ -528,37 +539,88 @@ async def _search_all_batches(
     body_search: str | list[str],
     header: str,
     is_yahoo: bool,
-    use_multi_folder: bool,
 ) -> tuple:
-    """Execute batch searches over address/subject batches."""
+    """Execute single-folder batch searches concurrently using asyncio.gather."""
+    batch_queries = [
+        build_search(
+            addr_batch,
+            date,
+            subj_batch,
+            body_search,
+            header,
+            is_yahoo=is_yahoo,
+        )[1]
+        for addr_batch in address_batches
+        for subj_batch in subject_batches
+    ]
+
+    async def _run_search(query: str):
+        try:
+            res = await account.search(query, charset=None)
+            if res.result == "OK" and res.lines:
+                return parse_search_response(res.lines)
+        except TimeoutError:
+            raise
+        except (AioImapException, OSError) as err:
+            _LOGGER.error("Error searching emails batch: %s", err)
+        return None
+
+    results = await asyncio.gather(
+        *[_run_search(q) for q in batch_queries], return_exceptions=True
+    )
+
     all_matched_ids: list[bytes] = []
     batch_success = False
-    for addr_batch in address_batches:
-        for subj_batch in subject_batches:
-            _unused, search = build_search(
-                addr_batch,
-                date,
-                subj_batch,
-                body_search,
-                header,
-                is_yahoo=is_yahoo,
-            )
-            try:
-                if use_multi_folder:
-                    uids = await _execute_single_search(account, search)
-                    batch_success = True
-                    all_matched_ids.extend(uids)
-                else:
-                    res = await account.search(search, charset=None)
-                    if res.result == "OK":
-                        batch_success = True
-                        if res.lines:
-                            parsed = parse_search_response(res.lines)
-                            all_matched_ids.extend(parsed)
-            except TimeoutError:
-                raise
-            except (AioImapException, OSError) as err:
-                _LOGGER.error("Error searching emails batch: %s", err)
+    for r in results:
+        if isinstance(r, TimeoutError):
+            raise r
+        if isinstance(r, Exception):
+            _LOGGER.error("Error searching emails batch: %r", r)
+        elif r is not None:
+            batch_success = True
+            all_matched_ids.extend(r)
+
+    if not batch_success and not all_matched_ids:
+        return ("BAD", "All search batches failed")
+
+    unique_ids = list(dict.fromkeys(all_matched_ids))
+    return ("OK", [b" ".join(unique_ids)])
+
+
+async def _search_all_batches_sequential(
+    account: IMAP4_SSL,
+    address_batches: list[list[str]],
+    subject_batches: list[list[str] | str],
+    date: str,
+    body_search: str | list[str],
+    header: str,
+    is_yahoo: bool,
+) -> tuple:
+    """Execute multi-folder batch searches sequentially to avoid folder selection race conditions."""
+    batch_queries = [
+        build_search(
+            addr_batch,
+            date,
+            subj_batch,
+            body_search,
+            header,
+            is_yahoo=is_yahoo,
+        )[1]
+        for addr_batch in address_batches
+        for subj_batch in subject_batches
+    ]
+
+    all_matched_ids: list[bytes] = []
+    batch_success = False
+    for query in batch_queries:
+        try:
+            uids = await _execute_single_search(account, query)
+            batch_success = True
+            all_matched_ids.extend(uids)
+        except TimeoutError:
+            raise
+        except (AioImapException, OSError) as err:
+            _LOGGER.error("Error searching emails batch: %s", err)
 
     if not batch_success and not all_matched_ids:
         return ("BAD", "All search batches failed")
@@ -594,7 +656,7 @@ async def _email_search_single_folder(
         parsed = parse_search_response(res.lines)
         return (res.result, [b" ".join(parsed)])
 
-    return await _search_all_batches(
+    return await _search_all_batches_concurrent(
         account,
         address_batches,
         subject_batches,
@@ -602,7 +664,6 @@ async def _email_search_single_folder(
         body_search,
         header,
         is_yahoo,
-        use_multi_folder=False,
     )
 
 
@@ -632,7 +693,7 @@ async def _email_search_multi_folder(
             return ("BAD", str(err))
         return ("OK", [b" ".join(uids)])
 
-    return await _search_all_batches(
+    return await _search_all_batches_sequential(
         account,
         address_batches,
         subject_batches,
@@ -640,7 +701,6 @@ async def _email_search_multi_folder(
         body_search,
         header,
         is_yahoo,
-        use_multi_folder=True,
     )
 
 
@@ -899,5 +959,9 @@ async def logout(account: IMAP4_SSL | IMAP4) -> None:
     """Logout from IMAP server asynchronously."""
     try:
         await account.logout()
-    except (TimeoutError, AioImapException, OSError, asyncio.CancelledError) as err:
+    except asyncio.CancelledError:
+        # Runs from a finally during timeout teardown; suppressing cancellation
+        # here leaves the coordinator wedged until Home Assistant restarts.
+        raise
+    except (TimeoutError, AioImapException, OSError) as err:
         _LOGGER.debug("Error logging out of IMAP Server: %s", err)
