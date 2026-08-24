@@ -10,7 +10,13 @@ import pytest
 from aioimaplib import AioImapException
 from anyio import Path
 from homeassistant import config_entries, setup
-from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_PASSWORD,
+    CONF_PORT,
+    CONF_RESOURCES,
+    CONF_USERNAME,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType, InvalidData
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -8471,3 +8477,94 @@ async def test_options_flow_legacy_entry_missing_verify_ssl(hass: HomeAssistant)
             True,  # verify_ssl default fallback
             None,
         )
+
+
+@pytest.mark.asyncio
+async def test_options_flow_amazon_fwds_list_default(hass: HomeAssistant):
+    """Test options flow amazon step with amazon_fwds stored as a list (Issue #1388)."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="mail@example.com",
+        data={
+            CONF_HOST: "imap.example.com",
+            CONF_PORT: 993,
+            CONF_USERNAME: "mail@example.com",
+            CONF_PASSWORD: "secret_password",
+            "imap_security": "SSL",
+            "verify_ssl": True,
+        },
+        options={
+            CONF_RESOURCES: ["amazon_packages"],
+            CONF_AMAZON_FWDS: ["forward1@example.com", "forward2@example.com"],
+            CONF_AMAZON_DOMAIN: "amazon.com",
+            CONF_AMAZON_DAYS: 3,
+        },
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._get_mailboxes",
+        return_value=["INBOX"],
+    ):
+        result = await hass.config_entries.options.async_init(entry.entry_id)
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "init"
+
+        # Submit init step with amazon_packages selected to proceed to options_amazon
+        result2 = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                "folder": ["INBOX"],
+                "resources": ["amazon_packages"],
+                "scan_interval": 30,
+                "gif_duration": 5,
+                "imap_timeout": 60,
+                "allow_external": False,
+                "usps_placeholder": False,
+                "custom_img": False,
+                "allow_forwarded_emails": False,
+            },
+        )
+        assert result2["type"] == FlowResultType.FORM
+        assert result2["step_id"] == "options_amazon"
+        # Verify amazon_fwds field default was formatted as a string rather than raw list
+        schema = result2["data_schema"].schema
+        amazon_fwds_key = next(k for k in schema if k == CONF_AMAZON_FWDS)
+        assert amazon_fwds_key.default() == "forward1@example.com, forward2@example.com"
+
+
+@pytest.mark.asyncio
+async def test_reconfigure_flow_missing_verify_ssl_defaults_to_true(
+    hass: HomeAssistant,
+):
+    """Test reconfigure flow defaults verify_ssl to True when missing from entry (Issue #1388)."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="mail@example.com",
+        data={
+            CONF_HOST: "imap.example.com",
+            CONF_PORT: 993,
+            CONF_USERNAME: "mail@example.com",
+            CONF_PASSWORD: "secret_password",
+            "imap_security": "SSL",
+            # verify_ssl missing
+        },
+        options={},
+    )
+    entry.add_to_hass(hass)
+
+    result = await entry.start_reconfigure_flow(hass)
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "reconfigure"
+
+    # Proceed to reconfig_imap
+    result2 = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_AUTH_TYPE: "password"},
+    )
+    assert result2["type"] == FlowResultType.FORM
+    assert result2["step_id"] == "reconfig_imap"
+
+    schema = result2["data_schema"].schema
+    verify_ssl_key = next(k for k in schema if k == "verify_ssl")
+    assert verify_ssl_key.default() is True
