@@ -1626,6 +1626,42 @@ async def test_email_search_batch_and_exceptions():
         )
         assert res == ("BAD", "All search batches failed")
 
+    # Case 5: Multi-folder search batch encounters AioImapException
+    with patch(
+        "custom_components.mail_and_packages.utils.imap._execute_single_search",
+        side_effect=AioImapException("AioImap error"),
+    ):
+        res = await email_search(
+            mock_account, ["test@example.com"], "25-Mar-2026", subject=subjects
+        )
+        assert res == ("BAD", "All search batches failed")
+
+
+@pytest.mark.asyncio
+async def test_email_search_multifolders_batched_real_execution():
+    """Test multi-folder batched email_search without mocking _execute_single_search."""
+    mock_account = AsyncMock()
+    mock_account._folders = ["INBOX", "Archive"]
+    mock_account._current_folder = "INBOX"
+    mock_account.list.return_value = MagicMock()
+    mock_account.select.return_value = MagicMock()
+    mock_account.has_capability = MagicMock(return_value=False)
+
+    # Return different UIDs across folders for sequential search
+    mock_account.uid_search.side_effect = [
+        MagicMock(result="OK", lines=[b"101"]),  # Batch 1, INBOX
+        MagicMock(result="OK", lines=[b"201"]),  # Batch 1, Archive
+        MagicMock(result="OK", lines=[b"102"]),  # Batch 2, INBOX
+        MagicMock(result="OK", lines=[]),  # Batch 2, Archive
+    ]
+
+    subjects = ["Sub1", "Sub2"]
+    res = await email_search(
+        mock_account, ["test@example.com"], "25-Mar-2026", subject=subjects
+    )
+    assert res[0] == "OK"
+    assert res[1] == [b"INBOX/101 Archive/201 INBOX/102"]
+
 
 @pytest.mark.asyncio
 async def test_email_fetch_failures():
@@ -1816,6 +1852,24 @@ async def test_email_search_batch_timeout_error():
         await email_search(
             mock_imap, ["test@example.com"], "25-Mar-2026", subject=subjects
         )
+
+
+@pytest.mark.asyncio
+async def test_email_search_single_folder_batch_exception():
+    """Test email_search single-folder batched subjects logs unexpected Exception and continues."""
+    mock_imap = AsyncMock()
+    mock_imap._folders = ["INBOX"]
+    # Return one normal result and one RuntimeError
+    mock_imap.search.side_effect = [
+        MagicMock(result="OK", lines=[b"101"]),
+        RuntimeError("Unexpected batch error"),
+    ]
+    subjects = [f"Subj {i}" for i in range(11)]
+    res = await email_search(
+        mock_imap, ["test@example.com"], "25-Mar-2026", subject=subjects
+    )
+    assert res[0] == "OK"
+    assert res[1] == [b"101"]
 
 
 @pytest.mark.asyncio

@@ -612,7 +612,7 @@ async def email_search(  # noqa: C901
             if isinstance(r, TimeoutError):
                 raise r
             if isinstance(r, Exception):
-                _LOGGER.error("Error searching emails batch: %s", r)
+                _LOGGER.error("Error searching emails batch: %r", r)
             elif r is not None:
                 batch_success = True
                 all_matched_ids.extend(r)
@@ -638,7 +638,8 @@ async def email_search(  # noqa: C901
             return ("BAD", str(err))
         return ("OK", [b" ".join(uids)])
 
-    # Batch subjects and addresses in small groups to prevent query complexity timeouts (e.g. on Outlook O365)
+    # Batch subjects and addresses sequentially across multi-folder searches
+    # to avoid race conditions when switching mailbox folders on a single connection.
     batch_queries = [
         build_search(
             addr_batch,
@@ -652,29 +653,17 @@ async def email_search(  # noqa: C901
         for subj_batch in subject_batches
     ]
 
-    async def _run_multi_search(query: str):
+    all_matched_ids = []
+    batch_success = False
+    for query in batch_queries:
         try:
-            return await _execute_single_search(account, query)
+            uids = await _execute_single_search(account, query)
+            batch_success = True
+            all_matched_ids.extend(uids)
         except TimeoutError:
             raise
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error searching emails batch: %s", err)
-        return None
-
-    results = await asyncio.gather(
-        *[_run_multi_search(q) for q in batch_queries], return_exceptions=True
-    )
-
-    all_matched_ids = []
-    batch_success = False
-    for r in results:
-        if isinstance(r, TimeoutError):
-            raise r
-        if isinstance(r, Exception):
-            _LOGGER.error("Error searching emails batch: %s", r)
-        elif r is not None:
-            batch_success = True
-            all_matched_ids.extend(r)
 
     if not batch_success and not all_matched_ids:
         return ("BAD", "All search batches failed")
