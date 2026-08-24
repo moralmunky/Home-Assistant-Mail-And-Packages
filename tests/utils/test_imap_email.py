@@ -14,8 +14,10 @@ from custom_components.mail_and_packages.utils.email import (
 )
 from custom_components.mail_and_packages.utils.imap import (
     InvalidAuth,
+    _build_body_clause,
     _execute_single_search,
     _parse_esearch_line,
+    _supports_multisearch,
     build_search,
     clean_search_string,
     decode_folder_ref,
@@ -2057,3 +2059,15 @@ async def test_login_oauth_timeout(caplog):
                 oauth_token="token",
             )
         assert "OAuth authentication timed out for user" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_build_body_clause_empty_and_multisearch_no_capability():
+    """Test _build_body_clause with empty/whitespace-only bodies and _supports_multisearch without capability method."""
+    # Empty list or list of whitespace/quotes only
+    assert _build_body_clause(["", '""']) == ""
+    assert _build_body_clause([]) == ""
+
+    # Account without has_capability attribute
+    plain_mock = MagicMock(spec=[])
+    assert _supports_multisearch(plain_mock) is False

@@ -221,3 +221,17 @@ async def test_email_cache_fetch_variations(hass):
     cache._cache_text["test"] = ("OK", [])
     cache.clear()
     assert len(cache._cache_text) == 0
+
+
+@pytest.mark.asyncio
+async def test_persistent_cache_corrupted_structure(hass):
+    """Test _get_persistent_cache returns None for corrupted data format."""
+    cache = EmailCache(hass=hass)
+    cache._persistent_store = {
+        "bad_len": {"data": ["OK"]},
+        "not_list": {"data": "invalid"},
+        "no_data": {},
+    }
+    assert cache._get_persistent_cache("bad_len") is None
+    assert cache._get_persistent_cache("not_list") is None
+    assert cache._get_persistent_cache("no_data") is None
