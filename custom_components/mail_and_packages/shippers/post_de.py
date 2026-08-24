@@ -275,7 +275,66 @@ class PostDEShipper(Shipper):
         await self.hass.async_add_executor_job(cleanup_images, path + "/")
         return True
 
-    async def _process_post_de_email(  # noqa: C901
+    def _check_and_save_image(
+        self,
+        img_bytes: bytes,
+        out_path: str,
+        content_type: str,
+    ) -> str | None:
+        """Validate and save scanned image if dimensions match envelope scans."""
+        try:
+            img = Image.open(io.BytesIO(img_bytes))
+            if img.format is None:
+                _LOGGER.debug("Post DE image format is unidentified (None)")
+                return None
+
+            if content_type == "image/png" and img.format != "PNG":
+                _LOGGER.debug(
+                    "Post DE image format mismatch: expected PNG, got %s",
+                    img.format,
+                )
+                return None
+            if content_type == "image/jpeg" and img.format != "JPEG":
+                _LOGGER.debug(
+                    "Post DE image format mismatch: expected JPEG, got %s",
+                    img.format,
+                )
+                return None
+
+            width, height = img.size
+            if width > 150 and height > 100:
+                ext = ".png" if content_type == "image/png" else ".jpg"
+                filename = random_filename(ext=ext)
+                target = Path(out_path) / filename
+                with target.open("wb") as f:
+                    f.write(img_bytes)
+                return str(target)
+        except UnidentifiedImageError as err:
+            _LOGGER.warning("Unidentified image found in Post DE email: %s", err)
+        except (OSError, ValueError, TypeError) as err:
+            _LOGGER.debug("Error checking/saving Post DE image: %s", err)
+        return None
+
+    async def _extract_post_de_scan(
+        self,
+        part: email.message.Message,
+        image_output_path: str,
+    ) -> str | None:
+        """Extract and save single image part if valid."""
+        if part.get_content_type() not in ("image/png", "image/jpeg"):
+            return None
+        payload = part.get_payload(decode=True)
+        if not payload:
+            return None
+
+        return await self.hass.async_add_executor_job(
+            self._check_and_save_image,
+            payload,
+            image_output_path,
+            part.get_content_type(),
+        )
+
+    async def _process_post_de_email(
         self,
         account: IMAP4_SSL,
         num: str,
@@ -295,78 +354,14 @@ class PostDEShipper(Shipper):
             msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
         _LOGGER.debug("Processing Post DE email number: %s", num)
         for response_part in msg_parts:
-            if isinstance(response_part, (bytes, bytearray)):
-                msg = email.message_from_bytes(response_part)
-                for part in msg.walk():
-                    if part.get_content_type() in ("image/png", "image/jpeg"):
-                        payload = part.get_payload(decode=True)
-                        if not payload:
-                            continue
-
-                        # Check image dimensions to skip logos/icons
-                        def _check_and_save(
-                            img_bytes: bytes,
-                            out_path: str,
-                            content_type: str,
-                        ) -> str | None:
-                            try:
-                                img = Image.open(io.BytesIO(img_bytes))
-                                if img.format is None:
-                                    _LOGGER.debug(
-                                        "Post DE image format is unidentified (None)"
-                                    )
-                                    return None
-
-                                # Validate format against expected content type
-                                if content_type == "image/png" and img.format != "PNG":
-                                    _LOGGER.debug(
-                                        "Post DE image format mismatch: expected PNG, got %s",
-                                        img.format,
-                                    )
-                                    return None
-                                if (
-                                    content_type == "image/jpeg"
-                                    and img.format != "JPEG"
-                                ):
-                                    _LOGGER.debug(
-                                        "Post DE image format mismatch: expected JPEG, got %s",
-                                        img.format,
-                                    )
-                                    return None
-
-                                width, height = img.size
-                                if width > 150 and height > 100:
-                                    ext = (
-                                        ".png"
-                                        if content_type == "image/png"
-                                        else ".jpg"
-                                    )
-                                    filename = random_filename(ext=ext)
-                                    target = Path(out_path) / filename
-                                    with target.open("wb") as f:
-                                        f.write(img_bytes)
-                                    return str(target)
-                            except UnidentifiedImageError as err:
-                                _LOGGER.warning(
-                                    "Unidentified image found in Post DE email: %s", err
-                                )
-                            except (OSError, ValueError, TypeError) as err:
-                                _LOGGER.debug(
-                                    "Error checking/saving Post DE image: %s", err
-                                )
-                            return None
-
-                        saved_path = await self.hass.async_add_executor_job(
-                            _check_and_save,
-                            payload,
-                            image_output_path,
-                            part.get_content_type(),
-                        )
-                        if saved_path:
-                            images.append(saved_path)
-                            image_count += 1
-                            _LOGGER.debug(
-                                "Extracted Post DE mail image: %s", saved_path
-                            )
+            if not isinstance(response_part, (bytes, bytearray)):
+                continue
+            msg = email.message_from_bytes(response_part)
+            for part in msg.walk():
+                saved_path = await self._extract_post_de_scan(part, image_output_path)
+                if saved_path:
+                    images.append(saved_path)
+                    image_count += 1
+                    _LOGGER.debug("Extracted Post DE mail image: %s", saved_path)
 
         return image_count, images

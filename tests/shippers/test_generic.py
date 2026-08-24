@@ -1079,14 +1079,14 @@ async def test_process_delivering_uses_since_date(hass):
 
 
 @pytest.mark.asyncio
-async def test_process_delivered_uses_since_date(hass):
+async def test_process_delivered_uses_since_date(hass, tmp_path):
     """_delivered sensors search twice: since_date for tracking dedup, date for count.
 
     The first call uses since_date so delivered tracking numbers can cancel out
     old in-transit emails. The second call uses today's date so the sensor count
     resets at midnight.
     """
-    shipper = GenericShipper(hass, {"image_path": "/tmp/test/"})  # noqa: S108
+    shipper = GenericShipper(hass, {"image_path": str(tmp_path)})
     mock_account = AsyncMock()
 
     with (
