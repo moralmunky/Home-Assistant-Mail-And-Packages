@@ -553,7 +553,7 @@ async def _get_schema_step_2(
         data[CONF_USERNAME],
         data.get(CONF_PASSWORD, ""),
         data[CONF_IMAP_SECURITY],
-        data[CONF_VERIFY_SSL],
+        data.get(CONF_VERIFY_SSL, True),
         oauth_token,
     )
 

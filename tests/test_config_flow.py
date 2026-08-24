@@ -10,7 +10,7 @@ import pytest
 from aioimaplib import AioImapException
 from anyio import Path
 from homeassistant import config_entries, setup
-from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType, InvalidData
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -8434,3 +8434,40 @@ async def test_valid_oauth_token_helper(hass):
         ),
     ):
         assert await flow._async_valid_oauth_token("oauth2_google") is None
+
+
+@pytest.mark.asyncio
+async def test_options_flow_legacy_entry_missing_verify_ssl(hass: HomeAssistant):
+    """Test options flow opening successfully when entry lacks verify_ssl (Issue #1388)."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="mail@example.com",
+        data={
+            CONF_HOST: "imap.example.com",
+            CONF_PORT: 993,
+            CONF_USERNAME: "mail@example.com",
+            CONF_PASSWORD: "secret_password",
+            "imap_security": "SSL",
+            # Note: verify_ssl is deliberately missing
+        },
+        options={},
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow._get_mailboxes",
+        return_value=["INBOX", "Junk"],
+    ) as mock_get_mailboxes:
+        result = await hass.config_entries.options.async_init(entry.entry_id)
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "init"
+        mock_get_mailboxes.assert_called_once_with(
+            hass,
+            "imap.example.com",
+            993,
+            "mail@example.com",
+            "secret_password",
+            "SSL",
+            True,  # verify_ssl default fallback
+            None,
+        )
