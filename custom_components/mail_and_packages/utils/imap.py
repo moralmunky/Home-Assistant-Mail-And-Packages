@@ -578,29 +578,44 @@ async def email_search(  # noqa: C901
                 return (res.result, [b" ".join(parsed)])
 
         # Batch subjects and addresses in small groups to prevent query complexity timeouts (e.g. on Outlook O365)
+        batch_queries = [
+            build_search(
+                addr_batch,
+                date,
+                subj_batch,
+                body_search,
+                header,
+                is_yahoo=is_yahoo,
+            )[1]
+            for addr_batch in address_batches
+            for subj_batch in subject_batches
+        ]
+
+        async def _run_search(query: str):
+            try:
+                res = await account.search(query, charset=None)
+                if res.result == "OK" and res.lines:
+                    return parse_search_response(res.lines)
+            except TimeoutError:
+                raise
+            except (AioImapException, OSError) as err:
+                _LOGGER.error("Error searching emails batch: %s", err)
+            return None
+
+        results = await asyncio.gather(
+            *[_run_search(q) for q in batch_queries], return_exceptions=True
+        )
+
         all_matched_ids: list[str] = []
         batch_success = False
-        for addr_batch in address_batches:
-            for subj_batch in subject_batches:
-                _unused, search = build_search(
-                    addr_batch,
-                    date,
-                    subj_batch,
-                    body_search,
-                    header,
-                    is_yahoo=is_yahoo,
-                )
-                try:
-                    res = await account.search(search, charset=None)
-                    if res.result == "OK":
-                        batch_success = True
-                        if res.lines:
-                            parsed = parse_search_response(res.lines)
-                            all_matched_ids.extend(parsed)
-                except TimeoutError:
-                    raise
-                except (AioImapException, OSError) as err:
-                    _LOGGER.error("Error searching emails batch: %s", err)
+        for r in results:
+            if isinstance(r, TimeoutError):
+                raise r
+            if isinstance(r, Exception):
+                _LOGGER.error("Error searching emails batch: %s", r)
+            elif r is not None:
+                batch_success = True
+                all_matched_ids.extend(r)
 
         if not batch_success and not all_matched_ids:
             return ("BAD", "All search batches failed")
@@ -624,26 +639,42 @@ async def email_search(  # noqa: C901
         return ("OK", [b" ".join(uids)])
 
     # Batch subjects and addresses in small groups to prevent query complexity timeouts (e.g. on Outlook O365)
+    batch_queries = [
+        build_search(
+            addr_batch,
+            date,
+            subj_batch,
+            body_search,
+            header,
+            is_yahoo=is_yahoo,
+        )[1]
+        for addr_batch in address_batches
+        for subj_batch in subject_batches
+    ]
+
+    async def _run_multi_search(query: str):
+        try:
+            return await _execute_single_search(account, query)
+        except TimeoutError:
+            raise
+        except (AioImapException, OSError) as err:
+            _LOGGER.error("Error searching emails batch: %s", err)
+        return None
+
+    results = await asyncio.gather(
+        *[_run_multi_search(q) for q in batch_queries], return_exceptions=True
+    )
+
     all_matched_ids = []
     batch_success = False
-    for addr_batch in address_batches:
-        for subj_batch in subject_batches:
-            _unused, search = build_search(
-                addr_batch,
-                date,
-                subj_batch,
-                body_search,
-                header,
-                is_yahoo=is_yahoo,
-            )
-            try:
-                uids = await _execute_single_search(account, search)
-                batch_success = True
-                all_matched_ids.extend(uids)
-            except TimeoutError:
-                raise
-            except (AioImapException, OSError) as err:
-                _LOGGER.error("Error searching emails batch: %s", err)
+    for r in results:
+        if isinstance(r, TimeoutError):
+            raise r
+        if isinstance(r, Exception):
+            _LOGGER.error("Error searching emails batch: %s", r)
+        elif r is not None:
+            batch_success = True
+            all_matched_ids.extend(r)
 
     if not batch_success and not all_matched_ids:
         return ("BAD", "All search batches failed")
