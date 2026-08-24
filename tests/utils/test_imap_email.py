@@ -17,6 +17,7 @@ from custom_components.mail_and_packages.utils.imap import (
     InvalidAuth,
     _build_body_clause,
     _execute_single_search,
+    _get_subject_batch_size,
     _parse_esearch_line,
     _supports_multisearch,
     build_search,
@@ -1889,15 +1890,15 @@ async def test_email_search_batch_timeout_error():
 
 @pytest.mark.asyncio
 async def test_email_search_single_folder_batch_exception():
-    """Test email_search single-folder batched subjects logs unexpected Exception and continues."""
+    """Test email_search single-folder batched subjects logs AioImapException/OSError and continues."""
     mock_imap = AsyncMock()
     mock_imap._folders = ["INBOX"]
-    # Return one normal result and one RuntimeError
+    # Return one normal result and one OSError
     mock_imap.search.side_effect = [
         MagicMock(result="OK", lines=[b"101"]),
-        RuntimeError("Unexpected batch error"),
+        OSError("Batch error"),
     ]
-    subjects = [f"Subj {i}" for i in range(11)]
+    subjects = [f"Subj {i}" for i in range(2)]
     res = await email_search(
         mock_imap, ["test@example.com"], "25-Mar-2026", subject=subjects
     )
@@ -2156,3 +2157,64 @@ async def test_build_body_clause_empty_and_multisearch_no_capability():
     # Account without has_capability attribute
     plain_mock = MagicMock(spec=[])
     assert _supports_multisearch(plain_mock) is False
+
+
+def test_get_subject_batch_size():
+    """Test _get_subject_batch_size for various IMAP server hosts and capabilities."""
+    # Outlook / Office365
+    mock_outlook = MagicMock()
+    mock_outlook.host = "outlook.office365.com"
+    assert _get_subject_batch_size(mock_outlook) == 1
+
+    # Yahoo / AOL
+    mock_yahoo = MagicMock()
+    mock_yahoo.host = "imap.mail.yahoo.com"
+    assert _get_subject_batch_size(mock_yahoo) == 1
+
+    # Gmail via host
+    mock_gmail = MagicMock()
+    mock_gmail.host = "imap.gmail.com"
+    assert _get_subject_batch_size(mock_gmail) == 10
+
+    # Gmail via capability X-GM-EXT-1
+    mock_custom_cap = MagicMock(spec=["has_capability"])
+    mock_custom_cap.has_capability = MagicMock(
+        side_effect=lambda cap: cap == "X-GM-EXT-1"
+    )
+    assert _get_subject_batch_size(mock_custom_cap) == 10
+
+    # Capability check exception
+    mock_err_cap = MagicMock(spec=["has_capability"])
+    mock_err_cap.has_capability = MagicMock(side_effect=Exception("Capability error"))
+    assert _get_subject_batch_size(mock_err_cap) == 1
+
+    # Generic server without special host or capabilities
+    mock_generic = MagicMock(spec=[])
+    assert _get_subject_batch_size(mock_generic) == 1
+
+
+@pytest.mark.asyncio
+async def test_email_search_gmail_extended_batching():
+    """Test email_search batches up to 10 subjects on Gmail."""
+    mock_gmail = AsyncMock()
+    mock_gmail.host = "imap.gmail.com"
+    mock_gmail._folders = ["INBOX"]
+
+    res = MagicMock()
+    res.result = "OK"
+    res.lines = [b"101 102"]
+    mock_gmail.search.return_value = res
+
+    # 10 subjects should fit in 1 single batch on Gmail
+    subjects = [f"Subj {i}" for i in range(10)]
+    result = await email_search(
+        mock_gmail, ["test@example.com"], "25-Mar-2026", subject=subjects
+    )
+    assert result[0] == "OK"
+    assert result[1] == [b"101 102"]
+    assert mock_gmail.search.call_count == 1
+    # Check that the query contains all 10 subjects OR'ed
+    query = mock_gmail.search.call_args.args[0]
+    assert 'SUBJECT "Subj 0"' in query
+    assert 'SUBJECT "Subj 9"' in query
+    assert query.count("SUBJECT") == 10
