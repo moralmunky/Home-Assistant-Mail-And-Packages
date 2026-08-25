@@ -27,8 +27,36 @@ from custom_components.mail_and_packages.const import DEFAULT_IMAP_TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)
 
-IMAP_SUBJECT_BATCH_SIZE = 1
+IMAP_SUBJECT_BATCH_SIZE_DEFAULT = 1
+IMAP_SUBJECT_BATCH_SIZE_EXTENDED = 10
 IMAP_ADDRESS_BATCH_SIZE = 5
+
+
+def _get_subject_batch_size(account: IMAP4_SSL) -> int:
+    """Return subject batch size based on server capability or host."""
+    # Servers with known limited or fragile compound OR query parsers (e.g. Outlook/Exchange, Yahoo/AOL)
+    if hasattr(account, "host") and isinstance(account.host, str):
+        host_lower = account.host.lower()
+        if any(h in host_lower for h in ("outlook", "office365", "yahoo", "aol")):
+            return IMAP_SUBJECT_BATCH_SIZE_DEFAULT
+        # Fast-track known capable servers like Gmail
+        if "gmail" in host_lower or "google" in host_lower:
+            return IMAP_SUBJECT_BATCH_SIZE_EXTENDED
+
+    # Capability check fallback (e.g. Gmail custom extension X-GM-EXT-1)
+    if hasattr(account, "has_capability") and callable(account.has_capability):
+        try:
+            res = account.has_capability("X-GM-EXT-1")
+            if asyncio.iscoroutine(res):
+                res.close()
+                return IMAP_SUBJECT_BATCH_SIZE_DEFAULT
+            if res:
+                return IMAP_SUBJECT_BATCH_SIZE_EXTENDED
+        except Exception:  # noqa: BLE001
+            pass
+
+    return IMAP_SUBJECT_BATCH_SIZE_DEFAULT
+
 
 # Register ESEARCH command if not already present in aioimaplib
 if "ESEARCH" not in aioimaplib.Commands:
@@ -531,62 +559,6 @@ async def _execute_single_search(account: IMAP4_SSL, search_query: str) -> list[
     return await _execute_sequential_search(account, folders, search_query)
 
 
-async def _search_all_batches_concurrent(
-    account: IMAP4_SSL,
-    address_batches: list[list[str]],
-    subject_batches: list[list[str] | str],
-    date: str,
-    body_search: str | list[str],
-    header: str,
-    is_yahoo: bool,
-) -> tuple:
-    """Execute single-folder batch searches concurrently using asyncio.gather."""
-    batch_queries = [
-        build_search(
-            addr_batch,
-            date,
-            subj_batch,
-            body_search,
-            header,
-            is_yahoo=is_yahoo,
-        )[1]
-        for addr_batch in address_batches
-        for subj_batch in subject_batches
-    ]
-
-    async def _run_search(query: str):
-        try:
-            res = await account.search(query, charset=None)
-            if res.result == "OK" and res.lines:
-                return parse_search_response(res.lines)
-        except TimeoutError:
-            raise
-        except (AioImapException, OSError) as err:
-            _LOGGER.error("Error searching emails batch: %s", err)
-        return None
-
-    results = await asyncio.gather(
-        *[_run_search(q) for q in batch_queries], return_exceptions=True
-    )
-
-    all_matched_ids: list[bytes] = []
-    batch_success = False
-    for r in results:
-        if isinstance(r, TimeoutError):
-            raise r
-        if isinstance(r, Exception):
-            _LOGGER.error("Error searching emails batch: %r", r)
-        elif r is not None:
-            batch_success = True
-            all_matched_ids.extend(r)
-
-    if not batch_success and not all_matched_ids:
-        return ("BAD", "All search batches failed")
-
-    unique_ids = list(dict.fromkeys(all_matched_ids))
-    return ("OK", [b" ".join(unique_ids)])
-
-
 async def _search_all_batches_sequential(
     account: IMAP4_SSL,
     address_batches: list[list[str]],
@@ -595,8 +567,9 @@ async def _search_all_batches_sequential(
     body_search: str | list[str],
     header: str,
     is_yahoo: bool,
+    use_multi_folder: bool = False,
 ) -> tuple:
-    """Execute multi-folder batch searches sequentially to avoid folder selection race conditions."""
+    """Execute batch searches sequentially to maintain a single in-flight command on the IMAP connection."""
     batch_queries = [
         build_search(
             addr_batch,
@@ -614,9 +587,17 @@ async def _search_all_batches_sequential(
     batch_success = False
     for query in batch_queries:
         try:
-            uids = await _execute_single_search(account, query)
-            batch_success = True
-            all_matched_ids.extend(uids)
+            if use_multi_folder:
+                uids = await _execute_single_search(account, query)
+                batch_success = True
+                all_matched_ids.extend(uids)
+            else:
+                res = await account.search(query, charset=None)
+                if res.result == "OK":
+                    batch_success = True
+                    if res.lines:
+                        parsed = parse_search_response(res.lines)
+                        all_matched_ids.extend(parsed)
         except TimeoutError:
             raise
         except (AioImapException, OSError) as err:
@@ -656,7 +637,7 @@ async def _email_search_single_folder(
         parsed = parse_search_response(res.lines)
         return (res.result, [b" ".join(parsed)])
 
-    return await _search_all_batches_concurrent(
+    return await _search_all_batches_sequential(
         account,
         address_batches,
         subject_batches,
@@ -664,6 +645,7 @@ async def _email_search_single_folder(
         body_search,
         header,
         is_yahoo,
+        use_multi_folder=False,
     )
 
 
@@ -701,6 +683,7 @@ async def _email_search_multi_folder(
         body_search,
         header,
         is_yahoo,
+        use_multi_folder=True,
     )
 
 
@@ -750,13 +733,13 @@ async def email_search(
         else [address]
     )
 
+    subject_batch_size = _get_subject_batch_size(account)
     subject_batches = (
         [
-            subject_search[i : i + IMAP_SUBJECT_BATCH_SIZE]
-            for i in range(0, len(subject_search), IMAP_SUBJECT_BATCH_SIZE)
+            subject_search[i : i + subject_batch_size]
+            for i in range(0, len(subject_search), subject_batch_size)
         ]
-        if isinstance(subject_search, list)
-        and len(subject_search) > IMAP_SUBJECT_BATCH_SIZE
+        if isinstance(subject_search, list) and len(subject_search) > subject_batch_size
         else [subject_search]
     )
 
