@@ -7,7 +7,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from custom_components.mail_and_packages.const import GENERIC_DELIVERIES_GIF
+from custom_components.mail_and_packages.const import (
+    CONF_STORAGE,
+    GENERIC_DELIVERIES_GIF,
+)
 from custom_components.mail_and_packages.utils.image import (
     _check_ffmpeg,
     _generate_mp4,
@@ -850,3 +853,16 @@ def test_generate_grid_img_ffmpeg_error(caplog):
         generate_grid_img("/path/", "test.gif", 5)
 
     assert "FFmpeg failed to generate grid image" in caplog.text
+
+
+def test_default_image_path_trailing_slash():
+    """Test default_image_path always ensures a trailing slash."""
+    hass = MagicMock()
+    config_entry = MagicMock()
+    config_entry.options = {CONF_STORAGE: "/custom/path/images"}
+    config_entry.data = {}
+
+    assert default_image_path(hass, config_entry) == "/custom/path/images/"
+
+    config_entry.options = {CONF_STORAGE: "/custom/path/images/"}
+    assert default_image_path(hass, config_entry) == "/custom/path/images/"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import datetime
 import email
 import logging
@@ -566,6 +567,9 @@ class AmazonShipper(Shipper):
         nomail = f"{Path(__file__).parent.parent}/no_deliveries_amazon.jpg"
         _LOGGER.debug("No Amazon images found in emails, using placeholder")
         try:
+            if not await anyio.Path(amazon_path).exists():
+                with contextlib.suppress(OSError):
+                    await anyio.Path(amazon_path).mkdir(parents=True, exist_ok=True)
             await self.hass.async_add_executor_job(
                 copyfile, nomail, str(amazon_path / image_name)
             )

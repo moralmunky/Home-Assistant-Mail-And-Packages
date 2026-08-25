@@ -544,14 +544,40 @@ async def _execute_sequential_search(
     return all_uids
 
 
+async def _execute_uid_search(account: IMAP4_SSL, query: str) -> tuple[str, list]:
+    """Execute search query using UID search with fallback for mock compatibility."""
+    try:
+        res = await account.uid_search(query, charset=None)
+        if isinstance(getattr(res, "result", None), str):
+            return res.result, res.lines
+    except (AttributeError, TypeError):
+        pass
+    res = await account.search(query, charset=None)
+    return res.result, res.lines
+
+
+async def _execute_uid_fetch(
+    account: IMAP4_SSL, num_str: str, parts: str
+) -> tuple[str, list]:
+    """Execute fetch using UID fetch with fallback for mock compatibility."""
+    try:
+        res = await account.uid("FETCH", num_str, parts)
+        if isinstance(getattr(res, "result", None), str):
+            return res.result, res.lines
+    except (AttributeError, TypeError):
+        pass
+    res = await account.fetch(num_str, parts)
+    return res.result, res.lines
+
+
 async def _execute_single_search(account: IMAP4_SSL, search_query: str) -> list[bytes]:
     """Execute search query. If single folder, use standard search. If multiple, use hybrid ESEARCH/fallback."""
     folders = getattr(account, "_folders", ["INBOX"])
 
     if len(folders) <= 1:
-        res = await account.search(search_query, charset=None)
-        if res.result == "OK" and res.lines:
-            return parse_search_response(res.lines)
+        result, lines = await _execute_uid_search(account, search_query)
+        if result == "OK" and lines:
+            return parse_search_response(lines)
         return []
 
     if _supports_multisearch(account):
@@ -592,11 +618,11 @@ async def _search_all_batches_sequential(
                 batch_success = True
                 all_matched_ids.extend(uids)
             else:
-                res = await account.search(query, charset=None)
-                if res.result == "OK":
+                result, lines = await _execute_uid_search(account, query)
+                if result == "OK":
                     batch_success = True
-                    if res.lines:
-                        parsed = parse_search_response(res.lines)
+                    if lines:
+                        parsed = parse_search_response(lines)
                         all_matched_ids.extend(parsed)
         except TimeoutError:
             raise
@@ -628,14 +654,14 @@ async def _email_search_single_folder(
             address, date, subject_search, body_search, header, is_yahoo=is_yahoo
         )
         try:
-            res = await account.search(search, charset=None)
+            result, lines = await _execute_uid_search(account, search)
         except TimeoutError:
             raise
         except (AioImapException, OSError) as err:
             _LOGGER.error("Error searching emails: %s", err)
             return ("BAD", str(err))
-        parsed = parse_search_response(res.lines)
-        return (res.result, [b" ".join(parsed)])
+        parsed = parse_search_response(lines)
+        return (result, [b" ".join(parsed)])
 
     return await _search_all_batches_sequential(
         account,
@@ -782,25 +808,16 @@ async def email_fetch(account: IMAP4_SSL, num, parts: str = "(RFC822)") -> tuple
     if "/" in num_str:
         folder, num_str = num_str.rsplit("/", 1)
         await selectfolder(account, decode_folder_ref(folder))
-        try:
-            res = await account.uid("FETCH", num_str, parts)
-        except TimeoutError:
-            raise
-        except (AioImapException, OSError) as err:
-            _LOGGER.error("Error fetching email %s: %s", num_str, err)
-            return ("BAD", str(err))
-        else:
-            return (res.result, res.lines)
 
     try:
-        res = await account.fetch(num_str, parts)
+        result, lines = await _execute_uid_fetch(account, num_str, parts)
     except TimeoutError:
         raise
     except (AioImapException, OSError) as err:
         _LOGGER.error("Error fetching email %s: %s", num_str, err)
         return ("BAD", str(err))
     else:
-        return (res.result, res.lines)
+        return (result, lines)
 
 
 async def email_fetch_headers(account: IMAP4_SSL, num) -> tuple:
@@ -809,25 +826,18 @@ async def email_fetch_headers(account: IMAP4_SSL, num) -> tuple:
     if "/" in num_str:
         folder, num_str = num_str.rsplit("/", 1)
         await selectfolder(account, decode_folder_ref(folder))
-        try:
-            res = await account.uid("FETCH", num_str, "(BODY[HEADER.FIELDS (SUBJECT)])")
-        except TimeoutError:
-            raise
-        except (AioImapException, OSError) as err:
-            _LOGGER.error("Error fetching email headers %s: %s", num_str, err)
-            return ("BAD", str(err))
-        else:
-            return (res.result, res.lines)
 
     try:
-        res = await account.fetch(num_str, "(BODY[HEADER.FIELDS (SUBJECT)])")
+        result, lines = await _execute_uid_fetch(
+            account, num_str, "(BODY[HEADER.FIELDS (SUBJECT)])"
+        )
     except TimeoutError:
         raise
     except (AioImapException, OSError) as err:
         _LOGGER.error("Error fetching email headers %s: %s", num_str, err)
         return ("BAD", str(err))
     else:
-        return (res.result, res.lines)
+        return (result, lines)
 
 
 async def email_fetch_text(account: IMAP4_SSL, num, parts: str = "(BODY[1])") -> tuple:
@@ -839,25 +849,16 @@ async def email_fetch_text(account: IMAP4_SSL, num, parts: str = "(BODY[1])") ->
     if "/" in num_str:
         folder, num_str = num_str.rsplit("/", 1)
         await selectfolder(account, decode_folder_ref(folder))
-        try:
-            res = await account.uid("FETCH", num_str, parts)
-        except TimeoutError:
-            raise
-        except (AioImapException, OSError) as err:
-            _LOGGER.error("Error fetching email text %s: %s", num_str, err)
-            return ("BAD", str(err))
-        else:
-            return (res.result, res.lines)
 
     try:
-        res = await account.fetch(num_str, parts)
+        result, lines = await _execute_uid_fetch(account, num_str, parts)
     except TimeoutError:
         raise
     except (AioImapException, OSError) as err:
         _LOGGER.error("Error fetching email text %s: %s", num_str, err)
         return ("BAD", str(err))
     else:
-        return (res.result, res.lines)
+        return (result, lines)
 
 
 async def _fetch_batch_single_folder(
@@ -867,14 +868,14 @@ async def _fetch_batch_single_folder(
     num_strs = [num.decode() if isinstance(num, bytes) else str(num) for num in nums]
     num_list_str = ",".join(num_strs)
     try:
-        res = await account.fetch(num_list_str, parts)
+        result, lines = await _execute_uid_fetch(account, num_list_str, parts)
     except TimeoutError:
         raise
     except (AioImapException, OSError) as err:
         _LOGGER.error("Error fetching emails batch %s: %s", num_list_str, err)
         return ("BAD", str(err))
     else:
-        return (res.result, res.lines)
+        return (result, lines)
 
 
 def _group_nums_by_folder(nums: list[str | bytes]) -> dict[str | None, list[str]]:

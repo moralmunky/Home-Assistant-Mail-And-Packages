@@ -17,6 +17,8 @@ from custom_components.mail_and_packages.utils.imap import (
     InvalidAuth,
     _build_body_clause,
     _execute_single_search,
+    _execute_uid_fetch,
+    _execute_uid_search,
     _get_subject_batch_size,
     _parse_esearch_line,
     _supports_multisearch,
@@ -158,7 +160,7 @@ async def test_email_fetch_success():
     mock_res.lines = [
         (b"1 (RFC822 {100}", b"From: test@example.com\nSubject: Test\n\nBody content"),
     ]
-    mock_imap.fetch.return_value = mock_res
+    mock_imap.uid.return_value = mock_res
 
     result = await email_fetch(mock_imap, "1")
     assert result[0] == "OK"
@@ -169,7 +171,7 @@ async def test_email_fetch_success():
 async def test_email_fetch_failure(caplog):
     """Test email_fetch failure path."""
     mock_imap = AsyncMock()
-    mock_imap.fetch.side_effect = OSError("Connection error")
+    mock_imap.uid.side_effect = OSError("Connection error")
     caplog.set_level("ERROR")
 
     result = await email_fetch(mock_imap, "1")
@@ -185,11 +187,11 @@ async def test_email_fetch_me_com():
     mock_res = MagicMock()
     mock_res.result = "OK"
     mock_res.lines = []
-    mock_imap.fetch.return_value = mock_res
+    mock_imap.uid.return_value = mock_res
 
     await email_fetch(mock_imap, "1")
     # Verify parts is BODY[]
-    mock_imap.fetch.assert_called_with("1", "BODY[]")
+    mock_imap.uid.assert_called_with("FETCH", "1", "BODY[]")
 
 
 def _mock_hass() -> MagicMock:
@@ -519,7 +521,7 @@ async def test_email_search_success():
     mock_res = MagicMock()
     mock_res.result = "OK"
     mock_res.lines = [b"1 2 3"]
-    mock_acc.search.return_value = mock_res
+    mock_acc.uid_search.return_value = mock_res
 
     result = await email_search(mock_acc, ["test@example.com"], "25-Mar-2026")
     assert result[0] == "OK"
@@ -530,7 +532,7 @@ async def test_email_search_success():
 async def test_email_search_failure(caplog):
     """Test email_search failure."""
     mock_acc = AsyncMock()
-    mock_acc.search.side_effect = OSError("Search failed")
+    mock_acc.uid_search.side_effect = OSError("Search failed")
     caplog.set_level("ERROR")
 
     result = await email_search(mock_acc, ["test@example.com"], "25-Mar-2026")
@@ -542,7 +544,7 @@ async def test_email_search_failure(caplog):
 async def test_email_search_error_branch(caplog):
     """Test email_search error logging branch."""
     mock_acc = AsyncMock()
-    mock_acc.search.side_effect = AioImapException("Search error")
+    mock_acc.uid_search.side_effect = AioImapException("Search error")
     caplog.set_level("ERROR")
 
     result = await email_search(mock_acc, ["a@b.com"], "25-Mar-2026")
@@ -626,7 +628,7 @@ async def test_email_fetch_headers_success():
     mock_res = MagicMock()
     mock_res.result = "OK"
     mock_res.lines = [b"Subject: Test"]
-    mock_imap.fetch.return_value = mock_res
+    mock_imap.uid.return_value = mock_res
 
     result = await email_fetch_headers(mock_imap, "1")
     assert result[0] == "OK"
@@ -637,7 +639,7 @@ async def test_email_fetch_headers_success():
 async def test_email_fetch_headers_failure(caplog):
     """Test email_fetch_headers failure path."""
     mock_imap = AsyncMock()
-    mock_imap.fetch.side_effect = OSError("Connection error")
+    mock_imap.uid.side_effect = OSError("Connection error")
     caplog.set_level("ERROR")
 
     result = await email_fetch_headers(mock_imap, "1")
@@ -652,7 +654,7 @@ async def test_email_fetch_text_success():
     mock_res = MagicMock()
     mock_res.result = "OK"
     mock_res.lines = [b"Text content"]
-    mock_imap.fetch.return_value = mock_res
+    mock_imap.uid.return_value = mock_res
 
     result = await email_fetch_text(mock_imap, "1")
     assert result[0] == "OK"
@@ -667,17 +669,17 @@ async def test_email_fetch_text_me_com():
     mock_res = MagicMock()
     mock_res.result = "OK"
     mock_res.lines = []
-    mock_imap.fetch.return_value = mock_res
+    mock_imap.uid.return_value = mock_res
 
     await email_fetch_text(mock_imap, "1")
-    mock_imap.fetch.assert_called_with("1", "BODY[]")
+    mock_imap.uid.assert_called_with("FETCH", "1", "BODY[]")
 
 
 @pytest.mark.asyncio
 async def test_email_fetch_text_failure(caplog):
     """Test email_fetch_text failure path."""
     mock_imap = AsyncMock()
-    mock_imap.fetch.side_effect = OSError("Connection error")
+    mock_imap.uid.side_effect = OSError("Connection error")
     caplog.set_level("ERROR")
 
     result = await email_fetch_text(mock_imap, "1")
@@ -692,12 +694,12 @@ async def test_email_fetch_batch_success():
     mock_res = MagicMock()
     mock_res.result = "OK"
     mock_res.lines = [b"Batch content"]
-    mock_imap.fetch.return_value = mock_res
+    mock_imap.uid.return_value = mock_res
 
     result = await email_fetch_batch(mock_imap, ["1", "2"])
     assert result[0] == "OK"
     assert result[1] == [b"Batch content"]
-    mock_imap.fetch.assert_called_with("1,2", "(RFC822)")
+    mock_imap.uid.assert_called_with("FETCH", "1,2", "(RFC822)")
 
 
 @pytest.mark.asyncio
@@ -706,7 +708,7 @@ async def test_email_fetch_batch_empty():
     mock_imap = AsyncMock()
     result = await email_fetch_batch(mock_imap, [])
     assert result == ("OK", [])
-    assert not mock_imap.fetch.called
+    assert not mock_imap.uid.called
 
 
 @pytest.mark.asyncio
@@ -717,17 +719,17 @@ async def test_email_fetch_batch_me_com():
     mock_res = MagicMock()
     mock_res.result = "OK"
     mock_res.lines = []
-    mock_imap.fetch.return_value = mock_res
+    mock_imap.uid.return_value = mock_res
 
     await email_fetch_batch(mock_imap, ["1"])
-    mock_imap.fetch.assert_called_with("1", "BODY[]")
+    mock_imap.uid.assert_called_with("FETCH", "1", "BODY[]")
 
 
 @pytest.mark.asyncio
 async def test_email_fetch_batch_failure(caplog):
     """Test email_fetch_batch failure path."""
     mock_imap = AsyncMock()
-    mock_imap.fetch.side_effect = OSError("Connection error")
+    mock_imap.uid.side_effect = OSError("Connection error")
     caplog.set_level("ERROR")
 
     result = await email_fetch_batch(mock_imap, ["1"])
@@ -957,7 +959,7 @@ async def test_email_search_batching():
     res2.result = "OK"
     res2.lines = [b"3"]
 
-    mock_acc.search.side_effect = [res1, res2]
+    mock_acc.uid_search.side_effect = [res1, res2]
 
     # 2 subjects will trigger 2 batches (1 + 1) with IMAP_SUBJECT_BATCH_SIZE = 1
     subjects = [f"Sub{i}" for i in range(2)]
@@ -967,7 +969,7 @@ async def test_email_search_batching():
 
     assert result[0] == "OK"
     assert result[1] == [b"1 2 3"]
-    assert mock_acc.search.call_count == 2
+    assert mock_acc.uid_search.call_count == 2
 
 
 @pytest.mark.asyncio
@@ -983,7 +985,7 @@ async def test_email_search_batching_partially_no_results():
     res2.result = "OK"
     res2.lines = [None]  # No results in second batch
 
-    mock_acc.search.side_effect = [res1, res2]
+    mock_acc.uid_search.side_effect = [res1, res2]
 
     subjects = [f"Sub{i}" for i in range(2)]
     result = await email_search(
@@ -1004,7 +1006,7 @@ async def test_email_search_batching_error(caplog):
     res1.result = "OK"
     res1.lines = [b"1 2"]
 
-    mock_acc.search.side_effect = [res1, OSError("Batch failure")]
+    mock_acc.uid_search.side_effect = [res1, OSError("Batch failure")]
 
     subjects = [f"Sub{i}" for i in range(2)]
     result = await email_search(
@@ -1020,7 +1022,7 @@ async def test_email_search_batching_error(caplog):
 async def test_email_search_batching_all_error():
     """Test email_search batching when all batches fail."""
     mock_acc = AsyncMock()
-    mock_acc.search.side_effect = OSError("Batch failure")
+    mock_acc.uid_search.side_effect = OSError("Batch failure")
 
     subjects = [f"Sub{i}" for i in range(2)]
     result = await email_search(
@@ -1043,14 +1045,14 @@ async def test_email_search_address_batching():
     res2.result = "OK"
     res2.lines = [b"3"]
 
-    mock_acc.search.side_effect = [res1, res2]
+    mock_acc.uid_search.side_effect = [res1, res2]
 
     addresses = [f"sender{i}@example.com" for i in range(6)]
     result = await email_search(mock_acc, addresses, "25-Mar-2026", subject="Test")
 
     assert result[0] == "OK"
     assert result[1] == [b"1 2 3"]
-    assert mock_acc.search.call_count == 2
+    assert mock_acc.uid_search.call_count == 2
 
 
 def test_build_search_multi_addr_multi_subject_parentheses():
@@ -1530,17 +1532,17 @@ async def test_execute_single_search_single_folder():
     mock_account._folders = ["INBOX"]
 
     # Search succeeds with result OK and lines
-    mock_account.search.return_value = MagicMock(result="OK", lines=[b"1001 1002"])
+    mock_account.uid_search.return_value = MagicMock(result="OK", lines=[b"1001 1002"])
     res = await _execute_single_search(mock_account, "ALL")
     assert res == [b"1001", b"1002"]
 
     # Search returns empty result
-    mock_account.search.return_value = MagicMock(result="OK", lines=[None])
+    mock_account.uid_search.return_value = MagicMock(result="OK", lines=[None])
     res = await _execute_single_search(mock_account, "ALL")
     assert res == []
 
     # Search fails (result not OK)
-    mock_account.search.return_value = MagicMock(result="BAD", lines=[])
+    mock_account.uid_search.return_value = MagicMock(result="BAD", lines=[])
     res = await _execute_single_search(mock_account, "ALL")
     assert res == []
 
@@ -1870,7 +1872,7 @@ async def test_email_search_timeout_error():
     """Test email_search standard path propagates TimeoutError."""
     mock_imap = AsyncMock()
     mock_imap._folders = ["INBOX"]
-    mock_imap.search.side_effect = TimeoutError()
+    mock_imap.uid_search.side_effect = TimeoutError()
     with pytest.raises(TimeoutError):
         await email_search(mock_imap, ["test@example.com"], "25-Mar-2026")
 
@@ -1880,7 +1882,7 @@ async def test_email_search_batch_timeout_error():
     """Test email_search batched subjects path propagates TimeoutError."""
     mock_imap = AsyncMock()
     mock_imap._folders = ["INBOX"]
-    mock_imap.search.side_effect = TimeoutError()
+    mock_imap.uid_search.side_effect = TimeoutError()
     subjects = [f"Subj {i}" for i in range(11)]
     with pytest.raises(TimeoutError):
         await email_search(
@@ -1894,7 +1896,7 @@ async def test_email_search_single_folder_batch_exception():
     mock_imap = AsyncMock()
     mock_imap._folders = ["INBOX"]
     # Return one normal result and one OSError
-    mock_imap.search.side_effect = [
+    mock_imap.uid_search.side_effect = [
         MagicMock(result="OK", lines=[b"101"]),
         OSError("Batch error"),
     ]
@@ -1954,7 +1956,7 @@ async def test_email_fetch_prefixed_timeout_error():
 async def test_email_fetch_timeout_error():
     """Test email_fetch standard path propagates TimeoutError."""
     mock_imap = AsyncMock()
-    mock_imap.fetch.side_effect = TimeoutError()
+    mock_imap.uid.side_effect = TimeoutError()
     with pytest.raises(TimeoutError):
         await email_fetch(mock_imap, b"1001")
 
@@ -1974,7 +1976,7 @@ async def test_email_fetch_headers_prefixed_timeout_error():
 async def test_email_fetch_headers_timeout_error():
     """Test email_fetch_headers standard path propagates TimeoutError."""
     mock_imap = AsyncMock()
-    mock_imap.fetch.side_effect = TimeoutError()
+    mock_imap.uid.side_effect = TimeoutError()
     with pytest.raises(TimeoutError):
         await email_fetch_headers(mock_imap, b"1001")
 
@@ -1994,7 +1996,7 @@ async def test_email_fetch_text_prefixed_timeout_error():
 async def test_email_fetch_text_timeout_error():
     """Test email_fetch_text standard path propagates TimeoutError."""
     mock_imap = AsyncMock()
-    mock_imap.fetch.side_effect = TimeoutError()
+    mock_imap.uid.side_effect = TimeoutError()
     with pytest.raises(TimeoutError):
         await email_fetch_text(mock_imap, b"1001")
 
@@ -2003,7 +2005,7 @@ async def test_email_fetch_text_timeout_error():
 async def test_email_fetch_batch_timeout_error():
     """Test email_fetch_batch standard path propagates TimeoutError."""
     mock_imap = AsyncMock()
-    mock_imap.fetch.side_effect = TimeoutError()
+    mock_imap.uid.side_effect = TimeoutError()
     with pytest.raises(TimeoutError):
         await email_fetch_batch(mock_imap, [b"1001", b"1002"])
 
@@ -2024,42 +2026,42 @@ async def test_email_search_body_threshold():
     """Test that email_search only does server-side body search if <= 2 body patterns are specified."""
     mock_imap = AsyncMock()
     mock_imap._folders = ["INBOX"]
-    mock_imap.search.return_value = MagicMock(result="OK", lines=[b"1"])
+    mock_imap.uid_search.return_value = MagicMock(result="OK", lines=[b"1"])
 
     # 1 body pattern -> should include BODY in search query
     await email_search(mock_imap, ["test@example.com"], "25-Mar-2026", body="Pattern1")
-    search_query = mock_imap.search.call_args.args[0]
+    search_query = mock_imap.uid_search.call_args.args[0]
     assert 'BODY "Pattern1"' in search_query
 
     # 2 body patterns -> should include BODY in search query
-    mock_imap.search.reset_mock()
+    mock_imap.uid_search.reset_mock()
     await email_search(
         mock_imap, ["test@example.com"], "25-Mar-2026", body=["Pattern1", "Pattern2"]
     )
-    search_query = mock_imap.search.call_args.args[0]
+    search_query = mock_imap.uid_search.call_args.args[0]
     assert 'BODY "Pattern1"' in search_query
     assert 'BODY "Pattern2"' in search_query
 
     # 3 body patterns -> should NOT include BODY in search query
-    mock_imap.search.reset_mock()
+    mock_imap.uid_search.reset_mock()
     await email_search(
         mock_imap,
         ["test@example.com"],
         "25-Mar-2026",
         body=["Pattern1", "Pattern2", "Pattern3"],
     )
-    search_query = mock_imap.search.call_args.args[0]
+    search_query = mock_imap.uid_search.call_args.args[0]
     assert "BODY" not in search_query
 
     # Regex body pattern -> should NOT include BODY in search query
-    mock_imap.search.reset_mock()
+    mock_imap.uid_search.reset_mock()
     await email_search(
         mock_imap,
         ["test@example.com"],
         "25-Mar-2026",
         body=[r"\sYou have (\d) piece|pieces of mail\s"],
     )
-    search_query = mock_imap.search.call_args.args[0]
+    search_query = mock_imap.uid_search.call_args.args[0]
     assert "BODY" not in search_query
 
 
@@ -2105,20 +2107,20 @@ async def test_email_search_yahoo_detection():
     mock_imap = AsyncMock()
     mock_imap.host = "imap.mail.yahoo.com"
     mock_imap._folders = ["INBOX"]
-    mock_imap.search.return_value = MagicMock(result="OK", lines=[b"1"])
+    mock_imap.uid_search.return_value = MagicMock(result="OK", lines=[b"1"])
 
     # For Yahoo hosts, build_search gets called with is_yahoo=True
     # and subject/body searches have specific Yahoo-compatible structure.
     await email_search(mock_imap, ["test@example.com"], "25-Mar-2026", subject="Test")
-    search_query = mock_imap.search.call_args.args[0]
+    search_query = mock_imap.uid_search.call_args.args[0]
     # In Yahoo mode, the search query is enclosed in outer parens: (FROM ... SUBJECT ... SINCE ...)
     assert search_query.startswith("(") and search_query.endswith(")")
 
     # Non-Yahoo host does NOT enclose the query in outer parens
     mock_imap.host = "imap.gmail.com"
-    mock_imap.search.reset_mock()
+    mock_imap.uid_search.reset_mock()
     await email_search(mock_imap, ["test@example.com"], "25-Mar-2026", subject="Test")
-    non_yahoo_query = mock_imap.search.call_args.args[0]
+    non_yahoo_query = mock_imap.uid_search.call_args.args[0]
     assert not non_yahoo_query.startswith("(")
 
 
@@ -2203,7 +2205,7 @@ async def test_email_search_gmail_extended_batching():
     res = MagicMock()
     res.result = "OK"
     res.lines = [b"101 102"]
-    mock_gmail.search.return_value = res
+    mock_gmail.uid_search.return_value = res
 
     # 10 subjects should fit in 1 single batch on Gmail
     subjects = [f"Subj {i}" for i in range(10)]
@@ -2212,9 +2214,39 @@ async def test_email_search_gmail_extended_batching():
     )
     assert result[0] == "OK"
     assert result[1] == [b"101 102"]
-    assert mock_gmail.search.call_count == 1
+    assert mock_gmail.uid_search.call_count == 1
     # Check that the query contains all 10 subjects OR'ed
-    query = mock_gmail.search.call_args.args[0]
+    query = mock_gmail.uid_search.call_args.args[0]
     assert 'SUBJECT "Subj 0"' in query
     assert 'SUBJECT "Subj 9"' in query
     assert query.count("SUBJECT") == 10
+
+
+@pytest.mark.asyncio
+async def test_execute_uid_search_and_fetch_direct():
+    """Test _execute_uid_search and _execute_uid_fetch when uid operations succeed directly."""
+    mock_account = AsyncMock()
+    mock_account.uid_search.return_value = MagicMock(result="OK", lines=[b"101"])
+    mock_account.uid.return_value = MagicMock(result="OK", lines=[b"RFC822"])
+
+    res_search = await _execute_uid_search(mock_account, "QUERY")
+    assert res_search == ("OK", [b"101"])
+
+    res_fetch = await _execute_uid_fetch(mock_account, "101", "(RFC822)")
+    assert res_fetch == ("OK", [b"RFC822"])
+
+
+@pytest.mark.asyncio
+async def test_execute_uid_search_and_fetch_fallback():
+    """Test _execute_uid_search and _execute_uid_fetch fallback to search/fetch when uid methods are unconfigured."""
+    mock_account = AsyncMock()
+    del mock_account.uid_search
+    del mock_account.uid
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"202"])
+    mock_account.fetch.return_value = MagicMock(result="OK", lines=[b"BODY"])
+
+    res_search = await _execute_uid_search(mock_account, "QUERY")
+    assert res_search == ("OK", [b"202"])
+
+    res_fetch = await _execute_uid_fetch(mock_account, "202", "(RFC822)")
+    assert res_fetch == ("OK", [b"BODY"])
