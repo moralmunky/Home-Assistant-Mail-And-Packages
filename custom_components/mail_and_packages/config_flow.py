@@ -91,6 +91,7 @@ from .const import (
     DEFAULT_UPS_CUSTOM_IMG,
     DEFAULT_UPS_CUSTOM_IMG_FILE,
     DEFAULT_USPS_PLACEHOLDER,
+    DEFAULT_VERIFY_SSL,
     DEFAULT_WALMART_CUSTOM_IMG,
     DEFAULT_WALMART_CUSTOM_IMG_FILE,
     DOMAIN,
@@ -482,7 +483,7 @@ def _get_schema_imap(user_input: list, default_dict: list) -> Any:
             ): vol.In(IMAP_SECURITY),
             vol.Optional(
                 CONF_VERIFY_SSL,
-                default=_get_default(CONF_VERIFY_SSL, False),
+                default=_get_default(CONF_VERIFY_SSL, DEFAULT_VERIFY_SSL),
             ): cv.boolean,
         },
     )
@@ -553,7 +554,7 @@ async def _get_schema_step_2(
         data[CONF_USERNAME],
         data.get(CONF_PASSWORD, ""),
         data[CONF_IMAP_SECURITY],
-        data[CONF_VERIFY_SSL],
+        data.get(CONF_VERIFY_SSL, True),
         oauth_token,
     )
 
@@ -755,9 +756,12 @@ def _get_schema_step_amazon(
     if user_input is None:
         user_input = {}
 
-    def _get_default(key: str, fallback_default: Any = None) -> None:
+    def _get_default(key: str, fallback_default: Any = None) -> Any:
         """Get default value for key."""
-        return user_input.get(key, default_dict.get(key, fallback_default))
+        value = user_input.get(key, default_dict.get(key, fallback_default))
+        if isinstance(value, list):
+            value = ", ".join(value)
+        return value
 
     schema_dict: dict = {
         vol.Required(
@@ -1381,7 +1385,9 @@ class MailAndPackagesFlowHandler(
             {
                 CONF_PORT: self._entry.data.get(CONF_PORT, DEFAULT_PORT),
                 CONF_IMAP_SECURITY: self._entry.data.get(CONF_IMAP_SECURITY, "SSL"),
-                CONF_VERIFY_SSL: self._entry.data.get(CONF_VERIFY_SSL, False),
+                CONF_VERIFY_SSL: self._entry.data.get(
+                    CONF_VERIFY_SSL, DEFAULT_VERIFY_SSL
+                ),
             },
         )
 
