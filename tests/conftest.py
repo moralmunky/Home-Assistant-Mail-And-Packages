@@ -243,9 +243,21 @@ def mock_imap():
         # Search returns (result, lines)
         mock_conn.search = AsyncMock(side_effect=_generate_search_side_effect())
 
+        async def _uid_search_side_effect(*args, **kwargs):
+            return await mock_conn.search(*args, **kwargs)
+
+        mock_conn.uid_search = AsyncMock(side_effect=_uid_search_side_effect)
+
         # Configure the fetch response (default to Informed Delivery)
         email_file = Path("tests/test_emails/informed_delivery.eml").read_bytes()
         mock_conn.fetch = AsyncMock(side_effect=_generate_fetch_side_effect(email_file))
+
+        async def _uid_side_effect(cmd, *args, **kwargs):
+            if cmd == "FETCH":
+                return await mock_conn.fetch(*args, **kwargs)
+            return MagicMock(result="OK", lines=[])
+
+        mock_conn.uid = AsyncMock(side_effect=_uid_side_effect)
 
         yield mock_conn
 

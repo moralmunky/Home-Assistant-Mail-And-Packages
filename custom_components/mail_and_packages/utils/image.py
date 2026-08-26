@@ -66,7 +66,7 @@ def default_image_path(
             storage = config_entry.get(CONF_STORAGE)
 
     if storage:
-        return storage
+        return storage.rstrip("/") + "/"
     return "custom_components/mail_and_packages/images/"
 
 
@@ -161,16 +161,23 @@ def cleanup_images(path: str, image: str | None = None) -> None:
 def copy_overlays(path: str) -> None:
     """Copy overlay images to image output path."""
     overlays = OVERLAY
-    check = all(item.name in overlays for item in Path(path).iterdir())
+    try:
+        check = all(item.name in overlays for item in Path(path).iterdir())
+    except OSError:
+        check = False
 
     # Copy files if they are missing
     if not check:
         for file in overlays:
-            _LOGGER.debug("Copying file to: %s", path + file)
-            copyfile(
-                Path(__file__).parent.parent / file,
-                path + file,
-            )
+            dest_file = Path(path) / file
+            _LOGGER.debug("Copying file to: %s", dest_file)
+            try:
+                copyfile(
+                    Path(__file__).parent.parent / file,
+                    str(dest_file),
+                )
+            except OSError as err:
+                _LOGGER.error("Error copying overlay %s: %s", file, err)
 
 
 def resize_images(images: list, width: int, height: int) -> list:
@@ -260,9 +267,9 @@ def generate_grid_img(path: str, image_file: str, count: int) -> None:
     else:
         length = int(count / 2) + count % 2
 
-    gif_image = Path(path + image_file)
+    gif_image = Path(path) / image_file
     png_file = image_file.replace(".gif", "_grid.png")
-    png_image = Path(path).joinpath(png_file)
+    png_image = Path(path) / png_file
 
     filecheck = png_image.is_file()
 
@@ -384,7 +391,7 @@ def _get_courier_info(
         ),
     ]
 
-    base_path = hass.config.path(default_image_path(hass, config))
+    base_path = Path(hass.config.path(default_image_path(hass, config)))
 
     for (
         active,
@@ -402,10 +409,10 @@ def _get_courier_info(
             else:
                 mail_none = str(Path(__file__).parent.parent / local_default)
                 _LOGGER.debug("Using default %s image: %s", sub_dir.title(), mail_none)
-            return f"{base_path}{sub_dir}", mail_none
+            return str(base_path / sub_dir), mail_none
 
     # Standard mail case
-    path = base_path.rstrip("/")
+    path = str(base_path)
     if config.get(CONF_CUSTOM_IMG):
         mail_none = config.get(CONF_CUSTOM_IMG_FILE) or DEFAULT_CUSTOM_IMG_FILE
     else:

@@ -7,7 +7,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from custom_components.mail_and_packages.const import GENERIC_DELIVERIES_GIF
+from custom_components.mail_and_packages.const import (
+    CONF_STORAGE,
+    GENERIC_DELIVERIES_GIF,
+)
 from custom_components.mail_and_packages.utils.image import (
     _check_ffmpeg,
     _generate_mp4,
@@ -95,7 +98,27 @@ async def test_resize_images_corrupt_file(caplog):
 
 @pytest.mark.asyncio
 async def test_copy_overlays_error_handling(caplog):
-    """Test copy_overlays handles errors gracefully."""
+    """Test copy_overlays handles copy errors gracefully."""
+    caplog.set_level("ERROR")
+    with (
+        patch("custom_components.mail_and_packages.utils.image.copyfile") as mock_copy,
+        patch("custom_components.mail_and_packages.utils.image.OVERLAY", ["over1.png"]),
+        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+    ):
+        mock_path_obj = MagicMock()
+        mock_file = MagicMock()
+        mock_file.name = "unrelated.png"
+        mock_path_obj.iterdir.return_value = [mock_file]  # Triggers copy
+        mock_path.side_effect = lambda *args: mock_path_obj
+        mock_copy.side_effect = OSError("OS Error")
+        copy_overlays("/fake/path/")
+
+        assert "Error copying overlay over1.png: OS Error" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_copy_overlays_iterdir_oserror(caplog):
+    """Test copy_overlays handles iterdir OSError gracefully."""
     caplog.set_level("DEBUG")
     with (
         patch("custom_components.mail_and_packages.utils.image.copyfile") as mock_copy,
@@ -103,10 +126,10 @@ async def test_copy_overlays_error_handling(caplog):
         patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
     ):
         mock_path_obj = MagicMock()
-        mock_path_obj.iterdir.return_value = []  # Ensure it tries to copy
+        mock_path_obj.iterdir.side_effect = OSError("Access denied")
         mock_path.side_effect = lambda *args: mock_path_obj
-        mock_copy.side_effect = OSError("OS Error")
         copy_overlays("/fake/path/")
+        assert mock_copy.called
 
 
 @pytest.mark.asyncio
@@ -850,3 +873,16 @@ def test_generate_grid_img_ffmpeg_error(caplog):
         generate_grid_img("/path/", "test.gif", 5)
 
     assert "FFmpeg failed to generate grid image" in caplog.text
+
+
+def test_default_image_path_trailing_slash():
+    """Test default_image_path always ensures a trailing slash."""
+    hass = MagicMock()
+    config_entry = MagicMock()
+    config_entry.options = {CONF_STORAGE: "/custom/path/images"}
+    config_entry.data = {}
+
+    assert default_image_path(hass, config_entry) == "/custom/path/images/"
+
+    config_entry.options = {CONF_STORAGE: "/custom/path/images/"}
+    assert default_image_path(hass, config_entry) == "/custom/path/images/"
