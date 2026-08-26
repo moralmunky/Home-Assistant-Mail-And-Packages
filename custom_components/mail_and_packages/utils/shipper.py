@@ -6,6 +6,7 @@ import base64
 import email
 import logging
 import re
+from email.header import decode_header, make_header
 from pathlib import Path
 from typing import Any
 
@@ -70,7 +71,7 @@ def _find_tracking_in_subject(
     """Find tracking number in email subject."""
     email_subject = msg["subject"]
     if email_subject:
-        email_subject = str(email_subject)
+        email_subject = str(make_header(decode_header(str(email_subject))))
         if (found := pattern.findall(email_subject)) and len(found) > 0:
             _LOGGER.debug("Found tracking number in email subject: %s", found[0])
             return found[0]
