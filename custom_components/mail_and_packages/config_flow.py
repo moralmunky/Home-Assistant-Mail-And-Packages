@@ -23,6 +23,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_entry_oauth2_flow, selector
 
 from .const import (
+    AMAZON_DOMAINS,
     AUTH_TYPE_OAUTH_GOOGLE,
     AUTH_TYPE_OAUTH_MICROSOFT,
     AUTH_TYPE_PASSWORD,
@@ -766,8 +767,15 @@ def _get_schema_step_amazon(
     schema_dict: dict = {
         vol.Required(
             CONF_AMAZON_DOMAIN,
-            default=_get_default(CONF_AMAZON_DOMAIN),
-        ): cv.string,
+            default=_get_default(CONF_AMAZON_DOMAIN, DEFAULT_AMAZON_DOMAIN),
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=AMAZON_DOMAINS,
+                custom_value=True,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+                translation_key=CONF_AMAZON_DOMAIN,
+            )
+        ),
     }
 
     if not forwarding_header or forwarding_header == "(none)":

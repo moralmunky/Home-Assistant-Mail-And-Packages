@@ -971,6 +971,60 @@ async def test_migrate_version_20():
 
 
 @pytest.mark.asyncio
+async def test_migrate_stale_data_keys_cleaned():
+    """Test migration cleans non-IMAP keys from data even if version is 20."""
+    mock_entry = MagicMock()
+    mock_entry.version = 20
+    mock_entry.data = {
+        CONF_HOST: "imap.test.email",
+        CONF_PORT: 993,
+        CONF_USERNAME: "test@test.email",
+        CONF_PASSWORD: "password",
+        CONF_IMAP_SECURITY: "SSL",
+        CONF_VERIFY_SSL: True,
+        CONF_AUTH_TYPE: "password",
+        CONF_AMAZON_DOMAIN: "amazon.de",
+    }
+    mock_entry.options = {
+        CONF_AMAZON_DOMAIN: "amazon.com",
+    }
+    mock_hass = MagicMock()
+
+    result = await async_migrate_entry(mock_hass, mock_entry)
+    assert result is True
+    _, kwargs = mock_hass.config_entries.async_update_entry.call_args
+    # Non-IMAP keys are purged from data
+    assert CONF_AMAZON_DOMAIN not in kwargs["data"]
+    # Existing options take precedence when present in options
+    assert kwargs["options"][CONF_AMAZON_DOMAIN] == "amazon.com"
+
+
+@pytest.mark.asyncio
+async def test_migrate_moves_missing_options_from_data():
+    """Test migration moves non-IMAP keys from data to options if not present in options."""
+    mock_entry = MagicMock()
+    mock_entry.version = 20
+    mock_entry.data = {
+        CONF_HOST: "imap.test.email",
+        CONF_PORT: 993,
+        CONF_USERNAME: "test@test.email",
+        CONF_PASSWORD: "password",
+        CONF_IMAP_SECURITY: "SSL",
+        CONF_VERIFY_SSL: True,
+        CONF_AUTH_TYPE: "password",
+        CONF_AMAZON_DOMAIN: "amazon.de",
+    }
+    mock_entry.options = {}
+    mock_hass = MagicMock()
+
+    result = await async_migrate_entry(mock_hass, mock_entry)
+    assert result is True
+    _, kwargs = mock_hass.config_entries.async_update_entry.call_args
+    assert CONF_AMAZON_DOMAIN not in kwargs["data"]
+    assert kwargs["options"][CONF_AMAZON_DOMAIN] == "amazon.de"
+
+
+@pytest.mark.asyncio
 async def test_capost_mail_processing(hass, mock_imap_capost_mail, integration_capost):
     """Test processing of Canada Post mail emails."""
     entry = integration_capost
