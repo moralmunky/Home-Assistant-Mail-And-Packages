@@ -281,6 +281,23 @@
         "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
         "oauth2_google": "OAuth2 - Google (Gmail)"
       }
+    },
+    "amazon_domain": {
+      "options": {
+        "amazon_com": "United States (amazon.com)",
+        "amazon_ca": "Canada (amazon.ca)",
+        "amazon_co_uk": "United Kingdom (amazon.co.uk)",
+        "amazon_in": "India (amazon.in)",
+        "amazon_de": "Germany (amazon.de)",
+        "amazon_it": "Italy (amazon.it)",
+        "amazon_com_au": "Australia (amazon.com.au)",
+        "amazon_pl": "Poland (amazon.pl)",
+        "amazon_es": "Spain (amazon.es)",
+        "amazon_fr": "France (amazon.fr)",
+        "amazon_ae": "United Arab Emirates (amazon.ae)",
+        "amazon_nl": "Netherlands (amazon.nl)",
+        "amazon_se": "Sweden (amazon.se)"
+      }
     }
   },
   "issues": {

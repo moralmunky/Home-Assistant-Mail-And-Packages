@@ -5,10 +5,12 @@ import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    CONF_ACCESS_TOKEN,
     CONF_HOST,
     CONF_PASSWORD,
     CONF_PORT,
     CONF_RESOURCES,
+    CONF_TOKEN,
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
@@ -119,8 +121,8 @@ _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 OAUTH_TOKEN_KEYS = {
-    "token",
-    "access_token",
+    CONF_TOKEN,
+    CONF_ACCESS_TOKEN,
     "refresh_token",
     "expires_at",
     "expires_in",
@@ -252,24 +254,22 @@ async def async_migrate_entry(hass, config_entry):
     _migrate_legacy_versions(updated_config, version, config_entry)
     _apply_default_config(updated_config)
 
-    # Version 20 migration: split non-IMAP options out of data
-    if version < 20:
-        imap_keys = {
-            CONF_HOST,
-            CONF_PORT,
-            CONF_USERNAME,
-            CONF_PASSWORD,
-            CONF_IMAP_SECURITY,
-            CONF_VERIFY_SSL,
-            CONF_AUTH_TYPE,
-            "token",
-            "access_token",
-            "refresh_token",
-            "auth_implementation",
-        }
-        for key in list(updated_config.keys()):
-            if key not in imap_keys:
-                updated_options[key] = updated_config.pop(key)
+    # Ensure non-IMAP options are removed from data and moved to options
+    imap_keys = {
+        CONF_HOST,
+        CONF_PORT,
+        CONF_USERNAME,
+        CONF_PASSWORD,
+        CONF_IMAP_SECURITY,
+        CONF_VERIFY_SSL,
+        CONF_AUTH_TYPE,
+        *OAUTH_TOKEN_KEYS,
+    }
+    for key in list(updated_config.keys()):
+        if key not in imap_keys:
+            val = updated_config.pop(key)
+            if key not in updated_options:
+                updated_options[key] = val
 
     if updated_config != config_entry.data or updated_options != config_entry.options:
         hass.config_entries.async_update_entry(
