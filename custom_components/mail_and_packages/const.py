@@ -609,7 +609,10 @@ SENSOR_DATA = {
     # Royal Mail
     "royal_delivered": {
         "email": ["no-reply@royalmail.com"],
-        "subject": ["has been delivered"],
+        "subject": [
+            "has been delivered",
+            "You have received your Royal Mail",
+        ],
     },
     "royal_delivering": {
         "email": ["no-reply@royalmail.com"],

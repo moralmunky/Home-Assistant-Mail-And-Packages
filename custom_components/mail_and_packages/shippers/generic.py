@@ -500,19 +500,25 @@ class GenericShipper(Shipper):
         if not header_val:
             return None
 
-        decoded = decode_header(header_val)[0]
-        subject_bytes, encoding = decoded
-        if encoding:
-            try:
-                if isinstance(subject_bytes, bytes):
-                    return subject_bytes.decode(encoding, "ignore").strip()
-                return str(subject_bytes).strip()
-            except (LookupError, UnicodeError):
-                pass
+        decoded_parts = []
+        for subject_bytes, encoding in decode_header(header_val):
+            if encoding:
+                try:
+                    if isinstance(subject_bytes, bytes):
+                        decoded_parts.append(subject_bytes.decode(encoding, "ignore"))
+                        continue
+                    decoded_parts.append(str(subject_bytes))
+                    continue
+                except (LookupError, UnicodeError):
+                    pass
 
-        if isinstance(subject_bytes, bytes):
-            return subject_bytes.decode("utf-8", "ignore").strip()
-        return str(subject_bytes).strip()
+            if isinstance(subject_bytes, bytes):
+                decoded_parts.append(subject_bytes.decode("utf-8", "ignore"))
+            else:
+                decoded_parts.append(str(subject_bytes))
+
+        full_subject = "".join(decoded_parts)
+        return " ".join(full_subject.split())
 
     async def _verify_matched_subjects(
         self,

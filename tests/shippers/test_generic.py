@@ -2002,3 +2002,70 @@ def test_danish_carrier_patterns():
     assert any(s in gls_deliv_subj for s in SENSOR_DATA["gls_delivering"]["subject"])
     assert gls_del_email in SENSOR_DATA["gls_delivered"]["email"]
     assert any(s in gls_del_subj for s in SENSOR_DATA["gls_delivered"]["subject"])
+
+
+@pytest.mark.asyncio
+async def test_royal_mail_out_for_delivery_class(
+    hass, mock_imap_royal_out_for_delivery
+):
+    """Test Royal Mail out for delivery parsing via GenericShipper."""
+    shipper = GenericShipper(
+        hass,
+        {
+            "image_path": "test/path/royal_mail/",
+            "image_name": "testfilename.jpg",
+        },
+    )
+
+    with patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"):
+        result = await shipper.process(
+            mock_imap_royal_out_for_delivery,
+            "today",
+            "royal_delivering",
+        )
+        assert result[ATTR_COUNT] == 1
+        assert result[ATTR_TRACKING] == ["MA038501234GB"]
+
+
+@pytest.mark.asyncio
+async def test_royal_mail_delivered_class(hass, mock_imap_royal_delivered):
+    """Test Royal Mail delivered parsing via GenericShipper."""
+    shipper = GenericShipper(
+        hass,
+        {
+            "image_path": "test/path/royal_mail/",
+            "image_name": "testfilename.jpg",
+        },
+    )
+
+    with patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"):
+        result = await shipper.process(
+            mock_imap_royal_delivered,
+            "today",
+            "royal_delivered",
+        )
+        assert result[ATTR_COUNT] == 1
+        assert result[ATTR_TRACKING] == ["MA038501234GB"]
+
+
+@pytest.mark.asyncio
+async def test_royal_mail_delivered_alternate_subject_class(
+    hass, mock_imap_royal_delivered_alternate
+):
+    """Test Royal Mail delivered parsing with alternate subject format."""
+    shipper = GenericShipper(
+        hass,
+        {
+            "image_path": "test/path/royal_mail/",
+            "image_name": "testfilename.jpg",
+        },
+    )
+
+    with patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"):
+        result = await shipper.process(
+            mock_imap_royal_delivered_alternate,
+            "today",
+            "royal_delivered",
+        )
+        assert result[ATTR_COUNT] == 1
+        assert result[ATTR_TRACKING] == ["MA038501234GB"]

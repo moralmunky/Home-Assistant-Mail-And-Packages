@@ -990,6 +990,34 @@ def mock_imap_royal_out_for_delivery(mock_imap):
 
 
 @pytest.fixture
+def mock_imap_royal_delivered(mock_imap):
+    """Mock IMAP search with Royal Mail delivered email."""
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+    email_file = Path("tests/test_emails/royal_mail_uk_delivered.eml").read_text(
+        encoding="utf-8",
+    )
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+    return mock_imap
+
+
+@pytest.fixture
+def mock_imap_royal_delivered_alternate(mock_imap):
+    """Mock IMAP search with Royal Mail delivered alternate subject email."""
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+    email_file = Path("tests/test_emails/royal_mail_uk_delivered.eml").read_text(
+        encoding="utf-8",
+    )
+    email_file = email_file.replace(
+        "Subject: Your Royal Mail parcel from John Lewis & Partners has been\n delivered",
+        "Subject: You have received your Royal Mail parcel from John Lewis & Partners",
+    )
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+    return mock_imap
+
+
+@pytest.fixture
 def mock_copyoverlays():
     """Fixture to mock copy_overlays."""
     with patch(
