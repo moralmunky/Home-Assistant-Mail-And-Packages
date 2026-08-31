@@ -22,6 +22,9 @@ This repository is a **Home Assistant Custom Integration** that connects to an I
   - `conftest.py`: Shared testing fixtures and mock IMAP client overrides.
   - `test_init.py`, `test_config_flow.py`, etc.: Integration and unit tests.
 
+### Architecture & Design Reference
+- For detailed system architecture, sensor lifecycle definitions, and design rationales (such as why general in-transit emails are not tracked), consult [docs/architecture.md](file:///home/firstof9/github/Home-Assistant-Mail-And-Packages/docs/architecture.md).
+
 ### IMAP Integration & Compatibility Guidelines
 - **IMAP RFC Compliance**: All IMAP query keys and arguments used in search commands (e.g. `search()`) must strictly conform to the IMAP RFC specifications (e.g., RFC 3501). Do not use FETCH-specific section/body specifiers (like `BODY[TEXT]`) inside `SEARCH` commands; instead, use standard search keys such as `BODY` or `TEXT` to prevent setup/login timeouts or parse errors on strictly compliant IMAP servers.
 - **Test Fidelity**: Keep mock IMAP structures and test assertions aligned with standard RFC query formatting so invalid query structures are not masked by test mocks.

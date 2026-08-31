@@ -70,22 +70,23 @@ async def test_home_depot_delivering(hass):
 
 
 @pytest.mark.asyncio
-async def test_home_depot_shipped(hass):
-    """Test Home Depot package shipped email parsing via GenericShipper."""
+async def test_home_depot_delivering_carrier_tracking(hass):
+    """Test Home Depot out for delivery email parsing with carrier tracking via GenericShipper."""
     shipper = GenericShipper(hass, {})
 
     msg = MIMEMultipart("alternative")
     msg["From"] = "The Home Depot <HomeDepot@order.homedepot.com>"
-    msg["Subject"] = "Order #WK00000000 Shipped: Your order is on its way, Customer!"
-    msg["Date"] = "Sun, 08 Mar 2026 18:07:00 -0400"
+    msg["Subject"] = (
+        "Order #WK00000000: Your Home Depot order is out for delivery today."
+    )
+    msg["Date"] = "Tue, 10 Mar 2026 11:16:00 -0400"
 
     html_body = """
     <html>
       <body>
         <b>Order #: </b><a href="#">WK00000000</a>
-        <b>Your package has shipped, Customer!</b>
+        <p>Get ready, Customer! Your delivery arrives today!</p>
         <p>Tracking ID: 123456789012</p>
-        <p>ETA by FedEx: Tue, Mar 10</p>
       </body>
     </html>
     """
@@ -115,15 +116,15 @@ async def test_home_depot_shipped(hass):
             return_value=(
                 "OK",
                 [
-                    b"Subject: Order #WK00000000 Shipped: Your order is on its way, Customer!\r\n"
+                    b"Subject: Order #WK00000000: Your Home Depot order is out for delivery today.\r\n"
                 ],
             ),
         ),
     ):
         result = await shipper.process(
             account=mock_account,
-            date="08-Mar-2026",
-            sensor_type="home_depot_packages",
+            date="10-Mar-2026",
+            sensor_type="home_depot_delivering",
         )
 
     assert result[ATTR_COUNT] == 1
@@ -138,8 +139,10 @@ async def test_home_depot_marketplace_carrier_tracking(hass):
 
     msg = MIMEMultipart("alternative")
     msg["From"] = "The Home Depot <HomeDepot@order.homedepot.com>"
-    msg["Subject"] = "Order #WK00000000 Shipped: Your order is on its way, Customer!"
-    msg["Date"] = "Sun, 08 Mar 2026 18:07:00 -0400"
+    msg["Subject"] = (
+        "Order #WK00000000: Your Home Depot order is out for delivery today."
+    )
+    msg["Date"] = "Tue, 10 Mar 2026 11:16:00 -0400"
 
     html_body = """
     <html>
@@ -168,7 +171,7 @@ async def test_home_depot_marketplace_carrier_tracking(hass):
         ),
     ):
         mapping = await shipper._collect_carrier_tracking(
-            "home_depot_packages",
+            "home_depot_delivering",
             [b"1"],
             mock_account,
         )
