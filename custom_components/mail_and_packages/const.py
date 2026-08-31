@@ -388,10 +388,7 @@ SENSOR_DATA = {
         "email": ["mcinfo@ups.com"],
         "subject": ["UPS Update: New Scheduled Delivery Date"],
     },
-    "ups_packages": {
-        "email": ["mcinfo@ups.com", "pkginfo@ups.com"],
-        "subject": ["UPS Ship Notification"],
-    },
+    "ups_packages": {},
     "ups_tracking": {"pattern": ["1Z?[0-9A-Z]{16}"]},
     # FedEx
     "fedex_delivered": {
@@ -421,14 +418,7 @@ SENSOR_DATA = {
             "Ihre Sendung wird voraussichtlich heute zugestellt",
         ],
     },
-    "fedex_packages": {
-        "email": [
-            "TrackingUpdates@fedex.com",
-            "fedexcanada@fedex.com",
-            "noreply@fedex.com",
-        ],
-        "subject": ["Your shipment is on the way"],
-    },
+    "fedex_packages": {},
     "fedex_exception": {
         "email": [
             "TrackingUpdates@fedex.com",
@@ -554,23 +544,7 @@ SENSOR_DATA = {
             "komen we bij je langs",
         ],
     },
-    # Transit-only DHL DE subjects (not out-for-delivery).
-    # Do NOT match "Jetzt Live verfolgen" here — OFD subjects also contain it.
-    "dhl_packages": {
-        "email": [
-            "donotreply_odd@dhl.com",
-            "NoReply.ODD@dhl.com",
-            "noreply@dhl.de",
-            "no-reply@dhl.de",
-            "pl.no.reply@dhl.com",
-            "support@dhl.com",
-            "noreply@dhlecommerce.nl",
-            "noreply@dhl.nl",
-        ],
-        "subject": [
-            "ist unterwegs",
-        ],
-    },
+    "dhl_packages": {},
     "dhl_tracking": {
         "pattern": [
             "(?:JJD\\d{18}|JVGL\\d{20}|MDP[A-Z0-9]{5,15}|00\\d{18}|(?<![0-9])\\d{10,11}(?![0-9]))",
@@ -830,12 +804,11 @@ SENSOR_DATA = {
     },
     "bonshaw_distribution_network_delivering": {
         "email": ["parcel_tracking@bonshawdelivery.com"],
-        "subject": ["Parcel Out for Delivery! En attente de livraison!"],
+        "subject": [
+            "Parcel Out for Delivery! En attente de livraison!",
+        ],
     },
-    "bonshaw_distribution_network_packages": {
-        "email": ["parcel_tracking@bonshawdelivery.com"],
-        "subject": ["Your package has been received!"],
-    },
+    "bonshaw_distribution_network_packages": {},
     "bonshaw_distribution_network_tracking": {"pattern": ["BNI[0-9]{9}"]},
     # Purolator
     "purolator_delivered": {
@@ -858,10 +831,7 @@ SENSOR_DATA = {
             "Your package is now out for delivery",
         ],
     },
-    "purolator_packages": {
-        "email": ["NotificationService@purolator.com"],
-        "subject": ["Purolator - Your shipment has been picked up"],
-    },
+    "purolator_packages": {},
     "purolator_tracking": {"pattern": ["(?:[A-Z]{3}\\d{9}|\\d{12,15})"]},
     # Intelcom
     "intelcom_delivered": {
@@ -900,21 +870,7 @@ SENSOR_DATA = {
             "Your package will be there in the next hour!",
         ],
     },
-    "intelcom_packages": {
-        "email": [
-            "notifications@intelcom.ca",
-            "notifications@dragonflyshipping.ca",
-            "notifications@dragonflyshipping.com",
-            "notifications@nl.dragonflyinternational.com",
-            "notifications@ca.dragonflyinternational.com",
-        ],
-        "subject": [
-            "Your package has been received!",
-            "We've received your package",
-            "We've received your",
-            "Je pakket is bij ons aangekomen",
-        ],
-    },
+    "intelcom_packages": {},
     "intelcom_tracking": {
         "pattern": ["(NSPRSO[0-9]{10}|AMZNL[0-9]{12}|INTLCMI[0-9]+)"]
     },
@@ -967,10 +923,7 @@ SENSOR_DATA = {
             "Arrived:",
         ],
     },
-    "walmart_packages": {
-        "email": ["help@walmart.com"],
-        "subject": ["Thanks for your delivery order"],
-    },
+    "walmart_packages": {},
     "walmart_exception": {
         "email": ["help@walmart.com"],
         "subject": ["delivery is delayed"],
@@ -991,14 +944,7 @@ SENSOR_DATA = {
             "has arrived",
         ],
     },
-    "home_depot_packages": {
-        "email": ["homedepot@order.homedepot.com", "order.homedepot.com"],
-        "subject": [
-            "Shipped:",
-            "order shipped!",
-            "on its way",
-        ],
-    },
+    "home_depot_packages": {},
     "home_depot_exception": {
         "email": ["homedepot@order.homedepot.com", "order.homedepot.com"],
         "subject": [
@@ -1022,15 +968,11 @@ SENSOR_DATA = {
             "t.shopifyemail.com",
             "no-reply@parcelpanel.net",
         ],
-        "subject": ["is out for delivery"],
-    },
-    "shopify_packages": {
-        "email": [
-            "t.shopifyemail.com",
-            "no-reply@parcelpanel.net",
+        "subject": [
+            "is out for delivery",
         ],
-        "subject": ["is on the way"],
     },
+    "shopify_packages": {},
     "shopify_tracking": {
         "pattern": ["shipment from order #?([A-Za-z0-9()\\-]+)"],
     },

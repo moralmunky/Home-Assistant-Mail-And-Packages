@@ -698,8 +698,7 @@ async def test_process_batch_deduplication(hass):
         if sensor == "ups_delivering":
             return {"ups_delivering": 2, ATTR_TRACKING: ["T1", "T2"], ATTR_COUNT: 2}
         if sensor == "ups_packages":
-            # T1 already in delivered/delivering; T3 is a new upcoming shipment
-            return {"ups_packages": 2, ATTR_TRACKING: ["T1", "T3"]}
+            return {"ups_packages": 0, ATTR_TRACKING: []}
         if sensor == "fedex_delivered":
             return {"fedex_delivered": 1, ATTR_TRACKING: ["F1"]}
         if sensor == "fedex_delivering":
@@ -719,16 +718,15 @@ async def test_process_batch_deduplication(hass):
         # UPS Deduplication
         assert result["ups_delivered"] == 1
         assert result["ups_delivering"] == 1  # T1 removed (already delivered)
-        # ups_packages has its own IMAP search; T1 and T2 are removed (in pipeline)
-        # leaving only T3 (upcoming shipment not yet delivering/delivered)
-        assert result["ups_packages"] == 1
+        # ups_packages is a computed total: 1 delivering + 1 delivered = 2
+        assert result["ups_packages"] == 2
 
         # FedEx Deduplication
         assert result["fedex_delivered"] == 1
         assert result["fedex_delivering"] == 0  # F1 removed
 
         # Tracking Aggregation
-        assert set(result[ATTR_TRACKING]) == {"T1", "T2", "F1", "T3"}
+        assert set(result[ATTR_TRACKING]) == {"T1", "T2", "F1"}
 
 
 @pytest.mark.asyncio
@@ -946,15 +944,15 @@ async def test_ups_packages_empty_config_skips_imap(hass):
 
 
 @pytest.mark.asyncio
-async def test_ups_packages_searches_imap(hass):
-    """Test that ups_packages now performs an IMAP search with its own config."""
+async def test_ups_delivering_searches_imap(hass):
+    """Test that ups_delivering performs an IMAP search with its own config."""
     shipper = GenericShipper(hass, {})
     mock_account = AsyncMock()
     with patch(
         "custom_components.mail_and_packages.shippers.generic.email_search",
         return_value=("OK", [b""]),
     ) as mock_search:
-        await shipper.process(mock_account, "today", "ups_packages")
+        await shipper.process(mock_account, "today", "ups_delivering")
         mock_search.assert_called_once()
         call_args = mock_search.call_args
         # Verify UPS emails are passed
@@ -962,15 +960,15 @@ async def test_ups_packages_searches_imap(hass):
 
 
 @pytest.mark.asyncio
-async def test_ups_packages_with_forwarded_emails_includes_both(hass):
-    """Test that forwarded_emails are prepended to UPS emails for ups_packages."""
+async def test_ups_delivering_with_forwarded_emails_includes_both(hass):
+    """Test that forwarded_emails are prepended to UPS emails for ups_delivering."""
     shipper = GenericShipper(hass, {"forwarded_emails": ["forwarder@example.com"]})
     mock_account = AsyncMock()
     with patch(
         "custom_components.mail_and_packages.shippers.generic.email_search",
         return_value=("OK", [b""]),
     ) as mock_search:
-        await shipper.process(mock_account, "today", "ups_packages")
+        await shipper.process(mock_account, "today", "ups_delivering")
         mock_search.assert_called_once()
         email_list = mock_search.call_args.kwargs["address"]
         assert "forwarder@example.com" in email_list
@@ -978,10 +976,8 @@ async def test_ups_packages_with_forwarded_emails_includes_both(hass):
 
 
 def test_compute_package_totals(hass):
-    """Test _compute_package_totals sets _packages as delivering + delivered for carriers with empty config."""
+    """Test _compute_package_totals sets _packages as delivering + delivered for carriers."""
     shipper = GenericShipper(hass, {})
-    # capost_packages / hermes_packages still have {} config — computed totals
-    # dhl_packages is IMAP-backed ("ist unterwegs") and must keep its own count
     batch_results = [
         (
             "capost_delivering",
@@ -996,8 +992,8 @@ def test_compute_package_totals(hass):
         ("hermes_delivered", {"hermes_delivered": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
         ("hermes_packages", {"hermes_packages": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
         ("dhl_delivering", {"dhl_delivering": 2, ATTR_COUNT: 2, ATTR_TRACKING: []}),
-        ("dhl_delivered", {"dhl_delivered": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
-        ("dhl_packages", {"dhl_packages": 5, ATTR_COUNT: 5, ATTR_TRACKING: ["T1"]}),
+        ("dhl_delivered", {"dhl_delivered": 1, ATTR_COUNT: 1, ATTR_TRACKING: []}),
+        ("dhl_packages", {"dhl_packages": 0, ATTR_COUNT: 0, ATTR_TRACKING: []}),
     ]
     shipper._compute_package_totals(batch_results)
 
@@ -1010,53 +1006,17 @@ def test_compute_package_totals(hass):
     assert hermes_res[ATTR_COUNT] == 2
 
     _, dhl_res = next(r for r in batch_results if r[0] == "dhl_packages")
-    assert dhl_res["dhl_packages"] == 5
-    assert dhl_res[ATTR_COUNT] == 5
+    assert dhl_res["dhl_packages"] == 3  # 2 delivering + 1 delivered
+    assert dhl_res[ATTR_COUNT] == 3
 
 
-def test_dhl_ofd_vs_unterwegs_subject_split():
-    """DHL OFD subjects stay on delivering; 'ist unterwegs' is packages-only."""
+def test_dhl_delivering_subjects():
+    """DHL delivering subjects include 'kommt heute' and not 'ist unterwegs'."""
     delivering = SENSOR_DATA["dhl_delivering"]["subject"]
-    packages = SENSOR_DATA["dhl_packages"]["subject"]
 
     assert "kommt heute" in delivering
     assert "ist unterwegs" not in delivering
-    assert "Jetzt Live verfolgen" not in delivering
-
-    assert "ist unterwegs" in packages
-    assert "kommt heute" not in packages
-    assert "Jetzt Live verfolgen" not in packages
-    assert SENSOR_DATA["dhl_packages"].get("email")
-
-
-def test_sync_packages_tracking_after_dedup(hass):
-    """IMAP-backed packages tracking is stored after OFD numbers are removed."""
-    shipper = GenericShipper(hass, {})
-    batch_results = [
-        (
-            "dhl_delivering",
-            {
-                "dhl_delivering": 1,
-                ATTR_COUNT: 1,
-                ATTR_TRACKING: ["OFD1"],
-            },
-        ),
-        (
-            "dhl_packages",
-            {
-                "dhl_packages": 2,
-                ATTR_COUNT: 2,
-                ATTR_TRACKING: ["OFD1", "TRANSIT1"],
-            },
-        ),
-    ]
-    shipper._deduplicate_batch_tracking(batch_results)
-    shipper._sync_packages_tracking(batch_results)
-
-    _, packages_res = next(r for r in batch_results if r[0] == "dhl_packages")
-    assert packages_res["dhl_packages"] == 1
-    assert packages_res[ATTR_TRACKING] == ["TRANSIT1"]
-    assert packages_res["dhl_packages_tracking"] == ["TRANSIT1"]
+    assert SENSOR_DATA["dhl_packages"] == {}
 
 
 @pytest.mark.asyncio
@@ -1149,8 +1109,8 @@ async def test_process_packages_ignores_since_date(hass):
 
 
 @pytest.mark.asyncio
-async def test_ups_packages_uses_since_date(hass):
-    """ups_packages with real config uses since_date for IMAP search window."""
+async def test_ups_delivering_uses_since_date(hass):
+    """ups_delivering with real config uses since_date for IMAP search window."""
     shipper = GenericShipper(hass, {})
     mock_account = AsyncMock()
 
@@ -1161,7 +1121,7 @@ async def test_ups_packages_uses_since_date(hass):
         await shipper.process(
             mock_account,
             "22-Apr-2026",
-            "ups_packages",
+            "ups_delivering",
             since_date="19-Apr-2026",
         )
 
@@ -1413,14 +1373,23 @@ async def test_etsy_on_the_way_class(hass, mock_imap_etsy_on_the_way):
 
 
 @pytest.mark.asyncio
-async def test_shopify_on_the_way_class(hass, mock_imap_shopify_on_the_way):
-    """Test standard Shopify on-the-way email parsing via GenericShipper."""
-    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+async def test_shopify_out_for_delivery_class(hass, mock_imap):
+    """Test standard Shopify out-for-delivery email parsing via GenericShipper."""
+    email_file = await hass.async_add_executor_job(
+        Path("tests/test_emails/shopify_on_the_way.eml").read_text
+    )
+    email_file = email_file.replace(
+        "Subject: A shipment from order MC1605 is on the way",
+        "Subject: A shipment from order MC1605 is out for delivery",
+    )
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
 
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
     result = await shipper.process(
-        mock_imap_shopify_on_the_way,
+        mock_imap,
         "today",
-        "shopify_packages",
+        "shopify_delivering",
     )
     assert result[ATTR_COUNT] == 1
     assert result[ATTR_TRACKING] == ["MC1605"]
@@ -1524,7 +1493,7 @@ def test_aliexpress_2026_subject_patterns(subject, expected_sensor):
                 "Purolator - Your shipment has been picked up / Votre envoi a été "
                 "ramassé - PIN/NIC:335596611426"
             ),
-            "purolator_packages",
+            None,
         ),
         # Non-shipping notifications from the same sender must not match
         (
@@ -1566,7 +1535,6 @@ def test_purolator_2026_subject_patterns(subject, expected_sensor):
         for sensor in (
             "purolator_delivered",
             "purolator_delivering",
-            "purolator_packages",
         )
         if any(
             expected.lower() in subject.lower()
@@ -1620,9 +1588,9 @@ def test_etsy_subject_patterns(subject, expected_sensor):
 @pytest.mark.parametrize(
     ("subject", "expected_sensor"),
     [
-        ("A shipment from order MC1605 is on the way", "shopify_packages"),
-        ("A shipment from order #24498 is on the way", "shopify_packages"),
-        ("A shipment from order BAK(2)-563319 is on the way", "shopify_packages"),
+        ("A shipment from order MC1605 is on the way", None),
+        ("A shipment from order #24498 is on the way", None),
+        ("A shipment from order BAK(2)-563319 is on the way", None),
         ("A shipment from order MC1605 is out for delivery", "shopify_delivering"),
         ("A shipment from order #53495 has been delivered", "shopify_delivered"),
         # Non-shipping mail from Shopify's shared senders must not match
@@ -1635,7 +1603,7 @@ def test_shopify_subject_patterns(subject, expected_sensor):
     """Each standard Shopify template subject maps to exactly one sensor."""
     matched = [
         sensor
-        for sensor in ("shopify_delivered", "shopify_delivering", "shopify_packages")
+        for sensor in ("shopify_delivered", "shopify_delivering")
         if any(
             expected.lower() in subject.lower()
             for expected in SENSOR_DATA[sensor][ATTR_SUBJECT]
@@ -1900,12 +1868,20 @@ def test_shopify_tracking_pattern(text, expected):
 
 
 @pytest.mark.asyncio
-async def test_shopify_carrier_tracking_extraction(hass, mock_imap_shopify_on_the_way):
+async def test_shopify_carrier_tracking_extraction(hass, mock_imap):
     """The carrier tracking number embedded in a Shopify email is mapped."""
-    shipper = GenericShipper(hass, {"image_path": "test/path/"})
-    result = await shipper.process(
-        mock_imap_shopify_on_the_way, "today", "shopify_packages"
+    email_file = await hass.async_add_executor_job(
+        Path("tests/test_emails/shopify_on_the_way.eml").read_text
     )
+    email_file = email_file.replace(
+        "Subject: A shipment from order MC1605 is on the way",
+        "Subject: A shipment from order MC1605 is out for delivery",
+    )
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = await shipper.process(mock_imap, "today", "shopify_delivering")
     assert result[ATTR_COUNT] == 1
     assert result["shopify_carrier_tracking"] == {"MC1605": "9443743716845537"}
 
@@ -1917,13 +1893,14 @@ async def test_shopify_no_carrier_tracking_is_noop(hass, mock_imap):
         Path("tests/test_emails/shopify_on_the_way.eml").read_text
     )
     email_file = email_file.replace(
-        "Canada post tracking number: 9443743716845537", "Track your shipment"
-    )
+        "Subject: A shipment from order MC1605 is on the way",
+        "Subject: A shipment from order MC1605 is out for delivery",
+    ).replace("Canada post tracking number: 9443743716845537", "Track your shipment")
     mock_imap.select.return_value = ("OK", [b""])
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
 
     shipper = GenericShipper(hass, {"image_path": "test/path/"})
-    result = await shipper.process(mock_imap, "today", "shopify_packages")
+    result = await shipper.process(mock_imap, "today", "shopify_delivering")
     assert result[ATTR_COUNT] == 1
     assert "shopify_carrier_tracking" not in result
 
