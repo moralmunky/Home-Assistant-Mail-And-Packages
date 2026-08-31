@@ -24,6 +24,7 @@ This skill defines the requirements for adding or updating carrier-specific ship
 * **`*_packages`**: Must ALWAYS be configured as an empty dictionary (`{}`) in `SENSOR_DATA`.
   - *Why it exists in `SENSOR_DATA`*: The key is required for entity registration in `sensor.py`, options flow sensor selection, and sensor type descriptions.
   - *Why it must remain `{}`*: An empty config signals to the shipper and coordinator processing engines that the sensor does not perform its own IMAP searches; instead, its value is automatically calculated as a computed rollup total (`delivering + delivered`).
+* For complete architectural details and design rationales on why general "in-transit" packages are excluded, consult [docs/architecture.md](file:///home/firstof9/github/Home-Assistant-Mail-And-Packages/docs/architecture.md).
 
 ### 4. Testing New Shippers
 * Create a corresponding test file under `tests/shippers/` (e.g. `test_new_shipper.py`).
