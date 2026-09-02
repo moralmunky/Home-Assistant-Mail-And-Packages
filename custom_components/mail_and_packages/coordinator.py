@@ -650,7 +650,14 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             if not shipper or shipper in shippers_counted:
                 continue
 
-            if key.endswith(("_delivering", "_packages")):
+            # Only *_delivering feeds the in-transit total. A shipper's
+            # *_packages sensor is a computed rollup of _delivering +
+            # _delivered (GenericShipper._compute_package_totals), so counting
+            # it here keeps a package "in transit" after it is delivered: the
+            # delivery drops _delivering to 0 but leaves _packages at 1, and
+            # the rollup then reports that one package as both in transit and
+            # delivered until the counts reset at midnight.
+            if key.endswith("_delivering"):
                 transit += value
                 shippers_counted.add(shipper)
 

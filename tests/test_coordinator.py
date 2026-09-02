@@ -310,6 +310,7 @@ async def test_aggregate_package_counts(hass):
         "usps_delivered": 1,
         "ups_delivering": 2,
         "ups_delivered": 0,
+        "fedex_delivering": 1,
         "fedex_packages": 3,
         "fedex_delivered": 2,
         "amazon_packages": 5,
@@ -325,14 +326,17 @@ async def test_aggregate_package_counts(hass):
     coordinator._aggregate_package_counts(test_data)
 
     # Expected Transit:
-    # usps_delivering (1) + ups_delivering (2) + fedex_packages (3) + amazon_packages (5)
-    # + amazon_exception (1) + dhl_exception (1)
-    # = 1 + 2 + 3 + 5 + 1 + 1 = 13
-    assert test_data["zpackages_transit"] == 13
+    # usps_delivering (1) + ups_delivering (2) + fedex_delivering (1)
+    # + amazon_packages (5) + amazon_exception (1) + dhl_exception (1)
+    # = 1 + 2 + 1 + 5 + 1 + 1 = 11
+    # fedex_packages (3) is a _delivering + _delivered rollup, so it is not
+    # counted: its 2 delivered packages are not in transit.
+    assert test_data["zpackages_transit"] == 11
 
     # Expected Delivering:
-    # usps_delivering (1) + ups_delivering (2) + amazon_delivering (2) = 5
-    assert test_data["zpackages_delivering"] == 5
+    # usps_delivering (1) + ups_delivering (2) + amazon_delivering (2)
+    # + fedex_delivering (1) = 6
+    assert test_data["zpackages_delivering"] == 6
 
     # Expected Delivered:
     # usps_delivered (1) + fedex_delivered (2) + amazon_delivered (1)
@@ -356,6 +360,44 @@ async def test_aggregate_package_counts_no_resource(hass):
 
     assert "zpackages_transit" not in test_data
     assert "zpackages_delivered" not in test_data
+
+
+@pytest.mark.asyncio
+async def test_aggregate_transit_excludes_delivered_packages(hass):
+    """A delivered package must not stay in the in-transit rollup.
+
+    Regression test: *_packages is a rollup of *_delivering + *_delivered, so
+    once the only package of the day is delivered *_delivering drops to 0
+    while *_packages stays at 1. Counting *_packages as transit reported that
+    single package as both "1 in transit" and "1 delivered" for the rest of
+    the day, until the counts reset at midnight.
+    """
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    # Out for delivery: one package, in transit.
+    out_for_delivery = {
+        "zpackages_transit": 0,
+        "zpackages_delivered": 0,
+        "fedex_delivering": 1,
+        "fedex_delivered": 0,
+        "fedex_packages": 1,
+    }
+    coordinator._aggregate_package_counts(out_for_delivery)
+    assert out_for_delivery["zpackages_transit"] == 1
+    assert out_for_delivery["zpackages_delivered"] == 0
+
+    # Delivered: the same package, no longer in transit.
+    delivered = {
+        "zpackages_transit": 0,
+        "zpackages_delivered": 0,
+        "fedex_delivering": 0,
+        "fedex_delivered": 1,
+        "fedex_packages": 1,
+    }
+    coordinator._aggregate_package_counts(delivered)
+    assert delivered["zpackages_transit"] == 0
+    assert delivered["zpackages_delivered"] == 1
 
 
 @pytest.mark.asyncio
@@ -637,16 +679,18 @@ async def test_sum_transit_counts_prefers_delivering_over_packages(hass):
 
 
 @pytest.mark.asyncio
-async def test_sum_transit_counts_packages_only(hass):
-    """Cover packages-only shippers when delivering is not present."""
+async def test_sum_transit_counts_ignores_packages_rollup(hass):
+    """*_packages rollups never contribute to the in-transit total."""
     with patch("homeassistant.helpers.frame.report_usage"):
         coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     data = {
-        "hermes_packages": 2,  # packages-only
+        "hermes_packages": 2,  # rollup of the delivering + delivered below
+        "hermes_delivering": 1,
+        "hermes_delivered": 1,
         "dhl_delivering": 1,
     }
-    assert coordinator._sum_transit_counts(data) == 3  # hermes 2 + dhl delivering 1
+    assert coordinator._sum_transit_counts(data) == 2  # hermes 1 + dhl 1
 
 
 @pytest.mark.asyncio
