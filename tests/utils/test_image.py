@@ -6,6 +6,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+from PIL import Image as PILImage
 
 from custom_components.mail_and_packages.const import (
     CONF_STORAGE,
@@ -452,6 +453,38 @@ async def test_resize_images_success():
         result = resize_images(["/fake/path/test.jpg"], 100, 100)
         assert len(result) == 1
         assert "_resized.gif" in result[0]
+
+
+@pytest.mark.asyncio
+async def test_resize_images_applies_exif_orientation(tmp_path):
+    """A rotated source photo is uprighted before its EXIF is discarded.
+
+    Regression test: courier delivery photos are commonly stored rotated
+    with an EXIF Orientation tag. resize_images writes GIF frames and GIF
+    carries no EXIF, so the orientation has to be applied here — applying it
+    downstream in generate_delivery_gif is a no-op, and the delivery photo
+    ends up on the camera entity lying on its side.
+    """
+    source = tmp_path / "delivery.jpg"
+    # Portrait as stored, landscape as displayed (Orientation 6 = rotate 90).
+    photo = PILImage.new("RGB", (40, 80), "black")
+    photo.paste((255, 0, 0), (0, 0, 40, 40))
+    photo.paste((0, 0, 255), (0, 40, 40, 80))
+    exif = photo.getexif()
+    exif[0x0112] = 6
+    photo.save(source, "JPEG", exif=exif)
+
+    resized = resize_images([str(source)], 100, 100)
+    assert len(resized) == 1
+
+    with PILImage.open(resized[0]) as result:
+        # The pad colour is black, so the non-black bounding box is the photo.
+        left, upper, right, lower = result.convert("RGB").getbbox()
+
+    # Displayed upright the photo is landscape, so ImageOps.pad leaves bars
+    # above and below it. Without the transpose it stays portrait and the
+    # bars are on the sides instead.
+    assert right - left > lower - upper
 
 
 @pytest.mark.asyncio

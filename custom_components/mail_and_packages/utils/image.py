@@ -188,6 +188,14 @@ def resize_images(images: list, width: int, height: int) -> list:
             img_path = Path(image_path)
             with img_path.open("rb") as fd_img:
                 img = Image.open(fd_img)
+                # Bake in the EXIF orientation before anything else. Delivery
+                # photos come straight off a courier's handheld and are very
+                # often stored rotated with an Orientation tag, and the frames
+                # written below are GIF, which cannot carry EXIF at all — so
+                # this is the last point at which the tag still exists. Doing
+                # it any later (generate_delivery_gif also calls
+                # exif_transpose) is a no-op on frames whose EXIF is gone.
+                img = ImageOps.exif_transpose(img)
                 img.thumbnail((width, height), resample=Image.Resampling.LANCZOS)
                 img = ImageOps.pad(
                     img,
