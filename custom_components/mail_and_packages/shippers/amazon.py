@@ -32,6 +32,7 @@ from custom_components.mail_and_packages.const import (
     AMAZON_HUB_SUBJECT,
     AMAZON_HUB_SUBJECT_SEARCH,
     AMAZON_ORDER,
+    AMAZON_ORDER_DETAILS,
     AMAZON_ORDERED_SUBJECT,
     AMAZON_OTP,
     AMAZON_OTP_CODE,
@@ -51,6 +52,7 @@ from custom_components.mail_and_packages.utils.amazon import (
     _extract_hub_code,
     amazon_email_addresses,
     download_amazon_img,
+    extract_amazon_order_details,
     extract_order_numbers,
     filter_amazon_strings,
     get_decoded_subject,
@@ -114,9 +116,13 @@ class AmazonShipper(Shipper):
             orders = await self._parse_amazon_emails(
                 account, "order", fwds, days, domain, cache, forwarding_header
             )
+            details = await self._parse_amazon_emails(
+                account, "details", fwds, days, domain, cache, forwarding_header
+            )
             return {
                 AMAZON_PACKAGES: count,
                 AMAZON_ORDER: orders,
+                AMAZON_ORDER_DETAILS: details,
             }
 
         if sensor_type == AMAZON_DELIVERING:
@@ -218,6 +224,7 @@ class AmazonShipper(Shipper):
             "deliveries_today": [],
             "delivering_today": [],
             "all_shipped_orders": set(),
+            "order_details": {},
             "order_pattern": order_pattern,
         }
 
@@ -233,7 +240,7 @@ class AmazonShipper(Shipper):
         if param == "count":
             return final_count
 
-        return [
+        orders = [
             order_id
             for order_id in context["all_shipped_orders"]
             if context["packages_arriving_today"].get(order_id, 0)
@@ -243,6 +250,15 @@ class AmazonShipper(Shipper):
                 and context["delivered_packages"].get(order_id, 0) == 0
             )
         ]
+
+        if param == "details":
+            return {
+                order_id: context["order_details"][order_id]
+                for order_id in orders
+                if order_id in context["order_details"]
+            }
+
+        return orders
 
     async def _process_amazon_email(
         self,
@@ -276,7 +292,9 @@ class AmazonShipper(Shipper):
                 self._handle_delivered_email(email_subject, email_msg, ctx)
                 continue
 
-            await self._handle_shipping_email(email_subject, email_msg, email_date, ctx)
+            await self._handle_shipping_email(
+                email_subject, email_msg, email_date, ctx, msg=msg
+            )
 
     async def _parse_email_date(
         self,
@@ -305,11 +323,14 @@ class AmazonShipper(Shipper):
         body: str | None,
         date: datetime.date | None,
         ctx: dict,
+        msg: email.message.Message | None = None,
     ):
         """Handle an Amazon 'shipping' or 'arriving' email."""
         order_id = self._extract_first_order_id(subject, body, ctx["order_pattern"])
         if order_id:
             ctx["all_shipped_orders"].add(order_id)
+            if details := extract_amazon_order_details(subject, body, msg):
+                ctx["order_details"].setdefault(order_id, details)
 
         is_delivering = any(
             s.lower() in subject.lower() for s in AMAZON_DELIVERING_SUBJECT

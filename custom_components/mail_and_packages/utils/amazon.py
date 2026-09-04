@@ -184,6 +184,56 @@ def get_email_body(msg: email.message.Message) -> str:
         return ""
 
 
+def get_html_body(msg: email.message.Message) -> str:
+    """Extract and decode the text/html body part, if any."""
+    try:
+        for part in msg.walk():
+            if part.get_content_type() == "text/html":
+                return part.get_payload(decode=True).decode("utf-8", "ignore")
+    except (ValueError, TypeError, AttributeError) as err:
+        _LOGGER.debug("Problem decoding html body: %s", err)
+    return ""
+
+
+AMAZON_PRODUCT_IMG_REGEX = re.compile(
+    r"https://[a-z0-9.-]*(?:media-amazon|images-amazon)\.com/images/I/[^\"'\s)]+"
+)
+AMAZON_ITEM_LINE_REGEX = re.compile(r"^\* (.+)$", re.MULTILINE)
+AMAZON_SHIPPED_SUBJECT_REGEX = re.compile(r"[\u201c\"](.+?)[\u201d\"]")
+
+
+def extract_amazon_order_details(
+    subject: str,
+    body: str | None,
+    msg: email.message.Message | None = None,
+) -> dict[str, str] | None:
+    """Extract item name(s) and a product image URL from a shipping email.
+
+    Item names come from the plain-text item lines ("* <name>"); the
+    truncated quoted name in the subject is the fallback. The image is the
+    first Amazon product thumbnail in the text/html part.
+    """
+    name = None
+    if body and (items := AMAZON_ITEM_LINE_REGEX.findall(body)):
+        name = "; ".join(item.strip() for item in items)
+    elif subject and (found := AMAZON_SHIPPED_SUBJECT_REGEX.search(subject)):
+        name = found.group(1).strip()
+
+    image = None
+    if msg is not None and (html := get_html_body(msg)):
+        if found := AMAZON_PRODUCT_IMG_REGEX.search(html):
+            image = found.group(0)
+
+    if not name and not image:
+        return None
+    details = {}
+    if name:
+        details["name"] = name
+    if image:
+        details["image"] = image
+    return details
+
+
 def extract_order_numbers(text: str, pattern: re.Pattern | str) -> list[str]:
     """Extract order numbers from text."""
     if isinstance(pattern, str):
