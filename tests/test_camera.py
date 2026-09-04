@@ -2393,7 +2393,7 @@ async def test_generic_camera_rebuilds_gif_when_missing(hass, caplog):
 
     gif_exists = True
 
-    def _exists(self) -> bool:
+    def _exists(self, *args, **kwargs) -> bool:
         """Report the delivery image as present, the GIF per gif_exists."""
         if GENERIC_DELIVERIES_GIF in str(self):
             return gif_exists
