@@ -449,7 +449,7 @@ def test_build_search_single_header():
     )
     assert (
         search
-        == 'OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" SINCE 25-Mar-2026'
+        == '(OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com") SINCE 25-Mar-2026'
     )
 
     utf8, search_yahoo = build_search(
@@ -473,7 +473,7 @@ def test_build_search_multiple_header():
     )
     assert (
         search
-        == 'OR OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" OR HEADER "X-SimpleLogin-Original-From" "pkginfo@ups.com" FROM "pkginfo@ups.com" SINCE 25-Mar-2026'
+        == 'OR (OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com") (OR HEADER "X-SimpleLogin-Original-From" "pkginfo@ups.com" FROM "pkginfo@ups.com") SINCE 25-Mar-2026'
     )
 
     utf8, search_yahoo = build_search(
@@ -484,7 +484,7 @@ def test_build_search_multiple_header():
     )
     assert (
         search_yahoo
-        == '((OR OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" OR HEADER "X-SimpleLogin-Original-From" "pkginfo@ups.com" FROM "pkginfo@ups.com") SINCE 25-Mar-2026)'
+        == '((OR (OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com") (OR HEADER "X-SimpleLogin-Original-From" "pkginfo@ups.com" FROM "pkginfo@ups.com")) SINCE 25-Mar-2026)'
     )
 
 
@@ -498,7 +498,7 @@ def test_build_search_header_with_subject():
     )
     assert (
         search
-        == 'OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" SUBJECT "UPS Ship Notification" SINCE 25-Mar-2026'
+        == '(OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com") SUBJECT "UPS Ship Notification" SINCE 25-Mar-2026'
     )
 
     utf8, search_yahoo = build_search(
@@ -511,6 +511,21 @@ def test_build_search_header_with_subject():
     assert (
         search_yahoo
         == '((OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com") SUBJECT "UPS Ship Notification" SINCE 25-Mar-2026)'
+    )
+
+
+def test_build_search_header_with_multiple_subjects_issue_1403():
+    """Test build_search with header and multiple subjects preserves OR precedence (issue #1403)."""
+    subjects = ["Delivered", "Your Amazon order has arrived!"]
+    utf8, search = build_search(
+        ["pickup-point@amazon.com"],
+        "04-Sep-2026",
+        subject=subjects,
+        header="Delivered-To: user@example.com",
+    )
+    assert (
+        search
+        == '(OR HEADER "Delivered-To: user@example.com" "pickup-point@amazon.com" FROM "pickup-point@amazon.com") OR SUBJECT "Delivered" SUBJECT "Your Amazon order has arrived!" SINCE 04-Sep-2026'
     )
 
 
