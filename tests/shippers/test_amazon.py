@@ -1157,6 +1157,25 @@ async def test_is_amazon_delivered_skips_non_bytes_response_parts(hass):
 
 
 @pytest.mark.asyncio
+async def test_is_amazon_delivered_item_count_format(hass):
+    """Test that _is_amazon_delivered matches newer 'Delivered N item(s): ...' subjects (issue #1403)."""
+    shipper = AmazonShipper(
+        hass,
+        {"image_path": "/fake/path/", "amazon_image": "amazon.jpg"},
+    )
+    subjects = [
+        b"Subject: Delivered 2 items: Phone Accessories, Electronics\nContent-Type: text/html\n\nNo images",
+        b"Subject: Delivered 1 item: Plumbing Supplies\nContent-Type: text/html\n\nNo images",
+        b"Subject: Delivered: Your Amazon order has arrived!\nContent-Type: text/html\n\nNo images",
+    ]
+    for subj_bytes in subjects:
+        is_delivered, _ = shipper._is_amazon_delivered(
+            [subj_bytes], ["Delivered", "Your Amazon order has arrived!"]
+        )
+        assert is_delivered is True
+
+
+@pytest.mark.asyncio
 async def test_amazon_de_emails(hass):
     """Test that amazon.de German-language emails are parsed and counted correctly."""
     shipper = AmazonShipper(
