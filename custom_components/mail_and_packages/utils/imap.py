@@ -287,9 +287,9 @@ def _build_address_clause(
 ) -> str:
     """Build FROM / HEADER address search clause."""
     if header:
-        parts = [f'OR HEADER "{header}" "{a}" FROM "{a}"' for a in address]
+        parts = [f'(OR HEADER "{header}" "{a}" FROM "{a}")' for a in address]
         if len(parts) == 1:
-            return f"({parts[0]})" if is_yahoo else parts[0]
+            return parts[0]
         or_prefix = " ".join(["OR"] * (len(parts) - 1))
         return (
             f"({or_prefix} {' '.join(parts)})"
