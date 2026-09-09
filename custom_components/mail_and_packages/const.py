@@ -32,6 +32,7 @@ ATTR_COUNT = "count"
 ATTR_CODE = "code"
 ATTR_GRID_IMAGE_NAME = "grid_image"
 ATTR_ORDER = "order"
+ATTR_ORDER_DETAILS = "order_details"
 ATTR_TRACKING = "tracking"
 ATTR_TRACKING_NUM = "tracking_#"
 ATTR_IMAGE = "image"
@@ -213,6 +214,7 @@ AMAZON_EMAIL = [
 ]
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
+AMAZON_ORDER_DETAILS = "amazon_order_details"
 AMAZON_DELIVERED = "amazon_delivered"
 AMAZON_DELIVERING = "amazon_delivering"
 AMAZON_IMG_LIST = [
