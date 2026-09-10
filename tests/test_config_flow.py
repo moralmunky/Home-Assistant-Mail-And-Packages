@@ -4189,6 +4189,45 @@ async def test_get_mailboxes_generic_exception(hass, caplog):
 
 
 @pytest.mark.asyncio
+async def test_get_mailboxes_positional_oauth_token(hass):
+    """Test _get_mailboxes with positional arguments including oauth_token."""
+    mock_conn = AsyncMock()
+    mock_conn.wait_hello_from_server = AsyncMock()
+    mock_conn.login = AsyncMock(return_value=MagicMock(result="OK"))
+    mock_response = MagicMock()
+    mock_response.result = "OK"
+    mock_response.lines = [b'(\\HasNoChildren) "/" "INBOX"']
+    mock_conn.list = AsyncMock(return_value=mock_response)
+    mock_conn.logout = AsyncMock()
+
+    with patch(
+        "custom_components.mail_and_packages.config_flow.login",
+        return_value=mock_conn,
+    ) as mock_login:
+        result = await _get_mailboxes(
+            hass,
+            "host",
+            993,
+            "user",
+            "",
+            "SSL",
+            True,
+            "pos_oauth_token",
+        )
+        assert result == ["INBOX"]
+        mock_login.assert_called_once_with(
+            hass,
+            "host",
+            993,
+            "user",
+            "",
+            "SSL",
+            True,
+            oauth_token="pos_oauth_token",
+        )
+
+
+@pytest.mark.asyncio
 async def test_validate_user_input_specific_images():
     """Test validation logic for specific custom image providers."""
     # Common base input
