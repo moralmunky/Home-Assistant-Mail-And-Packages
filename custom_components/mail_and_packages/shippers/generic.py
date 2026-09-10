@@ -90,6 +90,70 @@ class GenericShipper(Shipper):
         """Return True if this shipper handles the given sensor type."""
         return sensor_type in SENSOR_DATA
 
+    @staticmethod
+    def _determine_search_date(
+        sensor_type: str,
+        date: str,
+        since_date: str | None,
+    ) -> str:
+        """Determine whether to use extended search window across midnight."""
+        if (
+            since_date
+            and sensor_type.endswith(
+                ("_delivering", "_exception", "_delivered", "_packages")
+            )
+            and sensor_type != "post_de_delivering"
+        ):
+            return since_date
+        return date
+
+    async def _process_delivered_today(
+        self,
+        account: IMAP4_SSL,
+        email_addresses: list[str],
+        date: str,
+        subjects: list[str],
+        base_ctx: SearchContext,
+        result: dict[str, Any],
+    ) -> int:
+        """Perform second pass for delivered sensors to get today-only counts."""
+        today_ctx = SearchContext(
+            sensor_type=base_ctx.sensor_type,
+            config=base_ctx.config,
+            shipper_cfg=base_ctx.shipper_cfg,
+            result={ATTR_COUNT: 0, ATTR_TRACKING: []},
+            cache=base_ctx.cache,
+            forwarding_header=base_ctx.forwarding_header,
+        )
+        today_count, today_found, _ = await self._search_for_emails(
+            account,
+            email_addresses,
+            date,
+            subjects,
+            today_ctx,
+        )
+        today_tracking = await self._process_tracking_numbers(
+            base_ctx.sensor_type, today_found, account, base_ctx.cache
+        )
+        result[ATTR_TRACKING] = today_tracking
+        return len(today_tracking) if today_tracking else today_count
+
+    async def _finalize_shipper_image(
+        self,
+        shipper_cfg: dict[str, Any] | None,
+        image_path: str | None,
+        image_found: bool,
+        result: dict[str, Any],
+    ) -> None:
+        """Set shipper image attributes and placeholder fallback if needed."""
+        if shipper_cfg:
+            image_attr = f"{shipper_cfg['name']}_image"
+            result[image_attr] = shipper_cfg["image_name"]
+            result["image_path"] = image_path
+
+            if not image_found:
+                await self._copy_generic_placeholder(shipper_cfg)
+
     async def process(
         self,
         account: IMAP4_SSL,
@@ -113,8 +177,6 @@ class GenericShipper(Shipper):
         email_addresses = config.get(ATTR_EMAIL, [])
         subjects = config.get(ATTR_SUBJECT, [])
 
-        # _packages sensors with no email/subject are computed in process_batch
-        # as delivering + delivered; skip IMAP search here.
         if sensor_type.endswith("_packages") and not email_addresses and not subjects:
             _LOGGER.debug(
                 "Skipping email search for %s: no email addresses configured",
@@ -123,29 +185,10 @@ class GenericShipper(Shipper):
             return {ATTR_COUNT: 0, ATTR_TRACKING: []}
 
         forwarding_header, email_addresses = self._resolve_forwarding(email_addresses)
-
-        # _delivering/_exception/_packages use the extended window so in-transit
-        # packages remain visible across the midnight boundary.
-        # _delivered uses today's date for the sensor count (resets at midnight)
-        # but also searches the extended window to obtain tracking numbers for
-        # deduplication — without those, a package delivered yesterday would still
-        # appear as "delivering" today because the delivering email is in the window
-        # but the delivered email is not.
         is_delivered = sensor_type.endswith("_delivered")
-        search_date = date
-        if (
-            since_date
-            and sensor_type.endswith(
-                ("_delivering", "_exception", "_delivered", "_packages")
-            )
-            and sensor_type != "post_de_delivering"
-        ):
-            search_date = since_date
+        search_date = self._determine_search_date(sensor_type, date, since_date)
+        result: dict[str, Any] = {ATTR_COUNT: 0, ATTR_TRACKING: []}
 
-        result = {ATTR_COUNT: 0, ATTR_TRACKING: []}
-
-        # Skip email search for sensors with no email addresses configured
-        # (e.g. *_packages sensors that are empty dicts in SENSOR_DATA)
         if not email_addresses:
             _LOGGER.debug(
                 "Skipping email search for %s: no email addresses configured",
@@ -154,10 +197,7 @@ class GenericShipper(Shipper):
             return result
 
         image_path = self.config.get("image_path")
-        # Setup image extraction
         shipper_cfg = await self._setup_image_extraction(sensor_type, image_path)
-        image_found = False
-
         search_ctx = SearchContext(
             sensor_type=sensor_type,
             config=config,
@@ -175,7 +215,6 @@ class GenericShipper(Shipper):
             search_ctx,
         )
 
-        # Process tracking numbers
         result[ATTR_TRACKING] = await self._process_tracking_numbers(
             sensor_type,
             found_data,
@@ -193,42 +232,13 @@ class GenericShipper(Shipper):
 
         if is_delivered:
             result["pre_filtered_tracking"] = result.get(ATTR_TRACKING, [])
-
-        # For _delivered sensors, the extended-window search gives us tracking
-        # numbers needed for deduplication (above), but the count must reflect
-        # only today's deliveries so the sensor resets at midnight.
-        if is_delivered and since_date and search_date != date:
-            today_result: dict[str, Any] = {ATTR_COUNT: 0, ATTR_TRACKING: []}
-            today_ctx = SearchContext(
-                sensor_type=sensor_type,
-                config=config,
-                shipper_cfg=shipper_cfg,
-                result=today_result,
-                cache=cache,
-                forwarding_header=forwarding_header,
-            )
-            today_count, today_found, _ = await self._search_for_emails(
-                account,
-                email_addresses,
-                date,
-                subjects,
-                today_ctx,
-            )
-            today_tracking = await self._process_tracking_numbers(
-                sensor_type, today_found, account, cache
-            )
-            count = len(today_tracking) if today_tracking else today_count
-            result[ATTR_TRACKING] = today_tracking
+            if since_date and search_date != date:
+                count = await self._process_delivered_today(
+                    account, email_addresses, date, subjects, search_ctx, result
+                )
 
         result[ATTR_COUNT] = count
-        if shipper_cfg:
-            image_attr = f"{shipper_cfg['name']}_image"
-            result[image_attr] = shipper_cfg["image_name"]
-            result["image_path"] = image_path
-
-            if not image_found:
-                await self._copy_generic_placeholder(shipper_cfg)
-
+        await self._finalize_shipper_image(shipper_cfg, image_path, image_found, result)
         return result
 
     def _resolve_forwarding(self, email_addresses: list[str]) -> tuple[str, list[str]]:
