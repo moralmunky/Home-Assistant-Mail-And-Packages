@@ -39,6 +39,7 @@ from .const import (
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
     CONF_DURATION,
+    CONF_EXCHANGE_MODE,
     CONF_FEDEX_CUSTOM_IMG,
     CONF_FEDEX_CUSTOM_IMG_FILE,
     CONF_FOLDER,
@@ -73,6 +74,7 @@ from .const import (
     DEFAULT_CUSTOM_DAYS,
     DEFAULT_CUSTOM_IMG,
     DEFAULT_CUSTOM_IMG_FILE,
+    DEFAULT_EXCHANGE_MODE,
     DEFAULT_FEDEX_CUSTOM_IMG,
     DEFAULT_FEDEX_CUSTOM_IMG_FILE,
     DEFAULT_FOLDER,
@@ -604,6 +606,10 @@ async def _get_schema_step_2(
             vol.Optional(
                 CONF_ALLOW_FORWARDED_EMAILS,
                 default=_get_default(CONF_ALLOW_FORWARDED_EMAILS, False),
+            ): cv.boolean,
+            vol.Optional(
+                CONF_EXCHANGE_MODE,
+                default=_get_default(CONF_EXCHANGE_MODE, DEFAULT_EXCHANGE_MODE),
             ): cv.boolean,
             vol.Optional(
                 CONF_GENERATE_GRID,

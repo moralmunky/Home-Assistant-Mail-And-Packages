@@ -39,10 +39,12 @@ from .const import (
     CONF_ALLOW_EXTERNAL,
     CONF_AUTH_TYPE,
     CONF_CUSTOM_DAYS,
+    CONF_EXCHANGE_MODE,
     CONF_FOLDER,
     CONF_IMAP_SECURITY,
     CONF_IMAP_TIMEOUT,
     DEFAULT_CUSTOM_DAYS,
+    DEFAULT_EXCHANGE_MODE,
     DEFAULT_IMAP_TIMEOUT,
     DOMAIN,
     MAX_TRACKING_AGE_DAYS,
@@ -331,6 +333,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             folders = ["INBOX"]
         account._folders = folders  # noqa: SLF001
         account._current_folder = None  # noqa: SLF001
+        account._exchange_mode = bool(  # noqa: SLF001
+            config.get(CONF_EXCHANGE_MODE, DEFAULT_EXCHANGE_MODE)
+        )
 
         if folders:
             try:
