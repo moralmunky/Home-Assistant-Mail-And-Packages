@@ -596,6 +596,21 @@ async def test_email_search_success():
 
 
 @pytest.mark.asyncio
+async def test_email_search_outlook_host():
+    """Test email_search automatically detects Exchange mode for outlook/office365 hosts."""
+    mock_acc = AsyncMock()
+    mock_acc.host = "outlook.office365.com"
+    mock_res = MagicMock()
+    mock_res.result = "OK"
+    mock_res.lines = [b"1 2"]
+    mock_acc.uid_search.return_value = mock_res
+
+    result = await email_search(mock_acc, ["test@example.com"], "25-Mar-2026")
+    assert result[0] == "OK"
+    assert result[1] == [b"1 2"]
+
+
+@pytest.mark.asyncio
 async def test_email_search_failure(caplog):
     """Test email_search failure."""
     mock_acc = AsyncMock()
