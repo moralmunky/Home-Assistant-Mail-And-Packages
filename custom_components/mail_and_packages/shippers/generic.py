@@ -5,6 +5,7 @@ from __future__ import annotations
 import email
 import logging
 import re
+from dataclasses import dataclass
 from email.header import decode_header
 from pathlib import Path
 from shutil import copyfile
@@ -44,6 +45,18 @@ from custom_components.mail_and_packages.utils.shipper import (
 from .base import Shipper
 
 _LOGGER = logging.getLogger(__name__)
+
+
+@dataclass
+class SearchContext:
+    """Context for generic shipper email search and processing."""
+
+    sensor_type: str
+    config: dict[str, Any]
+    shipper_cfg: dict[str, Any] | None
+    result: dict[str, Any]
+    cache: EmailCache | None = None
+    forwarding_header: str = ""
 
 
 def _find_carrier_number(msg_parts: list, carrier_re: re.Pattern) -> str | None:
@@ -145,17 +158,21 @@ class GenericShipper(Shipper):
         shipper_cfg = await self._setup_image_extraction(sensor_type, image_path)
         image_found = False
 
+        search_ctx = SearchContext(
+            sensor_type=sensor_type,
+            config=config,
+            shipper_cfg=shipper_cfg,
+            result=result,
+            cache=cache,
+            forwarding_header=forwarding_header,
+        )
+
         count, found_data, image_found = await self._search_for_emails(
             account,
             email_addresses,
             search_date,
             subjects,
-            config,
-            shipper_cfg,
-            sensor_type,
-            result,
-            cache,
-            forwarding_header,
+            search_ctx,
         )
 
         # Process tracking numbers
@@ -182,17 +199,20 @@ class GenericShipper(Shipper):
         # only today's deliveries so the sensor resets at midnight.
         if is_delivered and since_date and search_date != date:
             today_result: dict[str, Any] = {ATTR_COUNT: 0, ATTR_TRACKING: []}
+            today_ctx = SearchContext(
+                sensor_type=sensor_type,
+                config=config,
+                shipper_cfg=shipper_cfg,
+                result=today_result,
+                cache=cache,
+                forwarding_header=forwarding_header,
+            )
             today_count, today_found, _ = await self._search_for_emails(
                 account,
                 email_addresses,
                 date,
                 subjects,
-                config,
-                shipper_cfg,
-                sensor_type,
-                today_result,
-                cache,
-                forwarding_header,
+                today_ctx,
             )
             today_tracking = await self._process_tracking_numbers(
                 sensor_type, today_found, account, cache
@@ -416,12 +436,7 @@ class GenericShipper(Shipper):
         email_addresses: list[str],
         date: str,
         subjects: list[str],
-        config: dict[str, Any],
-        shipper_cfg: dict[str, Any] | None,
-        sensor_type: str,
-        result: dict[str, Any],
-        cache: EmailCache | None = None,
-        forwarding_header: str = "",
+        ctx: SearchContext,
     ) -> tuple[int, list[bytes], bool]:
         """Search for and process emails."""
         count = 0
@@ -434,8 +449,8 @@ class GenericShipper(Shipper):
             address=email_addresses,
             date=date,
             subject=subjects,
-            body=config.get(ATTR_BODY, ""),
-            header=forwarding_header,
+            body=ctx.config.get(ATTR_BODY, ""),
+            header=ctx.forwarding_header,
         )
 
         if server_response == "OK" and sdata[0]:
@@ -443,24 +458,20 @@ class GenericShipper(Shipper):
             _LOGGER.debug(
                 "Found %d matching email IDs for %s: %s",
                 len(raw_ids),
-                sensor_type,
+                ctx.sensor_type,
                 [eid.decode() if isinstance(eid, bytes) else eid for eid in raw_ids],
             )
             verified_ids = await self._verify_matched_subjects(
-                account, raw_ids, sensor_type, subjects, cache
+                account, raw_ids, ctx.sensor_type, subjects, ctx.cache
             )
             filtered_new_ids = self._filter_unique_ids(verified_ids, unique_email_ids)
 
             if filtered_new_ids:
                 count, img_found = await self._process_matched_emails(
                     account,
-                    config,
                     filtered_new_ids,
                     count,
-                    cache,
-                    shipper_cfg,
-                    sensor_type,
-                    result,
+                    ctx,
                     found_data,
                 )
                 if img_found:
@@ -579,31 +590,32 @@ class GenericShipper(Shipper):
     async def _process_matched_emails(
         self,
         account: IMAP4_SSL,
-        config: dict[str, Any],
         new_ids: list[bytes],
         current_count: int,
-        cache: EmailCache | None,
-        shipper_cfg: dict[str, Any] | None,
-        sensor_type: str,
-        result: dict[str, Any],
+        ctx: SearchContext,
         found_data: list[bytes],
     ) -> tuple[int, bool]:
         """Process a batch of matched unique emails."""
         image_found = False
         count, matched_ids = await self._process_emails_by_type(
-            account, config, new_ids, current_count, cache
+            account, ctx.config, new_ids, current_count, ctx.cache
         )
         if matched_ids:
             found_data.append(b" ".join(matched_ids))
 
-            if shipper_cfg:
+            if ctx.shipper_cfg:
                 if await self._extract_images_for_shipper(
-                    account, matched_ids, shipper_cfg, cache
+                    account, matched_ids, ctx.shipper_cfg, ctx.cache
                 ):
                     image_found = True
 
-            if sensor_type.endswith("_delivered") and sensor_type != AMAZON_DELIVERED:
-                await self._check_amazon_mentions(account, matched_ids, result, cache)
+            if (
+                ctx.sensor_type.endswith("_delivered")
+                and ctx.sensor_type != AMAZON_DELIVERED
+            ):
+                await self._check_amazon_mentions(
+                    account, matched_ids, ctx.result, ctx.cache
+                )
 
         return count, image_found
 

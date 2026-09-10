@@ -345,15 +345,29 @@ async def _validate_user_input(
 
 async def _get_mailboxes(
     hass: HomeAssistant,
-    host: str,
-    port: int,
-    user: str,
-    pwd: str,
-    security: str,
-    verify: bool,
+    conn_info: dict[str, Any] | str,
+    *args: Any,
     oauth_token: str | None = None,
+    **kwargs: Any,
 ) -> list:
     """Get list of mailbox folders from mail server."""
+    if isinstance(conn_info, dict):
+        host = conn_info[CONF_HOST]
+        port = conn_info[CONF_PORT]
+        user = conn_info[CONF_USERNAME]
+        pwd = conn_info.get(CONF_PASSWORD, "")
+        security = conn_info[CONF_IMAP_SECURITY]
+        verify = conn_info.get(CONF_VERIFY_SSL, True)
+    else:
+        host = conn_info
+        port = args[0] if len(args) > 0 else kwargs.get("port", 993)
+        user = args[1] if len(args) > 1 else kwargs.get("user", "")
+        pwd = args[2] if len(args) > 2 else kwargs.get("pwd", "")
+        security = args[3] if len(args) > 3 else kwargs.get("security", "SSL")
+        verify = args[4] if len(args) > 4 else kwargs.get("verify", True)
+        if len(args) > 5 and oauth_token is None:
+            oauth_token = args[5]
+
     _LOGGER.debug("Getting mailboxes, login...")
     try:
         account = await login(
@@ -552,13 +566,8 @@ async def _get_schema_step_2(
 
     mailboxes = await _get_mailboxes(
         hass,
-        data[CONF_HOST],
-        data[CONF_PORT],
-        data[CONF_USERNAME],
-        data.get(CONF_PASSWORD, ""),
-        data[CONF_IMAP_SECURITY],
-        data.get(CONF_VERIFY_SSL, True),
-        oauth_token,
+        data,
+        oauth_token=oauth_token,
     )
 
     default_folder = _get_default(CONF_FOLDER)

@@ -6,6 +6,7 @@ import logging
 import re
 import ssl as ssl_lib
 import unicodedata
+from dataclasses import dataclass
 from urllib.parse import quote, unquote
 
 import aioimaplib
@@ -599,30 +600,37 @@ async def _execute_single_search(account: IMAP4_SSL, search_query: str) -> list[
     return await _execute_sequential_search(account, folders, search_query)
 
 
+@dataclass
+class SearchBatchParams:
+    """Parameters for IMAP search batch operations."""
+
+    address_batches: list[list[str]]
+    subject_batches: list[list[str] | str]
+    date: str
+    body_search: str | list[str]
+    header: str
+    is_yahoo: bool
+    is_exchange: bool = False
+
+
 async def _search_all_batches_sequential(
     account: IMAP4_SSL,
-    address_batches: list[list[str]],
-    subject_batches: list[list[str] | str],
-    date: str,
-    body_search: str | list[str],
-    header: str,
-    is_yahoo: bool,
+    params: SearchBatchParams,
     use_multi_folder: bool = False,
-    is_exchange: bool = False,
 ) -> tuple:
     """Execute batch searches sequentially to maintain a single in-flight command on the IMAP connection."""
     batch_queries = [
         build_search(
             addr_batch,
-            date,
+            params.date,
             subj_batch,
-            body_search,
-            header,
-            is_yahoo=is_yahoo,
-            is_exchange=is_exchange,
+            params.body_search,
+            params.header,
+            is_yahoo=params.is_yahoo,
+            is_exchange=params.is_exchange,
         )[1]
-        for addr_batch in address_batches
-        for subj_batch in subject_batches
+        for addr_batch in params.address_batches
+        for subj_batch in params.subject_batches
     ]
 
     all_matched_ids: list[bytes] = []
@@ -654,28 +662,13 @@ async def _search_all_batches_sequential(
 
 async def _email_search_single_folder(
     account: IMAP4_SSL,
-    address_batches: list[list[str]],
-    subject_batches: list[list[str] | str],
-    date: str,
-    body_search: str | list[str],
-    header: str,
-    is_yahoo: bool,
+    params: SearchBatchParams,
+    search_raw: tuple,
     is_batched: bool,
-    address: list,
-    subject_search: list | str,
-    is_exchange: bool = False,
 ) -> tuple:
     """Execute search on a single folder mailbox."""
     if not is_batched:
-        _unused, search = build_search(
-            address,
-            date,
-            subject_search,
-            body_search,
-            header,
-            is_yahoo=is_yahoo,
-            is_exchange=is_exchange,
-        )
+        _unused, search = search_raw
         try:
             result, lines = await _execute_uid_search(account, search)
         except TimeoutError:
@@ -688,41 +681,20 @@ async def _email_search_single_folder(
 
     return await _search_all_batches_sequential(
         account,
-        address_batches,
-        subject_batches,
-        date,
-        body_search,
-        header,
-        is_yahoo,
+        params,
         use_multi_folder=False,
-        is_exchange=is_exchange,
     )
 
 
 async def _email_search_multi_folder(
     account: IMAP4_SSL,
-    address_batches: list[list[str]],
-    subject_batches: list[list[str] | str],
-    date: str,
-    body_search: str | list[str],
-    header: str,
-    is_yahoo: bool,
+    params: SearchBatchParams,
+    search_raw: tuple,
     is_batched: bool,
-    address: list,
-    subject_search: list | str,
-    is_exchange: bool = False,
 ) -> tuple:
     """Execute search across multiple folders."""
     if not is_batched:
-        _unused, search = build_search(
-            address,
-            date,
-            subject_search,
-            body_search,
-            header,
-            is_yahoo=is_yahoo,
-            is_exchange=is_exchange,
-        )
+        _unused, search = search_raw
         try:
             uids = await _execute_single_search(account, search)
         except TimeoutError:
@@ -734,14 +706,8 @@ async def _email_search_multi_folder(
 
     return await _search_all_batches_sequential(
         account,
-        address_batches,
-        subject_batches,
-        date,
-        body_search,
-        header,
-        is_yahoo,
+        params,
         use_multi_folder=True,
-        is_exchange=is_exchange,
     )
 
 
@@ -775,8 +741,18 @@ async def email_search(
             is_exchange = True
 
     body_search = body
-    if body:
-        bodies = [body] if isinstance(body, str) else body
+    if isinstance(body, list):
+        body_search = list(dict.fromkeys(b for b in body if b))
+        if len(body_search) == 1:
+            body_search = body_search[0]
+
+    if isinstance(body_search, str) and (
+        len(body_search.split()) > 2
+        or any(re.search(r"[()|\[\]?*+^$\\]", b) for b in [body_search])
+    ):
+        body_search = ""
+    elif isinstance(body_search, list):
+        bodies = [b for part in body_search for b in part.split()]
         if len(bodies) > 2 or any(re.search(r"[()|\[\]?*+^$\\]", b) for b in bodies):
             body_search = ""
 
@@ -806,33 +782,43 @@ async def email_search(
 
     is_batched = len(address_batches) > 1 or len(subject_batches) > 1
 
+    params = SearchBatchParams(
+        address_batches=address_batches,
+        subject_batches=subject_batches,
+        date=date,
+        body_search=body_search,
+        header=header,
+        is_yahoo=is_yahoo,
+        is_exchange=is_exchange,
+    )
+
+    search_raw = (
+        ("", "")
+        if is_batched
+        else build_search(
+            address,
+            date,
+            subject_search,
+            body_search,
+            header,
+            is_yahoo=is_yahoo,
+            is_exchange=is_exchange,
+        )
+    )
+
     if len(folders) <= 1:
         return await _email_search_single_folder(
             account,
-            address_batches,
-            subject_batches,
-            date,
-            body_search,
-            header,
-            is_yahoo,
+            params,
+            search_raw,
             is_batched,
-            address,
-            subject_search,
-            is_exchange=is_exchange,
         )
 
     return await _email_search_multi_folder(
         account,
-        address_batches,
-        subject_batches,
-        date,
-        body_search,
-        header,
-        is_yahoo,
+        params,
+        search_raw,
         is_batched,
-        address,
-        subject_search,
-        is_exchange=is_exchange,
     )
 
 
