@@ -177,3 +177,125 @@ async def test_home_depot_marketplace_carrier_tracking(hass):
         )
 
     assert mapping == {"home_depot_carrier_tracking": {"WK00000000": "123456789012"}}
+
+
+@pytest.mark.asyncio
+async def test_home_depot_delivering_wn_order_id(hass):
+    """Test Home Depot out for delivery email parsing with WN order number via GenericShipper."""
+    shipper = GenericShipper(hass, {})
+
+    msg = MIMEMultipart("alternative")
+    msg["From"] = "The Home Depot <homedepot@order.homedepot.com>"
+    msg["Subject"] = "Your Home Depot order is out for delivery today."
+    msg["Date"] = "Tue, 10 Mar 2026 11:16:00 -0400"
+
+    html_body = """
+    <html>
+      <body>
+        <h2>Order # WN68937796</h2>
+        <p>Get ready, Customer! Your delivery arrives today!</p>
+        <p>Your delivery is on track to arrive between 6:00am and 8:00pm with one of our carriers.</p>
+        <p>Deliver to Customer: 123 Main St, Anytown, CT 00000</p>
+      </body>
+    </html>
+    """
+    msg.attach(MIMEText(html_body, "html"))
+
+    mock_account = AsyncMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.email_search",
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.email_fetch",
+            return_value=("OK", [msg.as_bytes()]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.email.email_fetch",
+            return_value=("OK", [msg.as_bytes()]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.shipper.email_fetch",
+            return_value=("OK", [msg.as_bytes()]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.email_fetch_headers",
+            return_value=(
+                "OK",
+                [b"Subject: Your Home Depot order is out for delivery today.\r\n"],
+            ),
+        ),
+    ):
+        result = await shipper.process(
+            account=mock_account,
+            date="10-Mar-2026",
+            sensor_type="home_depot_delivering",
+        )
+
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["WN68937796"]
+
+
+@pytest.mark.asyncio
+async def test_home_depot_delivered_wn_order_id(hass):
+    """Test Home Depot delivered email parsing with WN order number via GenericShipper."""
+    shipper = GenericShipper(
+        hass,
+        {
+            "image_path": "test/path/home_depot/",
+        },
+    )
+
+    msg = MIMEMultipart("alternative")
+    msg["From"] = "The Home Depot <homedepot@order.homedepot.com>"
+    msg["Subject"] = "Your Home Depot order has been delivered."
+    msg["Date"] = "Tue, 10 Mar 2026 11:16:00 -0400"
+
+    html_body = """
+    <html>
+      <body>
+        <h2>Order # WN68937796</h2>
+        <p>Your delivery has arrived!</p>
+      </body>
+    </html>
+    """
+    msg.attach(MIMEText(html_body, "html"))
+
+    mock_account = AsyncMock()
+
+    with (
+        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.email_search",
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.email_fetch",
+            return_value=("OK", [msg.as_bytes()]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.email.email_fetch",
+            return_value=("OK", [msg.as_bytes()]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.shipper.email_fetch",
+            return_value=("OK", [msg.as_bytes()]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.email_fetch_headers",
+            return_value=(
+                "OK",
+                [b"Subject: Your Home Depot order has been delivered.\r\n"],
+            ),
+        ),
+    ):
+        result = await shipper.process(
+            account=mock_account,
+            date="10-Mar-2026",
+            sensor_type="home_depot_delivered",
+        )
+
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["WN68937796"]
