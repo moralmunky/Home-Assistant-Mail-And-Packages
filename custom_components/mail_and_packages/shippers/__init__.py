@@ -28,7 +28,6 @@ def get_shipper_for_sensor(
     sensor_type: str,
 ) -> Shipper | None:
     """Return the appropriate shipper for the given sensor type."""
-    # Check specialized shippers first
     for name, shipper_class in SHIPPER_REGISTRY.items():
         if name == "generic":
             continue
