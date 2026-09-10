@@ -952,7 +952,7 @@ SENSOR_DATA = {
             "delay",
         ],
     },
-    "home_depot_tracking": {"pattern": [r"\bWK\d{8}\b"]},
+    "home_depot_tracking": {"pattern": [r"\bW[KN]\d{8}\b"]},
     # Shopify (standard order-notification templates). Sender varies per
     # store; these cover Shopify's shared sending infrastructure. Stores
     # sending from their own domain need their sender added here.
