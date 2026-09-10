@@ -273,13 +273,13 @@ def clean_search_string(val: str) -> str:
 
     Normalizes Unicode characters to NFKD decomposed form, strips non-ASCII
     characters to ensure compatibility with US-ASCII only IMAP servers,
-    and removes any double quotes and colons to prevent syntax corruption.
+    and removes any double quotes to prevent syntax corruption.
     """
     if not val:
         return ""
     normalized = unicodedata.normalize("NFKD", val)
     cleaned = normalized.encode("ascii", "ignore").decode("ascii")
-    return cleaned.replace('"', "").replace(":", "").strip()
+    return cleaned.replace('"', "").strip()
 
 
 def _build_address_clause(
