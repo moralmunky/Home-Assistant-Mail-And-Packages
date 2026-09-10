@@ -576,6 +576,25 @@ class AmazonShipper(Shipper):
         except OSError as err:
             _LOGGER.error("Error attempting to copy image: %s", err)
 
+    def _extract_hub_code_from_parts(
+        self,
+        msg_parts: list[Any],
+    ) -> str | None:
+        """Extract hub code from email message parts."""
+        for response_part in msg_parts:
+            if isinstance(response_part, (bytes, bytearray)):
+                msg = email.message_from_bytes(response_part)
+                actual_subject = get_decoded_subject(msg)
+                body = get_email_body(msg)
+                if hub_code := _extract_hub_code(
+                    body,
+                    AMAZON_HUB_BODY,
+                    actual_subject,
+                    AMAZON_HUB_SUBJECT_SEARCH,
+                ):
+                    return hub_code
+        return None
+
     async def _amazon_hub(
         self,
         account: IMAP4_SSL,
@@ -600,29 +619,22 @@ class AmazonShipper(Shipper):
                 body=AMAZON_HUB_BODY,
                 header=forwarding_header,
             )
-            if server_response == "OK" and data[0] is not None:
-                for num in data[0].split():
-                    if num in processed_ids:
-                        continue
-                    processed_ids.append(num)
-                    if cache:
-                        msg_parts = (await cache.fetch(num, "(RFC822)"))[1]
-                    else:
-                        msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
-                    for response_part in msg_parts:
-                        if isinstance(response_part, (bytes, bytearray)):
-                            msg = email.message_from_bytes(response_part)
-                            actual_subject = get_decoded_subject(msg)
-                            body = get_email_body(msg)
-                            if hub_code := _extract_hub_code(
-                                body,
-                                AMAZON_HUB_BODY,
-                                actual_subject,
-                                AMAZON_HUB_SUBJECT_SEARCH,
-                            ):
-                                count += 1
-                                if hub_code not in code:
-                                    code.append(hub_code)
+            if server_response != "OK" or data[0] is None:
+                continue
+
+            for num in data[0].split():
+                if num in processed_ids:
+                    continue
+                processed_ids.append(num)
+                if cache:
+                    msg_parts = (await cache.fetch(num, "(RFC822)"))[1]
+                else:
+                    msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
+
+                if hub_code := self._extract_hub_code_from_parts(msg_parts):
+                    count += 1
+                    if hub_code not in code:
+                        code.append(hub_code)
         return {AMAZON_HUB: count, AMAZON_HUB_CODE: code}
 
     async def _amazon_otp(
@@ -661,6 +673,26 @@ class AmazonShipper(Shipper):
                             code.append(found.group(2))
         return {AMAZON_OTP: len(code), AMAZON_OTP_CODE: code}
 
+    def _extract_exception_from_parts(
+        self,
+        msg_parts: list[Any],
+        order_pattern: re.Pattern[str],
+    ) -> list[str] | None:
+        """Extract matching order numbers if email matches exception body."""
+        for response_part in msg_parts:
+            if isinstance(response_part, (bytes, bytearray)):
+                msg = email.message_from_bytes(response_part)
+                body = get_email_body(msg)
+                subject = get_decoded_subject(msg)
+                if AMAZON_EXCEPTION_BODY in body:
+                    orders = []
+                    if found := order_pattern.findall(body):
+                        orders.extend(found)
+                    if found := order_pattern.findall(subject):
+                        orders.extend(found)
+                    return orders
+        return None
+
     async def _amazon_exception(
         self,
         account: IMAP4_SSL,
@@ -688,15 +720,10 @@ class AmazonShipper(Shipper):
                     msg_parts = (await cache.fetch(num, "(RFC822)"))[1]
                 else:
                     msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
-                for response_part in msg_parts:
-                    if isinstance(response_part, (bytes, bytearray)):
-                        msg = email.message_from_bytes(response_part)
-                        body = get_email_body(msg)
-                        subject = get_decoded_subject(msg)
-                        if AMAZON_EXCEPTION_BODY in body:
-                            count += 1
-                            if found := order_pattern.findall(body):
-                                orders.extend(found)
-                            if found := order_pattern.findall(subject):
-                                orders.extend(found)
+
+                if extracted_orders := self._extract_exception_from_parts(
+                    msg_parts, order_pattern
+                ):
+                    count += 1
+                    orders.extend(extracted_orders)
         return {AMAZON_EXCEPTION: count, AMAZON_EXCEPTION_ORDER: orders}

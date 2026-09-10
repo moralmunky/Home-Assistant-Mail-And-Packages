@@ -396,6 +396,27 @@ async def download_amazon_img(
             _LOGGER.error("Problem downloading file: %s", err)
 
 
+def _extract_amazon_urls_from_msg(
+    msg: email.message.Message,
+    pattern: re.Pattern[str],
+) -> list[str]:
+    """Extract Amazon delivery image URLs from a message."""
+    urls = []
+    for part in msg.walk():
+        if part.get_content_type() != "text/html":
+            continue
+        part_payload = part.get_payload(decode=True)
+        if not isinstance(part_payload, (bytes, bytearray)):
+            continue
+        part_content = part_payload.decode("utf-8", "ignore")
+        for url in pattern.findall(part_content):
+            if url[1] in AMAZON_IMG_LIST:
+                full_url = url[0] + url[1] + url[2]
+                if full_url not in urls:
+                    urls.append(full_url)
+    return urls
+
+
 async def get_amazon_image_urls(
     sdata: Any,
     account: IMAP4_SSL,
@@ -404,7 +425,7 @@ async def get_amazon_image_urls(
     """Find all Amazon delivery image URLs."""
     mail_list = sdata.split()
     pattern = re.compile(rf"{AMAZON_IMG_PATTERN}")
-    urls = []
+    urls: list[str] = []
     for i in mail_list:
         if cache:
             data = (await cache.fetch(i, "(RFC822)"))[1]
@@ -413,18 +434,9 @@ async def get_amazon_image_urls(
         for response_part in data:
             if isinstance(response_part, (bytes, bytearray)):
                 msg = email.message_from_bytes(response_part)
-                for part in msg.walk():
-                    if part.get_content_type() != "text/html":
-                        continue
-                    part_payload = part.get_payload(decode=True)
-                    part_content = part_payload.decode("utf-8", "ignore")
-                    found = pattern.findall(part_content)
-                    for url in found:
-                        if url[1] not in AMAZON_IMG_LIST:
-                            continue
-                        full_url = url[0] + url[1] + url[2]
-                        if full_url not in urls:
-                            urls.append(full_url)
+                for full_url in _extract_amazon_urls_from_msg(msg, pattern):
+                    if full_url not in urls:
+                        urls.append(full_url)
     return urls
 
 

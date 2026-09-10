@@ -1,12 +1,15 @@
 """Tests for Amazon utility functions."""
 
 import email
+import re
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiohttp
 import pytest
 
+from custom_components.mail_and_packages.const import AMAZON_IMG_PATTERN
 from custom_components.mail_and_packages.utils.amazon import (
+    _extract_amazon_urls_from_msg,
     _extract_hub_code,
     amazon_date_regex,
     amazon_date_search,
@@ -586,3 +589,20 @@ def test_amazon_date_regex_fr():
     assert amazon_date_regex("Livraison prévue : 17 août") == "17 août"
     assert amazon_date_regex("Arrivée prévue demain") == "demain"
     assert amazon_date_regex("Arrivée prévue aujourd'hui") == "aujourd'hui"
+
+
+def test_extract_amazon_urls_from_msg_edge_cases():
+    """Test _extract_amazon_urls_from_msg edge cases."""
+    pattern = re.compile(rf"{AMAZON_IMG_PATTERN}")
+
+    # Plain text message (no html part)
+    msg_plain = email.message_from_string("Content-Type: text/plain\n\nHello")
+    assert _extract_amazon_urls_from_msg(msg_plain, pattern) == []
+
+    # Non-bytes payload
+    msg_bad_payload = MagicMock()
+    part = MagicMock()
+    part.get_content_type.return_value = "text/html"
+    part.get_payload.return_value = None  # not bytes or bytearray
+    msg_bad_payload.walk.return_value = [part]
+    assert _extract_amazon_urls_from_msg(msg_bad_payload, pattern) == []

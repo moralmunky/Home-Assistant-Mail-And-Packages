@@ -517,7 +517,7 @@ async def _get_schema_step_2(
     if user_input is None:
         user_input = {}
 
-    def _get_default(key: str, fallback_default: Any = None) -> None:
+    def _get_default(key: str, fallback_default: Any = None) -> Any:
         """Get default value for key."""
         return user_input.get(key, default_dict.get(key, fallback_default))
 
@@ -578,6 +578,15 @@ async def _get_schema_step_2(
     if not default_folder and "INBOX" in mailboxes:
         default_folder = ["INBOX"]
 
+    return _build_step_2_schema(mailboxes, default_folder, _get_default)
+
+
+def _build_step_2_schema(
+    mailboxes: list[str],
+    default_folder: list[str],
+    get_default: Any,
+) -> vol.Schema:
+    """Build voluptuous schema for step 2 configuration."""
     return vol.Schema(
         {
             vol.Required(CONF_FOLDER, default=default_folder): multi_folder_select(
@@ -585,75 +594,75 @@ async def _get_schema_step_2(
             ),
             vol.Required(
                 CONF_RESOURCES,
-                default=_get_default(CONF_RESOURCES),
+                default=get_default(CONF_RESOURCES),
             ): cv.multi_select(get_resources()),
             vol.Optional(
                 CONF_SCAN_INTERVAL,
-                default=_get_default(CONF_SCAN_INTERVAL),
+                default=get_default(CONF_SCAN_INTERVAL),
             ): vol.All(vol.Coerce(int), vol.Range(min=5)),
             vol.Optional(
                 CONF_CUSTOM_DAYS,
-                default=_get_default(CONF_CUSTOM_DAYS, DEFAULT_CUSTOM_DAYS),
+                default=get_default(CONF_CUSTOM_DAYS, DEFAULT_CUSTOM_DAYS),
             ): vol.All(vol.Coerce(int), vol.Range(min=1)),
             vol.Optional(
                 CONF_IMAP_TIMEOUT,
-                default=_get_default(CONF_IMAP_TIMEOUT),
+                default=get_default(CONF_IMAP_TIMEOUT),
             ): vol.All(vol.Coerce(int), vol.Range(min=10)),
             vol.Optional(
                 CONF_DURATION,
-                default=_get_default(CONF_DURATION),
+                default=get_default(CONF_DURATION),
             ): vol.Coerce(int),
             vol.Optional(
                 CONF_ALLOW_FORWARDED_EMAILS,
-                default=_get_default(CONF_ALLOW_FORWARDED_EMAILS, False),
+                default=get_default(CONF_ALLOW_FORWARDED_EMAILS, False),
             ): cv.boolean,
             vol.Optional(
                 CONF_EXCHANGE_MODE,
-                default=_get_default(CONF_EXCHANGE_MODE, DEFAULT_EXCHANGE_MODE),
+                default=get_default(CONF_EXCHANGE_MODE, DEFAULT_EXCHANGE_MODE),
             ): cv.boolean,
             vol.Optional(
                 CONF_GENERATE_GRID,
-                default=_get_default(CONF_GENERATE_GRID, False),
+                default=get_default(CONF_GENERATE_GRID, False),
             ): cv.boolean,
             vol.Optional(
                 CONF_GENERATE_MP4,
-                default=_get_default(CONF_GENERATE_MP4, False),
+                default=get_default(CONF_GENERATE_MP4, False),
             ): cv.boolean,
             vol.Optional(
                 CONF_USPS_PLACEHOLDER,
-                default=_get_default(CONF_USPS_PLACEHOLDER, DEFAULT_USPS_PLACEHOLDER),
+                default=get_default(CONF_USPS_PLACEHOLDER, DEFAULT_USPS_PLACEHOLDER),
             ): cv.boolean,
             vol.Optional(
                 CONF_ALLOW_EXTERNAL,
-                default=_get_default(CONF_ALLOW_EXTERNAL, False),
+                default=get_default(CONF_ALLOW_EXTERNAL, False),
             ): cv.boolean,
             vol.Optional(
                 CONF_CUSTOM_IMG,
-                default=_get_default(CONF_CUSTOM_IMG, False),
+                default=get_default(CONF_CUSTOM_IMG, False),
             ): cv.boolean,
             vol.Optional(
                 CONF_AMAZON_CUSTOM_IMG,
-                default=_get_default(CONF_AMAZON_CUSTOM_IMG, False),
+                default=get_default(CONF_AMAZON_CUSTOM_IMG, False),
             ): cv.boolean,
             vol.Optional(
                 CONF_UPS_CUSTOM_IMG,
-                default=_get_default(CONF_UPS_CUSTOM_IMG, False),
+                default=get_default(CONF_UPS_CUSTOM_IMG, False),
             ): cv.boolean,
             vol.Optional(
                 CONF_WALMART_CUSTOM_IMG,
-                default=_get_default(CONF_WALMART_CUSTOM_IMG, False),
+                default=get_default(CONF_WALMART_CUSTOM_IMG, False),
             ): cv.boolean,
             vol.Optional(
                 CONF_FEDEX_CUSTOM_IMG,
-                default=_get_default(CONF_FEDEX_CUSTOM_IMG, False),
+                default=get_default(CONF_FEDEX_CUSTOM_IMG, False),
             ): cv.boolean,
             vol.Optional(
                 CONF_GENERIC_CUSTOM_IMG,
-                default=_get_default(CONF_GENERIC_CUSTOM_IMG, False),
+                default=get_default(CONF_GENERIC_CUSTOM_IMG, False),
             ): cv.boolean,
             vol.Optional(
                 CONF_POST_DE_CUSTOM_IMG,
-                default=_get_default(CONF_POST_DE_CUSTOM_IMG, False),
+                default=get_default(CONF_POST_DE_CUSTOM_IMG, False),
             ): cv.boolean,
         },
     )

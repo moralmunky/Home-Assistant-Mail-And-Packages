@@ -495,6 +495,32 @@ class GenericShipper(Shipper):
         full_subject = "".join(decoded_parts)
         return " ".join(full_subject.split())
 
+    def _extract_subject_from_headers(
+        self,
+        header_data: list[Any],
+        sensor_type: str,
+        eid: bytes,
+        expected_subjects_lower: list[str],
+    ) -> bool:
+        """Check if any header part matches the expected subjects."""
+        for part in header_data:
+            if not isinstance(part, (bytes, bytearray)):
+                continue
+            subject = self._decode_subject(part)
+            if not subject:
+                continue
+
+            _LOGGER.debug(
+                "Matched email for %s (ID %s): %s",
+                sensor_type,
+                eid.decode() if isinstance(eid, bytes) else eid,
+                subject,
+            )
+            subject_lower = subject.lower()
+            if any(expected in subject_lower for expected in expected_subjects_lower):
+                return True
+        return False
+
     async def _verify_matched_subjects(
         self,
         account: IMAP4_SSL,
@@ -523,27 +549,9 @@ class GenericShipper(Shipper):
                 else:
                     header_data = (await email_fetch_headers(account, eid))[1]
 
-                subject_found = False
-                for part in header_data:
-                    if isinstance(part, (bytes, bytearray)):
-                        subject = self._decode_subject(part)
-                        if not subject:
-                            continue
-
-                        _LOGGER.debug(
-                            "Matched email for %s (ID %s): %s",
-                            sensor_type,
-                            eid.decode() if isinstance(eid, bytes) else eid,
-                            subject,
-                        )
-                        subject_lower = subject.lower()
-                        if any(
-                            expected in subject_lower
-                            for expected in expected_subjects_lower
-                        ):
-                            subject_found = True
-
-                if subject_found:
+                if self._extract_subject_from_headers(
+                    header_data, sensor_type, eid, expected_subjects_lower
+                ):
                     verified_ids.append(eid)
                 else:
                     _LOGGER.debug(
