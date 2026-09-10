@@ -35,6 +35,8 @@ IMAP_ADDRESS_BATCH_SIZE = 5
 def _get_subject_batch_size(account: IMAP4_SSL) -> int:
     """Return subject batch size based on server capability or host."""
     # Servers with known limited or fragile compound OR query parsers (e.g. Outlook/Exchange, Yahoo/AOL)
+    if getattr(account, "_exchange_mode", None) is True:
+        return IMAP_SUBJECT_BATCH_SIZE_DEFAULT
     if hasattr(account, "host") and isinstance(account.host, str):
         host_lower = account.host.lower()
         if any(h in host_lower for h in ("outlook", "office365", "yahoo", "aol")):
@@ -283,10 +285,20 @@ def clean_search_string(val: str) -> str:
 
 
 def _build_address_clause(
-    address: list, header: str = "", is_yahoo: bool = False
+    address: list,
+    header: str = "",
+    is_yahoo: bool = False,
+    is_exchange: bool = False,
 ) -> str:
     """Build FROM / HEADER address search clause."""
     if header:
+        if is_exchange:
+            parts = [f'OR HEADER "{header}" "{a}" FROM "{a}"' for a in address]
+            if len(parts) == 1:
+                return parts[0]
+            or_prefix = " ".join(["OR"] * (len(parts) - 1))
+            return f"{or_prefix} {' '.join(parts)}"
+
         parts = [f'(OR HEADER "{header}" "{a}" FROM "{a}")' for a in address]
         if len(parts) == 1:
             return parts[0]
@@ -356,6 +368,7 @@ def build_search(
     body: str | list[str] = "",
     header: str = "",
     is_yahoo: bool = False,
+    is_exchange: bool = False,
 ) -> tuple:
     """Build IMAP search query.
 
@@ -377,7 +390,7 @@ def build_search(
     if not address:
         raise ValueError("address list must not be empty")
 
-    addr_clause = _build_address_clause(address, header, is_yahoo)
+    addr_clause = _build_address_clause(address, header, is_yahoo, is_exchange)
     subject_part = _build_subject_clause(subject, is_yahoo)
     body_part = _build_body_clause(body, is_yahoo)
 
@@ -594,6 +607,7 @@ async def _search_all_batches_sequential(
     header: str,
     is_yahoo: bool,
     use_multi_folder: bool = False,
+    is_exchange: bool = False,
 ) -> tuple:
     """Execute batch searches sequentially to maintain a single in-flight command on the IMAP connection."""
     batch_queries = [
@@ -604,6 +618,7 @@ async def _search_all_batches_sequential(
             body_search,
             header,
             is_yahoo=is_yahoo,
+            is_exchange=is_exchange,
         )[1]
         for addr_batch in address_batches
         for subj_batch in subject_batches
@@ -647,11 +662,18 @@ async def _email_search_single_folder(
     is_batched: bool,
     address: list,
     subject_search: list | str,
+    is_exchange: bool = False,
 ) -> tuple:
     """Execute search on a single folder mailbox."""
     if not is_batched:
         _unused, search = build_search(
-            address, date, subject_search, body_search, header, is_yahoo=is_yahoo
+            address,
+            date,
+            subject_search,
+            body_search,
+            header,
+            is_yahoo=is_yahoo,
+            is_exchange=is_exchange,
         )
         try:
             result, lines = await _execute_uid_search(account, search)
@@ -672,6 +694,7 @@ async def _email_search_single_folder(
         header,
         is_yahoo,
         use_multi_folder=False,
+        is_exchange=is_exchange,
     )
 
 
@@ -686,11 +709,18 @@ async def _email_search_multi_folder(
     is_batched: bool,
     address: list,
     subject_search: list | str,
+    is_exchange: bool = False,
 ) -> tuple:
     """Execute search across multiple folders."""
     if not is_batched:
         _unused, search = build_search(
-            address, date, subject_search, body_search, header, is_yahoo=is_yahoo
+            address,
+            date,
+            subject_search,
+            body_search,
+            header,
+            is_yahoo=is_yahoo,
+            is_exchange=is_exchange,
         )
         try:
             uids = await _execute_single_search(account, search)
@@ -710,6 +740,7 @@ async def _email_search_multi_folder(
         header,
         is_yahoo,
         use_multi_folder=True,
+        is_exchange=is_exchange,
     )
 
 
@@ -735,9 +766,12 @@ async def email_search(
     """
     folders = getattr(account, "_folders", ["INBOX"])
     is_yahoo = False
+    is_exchange = getattr(account, "_exchange_mode", None) is True
     if hasattr(account, "host") and isinstance(account.host, str):
         host_lower = account.host.lower()
         is_yahoo = "yahoo" in host_lower or "aol" in host_lower
+        if any(h in host_lower for h in ("outlook", "office365")):
+            is_exchange = True
 
     body_search = body
     if body:
@@ -783,6 +817,7 @@ async def email_search(
             is_batched,
             address,
             subject_search,
+            is_exchange=is_exchange,
         )
 
     return await _email_search_multi_folder(
@@ -796,6 +831,7 @@ async def email_search(
         is_batched,
         address,
         subject_search,
+        is_exchange=is_exchange,
     )
 
 

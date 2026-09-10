@@ -529,6 +529,58 @@ def test_build_search_header_with_multiple_subjects_issue_1403():
     )
 
 
+def test_build_search_exchange_mode():
+    """Test build_search in exchange_mode emits flat queries without inner parentheses."""
+    # Single address with header
+    utf8, search = build_search(
+        ["mcinfo@ups.com"],
+        "25-Mar-2026",
+        header="X-SimpleLogin-Original-From",
+        is_exchange=True,
+    )
+    assert (
+        search
+        == 'OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" SINCE 25-Mar-2026'
+    )
+
+    # Multiple addresses with header
+    utf8, search_multi = build_search(
+        ["mcinfo@ups.com", "pkginfo@ups.com"],
+        "25-Mar-2026",
+        header="X-SimpleLogin-Original-From",
+        is_exchange=True,
+    )
+    assert (
+        search_multi
+        == 'OR OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" OR HEADER "X-SimpleLogin-Original-From" "pkginfo@ups.com" FROM "pkginfo@ups.com" SINCE 25-Mar-2026'
+    )
+
+    # Address with header and subject
+    utf8, search_subj = build_search(
+        ["mcinfo@ups.com"],
+        "25-Mar-2026",
+        subject="UPS Ship Notification",
+        header="X-SimpleLogin-Original-From",
+        is_exchange=True,
+    )
+    assert (
+        search_subj
+        == 'OR HEADER "X-SimpleLogin-Original-From" "mcinfo@ups.com" FROM "mcinfo@ups.com" SUBJECT "UPS Ship Notification" SINCE 25-Mar-2026'
+    )
+
+
+def test_get_subject_batch_size_exchange_mode():
+    """Test _get_subject_batch_size honors _exchange_mode attribute."""
+    mock_acc = MagicMock()
+    mock_acc.host = "custom-internal-exchange.local"
+    mock_acc._exchange_mode = True
+    assert _get_subject_batch_size(mock_acc) == 1
+
+    mock_acc._exchange_mode = False
+    mock_acc.has_capability = MagicMock(return_value=False)
+    assert _get_subject_batch_size(mock_acc) == 1
+
+
 @pytest.mark.asyncio
 async def test_email_search_success():
     """Test email_search success."""

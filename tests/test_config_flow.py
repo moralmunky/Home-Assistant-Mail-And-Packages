@@ -45,6 +45,7 @@ from custom_components.mail_and_packages.const import (
     CONF_AUTH_TYPE,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
+    CONF_EXCHANGE_MODE,
     CONF_FEDEX_CUSTOM_IMG,
     CONF_FEDEX_CUSTOM_IMG_FILE,
     CONF_FOLDER,
@@ -53,6 +54,7 @@ from custom_components.mail_and_packages.const import (
     CONF_GENERATE_MP4,
     CONF_GENERIC_CUSTOM_IMG,
     CONF_GENERIC_CUSTOM_IMG_FILE,
+    CONF_IMAP_SECURITY,
     CONF_POST_DE_CUSTOM_IMG,
     CONF_POST_DE_CUSTOM_IMG_FILE,
     CONF_STORAGE,
@@ -209,6 +211,7 @@ _LOGGER = logging.getLogger(__name__)
                 "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
+                "exchange_mode": False,
             },
         ),
     ],
@@ -446,6 +449,7 @@ async def test_form(
                 "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
+                "exchange_mode": False,
             },
         ),
     ],
@@ -1113,6 +1117,7 @@ async def test_form_invalid_ffmpeg(
                 "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
+                "exchange_mode": False,
             },
         ),
     ],
@@ -1341,6 +1346,7 @@ async def test_form_index_error(
                 "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
+                "exchange_mode": False,
             },
         ),
     ],
@@ -2525,6 +2531,7 @@ async def test_config_flow_with_amazon_custom_image_only(
             "post_de_custom_img": False,
             "ups_custom_img": False,
             "walmart_custom_img": False,
+            "exchange_mode": False,
         }
         # Compare dictionaries by checking each key-value pair
         for key, expected_value in expected_data.items():
@@ -2716,6 +2723,7 @@ async def test_config_flow_with_ups_custom_image_only(
             "usps_placeholder": True,
             "post_de_custom_img": False,
             "walmart_custom_img": False,
+            "exchange_mode": False,
         }
 
         # Compare key by key to handle any order differences
@@ -4417,6 +4425,29 @@ async def test_validate_user_input_forwarding_header_takes_precedence():
     assert CONF_FORWARDED_EMAILS not in result_input
 
 
+@pytest.mark.asyncio
+async def test_schema_step_2_exchange_mode(hass):
+    """Test that exchange_mode field is present in step 2 schema with default False."""
+    with patch(
+        "custom_components.mail_and_packages.config_flow._get_mailboxes",
+        return_value=["INBOX"],
+    ):
+        schema = await _get_schema_step_2(
+            {
+                CONF_HOST: "mail.example.com",
+                CONF_PORT: 993,
+                CONF_USERNAME: "user",
+                CONF_IMAP_SECURITY: "SSL",
+            },
+            {},
+            {},
+            hass,
+        )
+        assert CONF_EXCHANGE_MODE in [
+            k.schema for k in schema.schema if hasattr(k, "schema")
+        ]
+
+
 async def test_get_mailboxes_parsing_error(hass, caplog):
     """Test _get_mailboxes handles delimiter parsing failures."""
     mock_conn = AsyncMock()
@@ -4730,6 +4761,7 @@ async def test_validate_forwarded_emails_missing_and_invalid():
                 "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
+                "exchange_mode": False,
             },
         ),
     ],
@@ -4978,6 +5010,7 @@ async def test_form_allow_forwarded_emails(
                 "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
+                "exchange_mode": False,
             },
         ),
     ],
@@ -5205,6 +5238,7 @@ async def test_form_allowed_forwarded_emails_entered_none(
                 "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
+                "exchange_mode": False,
             },
         ),
     ],
@@ -5429,6 +5463,7 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
                 "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
+                "exchange_mode": False,
             },
         ),
     ],
@@ -5653,6 +5688,7 @@ async def test_form_allow_forwarded_emails_without_custom_img(
                 "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
+                "exchange_mode": False,
             },
         ),
     ],
@@ -5886,6 +5922,7 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
                 "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
+                "exchange_mode": False,
             },
         ),
     ],
@@ -6756,6 +6793,7 @@ async def test_reconfigure_allow_forwarded_emails(
                 "post_de_custom_img": False,
                 "ups_custom_img": False,
                 "walmart_custom_img": False,
+                "exchange_mode": False,
             },
         ),
     ],
