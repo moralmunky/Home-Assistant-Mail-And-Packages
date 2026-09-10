@@ -833,9 +833,20 @@ def test_build_search_multi_subject():
 
 def test_build_search_deduplicate_subjects():
     """Test build_search deduplicates safe subjects after ASCII normalization."""
-    subjects = ["Commandé:", "Commandé :", "Commandé"]
+    subjects = ["Commandé", "Commandé", "Commande"]
     utf8, search = build_search(["test@example.com"], "25-Mar-2026", subject=subjects)
     assert search == 'FROM "test@example.com" SUBJECT "Commande" SINCE 25-Mar-2026'
+
+
+def test_build_search_preserves_colons():
+    """Test build_search and clean_search_string preserve colons in subjects."""
+    subject = "UPS Update: Package Scheduled for Delivery Today"
+    assert clean_search_string(subject) == subject
+    utf8, search = build_search(["mcinfo@ups.com"], "25-Mar-2026", subject=subject)
+    assert (
+        search
+        == 'FROM "mcinfo@ups.com" SUBJECT "UPS Update: Package Scheduled for Delivery Today" SINCE 25-Mar-2026'
+    )
 
 
 def test_build_search_single_addr_with_subject():
