@@ -54,8 +54,9 @@ def _get_subject_batch_size(account: IMAP4_SSL) -> int:
                 return IMAP_SUBJECT_BATCH_SIZE_DEFAULT
             if res:
                 return IMAP_SUBJECT_BATCH_SIZE_EXTENDED
-        except Exception:  # noqa: BLE001
-            pass
+        except Exception as err:  # noqa: BLE001
+            # Fall back to default batch size if checking IMAP capability fails
+            _LOGGER.debug("Capability check failed, using default batch size: %s", err)
 
     return IMAP_SUBJECT_BATCH_SIZE_DEFAULT
 
@@ -482,7 +483,7 @@ def _parse_esearch_line(line_bytes: bytes) -> list[bytes]:
                 else:
                     uids.extend(str(x) for x in range(end, start + 1))
             except ValueError:
-                pass
+                _LOGGER.debug("Could not parse ESEARCH range: %s", part)
         else:
             uids.append(part)
     return [f"{encode_folder_ref(mailbox)}/{uid}".encode() for uid in uids]
