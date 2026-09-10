@@ -1396,3 +1396,24 @@ async def test_amazon_hub_and_otp_domain(hass):
             mock_search.call_args.kwargs.get("address") or mock_search.call_args.args[1]
         )
         assert "order-update@amazon.fr" in search_addresses
+
+
+def test_extract_hub_code_from_parts_none(hass):
+    """Test _extract_hub_code_from_parts returns None when no hub code is found."""
+    shipper = AmazonShipper(hass, {})
+    # Non-bytes part
+    assert shipper._extract_hub_code_from_parts([None]) is None
+    # Message without hub code
+    raw = b"Subject: General Notice\n\nNo hub code here"
+    assert shipper._extract_hub_code_from_parts([raw]) is None
+
+
+def test_extract_exception_from_parts_none(hass):
+    """Test _extract_exception_from_parts returns None when no exception body found."""
+    shipper = AmazonShipper(hass, {})
+    order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
+    # Non-bytes part
+    assert shipper._extract_exception_from_parts([None], order_pattern) is None
+    # Message without exception text
+    raw = b"Subject: Regular Update\n\nNo exception here"
+    assert shipper._extract_exception_from_parts([raw], order_pattern) is None

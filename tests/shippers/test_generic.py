@@ -2046,3 +2046,15 @@ async def test_royal_mail_delivered_alternate_subject_class(
         )
         assert result[ATTR_COUNT] == 1
         assert result[ATTR_TRACKING] == ["MA038501234GB"]
+
+
+def test_extract_subject_from_headers_non_bytes(hass):
+    """Test _extract_subject_from_headers with non-bytes header parts."""
+    shipper = GenericShipper(hass, {})
+    # Header containing non-bytes/bytearray part
+    assert (
+        shipper._extract_subject_from_headers(
+            [None, "str"], "ups_delivered", b"1", ["delivered"]
+        )
+        is False
+    )
