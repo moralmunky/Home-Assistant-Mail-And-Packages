@@ -1534,3 +1534,30 @@ def test_dedupe_marketplace_empty_marketplace_carrier_tracking():
 
     assert data["etsy_delivering"] == 1
     assert data["etsy_carrier_tracking"] == {"123": "456"}
+
+
+def test_remove_marketplace_package_wrapper():
+    """Test MailDataUpdateCoordinator._remove_marketplace_package wrapper."""
+    data = {"etsy_delivering": 2}
+    tracking_details = {"etsy_delivering": ["123", "456"]}
+    MailDataUpdateCoordinator._remove_marketplace_package(
+        data, tracking_details, "etsy", "123", "999"
+    )
+    assert data["etsy_delivering"] == 1
+    assert tracking_details["etsy_delivering"] == ["456"]
+
+
+@pytest.mark.asyncio
+async def test_sum_delivered_and_delivering_counts_wrappers(hass):
+    """Test _sum_delivered_counts and _sum_delivering_counts wrappers on coordinator."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    data = {
+        "ups_delivered": 2,
+        "fedex_delivered": 3,
+        "ups_delivering": 1,
+        "fedex_delivering": 4,
+    }
+    assert coordinator._sum_delivered_counts(data) == 5
+    assert coordinator._sum_delivering_counts(data) == 5
