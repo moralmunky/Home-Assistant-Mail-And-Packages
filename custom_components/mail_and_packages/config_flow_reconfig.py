@@ -5,8 +5,10 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import aiohttp
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_entry_oauth2_flow
 
 from .config_flow_schemas import _get_schema_auth, _get_schema_imap
@@ -72,7 +74,12 @@ class ReconfigureFlowMixin:
                 implementation,
             )
             await session.async_ensure_token_valid()
-        except Exception as err:  # noqa: BLE001
+        except (
+            aiohttp.ClientError,
+            HomeAssistantError,
+            TimeoutError,
+            ValueError,
+        ) as err:
             _LOGGER.debug("Stored OAuth token is no longer usable: %s", err)
             return None
 

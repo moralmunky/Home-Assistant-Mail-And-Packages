@@ -6,6 +6,7 @@ import ssl
 import tempfile
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiohttp
 import pytest
 from aioimaplib import AioImapException
 from anyio import Path
@@ -8328,7 +8329,9 @@ async def test_get_schema_step_2_oauth_refresh_exception(hass, caplog):
     entry.add_to_hass(hass)
 
     mock_session = AsyncMock()
-    mock_session.async_ensure_token_valid.side_effect = Exception("Refresh failure")
+    mock_session.async_ensure_token_valid.side_effect = aiohttp.ClientError(
+        "Refresh failure"
+    )
 
     with (
         patch(
@@ -8490,7 +8493,12 @@ async def test_valid_oauth_token_helper(hass):
         }
 
     bad_session = AsyncMock()
-    bad_session.async_ensure_token_valid.side_effect = Exception("invalid_grant")
+    bad_session.async_ensure_token_valid.side_effect = aiohttp.ClientResponseError(
+        request_info=MagicMock(),
+        history=(),
+        status=400,
+        message="invalid_grant",
+    )
     with (
         patch(
             "custom_components.mail_and_packages.config_flow.config_entry_oauth2_flow.async_get_config_entry_implementation",

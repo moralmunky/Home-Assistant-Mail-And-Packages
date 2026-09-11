@@ -6,6 +6,7 @@ import logging
 import sys
 from typing import Any
 
+import aiohttp
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
@@ -17,6 +18,7 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_entry_oauth2_flow, selector
 
 from .config_flow_mailbox import _get_mailboxes as default_get_mailboxes
@@ -181,7 +183,12 @@ async def _get_schema_step_2(
             )
             await session.async_ensure_token_valid()
             oauth_token = session.token.get("access_token")
-        except Exception as err:  # noqa: BLE001
+        except (
+            aiohttp.ClientError,
+            HomeAssistantError,
+            TimeoutError,
+            ValueError,
+        ) as err:
             _LOGGER.error("Error refreshing OAuth token: %s", err)
 
     if not oauth_token:
