@@ -978,6 +978,28 @@ SENSOR_DATA = {
     "shopify_tracking": {
         "pattern": ["shipment from order #?([A-Za-z0-9()\\-]+)"],
     },
+    # ButcherBox (subscription meat/seafood boxes, US). Sends its own
+    # notifications for the whole shipment lifecycle from one address; the
+    # "Your order has shipped!" notice is deliberately not configured here
+    # per the in-transit exclusion in docs/architecture.md.
+    "butcherbox_delivering": {
+        "email": ["support@butcherbox.com", "butcherbox.com"],
+        "subject": ["Your box is out for delivery"],
+    },
+    "butcherbox_delivered": {
+        "email": ["support@butcherbox.com", "butcherbox.com"],
+        # The real subject ends in a package emoji, which is MIME-encoded in
+        # the header. email_search() always sends charset=None, so only the
+        # ASCII portion may be used as a search term.
+        "subject": ["Your order is HERE"],
+    },
+    "butcherbox_packages": {},
+    # ButcherBox's own shipment id (AfterShip "tracking clip" links), stable
+    # across the out-for-delivery and delivered emails so delivered dedupes
+    # against delivering. The per-email "Order Number #..." is NOT usable as
+    # a key: the shipped notice reports a different id namespace (7 digits)
+    # than the later emails for the same shipment (9 digits).
+    "butcherbox_tracking": {"pattern": [r"\b(SH\d{14,22})\b"]},
     # BuildingLink
     "buildinglink_delivered": {
         "email": ["notify@buildinglink.com"],
@@ -1844,6 +1866,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="shopify_packages",
     ),
+    # ButcherBox
+    "butcherbox_delivered": SensorEntityDescription(
+        name="Mail ButcherBox Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="butcherbox_delivered",
+    ),
+    "butcherbox_delivering": SensorEntityDescription(
+        name="Mail ButcherBox Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="butcherbox_delivering",
+    ),
+    "butcherbox_packages": SensorEntityDescription(
+        name="Mail ButcherBox Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="butcherbox_packages",
+    ),
     # BuildingLink
     "buildinglink_delivered": SensorEntityDescription(
         name="Mail BuildingLink Delivered",
@@ -2286,6 +2327,7 @@ SHIPPERS = [
     "bring",
     "db_schenker",
     "shopify",
+    "butcherbox",
 ]
 
 # Authentication types
