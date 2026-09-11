@@ -50,7 +50,7 @@ async def test_informed_delivery_emails_class(
         patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
         patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
         patch(
-            "custom_components.mail_and_packages.shippers.usps.io_save_file",
+            "custom_components.mail_and_packages.shippers.usps_image.io_save_file",
             new_callable=MagicMock,
         ),
         patch(
@@ -97,7 +97,7 @@ async def test_new_informed_delivery_emails_class(
         patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
         patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
         patch(
-            "custom_components.mail_and_packages.shippers.usps.io_save_file",
+            "custom_components.mail_and_packages.shippers.usps_image.io_save_file",
             new_callable=MagicMock,
         ),
         patch(
@@ -197,7 +197,7 @@ async def test_informed_delivery_with_images_class(hass):
         patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
         patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
         patch(
-            "custom_components.mail_and_packages.shippers.usps.io_save_file",
+            "custom_components.mail_and_packages.shippers.usps_image.io_save_file",
             new_callable=MagicMock,
         ),
         patch(
@@ -212,7 +212,7 @@ async def test_informed_delivery_with_images_class(hass):
             return_value="25-Sep-2020",
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.usps.random_filename",
+            "custom_components.mail_and_packages.shippers.usps_image.random_filename",
             return_value="random.jpg",
         ),
     ):
@@ -372,11 +372,11 @@ async def test_informed_delivery_announcement_filtering(hass):
         patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
         patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
         patch(
-            "custom_components.mail_and_packages.shippers.usps.io_save_file",
+            "custom_components.mail_and_packages.shippers.usps_image.io_save_file",
             new_callable=MagicMock,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.usps.random_filename",
+            "custom_components.mail_and_packages.shippers.usps_image.random_filename",
             side_effect=filenames,
         ),
         patch(
@@ -590,11 +590,11 @@ async def test_informed_delivery_extract_images_error(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.usps.io_save_file",
+            "custom_components.mail_and_packages.shippers.usps_image.io_save_file",
             side_effect=TypeError("Expected bytes"),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.usps.random_filename",
+            "custom_components.mail_and_packages.shippers.usps_image.random_filename",
             return_value="test.jpg",
         ),
     ):
@@ -624,7 +624,7 @@ async def test_extract_jpeg_attachment_os_error(hass):
     part.get_payload.return_value = b"data"
 
     with patch(
-        "custom_components.mail_and_packages.shippers.usps.io_save_file",
+        "custom_components.mail_and_packages.shippers.usps_image.io_save_file",
         side_effect=OSError("Permission denied"),
     ):
         count, images = await shipper._extract_jpeg_attachment(part, "test/", 0, [])
@@ -801,7 +801,7 @@ async def test_usps_placeholder_disabled(hass, mock_imap_usps_informed_digest_mi
         patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
         patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
         patch(
-            "custom_components.mail_and_packages.shippers.usps.io_save_file",
+            "custom_components.mail_and_packages.shippers.usps_image.io_save_file",
             new_callable=MagicMock,
         ),
         patch(

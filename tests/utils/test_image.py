@@ -226,13 +226,10 @@ async def test_image_file_name_amazon_courier():
 def test_generate_mp4_exists():
     """Test _generate_mp4 when old mp4 exists."""
     with (
-        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch("custom_components.mail_and_packages.utils.video.Path") as mock_path,
         patch(
-            "custom_components.mail_and_packages.utils.image.subprocess.run",
+            "custom_components.mail_and_packages.utils.video.subprocess.run",
         ) as mock_run,
-        patch(
-            "custom_components.mail_and_packages.utils.image.cleanup_images",
-        ) as mock_cleanup,
     ):
         mock_path_obj = MagicMock()
         mock_path_obj.is_file.return_value = True
@@ -240,7 +237,8 @@ def test_generate_mp4_exists():
         mock_path.side_effect = lambda *args: mock_path_obj
 
         _generate_mp4("/path/", "test.gif")
-        assert mock_cleanup.called
+        # unlink is called on the mp4_file path (base_path / "test.mp4")
+        mock_path_obj.__truediv__.return_value.unlink.assert_called()
         assert mock_run.called
 
 
@@ -380,9 +378,9 @@ def test_io_save_file():
 def test_generate_mp4_success():
     """Test _generate_mp4 success path."""
     with (
-        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch("custom_components.mail_and_packages.utils.video.Path") as mock_path,
         patch(
-            "custom_components.mail_and_packages.utils.image.subprocess.run",
+            "custom_components.mail_and_packages.utils.video.subprocess.run",
         ) as mock_run,
     ):
         mock_path_obj = MagicMock()
@@ -397,9 +395,9 @@ def test_generate_mp4_fail(caplog):
     """Test _generate_mp4 failure path."""
     caplog.set_level("ERROR")
     with (
-        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch("custom_components.mail_and_packages.utils.video.Path") as mock_path,
         patch(
-            "custom_components.mail_and_packages.utils.image.subprocess.run",
+            "custom_components.mail_and_packages.utils.video.subprocess.run",
         ) as mock_run,
     ):
         mock_path_obj = MagicMock()
@@ -414,9 +412,9 @@ def test_generate_mp4_fail(caplog):
 def test_generate_grid_img():
     """Test generate_grid_img logic."""
     with (
-        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch("custom_components.mail_and_packages.utils.video.Path") as mock_path,
         patch(
-            "custom_components.mail_and_packages.utils.image.subprocess.run",
+            "custom_components.mail_and_packages.utils.video.subprocess.run",
         ) as mock_run,
     ):
         mock_path_obj = MagicMock()
@@ -613,11 +611,8 @@ def test_generate_grid_img_existing(caplog):
     """Test generate_grid_img when old grid exists."""
     caplog.set_level("DEBUG")
     with (
-        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
-        patch("custom_components.mail_and_packages.utils.image.subprocess.run"),
-        patch(
-            "custom_components.mail_and_packages.utils.image.cleanup_images",
-        ) as mock_cleanup,
+        patch("custom_components.mail_and_packages.utils.video.Path") as mock_path,
+        patch("custom_components.mail_and_packages.utils.video.subprocess.run"),
     ):
         mock_path_obj = MagicMock()
         mock_path_obj.is_file.return_value = True
@@ -625,7 +620,8 @@ def test_generate_grid_img_existing(caplog):
         mock_path.return_value = mock_path_obj
 
         generate_grid_img("/path/", "test.gif", 5)
-        assert mock_cleanup.called
+        # unlink is called on the png_image path (Path(path) / png_file)
+        mock_path_obj.__truediv__.return_value.unlink.assert_called()
         assert "Removing old png grid" in caplog.text
 
 
@@ -633,7 +629,7 @@ def test_generate_grid_img_existing(caplog):
 async def test_check_ffmpeg():
     """Test _check_ffmpeg helper."""
     with patch(
-        "custom_components.mail_and_packages.utils.image.which",
+        "custom_components.mail_and_packages.utils.video.which",
         return_value="/usr/bin/ffmpeg",
     ):
         assert await _check_ffmpeg() == "/usr/bin/ffmpeg"
@@ -700,8 +696,8 @@ async def test_image_file_name_stat_os_error(caplog):
 def test_generate_grid_img_even_count():
     """Test generate_grid_img with an even count."""
     with (
-        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
-        patch("custom_components.mail_and_packages.utils.image.subprocess.run"),
+        patch("custom_components.mail_and_packages.utils.video.Path") as mock_path,
+        patch("custom_components.mail_and_packages.utils.video.subprocess.run"),
     ):
         mock_path_obj = MagicMock()
         mock_path.return_value = mock_path_obj
@@ -894,9 +890,9 @@ def test_cleanup_images_removes_generic_gif_when_named(tmp_path):
 def test_generate_grid_img_ffmpeg_error(caplog):
     """Test generate_grid_img logs error when ffmpeg raises CalledProcessError (lines 282-283)."""
     with (
-        patch("custom_components.mail_and_packages.utils.image.Path") as mock_path,
+        patch("custom_components.mail_and_packages.utils.video.Path") as mock_path,
         patch(
-            "custom_components.mail_and_packages.utils.image.subprocess.run",
+            "custom_components.mail_and_packages.utils.video.subprocess.run",
             side_effect=subprocess.CalledProcessError(1, "ffmpeg"),
         ),
     ):
@@ -919,3 +915,43 @@ def test_default_image_path_trailing_slash():
 
     config_entry.options = {CONF_STORAGE: "/custom/path/images/"}
     assert default_image_path(hass, config_entry) == "/custom/path/images/"
+
+
+def test_generate_mp4_unlink_os_error(caplog):
+    """Test _generate_mp4 logs error when old mp4 unlink fails (video.py lines 38-39)."""
+    caplog.set_level("ERROR")
+    with (
+        patch("custom_components.mail_and_packages.utils.video.Path") as mock_path,
+        patch(
+            "custom_components.mail_and_packages.utils.video.subprocess.run",
+        ),
+    ):
+        mock_path_obj = MagicMock()
+        mock_child = MagicMock()
+        mock_child.is_file.return_value = True
+        mock_child.unlink.side_effect = OSError("Permission denied")
+        mock_path_obj.__truediv__.return_value = mock_child
+        mock_path.side_effect = lambda *args: mock_path_obj
+
+        _generate_mp4("/path/", "test.gif")
+        assert "Error removing old mp4" in caplog.text
+
+
+def test_generate_grid_img_unlink_os_error(caplog):
+    """Test generate_grid_img logs error when old png unlink fails (video.py lines 84-85)."""
+    caplog.set_level("ERROR")
+    with (
+        patch("custom_components.mail_and_packages.utils.video.Path") as mock_path,
+        patch(
+            "custom_components.mail_and_packages.utils.video.subprocess.run",
+        ),
+    ):
+        mock_path_obj = MagicMock()
+        mock_child = MagicMock()
+        mock_child.is_file.return_value = True
+        mock_child.unlink.side_effect = OSError("Permission denied")
+        mock_path_obj.__truediv__.return_value = mock_child
+        mock_path.return_value = mock_path_obj
+
+        generate_grid_img("/path/", "test.gif", 5)
+        assert "Error removing old png grid" in caplog.text
