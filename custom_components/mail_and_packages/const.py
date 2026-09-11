@@ -2072,6 +2072,63 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="burd_packages",
     ),
+    # PostNord
+    "postnord_delivered": SensorEntityDescription(
+        name="Mail PostNord Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="postnord_delivered",
+    ),
+    "postnord_delivering": SensorEntityDescription(
+        name="Mail PostNord Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="postnord_delivering",
+    ),
+    "postnord_packages": SensorEntityDescription(
+        name="Mail PostNord Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="postnord_packages",
+    ),
+    # Bring
+    "bring_delivered": SensorEntityDescription(
+        name="Mail Bring Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="bring_delivered",
+    ),
+    "bring_delivering": SensorEntityDescription(
+        name="Mail Bring Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="bring_delivering",
+    ),
+    "bring_packages": SensorEntityDescription(
+        name="Mail Bring Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="bring_packages",
+    ),
+    # DB Schenker
+    "db_schenker_delivered": SensorEntityDescription(
+        name="Mail DB Schenker Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="db_schenker_delivered",
+    ),
+    "db_schenker_delivering": SensorEntityDescription(
+        name="Mail DB Schenker Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="db_schenker_delivering",
+    ),
+    "db_schenker_packages": SensorEntityDescription(
+        name="Mail DB Schenker Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="db_schenker_packages",
+    ),
     ###
     # !!! Insert new sensors above these summary sensors !!!
     ###
@@ -2175,63 +2232,6 @@ CAMERA_EXTRACTION_CONFIG = {
         "image_type": "jpeg",
         "attachment_filename_pattern": "delivery",
     },
-    # PostNord
-    "postnord_delivered": SensorEntityDescription(
-        name="Mail PostNord Delivered",
-        native_unit_of_measurement="package(s)",
-        icon="mdi:package-variant-closed",
-        key="postnord_delivered",
-    ),
-    "postnord_delivering": SensorEntityDescription(
-        name="Mail PostNord Delivering",
-        native_unit_of_measurement="package(s)",
-        icon="mdi:truck-delivery",
-        key="postnord_delivering",
-    ),
-    "postnord_packages": SensorEntityDescription(
-        name="Mail PostNord Packages",
-        native_unit_of_measurement="package(s)",
-        icon="mdi:package-variant-closed",
-        key="postnord_packages",
-    ),
-    # Bring
-    "bring_delivered": SensorEntityDescription(
-        name="Mail Bring Delivered",
-        native_unit_of_measurement="package(s)",
-        icon="mdi:package-variant-closed",
-        key="bring_delivered",
-    ),
-    "bring_delivering": SensorEntityDescription(
-        name="Mail Bring Delivering",
-        native_unit_of_measurement="package(s)",
-        icon="mdi:truck-delivery",
-        key="bring_delivering",
-    ),
-    "bring_packages": SensorEntityDescription(
-        name="Mail Bring Packages",
-        native_unit_of_measurement="package(s)",
-        icon="mdi:package-variant-closed",
-        key="bring_packages",
-    ),
-    # DB Schenker
-    "db_schenker_delivered": SensorEntityDescription(
-        name="Mail DB Schenker Delivered",
-        native_unit_of_measurement="package(s)",
-        icon="mdi:package-variant-closed",
-        key="db_schenker_delivered",
-    ),
-    "db_schenker_delivering": SensorEntityDescription(
-        name="Mail DB Schenker Delivering",
-        native_unit_of_measurement="package(s)",
-        icon="mdi:truck-delivery",
-        key="db_schenker_delivering",
-    ),
-    "db_schenker_packages": SensorEntityDescription(
-        name="Mail DB Schenker Packages",
-        native_unit_of_measurement="package(s)",
-        icon="mdi:package-variant-closed",
-        key="db_schenker_packages",
-    ),
 }
 
 # Sensor Index
