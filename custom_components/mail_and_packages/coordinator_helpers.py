@@ -263,14 +263,18 @@ def aggregate_package_counts(data: dict) -> None:
 async def check_camera_update(
     coordinator: MailDataUpdateCoordinator,
     base_name: str,
+    data: dict | None = None,
 ) -> None:
     """Check image hash changes for a specific delivery camera."""
+    if data is None:
+        data = getattr(coordinator, "_data", {})
+
     image_attr_name = f"ATTR_{base_name.upper()}_IMAGE"
     image_attr = getattr(const, image_attr_name, None)
     if not image_attr:
         return
 
-    image = coordinator._data.get(image_attr)  # noqa: SLF001
+    image = data.get(image_attr)
     _LOGGER.debug("%s image from data: %s", base_name.title(), image)
     if not image:
         return
@@ -300,15 +304,21 @@ async def check_camera_update(
 
     anyio_mod = getattr(coord_mod, "anyio", anyio) if coord_mod else anyio
     if await anyio_mod.Path(delivery_image).exists():
-        image_hash = await coordinator._get_file_hash_if_changed(delivery_image)  # noqa: SLF001
-        none_hash = await coordinator._get_file_hash_if_changed(none_image)  # noqa: SLF001
+        image_hash = await coordinator.async_get_file_hash_if_changed(delivery_image)
+        none_hash = await coordinator.async_get_file_hash_if_changed(none_image)
         _LOGGER.debug("%s Image hash: %s", base_name.title(), image_hash)
         _LOGGER.debug("%s None hash: %s", base_name.title(), none_hash)
-        coordinator._data[f"{base_name}_update"] = image_hash != none_hash  # noqa: SLF001
+        data[f"{base_name}_update"] = image_hash != none_hash
 
 
-async def binary_sensor_update(coordinator: MailDataUpdateCoordinator) -> None:
+async def binary_sensor_update(
+    coordinator: MailDataUpdateCoordinator,
+    data: dict | None = None,
+) -> None:
     """Update binary sensor states."""
+    if data is None:
+        data = getattr(coordinator, "_data", {})
+
     coord_mod = sys.modules.get("custom_components.mail_and_packages.coordinator")
     def_img_path = (
         getattr(coord_mod, "default_image_path", default_image_path)
@@ -317,18 +327,18 @@ async def binary_sensor_update(coordinator: MailDataUpdateCoordinator) -> None:
     )
     anyio_mod = getattr(coord_mod, "anyio", anyio) if coord_mod else anyio
 
-    _LOGGER.debug("Data: %s", coordinator._data)  # noqa: SLF001
-    image = coordinator._data.get(const.ATTR_USPS_IMAGE)  # noqa: SLF001
+    _LOGGER.debug("Data: %s", data)
+    image = data.get(const.ATTR_USPS_IMAGE)
     if image:
         path = def_img_path(coordinator.hass, coordinator.config)
         usps_image = f"{path}/{image}"
         usps_none = f"{Path(__file__).parent}/mail_none.gif"
         if await anyio_mod.Path(usps_image).exists():
-            image_hash = await coordinator._get_file_hash_if_changed(usps_image)  # noqa: SLF001
-            none_hash = await coordinator._get_file_hash_if_changed(usps_none)  # noqa: SLF001
+            image_hash = await coordinator.async_get_file_hash_if_changed(usps_image)
+            none_hash = await coordinator.async_get_file_hash_if_changed(usps_none)
             _LOGGER.debug("USPS Image hash: %s", image_hash)
             _LOGGER.debug("USPS None hash: %s", none_hash)
-            coordinator._data["usps_update"] = image_hash != none_hash  # noqa: SLF001
+            data["usps_update"] = image_hash != none_hash
 
     delivery_cameras = [
         camera_type.replace("_camera", "")
@@ -337,4 +347,9 @@ async def binary_sensor_update(coordinator: MailDataUpdateCoordinator) -> None:
     ]
 
     for base_name in delivery_cameras:
-        await coordinator._check_camera_update(base_name)  # noqa: SLF001
+        check_update = getattr(
+            coordinator,
+            "async_check_camera_update",
+            check_camera_update,
+        )
+        await check_update(base_name, data)

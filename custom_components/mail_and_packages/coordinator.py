@@ -113,7 +113,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
         super().__init__(hass, _LOGGER, name=self.name, update_interval=self.interval)
 
-    async def _get_file_hash_if_changed(self, file_path):
+    async def _get_file_hash_if_changed(self, file_path: str) -> str | None:
         """Only hash file if mtime changed."""
         try:
             mtime = await self.hass.async_add_executor_job(os.path.getmtime, file_path)
@@ -131,6 +131,10 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             return None
         else:
             return file_hash
+
+    async def async_get_file_hash_if_changed(self, file_path: str) -> str | None:
+        """Public method to get file hash if changed."""
+        return await self._get_file_hash_if_changed(file_path)
 
     async def _async_oauth_access_token(self, auth_type: str) -> str:
         """Return a valid OAuth2 access token, refreshing it when required."""
@@ -162,7 +166,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
                 if data:
                     self._data = data
-                    await self._binary_sensor_update()
+                    await self._binary_sensor_update(data)
                 return self._data
         except TimeoutError:
             _LOGGER.error(
@@ -383,8 +387,22 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
     def _sum_transit_counts(self, data: dict) -> int:
         return sum_transit_counts(data)
 
-    async def _check_camera_update(self, base_name: str) -> None:
-        await check_camera_update(self, base_name)
+    async def async_check_camera_update(
+        self, base_name: str, data: dict | None = None
+    ) -> None:
+        """Check image hash changes for a specific delivery camera."""
+        await check_camera_update(self, base_name, data)
 
-    async def _binary_sensor_update(self):
-        await binary_sensor_update(self)
+    async def _check_camera_update(
+        self, base_name: str, data: dict | None = None
+    ) -> None:
+        """Backward-compatible alias for async_check_camera_update."""
+        await self.async_check_camera_update(base_name, data)
+
+    async def async_binary_sensor_update(self, data: dict | None = None) -> None:
+        """Update binary sensor states."""
+        await binary_sensor_update(self, data)
+
+    async def _binary_sensor_update(self, data: dict | None = None) -> None:
+        """Backward-compatible alias for async_binary_sensor_update."""
+        await self.async_binary_sensor_update(data)
