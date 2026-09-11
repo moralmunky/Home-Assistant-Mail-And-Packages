@@ -4,6 +4,7 @@ import datetime
 import re
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -1417,3 +1418,28 @@ def test_extract_exception_from_parts_none(hass):
     # Message without exception text
     raw = b"Subject: Regular Update\n\nNo exception here"
     assert shipper._extract_exception_from_parts([raw], order_pattern) is None
+
+
+@pytest.mark.asyncio
+async def test_copy_amazon_placeholder_oserror(hass):
+    """Test _copy_amazon_placeholder logs an error when copyfile raises OSError."""
+    shipper = AmazonShipper(hass, {})
+    amazon_path = Path("/mock/amazon/path")
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.anyio.Path.exists",
+            new_callable=AsyncMock,
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.copyfile",
+            side_effect=OSError("Disk full"),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon_image._LOGGER.error"
+        ) as mock_logger_error,
+    ):
+        await shipper._copy_amazon_placeholder(amazon_path, "amazon.jpg")
+        assert mock_logger_error.called
+        assert "Error attempting to copy image" in mock_logger_error.call_args[0][0]
