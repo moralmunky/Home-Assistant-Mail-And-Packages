@@ -39,6 +39,9 @@ from custom_components.mail_and_packages.utils.imap import (
     quote_folder,
     selectfolder,
 )
+from custom_components.mail_and_packages.utils.imap_search import (
+    _get_imap_attr,
+)
 
 
 def test_validate_email_address(caplog):
@@ -2343,3 +2346,10 @@ async def test_execute_uid_search_and_fetch_fallback():
 
     res_fetch = await _execute_uid_fetch(mock_account, "202", "(RFC822)")
     assert res_fetch == ("OK", [b"BODY"])
+
+
+def test_get_imap_attr_fallback():
+    """Test _get_imap_attr returns default value when attribute is not on utils.imap."""
+    sentinel = object()
+    result = _get_imap_attr("nonexistent_attribute_xyz", sentinel)
+    assert result is sentinel
