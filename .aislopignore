@@ -1,2 +1,5 @@
 # Standalone scratch/debug script
 test.py
+
+# Declarative schema, entity descriptions, and static configuration tables
+custom_components/mail_and_packages/const.py
