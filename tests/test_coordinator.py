@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from aiohttp import ClientResponseError
+from aioimaplib import AioImapException
 from freezegun import freeze_time
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import issue_registry as ir
@@ -60,7 +61,7 @@ async def test_process_emails_batch_exception(hass, caplog):
 
     mock_shipper = AsyncMock()
     mock_shipper.name = "test_shipper"
-    mock_shipper.process_batch.side_effect = Exception("Test error")
+    mock_shipper.process_batch.side_effect = AioImapException("Test error")
 
     with (
         patch(
