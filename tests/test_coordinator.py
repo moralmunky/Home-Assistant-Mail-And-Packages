@@ -1478,6 +1478,29 @@ async def test_coordinator_async_binary_sensor_update_with_data(hass):
     assert data.get("ups_update") is True
 
 
+@pytest.mark.asyncio
+async def test_coordinator_check_camera_update_fallback_data_none(hass):
+    """Test _check_camera_update and check_camera_update fallback when data is None."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    coordinator._data = {
+        "ups_image": "ups_123.jpg",
+    }
+
+    with (
+        patch("anyio.Path.exists", return_value=True),
+        patch.object(
+            coordinator,
+            "async_get_file_hash_if_changed",
+            AsyncMock(side_effect=["hash_img", "hash_none"]),
+        ),
+    ):
+        await coordinator._check_camera_update("ups")
+
+    assert coordinator._data.get("ups_update") is True
+
+
 def test_dedupe_marketplace_duplicates_etsy():
     """Marketplace packages already counted by a carrier shipper are dropped (Etsy)."""
     data = {
