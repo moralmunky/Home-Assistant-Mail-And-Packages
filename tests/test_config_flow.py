@@ -36,6 +36,18 @@ from custom_components.mail_and_packages.config_flow import (
     _validate_user_input,
     multi_folder_select,
 )
+from custom_components.mail_and_packages.config_flow_mailbox import (
+    _get_target as gt_mb,
+)
+from custom_components.mail_and_packages.config_flow_schemas import (
+    _get_target as gt_sc,
+)
+from custom_components.mail_and_packages.config_flow_steps import (
+    _get_target as gt_st,
+)
+from custom_components.mail_and_packages.config_flow_validation import (
+    _get_target as gt_va,
+)
 from custom_components.mail_and_packages.const import (
     CONF_ALLOW_FORWARDED_EMAILS,
     CONF_AMAZON_CUSTOM_IMG,
@@ -65,6 +77,9 @@ from custom_components.mail_and_packages.const import (
     CONF_WALMART_CUSTOM_IMG_FILE,
     CONFIG_VER,
     DOMAIN,
+)
+from custom_components.mail_and_packages.options_flow_steps import (
+    _get_target as gt_op,
 )
 from tests.const import (
     DEFAULT_CUSTOM_IMAGE_DATA,
@@ -8633,3 +8648,10 @@ async def test_reconfigure_flow_missing_verify_ssl_defaults_to_true(
     schema = result2["data_schema"].schema
     verify_ssl_key = next(k for k in schema if k == "verify_ssl")
     assert verify_ssl_key.default() is True
+
+
+async def test_get_target_fallback():
+    """Test that _get_target in submodules returns fallback when symbol is missing."""
+    sentinel = object()
+    for gt_fn in (gt_mb, gt_sc, gt_st, gt_va, gt_op):
+        assert gt_fn("_non_existent_symbol_for_test_", sentinel) is sentinel
