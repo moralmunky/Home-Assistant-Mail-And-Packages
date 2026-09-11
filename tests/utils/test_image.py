@@ -915,3 +915,43 @@ def test_default_image_path_trailing_slash():
 
     config_entry.options = {CONF_STORAGE: "/custom/path/images/"}
     assert default_image_path(hass, config_entry) == "/custom/path/images/"
+
+
+def test_generate_mp4_unlink_os_error(caplog):
+    """Test _generate_mp4 logs error when old mp4 unlink fails (video.py lines 38-39)."""
+    caplog.set_level("ERROR")
+    with (
+        patch("custom_components.mail_and_packages.utils.video.Path") as mock_path,
+        patch(
+            "custom_components.mail_and_packages.utils.video.subprocess.run",
+        ),
+    ):
+        mock_path_obj = MagicMock()
+        mock_child = MagicMock()
+        mock_child.is_file.return_value = True
+        mock_child.unlink.side_effect = OSError("Permission denied")
+        mock_path_obj.__truediv__.return_value = mock_child
+        mock_path.side_effect = lambda *args: mock_path_obj
+
+        _generate_mp4("/path/", "test.gif")
+        assert "Error removing old mp4" in caplog.text
+
+
+def test_generate_grid_img_unlink_os_error(caplog):
+    """Test generate_grid_img logs error when old png unlink fails (video.py lines 84-85)."""
+    caplog.set_level("ERROR")
+    with (
+        patch("custom_components.mail_and_packages.utils.video.Path") as mock_path,
+        patch(
+            "custom_components.mail_and_packages.utils.video.subprocess.run",
+        ),
+    ):
+        mock_path_obj = MagicMock()
+        mock_child = MagicMock()
+        mock_child.is_file.return_value = True
+        mock_child.unlink.side_effect = OSError("Permission denied")
+        mock_path_obj.__truediv__.return_value = mock_child
+        mock_path.return_value = mock_path_obj
+
+        generate_grid_img("/path/", "test.gif", 5)
+        assert "Error removing old png grid" in caplog.text

@@ -449,6 +449,37 @@ async def test_download_amazon_img_content_length_too_large(hass, tmp_path, capl
     assert "Amazon image too large to download" in caplog.text
 
 
+@pytest.mark.asyncio
+async def test_download_amazon_img_body_exceeds_size_limit(hass, tmp_path, caplog):
+    """Test download_amazon_img returns early when downloaded data exceeds limit (lines 54-57)."""
+    img_url = "https://example.com/test.jpg"
+    img_path = str(tmp_path)
+    img_name = "test.jpg"
+
+    mock_resp = AsyncMock()
+    mock_resp.status = 200
+    mock_resp.headers = {
+        "content-type": "image/jpeg",
+        "content-length": "0",  # Header was missing or within limit
+    }
+    # Body data exceeds 10 MB limit
+    mock_resp.read.return_value = b"x" * (10 * 1024 * 1024 + 1)
+    mock_get = MagicMock()
+    mock_get.__aenter__.return_value = mock_resp
+    mock_get.__aexit__ = AsyncMock(return_value=False)
+
+    with (
+        patch("aiohttp.ClientSession.get", return_value=mock_get),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon_image.io_save_file",
+        ) as mock_save,
+    ):
+        await download_amazon_img(img_url, img_path, img_name, hass)
+        mock_save.assert_not_called()
+
+    assert "Amazon image exceeds size limit after download, discarding" in caplog.text
+
+
 def test_amazon_email_addresses_with_fwds_list():
     """Test amazon_email_addresses with list containing full email and domain substring."""
     result = amazon_email_addresses(fwds=["forwarder@example.com", "amazon.de"])
