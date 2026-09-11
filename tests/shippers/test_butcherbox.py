@@ -18,6 +18,17 @@ from custom_components.mail_and_packages.shippers.generic import GenericShipper
 
 TRACKING = "SH123456789012345678"
 
+# Two real shipments a month apart, both SH + exactly 18 digits. The pattern
+# keeps a tolerant range around that rather than pinning the width: failing to
+# extract is silent (a delivered box keeps showing as out for delivery until
+# the email ages out of the search window), while the extra slack costs
+# nothing observable.
+OBSERVED_IDS = ["SH523753089708052026", "SH495736686534322026"]
+
+# Klaviyo's unsubscribe ULIDs appear in every one of these emails and can carry
+# an "SH<digits>" substring -- SH7 in this real example.
+KLAVIYO_ULID = "01KZXRR6FY04KNC7SH7T6J6KX8"
+
 OUT_FOR_DELIVERY_SUBJECT = "Your box is out for delivery!"
 # The live subject ends in a package emoji carried as a MIME encoded-word.
 DELIVERED_SUBJECT = "Your order is HERE! =?UTF-8?B?8J+Tpg==?="
@@ -192,3 +203,45 @@ def test_butcherbox_is_registered():
     # An empty config is what marks a sensor as a computed rollup rather than
     # one that runs its own IMAP search.
     assert SENSOR_DATA["butcherbox_packages"] == {}
+
+
+@pytest.mark.parametrize("tracking_id", OBSERVED_IDS)
+def test_butcherbox_pattern_matches_observed_ids(tracking_id):
+    """Both observed shipment ids are matched by the configured pattern."""
+    pattern = SENSOR_DATA["butcherbox_tracking"]["pattern"][0]
+    assert re.findall(pattern, f"tracking-number={tracking_id}") == [tracking_id]
+
+
+def test_butcherbox_pattern_ignores_klaviyo_ulid():
+    """The Klaviyo unsubscribe ULID must not be read as a shipment id.
+
+    It is present in every ButcherBox email and contains an "SH<digits>"
+    substring, so a looser pattern would pick it up instead.
+    """
+    pattern = SENSOR_DATA["butcherbox_tracking"]["pattern"][0]
+    assert re.findall(pattern, KLAVIYO_ULID) == []
+
+
+@pytest.mark.parametrize(
+    "fixture",
+    [
+        "butcherbox_out_for_delivery.eml",
+        "butcherbox_delivered.eml",
+        "butcherbox_shipped.eml",
+    ],
+)
+def test_butcherbox_one_tracking_id_per_email(fixture):
+    """Each email yields exactly one shipment id across all of its parts.
+
+    The fixtures carry a Klaviyo footer, so this fails if the pattern starts
+    matching unsubscribe tokens.
+    """
+    msg = email.message_from_bytes(_load(fixture))
+    pattern = SENSOR_DATA["butcherbox_tracking"]["pattern"][0]
+    found = set()
+    for part in msg.walk():
+        if part.get_content_type() not in ("text/plain", "text/html"):
+            continue
+        body = part.get_payload(decode=True).decode("utf-8", "ignore")
+        found.update(re.findall(pattern, body))
+    assert found == {TRACKING}
