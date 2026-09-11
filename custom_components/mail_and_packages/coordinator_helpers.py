@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 import anyio
 from aiohttp import ClientResponseError
-from aioimaplib import IMAP4_SSL
+from aioimaplib import IMAP4_SSL, AioImapException
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_RESOURCES
 from homeassistant.core import HomeAssistant
@@ -164,7 +164,15 @@ async def update_shippers(
                     )
                 data.update(results)
             success = True
-        except Exception as err:  # noqa: BLE001
+        except (
+            AioImapException,
+            TimeoutError,
+            OSError,
+            ValueError,
+            KeyError,
+            AttributeError,
+            IndexError,
+        ) as err:
             _LOGGER.error("Error processing shipper %s: %s", shipper_name, err)
         finally:
             _LOGGER.debug(
