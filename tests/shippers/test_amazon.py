@@ -1437,7 +1437,7 @@ async def test_copy_amazon_placeholder_oserror(hass):
             side_effect=OSError("Disk full"),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon_image._LOGGER.error"
+            "custom_components.mail_and_packages.shippers.amazon.image._LOGGER.error"
         ) as mock_logger_error,
     ):
         await shipper._copy_amazon_placeholder(amazon_path, "amazon.jpg")
