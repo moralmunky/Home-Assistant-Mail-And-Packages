@@ -57,6 +57,7 @@ from .coordinator_helpers import (
     update_shippers,
 )
 from .coordinator_tracking import (
+    MailDeliveredLatchState,
     apply_tracking_state,
     dedupe_marketplace_duplicates,
     latch_mail_delivered,
@@ -105,13 +106,36 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self._file_mtime_cache = {}
         self._hash_cache = {}
         self._in_transit_tracking: dict[str, dict[str, str]] = {}
-        self._mail_delivered_latch_date: str | None = None
-        self._mail_delivered_latched = False
+        self._mail_delivered_latch_state = MailDeliveredLatchState()
         self.email_cache = EmailCache(hass=hass)
 
         _LOGGER.debug("Data will be update every %s", self.interval)
 
         super().__init__(hass, _LOGGER, name=self.name, update_interval=self.interval)
+
+    @property
+    def _mail_delivered_latch_date(self) -> str | None:
+        """Return latched date for backward compatibility."""
+        return self._mail_delivered_latch_state.date
+
+    @_mail_delivered_latch_date.setter
+    def _mail_delivered_latch_date(self, value: str | None) -> None:
+        """Set latched date for backward compatibility."""
+        self._mail_delivered_latch_state = MailDeliveredLatchState(
+            date=value, latched=self._mail_delivered_latch_state.latched
+        )
+
+    @property
+    def _mail_delivered_latched(self) -> bool:
+        """Return latched boolean for backward compatibility."""
+        return self._mail_delivered_latch_state.latched
+
+    @_mail_delivered_latched.setter
+    def _mail_delivered_latched(self, value: bool) -> None:
+        """Set latched boolean for backward compatibility."""
+        self._mail_delivered_latch_state = MailDeliveredLatchState(
+            date=self._mail_delivered_latch_state.date, latched=value
+        )
 
     async def _get_file_hash_if_changed(self, file_path: str) -> str | None:
         """Only hash file if mtime changed."""
@@ -358,13 +382,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         )
 
     def _latch_mail_delivered(self, data: dict, today_iso: str) -> None:
-        state = {
-            "date": self._mail_delivered_latch_date,
-            "latched": self._mail_delivered_latched,
-        }
-        latch_mail_delivered(state, data, today_iso)
-        self._mail_delivered_latch_date = state["date"]
-        self._mail_delivered_latched = bool(state["latched"])
+        self._mail_delivered_latch_state = latch_mail_delivered(
+            self._mail_delivered_latch_state, data, today_iso
+        )
 
     def _update_tracking_for_prefix(
         self,

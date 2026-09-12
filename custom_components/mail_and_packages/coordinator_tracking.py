@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime
 import logging
+from dataclasses import dataclass
 
 from . import const
 
@@ -103,23 +104,48 @@ def apply_tracking_state(
             )
 
 
+@dataclass(frozen=True, slots=True)
+class MailDeliveredLatchState:
+    """State for latched USPS mail delivered sensor."""
+
+    date: str | None = None
+    latched: bool = False
+
+
 def latch_mail_delivered(
-    latch_state: dict[str, object],
+    latch_state: MailDeliveredLatchState | dict[str, object],
     data: dict,
     today_iso: str,
-) -> None:
+) -> MailDeliveredLatchState:
     """Latch usps_mail_delivered on for the rest of the day once seen."""
     if "usps_mail_delivered" not in data:
-        return
+        if isinstance(latch_state, MailDeliveredLatchState):
+            return latch_state
+        return MailDeliveredLatchState(
+            date=str(latch_state.get("date")) if latch_state.get("date") else None,
+            latched=bool(latch_state.get("latched")),
+        )
 
-    if latch_state.get("date") != today_iso:
-        latch_state["date"] = today_iso
-        latch_state["latched"] = False
+    if isinstance(latch_state, dict):
+        date = latch_state.get("date")
+        latched = bool(latch_state.get("latched"))
+    else:
+        date = latch_state.date
+        latched = latch_state.latched
 
-    latch_state["latched"] = bool(latch_state.get("latched")) or bool(
-        data["usps_mail_delivered"]
-    )
-    data["usps_mail_delivered"] = int(bool(latch_state["latched"]))
+    if date != today_iso:
+        date = today_iso
+        latched = False
+
+    latched = latched or bool(data["usps_mail_delivered"])
+    data["usps_mail_delivered"] = int(latched)
+
+    # For backward compatibility with dict mutations if a dict was passed
+    if isinstance(latch_state, dict):
+        latch_state["date"] = date
+        latch_state["latched"] = latched
+
+    return MailDeliveredLatchState(date=today_iso, latched=latched)
 
 
 def dedupe_marketplace_duplicates(

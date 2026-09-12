@@ -16,6 +16,10 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import CONF_FOLDER, DOMAIN
 from custom_components.mail_and_packages.coordinator import MailDataUpdateCoordinator
+from custom_components.mail_and_packages.coordinator_tracking import (
+    MailDeliveredLatchState,
+    latch_mail_delivered,
+)
 from custom_components.mail_and_packages.utils.imap import InvalidAuth
 from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_USPS_DELIVERED
 
@@ -207,6 +211,69 @@ def test_latch_mail_delivered_noop_when_sensor_not_present(hass):
     coordinator._latch_mail_delivered(data, "2026-08-05")
 
     assert "usps_mail_delivered" not in data
+    assert coordinator._mail_delivered_latch_state == MailDeliveredLatchState()
+    assert coordinator._mail_delivered_latch_date is None
+    assert coordinator._mail_delivered_latched is False
+
+
+def test_mail_delivered_latch_state_properties_and_direct():
+    """Test MailDeliveredLatchState dataclass and latch_mail_delivered function directly."""
+    initial_state = MailDeliveredLatchState()
+    assert initial_state.date is None
+    assert initial_state.latched is False
+
+    # Sensor not present
+    data = {"usps_mail": 2}
+    result = latch_mail_delivered(initial_state, data, "2026-08-05")
+    assert result == initial_state
+    assert "usps_mail_delivered" not in data
+
+    # Sensor not present with dict input
+    dict_state = {"date": "2026-08-04", "latched": True}
+    result_from_dict = latch_mail_delivered(dict_state, data, "2026-08-05")
+    assert result_from_dict == MailDeliveredLatchState(date="2026-08-04", latched=True)
+
+    # Sensor present, seen for the first time
+    data = {"usps_mail_delivered": 1}
+    state = latch_mail_delivered(initial_state, data, "2026-08-05")
+    assert state.date == "2026-08-05"
+    assert state.latched is True
+    assert data["usps_mail_delivered"] == 1
+
+    # Next poll on same day, sensor drops to 0, latch stays on
+    data = {"usps_mail_delivered": 0}
+    state = latch_mail_delivered(state, data, "2026-08-05")
+    assert state.date == "2026-08-05"
+    assert state.latched is True
+    assert data["usps_mail_delivered"] == 1
+
+    # Next day, latch resets
+    data = {"usps_mail_delivered": 0}
+    state = latch_mail_delivered(state, data, "2026-08-06")
+    assert state.date == "2026-08-06"
+    assert state.latched is False
+    assert data["usps_mail_delivered"] == 0
+
+    # Test backward-compatible dict input with sensor present
+    dict_state_active = {"date": "2026-08-05", "latched": True}
+    data = {"usps_mail_delivered": 0}
+    state = latch_mail_delivered(dict_state_active, data, "2026-08-05")
+    assert state == MailDeliveredLatchState(date="2026-08-05", latched=True)
+    assert data["usps_mail_delivered"] == 1
+
+
+def test_coordinator_mail_delivered_latch_property_setters(hass):
+    """Test backward-compatible property setters on MailDataUpdateCoordinator."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    coordinator._mail_delivered_latch_date = "2026-08-05"
+    assert coordinator._mail_delivered_latch_state.date == "2026-08-05"
+    assert coordinator._mail_delivered_latch_date == "2026-08-05"
+
+    coordinator._mail_delivered_latched = True
+    assert coordinator._mail_delivered_latch_state.latched is True
+    assert coordinator._mail_delivered_latched is True
 
 
 @pytest.mark.asyncio
