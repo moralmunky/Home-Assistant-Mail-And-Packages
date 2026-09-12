@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import datetime
 import logging
-import sys
 
 from . import const
 
@@ -128,9 +127,7 @@ def dedupe_marketplace_duplicates(
     tracking_details: dict[str, list],
 ) -> None:
     """Drop marketplace packages already counted by a carrier shipper."""
-    coord_mod = sys.modules.get("custom_components.mail_and_packages.coordinator")
-    const_mod = getattr(coord_mod, "const", const) if coord_mod else const
-    marketplace_prefixes = tuple(const_mod.MARKETPLACE_CARRIER_TRACKING)
+    marketplace_prefixes = tuple(const.MARKETPLACE_CARRIER_TRACKING)
     if not marketplace_prefixes:
         return
 

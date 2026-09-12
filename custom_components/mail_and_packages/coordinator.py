@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from time import monotonic
 
-import anyio  # noqa: F401
+import anyio
 from aioimaplib import IMAP4_SSL
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -20,7 +20,7 @@ from homeassistant.const import (
     CONF_VERIFY_SSL,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_entry_oauth2_flow  # noqa: F401
+from homeassistant.helpers import config_entry_oauth2_flow
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import (
     ConfigEntryAuthFailed,
@@ -64,9 +64,9 @@ from .coordinator_tracking import (
     update_tracking_for_prefix,
 )
 from .helpers import copy_images
-from .shippers import get_shipper_for_sensor  # noqa: F401
+from .shippers import get_shipper_for_sensor
 from .utils.cache import EmailCache
-from .utils.image import default_image_path, hash_file  # noqa: F401
+from .utils.image import default_image_path, hash_file
 from .utils.imap import InvalidAuth, login, logout, selectfolder
 
 _LOGGER = logging.getLogger(__name__)
@@ -138,7 +138,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_oauth_access_token(self, auth_type: str) -> str:
         """Return a valid OAuth2 access token, refreshing it when required."""
-        return await async_oauth_access_token(self.hass, self.config_entry, auth_type)
+        return await async_oauth_access_token(
+            self.hass, self.config_entry, auth_type, flow_mod=config_entry_oauth2_flow
+        )
 
     async def _async_update_data(self):
         """Fetch data."""
@@ -313,7 +315,13 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
     ) -> dict:
         """Group and process sensors by shipper."""
         return await update_shippers(
-            self.hass, account, config, today, since_date, cache
+            self.hass,
+            account,
+            config,
+            today,
+            since_date,
+            cache,
+            shipper_fn=get_shipper_for_sensor,
         )
 
     @staticmethod
@@ -391,7 +399,13 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self, base_name: str, data: dict | None = None
     ) -> None:
         """Check image hash changes for a specific delivery camera."""
-        await check_camera_update(self, base_name, data)
+        await check_camera_update(
+            self,
+            base_name,
+            data,
+            def_img_path=default_image_path,
+            anyio_mod=anyio,
+        )
 
     async def _check_camera_update(
         self, base_name: str, data: dict | None = None
@@ -401,7 +415,12 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def async_binary_sensor_update(self, data: dict | None = None) -> None:
         """Update binary sensor states."""
-        await binary_sensor_update(self, data)
+        await binary_sensor_update(
+            self,
+            data,
+            def_img_path=default_image_path,
+            anyio_mod=anyio,
+        )
 
     async def _binary_sensor_update(self, data: dict | None = None) -> None:
         """Backward-compatible alias for async_binary_sensor_update."""
