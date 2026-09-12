@@ -37,7 +37,7 @@ async def extract_usps_images(
     # Check here on properly decoded HTML — raw RFC822 content is
     # quoted-printable encoded and soft line breaks could split the string.
     if "mailpiece-with-no-image-id" in content:
-        placeholder = Path(__file__).parent.parent / "image-no-mailpieces700.jpg"
+        placeholder = Path(__file__).parents[2] / "image-no-mailpieces700.jpg"
         placeholder_str = str(placeholder)
         if placeholder.exists() and placeholder_str not in images:
             images.append(placeholder_str)

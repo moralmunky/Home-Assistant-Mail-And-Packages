@@ -231,7 +231,7 @@ async def _copy_generic_placeholder(
 ) -> None:
     """Copy the generic placeholder for the shipper."""
     shipper_name = shipper_cfg["name"]
-    base_dir = Path(__file__).parent.parent
+    base_dir = Path(__file__).parents[2]
     placeholder = base_dir / f"no_deliveries_{shipper_name}.jpg"
     if not await anyio.Path(placeholder).exists():
         placeholder = base_dir / "mail_none.gif"

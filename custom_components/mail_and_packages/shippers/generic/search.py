@@ -17,7 +17,7 @@ from custom_components.mail_and_packages.const import (
 )
 from custom_components.mail_and_packages.utils.imap import email_search
 
-from .generic_helpers import SearchContext
+from .helpers import SearchContext
 
 _LOGGER = logging.getLogger(__name__)
 

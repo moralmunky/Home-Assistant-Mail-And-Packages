@@ -19,6 +19,7 @@ from custom_components.mail_and_packages.const import (
     ATTR_TRACKING,
     SENSOR_DATA,
 )
+from custom_components.mail_and_packages.shippers.base import Shipper
 from custom_components.mail_and_packages.utils.cache import EmailCache
 from custom_components.mail_and_packages.utils.email import find_text, find_text_matches
 from custom_components.mail_and_packages.utils.imap import (
@@ -31,46 +32,45 @@ from custom_components.mail_and_packages.utils.shipper import (
     get_tracking,
 )
 
-from .base import Shipper
-from .generic_batch import GenericBatchMixin
-from .generic_helpers import (
+from .batch import GenericBatchMixin
+from .helpers import (
     SearchContext,
     _find_carrier_number,
 )
-from .generic_helpers import (
+from .helpers import (
     _check_amazon_mentions as helper_check_amazon_mentions,
 )
-from .generic_helpers import (
+from .helpers import (
     _collect_carrier_tracking as helper_collect_carrier_tracking,
 )
-from .generic_helpers import (
+from .helpers import (
     _copy_generic_placeholder as helper_copy_generic_placeholder,
 )
-from .generic_helpers import (
+from .helpers import (
     _decode_subject as helper_decode_subject,
 )
-from .generic_helpers import (
+from .helpers import (
     _extract_images_for_shipper as helper_extract_images_for_shipper,
 )
-from .generic_helpers import (
+from .helpers import (
     _extract_subject_from_headers as helper_extract_subject_from_headers,
 )
-from .generic_helpers import (
+from .helpers import (
     _filter_unique_ids as helper_filter_unique_ids,
 )
-from .generic_helpers import (
+from .helpers import (
     _process_emails_by_type as helper_process_emails_by_type,
 )
-from .generic_helpers import (
+from .helpers import (
     _process_tracking_numbers as helper_process_tracking_numbers,
 )
-from .generic_helpers import (
+from .helpers import (
     _setup_image_extraction as helper_setup_image_extraction,
 )
-from .generic_helpers import (
+from .helpers import (
     _verify_matched_subjects as helper_verify_matched_subjects,
 )
-from .generic_search import GenericSearchMixin
+from .search import GenericSearchMixin
 
 _LOGGER = logging.getLogger(__name__)
 

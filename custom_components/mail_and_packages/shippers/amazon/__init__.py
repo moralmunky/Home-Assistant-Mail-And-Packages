@@ -33,6 +33,7 @@ from custom_components.mail_and_packages.const import (
     CONF_FORWARDING_HEADER,
     DEFAULT_AMAZON_DAYS,
 )
+from custom_components.mail_and_packages.shippers.base import Shipper
 from custom_components.mail_and_packages.utils.amazon import (
     _extract_hub_code,
     amazon_email_addresses,
@@ -57,21 +58,20 @@ from custom_components.mail_and_packages.utils.imap import (
     email_search,
 )
 
-from .amazon_helpers import (
+from .helpers import (
     _extract_exception_from_parts as helper_extract_exception_from_parts,
 )
-from .amazon_helpers import (
+from .helpers import (
     _extract_first_order_id as helper_extract_first_order_id,
 )
-from .amazon_helpers import (
+from .helpers import (
     _extract_hub_code_from_parts as helper_extract_hub_code_from_parts,
 )
-from .amazon_helpers import (
+from .helpers import (
     _is_amazon_delivered as helper_is_amazon_delivered,
 )
-from .amazon_image import AmazonImageMixin
-from .amazon_search import AmazonSearchMixin
-from .base import Shipper
+from .image import AmazonImageMixin
+from .search import AmazonSearchMixin
 
 _LOGGER = logging.getLogger(__name__)
 

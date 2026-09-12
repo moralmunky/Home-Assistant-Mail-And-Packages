@@ -43,7 +43,7 @@ from custom_components.mail_and_packages.utils.imap import (
     email_search,
 )
 
-from .amazon_helpers import (
+from .helpers import (
     _amazon_attr,
     _calculate_delivering_count,
     _calculate_final_count,
@@ -51,7 +51,7 @@ from .amazon_helpers import (
     _extract_first_order_id,
     _extract_hub_code_from_parts,
 )
-from .amazon_image import AmazonImageMixin
+from .image import AmazonImageMixin
 
 _LOGGER = logging.getLogger(__name__)
 

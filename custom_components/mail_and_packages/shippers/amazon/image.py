@@ -31,7 +31,7 @@ from custom_components.mail_and_packages.utils.imap import (
     email_search,
 )
 
-from .amazon_helpers import _amazon_attr, _is_amazon_delivered
+from .helpers import _amazon_attr, _is_amazon_delivered
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -183,7 +183,7 @@ class AmazonImageMixin:
     ) -> None:
         """Copy the Amazon no-delivery placeholder."""
         path_cls = _amazon_attr("Path", Path)
-        nomail = f"{path_cls(__file__).parent.parent}/no_deliveries_amazon.jpg"
+        nomail = f"{path_cls(__file__).parents[2]}/no_deliveries_amazon.jpg"
         _LOGGER.debug("No Amazon images found in emails, using placeholder")
         try:
             if not await anyio.Path(amazon_path).exists():

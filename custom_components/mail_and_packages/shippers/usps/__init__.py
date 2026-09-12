@@ -29,6 +29,7 @@ from custom_components.mail_and_packages.const import (
     DEFAULT_CUSTOM_IMG_FILE,
     SENSOR_DATA,
 )
+from custom_components.mail_and_packages.shippers.base import Shipper
 from custom_components.mail_and_packages.utils.cache import EmailCache
 from custom_components.mail_and_packages.utils.date import get_formatted_date
 from custom_components.mail_and_packages.utils.image import (
@@ -41,8 +42,7 @@ from custom_components.mail_and_packages.utils.image import (
 )
 from custom_components.mail_and_packages.utils.imap import email_fetch, email_search
 
-from .base import Shipper
-from .usps_image import extract_jpeg_attachment, extract_usps_images
+from .image import extract_jpeg_attachment, extract_usps_images
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,7 +105,7 @@ class USPSShipper(Shipper):
         gif_images = images.copy()
         if not config.get("usps_placeholder", True):
             placeholder_str = str(
-                Path(__file__).parent.parent / "image-no-mailpieces700.jpg"
+                Path(__file__).parents[2] / "image-no-mailpieces700.jpg"
             )
             if placeholder_str in gif_images:
                 gif_images.remove(placeholder_str)
@@ -189,7 +189,7 @@ class USPSShipper(Shipper):
         # Old USPS format: plain-text email body contained the filename as a reference.
         # New format is handled in _extract_usps_images on properly decoded HTML.
         if re.compile(r"\bimage-no-mailpieces?700\.jpg\b").search(content) is not None:
-            placeholder = Path(__file__).parent.parent / "image-no-mailpieces700.jpg"
+            placeholder = Path(__file__).parents[2] / "image-no-mailpieces700.jpg"
             placeholder_str = str(placeholder)
             if placeholder.exists() and placeholder_str not in images:
                 images.append(placeholder_str)
@@ -258,7 +258,7 @@ class USPSShipper(Shipper):
             target = Path(path) / name
             if target.is_file():
                 cleanup_images(path, name)
-            src = custom_img or str(Path(__file__).parent.parent / "mail_none.gif")
+            src = custom_img or str(Path(__file__).parents[2] / "mail_none.gif")
             if not Path(src).is_absolute():
                 src = self.hass.config.path(src)
             shutil.copyfile(src, str(target))
