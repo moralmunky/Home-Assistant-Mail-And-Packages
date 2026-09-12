@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import datetime
 import logging
-import sys
 from http import HTTPStatus
 from pathlib import Path
 from time import monotonic
@@ -37,6 +36,7 @@ async def async_oauth_access_token(
     hass: HomeAssistant,
     config_entry: ConfigEntry | None,
     auth_type: str,
+    flow_mod=config_entry_oauth2_flow,
 ) -> str:
     """Return a valid OAuth2 access token, refreshing it when required.
 
@@ -46,13 +46,6 @@ async def async_oauth_access_token(
     try:
         hass.data.setdefault(const.DOMAIN, {})
         hass.data[const.DOMAIN]["oauth_provider"] = auth_type
-
-        coord_mod = sys.modules.get("custom_components.mail_and_packages.coordinator")
-        flow_mod = (
-            getattr(coord_mod, "config_entry_oauth2_flow", config_entry_oauth2_flow)
-            if coord_mod
-            else config_entry_oauth2_flow
-        )
 
         implementation = await flow_mod.async_get_config_entry_implementation(
             hass,
@@ -130,17 +123,12 @@ async def update_shippers(
     today: str,
     since_date: str,
     cache: EmailCache,
+    shipper_fn=get_shipper_for_sensor,
 ) -> dict:
     """Group and process sensors by shipper."""
     data = {}
     resources = config.get(CONF_RESOURCES, [])
     sensors_by_shipper = {}
-    coord_mod = sys.modules.get("custom_components.mail_and_packages.coordinator")
-    shipper_fn = (
-        getattr(coord_mod, "get_shipper_for_sensor", get_shipper_for_sensor)
-        if coord_mod
-        else get_shipper_for_sensor
-    )
 
     for sensor in resources:
         shipper = shipper_fn(hass, config, sensor)
@@ -264,6 +252,8 @@ async def check_camera_update(
     coordinator: MailDataUpdateCoordinator,
     base_name: str,
     data: dict | None = None,
+    def_img_path=default_image_path,
+    anyio_mod=anyio,
 ) -> None:
     """Check image hash changes for a specific delivery camera."""
     if data is None:
@@ -278,13 +268,6 @@ async def check_camera_update(
     _LOGGER.debug("%s image from data: %s", base_name.title(), image)
     if not image:
         return
-
-    coord_mod = sys.modules.get("custom_components.mail_and_packages.coordinator")
-    def_img_path = (
-        getattr(coord_mod, "default_image_path", default_image_path)
-        if coord_mod
-        else default_image_path
-    )
 
     image_path = def_img_path(coordinator.hass, coordinator.config).rstrip("/") + "/"
     path = f"{image_path}{base_name}/"
@@ -302,7 +285,6 @@ async def check_camera_update(
     else:
         none_image = f"{Path(__file__).parent}/no_deliveries_{base_name}.jpg"
 
-    anyio_mod = getattr(coord_mod, "anyio", anyio) if coord_mod else anyio
     if await anyio_mod.Path(delivery_image).exists():
         image_hash = await coordinator.async_get_file_hash_if_changed(delivery_image)
         none_hash = await coordinator.async_get_file_hash_if_changed(none_image)
@@ -314,18 +296,12 @@ async def check_camera_update(
 async def binary_sensor_update(
     coordinator: MailDataUpdateCoordinator,
     data: dict | None = None,
+    def_img_path=default_image_path,
+    anyio_mod=anyio,
 ) -> None:
     """Update binary sensor states."""
     if data is None:
         data = getattr(coordinator, "_data", {})
-
-    coord_mod = sys.modules.get("custom_components.mail_and_packages.coordinator")
-    def_img_path = (
-        getattr(coord_mod, "default_image_path", default_image_path)
-        if coord_mod
-        else default_image_path
-    )
-    anyio_mod = getattr(coord_mod, "anyio", anyio) if coord_mod else anyio
 
     _LOGGER.debug("Data: %s", data)
     image = data.get(const.ATTR_USPS_IMAGE)
