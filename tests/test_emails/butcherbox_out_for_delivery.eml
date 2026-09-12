@@ -1,0 +1,53 @@
+Delivered-To: redacted@gmail.com
+Received: from o1.send.butcherbox.com (o1.send.butcherbox.com. [192.0.2.42])
+        by mx.google.com with ESMTPS id butcherbox123abc
+        for <redacted@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 11 Sep 2026 11:09:21 -0700 (PDT)
+Return-Path: <bounces+0000000-0000-redacted=gmail.com@send.butcherbox.com>
+From: ButcherBox <support@butcherbox.com>
+To: John Doe <redacted@gmail.com>
+Subject: Your box is out for delivery!
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_ButcherBox_0001"
+Message-ID: <butcherbox.ofd@geopod-ismtpd-001>
+Date: Fri, 11 Sep 2026 11:09:21 -0700 (PDT)
+
+------=_Part_ButcherBox_0001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+[ButcherBox=C2=AE](https://member.butcherbox.com/member)
+
+[ON THE WAY | Your box is out for delivery](https://track.butcherbox.com/ord=
+er-status?tracking-number=3DSH123456789012345678)
+
+Order Number #100000000
+
+Great news, your box will be delivered today.
+We'll let you know when it arrives.
+
+[TRACK YOUR BOX](https://track.butcherbox.com/order-status?tracking-number=3D=
+SH123456789012345678)
+
+Shipping Address
+John Doe
+123 Main St, 00000, Springfield, United States
+Want to change how you receive these emails? You can [Manage Preferences](https://manage.kmail-lists.example.com/subscriptions/manage?a=AAAAAA&c=01AAAAAAAAAAAAAAAAAAAAAAAA&m=Y7v95W&r=01KZXRR6FY04KNC7SH7T6J6KX8&e=7mJzDL) or [Unsubscribe](https://manage.kmail-lists.example.com/subscriptions/unsubscribe?r=01KZXRR6FY04KNC7SH7T6J6KX8).
+
+------=_Part_ButcherBox_0001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html>
+<html>
+  <body>
+    <h1>Your box is out for delivery</h1>
+    <p>Order Number #100000000</p>
+    <p>Great news, your box will be delivered today.</p>
+    <a href=3D"https://track.butcherbox.com/order-status?tracking-number=3DSH1=
+23456789012345678">TRACK YOUR BOX</a>
+    <p>Ship to: John Doe, 123 Main St. Springfield</p>
+  </body>
+</html>
+------=_Part_ButcherBox_0001--

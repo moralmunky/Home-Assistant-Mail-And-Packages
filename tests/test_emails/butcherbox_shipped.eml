@@ -1,0 +1,48 @@
+Delivered-To: redacted@gmail.com
+Received: from o1.send.butcherbox.com (o1.send.butcherbox.com. [192.0.2.42])
+        by mx.google.com with ESMTPS id butcherbox123abc
+        for <redacted@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 10 Sep 2026 08:20:23 -0700 (PDT)
+Return-Path: <bounces+0000000-0000-redacted=gmail.com@send.butcherbox.com>
+From: ButcherBox <support@butcherbox.com>
+To: John Doe <redacted@gmail.com>
+Subject: Your order has shipped!
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_ButcherBox_0001"
+Message-ID: <butcherbox.shipped@geopod-ismtpd-001>
+Date: Thu, 10 Sep 2026 08:20:23 -0700 (PDT)
+
+------=_Part_ButcherBox_0001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+[ButcherBox=C2=AE](https://member.butcherbox.com/member)
+
+[ORDER SHIPPED | More Deliciousness Is Coming!](https://track.butcherbox.com=
+/order-status?tracking-number=3D)
+
+Order Number #7000000
+
+Get excited, you're so close to the BEST DAY
+EVER (delivery day!).
+
+[TRACK YOUR BOX](https://track.butcherbox.com/order-status?tracking-number=3D)
+Want to change how you receive these emails? You can [Manage Preferences](https://manage.kmail-lists.example.com/subscriptions/manage?a=AAAAAA&c=01AAAAAAAAAAAAAAAAAAAAAAAA&m=Y7v95W&r=01KZXRR6FY04KNC7SH7T6J6KX8&e=7mJzDL) or [Unsubscribe](https://manage.kmail-lists.example.com/subscriptions/unsubscribe?r=01KZXRR6FY04KNC7SH7T6J6KX8).
+
+------=_Part_ButcherBox_0001
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html>
+<html>
+  <body>
+    <h1>ORDER SHIPPED | More Deliciousness Is Coming!</h1>
+    <p>Order Number #7000000</p>
+    <img src=3D"https://track.butcherbox.com/api/tracking-clips/email?clip_id=
+=3Dabc123&amp;tracking_number=3DSH123456789012345678" />
+    <a href=3D"https://track.butcherbox.com/order-status?tracking-number=3D">=
+TRACK YOUR BOX</a>
+  </body>
+</html>
+------=_Part_ButcherBox_0001--
