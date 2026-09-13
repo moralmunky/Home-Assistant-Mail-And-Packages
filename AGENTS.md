@@ -159,4 +159,5 @@ Before submitting a pull request, run the following verification steps locally:
 ### B. Pull Request Scope & Structure
 * **Keep PRs Atomic**: Avoid combining unrelated refactoring, styling fixes, or multiple feature requests into a single PR. Keep changes focused and small where possible.
 * **PR Templates**: Pull requests must use the repository's PR template, leaving nothing out unless the template explicitly states that it is optional or can be skipped.
-* **Commit Messages**: Write descriptive commit messages. Ensure the PR title matches the Conventional Commits specification (e.g., `fix(imap): handle body search syntax error`).
+* **Commit Messages & PR Titles**: Write descriptive commit messages. Ensure the PR title matches the Conventional Commits specification (e.g., `fix(imap): handle body search syntax error`).
+* **Issue Linking**: Always link the issue(s) being addressed both in the PR title (e.g. `feat(shipper): ... (fixes #1234)`) and in the PR description under `Additional information` (`- This PR fixes or closes issue: fixes #1234` or `- This PR is related to issue: #1234`). When a PR merges into non-default branches (like `dev`), verify the associated issue is closed once merged.
