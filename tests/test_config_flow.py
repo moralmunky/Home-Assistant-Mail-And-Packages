@@ -36,19 +36,19 @@ from custom_components.mail_and_packages.config_flow import (
     _validate_user_input,
     multi_folder_select,
 )
-from custom_components.mail_and_packages.config_flow.mailbox import (
+from custom_components.mail_and_packages.config_flows.mailbox import (
     _get_target as gt_mb,
 )
-from custom_components.mail_and_packages.config_flow.options import (
+from custom_components.mail_and_packages.config_flows.options import (
     _get_target as gt_op,
 )
-from custom_components.mail_and_packages.config_flow.schemas import (
+from custom_components.mail_and_packages.config_flows.schemas import (
     _get_target as gt_sc,
 )
-from custom_components.mail_and_packages.config_flow.steps import (
+from custom_components.mail_and_packages.config_flows.steps import (
     _get_target as gt_st,
 )
-from custom_components.mail_and_packages.config_flow.validation import (
+from custom_components.mail_and_packages.config_flows.validation import (
     _get_target as gt_va,
 )
 from custom_components.mail_and_packages.const import (
