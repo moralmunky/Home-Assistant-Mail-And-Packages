@@ -34,11 +34,11 @@ async def test_usps_pickup_email_generic_shipper(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_search",
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
             return_value=("OK", [b"1"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_fetch",
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch",
             return_value=("OK", [msg.as_bytes()]),
         ),
         patch(
@@ -46,7 +46,7 @@ async def test_usps_pickup_email_generic_shipper(hass):
             return_value=("OK", [msg.as_bytes()]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_fetch_headers",
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers",
             return_value=("OK", [b"Subject: USPS - Your Package Pickup Request\r\n"]),
         ),
     ):

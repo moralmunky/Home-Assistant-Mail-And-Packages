@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import sys
 from typing import Any
 
 from aioimaplib import IMAP4_SSL
@@ -17,15 +16,9 @@ from custom_components.mail_and_packages.const import (
 )
 from custom_components.mail_and_packages.utils.imap import email_search
 
-from .generic_helpers import SearchContext
+from .helpers import SearchContext
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def _generic_attr(name: str, default: Any = None) -> Any:
-    """Dynamically get an attribute from the generic module if available."""
-    mod = sys.modules.get("custom_components.mail_and_packages.shippers.generic")
-    return getattr(mod, name, default) if mod is not None else default
 
 
 class GenericSearchMixin:
@@ -135,7 +128,7 @@ class GenericSearchMixin:
         found_data: list[bytes] = []
         image_found = False
 
-        (server_response, sdata) = await _generic_attr("email_search", email_search)(
+        (server_response, sdata) = await email_search(
             account=account,
             address=email_addresses,
             date=date,

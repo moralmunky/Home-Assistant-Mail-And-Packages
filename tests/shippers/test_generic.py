@@ -46,7 +46,9 @@ async def test_ups_delivered_class(hass, mock_imap_ups_delivered):
     )
 
     with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+        ),
     ):
         result = await shipper.process(
             mock_imap_ups_delivered,
@@ -69,9 +71,11 @@ async def test_fedex_delivered_class(hass, mock_imap_fedex_delivered_with_photo)
     )
 
     with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.generic_delivery_image_extraction",
+            "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.generic_delivery_image_extraction",
             return_value=True,
         ),
     ):
@@ -116,9 +120,11 @@ async def test_image_extraction_runs_off_event_loop(
         return True
 
     with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.generic_delivery_image_extraction",
+            "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.generic_delivery_image_extraction",
             new=_extract_probe,
         ),
     ):
@@ -148,7 +154,9 @@ async def test_usps_delivered_class(hass, mock_imap_usps_delivered_individual):
     )
 
     with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+        ),
     ):
         result = await shipper.process(
             mock_imap_usps_delivered_individual,
@@ -170,7 +178,9 @@ async def test_usps_exception_class(hass, mock_imap_usps_exception):
     )
 
     with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+        ),
     ):
         result = await shipper.process(
             mock_imap_usps_exception,
@@ -250,18 +260,20 @@ async def test_generic_with_images_and_amazon_mentions(hass):
     )
 
     with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.generic_delivery_image_extraction",
+            "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.generic_delivery_image_extraction",
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_tracking",
             new_callable=AsyncMock,
             return_value=["1Z123"],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.find_text",
+            "custom_components.mail_and_packages.shippers.generic.helpers.find_text",
             new_callable=AsyncMock,
             return_value=1,
         ),
@@ -282,7 +294,7 @@ async def test_generic_ups_exception(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_tracking",
             new_callable=AsyncMock,
             return_value=["1Z999"],
         ),
@@ -306,7 +318,7 @@ async def test_generic_fedex_exception(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_tracking",
             new_callable=AsyncMock,
             return_value=["123456789012"],
         ),
@@ -343,7 +355,7 @@ async def test_generic_multiple_emails(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_tracking",
             new_callable=AsyncMock,
             return_value=["1Z123", "1Z456"],
         ),
@@ -393,7 +405,7 @@ async def test_generic_forwarded_emails(hass):
     )
     mock_acc = AsyncMock()
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email_search",
+        "custom_components.mail_and_packages.shippers.generic.search.email_search",
         return_value=("OK", [None]),
     ) as mock_search:
         await shipper.process(mock_acc, "today", "ups_delivered")
@@ -412,7 +424,7 @@ async def test_generic_forwarded_emails_string(hass):
     )
     mock_acc = AsyncMock()
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email_search",
+        "custom_components.mail_and_packages.shippers.generic.search.email_search",
         return_value=("OK", [None]),
     ) as mock_search:
         await shipper.process(mock_acc, "today", "ups_delivered")
@@ -434,7 +446,7 @@ async def test_generic_forwarding_header_mode(hass):
     )
     mock_acc = AsyncMock()
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email_search",
+        "custom_components.mail_and_packages.shippers.generic.search.email_search",
         return_value=("OK", [None]),
     ) as mock_search:
         await shipper.process(mock_acc, "today", "ups_delivered")
@@ -452,16 +464,18 @@ async def test_generic_body_search(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.find_text",
+            "custom_components.mail_and_packages.shippers.generic.helpers.find_text",
             new_callable=AsyncMock,
             return_value=1,
         ) as mock_find,
         patch(
-            "custom_components.mail_and_packages.shippers.generic.find_text_matches",
+            "custom_components.mail_and_packages.shippers.generic.helpers.find_text_matches",
             new_callable=AsyncMock,
             return_value=(1, [b"1"]),
         ) as mock_find_matches,
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+        ),
         patch(
             "custom_components.mail_and_packages.shippers.generic.GenericShipper._verify_matched_subjects",
             new_callable=AsyncMock,
@@ -484,15 +498,17 @@ async def test_generic_body_search_no_match(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.find_text_matches",
+            "custom_components.mail_and_packages.shippers.generic.helpers.find_text_matches",
             new_callable=AsyncMock,
             return_value=(0, []),
         ) as mock_find_matches,
         patch(
-            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_tracking",
             new_callable=AsyncMock,
         ) as mock_tracking,
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+        ),
         patch(
             "custom_components.mail_and_packages.shippers.generic.GenericShipper._verify_matched_subjects",
             new_callable=AsyncMock,
@@ -517,13 +533,15 @@ async def test_generic_placeholder_default(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.anyio.Path.exists",
+            "custom_components.mail_and_packages.shippers.generic.helpers.anyio.Path.exists",
             return_value=False,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.copyfile",
+            "custom_components.mail_and_packages.shippers.generic.helpers.copyfile",
         ) as mock_copy,
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+        ),
     ):
         await shipper._copy_generic_placeholder(shipper_cfg)
         # Verify that it tried to copy mail_none.gif
@@ -574,11 +592,13 @@ async def test_process_with_cache(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_search",
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
             new_callable=AsyncMock,
             return_value=("OK", [b"1"]),
         ),
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+        ),
     ):
         result = await shipper.process(
             mock_account, "today", "ups_delivered", cache=cache
@@ -600,18 +620,20 @@ async def test_generic_image_found(hass):
     mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
 
     with (
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.generic_delivery_image_extraction",
+            "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.generic_delivery_image_extraction",
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_tracking",
             new_callable=AsyncMock,
             return_value=["1Z123"],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_fetch",
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch",
             new_callable=AsyncMock,
             return_value=("OK", [b"RFC822", b"body"]),
         ),
@@ -646,11 +668,11 @@ async def test_generic_search_coverage_edges(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.SENSOR_DATA",
+            "custom_components.mail_and_packages.shippers.generic.helpers.SENSOR_DATA",
             modified_sensor_data,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_search",
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
             new_callable=AsyncMock,
             side_effect=[
                 ("OK", [b"1"]),  # Subject 1 finds ID 1
@@ -658,20 +680,22 @@ async def test_generic_search_coverage_edges(hass):
             ],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_fetch",
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch",
             new_callable=AsyncMock,
             return_value=("OK", [b"RFC822", b"body"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.generic_delivery_image_extraction",
+            "custom_components.mail_and_packages.shippers.generic.helpers.generic_delivery_image_extraction",
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_tracking",
             new_callable=AsyncMock,
             return_value=[],
         ),
-        patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+        ),
         patch.object(shipper, "_copy_generic_placeholder", new_callable=AsyncMock),
         patch(
             "custom_components.mail_and_packages.shippers.generic.GenericShipper._verify_matched_subjects",
@@ -819,7 +843,7 @@ async def test_verify_matched_subjects(hass, caplog):
     caplog.set_level("DEBUG")
 
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email_fetch_headers",
+        "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers",
         new_callable=AsyncMock,
         return_value=("OK", [b"Subject: Your package has been delivered"]),
     ):
@@ -840,7 +864,7 @@ async def test_verify_matched_subjects_rejection(hass, caplog):
     caplog.set_level("DEBUG")
 
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email_fetch_headers",
+        "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers",
         new_callable=AsyncMock,
         return_value=(
             "OK",
@@ -889,7 +913,7 @@ async def test_verify_matched_subjects_error(hass, caplog):
     caplog.set_level("DEBUG")
 
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email_fetch_headers",
+        "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers",
         new_callable=AsyncMock,
         side_effect=OSError("Connection lost"),
     ):
@@ -922,7 +946,7 @@ def test_decode_subject_string_with_encoding(hass):
     """Test _decode_subject when decode_header returns a string and an encoding."""
     shipper = GenericShipper(hass, {})
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.decode_header",
+        "custom_components.mail_and_packages.shippers.generic.helpers.decode_header",
         return_value=[("A string instead of bytes", "utf-8")],
     ):
         result = shipper._decode_subject(b"Subject: dummy")
@@ -935,7 +959,7 @@ async def test_ups_packages_empty_config_skips_imap(hass):
     shipper = GenericShipper(hass, {})
     mock_account = AsyncMock()
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email_search",
+        "custom_components.mail_and_packages.shippers.generic.search.email_search",
     ) as mock_search:
         # capost_packages still has {} config — skips IMAP
         result = await shipper.process(mock_account, "today", "capost_packages")
@@ -949,7 +973,7 @@ async def test_ups_delivering_searches_imap(hass):
     shipper = GenericShipper(hass, {})
     mock_account = AsyncMock()
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email_search",
+        "custom_components.mail_and_packages.shippers.generic.search.email_search",
         return_value=("OK", [b""]),
     ) as mock_search:
         await shipper.process(mock_account, "today", "ups_delivering")
@@ -965,7 +989,7 @@ async def test_ups_delivering_with_forwarded_emails_includes_both(hass):
     shipper = GenericShipper(hass, {"forwarded_emails": ["forwarder@example.com"]})
     mock_account = AsyncMock()
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email_search",
+        "custom_components.mail_and_packages.shippers.generic.search.email_search",
         return_value=("OK", [b""]),
     ) as mock_search:
         await shipper.process(mock_account, "today", "ups_delivering")
@@ -1026,7 +1050,7 @@ async def test_process_delivering_uses_since_date(hass):
     mock_account = AsyncMock()
 
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email_search",
+        "custom_components.mail_and_packages.shippers.generic.search.email_search",
         return_value=("OK", [None]),
     ) as mock_search:
         await shipper.process(
@@ -1051,7 +1075,7 @@ async def test_process_delivered_uses_since_date(hass, tmp_path):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_search",
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
             return_value=("OK", [None]),
         ) as mock_search,
         patch.object(hass, "async_add_executor_job", new_callable=AsyncMock),
@@ -1074,7 +1098,7 @@ async def test_process_exception_uses_since_date(hass):
     mock_account = AsyncMock()
 
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email_search",
+        "custom_components.mail_and_packages.shippers.generic.search.email_search",
         return_value=("OK", [None]),
     ) as mock_search:
         await shipper.process(
@@ -1095,7 +1119,7 @@ async def test_process_packages_ignores_since_date(hass):
     mock_account = AsyncMock()
 
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email_search",
+        "custom_components.mail_and_packages.shippers.generic.search.email_search",
     ) as mock_search:
         # capost_packages still has {} config — skips IMAP even with since_date
         await shipper.process(
@@ -1115,7 +1139,7 @@ async def test_ups_delivering_uses_since_date(hass):
     mock_account = AsyncMock()
 
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email_search",
+        "custom_components.mail_and_packages.shippers.generic.search.email_search",
         return_value=("OK", [b""]),
     ) as mock_search:
         await shipper.process(
@@ -1138,7 +1162,7 @@ async def test_aliexpress_delivered_class(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_search",
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
             new_callable=AsyncMock,
             return_value=("OK", [b"1"]),
         ),
@@ -1149,12 +1173,12 @@ async def test_aliexpress_delivered_class(hass):
             return_value=[b"1"],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.find_text_matches",
+            "custom_components.mail_and_packages.shippers.generic.helpers.find_text_matches",
             new_callable=AsyncMock,
             return_value=(1, [b"1"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_tracking",
             new_callable=AsyncMock,
             return_value=["LP123456789DE"],
         ),
@@ -1172,7 +1196,7 @@ async def test_intelcom_dragonfly_delivered(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_search",
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
             new_callable=AsyncMock,
             return_value=("OK", [b"1"]),
         ),
@@ -1183,12 +1207,12 @@ async def test_intelcom_dragonfly_delivered(hass):
             return_value=[b"1"],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.find_text_matches",
+            "custom_components.mail_and_packages.shippers.generic.helpers.find_text_matches",
             new_callable=AsyncMock,
             return_value=(1, [b"1"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_tracking",
             new_callable=AsyncMock,
             return_value=["INTLCMI19292929"],
         ),
@@ -1206,7 +1230,7 @@ async def test_intelcom_dragonfly_delivering(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_search",
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
             new_callable=AsyncMock,
             return_value=("OK", [b"1"]),
         ),
@@ -1217,12 +1241,12 @@ async def test_intelcom_dragonfly_delivering(hass):
             return_value=[b"1"],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.find_text_matches",
+            "custom_components.mail_and_packages.shippers.generic.helpers.find_text_matches",
             new_callable=AsyncMock,
             return_value=(1, [b"1"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_tracking",
             new_callable=AsyncMock,
             return_value=["INTLCMI19292929"],
         ),
@@ -1240,7 +1264,7 @@ async def test_purolator_delivering_alternate_subject(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_search",
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
             new_callable=AsyncMock,
             return_value=("OK", [b"1"]),
         ),
@@ -1251,12 +1275,12 @@ async def test_purolator_delivering_alternate_subject(hass):
             return_value=[b"1"],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.find_text_matches",
+            "custom_components.mail_and_packages.shippers.generic.helpers.find_text_matches",
             new_callable=AsyncMock,
             return_value=(1, [b"1"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_tracking",
             new_callable=AsyncMock,
             return_value=["BVH001683614"],
         ),
@@ -1727,7 +1751,7 @@ async def test_etsy_carrier_tracking_without_cache(hass, mock_imap):
 
     shipper = GenericShipper(hass, {"image_path": "test/path/"})
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email_search",
+        "custom_components.mail_and_packages.shippers.generic.search.email_search",
         AsyncMock(return_value=("OK", [b"1"])),
     ):
         result = await shipper.process(
@@ -1758,7 +1782,7 @@ def test_find_carrier_number_payload_decode_errors():
     mock_msg.walk.return_value = [part1, part2, part3]
 
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email.message_from_bytes",
+        "custom_components.mail_and_packages.shippers.generic.helpers.email.message_from_bytes",
         return_value=mock_msg,
     ):
         pattern = re.compile(r"Canada Post tracking number:\s*(\d{16})")
@@ -1815,7 +1839,7 @@ def test_find_carrier_number_non_bytes_and_non_text_parts():
     mock_msg.walk.return_value = [part_image, part_text]
 
     with patch(
-        "custom_components.mail_and_packages.shippers.generic.email.message_from_bytes",
+        "custom_components.mail_and_packages.shippers.generic.helpers.email.message_from_bytes",
         return_value=mock_msg,
     ):
         pattern = re.compile(r"Canada Post tracking number:\s*(\d{16})")
@@ -1834,11 +1858,11 @@ async def test_collect_carrier_tracking_with_cache_and_empty_tracking(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_tracking",
             AsyncMock(side_effect=[[], ["3869977574"]]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic._find_carrier_number",
+            "custom_components.mail_and_packages.shippers.generic.helpers._find_carrier_number",
             return_value="9999888877776666",
         ),
     ):
@@ -1994,7 +2018,9 @@ async def test_royal_mail_out_for_delivery_class(
         },
     )
 
-    with patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"):
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+    ):
         result = await shipper.process(
             mock_imap_royal_out_for_delivery,
             "today",
@@ -2015,7 +2041,9 @@ async def test_royal_mail_delivered_class(hass, mock_imap_royal_delivered):
         },
     )
 
-    with patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"):
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+    ):
         result = await shipper.process(
             mock_imap_royal_delivered,
             "today",
@@ -2038,7 +2066,9 @@ async def test_royal_mail_delivered_alternate_subject_class(
         },
     )
 
-    with patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"):
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+    ):
         result = await shipper.process(
             mock_imap_royal_delivered_alternate,
             "today",

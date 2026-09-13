@@ -5,7 +5,6 @@ from __future__ import annotations
 import email
 import logging
 import re
-import sys
 from typing import Any
 
 from custom_components.mail_and_packages import const
@@ -25,12 +24,6 @@ from custom_components.mail_and_packages.utils.amazon import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def _amazon_attr(name: str, default: Any = None) -> Any:
-    """Dynamically get an attribute from the amazon shipper module if available."""
-    mod = sys.modules.get("custom_components.mail_and_packages.shippers.amazon")
-    return getattr(mod, name, default) if mod is not None else default
 
 
 def _extract_first_order_id(
@@ -95,11 +88,10 @@ def _extract_amazon_image_urls(msg: email.message.Message) -> list[str]:
 
 def _is_amazon_delivered(msg_data: list, subjects: list[str]) -> tuple[bool, list[str]]:
     """Verify if email is a delivered notification and return image URLs."""
-    email_mod = _amazon_attr("email", email)
     for response_part in msg_data:
         if not isinstance(response_part, (bytes, bytearray)):
             continue
-        msg = email_mod.message_from_bytes(response_part)
+        msg = email.message_from_bytes(response_part)
         subject = get_decoded_subject(msg)
         if not subject:
             continue
@@ -123,14 +115,12 @@ def _extract_hub_code_from_parts(
     msg_parts: list[Any],
 ) -> str | None:
     """Extract hub code from email message parts."""
-    email_mod = _amazon_attr("email", email)
-    hub_extractor = _amazon_attr("_extract_hub_code", _extract_hub_code)
     for response_part in msg_parts:
         if isinstance(response_part, (bytes, bytearray)):
-            msg = email_mod.message_from_bytes(response_part)
+            msg = email.message_from_bytes(response_part)
             actual_subject = get_decoded_subject(msg)
             body = get_email_body(msg)
-            if hub_code := hub_extractor(
+            if hub_code := _extract_hub_code(
                 body,
                 AMAZON_HUB_BODY,
                 actual_subject,
@@ -145,10 +135,9 @@ def _extract_exception_from_parts(
     order_pattern: re.Pattern[str],
 ) -> list[str] | None:
     """Extract matching order numbers if email matches exception body."""
-    email_mod = _amazon_attr("email", email)
     for response_part in msg_parts:
         if isinstance(response_part, (bytes, bytearray)):
-            msg = email_mod.message_from_bytes(response_part)
+            msg = email.message_from_bytes(response_part)
             body = get_email_body(msg)
             subject = get_decoded_subject(msg)
             if AMAZON_EXCEPTION_BODY in body:

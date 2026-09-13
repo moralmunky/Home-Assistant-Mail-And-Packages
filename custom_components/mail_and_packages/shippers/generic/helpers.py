@@ -5,7 +5,6 @@ from __future__ import annotations
 import email
 import logging
 import re
-import sys
 from dataclasses import dataclass
 from email.header import decode_header
 from pathlib import Path
@@ -18,6 +17,7 @@ from homeassistant.core import HomeAssistant
 
 from custom_components.mail_and_packages.const import (
     AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT,
+    ASSET_ROOT,
     ATTR_BODY,
     ATTR_BODY_COUNT,
     ATTR_PATTERN,
@@ -40,12 +40,6 @@ from custom_components.mail_and_packages.utils.shipper import (
 _LOGGER = logging.getLogger(__name__)
 
 
-def _generic_attr(name: str, default: Any = None) -> Any:
-    """Dynamically get an attribute from the generic module if available."""
-    mod = sys.modules.get("custom_components.mail_and_packages.shippers.generic")
-    return getattr(mod, name, default) if mod is not None else default
-
-
 @dataclass
 class SearchContext:
     """Context for generic shipper email search and processing."""
@@ -60,11 +54,10 @@ class SearchContext:
 
 def _find_carrier_number(msg_parts: list, carrier_re: re.Pattern) -> str | None:
     """Return the first carrier tracking number found in an email's text parts."""
-    email_mod = _generic_attr("email", email)
     for response_part in msg_parts:
         if not isinstance(response_part, (bytes, bytearray)):
             continue
-        msg = email_mod.message_from_bytes(response_part)
+        msg = email.message_from_bytes(response_part)
         for part in msg.walk():
             if part.get_content_type() not in ("text/plain", "text/html"):
                 continue
@@ -79,15 +72,13 @@ def _find_carrier_number(msg_parts: list, carrier_re: re.Pattern) -> str | None:
 
 def _decode_subject(header_part: bytes | bytearray) -> str | None:
     """Decode MIME encoded subject from email header part."""
-    email_mod = _generic_attr("email", email)
-    msg = email_mod.message_from_bytes(header_part)
+    msg = email.message_from_bytes(header_part)
     header_val = msg.get("subject")
     if not header_val:
         return None
 
     decoded_parts = []
-    decoder = _generic_attr("decode_header", decode_header)
-    for subject_bytes, encoding in decoder(header_val):
+    for subject_bytes, encoding in decode_header(header_val):
         if encoding:
             try:
                 if isinstance(subject_bytes, bytes):
@@ -156,10 +147,7 @@ async def _verify_matched_subjects(
                     )
                 )[1]
             else:
-                fetch_headers = _generic_attr(
-                    "email_fetch_headers", email_fetch_headers
-                )
-                header_data = (await fetch_headers(account, eid))[1]
+                header_data = (await email_fetch_headers(account, eid))[1]
 
             if _extract_subject_from_headers(
                 header_data, sensor_type, eid, expected_subjects_lower
@@ -207,8 +195,7 @@ async def _setup_image_extraction(
     absolute_image_path = image_path.rstrip("/") + "/"
 
     def _create_dir() -> None:
-        path_cls = _generic_attr("Path", Path)
-        path = path_cls(absolute_image_path) / shipper_name
+        path = Path(absolute_image_path) / shipper_name
         if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
 
@@ -231,10 +218,9 @@ async def _copy_generic_placeholder(
 ) -> None:
     """Copy the generic placeholder for the shipper."""
     shipper_name = shipper_cfg["name"]
-    base_dir = Path(__file__).parent.parent
-    placeholder = base_dir / f"no_deliveries_{shipper_name}.jpg"
+    placeholder = ASSET_ROOT / f"no_deliveries_{shipper_name}.jpg"
     if not await anyio.Path(placeholder).exists():
-        placeholder = base_dir / "mail_none.gif"
+        placeholder = ASSET_ROOT / "mail_none.gif"
 
     target = Path(shipper_cfg["image_path"]) / shipper_name / shipper_cfg["image_name"]
     _LOGGER.debug(
@@ -243,8 +229,7 @@ async def _copy_generic_placeholder(
         placeholder.name,
     )
     try:
-        copier = _generic_attr("copyfile", copyfile)
-        await hass.async_add_executor_job(copier, str(placeholder), str(target))
+        await hass.async_add_executor_job(copyfile, str(placeholder), str(target))
     except OSError as err:
         _LOGGER.error("Error attempting to copy placeholder: %s", err)
 
@@ -262,9 +247,10 @@ async def _process_tracking_numbers(
 
     pattern = SENSOR_DATA[tracking_key][ATTR_PATTERN][0]
     tracking_nums = []
-    tracker = _generic_attr("get_tracking", get_tracking)
     for sdata in found_data:
-        tracking_nums.extend(await tracker(sdata.decode(), account, pattern, cache))
+        tracking_nums.extend(
+            await get_tracking(sdata.decode(), account, pattern, cache)
+        )
 
     return list(dict.fromkeys(tracking_nums))
 
@@ -290,11 +276,9 @@ async def _collect_carrier_tracking(
     carrier_re = re.compile(pattern, re.IGNORECASE)
     id_pattern = SENSOR_DATA[tracking_key][ATTR_PATTERN][0]
     mapping: dict[str, str] = {}
-    tracker = _generic_attr("get_tracking", get_tracking)
-    fetcher = _generic_attr("email_fetch", email_fetch)
     for sdata in found_data:
         for eid in sdata.split():
-            tracking = await tracker(
+            tracking = await get_tracking(
                 eid.decode() if isinstance(eid, bytes) else str(eid),
                 account,
                 id_pattern,
@@ -305,9 +289,8 @@ async def _collect_carrier_tracking(
             if cache:
                 msg_parts = (await cache.fetch(eid, "(RFC822)"))[1]
             else:
-                msg_parts = (await fetcher(account, eid, "(RFC822)"))[1]
-            find_num = _generic_attr("_find_carrier_number", _find_carrier_number)
-            if number := find_num(msg_parts, carrier_re):
+                msg_parts = (await email_fetch(account, eid, "(RFC822)"))[1]
+            if number := _find_carrier_number(msg_parts, carrier_re):
                 mapping.setdefault(tracking[0], number)
     if not mapping:
         return {}
@@ -325,8 +308,7 @@ async def _process_emails_by_type(
     if ATTR_BODY in config:
         body_count = config.get(ATTR_BODY_COUNT, False)
         mock_data = (b" ".join(ids),)
-        matcher = _generic_attr("find_text_matches", find_text_matches)
-        count, matched_ids = await matcher(
+        count, matched_ids = await find_text_matches(
             mock_data,
             account,
             config[ATTR_BODY],
@@ -347,20 +329,16 @@ async def _extract_images_for_shipper(
 ) -> bool:
     """Extract delivery images from emails."""
     image_found = False
-    fetcher = _generic_attr("email_fetch", email_fetch)
-    extractor = _generic_attr(
-        "generic_delivery_image_extraction", generic_delivery_image_extraction
-    )
     for eid in ids:
         if cache:
             msg_parts = (await cache.fetch(eid, "(RFC822)", shipper=shipper_name))[1]
         else:
-            msg_parts = (await fetcher(account, eid, "(RFC822)"))[1]
+            msg_parts = (await email_fetch(account, eid, "(RFC822)"))[1]
         for response_part in msg_parts:
             if isinstance(response_part, (bytes, bytearray)):
                 # Run sync extraction off event loop (file I/O & CPU parsing)
                 if await hass.async_add_executor_job(
-                    extractor,
+                    generic_delivery_image_extraction,
                     response_part,
                     s_config["image_path"],
                     s_config["image_name"],
@@ -382,8 +360,7 @@ async def _check_amazon_mentions(
 ) -> None:
     """Check for Amazon mentions in emails."""
     mock_data = (b" ".join(ids),)
-    finder = _generic_attr("find_text", find_text)
-    amazon_mentions = await finder(
+    amazon_mentions = await find_text(
         mock_data,
         account,
         AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT,

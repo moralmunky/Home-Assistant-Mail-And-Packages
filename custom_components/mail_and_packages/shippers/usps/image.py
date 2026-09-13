@@ -10,6 +10,7 @@ from typing import Any
 
 from bs4 import BeautifulSoup
 
+from custom_components.mail_and_packages.const import ASSET_ROOT
 from custom_components.mail_and_packages.utils.image import (
     io_save_file,
     random_filename,
@@ -37,7 +38,7 @@ async def extract_usps_images(
     # Check here on properly decoded HTML — raw RFC822 content is
     # quoted-printable encoded and soft line breaks could split the string.
     if "mailpiece-with-no-image-id" in content:
-        placeholder = Path(__file__).parent.parent / "image-no-mailpieces700.jpg"
+        placeholder = ASSET_ROOT / "image-no-mailpieces700.jpg"
         placeholder_str = str(placeholder)
         if placeholder.exists() and placeholder_str not in images:
             images.append(placeholder_str)

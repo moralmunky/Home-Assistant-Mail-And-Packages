@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from . import amazon, generic, usps
 from .amazon import AmazonShipper
 from .generic import GenericShipper
 from .post_de import PostDEShipper
@@ -39,3 +40,16 @@ def get_shipper_for_sensor(
         return GenericShipper(hass, config)
 
     return None
+
+
+__all__ = [
+    "SHIPPER_REGISTRY",
+    "AmazonShipper",
+    "GenericShipper",
+    "PostDEShipper",
+    "USPSShipper",
+    "amazon",
+    "generic",
+    "get_shipper_for_sensor",
+    "usps",
+]

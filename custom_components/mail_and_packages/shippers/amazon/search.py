@@ -43,15 +43,14 @@ from custom_components.mail_and_packages.utils.imap import (
     email_search,
 )
 
-from .amazon_helpers import (
-    _amazon_attr,
+from .helpers import (
     _calculate_delivering_count,
     _calculate_final_count,
     _extract_exception_from_parts,
     _extract_first_order_id,
     _extract_hub_code_from_parts,
 )
-from .amazon_image import AmazonImageMixin
+from .image import AmazonImageMixin
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -73,13 +72,9 @@ class AmazonSearchMixin(AmazonImageMixin):
         forwarding_header: str = "",
     ) -> list[str] | int:
         """Parse Amazon emails for delivery date and order number."""
-        today_date = _amazon_attr("get_today", get_today)()
-        email_addresses_fn = _amazon_attr(
-            "amazon_email_addresses", amazon_email_addresses
-        )
-        address_list = email_addresses_fn(fwds, domain)
-        search_emails_fn = _amazon_attr("search_amazon_emails", search_amazon_emails)
-        unique_emails = await search_emails_fn(
+        today_date = get_today()
+        address_list = amazon_email_addresses(fwds, domain)
+        unique_emails = await search_amazon_emails(
             account, address_list, days, domain, cache, forwarding_header
         )
         order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
@@ -131,23 +126,20 @@ class AmazonSearchMixin(AmazonImageMixin):
         if cache:
             data = (await cache.fetch(fetch_id, "(RFC822)"))[1]
         else:
-            fetch_fn = _amazon_attr("email_fetch", email_fetch)
-            data = (await fetch_fn(account, fetch_id, "(RFC822)"))[1]
+            data = (await email_fetch(account, fetch_id, "(RFC822)"))[1]
 
-        email_mod = _amazon_attr("email", email)
         for response_part in data:
             if not isinstance(response_part, (bytes, bytearray)):
                 continue
 
-            msg = email_mod.message_from_bytes(response_part)
+            msg = email.message_from_bytes(response_part)
             email_date = await self._parse_email_date(msg)
             email_subject = get_decoded_subject(msg)
 
             if any(s.lower() in email_subject.lower() for s in AMAZON_ORDERED_SUBJECT):
                 continue
 
-            email_msg_fn = _amazon_attr("get_email_body", get_email_body)
-            email_msg = email_msg_fn(msg)
+            email_msg = get_email_body(msg)
             if any(
                 s.lower() in email_subject.lower() for s in AMAZON_DELIVERED_SUBJECT
             ):
@@ -169,10 +161,9 @@ class AmazonSearchMixin(AmazonImageMixin):
 
     def _handle_delivered_email(self, subject: str, body: str | None, ctx: dict):
         """Handle an Amazon 'delivered' email."""
-        extract_fn = _amazon_attr("extract_order_numbers", extract_order_numbers)
-        orders = extract_fn(subject, ctx["order_pattern"])
+        orders = extract_order_numbers(subject, ctx["order_pattern"])
         if not orders and body:
-            orders = extract_fn(body, ctx["order_pattern"])
+            orders = extract_order_numbers(body, ctx["order_pattern"])
         for o in orders:
             ctx["delivered_packages"][o] = ctx["delivered_packages"].get(o, 0) + 1
             if o not in ctx["amazon_delivered"]:
@@ -190,17 +181,12 @@ class AmazonSearchMixin(AmazonImageMixin):
         if order_id:
             ctx["all_shipped_orders"].add(order_id)
 
-        delivering_subjects = _amazon_attr(
-            "AMAZON_DELIVERING_SUBJECT", AMAZON_DELIVERING_SUBJECT
-        )
+        delivering_subjects = AMAZON_DELIVERING_SUBJECT
         is_delivering = any(s.lower() in subject.lower() for s in delivering_subjects)
 
         parsed_arrival = None
         if body:
-            parse_arrival_fn = _amazon_attr(
-                "parse_amazon_arrival_date", parse_amazon_arrival_date
-            )
-            parsed_arrival = await parse_arrival_fn(self.hass, body, date)
+            parsed_arrival = await parse_amazon_arrival_date(self.hass, body, date)
 
         # OFD emails received today imply delivery today, even if the body
         # time-window parsing fails (e.g. "Zustellung heute 15:15 - 17:15").
@@ -238,16 +224,11 @@ class AmazonSearchMixin(AmazonImageMixin):
         count = 0
         code = []
         processed_ids = []
-        today = _amazon_attr("get_today", get_today)().strftime("%d-%b-%Y")
-        email_addresses_fn = _amazon_attr(
-            "amazon_email_addresses", amazon_email_addresses
-        )
-        address_list = email_addresses_fn(fwds, domain)
-        subjects = _amazon_attr("AMAZON_HUB_SUBJECT", AMAZON_HUB_SUBJECT)
-        search_fn = _amazon_attr("email_search", email_search)
-        fetch_fn = _amazon_attr("email_fetch", email_fetch)
+        today = get_today().strftime("%d-%b-%Y")
+        address_list = amazon_email_addresses(fwds, domain)
+        subjects = AMAZON_HUB_SUBJECT
         for search_subject in subjects:
-            (server_response, data) = await search_fn(
+            (server_response, data) = await email_search(
                 account,
                 address_list,
                 today,
@@ -265,7 +246,7 @@ class AmazonSearchMixin(AmazonImageMixin):
                 if cache:
                     msg_parts = (await cache.fetch(num, "(RFC822)"))[1]
                 else:
-                    msg_parts = (await fetch_fn(account, num, "(RFC822)"))[1]
+                    msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
 
                 if hub_code := _extract_hub_code_from_parts(msg_parts):
                     count += 1
@@ -283,16 +264,11 @@ class AmazonSearchMixin(AmazonImageMixin):
     ) -> dict[str, Any]:
         """Find Amazon OTP code."""
         code = []
-        today = _amazon_attr("get_today", get_today)().strftime("%d-%b-%Y")
-        email_addresses_fn = _amazon_attr(
-            "amazon_email_addresses", amazon_email_addresses
-        )
-        address_list = email_addresses_fn(fwds, domain)
-        subject = _amazon_attr("AMAZON_OTP_SUBJECT", AMAZON_OTP_SUBJECT)
-        regex = _amazon_attr("AMAZON_OTP_REGEX", AMAZON_OTP_REGEX)
-        search_fn = _amazon_attr("email_search", email_search)
-        fetch_fn = _amazon_attr("email_fetch", email_fetch)
-        (server_response, data) = await search_fn(
+        today = get_today().strftime("%d-%b-%Y")
+        address_list = amazon_email_addresses(fwds, domain)
+        subject = AMAZON_OTP_SUBJECT
+        regex = AMAZON_OTP_REGEX
+        (server_response, data) = await email_search(
             account,
             address_list,
             today,
@@ -301,15 +277,14 @@ class AmazonSearchMixin(AmazonImageMixin):
             header=forwarding_header,
         )
         if server_response == "OK" and data[0] is not None:
-            email_mod = _amazon_attr("email", email)
             for num in data[0].split():
                 if cache:
                     msg_parts = (await cache.fetch(num, "(RFC822)"))[1]
                 else:
-                    msg_parts = (await fetch_fn(account, num, "(RFC822)"))[1]
+                    msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
                 for response_part in msg_parts:
                     if isinstance(response_part, (bytes, bytearray)):
-                        msg = email_mod.message_from_bytes(response_part)
+                        msg = email.message_from_bytes(response_part)
                         body = get_email_body(msg)
                         if (found := re.compile(regex).search(body)) is not None:
                             code.append(found.group(2))
@@ -326,15 +301,10 @@ class AmazonSearchMixin(AmazonImageMixin):
         """Find Amazon exception emails."""
         count = 0
         orders = []
-        today = _amazon_attr("get_today", get_today)().strftime("%d-%b-%Y")
-        email_addresses_fn = _amazon_attr(
-            "amazon_email_addresses", amazon_email_addresses
-        )
-        address_list = email_addresses_fn(fwds, domain)
-        subject = _amazon_attr("AMAZON_EXCEPTION_SUBJECT", AMAZON_EXCEPTION_SUBJECT)
-        search_fn = _amazon_attr("email_search", email_search)
-        fetch_fn = _amazon_attr("email_fetch", email_fetch)
-        (server_response, data) = await search_fn(
+        today = get_today().strftime("%d-%b-%Y")
+        address_list = amazon_email_addresses(fwds, domain)
+        subject = AMAZON_EXCEPTION_SUBJECT
+        (server_response, data) = await email_search(
             account=account,
             address=address_list,
             date=today,
@@ -347,7 +317,7 @@ class AmazonSearchMixin(AmazonImageMixin):
                 if cache:
                     msg_parts = (await cache.fetch(num, "(RFC822)"))[1]
                 else:
-                    msg_parts = (await fetch_fn(account, num, "(RFC822)"))[1]
+                    msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
 
                 if extracted_orders := _extract_exception_from_parts(
                     msg_parts, order_pattern
