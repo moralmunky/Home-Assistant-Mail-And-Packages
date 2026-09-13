@@ -17,16 +17,16 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 
-from .const import (
+from custom_components.mail_and_packages.const import (
     AUTH_TYPE_PASSWORD,
     CONF_AUTH_TYPE,
     CONF_IMAP_SECURITY,
     CONF_VERIFY_SSL,
     DEFAULT_FOLDER,
 )
-from .utils.imap import InvalidAuth, decode_imap_utf7
-from .utils.imap import login as default_login
-from .utils.imap import logout as default_logout
+from custom_components.mail_and_packages.utils.imap import InvalidAuth, decode_imap_utf7
+from custom_components.mail_and_packages.utils.imap import login as default_login
+from custom_components.mail_and_packages.utils.imap import logout as default_logout
 
 _LOGGER = logging.getLogger(__name__)
 

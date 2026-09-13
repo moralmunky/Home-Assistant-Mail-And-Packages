@@ -5,7 +5,6 @@ from __future__ import annotations
 import datetime
 import logging
 from http import HTTPStatus
-from pathlib import Path
 from time import monotonic
 from typing import TYPE_CHECKING
 
@@ -21,13 +20,16 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from . import const
-from .shippers import get_shipper_for_sensor
-from .utils.cache import EmailCache
-from .utils.image import default_image_path, image_file_name
+from custom_components.mail_and_packages import const
+from custom_components.mail_and_packages.shippers import get_shipper_for_sensor
+from custom_components.mail_and_packages.utils.cache import EmailCache
+from custom_components.mail_and_packages.utils.image import (
+    default_image_path,
+    image_file_name,
+)
 
 if TYPE_CHECKING:
-    from .coordinator import MailDataUpdateCoordinator
+    from . import MailDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -281,9 +283,9 @@ async def check_camera_update(
     if custom_img_key and coordinator.config.get(custom_img_key):
         none_image = coordinator.config.get(custom_img_file_key)
     elif base_name == "post_de":
-        none_image = f"{Path(__file__).parent}/mail_none.gif"
+        none_image = str(const.ASSET_ROOT / "mail_none.gif")
     else:
-        none_image = f"{Path(__file__).parent}/no_deliveries_{base_name}.jpg"
+        none_image = str(const.ASSET_ROOT / f"no_deliveries_{base_name}.jpg")
 
     if await anyio_mod.Path(delivery_image).exists():
         image_hash = await coordinator.async_get_file_hash_if_changed(delivery_image)
@@ -308,7 +310,7 @@ async def binary_sensor_update(
     if image:
         path = def_img_path(coordinator.hass, coordinator.config)
         usps_image = f"{path}/{image}"
-        usps_none = f"{Path(__file__).parent}/mail_none.gif"
+        usps_none = str(const.ASSET_ROOT / "mail_none.gif")
         if await anyio_mod.Path(usps_image).exists():
             image_hash = await coordinator.async_get_file_hash_if_changed(usps_image)
             none_hash = await coordinator.async_get_file_hash_if_changed(usps_none)

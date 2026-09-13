@@ -18,35 +18,7 @@ from homeassistant.const import (
 from homeassistant.core import callback
 from homeassistant.helpers import config_entry_oauth2_flow
 
-from .config_flow_reconfig import ReconfigureFlowMixin
-from .config_flow_schemas import (
-    IMAP_SECURITY,
-    _build_step_2_schema,
-    _get_schema_auth,
-    _get_schema_imap,
-    _get_schema_step_2,
-    _get_schema_step_3,
-    _get_schema_step_amazon,
-    _get_schema_step_forwarded_emails,
-    _get_schema_step_storage,
-    multi_folder_select,
-)
-from .config_flow_steps import AMAZON_SENSORS, ConfigFlowStepsMixin
-from .config_flow_validation import (
-    AMAZON_EMAIL_ERROR,
-    ERROR_MAILBOX_FAIL,
-    FORWARDED_EMAIL_ERROR,
-    _check_amazon_forwards,
-    _check_forwarded_emails,
-    _get_mailboxes,
-    _parse_folder_list,
-    _validate_amazon_fwds,
-    _validate_forwarded_emails,
-    _validate_login,
-    _validate_path_input,
-    _validate_user_input,
-)
-from .const import (
+from custom_components.mail_and_packages.const import (
     AUTH_TYPE_OAUTH_GOOGLE,
     AUTH_TYPE_OAUTH_MICROSOFT,
     AUTH_TYPE_PASSWORD,
@@ -60,10 +32,39 @@ from .const import (
     OAUTH_IMAP_DEFAULTS,
     OAUTH_SCOPES,
 )
-from .options_flow_steps import OptionsFlowStepsMixin
-from .utils.email import validate_email_address
-from .utils.image import _check_ffmpeg
-from .utils.imap import login, logout
+from custom_components.mail_and_packages.utils.email import validate_email_address
+from custom_components.mail_and_packages.utils.image import _check_ffmpeg
+from custom_components.mail_and_packages.utils.imap import login, logout
+
+from .options import OptionsFlowStepsMixin
+from .reconfig import ReconfigureFlowMixin
+from .schemas import (
+    IMAP_SECURITY,
+    _build_step_2_schema,
+    _get_schema_auth,
+    _get_schema_imap,
+    _get_schema_step_2,
+    _get_schema_step_3,
+    _get_schema_step_amazon,
+    _get_schema_step_forwarded_emails,
+    _get_schema_step_storage,
+    multi_folder_select,
+)
+from .steps import AMAZON_SENSORS, ConfigFlowStepsMixin
+from .validation import (
+    AMAZON_EMAIL_ERROR,
+    ERROR_MAILBOX_FAIL,
+    FORWARDED_EMAIL_ERROR,
+    _check_amazon_forwards,
+    _check_forwarded_emails,
+    _get_mailboxes,
+    _parse_folder_list,
+    _validate_amazon_fwds,
+    _validate_forwarded_emails,
+    _validate_login,
+    _validate_path_input,
+    _validate_user_input,
+)
 
 _LOGGER = logging.getLogger(__name__)
 

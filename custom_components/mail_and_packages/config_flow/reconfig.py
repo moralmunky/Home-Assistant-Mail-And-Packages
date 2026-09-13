@@ -11,9 +11,7 @@ from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNA
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_entry_oauth2_flow
 
-from .config_flow_schemas import _get_schema_auth, _get_schema_imap
-from .config_flow_validation import _validate_login
-from .const import (
+from custom_components.mail_and_packages.const import (
     AUTH_TYPE_PASSWORD,
     CONF_AUTH_TYPE,
     CONF_IMAP_SECURITY,
@@ -23,6 +21,9 @@ from .const import (
     DOMAIN,
     OAUTH_IMAP_DEFAULTS,
 )
+
+from .schemas import _get_schema_auth, _get_schema_imap
+from .validation import _validate_login
 
 _LOGGER = logging.getLogger(__name__)
 

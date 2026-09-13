@@ -8,16 +8,7 @@ from typing import Any
 from homeassistant import config_entries
 from homeassistant.const import CONF_RESOURCES
 
-from .config_flow_schemas import (
-    _get_schema_step_2,
-    _get_schema_step_3,
-    _get_schema_step_amazon,
-    _get_schema_step_forwarded_emails,
-    _get_schema_step_storage,
-)
-from .config_flow_steps import AMAZON_SENSORS
-from .config_flow_validation import _validate_user_input
-from .const import (
+from custom_components.mail_and_packages.const import (
     CONF_ALLOW_FORWARDED_EMAILS,
     CONF_AMAZON_CUSTOM_IMG,
     CONF_AMAZON_CUSTOM_IMG_FILE,
@@ -42,7 +33,19 @@ from .const import (
     CONF_WALMART_CUSTOM_IMG,
     CONF_WALMART_CUSTOM_IMG_FILE,
 )
-from .utils.image import _check_ffmpeg as default_check_ffmpeg
+from custom_components.mail_and_packages.utils.image import (
+    _check_ffmpeg as default_check_ffmpeg,
+)
+
+from .schemas import (
+    _get_schema_step_2,
+    _get_schema_step_3,
+    _get_schema_step_amazon,
+    _get_schema_step_forwarded_emails,
+    _get_schema_step_storage,
+)
+from .steps import AMAZON_SENSORS
+from .validation import _validate_user_input
 
 OPTIONS_KEYS = {
     CONF_FOLDER,

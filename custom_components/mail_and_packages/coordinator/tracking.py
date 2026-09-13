@@ -6,7 +6,7 @@ import datetime
 import logging
 from dataclasses import dataclass
 
-from . import const
+from custom_components.mail_and_packages import const
 
 _LOGGER = logging.getLogger(__name__)
 
