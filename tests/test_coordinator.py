@@ -16,7 +16,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import CONF_FOLDER, DOMAIN
 from custom_components.mail_and_packages.coordinator import MailDataUpdateCoordinator
-from custom_components.mail_and_packages.coordinator_tracking import (
+from custom_components.mail_and_packages.coordinator.tracking import (
     MailDeliveredLatchState,
     latch_mail_delivered,
 )

@@ -21,8 +21,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_entry_oauth2_flow, selector
 
-from .config_flow_mailbox import _get_mailboxes as default_get_mailboxes
-from .const import (
+from custom_components.mail_and_packages.const import (
     AUTH_TYPE_OAUTH_GOOGLE,
     AUTH_TYPE_OAUTH_MICROSOFT,
     AUTH_TYPE_PASSWORD,
@@ -52,7 +51,9 @@ from .const import (
     DEFAULT_USPS_PLACEHOLDER,
     DEFAULT_VERIFY_SSL,
 )
-from .helpers import get_resources
+from custom_components.mail_and_packages.helpers import get_resources
+
+from .mailbox import _get_mailboxes as default_get_mailboxes
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -277,8 +278,8 @@ def _build_step_2_schema(
     )
 
 
-# Re-export advanced schemas from config_flow_schemas_advanced
-from .config_flow_schemas_advanced import (  # noqa: E402
+# Re-export advanced schemas from schemas_advanced
+from .schemas_advanced import (  # noqa: E402
     CUSTOM_IMAGE_CONFIGS,
     _get_schema_step_3,
     _get_schema_step_amazon,

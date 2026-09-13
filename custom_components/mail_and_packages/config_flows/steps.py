@@ -7,15 +7,7 @@ from typing import Any
 
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 
-from .config_flow_schemas import (
-    _get_schema_step_2,
-    _get_schema_step_3,
-    _get_schema_step_amazon,
-    _get_schema_step_forwarded_emails,
-    _get_schema_step_storage,
-)
-from .config_flow_validation import _validate_user_input as default_validate_user_input
-from .const import (
+from custom_components.mail_and_packages.const import (
     CONF_ALLOW_EXTERNAL,
     CONF_ALLOW_FORWARDED_EMAILS,
     CONF_AMAZON_CUSTOM_IMG,
@@ -78,6 +70,15 @@ from .const import (
     DEFAULT_WALMART_CUSTOM_IMG,
     DEFAULT_WALMART_CUSTOM_IMG_FILE,
 )
+
+from .schemas import (
+    _get_schema_step_2,
+    _get_schema_step_3,
+    _get_schema_step_amazon,
+    _get_schema_step_forwarded_emails,
+    _get_schema_step_storage,
+)
+from .validation import _validate_user_input as default_validate_user_input
 
 AMAZON_SENSORS = [
     "amazon_packages",

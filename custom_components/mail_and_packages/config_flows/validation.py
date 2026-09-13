@@ -9,7 +9,7 @@ from typing import Any
 
 from homeassistant.core import HomeAssistant
 
-from .const import (
+from custom_components.mail_and_packages.const import (
     CONF_ALLOW_FORWARDED_EMAILS,
     CONF_AMAZON_CUSTOM_IMG,
     CONF_AMAZON_CUSTOM_IMG_FILE,
@@ -33,9 +33,15 @@ from .const import (
     CONF_WALMART_CUSTOM_IMG,
     CONF_WALMART_CUSTOM_IMG_FILE,
 )
-from .utils.email import generate_service_email_domains
-from .utils.email import validate_email_address as default_val_email
-from .utils.image import _check_ffmpeg as default_check_ffmpeg
+from custom_components.mail_and_packages.utils.email import (
+    generate_service_email_domains,
+)
+from custom_components.mail_and_packages.utils.email import (
+    validate_email_address as default_val_email,
+)
+from custom_components.mail_and_packages.utils.image import (
+    _check_ffmpeg as default_check_ffmpeg,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -270,7 +276,7 @@ async def _validate_user_input(
 
 
 # Re-export mailbox discovery and login validation functions
-from .config_flow_mailbox import (  # noqa: E402
+from .mailbox import (  # noqa: E402
     _get_mailboxes,
     _parse_folder_list,
     _validate_login,
