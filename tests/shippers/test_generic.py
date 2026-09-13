@@ -1043,6 +1043,54 @@ def test_dhl_delivering_subjects():
     assert SENSOR_DATA["dhl_packages"] == {}
 
 
+def _load_email(name: str) -> bytes:
+    """Read an email fixture."""
+    return Path(f"tests/test_emails/{name}").read_bytes()
+
+
+@pytest.mark.asyncio
+async def test_dhl_de_delivering_html_formatting(hass):
+    """Test DHL delivering email where body phrase has HTML or markdown tags (issue #1446)."""
+    raw_email = _load_email("dhl_de_delivering.eml")
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"RFC822", raw_email]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.email.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"RFC822", raw_email]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.shipper.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"RFC822", raw_email]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers",
+            new_callable=AsyncMock,
+            return_value=(
+                "OK",
+                [b"Subject: Ihre Sendung kommt heute\r\n"],
+            ),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "dhl_delivering")
+
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["00340000000000000001"]
+
+
 @pytest.mark.asyncio
 async def test_process_delivering_uses_since_date(hass):
     """_delivering sensors use since_date for their IMAP search."""

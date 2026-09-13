@@ -536,6 +536,7 @@ SENSOR_DATA = {
             "scheduled for delivery TODAY",
             "zostanie dziś do Państwa doręczona",
             "wird Ihnen heute",
+            r"wird Ihnen\s+(?:<[^>]+>|\*+)?\s*heute",
             "wird Ihnen voraussichtlich",
             "heute zwischen",
             " - Shipment is out with courier for delivery - ",
