@@ -447,15 +447,6 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
     def _aggregate_package_counts(self, data: dict) -> None:
         aggregate_package_counts(data)
 
-    def _sum_delivered_counts(self, data: dict) -> int:
-        return sum_delivered_counts(data)
-
-    def _sum_delivering_counts(self, data: dict) -> int:
-        return sum_delivering_counts(data)
-
-    def _sum_transit_counts(self, data: dict) -> int:
-        return sum_transit_counts(data)
-
     async def async_check_camera_update(
         self, base_name: str, data: dict | None = None
     ) -> None:
