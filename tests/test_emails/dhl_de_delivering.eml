@@ -1,0 +1,1723 @@
+Delivered-To: tome@email.de
+Received: by 2002:a05:6022:9205:b0:110:35ac:ff34 with SMTP id da5csp1379377lab; Sat, 12 Sep 2026 00:59:16 -0700 (PDT)
+X-Received: by 2002:a05:600c:e555:10b0:49d:e27:d381 with SMTP id 5b1f17b1804b1-49d26d7ea77mr111679785e9.6.1789199956116; Sat, 12 Sep 2026 00:59:16 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789199956; cv=none; d=google.com; s=arc-20260327; b=C8TyYuPpf2VK5fwNbEGCoQJHUyFdm+bSQ0Ks+LzTc39LRwUa0ypPfDecpwT8SYSKf7 D+vtmh6B9hpRCCwnylasAd0Wuib2JBYeoy0Kir9jq3yiyhH6jE4sKJczx6qCt1Ix4f2F djdFbaJ14yaicmNjz+l/X5Xeg4Nd3V+ZuJPmsOZzY1xFt3d4fmjQr1hMD5uTChtq3Vhd IVU/r7wE9m5oNOLq7ObrHLOr8QY8ixhI58yB1cqIWbOHAUOyoJWIiLl5CzjWLQEtdF3g auTL6yigMohvzdlXBp5qPEEKet3F4tCxXGV/LLjNHYBHd++KZ//DfDZFu+T083I3ZwOV yCxw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327; h=feedback-id:list-help:list-id:mime-version:subject:message-id:to :reply-to:from:date:dkim-signature:dkim-signature; bh=Wxin+RGok/gN27m83EGp3r6aENsxC2qP9By+mWoOEqg=; fh=6q/hs6w3PLiapvDHF6qg0y6eLjWNnC/uciiiwZDNW+s=; b=EZQ/FV/fgmYjtU3gwMTAoI61RmHBOOZPIjaWSGSJD22bo1WbBKUMOB3o+3cuAiDjEj OerznK+YVUDZzg0YT3RTGlOCtMNeemkMBSzVzC6dN3OUaIFkJ/nYNBe6CzP7byfshuob 4R6CqmBtklsGmqSX3jNptOt8H3qUJTe4WIlwO9/ADyEs6CK2VC1Tl8PTO4Vi8TMZK8R3 pY3gnq+mrkzh1N3y5X95c03uy2rxJnQGeBDr60BOzZKgD8FNh4DpZPlyWf6EZEUhelPq Z9PtJ6qjNlUaziVKX5JaeZ47UuITXi+CLk6JQNRCUMKOD+vLXO3ngP/3o4Al2fSl84Dg 0v4Q==; dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com; dkim=pass header.i=@dhl.de header.s=epi header.b=JI5OgKjE; dkim=pass header.i=@srv2.de header.s=mailkey1 header.b=v+VmrLQP; spf=pass (google.com: domain of return@custcomm.dhl.de designates 91.XX.XX.XXX as permitted sender) smtp.mailfrom=return@custcomm.dhl.de; dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=dhl.de
+Return-Path: <return@custcomm.dhl.de>
+Received: from mail21-177.srv2.de (mail21-177.srv2.de. [91.XX.XX.XXX]) by mx.google.com with ESMTPS id ffacd0b85a97d-486ebe658fdsi9258301f8f.445.2026.09.12.00.59.15 for <tome@email.de> (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256); Sat, 12 Sep 2026 00:59:16 -0700 (PDT)
+Received-SPF: pass (google.com: domain of return@custcomm.dhl.de designates 91.XX.XX.XXX as permitted sender) client-ip=91.XX.XX.XXX;
+Authentication-Results: mx.google.com; dkim=pass header.i=@dhl.de header.s=epi header.b=JI5OgKjE; dkim=pass header.i=@srv2.de header.s=mailkey1 header.b=v+VmrLQP; spf=pass (google.com: domain of return@custcomm.dhl.de designates 91.XX.XX.XXX as permitted sender) smtp.mailfrom=return@custcomm.dhl.de; dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=dhl.de
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed; s=epi; d=dhl.de; h=Date:From:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type:X-ulpe: List-Id:X-CSA-Complaints:List-Help:Feedback-ID; i=noreply@dhl.de; bh=VVmDJr6pRbwmFU59xplXPE3K+563+Zf1/O8hn9xuBkw=; b=JI5OgKjEz/04klMvUnsjREGOtHrXkHxNMIjBV+/PynzS7ewDHty+jY8FYtMVzS+M7lv1zSU6kdCH KT4QIlQkkiR1me2BVpDPp5/rVKyjKoFc8sM1ANbnmoUQImJ9KFbg5MySQ/IFO0RD268ddmO/H1D9 cyStTP3MzCiNeQE+wzpKmwqndnp/68R8qLdK5+2gRZBD+Lf+iiKicdHvM8OGpo4fsNPnK55mzj0h h4qk3yId5K9zjYxCJF9eRU4MQguaEjQ+22XRiZelsShIlMxrndM4V9L09D1kqJzrxCfdNDwyVj47 uZIsXGz4DcoYdgQGFv6AnddWYFXm9j7SOnYQow==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed; s=mailkey1; d=srv2.de; h=Date:From:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type:X-ulpe: List-Id:X-CSA-Complaints:List-Help:Feedback-ID; bh=VVmDJr6pRbwmFU59xplXPE3K+563+Zf1/O8hn9xuBkw=; b=v+VmrLQPdV32bH0Zp8/apjeDTTGPDwJdvWwRkMJQK0s+TFjIybucaQhd9DZPrrg4nBRTl6UD9pow 2gUVrTgUrwUpr+x3EdovNzihp9VHkiL9UwJzPkSreRnzPHS3+LxtjtE0+LL09Q9jS6kJCoeFnbKn x0hGufE4Oh2bSY1hZdp6De8xvbuB0MabsCff4drxHL2vnIY+P8570r1L1WC/jwpTGswSiPm3N/Dx IkDR1qDRcBwsqoQCW5b7U100kDV+1EJZjZGEuEjYnUS6WuS30m/CaRdvi7fOceNgpBqMmnzJxUVl tTfbhFS6DRCwe3dM1CcqvgNDQsF+DX3ipWrDIg==
+Date: Sat, 12 Sep 2026 09:59:14 +0200 (CEST)
+From: DHL Paket <noreply@dhl.de>
+Reply-To: <noreply@dhl.de>
+To: tome@email.de
+Message-ID: <re-XXXXXXXXXXXXXXXX>
+Subject: =?UTF-8?Q?Ihre_GrubXXXX_Gew=C3=BCrzmanufaktur_Ma?= =?UTF-8?Q?XXXXX_ChXXXXX_Sendung_kommt_heute?=
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_Part_7655229_694520515.1789199954408"
+X-ulpe: re-XXXXXXXXXXXXXXXX
+List-Id: <5UTXXXXXXXXXXXXXXXX>
+X-Report-Spam: complaints@episerver.com
+X-CSA-Complaints: csa-complaints@eco.de
+X-Mailer: Optimizely
+X-sender: noreply@dhl.de
+List-Help: <https://www.dhl.de/email-empfang>
+Feedback-ID: 5UTXXXXXXXXXXXXXXXX
+
+------=_Part_7655229_694520515.1789199954408
+Content-Type: text/plain;charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+
+*[Onlineversion](https://custcomm.dhl.de/go/1/70LXXX-69IXXX-5VFXXX-15=
+V314RK-o.html) | [Datenschutzhinweis zur =C3=9Cbersetzung](https://custcomm=
+.dhl.de/go/1/FW8XXX-69IXXX-6956IT1P-1927S7O.html)*
+
+
+[Ihre Sendung wird zugestellt]
+
+
+
+
+Previous group of languages
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6O7SXM6U-WYFXQ3.png]
+
+English English
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KJLSA5B-QLSMT9.html?u=3Dhttps%=
+3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.ht=
+ml]
+T=C3=BCrk=C3=A7e T=C3=BCrk=C3=A7e
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KJLSA5D-1AE3OX9.html?u=3Dhttps=
+%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.h=
+tml]
+=D8=A7=D9=84=D8=B9=D8=B1=D8=A8=D9=8A=D8=A9 =D8=A7=D9=84=D8=B9=D8=B1=D8=A8=
+=D9=8A=D8=A9
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KJLSA5C-5DFLEJ.html?u=3Dhttps%=
+3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.ht=
+ml]
+Polski Polski
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KJLSA5J-JNLG82.html?u=3Dhttps%=
+3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.ht=
+ml]
+
+Next group of languages
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6O7SXM6V-1AFOA4I.png]
+https://custcomm.dhl.de/go/1/70LXXX-69IXXX-5VFXXX-15VXXX-o.html#chk=
+_mlx_fltr_sld_1
+
+English
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KJLSA5B-QLSMT9.html?u=3Dhttps%=
+3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.ht=
+ml]
+T=C3=BCrk=C3=A7e
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KJLSA5D-1AE3OX9.html?u=3Dhttps=
+%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.h=
+tml]
+=D8=A7=D9=84=D8=B9=D8=B1=D8=A8=D9=8A=D8=A9
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KJLSA5C-5DFLEJ.html?u=3Dhttps%=
+3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.ht=
+ml]
+Polski
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KJLSA5J-JNLG82.html?u=3Dhttps%=
+3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.ht=
+ml]
+Espa=C3=B1ol
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KJLSA5F-11OWRRN.html?u=3Dhttps=
+%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.h=
+tml]
+=D0=A0=D1=83=D1=81=D1=81=D0=BA=D0=B8=D0=B9
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KJLSA5I-1CX5TTB.html?u=3Dhttps=
+%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.h=
+tml]
+Fran=C3=A7ais
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KJLSA5E-SF24QS.html?u=3Dhttps%=
+3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.ht=
+ml]
+Italiano
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KJLSA5G-637EK.html?u=3Dhttps%3=
+A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.htm=
+l]
+=D0=A3=D0=BA=D1=80=D0=B0=D1=97=D0=BD=D1=81=D1=8C=D0=BA=D0=B0
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KJLSA5H-KTQ48K.html?u=3Dhttps%=
+3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.ht=
+ml]
+=D7=A2=D7=91=D7=A8=D7=99=D7=AA
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KJLSA5K-4C18C9.html?u=3Dhttps%=
+3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.ht=
+ml]
+Shqip
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KRMVS3N-XVD9FY.html?u=3Dhttps%=
+3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.ht=
+ml]
+Rom=C3=A2n=C4=83
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6KRMVS3O-8W8149X.html?u=3Dhttps=
+%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.h=
+tml]
+
+
+
+
+
+
+
+
+
+Hallo,
+Ihre **GrubXXXX Gew=C3=BCrzmanufaktur MaXXXXX ChXXXXX=C2=A0**Sendung wi=
+rd Ihnen **heute **durch Ihre Brief- und Paketzustellkraft zugestellt.
+
+
+
+
+
+
+
+
+
+
+
+
+
+**Jetzt Zustelloption w=C3=A4hlen**
+
+
+
+Icon
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-65MUWYV0-12KJZBH.png]
+
+
+
+
+https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6P14AHUE-13A4F5P.html?piececode=
+=3D003XXXXXX215
+
+ Ablageort buchen [
+
+
+
+https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6P14AHUE-13A4F5P.html?piececode=
+=3D0XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+]
+
+
+
+
+Icon
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-65MUWYV2-E46X5Q.png]
+
+
+
+
+https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6P14AHUF-1838A1Z.html?piececode=
+=3D0XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+ An Nachbar:in liefern [
+
+
+
+https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6P14AHUF-1838A1Z.html?piececode=
+=3D0XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+]
+
+
+
+
+
+
+
+
+Icon
+[https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-65MUWYV4-HQ6HNZ.png]
+
+
+
+
+https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6P28LR0Q-S2X1AB9.html?piececode=
+=3D0XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+ Paketmitnahme buchen [
+
+
+
+https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6P28LR0Q-S2X1AB9.html?piececode=
+=3D0XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+]
+
+
+
+
+**Sendungsstatus einsehen**
+
+[{PACKAGE_IDENTIFIER}](https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-5WGMK0OB-=
+P3LBQX.html?piececode=3D00340000000000000001)
+
+
+
+
+
+
+_____________________________
+
+Sie m=C3=B6chten keine oder nur noch bestimmte Informationen zu Ihrer Sendu=
+ng erhalten?=C2=A0
+[E-Mail-Einstellungen verwalten](https://custcomm.dhl.de/go/1/FW8XXX-69IXXX=
+-5WGPNS2J-11VWO4.html)
+
+[Datenschutzhinweise](https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-5WGPNRVD-H=
+GH165M.html)
+[Impressum](https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-5WGPNRVE-11VRT4Z.htm=
+l)
+
+**DHL Group**
+
+**2026 ****=C2=A9** **DHL Paket GmbH. All ****rights**** ****reserved****.*=
+*
+
+
+
+------=_Part_7655229_694520515.1789199954408
+Content-Type: text/html;charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+<!doctype html>
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-micr=
+osoft-com:office:office" lang=3D"en">
+ <head>
+  <title></title>
+  <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dutf-8">
+  <meta name=3D"viewport" content=3D"width=3Ddevice-width,initial-scale=3D1=
+">
+  <!--[if mso]>
+<xml><w:WordDocument xmlns:w=3D"urn:schemas-microsoft-com:office:word"><w:D=
+ontUseAdvancedTypographyReadingMail/></w:WordDocument>
+<o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch><o:AllowPNG/=
+></o:OfficeDocumentSettings></xml>
+<![endif]-->
+  <!--[if !mso]><!-->
+  <link href=3D"https://img.srv2.de/customer/5UTXXXXXXXXXXXXX-1BEXXXXXXXXXXXXX/customFonts/d=
+elivery.css" rel=3D"stylesheet" type=3D"text/css">
+  <!--<![endif]-->
+  <style>
+*{box-sizing:border-box}body{margin:0;padding:0}a[x-apple-data-detectors]{c=
+olor:inherit!important;text-decoration:inherit!important}#MessageViewBody a=
+{color:inherit;text-decoration:none}p{line-height:inherit}.desktop_hide,.de=
+sktop_hide table{mso-hide:all;display:none;max-height:0;overflow:hidden}.im=
+age_block img+div{display:none}sub,sup{font-size:75%;line-height:0} @media =
+(max-width:520px){.mobile_hide{display:none}.row-content{width:100%!importa=
+nt}.stack .column{width:100%;display:block}.mobile_hide{min-height:0;max-he=
+ight:0;max-width:0;overflow:hidden;font-size:0}.desktop_hide,.desktop_hide =
+table{display:table!important;max-height:none!important}.row-10 .column-1 .=
+block-2.paragraph_block td.pad,.row-5 .column-1 .block-2.paragraph_block td=
+.pad,.row-6 .column-1 .block-2.paragraph_block td.pad,.row-7 .column-1 .blo=
+ck-2.paragraph_block td.pad,.row-8 .column-1 .block-2.paragraph_block td.pa=
+d,.row-9 .column-1 .block-2.paragraph_block td.pad{padding:10px 40px!import=
+ant}.row-21 .column-1 .block-1.image_block .alignment div{margin:0 auto!imp=
+ortant}.row-23 .column-1 .block-1.paragraph_block td.pad>div,.row-23 .colum=
+n-2 .block-1.paragraph_block td.pad>div,.row-24 .column-1 .block-1.paragrap=
+h_block td.pad>div,.row-24 .column-2 .block-1.paragraph_block td.pad>div{te=
+xt-align:center!important}.row-24 .column-1{padding:10px 20px 0!important}}
+</style>
+  <!--[if mso ]><style>sup, sub { font-size: 100% !important; } sup { mso-t=
+ext-raise:10% } sub { mso-text-raise:-10% }</style> <![endif]-->
+ </head>
+ <body class=3D"body" style=3D"background-color:#f2f2f2;margin:0;padding:0;=
+-webkit-text-size-adjust:none;text-size-adjust:none">
+  <div style=3D"display:none;font-size:1px;mso-line-height-rule:exactly;lin=
+e-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;mso-hid=
+e:all;">Wichtige Informationen zu Ihrer Sendung</div>
+  <div>
+  =20
+  </div>
+  <table class=3D"nl-container" width=3D"100%" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-table-lspace:0;mso-=
+table-rspace:0;background-color:#f2f2f2">
+   <tbody>
+    <tr>
+     <td>
+      <table class=3D"row row-1" align=3D"center" width=3D"100%" border=3D"=
+0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-t=
+able-lspace:0;mso-table-rspace:0">
+       <tbody>
+        <tr>
+         <td>
+          <table class=3D"row-content stack" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;border-radius:0;color:#000;width:500px;margin=
+:0 auto" width=3D"500">
+           <tbody>
+            <tr>
+             <td class=3D"column column-1" width=3D"100%" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;vertical-alig=
+n:top">
+              <table class=3D"html_block block-1" width=3D"100%" border=3D"=
+0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-t=
+able-lspace:0;mso-table-rspace:0">
+               <tbody>
+                <tr>
+                 <td class=3D"pad">
+                  <div style=3D"font-family:Delivery,Calibri,Arial,sans-ser=
+if;text-align:center" align=3D"center"></div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+              <table class=3D"paragraph_block block-2" width=3D"100%" borde=
+r=3D"0" cellpadding=3D"10" cellspacing=3D"0" role=3D"presentation" style=3D=
+"mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
+               <tbody>
+                <tr>
+                 <td class=3D"pad">
+                  <div style=3D"color:#d40511;direction:ltr;font-family:Del=
+ivery,Calibri,Arial,sans-serif;font-size:11px;font-weight:400;letter-spacin=
+g:0;line-height:1.2;text-align:center;mso-line-height-alt:13px">
+                   <p style=3D"margin:0"><em><a href=3D"https://custcomm.dh=
+l.de/go/1/70LXXX-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" sty=
+le=3D"text-decoration: underline; color: #d40511;" rel=3D"noopener">Onlinev=
+ersion</a> | <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6956IT1P=
+-1927S7O.html" target=3D"_blank" style=3D"text-decoration: underline; color=
+: #d40511;" rel=3D"noopener">Datenschutzhinweis zur =C3=9Cbersetzung</a></e=
+m></p>
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+              <table class=3D"html_block block-3" width=3D"100%" border=3D"=
+0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-t=
+able-lspace:0;mso-table-rspace:0">
+               <tbody>
+                <tr>
+                 <td class=3D"pad">
+                  <div style=3D"font-family:Delivery,Calibri,Arial,sans-ser=
+if;text-align:center" align=3D"center"></div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+             </td>
+            </tr>
+           </tbody>
+          </table>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+      <table class=3D"row row-2" align=3D"center" width=3D"100%" border=3D"=
+0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-t=
+able-lspace:0;mso-table-rspace:0">
+       <tbody>
+        <tr>
+         <td>
+          <table class=3D"row-content stack" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;background-color:#fff;border-radius:0;color:#=
+000;width:500px;margin:0 auto" width=3D"500">
+           <tbody>
+            <tr>
+             <td class=3D"column column-1" width=3D"100%" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;vertical-alig=
+n:top">
+              <table class=3D"image_block block-1" width=3D"100%" border=3D=
+"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-=
+table-lspace:0;mso-table-rspace:0">
+               <tbody>
+                <tr>
+                 <td class=3D"pad" style=3D"width:100%">
+                  <div class=3D"alignment" align=3D"center">
+                   <div style=3D"max-width:500px">
+                    <img src=3D"https://custcomm.dhl.de/content/email000-45=
+ef-48c2-be45-980cf88eb80e/ContentEditor-5UTXXXXXXXXXXXXX-1BEXXXXXXXXXXXXX/TEKK/DHL/Banner/02=
+_Beladung/Beladung_Fr%C3%BChling.gif" style=3D"display:block;height:auto;bo=
+rder:0;width:100%" width=3D"500" alt=3D"Ihre Sendung wird zugestellt" title=
+=3D"Ihre Sendung wird zugestellt" height=3D"auto">
+                   </div>
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+             </td>
+            </tr>
+           </tbody>
+          </table>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+            <table class=3D"row row-4" align=3D"center" width=3D"100%" bord=
+er=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D=
+"mso-table-lspace:0;mso-table-rspace:0">
+       <tbody>
+        <tr>
+         <td>
+          <table class=3D"row-content" align=3D"center" border=3D"0" cellpa=
+dding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-table-lspa=
+ce:0;mso-table-rspace:0;background-color:#fff;border-radius:0;color:#000;wi=
+dth:500px;margin:0 auto" width=3D"500">
+           <tbody>
+            <tr>
+             <td class=3D"column column-1" width=3D"100%" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;background-co=
+lor:#fff;vertical-align:top;border-radius:1px 1px 1px 1px">
+              <div class=3D"spacer_block block-1" style=3D"height:15px;line=
+-height:15px;font-size:1px">=E2=80=8A</div>
+              <table class=3D"html_block block-2" width=3D"100%" border=3D"=
+0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-t=
+able-lspace:0;mso-table-rspace:0">
+               <tbody>
+                <tr>
+                 <td class=3D"pad">
+                  <div style=3D"font-family:Delivery,Calibri,Arial,sans-ser=
+if;text-align:center" align=3D"center">
+                   <!-- HTML_START -->
+                   <!--
+. Interactive Email Built With             ______________=20
+.                    _ _ _                |     *__*     |=20
+.    _ __ ___   __ _(_) (_)_  __          |  *__|  |__*  |=20
+.   | '_ ` _ \ / _` | | | \ \/ /          | *|__    __|* |
+.   | | | | | | (_| | | | |>  <           |  *  |__|  *  |
+.   |_| |_| |_|\__,_|_|_|_/_/\_\.com      |_____*__*_____|
+.                                            Swiss Made
+.                                         Hosted in the EU
+ -->
+                   <!-- 20260325101745|prod -->
+                   <style type=3D"text/css">
+.body .mlx-cnt { background-color:#ffffff;margin:0;padding:0;font-family:Ar=
+ial, Verdana, Helvetica, sans-serif;color:#000000;font-size:14px; line-heig=
+ht:18px;mso-line-height-rule:exactly;font-weight:400;text-align:left; }
+.mlx-cnt .nlfy { margin:0;padding:0; }
+.mlx-cnt .fw { width: 100%; }
+.mlx-cnt .hdr { width: 100%; background-color:#ffffff; border:0 !important;=
+ }
+.mlx-cnt .mnc { width: 100%; background-color:#ffffff; }
+.mlx-cnt .ftr { width: 100%; background-color:#ffffff; }
+.mlx-cnt .cnt-wrp { background-color:#ffffff; }
+.mlx-cnt .stck-cnt { display: inline-block;width:100%;max-width: 100%; }
+.mlx-cnt .stck { display: block; }
+.mlx-cnt .mlx-itv-trk { max-width: 0;max-height: 0;overflow: hidden;display=
+: inline; }
+.mlx-cnt h1, .mlx-cnt h2, .mlx-cnt h3, .mlx-cnt h4 { margin:0;padding:0;lin=
+e-height: 1.25; }
+.mlx-cnt h1, .mlx-cnt .h1 { font-size:32px;margin:35px 0 0;font-family:Aria=
+l, Verdana, Helvetica, sans-serif;color:#106048; line-height:48px;mso-line-=
+height-rule:exactly;font-weight:600;text-align:left; }.mlx-cnt h2, .mlx-cnt=
+ .h2 { font-size:20px;margin:35px 0 0;font-family:Arial, Verdana, Helvetica=
+, sans-serif;color:#106048; line-height:30px;mso-line-height-rule:exactly;f=
+ont-weight:600;text-align:left; }.mlx-cnt h3, .mlx-cnt .h3 { font-size:15px=
+;margin:20px 0 0;font-family:Arial, Verdana, Helvetica, sans-serif;color:#1=
+06048; line-height:23px;mso-line-height-rule:exactly;font-weight:600;text-a=
+lign:left; }.mlx-cnt h4, .mlx-cnt .h4 { font-size:14px;margin:20px 0 0;font=
+-family:Arial, Verdana, Helvetica, sans-serif;color:#106048; line-height:21=
+px;mso-line-height-rule:exactly;font-weight:600;text-align:left; } .mlx-cnt=
+ { font-family:Arial, Verdana, Helvetica, sans-serif;color:#000000;font-siz=
+e:14px; line-height:18px;mso-line-height-rule:exactly;font-weight:400;text-=
+align:left; }
+.mlx-cnt p, .mlx-cnt .p { text-align:left; }
+.mlx-cnt a, .mlx-cnt a:link, .mlx-cnt a:hover, .mlx-cnt a:active, .mlx-cnt =
+a:visited { font-family:Arial, Verdana, Helvetica, sans-serif;color:#106048=
+;font-size:14px; line-height:18px;mso-line-height-rule:exactly;font-weight:=
+400;text-decoration:none; } .mlx-cnt .lk-hd { padding: 0 !important;font-si=
+ze: 0px !important;line-height: 0px !important;max-height: 0px !important;o=
+verflow: hidden !important; }
+.mlx-cnt .ltr { direction: ltr; }
+.mlx-cnt .rtl { direction: rtl; }
+.mlx-btn { display:inline-block;font-family:Arial, Verdana, Helvetica, sans=
+-serif;font-size:14px;padding:12px 15px; line-height:18px;mso-line-height-r=
+ule:exactly;text-decoration:none;background:#f9d010;border:1px solid #f9d01=
+0;color:#ffffff;mso-border-alt:1px solid #f9d010;border-radius:5px;text-ali=
+gn:center;font-weight:600;cursor:pointer; } </style>
+                   <style type=3D"text/css">
+.mlx-cnt * { -webkit-text-size-adjust: none; }
+</style>
+                   <style type=3D"text/css">
+.mlx-cnt * { text-size-adjust: none; }
+</style>
+                   <style type=3D"text/css">
+@media screen and (max-width: 599px) {
+.mlx-cnt .stck { box-sizing: border-box; }
+.mlx-cnt .m-hd { display: none !important; }
+.mlx-cnt .m-db, .mlx-cnt .m-stck { display: block !important;margin:auto; }
+.mlx-cnt .m-dib, .mlx-cnt .m-inline { display: inline-block !important; }
+.mlx-cnt .m-lq { width:100% !important;max-width:100% !important;height:aut=
+o !important;box-sizing: border-box !important; }
+.mlx-cnt .m-no-pd { padding: 0 !important; }
+.mlx-cnt .m-no-h-pd { padding-left: 0 !important;padding-right: 0px !import=
+ant; }
+.mlx-cnt .m-no-l-pd { padding-left: 0 !important; }
+.mlx-cnt .m-no-r-pd { padding-right: 0px !important; }
+.mlx-cnt .m-no-v-pd { padding-top: 0 !important;padding-bottom: 0px !import=
+ant; }
+.mlx-cnt .m-no-t-pd { padding-top: 0 !important; }
+.mlx-cnt .m-no-b-pd { padding-bottom: 0px !important; }
+.mlx-cnt .m-h-pd-q { padding-left: 5px !important;padding-right: 5px !impor=
+tant; }
+.mlx-cnt .m-v-pd-q { padding-top: 5px !important;padding-bottom: 5px !impor=
+tant; }
+.mlx-cnt .m-h-pd-h { padding-left: 10px !important;padding-right: 10px !imp=
+ortant; }
+.mlx-cnt .m-v-pd-h { padding-top: 10px !important;padding-bottom: 10px !imp=
+ortant; }
+.mlx-cnt .m-h-pd-df { padding-left: 20px !important;padding-right: 20px !im=
+portant; }
+.mlx-cnt .m-v-pd-df { padding-top: 20px !important;padding-bottom: 20px !im=
+portant; }
+.mlx-cnt .m-h-pd-dbl { padding-left: 35px !important;padding-right: 35px !i=
+mportant; }
+.mlx-cnt .m-v-pd-dbl { padding-top: 35px !important;padding-bottom: 35px !i=
+mportant; }
+.mlx-cnt .m-t-l { text-align: left !important; }
+.mlx-cnt .m-t-c { text-align: center !important; }
+.mlx-cnt .m-t-r { text-align: right !important; }
+.mlx-cnt .dskbg { background-image: none !important;background-color: trans=
+parent !important; }
+}
+</style>
+                   <style type=3D"text/css">
+u + .body .mlx-cnt .gm-no-btpdng { padding-bottom: 0 !important; }
+u + .body .mlx-cnt .gm-hd { display:none !important; }
+u + .body .mlx-cnt .gm-fb { display: inline-block !important; }
+u + .body .mlx-cnt .gm-db { display: block !important; }
+u + .body .mlx-cnt .gm-bm-sc { background:#000;mix-blend-mode:screen; }
+u + .body .mlx-cnt .gm-bm-df { background:#000;mix-blend-mode:difference; }
+@media screen and (max-width: 599px) {
+u + .body .mlx-cnt .gm-m-hd { display:none !important; }
+u + .body .mlx-cnt .gm-m-lq { width:100% !important;max-width:100% !importa=
+nt;height:auto !important;box-sizing: border-box !important; }
+}
+</style>
+                   <!--[if gte mso 16]>
+<style>
+.mso-dm-default {
+mso-style-textfill-type:gradient;
+mso-style-textfill-fill-gradientfill-stoplist:"0 \#000000 0 99000\,99000 \#=
+000000 0 99000";
+color:#ffffff !important;
+}
+.mso-dm-ondark {
+mso-style-textfill-type:gradient;
+mso-style-textfill-fill-gradientfill-stoplist:"0 \#ffffff 0 100000\,100000 =
+\#ffffff 0 100000";
+color:#000000 !important;
+}
+</style>
+<![endif]-->
+                   <style type=3D"text/css">
+.mlx-fb .bbl-cnt {
+background-repeat: repeat;
+background-image: url('https://cdn.mailix.com/f53ce266/assets/bg_red_1x1.pn=
+g');
+}
+</style>
+                   <style type=3D"text/css">
+.mlx-fb .bbl-cnt {
+background: #D40511 !yahoo;
+}
+</style>
+                   <style type=3D"text/css">
+.bubble-bg { background-image:url('https://cdn.mailix.com/f53ce266/assets/b=
+ubble-ol.png'); }
+@media screen and (max-width: 599px) {
+.mlx-cnt .stck { box-sizing: border-box; }
+.mlx-cnt .m-hd { display: none !important; }
+.bubble-bg { width:28.148148148148% !important; }
+}
+</style>
+                   <!-- GMail hacks -->
+                   <style type=3D"text/css">
+u + .body .mlx-cnt .gm-no-btpdng { padding-bottom: 0 !important; }
+u + .body .mlx-cnt .gm-hd { display:none !important; }
+u + .body .mlx-cnt .gm-fb { display: inline-block !important; }
+u + .body .mlx-cnt .gm-db { display: block !important; }
+u + .body .mlx-cnt .gm-bm-sc { background:#000;mix-blend-mode:screen; }
+u + .body .mlx-cnt .gm-bm-df { background:#000;mix-blend-mode:difference; }
+@media screen and (max-width: 599px) {
+u + .body .mlx-cnt .gm-m-hd { display:none !important; }
+u + .body .mlx-cnt .gm-m-lq { width:100% !important;max-width:100% !importa=
+nt;height:auto !important;box-sizing: border-box !important; }
+}
+</style>
+                   <!--/ GMail hacks -->
+                   <!--[if mso]>
+<style>
+.mso-dm-default {
+mso-style-textfill-type:gradient;
+mso-style-textfill-fill-gradientfill-stoplist:"0 \#000000 0 99000\,99000 \#=
+000000 0 99000";
+color:#ffffff !important;
+}
+.mso-dm-ondark {
+mso-style-textfill-type:gradient;
+mso-style-textfill-fill-gradientfill-stoplist:"0 \#ffffff 0 100000\,100000 =
+\#ffffff 0 100000";
+color:#000000 !important;
+}
+</style>
+<![endif]-->
+                   <!--[if !mso]><!-->
+                   <input type=3D"checkbox" id=3D"mlx_fb_ctrl" class=3D"mlx=
+-fb-ctrl" style=3D"display:none !important;mso-hide:all;" checked><!--<![en=
+dif]-->
+                   <div width=3D"100%" class=3D"mlx-cnt" style=3D"text-alig=
+n: center;">
+                    <!--[if mso]><table width=3D"100%" border=3D"0" cellspa=
+cing=3D"0" cellpadding=3D"0" bgcolor=3D"#ffffff" style=3D"max-width: 100%;"=
+><tr><td align=3D"center"><![endif]-->
+                    <div class=3D"stck nlfy mlx-prodlist" style=3D"font-siz=
+e:0;">
+                     <!--[if mso]><table width=3D"100%" border=3D"0" cellsp=
+acing=3D"0" cellpadding=3D"0" style=3D"max-width:100%;"><tr><td align=3D"ce=
+nter"><![endif]-->
+                     <div class=3D"mlx-fb mlx-fltr-hdr m-no-h-pd" style=3D"=
+font-size:0;border-collapse:separate;" aria-hidden=3D"true">
+                      <table width=3D"100%" cellspacing=3D"0" cellpadding=
+=3D"0" role=3D"presentation" style=3D"max-width:655px;margin:auto;">
+                       <tbody>
+                        <tr>
+                         <td width=3D"35" align=3D"center" valign=3D"middle=
+"><img src=3D"https://cdn.mailix.com/f53ce266/assets/arrow-left_inactive.pn=
+g" width=3D"12" style=3D"display:block;" alt=3D"Previous group of languages=
+"></td>
+                         <td>
+                          <table width=3D"100%" cellspacing=3D"0" cellpaddi=
+ng=3D"0" role=3D"presentation">
+                           <tbody>
+                            <tr>
+                             <!--[if !mso]><! -->
+                             <td background=3D"https://cdn.mailix.com/f53ce=
+266/assets/bubble-ol.png" align=3D"center" class=3D"bubble-bg" width=3D"21.=
+111111111111%" style=3D"background-repeat:no-repeat; background-size:71px 3=
+5px; background-position:center top; vertical-align:top; padding:2px 0 14px=
+;text-align:center;"><!-- <![endif]--> <!--[if mso]>
+<td align=3D"center" width=3D"21.111111111111%" height=3D"36" style=3D"vert=
+ical-align:top;">
+<v:rect xmlns:v=3D"urn:schemas-microsoft-com:vml" fill=3D"t" stroke=3D"f" s=
+tyle=3D"position:absolute;z-index:1;width:67px;height:24px;margin-top:2px;m=
+argin-left:2px;">
+<v:fill type=3D"gradient" color=3D"#D40511" color2=3D"#D40511" />
+</v:rect>
+<v:rect xmlns:v=3D"urn:schemas-microsoft-com:vml" fill=3D"t" stroke=3D"f" s=
+tyle=3D"position:absolute;z-index:2;width:71px;height:35px;">
+<v:fill type=3D"tile" src=3D"https://cdn.mailix.com/f53ce266/assets/bubble-=
+ol.png" color=3D"none" />
+<v:textbox inset=3D"0,0,0,0">
+<table width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" role=3D"presentat=
+ion"><tr><td align=3D"center" style=3D"padding-top:4px;">
+<![endif]--> <a class=3D"mso-dm-ondark" href=3D"https://custcomm.dhl.de/go/=
+1/FW8XXX-69IXXX-6KJLSA5B-QLSMT9.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo=
+%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" style=
+=3D"display:inline-block;font-family:sans-serif;font-weight:700;color:#ffff=
+ff;text-align:center;margin:0 auto;text-decoration:none;" lang=3D"en" aria-=
+label=3D"E-Mail in English anzeigen."> <!--[if !mso]><! --><span class=3D"b=
+bl-cnt" style=3D"display:inline-block;width:67px;border-radius:4px;backgrou=
+nd-color:#D40511;margin:0 auto;padding:5px 0;text-align:center;margin:0 aut=
+o;"> <span class=3D"gm-bm-sc" style=3D"text-align:center;margin:0 auto;"><s=
+pan class=3D"gm-bm-df" translate=3D"no" style=3D"text-align:center;margin:0=
+ auto;"><!-- <![endif]--> <span class=3D"m-hd mobile_hide" style=3D"font-si=
+ze:12px;line-height:14px;text-align:center;margin:0 auto;white-space:nowrap=
+;">English</span> <!--[if !mso]><! --><span class=3D"m-db desktop_hide" sty=
+le=3D"display:none;font-size:10px;line-height:12px;text-align:center;margin=
+:0 auto;white-space:nowrap;text-size-adjust:120%;-webkit-text-size-adjust:1=
+20%;">English</span> </span></span> </span><!-- <![endif]--> </a> <!--[if m=
+so]>
+</td></tr></table>
+</v:textbox>
+</v:rect>
+<![endif]--></td>
+                             <!--[if !mso]><! -->
+                             <td background=3D"https://cdn.mailix.com/f53ce=
+266/assets/bubble-ol.png" align=3D"center" class=3D"bubble-bg" width=3D"21.=
+111111111111%" style=3D"background-repeat:no-repeat; background-size:71px 3=
+5px; background-position:center top; vertical-align:top; padding:2px 0 14px=
+;text-align:center;"><!-- <![endif]--> <!--[if mso]>
+<td align=3D"center" width=3D"21.111111111111%" height=3D"36" style=3D"vert=
+ical-align:top;">
+<v:rect xmlns:v=3D"urn:schemas-microsoft-com:vml" fill=3D"t" stroke=3D"f" s=
+tyle=3D"position:absolute;z-index:1;width:67px;height:24px;margin-top:2px;m=
+argin-left:2px;">
+<v:fill type=3D"gradient" color=3D"#D40511" color2=3D"#D40511" />
+</v:rect>
+<v:rect xmlns:v=3D"urn:schemas-microsoft-com:vml" fill=3D"t" stroke=3D"f" s=
+tyle=3D"position:absolute;z-index:2;width:71px;height:35px;">
+<v:fill type=3D"tile" src=3D"https://cdn.mailix.com/f53ce266/assets/bubble-=
+ol.png" color=3D"none" />
+<v:textbox inset=3D"0,0,0,0">
+<table width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" role=3D"presentat=
+ion"><tr><td align=3D"center" style=3D"padding-top:4px;">
+<![endif]--> <a class=3D"mso-dm-ondark" href=3D"https://custcomm.dhl.de/go/=
+1/FW8XXX-69IXXX-6KJLSA5D-1AE3OX9.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fg=
+o%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" style=
+=3D"display:inline-block;font-family:sans-serif;font-weight:700;color:#ffff=
+ff;text-align:center;margin:0 auto;text-decoration:none;" lang=3D"tr" aria-=
+label=3D"E-Mail in T=C3=BCrk=C3=A7e anzeigen."> <!--[if !mso]><! --><span c=
+lass=3D"bbl-cnt" style=3D"display:inline-block;width:67px;border-radius:4px=
+;background-color:#D40511;margin:0 auto;padding:5px 0;text-align:center;mar=
+gin:0 auto;"> <span class=3D"gm-bm-sc" style=3D"text-align:center;margin:0 =
+auto;"><span class=3D"gm-bm-df" translate=3D"no" style=3D"text-align:center=
+;margin:0 auto;"><!-- <![endif]--> <span class=3D"m-hd mobile_hide" style=
+=3D"font-size:12px;line-height:14px;text-align:center;margin:0 auto;white-s=
+pace:nowrap;">T=C3=BCrk=C3=A7e</span> <!--[if !mso]><! --><span class=3D"m-=
+db desktop_hide" style=3D"display:none;font-size:10px;line-height:12px;text=
+-align:center;margin:0 auto;white-space:nowrap;text-size-adjust:120%;-webki=
+t-text-size-adjust:120%;">T=C3=BCrk=C3=A7e</span> </span></span> </span><!-=
+- <![endif]--> </a> <!--[if mso]>
+</td></tr></table>
+</v:textbox>
+</v:rect>
+<![endif]--></td>
+                             <!--[if !mso]><! -->
+                             <td background=3D"https://cdn.mailix.com/f53ce=
+266/assets/bubble-ol.png" align=3D"center" class=3D"bubble-bg" width=3D"21.=
+111111111111%" style=3D"background-repeat:no-repeat; background-size:71px 3=
+5px; background-position:center top; vertical-align:top; padding:2px 0 14px=
+;text-align:center;"><!-- <![endif]--> <!--[if mso]>
+<td align=3D"center" width=3D"21.111111111111%" height=3D"36" style=3D"vert=
+ical-align:top;">
+<v:rect xmlns:v=3D"urn:schemas-microsoft-com:vml" fill=3D"t" stroke=3D"f" s=
+tyle=3D"position:absolute;z-index:1;width:67px;height:24px;margin-top:2px;m=
+argin-left:2px;">
+<v:fill type=3D"gradient" color=3D"#D40511" color2=3D"#D40511" />
+</v:rect>
+<v:rect xmlns:v=3D"urn:schemas-microsoft-com:vml" fill=3D"t" stroke=3D"f" s=
+tyle=3D"position:absolute;z-index:2;width:71px;height:35px;">
+<v:fill type=3D"tile" src=3D"https://cdn.mailix.com/f53ce266/assets/bubble-=
+ol.png" color=3D"none" />
+<v:textbox inset=3D"0,0,0,0">
+<table width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" role=3D"presentat=
+ion"><tr><td align=3D"center" style=3D"padding-top:4px;">
+<![endif]--> <a class=3D"mso-dm-ondark" href=3D"https://custcomm.dhl.de/go/=
+1/FW8XXX-69IXXX-6KJLSA5C-5DFLEJ.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo=
+%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" style=
+=3D"display:inline-block;font-family:sans-serif;font-weight:700;color:#ffff=
+ff;text-align:center;margin:0 auto;text-decoration:none;" lang=3D"ar" aria-=
+label=3D"E-Mail in =D8=A7=D9=84=D8=B9=D8=B1=D8=A8=D9=8A=D8=A9 anzeigen."> <=
+!--[if !mso]><! --><span class=3D"bbl-cnt" style=3D"display:inline-block;wi=
+dth:67px;border-radius:4px;background-color:#D40511;margin:0 auto;padding:5=
+px 0;text-align:center;margin:0 auto;"> <span class=3D"gm-bm-sc" style=3D"t=
+ext-align:center;margin:0 auto;"><span class=3D"gm-bm-df" translate=3D"no" =
+style=3D"text-align:center;margin:0 auto;"><!-- <![endif]--> <span class=3D=
+"m-hd mobile_hide" style=3D"font-size:12px;line-height:14px;text-align:cent=
+er;margin:0 auto;white-space:nowrap;">=D8=A7=D9=84=D8=B9=D8=B1=D8=A8=D9=8A=
+=D8=A9</span> <!--[if !mso]><! --><span class=3D"m-db desktop_hide" style=
+=3D"display:none;font-size:10px;line-height:12px;text-align:center;margin:0=
+ auto;white-space:nowrap;text-size-adjust:120%;-webkit-text-size-adjust:120=
+%;">=D8=A7=D9=84=D8=B9=D8=B1=D8=A8=D9=8A=D8=A9</span> </span></span> </span=
+><!-- <![endif]--> </a> <!--[if mso]>
+</td></tr></table>
+</v:textbox>
+</v:rect>
+<![endif]--></td>
+                             <!--[if !mso]><! -->
+                             <td background=3D"https://cdn.mailix.com/f53ce=
+266/assets/bubble-ol.png" align=3D"center" class=3D"bubble-bg mobile_hide m=
+-hd" width=3D"21.111111111111%" style=3D"background-repeat:no-repeat; backg=
+round-size:71px 35px; background-position:center top; vertical-align:top; p=
+adding:2px 0 14px;text-align:center;"><!-- <![endif]--> <!--[if mso]>
+<td align=3D"center" width=3D"21.111111111111%" height=3D"36" style=3D"vert=
+ical-align:top;">
+<v:rect xmlns:v=3D"urn:schemas-microsoft-com:vml" fill=3D"t" stroke=3D"f" s=
+tyle=3D"position:absolute;z-index:1;width:67px;height:24px;margin-top:2px;m=
+argin-left:2px;">
+<v:fill type=3D"gradient" color=3D"#D40511" color2=3D"#D40511" />
+</v:rect>
+<v:rect xmlns:v=3D"urn:schemas-microsoft-com:vml" fill=3D"t" stroke=3D"f" s=
+tyle=3D"position:absolute;z-index:2;width:71px;height:35px;">
+<v:fill type=3D"tile" src=3D"https://cdn.mailix.com/f53ce266/assets/bubble-=
+ol.png" color=3D"none" />
+<v:textbox inset=3D"0,0,0,0">
+<table width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" role=3D"presentat=
+ion"><tr><td align=3D"center" style=3D"padding-top:4px;">
+<![endif]--> <a class=3D"mso-dm-ondark" href=3D"https://custcomm.dhl.de/go/=
+1/FW8XXX-69IXXX-6KJLSA5J-JNLG82.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo=
+%2F1%2F70LXXX-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" style=
+=3D"display:inline-block;font-family:sans-serif;font-weight:700;color:#ffff=
+ff;text-align:center;margin:0 auto;text-decoration:none;" lang=3D"pl" aria-=
+label=3D"E-Mail in Polski anzeigen."> <!--[if !mso]><! --><span class=3D"bb=
+l-cnt" style=3D"display:inline-block;width:67px;border-radius:4px;backgroun=
+d-color:#D40511;margin:0 auto;padding:5px 0;text-align:center;margin:0 auto=
+;"> <span class=3D"gm-bm-sc" style=3D"text-align:center;margin:0 auto;"><sp=
+an class=3D"gm-bm-df" translate=3D"no" style=3D"text-align:center;margin:0 =
+auto;"><!-- <![endif]--> <span class=3D"m-hd mobile_hide" style=3D"font-siz=
+e:12px;line-height:14px;text-align:center;margin:0 auto;white-space:nowrap;=
+">Polski</span> <!--[if !mso]><! --><span class=3D"m-db desktop_hide" style=
+=3D"display:none;font-size:10px;line-height:12px;text-align:center;margin:0=
+ auto;white-space:nowrap;text-size-adjust:120%;-webkit-text-size-adjust:120=
+%;">Polski</span> </span></span> </span><!-- <![endif]--> </a> <!--[if mso]=
+>
+</td></tr></table>
+</v:textbox>
+</v:rect>
+<![endif]--></td>
+                            </tr>
+                           </tbody>
+                          </table>
+                         </td>
+                         <td width=3D"35" align=3D"center" valign=3D"middle=
+"><a href=3D"https://custcomm.dhl.de/go/1/70LXXX-69IXXX-5VFXXX-15V314=
+RK-o.html#chk_mlx_fltr_sld_1" target=3D"_blank" style=3D"text-decoration:no=
+ne;"> <img src=3D"https://cdn.mailix.com/f53ce266/assets/arrow-right_active=
+.png" width=3D"12" style=3D"display:block;" alt=3D"Next group of languages"=
+> </a></td>
+                        </tr>
+                       </tbody>
+                      </table>
+                     </div>
+                     <!--[if mso]></td></tr></table><![endif]-->
+                     <!--[if !mso]><!-->
+                     <div class=3D"mlx-fltr fltr-12 fltr-stp-d3 fltr-stp-m4=
+ fltr-sld ">
+                      <input type=3D"radio" name=3D"mlx_fltr_sld" id=3D"mlx=
+_fltr_sld_0" class=3D"mlx-fltr-nav-c stp-0" style=3D"display:none !importan=
+t;mso-hide:all;" checked> <input type=3D"radio" name=3D"mlx_fltr_sld" id=3D=
+"mlx_fltr_sld_1" class=3D"mlx-fltr-nav-c stp-1" style=3D"display:none !impo=
+rtant;mso-hide:all;"> <input type=3D"radio" name=3D"mlx_fltr_sld" id=3D"mlx=
+_fltr_sld_2" class=3D"mlx-fltr-nav-c stp-2" style=3D"display:none !importan=
+t;mso-hide:all;"> <input type=3D"radio" name=3D"mlx_fltr_sld" id=3D"mlx_flt=
+r_sld_3" class=3D"mlx-fltr-nav-c stp-3" style=3D"display:none !important;ms=
+o-hide:all;"> <input type=3D"radio" name=3D"mlx_fltr_sld" id=3D"mlx_fltr_sl=
+d_4" class=3D"mlx-fltr-nav-c stp-4" style=3D"display:none !important;mso-hi=
+de:all;">
+                      <svg class=3D"gm-hd svglib" style=3D"display:none;">
+                       <symbol id=3D"mlxsvgnavl">
+                        <path class=3D"mlx-ico-path" fill=3D"currentColor" =
+d=3D"M10.914 12.5l4.293-4.293a1 1 0 1 0-1.414-1.414l-5 5a1 1 0 0 0 0 1.414l=
+5 5a1 1 0 1 0 1.414-1.414L10.914 12.5z"></path>
+                       </symbol>
+                       <symbol id=3D"mlxsvgnavr">
+                        <path class=3D"mlx-ico-path" fill=3D"currentColor" =
+d=3D"M13.0858 12.5l-4.293-4.2929c-.3904-.3905-.3904-1.0237 0-1.4142.3906-.3=
+905 1.0238-.3905 1.4143 0l5 5c.3905.3905.3905 1.0237 0 1.4142l-5 5c-.3905.3=
+905-1.0237.3905-1.4142 0-.3905-.3905-.3905-1.0237 0-1.4142L13.0858 12.5z"><=
+/path>
+                       </symbol>
+                      </svg>
+                      <div class=3D"mlx-itv gm-hd mlx-fltr-hdr mlx-fltr-itv=
+" style=3D"display:none;font-size:0;">
+                       <div class=3D"mlx-fltr-hdr-cnt gm-hd">
+                        <div class=3D"mlx-fltr-nav sld-nav-l gm-hd">
+                         <label for=3D"mlx_fltr_sld_0" class=3D"nav-prv nav=
+-0" aria-label=3D"Vorherige Sprachgruppe" aria-description=3D"Hier klicken =
+zur vorherigen Gruppe von Sprachen zur=C3=BCck zu kehren."> <span>=20
+                           <svg viewBox=3D"5 5 17 26" xmlns=3D"https://www.=
+w3.org/2000/svg">
+                            <use xlink:href=3D"#mlxsvgnavl"></use>
+                           </svg>=20
+                          </span> </label> <label for=3D"mlx_fltr_sld_1" cl=
+ass=3D"nav-prv nav-1" aria-label=3D"Vorherige Sprachgruppe" aria-descriptio=
+n=3D"Hier klicken zur vorherigen Gruppe von Sprachen zur=C3=BCck zu kehren.=
+"> <span>=20
+                           <svg viewBox=3D"5 5 17 26" xmlns=3D"https://www.=
+w3.org/2000/svg">
+                            <use xlink:href=3D"#mlxsvgnavl"></use>
+                           </svg>=20
+                          </span> </label> <label for=3D"mlx_fltr_sld_2" cl=
+ass=3D"nav-prv nav-2" aria-label=3D"Vorherige Sprachgruppe" aria-descriptio=
+n=3D"Hier klicken zur vorherigen Gruppe von Sprachen zur=C3=BCck zu kehren.=
+"> <span>=20
+                           <svg viewBox=3D"5 5 17 26" xmlns=3D"https://www.=
+w3.org/2000/svg">
+                            <use xlink:href=3D"#mlxsvgnavl"></use>
+                           </svg>=20
+                          </span> </label> <label for=3D"mlx_fltr_sld_3" cl=
+ass=3D"nav-prv nav-3" aria-label=3D"Vorherige Sprachgruppe" aria-descriptio=
+n=3D"Hier klicken zur vorherigen Gruppe von Sprachen zur=C3=BCck zu kehren.=
+"> <span>=20
+                           <svg viewBox=3D"5 5 17 26" xmlns=3D"https://www.=
+w3.org/2000/svg">
+                            <use xlink:href=3D"#mlxsvgnavl"></use>
+                           </svg>=20
+                          </span> </label> <label for=3D"mlx_fltr_sld_4" cl=
+ass=3D"nav-prv nav-4" aria-label=3D"Vorherige Sprachgruppe" aria-descriptio=
+n=3D"Hier klicken zur vorherigen Gruppe von Sprachen zur=C3=BCck zu kehren.=
+"> <span>=20
+                           <svg viewBox=3D"5 5 17 26" xmlns=3D"https://www.=
+w3.org/2000/svg">
+                            <use xlink:href=3D"#mlxsvgnavl"></use>
+                           </svg>=20
+                          </span> </label>
+                        </div>
+                        <div class=3D"mlx-fltr-sld-cnt gm-hd" aria-describe=
+dby=3D"mlx_aria_categorynav">
+                         <div class=3D"mlx-fltr-sld" role=3D"presentation">
+                          <div class=3D"mlx-fltr-sld-itm sld-itm-0">
+                           <div class=3D"mlx-fltr-sld-itm-bg" lang=3D"en" d=
+ir=3D"ltr">
+                            <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69=
+IHYYFN-6KJLSA5B-QLSMT9.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70=
+L6CPK0-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" aria-label=3D"E=
+-Mail in English anzeigen.">=20
+                             <div class=3D"mlx-tab-lbl" translate=3D"no">En=
+glish</div>=20
+                            </a>
+                           </div>
+                          </div>
+                          <div class=3D"mlx-fltr-sld-itm sld-itm-1">
+                           <div class=3D"mlx-fltr-sld-itm-bg" lang=3D"tr" d=d
+ir=3D"ltr">
+                            <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69=
+IHYYFN-6KJLSA5D-1AE3OX9.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F7=
+0L6CPK0-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" aria-label=3D"=
+E-Mail in T=C3=BCrk=C3=A7e anzeigen.">=20
+                             <div class=3D"mlx-tab-lbl" translate=3D"no">T=
+=C3=BCrk=C3=A7e</div>=20
+                            </a>
+                           </div>
+                          </div>
+                          <div class=3D"mlx-fltr-sld-itm sld-itm-2">
+                           <div class=3D"mlx-fltr-sld-itm-bg" lang=3D"ar" d=
+ir=3D"rtl">
+                            <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69=
+IHYYFN-6KJLSA5C-5DFLEJ.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70=
+L6CPK0-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" aria-label=3D"E=
+-Mail in =D8=A7=D9=84=D8=B9=D8=B1=D8=A8=D9=8A=D8=A9 anzeigen.">=20
+                             <div class=3D"mlx-tab-lbl" translate=3D"no">=
+=D8=A7=D9=84=D8=B9=D8=B1=D8=A8=D9=8A=D8=A9</div>=20
+                            </a>
+                           </div>
+                          </div>
+                          <div class=3D"mlx-fltr-sld-itm sld-itm-3">
+                           <div class=3D"mlx-fltr-sld-itm-bg" lang=3D"pl" d=
+ir=3D"ltr">
+                            <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69=
+IHYYFN-6KJLSA5J-JNLG82.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70=
+L6CPK0-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" aria-label=3D"E=
+-Mail in Polski anzeigen.">=20
+                             <div class=3D"mlx-tab-lbl" translate=3D"no">Po=
+lski</div>=20
+                            </a>
+                           </div>
+                          </div>
+                          <div class=3D"mlx-fltr-sld-itm sld-itm-4">
+                           <div class=3D"mlx-fltr-sld-itm-bg" lang=3D"es" d=
+ir=3D"ltr">
+                            <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69=
+IHYYFN-6KJLSA5F-11OWRRN.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F7=
+0L6CPK0-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" aria-label=3D"=
+E-Mail in Espa=C3=B1ol anzeigen.">=20
+                             <div class=3D"mlx-tab-lbl" translate=3D"no">Es=
+pa=C3=B1ol</div>=20
+                            </a>
+                           </div>
+                          </div>
+                          <div class=3D"mlx-fltr-sld-itm sld-itm-5">
+                           <div class=3D"mlx-fltr-sld-itm-bg" lang=3D"ru" d=
+ir=3D"ltr">
+                            <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69=
+IHYYFN-6KJLSA5I-1CX5TTB.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F7=
+0L6CPK0-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" aria-label=3D"=
+E-Mail in =D0=A0=D1=83=D1=81=D1=81=D0=BA=D0=B8=D0=B9 anzeigen.">=20
+                             <div class=3D"mlx-tab-lbl" translate=3D"no">=
+=D0=A0=D1=83=D1=81=D1=81=D0=BA=D0=B8=D0=B9</div>=20
+                            </a>
+                           </div>
+                          </div>
+                          <div class=3D"mlx-fltr-sld-itm sld-itm-6">
+                           <div class=3D"mlx-fltr-sld-itm-bg" lang=3D"fr" d=
+ir=3D"ltr">
+                            <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69=
+IHYYFN-6KJLSA5E-SF24QS.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70=
+L6CPK0-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" aria-label=3D"E=
+-Mail in Fran=C3=A7ais anzeigen.">=20
+                             <div class=3D"mlx-tab-lbl" translate=3D"no">Fr=
+an=C3=A7ais</div>=20
+                            </a>
+                           </div>
+                          </div>
+                          <div class=3D"mlx-fltr-sld-itm sld-itm-7">
+                           <div class=3D"mlx-fltr-sld-itm-bg" lang=3D"it" d=
+ir=3D"ltr">
+                            <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69=
+IHYYFN-6KJLSA5G-637EK.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70L=
+6CPK0-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" aria-label=3D"E-=
+Mail in Italiano anzeigen.">=20
+                             <div class=3D"mlx-tab-lbl" translate=3D"no">It=
+aliano</div>=20
+                            </a>
+                           </div>
+                          </div>
+                          <div class=3D"mlx-fltr-sld-itm sld-itm-8">
+                           <div class=3D"mlx-fltr-sld-itm-bg" lang=3D"uk" d=
+ir=3D"ltr">
+                            <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69=
+IHYYFN-6KJLSA5H-KTQ48K.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70=
+L6CPK0-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" aria-label=3D"E=
+-Mail in =D0=A3=D0=BA=D1=80=D0=B0=D1=97=D0=BD=D1=81=D1=8C=D0=BA=D0=B0 anzei=
+gen.">=20
+                             <div class=3D"mlx-tab-lbl" translate=3D"no">=
+=D0=A3=D0=BA=D1=80=D0=B0=D1=97=D0=BD=D1=81=D1=8C=D0=BA=D0=B0</div>=20
+                            </a>
+                           </div>
+                          </div>
+                          <div class=3D"mlx-fltr-sld-itm sld-itm-9">
+                           <div class=3D"mlx-fltr-sld-itm-bg" lang=3D"he" d=
+ir=3D"rtl">
+                            <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69=
+IHYYFN-6KJLSA5K-4C18C9.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70=
+L6CPK0-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" aria-label=3D"E=
+-Mail in =D7=A2=D7=91=D7=A8=D7=99=D7=AA anzeigen.">=20
+                             <div class=3D"mlx-tab-lbl" translate=3D"no">=
+=D7=A2=D7=91=D7=A8=D7=99=D7=AA</div>=20
+                            </a>
+                           </div>
+                          </div>
+                          <div class=3D"mlx-fltr-sld-itm sld-itm-10">
+                           <div class=3D"mlx-fltr-sld-itm-bg" lang=3D"sq" d=
+ir=3D"ltr">
+                            <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69=
+IHYYFN-6KRMVS3N-XVD9FY.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F70=
+L6CPK0-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" aria-label=3D"E=
+-Mail in Shqip anzeigen.">=20
+                             <div class=3D"mlx-tab-lbl" translate=3D"no">Sh=
+qip</div>=20
+                            </a>
+                           </div>
+                          </div>
+                          <div class=3D"mlx-fltr-sld-itm sld-itm-11">
+                           <div class=3D"mlx-fltr-sld-itm-bg" lang=3D"ro" d=
+ir=3D"ltr">
+                            <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69=
+IHYYFN-6KRMVS3O-8W8149X.html?u=3Dhttps%3A%2F%2Fcustcomm.dhl.de%2Fgo%2F1%2F7=
+0L6CPK0-69IXXX-5VFXXX-15VXXX-o.html" target=3D"_blank" aria-label=3D"=
+E-Mail in Rom=C3=A2n=C4=83 anzeigen.">=20
+                             <div class=3D"mlx-tab-lbl" translate=3D"no">Ro=
+m=C3=A2n=C4=83</div>=20
+                            </a>
+                           </div>
+                          </div>
+                         </div>
+                        </div>
+                        <div class=3D"mlx-fltr-nav sld-nav-r gm-hd">
+                         <label for=3D"mlx_fltr_sld_1" class=3D"nav-nxt nav=
+-1" aria-label=3D"N=C3=A4chste Sprachgruppe" aria-description=3D"Hier klick=
+en um zur n=C3=A4chsten Gruppe von Sprachen zu springen."> <span>=20
+                           <svg viewBox=3D"5 5 17 26" xmlns=3D"https://www.=
+w3.org/2000/svg">
+                            <use xlink:href=3D"#mlxsvgnavr"></use>
+                           </svg>=20
+                          </span> </label> <label for=3D"mlx_fltr_sld_2" cl=
+ass=3D"nav-nxt nav-2" aria-label=3D"N=C3=A4chste Sprachgruppe" aria-descrip=
+tion=3D"Hier klicken um zur n=C3=A4chsten Gruppe von Sprachen zu springen."=
+> <span>=20
+                           <svg viewBox=3D"5 5 17 26" xmlns=3D"https://www.=
+w3.org/2000/svg">
+                            <use xlink:href=3D"#mlxsvgnavr"></use>
+                           </svg>=20
+                          </span> </label> <label for=3D"mlx_fltr_sld_3" cl=
+ass=3D"nav-nxt nav-3" aria-label=3D"N=C3=A4chste Sprachgruppe" aria-descrip=
+tion=3D"Hier klicken um zur n=C3=A4chsten Gruppe von Sprachen zu springen."=
+> <span>=20
+                           <svg viewBox=3D"5 5 17 26" xmlns=3D"https://www.=
+w3.org/2000/svg">
+                            <use xlink:href=3D"#mlxsvgnavr"></use>
+                           </svg>=20
+                          </span> </label> <label for=3D"mlx_fltr_sld_4" cl=
+ass=3D"nav-nxt nav-4" aria-label=3D"N=C3=A4chste Sprachgruppe" aria-descrip=
+tion=3D"Hier klicken um zur n=C3=A4chsten Gruppe von Sprachen zu springen."=
+> <span>=20
+                           <svg viewBox=3D"5 5 17 26" xmlns=3D"https://www.=
+w3.org/2000/svg">
+                            <use xlink:href=3D"#mlxsvgnavr"></use>
+                           </svg>=20
+                          </span> </label>
+                        </div>
+                       </div>
+                      </div>
+                     </div>
+                     <!--<![endif]-->
+                    </div>
+                    <!--[if mso]></td></tr></table><![endif]-->
+                    <div style=3D"font-size:0;line-height:0;max-height:0;ov=
+erflow:hidden;">
+                    =20
+                    </div>
+                   </div>
+                   <!-- HTML_END -->
+                   <link rel=3D"stylesheet" href=3D"https://cdn.mailix.com/=
+dyn/f53ce266/854523e2f5e53650872b040b56624456.css">
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+              <div class=3D"spacer_block block-3" style=3D"height:15px;line=
+-height:15px;font-size:1px">=E2=80=8A</div>
+             </td>
+            </tr>
+           </tbody>
+          </table>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+            <table class=3D"row row-6" align=3D"center" width=3D"100%" bord=
+er=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D=
+"mso-table-lspace:0;mso-table-rspace:0">
+       <tbody>
+        <tr>
+         <td>
+          <table class=3D"row-content stack" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;background-color:#fff;border-radius:0;color:#=
+000;width:500px;margin:0 auto" width=3D"500">
+           <tbody>
+            <tr>
+             <td class=3D"column column-1" width=3D"100%" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;vertical-alig=
+n:top">
+              <div class=3D"spacer_block block-1" style=3D"height:10px;line=
+-height:10px;font-size:1px">=E2=80=8A</div>
+              <table class=3D"paragraph_block block-2" width=3D"100%" borde=
+r=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"=
+mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
+               <tbody>
+                <tr>
+                 <td class=3D"pad" style=3D"padding-left:40px;padding-right=
+:40px;padding-top:10px">
+                  <div style=3D"color:#000;direction:ltr;font-family:Delive=
+ry,Calibri,Arial,sans-serif;font-size:14px;font-weight:400;letter-spacing:0=
+;line-height:1.2;text-align:center;mso-line-height-alt:17px">
+                   <p style=3D"margin:0;margin-bottom:11px">Hallo,</p>
+                   <p style=3D"margin:0">Ihre <strong>GrubXXXX Gew=C3=BCr=
+zmanufaktur MaXXXXX ChXXXXX&nbsp;</strong>Sendung wird Ihnen <strong>heut=
+e </strong>durch Ihre Brief- und Paketzustellkraft zugestellt.</p>
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+              <div class=3D"spacer_block block-3" style=3D"height:15px;line=
+-height:15px;font-size:1px">=E2=80=8A</div>
+             </td>
+            </tr>
+           </tbody>
+          </table>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+            <table class=3D"row row-13" align=3D"center" width=3D"100%" bor=
+der=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=
+=3D"mso-table-lspace:0;mso-table-rspace:0">
+       <tbody>
+        <tr>
+         <td>
+          <table class=3D"row-content stack" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;background-color:#fff;border-radius:0;color:#=
+000;width:500px;margin:0 auto" width=3D"500">
+           <tbody>
+            <tr>
+             <td class=3D"column column-1" width=3D"100%" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;vertical-alig=
+n:top">
+              <div class=3D"spacer_block block-1" style=3D"height:15px;line=
+-height:15px;font-size:1px">=E2=80=8A</div>
+              <table class=3D"paragraph_block block-2" width=3D"100%" borde=
+r=3D"0" cellpadding=3D"10" cellspacing=3D"0" role=3D"presentation" style=3D=
+"mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
+               <tbody>
+                <tr>
+                 <td class=3D"pad">
+                  <div style=3D"color:#000;direction:ltr;font-family:Delive=
+ry,Calibri,Arial,sans-serif;font-size:16px;font-weight:700;letter-spacing:0=
+;line-height:1.2;text-align:center;mso-line-height-alt:19px">
+                   <p style=3D"margin:0">Jetzt Zustelloption w=C3=A4hlen</p=
+>
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+             </td>
+            </tr>
+           </tbody>
+          </table>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+            <table class=3D"row row-14" align=3D"center" width=3D"100%" bor=
+der=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=
+=3D"mso-table-lspace:0;mso-table-rspace:0">
+       <tbody>
+        <tr>
+         <td>
+          <table class=3D"row-content stack" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;background-color:#fff;border-radius:0;color:#=
+000;width:500px;margin:0 auto" width=3D"500">
+           <tbody>
+            <tr>
+             <td class=3D"column column-1" width=3D"100%" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;border-bottom=
+:2px solid transparent;border-top:2px solid transparent;padding-bottom:2px;=
+padding-top:2px;vertical-align:top">
+              <table class=3D"html_block block-1" width=3D"100%" border=3D"=
+0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-t=
+able-lspace:0;mso-table-rspace:0">
+               <tbody>
+                <tr>
+                 <td class=3D"pad">
+                  <div style=3D"font-family:Delivery,Calibri,Arial,sans-ser=
+if;text-align:center" align=3D"center">
+                   <table width=3D"300" border=3D"0" cellpadding=3D"0" cell=
+spacing=3D"0" align=3D"center" style=3D"width:300px;border:1px solid #ccccc=
+c;">
+                    <tbody>
+                     <tr>
+                      <td width=3D"40" style=3D"width:40px;text-align:left"=
+><a href=3D"
+
+
+
+https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6P14AHUE-13A4F5P.html?piececode=
+=3D003XXXXXXXXX5
+
+" style=3D" display:block;width:100%;"> <img style=3D"display:block;" src=
+=3D"https://custcomm.dhl.de/content/email000-45ef-48c2-be45-980cf88eb80e/Co=
+ntentEditor-5UTXXXXXXXXXXXXX-1BEXXXXXXXXXXXXX/TEKK/DHL/Icon%20Transparent/darkicEmailFlexibl=
+eParcelDeliveryTransparent%402x.png" width=3D"32" height=3D"32" alt=3D"Icon=
+"> </a></td>
+                      <td width=3D"260" style=3D"width:260px;text-align:lef=
+t"><a href=3D"
+
+
+
+https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6P14AHUE-13A4F5P.html?piececode=
+=3D003XXXXXXXXXX15
+
+" style=3D" display:inline-block;width:100%;height:100%;text-decoration:non=
+e;color:#333;font-family:'Delivery',Calibri,Arial,sans-serif;font-size:14px=
+;line-height:34px;"> Ablageort buchen </a></td>
+                     </tr>
+                    </tbody>
+                   </table>
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+             </td>
+            </tr>
+           </tbody>
+          </table>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+            <table class=3D"row row-16" align=3D"center" width=3D"100%" bor=
+der=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=
+=3D"mso-table-lspace:0;mso-table-rspace:0">
+       <tbody>
+        <tr>
+         <td>
+          <table class=3D"row-content stack" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;background-color:#fff;border-radius:0;color:#=
+000;width:500px;margin:0 auto" width=3D"500">
+           <tbody>
+            <tr>
+             <td class=3D"column column-1" width=3D"100%" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;border-bottom=
+:2px solid transparent;border-top:2px solid transparent;padding-bottom:2px;=
+padding-top:2px;vertical-align:top">
+              <table class=3D"html_block block-1" width=3D"100%" border=3D"=
+0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-t=
+able-lspace:0;mso-table-rspace:0">
+               <tbody>
+                <tr>
+                 <td class=3D"pad">
+                  <div style=3D"font-family:Delivery,Calibri,Arial,sans-ser=
+if;text-align:center" align=3D"center">
+                   <table width=3D"300" border=3D"0" cellpadding=3D"0" cell=
+spacing=3D"0" align=3D"center" style=3D"width:300px;border:1px solid #ccccc=
+c;">
+                    <tbody>
+                     <tr>
+                      <td width=3D"40" style=3D"width:40px;text-align:left"=
+><a href=3D"
+
+
+
+https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6P14AHUF-1838A1Z.html?piececode=
+=3D0XXXXXXXXXXX15
+
+" style=3D"display:block;width:100%;"> <img style=3D"display:block;" src=3D=
+"https://custcomm.dhl.de/content/email000-45ef-48c2-be45-980cf88eb80e/Conte=
+ntEditor-5UTXXXXXXXXXXXXX-1BEXXXXXXXXXXXXX/TEKK/DHL/Icon%20Transparent/icEmailDeliveryToNeig=
+hbourTransparent%402x.png" width=3D"32" height=3D"32" alt=3D"Icon"> </a></t=
+d>
+                      <td width=3D"260" style=3D"width:260px;text-align:lef=
+t"><a href=3D"
+
+
+
+https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6P14AHUF-1838A1Z.html?piececode=
+=3D003XXXXXXXXX215
+
+" style=3D"display:inline-block;width:100%;height:100%;text-decoration:none=
+;color:#333;font-family:'Delivery',Calibri,Arial,sans-serif;font-size:14px;=
+line-height:34px;"> An Nachbar:in liefern </a></td>
+                     </tr>
+                    </tbody>
+                   </table>
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+             </td>
+            </tr>
+           </tbody>
+          </table>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+            <table class=3D"row row-18" align=3D"center" width=3D"100%" bor=
+der=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=
+=3D"mso-table-lspace:0;mso-table-rspace:0">
+       <tbody>
+        <tr>
+         <td>
+          <table class=3D"row-content stack" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;background-color:#fff;border-radius:0;color:#=
+000;width:500px;margin:0 auto" width=3D"500">
+           <tbody>
+            <tr>
+             <td class=3D"column column-1" width=3D"100%" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;vertical-alig=
+n:top">
+              <div class=3D"spacer_block block-1" style=3D"height:15px;line=
+-height:15px;font-size:1px">=E2=80=8A</div>
+             </td>
+            </tr>
+           </tbody>
+          </table>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+            <table class=3D"row row-19" align=3D"center" width=3D"100%" bor=
+der=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=
+=3D"mso-table-lspace:0;mso-table-rspace:0">
+       <tbody>
+        <tr>
+         <td>
+          <table class=3D"row-content stack" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;background-color:#fff;border-radius:0;color:#=
+000;width:500px;margin:0 auto" width=3D"500">
+           <tbody>
+            <tr>
+             <td class=3D"column column-1" width=3D"100%" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;border-bottom=
+:2px solid transparent;border-top:2px solid transparent;padding-bottom:2px;=
+padding-top:2px;vertical-align:top">
+              <table class=3D"html_block block-1" width=3D"100%" border=3D"=
+0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-t=
+able-lspace:0;mso-table-rspace:0">
+               <tbody>
+                <tr>
+                 <td class=3D"pad">
+                  <div style=3D"font-family:Delivery,Calibri,Arial,sans-ser=
+if;text-align:center" align=3D"center">
+                   <table width=3D"300" border=3D"0" cellpadding=3D"0" cell=
+spacing=3D"0" align=3D"center" style=3D"width:300px;border:1px solid #ccccc=
+c;">
+                    <tbody>
+                     <tr>
+                      <td width=3D"40" style=3D"width:40px;text-align:left"=
+><a href=3D"
+
+
+
+https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6P28LR0Q-S2X1AB9.html?piececode=
+=3D00XXXXXXXXX0215
+
+" style=3D"display:block;width:100%;"> <img style=3D"display:block;" src=3D=
+"https://custcomm.dhl.de/content/email000-45ef-48c2-be45-980cf88eb80e/Conte=
+ntEditor-5UTXXXXXXXXXXXXX-1BEXXXXXXXXXXXXX/TEKK/DHL/Icon%20Transparent/icEmailParcelTakeAway=
+Transparent%402x.png" width=3D"32" height=3D"32" alt=3D"Icon"> </a></td>
+                      <td width=3D"260" style=3D"width:260px;text-align:lef=
+t"><a href=3D"
+
+
+
+https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-6P28LR0Q-S2X1AB9.html?piececode=
+=3D00XXXXXXXXX0215
+
+" style=3D"display:inline-block;width:100%;height:100%;text-decoration:none=
+;color:#333;font-family:'Delivery',Calibri,Arial,sans-serif;font-size:14px;=
+line-height:34px;"> Paketmitnahme buchen </a></td>
+                     </tr>
+                    </tbody>
+                   </table>
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+             </td>
+            </tr>
+           </tbody>
+          </table>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+            <table class=3D"row row-20" align=3D"center" width=3D"100%" bor=
+der=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=
+=3D"mso-table-lspace:0;mso-table-rspace:0">
+       <tbody>
+        <tr>
+         <td>
+          <table class=3D"row-content stack" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;background-color:#fff;border-radius:0;color:#=
+000;width:500px;margin:0 auto" width=3D"500">
+           <tbody>
+            <tr>
+             <td class=3D"column column-1" width=3D"100%" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;vertical-alig=
+n:top">
+              <div class=3D"spacer_block block-1" style=3D"height:15px;line=
+-height:15px;font-size:1px">=E2=80=8A</div>
+              <table class=3D"paragraph_block block-2" width=3D"100%" borde=
+r=3D"0" cellpadding=3D"10" cellspacing=3D"0" role=3D"presentation" style=3D=
+"mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
+               <tbody>
+                <tr>
+                 <td class=3D"pad">
+                  <div style=3D"color:#000;direction:ltr;font-family:Delive=
+ry,Calibri,Arial,sans-serif;font-size:16px;font-weight:700;letter-spacing:0=
+;line-height:1.2;text-align:center;mso-line-height-alt:19px">
+                   <p style=3D"margin:0">Sendungsstatus einsehen</p>
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+              <table class=3D"paragraph_block block-3" width=3D"100%" borde=
+r=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"=
+mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
+               <tbody>
+                <tr>
+                 <td class=3D"pad" style=3D"padding-left:10px;padding-right=
+:10px">
+                  <div style=3D"color:#1a1a1a;direction:ltr;font-family:Del=
+ivery,Calibri,Arial,sans-serif;font-size:14px;font-weight:400;letter-spacin=
+g:0;line-height:1.2;text-align:center;mso-line-height-alt:17px">
+                   <p style=3D"margin:0"><a href=3D"https://custcomm.dhl.de=
+/go/1/FW8XXX-69IXXX-5WGMK0OB-P3LBQX.html?piececode=3D00340000000000000001" =
+target=3D"_blank" title=3D"Sendungsverfolgung" aria-hidden=3D"false" style=
+=3D"text-decoration: underline; color: #d40511;" rel=3D"noopener">003404346=
+38469110215</a></p>
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+              <div class=3D"spacer_block block-4" style=3D"height:10px;line=
+-height:10px;font-size:1px">=E2=80=8A</div>
+             </td>
+            </tr>
+           </tbody>
+          </table>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+            <table class=3D"row row-22" align=3D"center" width=3D"100%" bor=
+der=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=
+=3D"mso-table-lspace:0;mso-table-rspace:0">
+       <tbody>
+        <tr>
+         <td>
+          <table class=3D"row-content stack" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;background-color:#fff;border-radius:0;color:#=
+000;width:500px;margin:0 auto" width=3D"500">
+           <tbody>
+            <tr>
+             <td class=3D"column column-1" width=3D"100%" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-botto=
+m:5px;padding-top:5px;vertical-align:top">
+              <div class=3D"spacer_block block-1" style=3D"height:15px;line=
+-height:15px;font-size:1px">=E2=80=8A</div>
+              <table class=3D"divider_block block-2" width=3D"100%" border=
+=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"m=
+so-table-lspace:0;mso-table-rspace:0">
+               <tbody>
+                <tr>
+                 <td class=3D"pad" style=3D"padding-bottom:15px;padding-lef=
+t:20px;padding-right:20px;padding-top:10px">
+                  <div class=3D"alignment" align=3D"center">
+                   <table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" =
+role=3D"presentation" width=3D"100%" style=3D"mso-table-lspace:0;mso-table-=
+rspace:0">
+                    <tbody>
+                     <tr>
+                      <td class=3D"divider_inner" style=3D"font-size:1px;li=
+ne-height:1px;border-top:1px solid #bbb"><span style=3D"word-break: break-w=
+ord;">=E2=80=8A</span></td>
+                     </tr>
+                    </tbody>
+                   </table>
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+             </td>
+            </tr>
+           </tbody>
+          </table>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+      <table class=3D"row row-23" align=3D"center" width=3D"100%" border=3D=
+"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-=
+table-lspace:0;mso-table-rspace:0">
+       <tbody>
+        <tr>
+         <td>
+          <table class=3D"row-content stack" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;background-color:#fff;border-radius:0;color:#=
+000;width:500px;margin:0 auto" width=3D"500">
+           <tbody>
+            <tr>
+             <td class=3D"column column-1" width=3D"50%" style=3D"mso-table=
+-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom=
+:20px;padding-left:20px;padding-right:20px;vertical-align:top">
+              <table class=3D"paragraph_block block-1" width=3D"100%" borde=
+r=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"=
+mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
+               <tbody>
+                <tr>
+                 <td class=3D"pad">
+                  <div style=3D"color:#000;direction:ltr;font-family:Delive=
+ry,Calibri,Arial,sans-serif;font-size:12px;font-weight:400;letter-spacing:0=
+;line-height:1.5;text-align:left;mso-line-height-alt:18px">
+                   <p style=3D"margin:0">Sie m=C3=B6chten keine oder nur no=
+ch bestimmte Informationen zu Ihrer Sendung erhalten?&nbsp;
+                    <br>
+                    <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-5=
+WGPNS2J-11VWO4.html" target=3D"_blank" title=3D"Blacklist" style=3D"text-de=
+coration: underline; color: #d40511;" rel=3D"noopener">E-Mail-Einstellungen=
+ verwalten</a></p>
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+             </td>
+             <td class=3D"column column-2" width=3D"50%" style=3D"mso-table=
+-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom=
+:20px;padding-left:20px;padding-right:20px;vertical-align:top">
+              <table class=3D"paragraph_block block-1" width=3D"100%" borde=
+r=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"=
+mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
+               <tbody>
+                <tr>
+                 <td class=3D"pad">
+                  <div style=3D"color:#000;direction:ltr;font-family:Delive=
+ry,Calibri,Arial,sans-serif;font-size:12px;font-weight:400;letter-spacing:0=
+;line-height:1.5;text-align:left;mso-line-height-alt:18px">
+                   <p style=3D"margin:0"><a href=3D"https://custcomm.dhl.de=
+/go/1/FW8XXX-69IXXX-5WGPNRVD-HGH165M.html" target=3D"_blank" title=3D"Daten=
+schutzhinweise" style=3D"text-decoration: underline; color: #d40511;" rel=
+=3D"noopener">Datenschutzhinweise</a>
+                    <br>
+                    <a href=3D"https://custcomm.dhl.de/go/1/FW8XXX-69IXXX-5=
+WGPNRVE-11VRT4Z.html" target=3D"_blank" title=3D"Impressum" style=3D"text-d=
+ecoration: underline; color: #d40511;" rel=3D"noopener">Impressum</a></p>
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+             </td>
+            </tr>
+           </tbody>
+          </table>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+      <table class=3D"row row-24" align=3D"center" width=3D"100%" border=3D=
+"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-=
+table-lspace:0;mso-table-rspace:0">
+       <tbody>
+        <tr>
+         <td>
+          <table class=3D"row-content stack" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;background-color:#fff;border-radius:0;color:#=
+000;width:500px;margin:0 auto" width=3D"500">
+           <tbody>
+            <tr>
+             <td class=3D"column column-1" width=3D"33.333333333333336%" st=
+yle=3D"mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:lef=
+t;background-color:#f2f2f2;padding-bottom:20px;padding-left:20px;padding-ri=
+ght:20px;padding-top:10px;vertical-align:top">
+              <table class=3D"paragraph_block block-1" width=3D"100%" borde=
+r=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"=
+mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
+               <tbody>
+                <tr>
+                 <td class=3D"pad">
+                  <div style=3D"color:#000;direction:ltr;font-family:Delive=
+ry,Calibri,Arial,sans-serif;font-size:12px;font-weight:400;letter-spacing:0=
+;line-height:1.2;text-align:left;mso-line-height-alt:14px">
+                   <p style=3D"margin:0"><strong>DHL Group</strong></p>
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+             </td>
+             <td class=3D"column column-2" width=3D"66.66666666666667%" sty=
+le=3D"mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left=
+;background-color:#f2f2f2;padding-bottom:20px;padding-left:20px;padding-rig=
+ht:20px;padding-top:10px;vertical-align:top">
+              <table class=3D"paragraph_block block-1" width=3D"100%" borde=
+r=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"=
+mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
+               <tbody>
+                <tr>
+                 <td class=3D"pad">
+                  <div style=3D"color:#000;direction:ltr;font-family:Delive=
+ry,Calibri,Arial,sans-serif;font-size:12px;font-weight:400;letter-spacing:0=
+;line-height:1.2;text-align:right;mso-line-height-alt:14px">
+                   <p style=3D"margin:0"><strong>2026 </strong><strong>=C2=
+=A9</strong> <strong>DHL Paket GmbH. All </strong><strong>rights</strong><s=
+trong> </strong><strong>reserved</strong><strong>.</strong></p>
+                  </div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+             </td>
+            </tr>
+           </tbody>
+          </table>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+            <table class=3D"row row-26" align=3D"center" width=3D"100%" bor=
+der=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=
+=3D"mso-table-lspace:0;mso-table-rspace:0">
+       <tbody>
+        <tr>
+         <td>
+          <table class=3D"row-content stack" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;border-radius:0;color:#000;width:500px;margin=
+:0 auto" width=3D"500">
+           <tbody>
+            <tr>
+             <td class=3D"column column-1" width=3D"100%" style=3D"mso-tabl=
+e-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-botto=
+m:5px;padding-top:5px;vertical-align:top">
+              <table class=3D"html_block block-1" width=3D"100%" border=3D"=
+0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentation" style=3D"mso-t=
+able-lspace:0;mso-table-rspace:0">
+               <tbody>
+                <tr>
+                 <td class=3D"pad">
+                  <div style=3D"font-family:Delivery,Calibri,Arial,sans-ser=
+if;text-align:center" align=3D"center"></div>
+                 </td>
+                </tr>
+               </tbody>
+              </table>
+             </td>
+            </tr>
+           </tbody>
+          </table>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+     </td>
+    </tr>
+   </tbody>
+  </table>
+  <!-- End -->
+ <!-- [=3Dop=3D] --><img src=3D"https://custcomm.dhl.de/op/1/FW8XXX-69IXXX-=
+7GMKYK.gif" width=3D"1" height=3D"1" border=3D"0" alt=3D"" style=3D"height:=
+0;display:block;"/><!-- [/=3Dop=3D] --></body>
+</html>
+------=_Part_7655229_694520515.1789199954408--
