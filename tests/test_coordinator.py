@@ -16,6 +16,11 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import CONF_FOLDER, DOMAIN
 from custom_components.mail_and_packages.coordinator import MailDataUpdateCoordinator
+from custom_components.mail_and_packages.coordinator.helpers import (
+    sum_delivered_counts,
+    sum_delivering_counts,
+    sum_transit_counts,
+)
 from custom_components.mail_and_packages.coordinator.tracking import (
     MailDeliveredLatchState,
     latch_mail_delivered,
@@ -734,31 +739,25 @@ async def test_apply_tracking_state_overwrites_empty_config_packages(hass):
 @pytest.mark.asyncio
 async def test_sum_transit_counts_prefers_delivering_over_packages(hass):
     """Transit total counts delivering if present, ignoring packages rollup."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
-
     data = {
         "dhl_delivering": 1,
         "dhl_packages": 2,
         "hermes_delivering": 1,
         "hermes_packages": 9,  # ignored once delivering counted
     }
-    assert coordinator._sum_transit_counts(data) == 2  # dhl 1 + hermes 1
+    assert sum_transit_counts(data) == 2  # dhl 1 + hermes 1
 
 
 @pytest.mark.asyncio
 async def test_sum_transit_counts_ignores_packages_rollup(hass):
     """*_packages rollups never contribute to the in-transit total."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
-
     data = {
         "hermes_packages": 2,  # rollup of the delivering + delivered below
         "hermes_delivering": 1,
         "hermes_delivered": 1,
         "dhl_delivering": 1,
     }
-    assert coordinator._sum_transit_counts(data) == 2  # hermes 1 + dhl 1
+    assert sum_transit_counts(data) == 2  # hermes 1 + dhl 1
 
 
 @pytest.mark.asyncio
@@ -1664,16 +1663,13 @@ def test_remove_marketplace_package_wrapper():
 
 
 @pytest.mark.asyncio
-async def test_sum_delivered_and_delivering_counts_wrappers(hass):
-    """Test _sum_delivered_counts and _sum_delivering_counts wrappers on coordinator."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
-
+async def test_sum_delivered_and_delivering_counts_helpers(hass):
+    """Test sum_delivered_counts and sum_delivering_counts helper functions."""
     data = {
         "ups_delivered": 2,
         "fedex_delivered": 3,
         "ups_delivering": 1,
         "fedex_delivering": 4,
     }
-    assert coordinator._sum_delivered_counts(data) == 5
-    assert coordinator._sum_delivering_counts(data) == 5
+    assert sum_delivered_counts(data) == 5
+    assert sum_delivering_counts(data) == 5
