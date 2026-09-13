@@ -2,14 +2,10 @@
 
 from __future__ import annotations
 
-import email
 import logging
 import re
-from pathlib import Path
-from shutil import copyfile
 from typing import Any
 
-import anyio
 import homeassistant.helpers.config_validation as cv
 from aioimaplib import IMAP4_SSL
 
@@ -34,29 +30,7 @@ from custom_components.mail_and_packages.const import (
     DEFAULT_AMAZON_DAYS,
 )
 from custom_components.mail_and_packages.shippers.base import Shipper
-from custom_components.mail_and_packages.utils.amazon import (
-    _extract_hub_code,
-    amazon_email_addresses,
-    download_amazon_img,
-    extract_order_numbers,
-    filter_amazon_strings,
-    get_decoded_subject,
-    get_email_body,
-    parse_amazon_arrival_date,
-    search_amazon_emails,
-)
 from custom_components.mail_and_packages.utils.cache import EmailCache
-from custom_components.mail_and_packages.utils.date import get_today
-from custom_components.mail_and_packages.utils.image import (
-    cleanup_images,
-    generate_delivery_gif,
-    random_filename,
-    resize_images,
-)
-from custom_components.mail_and_packages.utils.imap import (
-    email_fetch,
-    email_search,
-)
 
 from .helpers import (
     _extract_exception_from_parts as helper_extract_exception_from_parts,
@@ -75,7 +49,6 @@ from .search import AmazonSearchMixin
 
 _LOGGER = logging.getLogger(__name__)
 
-# Re-exports for backward compatibility and test mock patching
 __all__ = [
     "AMAZON_DELIVERED_SUBJECT",
     "AMAZON_HUB_SUBJECT",
@@ -84,26 +57,6 @@ __all__ = [
     "AmazonImageMixin",
     "AmazonSearchMixin",
     "AmazonShipper",
-    "Path",
-    "_extract_hub_code",
-    "amazon_email_addresses",
-    "anyio",
-    "cleanup_images",
-    "copyfile",
-    "download_amazon_img",
-    "email",
-    "email_fetch",
-    "email_search",
-    "extract_order_numbers",
-    "filter_amazon_strings",
-    "generate_delivery_gif",
-    "get_decoded_subject",
-    "get_email_body",
-    "get_today",
-    "parse_amazon_arrival_date",
-    "random_filename",
-    "resize_images",
-    "search_amazon_emails",
 ]
 
 

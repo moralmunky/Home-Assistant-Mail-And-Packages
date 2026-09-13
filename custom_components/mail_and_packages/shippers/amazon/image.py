@@ -12,6 +12,7 @@ import anyio
 
 from custom_components.mail_and_packages.const import (
     AMAZON_DELIVERED_SUBJECT,
+    ASSET_ROOT,
     CONF_DURATION,
 )
 from custom_components.mail_and_packages.utils.amazon import (
@@ -31,7 +32,7 @@ from custom_components.mail_and_packages.utils.imap import (
     email_search,
 )
 
-from .helpers import _amazon_attr, _is_amazon_delivered
+from .helpers import _is_amazon_delivered
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,28 +55,22 @@ class AmazonImageMixin:
     ) -> int:
         """Find Amazon Delivered email and handle images."""
         _LOGGER.debug("=== AMAZON DELIVERED SEARCH START ===")
-        subjects = _amazon_attr("AMAZON_DELIVERED_SUBJECT", AMAZON_DELIVERED_SUBJECT)
-        today = _amazon_attr("get_today", get_today)().strftime("%d-%b-%Y")
+        subjects = AMAZON_DELIVERED_SUBJECT
+        today = get_today().strftime("%d-%b-%Y")
         count = 0
         all_image_urls = []
 
-        cleanup_fn = _amazon_attr("cleanup_images", cleanup_images)
         await self.hass.async_add_executor_job(
-            cleanup_fn,
+            cleanup_images,
             f"{image_path or ''}amazon/",
         )
 
-        email_addresses_fn = _amazon_attr(
-            "amazon_email_addresses", amazon_email_addresses
-        )
-        address_list = email_addresses_fn(fwds, amazon_domain)
+        address_list = amazon_email_addresses(fwds, amazon_domain)
         _LOGGER.debug("Amazon email search addresses: %s", address_list)
         if amazon_domain:
-            filter_fn = _amazon_attr("filter_amazon_strings", filter_amazon_strings)
-            subjects = filter_fn(subjects, amazon_domain)
+            subjects = filter_amazon_strings(subjects, amazon_domain)
 
-        search_fn = _amazon_attr("email_search", email_search)
-        (server_response, data) = await search_fn(
+        (server_response, data) = await email_search(
             account=account,
             address=address_list,
             date=today,
@@ -83,7 +78,6 @@ class AmazonImageMixin:
             header=forwarding_header,
         )
         if server_response == "OK" and data[0]:
-            fetch_fn = _amazon_attr("email_fetch", email_fetch)
             for email_id in data[0].split():
                 fetch_id = (
                     email_id.decode() if isinstance(email_id, bytes) else email_id
@@ -91,7 +85,7 @@ class AmazonImageMixin:
                 if cache:
                     msg_data = (await cache.fetch(fetch_id, "(RFC822)"))[1]
                 else:
-                    msg_data = (await fetch_fn(account, fetch_id, "(RFC822)"))[1]
+                    msg_data = (await email_fetch(account, fetch_id, "(RFC822)"))[1]
 
                 is_delivered, urls = _is_amazon_delivered(msg_data, subjects)
                 if is_delivered:
@@ -117,8 +111,7 @@ class AmazonImageMixin:
         if not image_base_path or not image_name:
             return
 
-        path_cls = _amazon_attr("Path", Path)
-        amazon_path = path_cls(image_base_path) / "amazon"
+        amazon_path = Path(image_base_path) / "amazon"
         image_files = await self._download_all_images(image_urls, image_base_path)
 
         if len(image_files) > 1:
@@ -133,12 +126,10 @@ class AmazonImageMixin:
     async def _download_all_images(self, urls: list[str], base_path: str) -> list[str]:
         """Download all image URLs to temporary files."""
         image_files = []
-        path_cls = _amazon_attr("Path", Path)
-        amazon_path = path_cls(base_path) / "amazon"
-        download_fn = _amazon_attr("download_amazon_img", download_amazon_img)
+        amazon_path = Path(base_path) / "amazon"
         for url in urls:
             temp_filename = random_filename()
-            await download_fn(url, base_path, temp_filename, self.hass)
+            await download_amazon_img(url, base_path, temp_filename, self.hass)
             full_temp_path = amazon_path / temp_filename
             if await anyio.Path(full_temp_path).exists():
                 image_files.append(str(full_temp_path))
@@ -149,22 +140,18 @@ class AmazonImageMixin:
     ) -> None:
         """Create animated GIF from multiple images."""
         _LOGGER.debug("Combining %d Amazon images into GIF", len(image_files))
-        resizer = _amazon_attr("resize_images", resize_images)
         resized_images = await self.hass.async_add_executor_job(
-            resizer, image_files, 724, 320
+            resize_images, image_files, 724, 320
         )
         gif_path = str(amazon_path / image_name)
         duration = self.config.get(CONF_DURATION, 5) * 1000
-        gif_generator = _amazon_attr("generate_delivery_gif", generate_delivery_gif)
         await self.hass.async_add_executor_job(
-            gif_generator, resized_images, gif_path, duration
+            generate_delivery_gif, resized_images, gif_path, duration
         )
-        cleanup_fn = _amazon_attr("cleanup_images", cleanup_images)
         for img in image_files + resized_images:
             if await anyio.Path(img).exists():
-                path_cls = _amazon_attr("Path", Path)
                 await self.hass.async_add_executor_job(
-                    cleanup_fn, str(path_cls(img).parent) + "/", path_cls(img).name
+                    cleanup_images, str(Path(img).parent) + "/", Path(img).name
                 )
 
     async def _save_single_amazon_image(
@@ -174,24 +161,21 @@ class AmazonImageMixin:
         final_path = amazon_path / image_name
         if await anyio.Path(final_path).exists():
             await anyio.Path(final_path).unlink()
-        path_cls = _amazon_attr("Path", Path)
-        await self.hass.async_add_executor_job(path_cls(image_file).rename, final_path)
+        await self.hass.async_add_executor_job(Path(image_file).rename, final_path)
         _LOGGER.debug("Single Amazon image saved: %s", image_name)
 
     async def _copy_amazon_placeholder(
         self, amazon_path: Path, image_name: str
     ) -> None:
         """Copy the Amazon no-delivery placeholder."""
-        path_cls = _amazon_attr("Path", Path)
-        nomail = f"{path_cls(__file__).parents[2]}/no_deliveries_amazon.jpg"
+        nomail = str(ASSET_ROOT / "no_deliveries_amazon.jpg")
         _LOGGER.debug("No Amazon images found in emails, using placeholder")
         try:
             if not await anyio.Path(amazon_path).exists():
                 with contextlib.suppress(OSError):
                     await anyio.Path(amazon_path).mkdir(parents=True, exist_ok=True)
-            copier = _amazon_attr("copyfile", copyfile)
             await self.hass.async_add_executor_job(
-                copier, nomail, str(amazon_path / image_name)
+                copyfile, nomail, str(amazon_path / image_name)
             )
         except OSError as err:
             _LOGGER.error("Error attempting to copy image: %s", err)

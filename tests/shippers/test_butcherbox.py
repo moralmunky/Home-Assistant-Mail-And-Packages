@@ -47,11 +47,11 @@ async def _process(hass, raw: bytes, subject: str, sensor_type: str) -> dict:
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_search",
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
             return_value=("OK", [b"1"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_fetch",
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch",
             return_value=("OK", [raw]),
         ),
         patch(
@@ -63,7 +63,7 @@ async def _process(hass, raw: bytes, subject: str, sensor_type: str) -> dict:
             return_value=("OK", [raw]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_fetch_headers",
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers",
             return_value=("OK", [f"Subject: {subject}\r\n".encode()]),
         ),
     ):

@@ -14,6 +14,7 @@ from aioimaplib import IMAP4_SSL
 from PIL import Image, UnidentifiedImageError
 
 from custom_components.mail_and_packages.const import (
+    ASSET_ROOT,
     ATTR_IMAGE_PATH,
     CONF_CUSTOM_IMG_FILE,
     CONF_DURATION,
@@ -206,7 +207,7 @@ class PostDEShipper(Shipper):
             target = Path(path) / name
             if target.is_file():
                 cleanup_images(path + "/", name)
-            src = custom_img or str(Path(__file__).parent.parent / "mail_none.gif")
+            src = custom_img or str(ASSET_ROOT / "mail_none.gif")
             if not Path(src).is_absolute():
                 src = self.hass.config.path(src)
             shutil.copyfile(src, str(target))

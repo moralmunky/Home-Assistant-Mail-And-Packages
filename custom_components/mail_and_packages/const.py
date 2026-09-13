@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Final
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
@@ -12,6 +13,7 @@ from .entity import MailandPackagesBinarySensorEntityDescription
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
+ASSET_ROOT: Final[Path] = Path(__file__).parent
 VERSION = "0.0.0-dev"  # Now updated by release workflow
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"

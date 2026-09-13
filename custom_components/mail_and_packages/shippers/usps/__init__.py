@@ -13,6 +13,7 @@ import anyio
 from aioimaplib import IMAP4_SSL
 
 from custom_components.mail_and_packages.const import (
+    ASSET_ROOT,
     ATTR_COUNT,
     ATTR_EMAIL,
     ATTR_GRID_IMAGE_NAME,
@@ -104,9 +105,7 @@ class USPSShipper(Shipper):
         # Generate filtered list for GIF/MP4/Grid
         gif_images = images.copy()
         if not config.get("usps_placeholder", True):
-            placeholder_str = str(
-                Path(__file__).parents[2] / "image-no-mailpieces700.jpg"
-            )
+            placeholder_str = str(ASSET_ROOT / "image-no-mailpieces700.jpg")
             if placeholder_str in gif_images:
                 gif_images.remove(placeholder_str)
 
@@ -189,7 +188,7 @@ class USPSShipper(Shipper):
         # Old USPS format: plain-text email body contained the filename as a reference.
         # New format is handled in _extract_usps_images on properly decoded HTML.
         if re.compile(r"\bimage-no-mailpieces?700\.jpg\b").search(content) is not None:
-            placeholder = Path(__file__).parents[2] / "image-no-mailpieces700.jpg"
+            placeholder = ASSET_ROOT / "image-no-mailpieces700.jpg"
             placeholder_str = str(placeholder)
             if placeholder.exists() and placeholder_str not in images:
                 images.append(placeholder_str)
@@ -258,7 +257,7 @@ class USPSShipper(Shipper):
             target = Path(path) / name
             if target.is_file():
                 cleanup_images(path, name)
-            src = custom_img or str(Path(__file__).parents[2] / "mail_none.gif")
+            src = custom_img or str(ASSET_ROOT / "mail_none.gif")
             if not Path(src).is_absolute():
                 src = self.hass.config.path(src)
             shutil.copyfile(src, str(target))
@@ -274,7 +273,7 @@ class USPSShipper(Shipper):
         return {
             "image_output_path": self.config.get("image_path"),
             "gif_duration": self.config.get(CONF_DURATION),
-            "image_name": self.config.get("usps_image"),
+            "image_name": self.config.get("usps_image") or "usps_deliveries.gif",
             "gen_mp4": self.config.get(CONF_GENERATE_MP4),
             "custom_img": self.config.get(CONF_CUSTOM_IMG_FILE)
             or DEFAULT_CUSTOM_IMG_FILE,

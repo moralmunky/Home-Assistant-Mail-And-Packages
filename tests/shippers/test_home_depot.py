@@ -36,11 +36,11 @@ async def test_home_depot_delivering(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_search",
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
             return_value=("OK", [b"1"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_fetch",
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch",
             return_value=("OK", [msg.as_bytes()]),
         ),
         patch(
@@ -52,7 +52,7 @@ async def test_home_depot_delivering(hass):
             return_value=("OK", [msg.as_bytes()]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_fetch_headers",
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers",
             return_value=(
                 "OK",
                 [b"Subject: Your Home Depot order is out for delivery today.\r\n"],
@@ -96,11 +96,11 @@ async def test_home_depot_delivering_carrier_tracking(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_search",
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
             return_value=("OK", [b"1"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_fetch",
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch",
             return_value=("OK", [msg.as_bytes()]),
         ),
         patch(
@@ -112,7 +112,7 @@ async def test_home_depot_delivering_carrier_tracking(hass):
             return_value=("OK", [msg.as_bytes()]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_fetch_headers",
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers",
             return_value=(
                 "OK",
                 [
@@ -158,11 +158,11 @@ async def test_home_depot_marketplace_carrier_tracking(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.get_tracking",
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_tracking",
             return_value=["WK00000000"],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic._find_carrier_number",
+            "custom_components.mail_and_packages.shippers.generic.helpers._find_carrier_number",
             return_value="123456789012",
         ),
         patch(
@@ -205,11 +205,11 @@ async def test_home_depot_delivering_wn_order_id(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_search",
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
             return_value=("OK", [b"1"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_fetch",
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch",
             return_value=("OK", [msg.as_bytes()]),
         ),
         patch(
@@ -221,7 +221,7 @@ async def test_home_depot_delivering_wn_order_id(hass):
             return_value=("OK", [msg.as_bytes()]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_fetch_headers",
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers",
             return_value=(
                 "OK",
                 [b"Subject: Your Home Depot order is out for delivery today.\r\n"],
@@ -268,11 +268,11 @@ async def test_home_depot_delivered_wn_order_id(hass):
     with (
         patch("custom_components.mail_and_packages.shippers.generic.Path.mkdir"),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_search",
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
             return_value=("OK", [b"1"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_fetch",
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch",
             return_value=("OK", [msg.as_bytes()]),
         ),
         patch(
@@ -284,7 +284,7 @@ async def test_home_depot_delivered_wn_order_id(hass):
             return_value=("OK", [msg.as_bytes()]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.generic.email_fetch_headers",
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers",
             return_value=(
                 "OK",
                 [b"Subject: Your Home Depot order has been delivered.\r\n"],

@@ -51,27 +51,27 @@ async def test_amazon_otp(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
             return_value=datetime.date(2024, 12, 19),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.amazon_email_addresses",
+            "custom_components.mail_and_packages.shippers.amazon.search.amazon_email_addresses",
             return_value=["fwd@test.com"],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.AMAZON_OTP_SUBJECT",
+            "custom_components.mail_and_packages.shippers.amazon.search.AMAZON_OTP_SUBJECT",
             "Amazon OTP",
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.AMAZON_OTP_REGEX",
+            "custom_components.mail_and_packages.shippers.amazon.search.AMAZON_OTP_REGEX",
             mock_regex,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
             new_callable=AsyncMock,
         ) as mock_search,
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             new_callable=AsyncMock,
         ) as mock_fetch,
     ):
@@ -107,7 +107,7 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
     """Test handling of amazon hub codes."""
     shipper = AmazonShipper(hass, {"amazon_fwds": ""})
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.get_today",
+        "custom_components.mail_and_packages.shippers.amazon.search.get_today",
         return_value=datetime.date(2020, 9, 25),
     ):
         result = await shipper.process(mock_imap_amazon_the_hub, "today", AMAZON_HUB)
@@ -115,7 +115,7 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
         assert result[AMAZON_HUB_CODE] == ["123456"]
 
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        "custom_components.mail_and_packages.shippers.amazon.search.email_search",
         new_callable=AsyncMock,
         return_value=("BAD", []),
     ):
@@ -123,7 +123,7 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
         assert result == {AMAZON_HUB_CODE: [], AMAZON_HUB: 0}
 
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        "custom_components.mail_and_packages.shippers.amazon.search.email_search",
         new_callable=AsyncMock,
         return_value=("OK", [None]),
     ):
@@ -137,7 +137,7 @@ async def test_amazon_hub_2(hass, mock_imap_amazon_the_hub_2):
     shipper = AmazonShipper(hass, {"amazon_fwds": ""})
     # Test successful parsing with the fixture
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.get_today",
+        "custom_components.mail_and_packages.shippers.amazon.search.get_today",
         return_value=datetime.date(2020, 9, 25),
     ):
         result = await shipper.process(mock_imap_amazon_the_hub_2, "today", AMAZON_HUB)
@@ -146,7 +146,7 @@ async def test_amazon_hub_2(hass, mock_imap_amazon_the_hub_2):
 
     # Test "BAD" search response
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        "custom_components.mail_and_packages.shippers.amazon.search.email_search",
         new_callable=AsyncMock,
         return_value=("BAD", []),
     ):
@@ -155,7 +155,7 @@ async def test_amazon_hub_2(hass, mock_imap_amazon_the_hub_2):
 
     # Test "OK" search response but with no email IDs
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        "custom_components.mail_and_packages.shippers.amazon.search.email_search",
         new_callable=AsyncMock,
         return_value=("OK", [b""]),
     ):
@@ -194,15 +194,15 @@ async def test_amazon_delivered_with_order_in_body(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
             new_callable=AsyncMock,
         ) as mock_search,
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             new_callable=AsyncMock,
         ) as mock_fetch,
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
             return_value=datetime.date(2025, 10, 29),
         ),
     ):
@@ -234,15 +234,15 @@ async def test_amazon_shipped_minus_delivered_with_body_orders(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
             new_callable=AsyncMock,
         ) as mock_search,
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             new_callable=AsyncMock,
         ) as mock_fetch,
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
             return_value=datetime.date(2025, 10, 29),
         ),
     ):
@@ -280,7 +280,7 @@ async def test_amazon_search_no_data(hass):
     shipper = AmazonShipper(hass, {})
     mock_account = AsyncMock()
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        "custom_components.mail_and_packages.shippers.amazon.search.email_search",
         new_callable=AsyncMock,
         return_value=("OK", [None]),
     ):
@@ -338,19 +338,19 @@ async def test_amazon_hub_more_coverage(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
             return_value=("OK", [b"1 1"]),
         ),  # Duplicate ID
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             side_effect=[("OK", [None, b"raw"]), ("OK", [None, b"raw"])],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon._extract_hub_code",
+            "custom_components.mail_and_packages.shippers.amazon.helpers._extract_hub_code",
             return_value="123456",
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
             return_value=datetime.date(2020, 9, 25),
         ),
     ):
@@ -397,25 +397,25 @@ async def test_get_items_more_coverage(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.search_amazon_emails",
+            "custom_components.mail_and_packages.shippers.amazon.search.search_amazon_emails",
             new_callable=AsyncMock,
             return_value=unique_ids,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             new_callable=AsyncMock,
         ) as mock_fetch,
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
             return_value=today,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.parse_amazon_arrival_date",
+            "custom_components.mail_and_packages.shippers.amazon.search.parse_amazon_arrival_date",
             new_callable=AsyncMock,
             return_value=today,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.get_email_body",
+            "custom_components.mail_and_packages.shippers.amazon.search.get_email_body",
             return_value="Order 111-1234567-1234567 delivered.",
         ),
     ):
@@ -459,15 +459,15 @@ async def test_amazon_exception(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
             new_callable=AsyncMock,
         ) as mock_search,
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             new_callable=AsyncMock,
         ) as mock_fetch,
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
             return_value=datetime.date(2025, 10, 29),
         ),
     ):
@@ -486,7 +486,7 @@ async def test_amazon_search_no_emails_found(hass):
     shipper = AmazonShipper(hass, {})
     mock_account = AsyncMock()
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        "custom_components.mail_and_packages.shippers.amazon.search.email_search",
         new_callable=AsyncMock,
         return_value=("OK", [b""]),
     ):
@@ -502,9 +502,11 @@ async def test_amazon_search_delivered(hass, mock_imap_amazon_delivered, caplog)
         {"image_path": "test/path/amazon/", "amazon_image": "testfilename.jpg"},
     )
     with (
-        patch("custom_components.mail_and_packages.shippers.amazon.cleanup_images"),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.download_amazon_img",
+            "custom_components.mail_and_packages.shippers.amazon.image.cleanup_images"
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.image.download_amazon_img",
         ) as mock_download_img,
     ):
         result = await shipper.process(
@@ -530,9 +532,11 @@ async def test_amazon_search_delivered_it(hass, mock_imap_amazon_delivered_it):
         },
     )
     with (
-        patch("custom_components.mail_and_packages.shippers.amazon.cleanup_images"),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.download_amazon_img",
+            "custom_components.mail_and_packages.shippers.amazon.image.cleanup_images"
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.image.download_amazon_img",
         ),
     ):
         result = await shipper.process(
@@ -593,12 +597,14 @@ async def test_amazon_search_no_emails_found_copy(hass):
     )
     mock_account = AsyncMock()
     with (
-        patch("custom_components.mail_and_packages.shippers.amazon.cleanup_images"),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.copyfile",
+            "custom_components.mail_and_packages.shippers.amazon.image.cleanup_images"
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.image.copyfile",
         ) as mock_copy,
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
             new_callable=AsyncMock,
             return_value=("OK", [b""]),
         ),
@@ -614,11 +620,11 @@ async def test_amazon_packages_counts(hass, mock_imap_amazon_shipped):
     # Mock date to match shipping notice
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
             return_value=datetime.date(2020, 9, 26),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             new_callable=AsyncMock,
             return_value=(
                 "OK",
@@ -643,7 +649,7 @@ async def test_amazon_order_list(hass, mock_imap_amazon_shipped):
     shipper = AmazonShipper(hass, {})
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             new_callable=AsyncMock,
             return_value=(
                 "OK",
@@ -664,7 +670,7 @@ async def test_amazon_order_list_filtering(hass, mock_imap_amazon_shipped):
     shipper = AmazonShipper(hass, {})
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             new_callable=AsyncMock,
             side_effect=[
                 (
@@ -684,7 +690,7 @@ async def test_amazon_order_list_filtering(hass, mock_imap_amazon_shipped):
             ],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.search_amazon_emails",
+            "custom_components.mail_and_packages.shippers.amazon.search.search_amazon_emails",
             new_callable=AsyncMock,
             return_value=[b"1", b"2"],
         ),
@@ -700,12 +706,12 @@ async def test_amazon_hub_multi(hass, mock_imap_amazon_the_hub):
     shipper = AmazonShipper(hass, {})
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
             new_callable=AsyncMock,
             return_value=("OK", [b"1 1 2"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             new_callable=AsyncMock,
             side_effect=[
                 ("OK", [b"H", b"Subject: a package to pick up 123456"]),
@@ -739,7 +745,7 @@ async def test_process_amazon_email_non_bytes(hass):
     mock_account = AsyncMock()
     # mock_fetch returns a list where one part is not bytes
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+        "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
         return_value=("OK", ["not bytes"]),
     ):
         await shipper._process_amazon_email(mock_account, "1", ctx)
@@ -763,7 +769,7 @@ async def test_handle_shipping_email_no_order_id(hass):
     # Body matches arrival date but has no order ID
     body = "Your package is arriving today"
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.parse_amazon_arrival_date",
+        "custom_components.mail_and_packages.shippers.amazon.search.parse_amazon_arrival_date",
         new_callable=AsyncMock,
         return_value=today,
     ):
@@ -788,11 +794,11 @@ async def test_amazon_exception_body_match(hass):
     mock_account = AsyncMock()
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
             return_value=("OK", [b"1"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             return_value=(
                 "OK",
                 [
@@ -802,7 +808,7 @@ async def test_amazon_exception_body_match(hass):
             ),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
             return_value=datetime.date.today(),
         ),
     ):
@@ -822,32 +828,32 @@ async def test_amazon_search_multiple_images_gif(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            "custom_components.mail_and_packages.shippers.amazon.image.email_search",
             new_callable=AsyncMock,
             return_value=("OK", [b"1 2"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.image.email_fetch",
             new_callable=AsyncMock,
         ) as mock_fetch,
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.download_amazon_img",
+            "custom_components.mail_and_packages.shippers.amazon.image.download_amazon_img",
             new_callable=AsyncMock,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.anyio.Path.exists",
+            "custom_components.mail_and_packages.shippers.amazon.image.anyio.Path.exists",
             new_callable=AsyncMock,
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.cleanup_images",
+            "custom_components.mail_and_packages.shippers.amazon.image.cleanup_images",
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.resize_images",
+            "custom_components.mail_and_packages.shippers.amazon.image.resize_images",
             return_value=["/fake/path/amazon/res1.jpg", "/fake/path/amazon/res2.jpg"],
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.generate_delivery_gif",
+            "custom_components.mail_and_packages.shippers.amazon.image.generate_delivery_gif",
         ) as mock_gif,
     ):
 
@@ -867,7 +873,9 @@ async def test_amazon_search_multiple_images_gif(hass):
 async def test_amazon_process_images_missing_config(hass):
     """Test _process_amazon_images returns early with missing config."""
     shipper = AmazonShipper(hass, {})
-    with patch("custom_components.mail_and_packages.shippers.amazon.Path") as mock_path:
+    with patch(
+        "custom_components.mail_and_packages.shippers.amazon.image.Path"
+    ) as mock_path:
         await shipper._process_amazon_images(["url1"], None, None, 1)
         assert not mock_path.called
 
@@ -880,17 +888,19 @@ async def test_amazon_process_images_single(hass, caplog):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.anyio.Path.exists",
+            "custom_components.mail_and_packages.shippers.amazon.image.anyio.Path.exists",
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.anyio.Path.unlink",
+            "custom_components.mail_and_packages.shippers.amazon.image.anyio.Path.unlink",
         ) as mock_unlink,
         patch(
             "custom_components.mail_and_packages.shippers.amazon.AmazonShipper._download_all_images",
             return_value=["/fake/test.jpg"],
         ),
-        patch("custom_components.mail_and_packages.shippers.amazon.Path") as mock_path,
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.image.Path"
+        ) as mock_path,
     ):
         # mock_path needs to handle / operator and rename
         mock_path_obj = MagicMock()
@@ -979,13 +989,15 @@ async def test_process_with_cache(hass):
     )
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            "custom_components.mail_and_packages.shippers.amazon.image.email_search",
             new_callable=AsyncMock,
             return_value=("OK", [b"2"]),
         ),
-        patch("custom_components.mail_and_packages.shippers.amazon.cleanup_images"),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.copyfile",
+            "custom_components.mail_and_packages.shippers.amazon.image.cleanup_images"
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.image.copyfile",
         ),
     ):
         count = await shipper._amazon_search(
@@ -999,7 +1011,7 @@ async def test_process_with_cache(hass):
         [b"RFC822", b"Subject: a package to pick up 123456"],
     )
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        "custom_components.mail_and_packages.shippers.amazon.search.email_search",
         new_callable=AsyncMock,
         return_value=("OK", [b"3"]),
     ):
@@ -1013,7 +1025,7 @@ async def test_process_with_cache(hass):
         [b"RFC822", b"Subject: OTP\n\n\n123456\n"],
     )
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        "custom_components.mail_and_packages.shippers.amazon.search.email_search",
         new_callable=AsyncMock,
         return_value=("OK", [b"4"]),
     ):
@@ -1030,7 +1042,7 @@ async def test_process_with_cache(hass):
         ],
     )
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        "custom_components.mail_and_packages.shippers.amazon.search.email_search",
         new_callable=AsyncMock,
         return_value=("OK", [b"5"]),
     ):
@@ -1059,7 +1071,7 @@ async def test_amazon_forwarding_header_mode_sets_fwds_none(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
             return_value=datetime.date(2024, 12, 19),
         ),
         patch.object(shipper, "_parse_amazon_emails", side_effect=capture_fwds),
@@ -1084,28 +1096,28 @@ async def test_amazon_search_delivered_excludes_ordered_and_shipped(hass):
     # 3: Shipped (should be ignored)
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_search",
+            "custom_components.mail_and_packages.shippers.amazon.image.email_search",
             new_callable=AsyncMock,
             return_value=("OK", [b"1 2 3"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.image.email_fetch",
             new_callable=AsyncMock,
         ) as mock_fetch,
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.download_amazon_img",
+            "custom_components.mail_and_packages.shippers.amazon.image.download_amazon_img",
             new_callable=AsyncMock,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.anyio.Path.exists",
+            "custom_components.mail_and_packages.shippers.amazon.image.anyio.Path.exists",
             new_callable=AsyncMock,
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.cleanup_images",
+            "custom_components.mail_and_packages.shippers.amazon.image.cleanup_images",
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.copyfile",
+            "custom_components.mail_and_packages.shippers.amazon.image.copyfile",
         ) as mock_copy,
     ):
 
@@ -1191,7 +1203,7 @@ async def test_amazon_de_emails(hass):
     # 1. Test Shipped/Versandt email with "Zustellung: Montag"
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
             return_value=datetime.date(2026, 7, 13),  # 2026-07-13 is a Monday
         ),
         patch(
@@ -1200,7 +1212,7 @@ async def test_amazon_de_emails(hass):
             return_value=("OK", [b"1 2"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             new_callable=AsyncMock,
         ) as mock_fetch,
     ):
@@ -1254,7 +1266,7 @@ async def test_amazon_de_versendet_ankunft_emails(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
             return_value=datetime.date(2026, 7, 22),
         ),
         patch(
@@ -1263,7 +1275,7 @@ async def test_amazon_de_versendet_ankunft_emails(hass):
             return_value=("OK", [b"1"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             new_callable=AsyncMock,
         ) as mock_fetch,
     ):
@@ -1295,7 +1307,7 @@ async def test_amazon_delivering_order_subtraction(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
             return_value=datetime.date(2026, 7, 22),
         ),
         patch(
@@ -1304,7 +1316,7 @@ async def test_amazon_delivering_order_subtraction(hass):
             return_value=("OK", [b"1", b"2"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             new_callable=AsyncMock,
         ) as mock_fetch,
     ):
@@ -1343,7 +1355,7 @@ async def test_amazon_delivering_no_order_id_no_arrival_date(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.get_today",
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
             return_value=datetime.date(2026, 7, 22),
         ),
         patch(
@@ -1352,7 +1364,7 @@ async def test_amazon_delivering_no_order_id_no_arrival_date(hass):
             return_value=("OK", [b"1"]),
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.email_fetch",
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
             new_callable=AsyncMock,
         ) as mock_fetch,
     ):
@@ -1375,7 +1387,7 @@ async def test_amazon_hub_and_otp_domain(hass):
     mock_account = AsyncMock()
 
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        "custom_components.mail_and_packages.shippers.amazon.search.email_search",
         new_callable=AsyncMock,
         return_value=("OK", [None]),
     ) as mock_search:
@@ -1387,7 +1399,7 @@ async def test_amazon_hub_and_otp_domain(hass):
         assert "pickup-point@amazon.fr" in search_addresses
 
     with patch(
-        "custom_components.mail_and_packages.shippers.amazon.email_search",
+        "custom_components.mail_and_packages.shippers.amazon.search.email_search",
         new_callable=AsyncMock,
         return_value=("OK", [None]),
     ) as mock_search:
@@ -1428,12 +1440,12 @@ async def test_copy_amazon_placeholder_oserror(hass):
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.anyio.Path.exists",
+            "custom_components.mail_and_packages.shippers.amazon.image.anyio.Path.exists",
             new_callable=AsyncMock,
             return_value=True,
         ),
         patch(
-            "custom_components.mail_and_packages.shippers.amazon.copyfile",
+            "custom_components.mail_and_packages.shippers.amazon.image.copyfile",
             side_effect=OSError("Disk full"),
         ),
         patch(
