@@ -217,24 +217,14 @@ async def generate_generic_deliveries_gif(
     full_storage_path = Path(hass.config.path(image_storage_path))
     gif_path = str(full_storage_path / GENERIC_DELIVERIES_GIF)
 
-    # Support unit tests patching resize_images/generate_delivery_gif on camera module
-    cam_mod = sys.modules.get("custom_components.mail_and_packages.camera")
-    cam_resize = (
-        getattr(cam_mod, "resize_images", resize_images) if cam_mod else resize_images
-    )
-    cam_generate = (
-        getattr(cam_mod, "generate_delivery_gif", generate_delivery_gif)
-        if cam_mod
-        else generate_delivery_gif
-    )
-
+    # Generate delivery GIF using image utilities
     resized_images = await hass.async_add_executor_job(
-        cam_resize, delivery_images, 800, 600
+        resize_images, delivery_images, 800, 600
     )
 
     duration = duration_sec * 1000
     gif_created = await hass.async_add_executor_job(
-        cam_generate,
+        generate_delivery_gif,
         resized_images,
         gif_path,
         duration,

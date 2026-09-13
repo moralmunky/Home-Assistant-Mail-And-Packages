@@ -1010,11 +1010,11 @@ async def test_generic_camera_with_delivery_images(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
-            "custom_components.mail_and_packages.camera.resize_images",
+            "custom_components.mail_and_packages.camera_helpers.resize_images",
             return_value=["/fake/path/amazon/res1.jpg"],
         ),
         patch(
-            "custom_components.mail_and_packages.camera.generate_delivery_gif",
+            "custom_components.mail_and_packages.camera_helpers.generate_delivery_gif",
             return_value=True,
         ),
     ):
@@ -1072,11 +1072,11 @@ async def test_generic_camera_with_ups_delivery_images(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
-            "custom_components.mail_and_packages.camera.resize_images",
+            "custom_components.mail_and_packages.camera_helpers.resize_images",
             return_value=["/fake/path/ups/res1.jpg"],
         ),
         patch(
-            "custom_components.mail_and_packages.camera.generate_delivery_gif",
+            "custom_components.mail_and_packages.camera_helpers.generate_delivery_gif",
             return_value=True,
         ),
     ):
@@ -1134,11 +1134,11 @@ async def test_generic_camera_with_walmart_delivery_images(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
-            "custom_components.mail_and_packages.camera.resize_images",
+            "custom_components.mail_and_packages.camera_helpers.resize_images",
             return_value=["/fake/path/test_walmart_delivery_resized.jpg"],
         ),
         patch(
-            "custom_components.mail_and_packages.camera.generate_delivery_gif",
+            "custom_components.mail_and_packages.camera_helpers.generate_delivery_gif",
             return_value=True,
         ),
     ):
@@ -1258,7 +1258,7 @@ async def test_generic_camera_with_all_delivery_types(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
-            "custom_components.mail_and_packages.camera.resize_images",
+            "custom_components.mail_and_packages.camera_helpers.resize_images",
             return_value=[
                 "/fake/path/test_amazon_delivery_resized.jpg",
                 "/fake/path/test_ups_delivery_resized.jpg",
@@ -1266,7 +1266,7 @@ async def test_generic_camera_with_all_delivery_types(
             ],
         ),
         patch(
-            "custom_components.mail_and_packages.camera.generate_delivery_gif",
+            "custom_components.mail_and_packages.camera_helpers.generate_delivery_gif",
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
@@ -1369,14 +1369,14 @@ async def test_generic_camera_filters_no_mail_images(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
-            "custom_components.mail_and_packages.camera.resize_images",
+            "custom_components.mail_and_packages.camera_helpers.resize_images",
             return_value=[
                 "/fake/path/test_amazon_delivery_resized.jpg",
                 "/fake/path/test_walmart_delivery_resized.jpg",
             ],
         ),
         patch(
-            "custom_components.mail_and_packages.camera.generate_delivery_gif",
+            "custom_components.mail_and_packages.camera_helpers.generate_delivery_gif",
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
@@ -1496,14 +1496,14 @@ async def test_generic_camera_respects_enabled_sensors(
             },
         ),
         patch(
-            "custom_components.mail_and_packages.camera.resize_images",
+            "custom_components.mail_and_packages.camera_helpers.resize_images",
             return_value=[
                 "/fake/path/test_amazon_delivery_resized.jpg",
                 "/fake/path/test_walmart_delivery_resized.jpg",
             ],
         ),
         patch(
-            "custom_components.mail_and_packages.camera.generate_delivery_gif",
+            "custom_components.mail_and_packages.camera_helpers.generate_delivery_gif",
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
@@ -1767,14 +1767,14 @@ async def test_generic_camera_with_multiple_delivery_images(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
-            "custom_components.mail_and_packages.camera.resize_images",
+            "custom_components.mail_and_packages.camera_helpers.resize_images",
             return_value=[
                 "/fake/path/test_amazon_delivery_resized.jpg",
                 "/fake/path/test_ups_delivery_resized.jpg",
             ],
         ),
         patch(
-            "custom_components.mail_and_packages.camera.generate_delivery_gif",
+            "custom_components.mail_and_packages.camera_helpers.generate_delivery_gif",
         ) as mock_generate_gif,
     ):
         # Mock the generate_delivery_gif function to verify it's called correctly
@@ -2402,11 +2402,11 @@ async def test_generic_camera_rebuilds_gif_when_missing(hass, caplog):
     with (
         patch("pathlib.Path.exists", _exists),
         patch(
-            "custom_components.mail_and_packages.camera.resize_images",
+            "custom_components.mail_and_packages.camera_helpers.resize_images",
             return_value=[],
         ),
         patch(
-            "custom_components.mail_and_packages.camera.generate_delivery_gif",
+            "custom_components.mail_and_packages.camera_helpers.generate_delivery_gif",
             return_value=True,
         ) as mock_gif,
         patch.object(camera, "check_file_path_access"),
@@ -2851,11 +2851,11 @@ async def test_generic_camera_gif_failure_fallback(
         patch("os.access", return_value=True),
         patch("pathlib.Path.exists", return_value=True),
         patch(
-            "custom_components.mail_and_packages.camera.resize_images",
+            "custom_components.mail_and_packages.camera_helpers.resize_images",
             return_value=["/fake/path/amazon/res1.jpg"],
         ),
         patch(
-            "custom_components.mail_and_packages.camera.generate_delivery_gif",
+            "custom_components.mail_and_packages.camera_helpers.generate_delivery_gif",
             return_value=False,
         ),
     ):

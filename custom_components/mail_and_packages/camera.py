@@ -34,7 +34,6 @@ from .const import (
     SENSOR_NAME,
     VERSION,
 )
-from .utils.image import generate_delivery_gif, resize_images  # noqa: F401
 
 _LOGGER = logging.getLogger(__name__)
 
