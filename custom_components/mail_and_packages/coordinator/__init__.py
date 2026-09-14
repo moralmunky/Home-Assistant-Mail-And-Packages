@@ -3,25 +3,18 @@
 import asyncio
 import datetime
 import logging
-import os
-from dataclasses import dataclass
+import sys
 from datetime import timedelta
 from time import monotonic
 
 import anyio
 from aioimaplib import IMAP4_SSL
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
-    CONF_PASSWORD,
-    CONF_PORT,
     CONF_SCAN_INTERVAL,
-    CONF_USERNAME,
-    CONF_VERIFY_SSL,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_entry_oauth2_flow
-from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import (
     ConfigEntryAuthFailed,
     DataUpdateCoordinator,
@@ -34,14 +27,9 @@ from custom_components.mail_and_packages.const import (
     CONF_ALLOW_EXTERNAL,
     CONF_AUTH_TYPE,
     CONF_CUSTOM_DAYS,
-    CONF_EXCHANGE_MODE,
-    CONF_FOLDER,
-    CONF_IMAP_SECURITY,
     CONF_IMAP_TIMEOUT,
     DEFAULT_CUSTOM_DAYS,
-    DEFAULT_EXCHANGE_MODE,
     DEFAULT_IMAP_TIMEOUT,
-    DOMAIN,
     MAX_TRACKING_AGE_DAYS,
 )
 from custom_components.mail_and_packages.helpers import copy_images
@@ -58,11 +46,13 @@ from custom_components.mail_and_packages.utils.imap import (
     selectfolder,
 )
 
+from .connection import get_imap_connection
 from .helpers import (
     aggregate_package_counts,
     async_oauth_access_token,
     binary_sensor_update,
     check_camera_update,
+    get_file_hash_if_changed,
     initialize_data,
     setup_image_config,
     sum_delivered_counts,
@@ -70,6 +60,7 @@ from .helpers import (
     sum_transit_counts,
     update_shippers,
 )
+from .models import MailAndPackagesConfigEntry, MailAndPackagesData
 from .tracking import (
     MailDeliveredLatchState,
     apply_tracking_state,
@@ -112,19 +103,6 @@ __all__ = [
     "update_shippers",
     "update_tracking_for_prefix",
 ]
-
-
-@dataclass
-class MailAndPackagesData:
-    """Data for Mail and Packages integration."""
-
-    coordinator: "MailDataUpdateCoordinator"
-    cameras: list
-    last_options: dict | None = None
-    last_data: dict | None = None
-
-
-type MailAndPackagesConfigEntry = ConfigEntry[MailAndPackagesData]
 
 
 class MailDataUpdateCoordinator(DataUpdateCoordinator):
@@ -180,22 +158,13 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _get_file_hash_if_changed(self, file_path: str) -> str | None:
         """Only hash file if mtime changed."""
-        try:
-            mtime = await self.hass.async_add_executor_job(os.path.getmtime, file_path)
-            if (
-                file_path in self._file_mtime_cache
-                and self._file_mtime_cache[file_path] == mtime
-            ):
-                return self._hash_cache.get(file_path)
-
-            # File changed, re-hash
-            file_hash = await self.hass.async_add_executor_job(hash_file, file_path)
-            self._file_mtime_cache[file_path] = mtime
-            self._hash_cache[file_path] = file_hash
-        except OSError:
-            return None
-        else:
-            return file_hash
+        return await get_file_hash_if_changed(
+            self.hass,
+            self._file_mtime_cache,
+            self._hash_cache,
+            file_path,
+            hash_fn=getattr(sys.modules.get(__name__), "hash_file", hash_file),
+        )
 
     async def async_get_file_hash_if_changed(self, file_path: str) -> str | None:
         """Public method to get file hash if changed."""
@@ -306,69 +275,15 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _get_imap_connection(self, config: dict) -> IMAP4_SSL:
         """Establish and return an authenticated IMAP connection."""
-        try:
-            account = await login(
-                self.hass,
-                config.get(CONF_HOST),
-                config.get(CONF_PORT),
-                config.get(CONF_USERNAME),
-                config.get(CONF_PASSWORD),
-                config.get(CONF_IMAP_SECURITY),
-                config.get(CONF_VERIFY_SSL),
-                config.get("oauth_token"),
-                timeout=self.timeout,
-            )
-        except InvalidAuth as err:
-            _LOGGER.error("Authentication failed: %s", err)
-            # Create a repairs issue for authentication failure
-            ir.async_create_issue(
-                self.hass,
-                DOMAIN,
-                "auth_failed",
-                is_fixable=True,
-                severity=ir.IssueSeverity.ERROR,
-                translation_key="auth_failed",
-                data={"entry_id": self.config_entry.entry_id}
-                if self.config_entry
-                else None,
-            )
-            raise ConfigEntryAuthFailed from err
-        except Exception as err:
-            _LOGGER.error("Error logging into IMAP: %s", err)
-            raise UpdateFailed(f"Login failed: {err}") from err
-        # Login succeeded, delete the issue if it exists
-        issue_registry = ir.async_get(self.hass)
-        if (DOMAIN, "auth_failed") in issue_registry.issues:
-            ir.async_delete_issue(self.hass, DOMAIN, "auth_failed")
-
-        folders = config.get(CONF_FOLDER)
-        if isinstance(folders, str):
-            folders = [folders]
-        elif isinstance(folders, (list, tuple, set)):
-            folders = [f for f in folders if isinstance(f, str) and f]
-        else:
-            folders = []
-        if not folders:
-            folders = ["INBOX"]
-        account._folders = folders  # noqa: SLF001
-        account._current_folder = None  # noqa: SLF001
-        account._exchange_mode = bool(  # noqa: SLF001
-            config.get(CONF_EXCHANGE_MODE, DEFAULT_EXCHANGE_MODE)
+        return await get_imap_connection(
+            self.hass,
+            config,
+            self.timeout,
+            self.config_entry,
+            login_fn=login,
+            selectfolder_fn=selectfolder,
+            logout_fn=logout,
         )
-
-        if folders:
-            try:
-                folder_ok = await selectfolder(account, folders[0])
-            except Exception as err:
-                await logout(account)
-                raise UpdateFailed(f"Folder selection failed: {err}") from err
-
-            if not folder_ok:
-                _LOGGER.error("Error selecting folder: %s", folders[0])
-                await logout(account)
-                raise UpdateFailed(f"Folder selection failed: {folders[0]}")
-
-        return account
 
     async def _update_shippers(
         self,

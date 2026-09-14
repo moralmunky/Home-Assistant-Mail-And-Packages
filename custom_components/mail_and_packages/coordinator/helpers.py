@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime
 import logging
+import os
 from http import HTTPStatus
 from time import monotonic
 from typing import TYPE_CHECKING
@@ -25,6 +26,7 @@ from custom_components.mail_and_packages.shippers import get_shipper_for_sensor
 from custom_components.mail_and_packages.utils.cache import EmailCache
 from custom_components.mail_and_packages.utils.image import (
     default_image_path,
+    hash_file,
     image_file_name,
 )
 
@@ -248,6 +250,29 @@ def aggregate_package_counts(data: dict) -> None:
         data["zpackages_delivering"] = sum_delivering_counts(data)
     if "zpackages_delivered" in data:
         data["zpackages_delivered"] = sum_delivered_counts(data)
+
+
+async def get_file_hash_if_changed(
+    hass: HomeAssistant,
+    file_mtime_cache: dict,
+    hash_cache: dict,
+    file_path: str,
+    hash_fn=hash_file,
+) -> str | None:
+    """Only hash file if mtime changed."""
+    try:
+        mtime = await hass.async_add_executor_job(os.path.getmtime, file_path)
+        if file_path in file_mtime_cache and file_mtime_cache[file_path] == mtime:
+            return hash_cache.get(file_path)
+
+        # File changed, re-hash
+        file_hash = await hass.async_add_executor_job(hash_fn, file_path)
+        file_mtime_cache[file_path] = mtime
+        hash_cache[file_path] = file_hash
+    except OSError:
+        return None
+    else:
+        return file_hash
 
 
 async def check_camera_update(
