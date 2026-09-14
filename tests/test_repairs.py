@@ -100,7 +100,8 @@ async def test_auth_failure_creates_repairs_issue(hass: HomeAssistant):
         new_callable=AsyncMock,
     ) as mock_login:
         mock_account = MagicMock()
-        mock_account.select = AsyncMock()
+        mock_account.select = AsyncMock(return_value=MagicMock(result="OK"))
+        mock_account.logout = AsyncMock()
         mock_login.return_value = mock_account
         await coordinator._get_imap_connection({})
 
