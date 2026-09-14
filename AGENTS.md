@@ -10,7 +10,8 @@ This repository is a **Home Assistant Custom Integration** that connects to an I
 
 ### Core Directory Structure
 - `custom_components/mail_and_packages/`: Contains the integration code.
-  - `__init__.py`: Component setup, setup entries, unloading, and coordinator.
+  - `__init__.py`: Component setup, setup entries, and unloading.
+  - `coordinator/`: Data update coordinator, models, connection setup, helpers, and tracking logic.
   - `const.py`: Shared constants, domains, config keys, and sensor descriptions.
   - `config_flow.py`: Setup flows and options flow handlers.
   - `sensor.py`: Home Assistant sensor entities representing delivery counts/status.
