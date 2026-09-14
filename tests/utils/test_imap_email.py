@@ -359,7 +359,7 @@ async def test_login_protocol_state_error():
 async def test_selectfolder_success():
     """Test selectfolder success branch."""
     mock_acc = AsyncMock()
-    mock_acc.select.return_value = MagicMock()
+    mock_acc.select.return_value = MagicMock(result="OK", lines=[b"1"])
 
     result = await selectfolder(mock_acc, "INBOX")
     assert result is True
@@ -375,14 +375,31 @@ async def test_selectfolder_success():
 
 @pytest.mark.asyncio
 async def test_selectfolder_failure(caplog):
-    """Test selectfolder failure path when select fails."""
+    """Test selectfolder failure path when select fails with OSError."""
     mock_acc = AsyncMock()
     mock_acc.select.side_effect = OSError("Select failed")
     caplog.set_level("ERROR")
 
     result = await selectfolder(mock_acc, "INBOX")
     assert result is False
-    assert "Error selecting folder" in caplog.text
+    assert "Error selecting folder INBOX: Select failed" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_selectfolder_non_ok_response(caplog):
+    """Test selectfolder returns False and logs when server returns non-OK result."""
+    mock_acc = AsyncMock()
+    mock_acc._current_folder = None
+    mock_acc.select.return_value = MagicMock(
+        result="NO", lines=[b"[NONEXISTENT] Unknown Mailbox"]
+    )
+    caplog.set_level("ERROR")
+
+    result = await selectfolder(mock_acc, "NonExistentFolder")
+    assert result is False
+    assert "Error selecting folder NonExistentFolder" in caplog.text
+    assert "[NONEXISTENT] Unknown Mailbox" in caplog.text
+    assert mock_acc._current_folder is None
 
 
 def test_build_search_empty_address_raises():
@@ -1207,6 +1224,7 @@ async def test_selectfolder_caching():
 
     # Select different folder - should call select
     mock_account._current_folder = "INBOX"
+    mock_account.select.return_value = MagicMock(result="OK", lines=[b"1"])
     res = await selectfolder(mock_account, "Junk")
     assert res is True
     mock_account.select.assert_called_once_with("Junk")
@@ -1264,7 +1282,7 @@ async def test_email_search_sequential_fallback():
 
     # Mock list/select calls in selectfolder
     mock_account.list.return_value = MagicMock()
-    mock_account.select.return_value = MagicMock()
+    mock_account.select.return_value = MagicMock(result="OK", lines=[b"1"])
 
     result = await email_search(
         mock_account, ["test@example.com"], "25-Mar-2026", subject="Test"
@@ -1340,7 +1358,7 @@ async def test_email_search_sequential_fallback_spaced_folder():
     mock_res2 = MagicMock(result="OK", lines=[b"55"])
     mock_account.uid_search.side_effect = [mock_res1, mock_res2]
     mock_account.list.return_value = MagicMock()
-    mock_account.select.return_value = MagicMock()
+    mock_account.select.return_value = MagicMock(result="OK", lines=[b"1"])
 
     result = await email_search(
         mock_account, ["test@example.com"], "25-Mar-2026", subject="Test"
@@ -1654,7 +1672,7 @@ async def test_execute_single_search_capability_exception():
     mock_res = MagicMock(result="OK", lines=[b"1001"])
     mock_account.uid_search.return_value = mock_res
     mock_account.list.return_value = MagicMock()
-    mock_account.select.return_value = MagicMock()
+    mock_account.select.return_value = MagicMock(result="OK", lines=[b"1"])
 
     res = await _execute_single_search(mock_account, "ALL")
     # Should perform sequential fallback
@@ -1776,7 +1794,7 @@ async def test_email_search_multifolders_batched_real_execution():
     mock_account._folders = ["INBOX", "Archive"]
     mock_account._current_folder = "INBOX"
     mock_account.list.return_value = MagicMock()
-    mock_account.select.return_value = MagicMock()
+    mock_account.select.return_value = MagicMock(result="OK", lines=[b"1"])
     mock_account.has_capability = MagicMock(return_value=False)
 
     # Return different UIDs across folders for sequential search
@@ -1957,7 +1975,7 @@ async def test_execute_single_search_sequential_timeout_error():
     mock_imap._folders = ["INBOX", "Junk"]
     mock_imap._current_folder = None
     mock_imap.has_capability.return_value = False
-    mock_imap.select.return_value = MagicMock()
+    mock_imap.select.return_value = MagicMock(result="OK", lines=[b"1"])
     mock_imap.uid_search.side_effect = TimeoutError()
     with pytest.raises(TimeoutError):
         await _execute_single_search(mock_imap, "SEARCH_QUERY")

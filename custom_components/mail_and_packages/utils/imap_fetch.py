@@ -22,7 +22,16 @@ async def selectfolder(account: "IMAP4_SSL", folder: str) -> bool:
     quoted_folder = quote_folder(encoded_folder)
 
     try:
-        await account.select(quoted_folder)
+        res = await account.select(quoted_folder)
+        result = getattr(res, "result", None) or (
+            res[0] if isinstance(res, (tuple, list)) and len(res) > 0 else None
+        )
+        if result != "OK":
+            lines = getattr(res, "lines", None) or (
+                res[1:] if isinstance(res, (tuple, list)) else res
+            )
+            _LOGGER.error("Error selecting folder %s: %s", folder, lines)
+            return False
     except TimeoutError:
         raise
     except (AioImapException, OSError) as err:
