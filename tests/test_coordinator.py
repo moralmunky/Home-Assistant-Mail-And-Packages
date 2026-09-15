@@ -688,6 +688,54 @@ async def test_apply_tracking_state_no_details_keeps_email_count(hass):
 
 
 @pytest.mark.asyncio
+async def test_apply_tracking_state_exception_does_not_affect_delivering(hass):
+    """Exception tracking numbers must not set or override delivering counts."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    data = {
+        "ups_delivering": 0,
+        "ups_exception": 1,
+        "ups_delivered": 0,
+        "ups_packages": 0,
+    }
+    tracking_details = {
+        "ups_exception": ["1Z999EXCEPTION"],
+        "ups_delivered": [],
+    }
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+
+    # Delivering sensor and in-transit tracking should remain empty
+    assert data["ups_delivering"] == 0
+    assert "ups_tracking" not in data
+    assert coordinator._in_transit_tracking.get("ups", {}) == {}
+
+
+@pytest.mark.asyncio
+async def test_apply_tracking_state_mixed_delivering_and_exception(hass):
+    """Exception tracking numbers are ignored in delivering tracking and count."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    data = {
+        "ups_delivering": 1,
+        "ups_exception": 1,
+        "ups_delivered": 0,
+        "ups_packages": 1,
+    }
+    tracking_details = {
+        "ups_delivering": ["1Z111DELIVERING"],
+        "ups_exception": ["1Z222EXCEPTION"],
+        "ups_delivered": [],
+    }
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+
+    assert data["ups_delivering"] == 1
+    assert data["ups_tracking"] == ["1Z111DELIVERING"]
+    assert coordinator._in_transit_tracking["ups"] == {"1Z111DELIVERING": "2026-04-22"}
+
+
+@pytest.mark.asyncio
 async def test_apply_tracking_state_derives_packages_total(hass):
     """*_packages sensors are derived from in_transit tracking + delivered count."""
     with patch("homeassistant.helpers.frame.report_usage"):
