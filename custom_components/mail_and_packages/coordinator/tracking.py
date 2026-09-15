@@ -70,7 +70,6 @@ def apply_tracking_state(
             )
 
         delivering = list(tracking_details.get(f"{prefix}_delivering", []))
-        delivering += list(tracking_details.get(f"{prefix}_exception", []))
         delivered = list(tracking_details.get(f"{prefix}_delivered", []))
 
         update_tracking_for_prefix(
@@ -83,11 +82,8 @@ def apply_tracking_state(
         )
 
         in_transit = in_transit_tracking.get(prefix, {})
-        has_details = any(
-            f"{prefix}_{suffix}" in tracking_details
-            for suffix in ("delivering", "exception")
-        )
-        if in_transit or has_details:
+        has_delivering_details = f"{prefix}_delivering" in tracking_details
+        if in_transit or has_delivering_details:
             if not in_transit and data.get(f"{prefix}_delivering"):
                 _LOGGER.debug(
                     "Prefix '%s': no tracked packages remain in transit — "
