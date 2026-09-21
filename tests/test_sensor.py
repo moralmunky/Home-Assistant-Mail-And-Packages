@@ -13,7 +13,9 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.mail_and_packages.const import (
     AMAZON_EXCEPTION,
     AMAZON_ORDER,
+    AMAZON_ORDER_DETAILS,
     ATTR_ORDER,
+    ATTR_ORDER_DETAILS,
     DOMAIN,
 )
 from custom_components.mail_and_packages.sensor import ImagePathSensors, PackagesSensor
@@ -511,3 +513,34 @@ async def test_image_path_sensor_state_retention(hass):
     # Simulate next update having no new usps_image data
     coordinator.data = {"image_path": "images/"}
     assert sensor.native_value == expected
+
+
+@pytest.mark.asyncio
+async def test_amazon_packages_order_details_attribute(hass):
+    """The amazon_packages sensor exposes order_details only when present."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_NO_RND,
+    )
+    sensor_desc = MagicMock(key="amazon_packages")
+    sensor_desc.name = "Mail Amazon Packages"
+
+    details = {"123-4567890-1234567": {"name": "Widget", "image": "https://img/1"}}
+    coord_with = MagicMock()
+    coord_with.data = {
+        AMAZON_ORDER: ["123-4567890-1234567"],
+        AMAZON_ORDER_DETAILS: details,
+    }
+    attrs = PackagesSensor(entry, sensor_desc, coord_with).extra_state_attributes
+    assert attrs[ATTR_ORDER] == ["123-4567890-1234567"]
+    assert attrs[ATTR_ORDER_DETAILS] == details
+
+    # No details collected: the attribute is omitted entirely.
+    coord_without = MagicMock()
+    coord_without.data = {AMAZON_ORDER: ["123-4567890-1234567"]}
+    attrs_none = PackagesSensor(
+        entry, sensor_desc, coord_without
+    ).extra_state_attributes
+    assert attrs_none[ATTR_ORDER] == ["123-4567890-1234567"]
+    assert ATTR_ORDER_DETAILS not in attrs_none
