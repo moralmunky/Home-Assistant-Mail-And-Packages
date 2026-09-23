@@ -8,7 +8,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import aiohttp
 import pytest
 
-from custom_components.mail_and_packages.const import AMAZON_IMG_PATTERN
+from custom_components.mail_and_packages.const import (
+    AMAZON_IMG_PATTERN,
+    AMAZON_ORDERED_SUBJECT,
+    AMAZON_SHIPMENT_SUBJECT,
+)
 from custom_components.mail_and_packages.utils.amazon import (
     _extract_amazon_urls_from_msg,
     _extract_hub_code,
@@ -672,3 +676,12 @@ def test_extract_amazon_order_details():
 
     # Nothing extractable
     assert extract_amazon_order_details("Delivery update", "", None) is None
+
+
+def test_amazon_subject_matching_itemized():
+    """Test that AMAZON_SHIPMENT_SUBJECT and AMAZON_ORDERED_SUBJECT match itemized subjects."""
+    shipped_subject = "Shipped 2 items: Photography Equipment, Household Supplies"
+    ordered_subject = "Ordered 1 item: Pantry Staples"
+
+    assert any(s.lower() in shipped_subject.lower() for s in AMAZON_SHIPMENT_SUBJECT)
+    assert any(s.lower() in ordered_subject.lower() for s in AMAZON_ORDERED_SUBJECT)
