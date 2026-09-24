@@ -17,7 +17,10 @@ from custom_components.mail_and_packages.const import (
 from custom_components.mail_and_packages.shippers import generic
 from custom_components.mail_and_packages.shippers.generic import GenericShipper
 from custom_components.mail_and_packages.utils.cache import EmailCache
-from tests.conftest import _generate_fetch_side_effect
+from tests.conftest import (
+    _generate_fetch_side_effect,
+    _generate_search_side_effect,
+)
 
 
 @pytest.mark.asyncio
@@ -57,6 +60,45 @@ async def test_ups_delivered_class(hass, mock_imap_ups_delivered):
         )
         assert result[ATTR_COUNT] == 1
         assert result[ATTR_TRACKING] == ["1Z2345YY0678901234"]
+
+
+@pytest.mark.asyncio
+async def test_ups_delivering_pre_arrival_subjects(hass, mock_imap):
+    """Test UPS pre-arrival emails match with both shortened and legacy subject lines."""
+    shipper = GenericShipper(hass, {})
+
+    raw_template = (
+        'From: "UPS My Choice" <mcinfo@ups.com>\r\n'
+        "To: testuser@fake.email\r\n"
+        "Subject: {subject}\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: text/plain; charset=UTF-8\r\n\r\n"
+        "Hi TestUser, your driver is arriving soon.\r\n"
+        "Tracking Number: 1Z2345YY0678901234\r\n"
+    )
+
+    # Test shortened subject reported in #1467
+    email_short = raw_template.format(
+        subject="UPS Pre-Arrival: Your Driver is Arriving Soon!"
+    )
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_short)
+
+    result = await shipper.process(mock_imap, "today", "ups_delivering")
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["1Z2345YY0678901234"]
+
+    # Test legacy subject with "Follow on a Live Map" suffix
+    mock_imap.search.side_effect = _generate_search_side_effect()
+    email_legacy = raw_template.format(
+        subject="UPS Pre-Arrival: Your Driver is Arriving Soon! Follow on a Live Map"
+    )
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_legacy)
+
+    result_legacy = await shipper.process(mock_imap, "today", "ups_delivering")
+    assert result_legacy[ATTR_COUNT] == 1
+    assert result_legacy[ATTR_TRACKING] == ["1Z2345YY0678901234"]
 
 
 @pytest.mark.asyncio
