@@ -382,7 +382,7 @@ SENSOR_DATA = {
         "subject": [
             "UPS Update: Package Scheduled for Delivery Today",
             "UPS Update: Follow Your Delivery on a Live Map",
-            "UPS Pre-Arrival: Your Driver is Arriving Soon! Follow on a Live Map",
+            "UPS Pre-Arrival: Your Driver is Arriving Soon!",
             "UPS Update: Parcel Scheduled for Delivery Today",
             "Mise à jour UPS : Livraison du colis prévue demain",
             "Mise à jour UPS : Livraison du colis prévue aujourd'hui",
