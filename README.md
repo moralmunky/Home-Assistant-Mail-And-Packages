@@ -61,6 +61,7 @@ Copy the `custom_components/mail_and_packages` folder into your Home Assistant `
 | USPS Informed Delivery image | [Wiki](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/USPS-Informed-Delivery-Image) |
 | Text summary templates | [Wiki](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Mail-Summary-Message) |
 | Notification examples | [Wiki](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Notifications) |
+| Architecture & Design Standards | [docs/architecture.md](docs/architecture.md) |
 
 ## Contributing
 

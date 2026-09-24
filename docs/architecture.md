@@ -98,3 +98,41 @@ During each coordinator update cycle:
 2. **Extended Window Delivery Filtering**: `_deduplicate_batch_tracking` removes tracking numbers found in delivered emails from the active delivering list so delivered items do not continue to show as out for delivery.
 3. **Embedded Carrier Tracking Extraction**: For retailers and marketplace platforms (such as Home Depot or Shopify) that embed third-party carrier tracking numbers (UPS, FedEx, Canada Post, etc.) in their order notification emails, `GenericShipper` extracts the underlying carrier tracking ID to prevent duplicate counts when both merchant and courier emails are received for the same package.
 4. **Email Caching (`EmailCache`)**: Uses Home Assistant's `Store` helper (`custom_components/mail_and_packages/utils/cache.py`) to persist email body hashes and message IDs across updates, preventing redundant fetches of unchanged messages.
+
+---
+
+## 6. Camera Entities & Delivery Image Processing
+
+Mail and Packages provides camera entities for mail visualization and shipper delivery photos:
+
+### USPS Informed Delivery Camera
+- **Mail Piece Assembly**: Images attached to USPS Informed Delivery emails are parsed and converted into an animated GIF or MP4 showing all scanned letters for the day.
+- **Vision Grid Generation**: An optional composite image grid can be generated containing tiled mail piece images, optimized for downstream LLM vision integrations.
+- **Midnight Reset**: Mail cameras revert to a placeholder image after midnight local time or when no new mail images have arrived.
+
+### Carrier Delivery Photos
+- **Delivery Confirmation Images**: Shippers supporting delivery verification photos (e.g., FedEx, UPS, Amazon) extract photographic proof of delivery directly from incoming emails.
+- **Async Safety**: All disk file I/O and image transformations (Pillow / ImageMagick) are offloaded to executor threads via `hass.async_add_executor_job` to keep the Home Assistant event loop responsive.
+
+---
+
+## 7. Authentication Pipelines
+
+The integration supports multiple authentication schemes configured via Config Entry and Options Flow:
+
+1. **Standard IMAP (Password / App Password)**:
+   - Connects over SSL (port 993) or STARTTLS.
+   - For providers requiring multi-factor authentication (e.g., Gmail, Yahoo, iCloud), dedicated App Passwords are used.
+2. **OAuth2 Authentication**:
+   - Native Home Assistant OAuth2 implementation supporting **Google (Gmail)** and **Microsoft (Outlook / Office 365 / Exchange)**.
+   - Automatic token refresh is coordinated before initiating IMAP connections, handling revoked or expired access tokens gracefully via `ConfigEntryAuthFailed` reauth flows.
+
+---
+
+## 8. Email Caching & State Persistence
+
+To minimize bandwidth, reduce latency, and prevent hitting IMAP server rate limits:
+
+- **`EmailCache`**: Backed by Home Assistant's `Store` storage helper (`.storage/mail_and_packages_cache`), caching email body hashes and tracking numbers.
+- **Cache Eviction**: Entries older than the maximum carrier retention window (`custom_days`) are periodically purged during coordinator cleanup routines.
+- **Midnight Rollover**: Package counts and delivery states reset at local midnight, ensuring counters accurately reflect same-day activity.
