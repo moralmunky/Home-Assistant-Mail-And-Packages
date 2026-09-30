@@ -1,0 +1,790 @@
+Delivered-To: xxxxxx@gmail.com
+Received: by 2002:a05:6a11:cf97:b0:6cc:3b15:2d1 with SMTP id ol23csp589950pxc;
+        Thu, 28 May 2026 10:14:02 -0700 (PDT)
+X-Received: by 2002:a05:6000:e8f:b0:45e:6518:3299 with SMTP id ffacd0b85a97d-45ef028c910mr108180f8f.5.1779988441914;
+        Thu, 28 May 2026 10:14:01 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1779988441; cv=none;
+        d=google.com; s=arc-20240605;
+        b=PZLcJ96xl7DxB9s6HNfDr8YnYBkR4EZ3YJNPKM/qdZUw2ijSHnIXAuIblYLHYUpiH0
+         i264ZcPxeb5f3GgRj/dnANBPa2y3CwHY61UKuagEvG2bl+ipZR/vF+x6LNRbSlUkxtr7
+         nfRuNg4yVupEQPDKy/L2Ey5BQuwMNzGX0bwxedKV7W1RZlEey1atAoDsw9IGmuWVIh7F
+         NpQEvbNdqKu3CW1COJxFw5lMnQZAzg7Ssy/Cs67wXLwqdBaXew1DaxtI51DsiIRnWFzF
+         CfN4bx9//LNDaaGGF6hMmMLiIYhIAZwHJw2g9sqODsgdoW7+ebgkbTSiaMtT/TSG8+Of
+         XRcw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=mime-version:subject:message-id:to:reply-to:sender:from:date
+         :dkim-signature;
+        bh=8G2UsXjYU0qT8lLdmo0dBHpaiWEFwtE5zJ1D1L4niSo=;
+        fh=Wb714F2JfedwcXGkVIAOYsd6vH1ya7QaCDdAdS1WNcE=;
+        b=kAu5fLb/gDvh/aqRFVLsqrCWkn7t4ggQHmV+qZNeK5Nw0cmbufsWkV5C//58ZP2Ntj
+         OgwfUY+Knm8sj1N8RAvbFDR5NT+dVIUkce8ATIUas3p+rpA9QAgZTul8gHT2iZnGXwa9
+         7fEUSXfjqdcTHg9NGU+UNLVfs4TvSDYPRq9+f5X7FF0ZIV6ggHFB17fB95Haz6D1mt4z
+         y8J1UNQC2GEjqAWXsfdv/kEUHqkRtjvhf2r48V7FEgBIogVxOJqkYBDAhT2Yr+LFQk0V
+         Gwyb7zZX4KjUy6bOi5xaYPTkU/22OosGf4izns3kWkqE+cF46w2LwwmqjyoaxyOvkeig
+         BPbw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@mondialrelay.fr header.s=mta header.b=bTCSMMT8;
+       spf=pass (google.com: domain of lkxqghfy91ycfckpcadarf1j9xyzmggwf0alhca@mondialrelay.fr designates 37.97.66.110 as permitted sender) smtp.mailfrom=lKxqGHfY91YcfCkPcADArF1j9XyZMggWf0alhcA@mondialrelay.fr;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=mondialrelay.fr
+Return-Path: <lKxqGHfY91YcfCkPcADArF1j9XyZMggWf0alhcA@mondialrelay.fr>
+Received: from ip5.tpm04.net (ip5.tpm04.net. [37.97.66.110])
+        by mx.google.com with ESMTPS id ffacd0b85a97d-45edb63b01fsi10279869f8f.483.2026.05.28.10.14.01
+        for <XXXXX@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 28 May 2026 10:14:01 -0700 (PDT)
+Received-SPF: pass (google.com: domain of lkxqghfy91ycfckpcadarf1j9xyzmggwf0alhca@mondialrelay.fr designates 37.97.66.110 as permitted sender) client-ip=37.97.66.110;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@mondialrelay.fr header.s=mta header.b=bTCSMMT8;
+       spf=pass (google.com: domain of lkxqghfy91ycfckpcadarf1j9xyzmggwf0alhca@mondialrelay.fr designates 37.97.66.110 as permitted sender) smtp.mailfrom=lKxqGHfY91YcfCkPcADArF1j9XyZMggWf0alhcA@mondialrelay.fr;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=mondialrelay.fr
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1779988441; s=mta;
+	d=mondialrelay.fr;
+	h=Date:From:Sender:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type;
+	bh=8G2UsXjYU0qT8lLdmo0dBHpaiWEFwtE5zJ1D1L4niSo=;
+	b=bTCSMMT8P285WNPag4KPF22H/G/dPw5tU8v83ovRMo4PeJz5n1uNQ3rQhnKK3nD1
+	cQ3YFdRC5mPFJ/u6176i1kG8x2INh96TRSDvKVamQRWnuttgReX8ivlqDmzbiTiajGF
+	V5RlDJE0Uz+OYxbUoyBZOgwYTPQxL4KujrNhDW8A=
+Date: Thu, 28 May 2026 19:14:01 +0200 (CEST)
+From: Mondial Relay <noreply@mondialrelay.fr>
+Sender: noreply@mondialrelay.fr
+Reply-To: Mondial Relay <no-reply@mondialrelay.fr>
+To: XXXXXX <XXXXXXXX@gmail.com>
+Message-ID: <lKxqGHfY91YcfCkPcADArF1j9XyZMggWf0alhcA@mondialrelay.fr>
+Subject: =?UTF-8?Q?Je_pakket_77116398_ligt_voor_je_klaar_=F0=9F=93=A6?=
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_Part_29509110_727606418.1779988441143"
+
+------=_Part_29509110_727606418.1779988441143
+Content-Type: multipart/alternative;
+	boundary="----=_Part_29509111_1458515797.1779988441143"
+
+------=_Part_29509111_1458515797.1779988441143
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html>
+<html xmlns=3D"http://www.w3.org/1999/xhtml" xmlns:v=3D"urn:schemas-microso=
+ft-com:vml" xmlns:o=3D"urn:schemas-microsoft-com:office:office">
+ <head>
+  <title>Je pakket xxxxxxxx ligt voor je klaar =F0=9F=93=A6</title>
+  <!--[if !mso]>-->
+  <meta http-equiv=3D"X-UA-Compatible" content=3D"IE=3Dedge">
+  <!--<![endif]-->
+  <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3DUTF-8">
+  <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D=
+1">
+  <link rel=3D"preconnect" href=3D"https://fonts.googleapis.com">
+  <link rel=3D"preconnect" href=3D"https://fonts.gstatic.com" crossorigin>
+  <link href=3D"https://fonts.googleapis.com/css2?family=3DMontserrat:wght@=
+400;500;600;700&amp;display=3Dswap" rel=3D"stylesheet">
+  <link href=3D"https://fonts.googleapis.com/css?family=3DArchivo%7CArchivo=
+:500%7CArchivo:600%7CArchivo:700%7CArchivo:800" rel=3D"stylesheet">
+  <!--[if mso]>
+    <style type=3D"text/css">
+        body, table, td { font-family: Arial, sans-serif !important; }
+    </style>
+    <![endif]-->
+  <style type=3D"text/css">
+        /* Core resets */
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            background: #E7D6DB;
+        }
+
+        #outlook a {
+            padding: 0;
+        }
+
+        table, td {
+            border-collapse: collapse;
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+
+        img {
+            border: 0;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+            -ms-interpolation-mode: bicubic;
+            display: block;
+            height: auto;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .ExternalClass {
+            width: 100%;
+        }
+
+            .ExternalClass * {
+                line-height: 100%;
+            }
+
+        /* Mobile helpers */
+        .mobile-pad {
+            padding-left: 16px !important;
+            padding-right: 16px !important;
+        }
+
+        @media screen and (max-width: 620px) {
+            .container {
+                width: 100% !important;
+            }
+
+            .stack {
+                display: block !important;
+                width: 100% !important;
+            }
+
+            .hide-mobile {
+                display: none !important;
+            }
+
+            .center-mobile {
+                text-align: center !important;
+            }
+
+            .col-pad-l,
+            .col-pad-r {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+
+            /* On met un vrai espacement vertical identique entre cartes */
+            .card-gap {
+                padding-bottom: 12px !important;
+            }
+
+            /* En mobile, on =C3=A9vite les hauteurs forc=C3=A9es */
+            .h-eq {
+                height: auto !important;
+                min-height: 0 !important;
+            }
+        }
+    </style>
+  <!--[if mso]>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:AllowPNG/>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+    <![endif]-->
+ </head>
+ <body style=3D"background-color:#E7D6DB; background:#E7D6DB; margin:0; pad=
+ding:0;">
+  <div style=3D"margin: 0px auto; max-width: 600px;">
+   <table role=3D"presentation" width=3D"100%" cellpadding=3D"0" cellspacin=
+g=3D"0" border=3D"0" style=3D"width:100%; background:#E7D6DB; font-family: =
+Archivo, Arial, Helvetica, sans-serif;">
+    <!--[if mso]>
+        <tr>
+            <td align=3D"center" style=3D"background:#E7D6DB; padding:14px =
+0 0 0; color: #96154A; font-size: 12px;">
+                Kom het maar gauw halen &#x1F3C3;&#x200D;&#x2642;&#xFE0F;
+            </td>
+        </tr>
+        <![endif]-->
+    <tbody>
+     <tr>
+      <td align=3D"center" style=3D"background:#E7D6DB; padding:14px 0 0 0;=
+"><!--[if !mso]><!-->
+       <table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" bor=
+der=3D"0" style=3D"background:#FFFFFF; border-radius:18px; margin:0 auto -5=
+0px auto;">
+        <tbody>
+         <tr>
+          <td align=3D"center" style=3D"padding:14px 18px 10px 18px;"><img =
+src=3D"https://medias.mondialrelay.com/mailing/assets/dartagnan/mr/common/l=
+ogo.png" width=3D"170" alt=3D"Mondial Relay by InPost" style=3D"display:blo=
+ck; width:170px; max-width:170px; height:auto;"></td>
+         </tr>
+        </tbody>
+       </table>
+       <!--<![endif]--><!--[if mso]>
+                <table role=3D"presentation" cellpadding=3D"0" cellspacing=
+=3D"0" border=3D"0"
+                       style=3D"background:#FFFFFF; border-radius:18px;">
+                  <tr>
+                    <td align=3D"center" style=3D"padding:14px 18px 10px 18=
+px;">
+                      <img src=3D"https://medias.mondialrelay.com/mailing/a=
+ssets/dartagnan/mr/common/logo.png" width=3D"170" alt=3D"Mondial Relay by I=
+nPost"
+                           style=3D"display:block; width:170px; height:auto=
+; border:0;" />
+                    </td>
+                  </tr>
+                </table>
+                <![endif]--></td>
+     </tr>
+     <!--[if !mso]><!-->
+     <tr>
+      <td style=3D"height:15px; line-height:15px; font-size:15px;">&nbsp;</=
+td>
+     </tr>
+     <!--<![endif]-->
+     <tr>
+      <td align=3D"center" style=3D"border-radius:0 0 18px 18px; overflow:h=
+idden;"><!--[if mso | IE]>
+                <table role=3D"presentation" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" width=3D"600" style=3D"width:600px;">
+                  <tr>
+                    <td style=3D"mso-line-height-rule:exactly; line-height:=
+0; font-size:0;">
+                <![endif]-->
+       <table role=3D"presentation" align=3D"center" cellpadding=3D"0" cell=
+spacing=3D"0" border=3D"0" width=3D"100%" class=3D"container" style=3D"widt=
+h:100%; max-width:600px; margin:0 auto; background:#E7D6DB;">
+        <tbody>
+         <tr>
+          <td>
+           <table role=3D"presentation" width=3D"100%" cellpadding=3D"0" ce=
+llspacing=3D"0" border=3D"0" style=3D"width:100%;">
+            <tbody>
+             <tr>
+              <td align=3D"center" style=3D"background:#FFFFFF; border-radi=
+us:18px; overflow:hidden; padding-top:40px;">
+               <table role=3D"presentation" width=3D"100%" cellpadding=3D"0=
+" cellspacing=3D"0" border=3D"0" style=3D"width:100%;">
+                <tbody>
+                 <tr>
+                  <td align=3D"center" style=3D"padding:8px 32px 0 32px;" c=
+lass=3D"mobile-pad">
+                   <div style=3D"font-family:Archivo, Arial, Helvetica, san=
+s-serif; font-size:16px; line-height:22px; color:#111111; font-weight:700;"=
+>Goed nieuws XXXXXXXx,</div>
+                  </td>
+                 </tr>
+                 <tr>
+                  <td align=3D"center" style=3D"padding:6px 42px 0 42px;" c=
+lass=3D"mobile-pad">
+                   <div style=3D"font-family:Archivo, Arial, Helvetica, san=
+s-serif; font-size:15px; line-height:22px; color:#111111; font-weight:700;"=
+>
+                    Je pakket <span style=3D"font-weight:700;"></span> nr.<=
+span style=3D"font-weight:700;">XXXXXXXXXXX</span> ligt voor
+                   </div>
+                  </td>
+                 </tr>
+                 <tr>
+                  <td align=3D"center" style=3D"padding:0 42px 7px 42px;" c=
+lass=3D"mobile-pad">
+                   <div style=3D"font-family:Archivo, Arial, Helvetica, san=
+s-serif; font-size:15px; line-height:22px; color:#111111; font-weight:700;"=
+>je klaar!</div>
+                  </td>
+                 </tr>
+                 <tr>
+                  <td align=3D"center" valign=3D"middle" style=3D"padding:1=
+0px"><img alt=3D"" src=3D"https://medias.mondialrelay.com/images/template/l=
+ogos-client/none.jpg" style=3D"border: 0; display: block; outline: none; te=
+xt-decoration: none; max-height: 80px; max-width: 120px"></td>
+                 </tr>
+                 <tr>
+                  <td align=3D"center" style=3D"padding:5px 24px 16px 24px;=
+" class=3D"mobile-pad">
+                   <table role=3D"presentation" cellpadding=3D"0" cellspaci=
+ng=3D"0" border=3D"0" style=3D"background:#F4C400; border-radius:999px;">
+                    <tbody>
+                     <tr>
+                      <td style=3D"padding:10px 45px 10px 45px;" valign=3D"=
+middle">
+                       <table role=3D"presentation" cellpadding=3D"0" cells=
+pacing=3D"0" border=3D"0">
+                        <tbody>
+                         <tr>
+                          <td valign=3D"middle" style=3D"padding-right:10px=
+;">
+                           <div style=3D"font-family:Archivo, Arial, Helvet=
+ica, sans-serif; font-size:14px; line-height:16px; color:#8A0032; font-weig=
+ht:bold; text-transform:uppercase;">AFHAALCODE</div>
+                          </td>
+                          <td valign=3D"middle">
+                           <div style=3D"font-family:Archivo, Arial, Helvet=
+ica, sans-serif; font-size:34px; line-height:34px; color:#8A0032; font-weig=
+ht:900; letter-spacing:0.5px;">234737</div>
+                          </td>
+                         </tr>
+                        </tbody>
+                       </table>
+                      </td>
+                     </tr>
+                    </tbody>
+                   </table>
+                  </td>
+                 </tr>
+                 <tr>
+                  <td align=3D"center" style=3D"padding:0 24px 14px 24px;" =
+class=3D"mobile-pad">
+                   <table role=3D"presentation" width=3D"100%" cellpadding=
+=3D"0" cellspacing=3D"0" border=3D"0" style=3D"width:100%;">
+                    <tbody>
+                     <tr>
+                      <td valign=3D"top" width=3D"50%" class=3D"stack col-p=
+ad-r card-gap" style=3D"padding:0 6px 12px 0;">
+                       <table role=3D"presentation" width=3D"100%" cellpadd=
+ing=3D"0" cellspacing=3D"0" border=3D"0" style=3D"width:100%; background:#F=
+7EFF2;">
+                        <tbody>
+                         <tr>
+                          <td style=3D"padding:14px; height:100px;">
+                           <table role=3D"presentation" width=3D"100%" cell=
+padding=3D"0" cellspacing=3D"0" border=3D"0">
+                            <tbody>
+                             <tr>
+                              <td width=3D"40" valign=3D"middle" style=3D"w=
+idth:40px; padding-right:10px;"><img src=3D"https://medias.mondialrelay.com=
+/mailing/assets/dartagnan/mr/common/stopwatch.png" width=3D"35" alt=3D"" st=
+yle=3D"display:block; width:35px; height:auto;"></td>
+                              <td valign=3D"top">
+                              <div style=3D"font-family:Archivo, Arial, Hel=
+vetica, sans-serif; font-size:13px; line-height:16px; color:#8A0032; font-w=
+eight:bold; text-transform:uppercase;">AFHALEN TOT</div>
+                              <div style=3D"font-family:Archivo, Arial, Hel=
+vetica, sans-serif; font-size:14px; line-height:18px; color:#111111; font-w=
+eight:800; margin-top:2px;"></div>
+                              </td>
+                             </tr>
+                            </tbody>
+                           </table>
+                          </td>
+                         </tr>
+                        </tbody>
+                       </table>
+                      </td>
+                      <td valign=3D"top" width=3D"50%" class=3D"stack col-p=
+ad-l card-gap" style=3D"padding:0 0 12px 6px;">
+                       <table role=3D"presentation" width=3D"100%" cellpadd=
+ing=3D"0" cellspacing=3D"0" border=3D"0" style=3D"width:100%; background:#F=
+7EFF2;">
+                        <tbody>
+                         <tr>
+                          <td style=3D"padding:14px;height:100px;">
+                           <table role=3D"presentation" width=3D"100%" cell=
+padding=3D"0" cellspacing=3D"0" border=3D"0">
+                            <tbody>
+                             <tr>
+                              <td width=3D"40" valign=3D"middle" style=3D"w=
+idth:40px; padding-right:10px;"><img src=3D"https://medias.mondialrelay.com=
+/mailing/assets/dartagnan/mr/common/pudo.png" width=3D"38" alt=3D"" style=
+=3D"display:block; width:38px; height:auto;"></td>
+                              <td valign=3D"top">
+                              <div style=3D"font-family:Archivo, Arial, Hel=
+vetica, sans-serif; font-size:13px; line-height:16px; color:#8A0032; font-w=
+eight:bold; text-transform:uppercase;">AFHAALPUNT</div>
+                              <div style=3D"font-family:Archivo, Arial, Hel=
+vetica, sans-serif; font-size:12px; line-height:16px; color:#111111; margin=
+-top:6px;">
+                              <span style=3D"font-weight:800;">FLEUR ELEGAN=
+CE</span>
+                              <br>
+                              Winkelhof 2
+                              <br>
+                              2353 EH Leiderdorp
+                              </div>
+                              </td>
+                             </tr>
+                            </tbody>
+                           </table>
+                          </td>
+                         </tr>
+                        </tbody>
+                       </table>
+                      </td>
+                     </tr>
+                     <tr>
+                      <td valign=3D"top" width=3D"50%" class=3D"stack col-p=
+ad-r card-gap" style=3D"padding:0 6px 0 0;">
+                       <table role=3D"presentation" width=3D"100%" cellpadd=
+ing=3D"0" cellspacing=3D"0" border=3D"0" style=3D"width:100%; background:#F=
+7EFF2;">
+                        <tbody>
+                         <tr>
+                          <td style=3D"padding:14px;height:100px;">
+                           <table role=3D"presentation" width=3D"100%" cell=
+padding=3D"0" cellspacing=3D"0" border=3D"0">
+                            <tbody>
+                             <tr>
+                              <td width=3D"40" valign=3D"middle" style=3D"w=
+idth:40px; padding-right:10px;"><img src=3D"https://medias.mondialrelay.com=
+/mailing/assets/dartagnan/mr/common/clock.png" width=3D"32" alt=3D"" style=
+=3D"display:block; width:32px; height:auto;"></td>
+                              <td valign=3D"top">
+                              <div style=3D"font-family:Archivo, Arial, Hel=
+vetica, sans-serif; font-size:13px; line-height:16px; color:#8A0032; font-w=
+eight:bold; text-transform:uppercase;">SUPER PRAKTISCH</div>
+                              <div style=3D"font-family:Archivo, Arial, Hel=
+vetica, sans-serif; font-size:12px; line-height:16px; color:#111111; margin=
+-top:6px;">Hier vind je alle informatie over je pakketautomaat!</div>
+                              <div style=3D"margin-top:6px;">
+                              <a href=3D"https://notification.mondialrelay.=
+fr/c?q=3DlbC8gaV3OiDDkK1f22yXAtVi2gD4aHR0cHM6Ly93d3cubW9uZGlhbHJlbGF5LmNvbS=
+9wdWJsaWMvcGVybWFuZW50L25vdGlmaWNhdGlvbi5hc3B4P2Vucz1WMVZJTlRJVCZleHA9NzcxM=
+TYzOTgmcGF5cz1OTCZsYW5ndWFnZT1ubCZ1dG1fc291cmNlPVRyYW5zYWN0aW9uYWxFbWFpbCZ1=
+dG1fbWVkaXVtPUVtYWlsJnV0bV9jb250ZW50PWdlbi1kaXNwb25pYmxlYXVyZWxhaXMtbXItbmw=
+tcGluMS1jcnQwLXN1YjAtZW52MSZ1dG1fY2FtcGFpZ249Tm90aWZpY2F0aW9uQ29saXOsXWP1fJ=
+kyCBZ_RqWFrGoYd9j3Vhx8KQ9wALxub3RpZmljYXRpb24ubW9uZGlhbHJlbGF5LmZy" style=
+=3D"font-family:Archivo, Arial, Helvetica, sans-serif; font-size:12px; line=
+-height:16px; color:#111111; font-weight:bold; text-decoration:underline;">=
+ Ik raadpleeg </a>
+                              </div>
+                              </td>
+                             </tr>
+                            </tbody>
+                           </table>
+                          </td>
+                         </tr>
+                        </tbody>
+                       </table>
+                      </td>
+                      <td valign=3D"top" width=3D"50%" class=3D"stack col-p=
+ad-l card-gap" style=3D"padding:0 0 0 6px;">
+                       <table role=3D"presentation" width=3D"100%" cellpadd=
+ing=3D"0" cellspacing=3D"0" border=3D"0" style=3D"width:100%; background:#F=
+7EFF2;">
+                        <tbody>
+                         <tr>
+                          <td style=3D"padding:14px;height:100px;">
+                           <table role=3D"presentation" width=3D"100%" cell=
+padding=3D"0" cellspacing=3D"0" border=3D"0">
+                            <tbody>
+                             <tr>
+                              <td width=3D"40" valign=3D"middle" style=3D"w=
+idth:40px; padding-right:10px;"><a href=3D"https://notification.mondialrela=
+y.fr/c?q=3DlbAY_axL02WAl8q-Ywz5kyQ42gFLaHR0cHM6Ly9tb25kaWFscmVsYXkuZ28ubGlu=
+az9hZGpfdD0xd28wMndpYl8xd3c4bDZndCZhZGpfZmFsbGJhY2s9aHR0cHMlM0ElMkYlMkZ3d3c=
+ubW9uZGlhbHJlbGF5LmZyJTJGc3VpdmktZGUtY29saXMlMkYmYWRqX3JlZGlyZWN0X21hY29zPW=
+h0dHBzJTNBJTJGJTJGd3d3Lm1vbmRpYWxyZWxheS5mciUyRnN1aXZpLWRlLWNvbGlzJTJGJnV0b=
+V9zb3VyY2U9VHJhbnNhY3Rpb25hbEVtYWlsJnV0bV9tZWRpdW09RW1haWwmdXRtX2NvbnRlbnQ9=
+Z2VuLWRpc3BvbmlibGVhdXJlbGFpcy1tci1ubC1waW4xLWNydDAtc3ViMC1lbnYxJnV0bV9jYW1=
+wYWlnbj1Ob3RpZmljYXRpb25Db2xpc6xdY_V8mTIIFn9GpYWsahh32PdWHHwpD3AAvG5vdGlmaW=
+NhdGlvbi5tb25kaWFscmVsYXkuZnI"> <img src=3D"https://medias.mondialrelay.com=
+/mailing/assets/dartagnan/mr/common/interrogation-point.png" width=3D"32" a=
+lt=3D"" style=3D"display:block; width:32px; height:auto;"> </a></td>
+                              <td valign=3D"top"><a href=3D"https://notific=
+ation.mondialrelay.fr/c?q=3DlbAY_axL02WAl8q-Ywz5kyQ42gFLaHR0cHM6Ly9tb25kaWF=
+scmVsYXkuZ28ubGluaz9hZGpfdD0xd28wMndpYl8xd3c4bDZndCZhZGpfZmFsbGJhY2s9aHR0cH=
+MlM0ElMkYlMkZ3d3cubW9uZGlhbHJlbGF5LmZyJTJGc3VpdmktZGUtY29saXMlMkYmYWRqX3JlZ=
+GlyZWN0X21hY29zPWh0dHBzJTNBJTJGJTJGd3d3Lm1vbmRpYWxyZWxheS5mciUyRnN1aXZpLWRl=
+LWNvbGlzJTJGJnV0bV9zb3VyY2U9VHJhbnNhY3Rpb25hbEVtYWlsJnV0bV9tZWRpdW09RW1haWw=
+mdXRtX2NvbnRlbnQ9Z2VuLWRpc3BvbmlibGVhdXJlbGFpcy1tci1ubC1waW4xLWNydDAtc3ViMC=
+1lbnYxJnV0bV9jYW1wYWlnbj1Ob3RpZmljYXRpb25Db2xpc6xdY_V8mTIIFn9GpYWsahh32PdWH=
+HwpD3AAvG5vdGlmaWNhdGlvbi5tb25kaWFscmVsYXkuZnI">=20
+                              <div style=3D"font-family:Archivo, Arial, Hel=
+vetica, sans-serif; font-size:13px; line-height:16px; color:#8A0032; font-w=
+eight:bold; text-transform:uppercase;">ONVOORZIENE OMSTANDIGHEDEN?</div>=20
+                              <div style=3D"font-family:Archivo, Arial, Hel=
+vetica, sans-serif; font-size:12px; line-height:16px; color:#111111; margin=
+-top:6px;">Geef het stokje door door deze e-mail door te sturen naar een na=
+aste =F0=9F=98=89</div>=20
+                              </a></td>
+                             </tr>
+                            </tbody>
+                           </table>
+                          </td>
+                         </tr>
+                        </tbody>
+                       </table>
+                      </td>
+                     </tr>
+                    </tbody>
+                   </table>
+                  </td>
+                 </tr>
+                 <tr>
+                  <td align=3D"center" style=3D"padding:0 24px 8px 24px;" c=
+lass=3D"mobile-pad"><!--[if mso]>
+        <v:roundrect xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:w=3D"u=
+rn:schemas-microsoft-com:office:word"
+            href=3D"https://www.mondialrelay.com/public/permanent/notificat=
+ion.aspx?ens&#x3D;V1VINTIT&amp;exp&#x3D;XXXXXXXXX&amp;pays&#x3D;NL&amp;langu=
+age&#x3D;nl" style=3D"height:44px;v-text-anchor:middle;width:180px;" arcsiz=
+e=3D"18%" stroke=3D"f" fillcolor=3D"#8A0032">
+            <w:anchorlock/>
+            <center style=3D"color:#ffffff;font-family:Arial,sans-serif;fon=
+t-size:14px;font-weight:bold;">
+                Ik ga er heen
+            </center>
+        </v:roundrect>
+        <![endif]--> <!--[if !mso]><!-- --> <a href=3D"https://notification=
+.mondialrelay.fr/c?q=3DlbCs7o0Mmp5AqsASt41_iXVq2gDNaHR0cHM6Ly93d3cuZ29vZ2xl=
+LmNvbS9tYXBzP3E9YWRyZXNzZStXaW5rZWxob2YyKzIzNTNFSCtMZWlkZXJkb3JwJnV0bV9zb3V=
+yY2U9VHJhbnNhY3Rpb25hbEVtYWlsJnV0bV9tZWRpdW09RW1haWwmdXRtX2NvbnRlbnQ9Z2VuLW=
+Rpc3BvbmlibGVhdXJlbGFpcy1tci1ubC1waW4xLWNydDAtc3ViMC1lbnYxJnV0bV9jYW1wYWlnb=
+j1Ob3RpZmljYXRpb25Db2xpc6xdY_V8mTIIFn9GpYWsahh32PdWHHwpD3AAvG5vdGlmaWNhdGlv=
+bi5tb25kaWFscmVsYXkuZnI" style=3D"min-width: 100px; display:inline-block; b=
+ackground:#8A0032; color:#ffffff; font-family:Archivo, Arial, Helvetica, sa=
+ns-serif; font-size:14px; font-weight:800; line-height:44px; text-align:cen=
+ter; border-radius:10px; padding:0 22px;"> Ik ga er heen </a> <!--<![endif]=
+--></td>
+                 </tr>
+                 <tr>
+                  <td align=3D"center" style=3D"padding:10px 24px 10px 24px=
+;" class=3D"mobile-pad">
+                   <table role=3D"presentation" cellpadding=3D"0" cellspaci=
+ng=3D"0" border=3D"0">
+                    <tbody>
+                     <tr>
+                      <td valign=3D"middle" style=3D"font-family:Archivo, A=
+rial, Helvetica, sans-serif; font-size:14px; line-height:20px; color:#11111=
+1; font-weight:700; padding-right:10px;">Pssst, je pakket kan niet wachten =
+je te zien!</td>
+                     </tr>
+                    </tbody>
+                   </table>
+                  </td>
+                 </tr>
+                 <script type=3D"application/ld+json">
+    {
+    "@context": "http://schema.org",
+    "@type": "ParcelDelivery",
+    "deliveryAddress": {
+    "@type": "PostalAddress",
+    "name": "FLEUR ELEGANCE",
+    "streetAddress": "Winkelhof 2",
+    "addressLocality": "Leiderdorp",
+    "addressRegion": "",
+    "addressCountry": "NL",
+    "postalCode": "2353 EH"
+    },
+    "originAddress": {
+    "@type": "PostalAddress",
+    "name": "",
+    },
+    "expectedArrivalFrom": "2026-05-28T19:00:00+02:00",
+    "expectedArrivalUntil": "2026-05-28T19:00:00+02:00",
+    "carrier": {
+    "@type": "Organization",
+    "name": "Mondial Relay",
+    "url": "https://www.mondialrelay.fr"
+    },
+    "trackingNumber": "RelaisCodePays",
+    "trackingUrl": "https://www.mondialrelay.com/public/permanent/notificat=
+ion.aspx?ens&#x3D;V1VINTIT&amp;exp&#x3D;XXXXXXX&amp;pays&#x3D;NL&amp;langu=
+age&#x3D;nl",
+    "potentialAction": {
+    "@type": "TrackAction",
+    "url": "https://www.mondialrelay.com/public/permanent/notification.aspx=
+?ens&#x3D;V1VINTIT&amp;exp&#x3D;XXXXXXX&amp;pays&#x3D;NL&amp;language&#x3D=
+;nl"
+    },
+    "hasDeliveryMethod": {
+    "@type": "ParcelService",
+    "name": "http://schema.org/ParcelService"
+    },
+    "partOfOrder": {
+    "@type": "Order",
+    "orderNumber": "",
+    "merchant": {
+    "@type": "Organization",
+    "name": "",
+    "sameAs": "http://www.freebase.com/m/0fhkx"
+    },
+    "orderStatus": "https://schema.org/OrderPickupAvailable"
+    }
+    }
+</script>
+                 <tr>
+                  <td align=3D"center" style=3D"padding:0 34px 18px 34px;" =
+class=3D"mobile-pad">
+                   <div style=3D"font-family: Archivo, Arial, Helvetica, sa=
+ns-serif; font-size:13px; line-height:18px; color:#111111; margin-top:10px;=
+">Het team van Mondial Relay by InPost</div>
+                  </td>
+                 </tr>
+                 <tr>
+                  <td style=3D"height:10px; background:#E7D6DB; line-height=
+:10px; font-size:1px;">&nbsp;</td>
+                 </tr>
+                 <tr>
+                  <td style=3D"background:#E7D6DB;">
+                   <table role=3D"presentation" width=3D"100%" cellpadding=
+=3D"0" cellspacing=3D"0" border=3D"0" style=3D" height:124px; width:100%; b=
+ackground:#2CB6B0; border-radius:0 0 18px 18px;">
+                    <tbody>
+                     <tr>
+                      <td style=3D"padding:16px 18px;">
+                       <table role=3D"presentation" width=3D"100%" cellpadd=
+ing=3D"0" cellspacing=3D"0" border=3D"0" style=3D"width:100%;">
+                        <tbody>
+                         <tr>
+                          <td width=3D"110" valign=3D"middle" style=3D"widt=
+h:110px;"><img src=3D"https://medias.mondialrelay.com/mailing/assets/dartag=
+nan/mr/common/caracter-with-dog.png" width=3D"90" alt=3D"" style=3D"width:9=
+0px; height:auto;"></td>
+                          <td valign=3D"middle">
+                           <div style=3D"font-family: Archivo, Arial, Helve=
+tica, sans-serif; font-size:13px; line-height:18px; color:#ffffff; font-wei=
+ght:700;">BETER VOOR DE PLANEET</div>
+                           <div style=3D"font-family: Archivo, Arial, Helve=
+tica, sans-serif; font-size:12px; line-height:17px; color:#ffffff; margin-t=
+op:4px;">Met een groot aantal drop off punten in het hele land was het lope=
+nd of op de fiets afgeven of ophalen van je pakketten nog nooit zo eenvoudi=
+g</div>
+                          </td>
+                         </tr>
+                        </tbody>
+                       </table>
+                      </td>
+                     </tr>
+                    </tbody>
+                   </table>
+                  </td>
+                 </tr>
+                 <tr>
+                  <td style=3D"height:10px; background:#E7D6DB; line-height=
+:10px; font-size:1px;">&nbsp;</td>
+                 </tr>
+                 <tr>
+                  <td align=3D"center" style=3D"padding:16px 24px 10px 24px=
+; background:#E7D6DB;">
+                   <table role=3D"presentation" cellpadding=3D"0" cellspaci=
+ng=3D"0" border=3D"0">
+                    <tbody>
+                     <tr>
+                      <td style=3D"padding:0 8px;"><a href=3D"https://notif=
+ication.mondialrelay.fr/c?q=3DlbBiEO6lyuWlgsYYNBlG2wdI2gC0aHR0cHM6Ly93d3cua=
+W5zdGFncmFtLmNvbS9tb25kaWFscmVsYXlmci8_dXRtX3NvdXJjZT1UcmFuc2FjdGlvbmFsRW1h=
+aWwmdXRtX21lZGl1bT1FbWFpbCZ1dG1fY29udGVudD1nZW4tZGlzcG9uaWJsZWF1cmVsYWlzLW1=
+yLW5sLXBpbjEtY3J0MC1zdWIwLWVudjEmdXRtX2NhbXBhaWduPU5vdGlmaWNhdGlvbkNvbGlzrF=
+1j9XyZMggWf0alhaxqGHfY91YcfCkPcAC8bm90aWZpY2F0aW9uLm1vbmRpYWxyZWxheS5mcg"><=
+img src=3D"https://medias.mondialrelay.com/mailing/assets/dartagnan/mr/comm=
+on/instagram-icon.png" width=3D"24" alt=3D"Instagram" style=3D"width:24px; =
+height:auto;"></a></td>
+                      <td style=3D"padding:0 8px;"><a href=3D"https://notif=
+ication.mondialrelay.fr/c?q=3DlbBdGHZPW4zcgO8VgG6cxoFd2gCxaHR0cHM6Ly93d3cud=
+GlrdG9rLmNvbS9AbW9uZGlhbHJlbGF5ZnI_dXRtX3NvdXJjZT1UcmFuc2FjdGlvbmFsRW1haWwm=
+dXRtX21lZGl1bT1FbWFpbCZ1dG1fY29udGVudD1nZW4tZGlzcG9uaWJsZWF1cmVsYWlzLW1yLW5=
+sLXBpbjEtY3J0MC1zdWIwLWVudjEmdXRtX2NhbXBhaWduPU5vdGlmaWNhdGlvbkNvbGlzrF1j9X=
+yZMggWf0alhaxqGHfY91YcfCkPcAC8bm90aWZpY2F0aW9uLm1vbmRpYWxyZWxheS5mcg"><img =
+src=3D"https://medias.mondialrelay.com/mailing/assets/dartagnan/mr/common/t=
+iktok-icon.png" width=3D"24" alt=3D"TikTok" style=3D"width:24px; height:aut=
+o;"></a></td>
+                      <td style=3D"padding:0 8px;"><a href=3D"https://notif=
+ication.mondialrelay.fr/c?q=3DlbAJCz5c2FOhY6JcurA04aBW2gCxaHR0cHM6Ly93d3cuZ=
+mFjZWJvb2suY29tL01vbmRpYWxSZWxheS8_dXRtX3NvdXJjZT1UcmFuc2FjdGlvbmFsRW1haWwm=
+dXRtX21lZGl1bT1FbWFpbCZ1dG1fY29udGVudD1nZW4tZGlzcG9uaWJsZWF1cmVsYWlzLW1yLW5=
+sLXBpbjEtY3J0MC1zdWIwLWVudjEmdXRtX2NhbXBhaWduPU5vdGlmaWNhdGlvbkNvbGlzrF1j9X=
+yZMggWf0alhaxqGHfY91YcfCkPcAC8bm90aWZpY2F0aW9uLm1vbmRpYWxyZWxheS5mcg"><img =
+src=3D"https://medias.mondialrelay.com/mailing/assets/dartagnan/mr/common/f=
+acebook-icon.png" width=3D"24" alt=3D"Facebook" style=3D"width:24px; height=
+:auto;"></a></td>
+                      <td style=3D"padding:0 8px;"><a href=3D"https://notif=
+ication.mondialrelay.fr/c?q=3DlbDFiLA3I0cLIdN-at8VYrI62gC2aHR0cHM6Ly93d3cue=
+W91dHViZS5jb20vQG1vbmRpYWxyZWxheWZyYW5jZT91dG1fc291cmNlPVRyYW5zYWN0aW9uYWxF=
+bWFpbCZ1dG1fbWVkaXVtPUVtYWlsJnV0bV9jb250ZW50PWdlbi1kaXNwb25pYmxlYXVyZWxhaXM=
+tbXItbmwtcGluMS1jcnQwLXN1YjAtZW52MSZ1dG1fY2FtcGFpZ249Tm90aWZpY2F0aW9uQ29saX=
+OsXWP1fJkyCBZ_RqWFrGoYd9j3Vhx8KQ9wALxub3RpZmljYXRpb24ubW9uZGlhbHJlbGF5LmZy"=
+><img src=3D"https://medias.mondialrelay.com/mailing/assets/dartagnan/mr/co=
+mmon/youtube-icon.png" width=3D"28" alt=3D"YouTube" style=3D"width:28px; he=
+ight:auto;"></a></td>
+                     </tr>
+                    </tbody>
+                   </table>
+                  </td>
+                 </tr>
+                 <tr>
+                  <td style=3D"padding: 10px 0; background:#E7D6DB;">
+                   <table role=3D"presentation" width=3D"100%" cellpadding=
+=3D"0" cellspacing=3D"0" border=3D"0">
+                    <tbody>
+                     <tr>
+                      <td align=3D"right" valign=3D"middle" style=3D"paddin=
+g-right: 10px;"><a href=3D"https://notification.mondialrelay.fr/c?q=3DlbDRO=
+yOWqUI3Iuwe4l1YQqlM2gC7aHR0cHM6Ly9mci50cnVzdHBpbG90LmNvbS9yZXZpZXcvbW9uZGlh=
+bHJlbGF5LmZyP3V0bV9zb3VyY2U9VHJhbnNhY3Rpb25hbEVtYWlsJnV0bV9tZWRpdW09RW1haWw=
+mdXRtX2NvbnRlbnQ9Z2VuLWRpc3BvbmlibGVhdXJlbGFpcy1tci1ubC1waW4xLWNydDAtc3ViMC=
+1lbnYxJnV0bV9jYW1wYWlnbj1Ob3RpZmljYXRpb25Db2xpc6xdY_V8mTIIFn9GpYWsahh32PdWH=
+HwpD3AAvG5vdGlmaWNhdGlvbi5tb25kaWFscmVsYXkuZnI"> <img src=3D"https://medias=
+.mondialrelay.com/mailing/assets/dartagnan/mr/common/trustpilot-rates.png" =
+width=3D"90" alt=3D"" style=3D"display:block; width:90px; height:auto;"> </=
+a></td>
+                      <td align=3D"left" valign=3D"middle" style=3D"padding=
+-left: 10px;"><a href=3D"https://notification.mondialrelay.fr/c?q=3DlbDROyO=
+WqUI3Iuwe4l1YQqlM2gC7aHR0cHM6Ly9mci50cnVzdHBpbG90LmNvbS9yZXZpZXcvbW9uZGlhbH=
+JlbGF5LmZyP3V0bV9zb3VyY2U9VHJhbnNhY3Rpb25hbEVtYWlsJnV0bV9tZWRpdW09RW1haWwmd=
+XRtX2NvbnRlbnQ9Z2VuLWRpc3BvbmlibGVhdXJlbGFpcy1tci1ubC1waW4xLWNydDAtc3ViMC1l=
+bnYxJnV0bV9jYW1wYWlnbj1Ob3RpZmljYXRpb25Db2xpc6xdY_V8mTIIFn9GpYWsahh32PdWHHw=
+pD3AAvG5vdGlmaWNhdGlvbi5tb25kaWFscmVsYXkuZnI"> <img src=3D"https://medias.m=
+ondialrelay.com/mailing/assets/dartagnan/mr/common/trustpilot-icon.png" wid=
+th=3D"90" alt=3D"" style=3D"display:block; width:90px; height:auto;"> </a><=
+/td>
+                     </tr>
+                    </tbody>
+                   </table>
+                  </td>
+                 </tr>
+                 <tr>
+                  <td align=3D"center" style=3D"padding:0 24px 18px 24px; b=
+ackground:#E7D6DB;" class=3D"mobile-pad">
+                   <div style=3D"font-family: Archivo, Arial, Helvetica, sa=
+ns-serif; font-size:11px; line-height:16px; color:#1D1D1D; text-align:cente=
+r;">
+                    Je kunt alle informatie betreffende de verwerking van j=
+e persoonsgegeven vinden in ons <a style=3D"color:unset; text-decoration:un=
+derline;" href=3D"https://notification.mondialrelay.fr/c?q=3DlbDeyvu_Wm6wAN=
+mZZqMyb5ww2gC8aHR0cHM6Ly93d3cubW9uZGlhbHJlbGF5LmZyL2Rvbm5lZXMtcGVyc29ubmVsb=
+GVzLz91dG1fc291cmNlPVRyYW5zYWN0aW9uYWxFbWFpbCZ1dG1fbWVkaXVtPUVtYWlsJnV0bV9j=
+b250ZW50PWdlbi1kaXNwb25pYmxlYXVyZWxhaXMtbXItbmwtcGluMS1jcnQwLXN1YjAtZW52MSZ=
+1dG1fY2FtcGFpZ249Tm90aWZpY2F0aW9uQ29saXOsXWP1fJkyCBZ_RqWFrGoYd9j3Vhx8KQ9wAL=
+xub3RpZmljYXRpb24ubW9uZGlhbHJlbGF5LmZy">privacybeleid</a>.
+                    <br>
+                    <br>
+                    MONDIAL RELAY, 1 avenue de l'horizon, 59650 VILLENEUVE =
+D'ASCQ
+                    <br>
+                    Vereenvoudigde eenmans aandelenvennootschap met een kap=
+itaal van 500.400 euro is ingeschreven in het Handels- en Vennootschapsregi=
+ster Lille M=C3=A9tropole
+                    <br>
+                    onder nummer 385 218 631 en het intracommunautaire BTW-=
+nummer is FR39385218631
+                   </div>
+                  </td>
+                 </tr>
+                 <tr>
+                  <td width=3D"110" align=3D"center" valign=3D"middle" styl=
+e=3D"width:110px; padding:0 0 20px 0; background:#E7D6DB;"><img src=3D"http=
+s://medias.mondialrelay.com/mailing/assets/dartagnan/mr/common/best-company=
+.png" width=3D"120" alt=3D"" style=3D"width:120px; height:auto;"></td>
+                 </tr>
+                </tbody>
+               </table>
+              </td>
+             </tr>
+             <tr>
+              <td style=3D"height:18px; line-height:18px; font-size:18px;">=
+&nbsp;</td>
+             </tr>
+            </tbody>
+           </table>
+          </td>
+         </tr>
+        </tbody>
+       </table>
+       <!--[if mso | IE]>
+                    </td>
+                  </tr>
+                </table>
+                <![endif]--></td>
+     </tr>
+    </tbody>
+   </table>
+  </div>
+  <img src=3D"https://notification.mondialrelay.fr/o?q=3DkqxdY_V8mTIIFn9GpY=
+Wsahh32PdWHHwpD3AA" alt=3D"" width=3D"1" height=3D"1">
+ </body>
+</html>
+------=_Part_29509111_1458515797.1779988441143--
+
+------=_Part_29509110_727606418.1779988441143--

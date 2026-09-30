@@ -1358,6 +1358,38 @@ SENSOR_DATA = {
     },
     "db_schenker_packages": {},
     "db_schenker_tracking": {"pattern": ["\\d{10,16}"]},
+    # Vinted Go
+    "vinted_go_delivered": {
+        "email": ["no-reply@vinted.com"],
+        "subject": [
+            "Collect your parcel!",
+            "Your Vinted Go parcel has arrived and is ready to collect",
+            "is ready to collect",
+        ],
+    },
+    "vinted_go_delivering": {},
+    "vinted_go_packages": {},
+    "vinted_go_tracking": {
+        "pattern": ["#(\\d{10,20})", "Tracking code:[^\\d]*(\\d{10,20})"]
+    },
+    # Mondial Relay
+    "mondial_relay_delivered": {
+        "email": [
+            "noreply@mondialrelay.fr",
+            "no-reply@mondialrelay.fr",
+            "shipping@relay.vinted.com",
+        ],
+        "subject": [
+            "ligt voor je klaar",
+            "disponible dans votre Point Relais",
+            "disponible dans votre Locker",
+            "est arrivé au Point Relais",
+            "est arrivé dans votre Locker",
+        ],
+    },
+    "mondial_relay_delivering": {},
+    "mondial_relay_packages": {},
+    "mondial_relay_tracking": {"pattern": ["\\d{8,12}"]},
 }
 
 # Sensor definitions
@@ -2175,6 +2207,44 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="db_schenker_packages",
     ),
+    # Vinted Go
+    "vinted_go_delivered": SensorEntityDescription(
+        name="Mail Vinted Go Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="vinted_go_delivered",
+    ),
+    "vinted_go_delivering": SensorEntityDescription(
+        name="Mail Vinted Go Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="vinted_go_delivering",
+    ),
+    "vinted_go_packages": SensorEntityDescription(
+        name="Mail Vinted Go Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="vinted_go_packages",
+    ),
+    # Mondial Relay
+    "mondial_relay_delivered": SensorEntityDescription(
+        name="Mail Mondial Relay Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="mondial_relay_delivered",
+    ),
+    "mondial_relay_delivering": SensorEntityDescription(
+        name="Mail Mondial Relay Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="mondial_relay_delivering",
+    ),
+    "mondial_relay_packages": SensorEntityDescription(
+        name="Mail Mondial Relay Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="mondial_relay_packages",
+    ),
     ###
     # !!! Insert new sensors above these summary sensors !!!
     ###
@@ -2333,6 +2403,8 @@ SHIPPERS = [
     "db_schenker",
     "shopify",
     "butcherbox",
+    "vinted_go",
+    "mondial_relay",
 ]
 
 # Authentication types

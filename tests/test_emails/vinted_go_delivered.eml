@@ -1,0 +1,298 @@
+Delivered-To: xxxxxxxxxxxxxxxx@gmail.com
+Received: by 2002:a05:6a10:17cd:b0:73b:3e7:c984 with SMTP id hz13csp1300383pxb;
+        Thu, 10 Sep 2026 01:04:58 -0700 (PDT)
+X-Received: by 2002:a05:600c:b86:b0:49d:260c:a422 with SMTP id 5b1f17b1804b1-49d260ca473mr40397035e9.25.1789027498645;
+        Thu, 10 Sep 2026 01:04:58 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789027498; cv=none;
+        d=google.com; s=arc-20260327;
+        b=PCt1mjKUN3vheQIOMTyijA5DUdXKPGz3tvLDf1Fbw+v0ij2nzpFI7n3ZR0Cm0yQFBl
+         ES5S7lQy8dHDrFEl9L6bEojZpfqW3TVB+QVUXgsSL80gTy2poTne/ZMQ+WDQ9JvdQSeN
+         Tt7vgJkx3MvganNJ7BU6eslq1x1mRNl6IQXzA7KKoMW33NtC7cJE2e6rDD1ixAeleGTl
+         fpR77Mwan3Z8XvIc1kNFx9rZwHeGWunLVUasrPPxcBvZQ747oeiGPAF/dT4/WHn06Kjh
+         DkfAcSdzT/ZbOhSTwbnLYh4ojufVsvu67b5TGV4yhLJKnZRPzkUdSSzDAztPFzf6O3fP
+         NM6Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:reply-to:to:from:subject:message-id
+         :mime-version:feedback-id:date:dkim-signature:dkim-signature;
+        bh=B+KFWRhy8iBLpbK3ZwiceZ+IVyEAe2Ty6loxuELG1kw=;
+        fh=wMQZWxGyhY3LRzbeCoLp4pZiNzxU0WocUlFbj5NI8D8=;
+        b=KfvE4O5JTTI8E4doak8B9XeBed4OouvlsoyzxD0y1X+LYXWg0tWDjboLjm6PCvXhK+
+         n5PWy1iy7Gz4du4MbNUCzZlbPUrV3C0JAMFtftiWqdt5SaJ4QvU59Ilfz92CetuXcVtS
+         2h0hN9uNMf8oOoZCtilc0zSmNRGflDx/RZ6u/3P1ZmtJ+pnduz1Yg4Ch1025jwHaJM7G
+         RSTwj+HHPst5/3I82u+EDbIwCD3iZdQoJ5+Mc1fN6RlEpq7o12pBIpBbqCCxBXgRiwlS
+         63jRHdYlhR7mDQtD1lX9lJueVSi58TPRLADjsOO0+bf2A74YldUxX+CJJGLZo37Jpsy3
+         j3iQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@vinted.com header.s=zyqarrajf3fcvbj7g6mtbp735f72y6e3 header.b=LHGAa0bA;
+       dkim=pass header.i=@amazonses.com header.s=shh3fegwg5fppqsuzphvschd53n6ihuv header.b=SjWrolac;
+       spf=pass (google.com: domain of 010201a08a5938de-e2f11054-12b2-4a16-a5b3-43b7f6829237-000000@aws-bounce.vinted.com designates 69.169.229.206 as permitted sender) smtp.mailfrom=010201a08a5938de-e2f11054-12b2-4a16-a5b3-43b7f6829237-000000@aws-bounce.vinted.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=vinted.com
+Return-Path: <010201a08a5938de-e2f11054-12b2-4a16-a5b3-43b7f6829237-000000@aws-bounce.vinted.com>
+Received: from b229-206.smtp-out.eu-west-1.amazonses.com (b229-206.smtp-out.eu-west-1.amazonses.com. [69.169.229.206])
+        by mx.google.com with ESMTPS id 5b1f17b1804b1-49d26be1d95si38951665e9.2.2026.09.10.01.04.58
+        for <xxxxxxxxx@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 10 Sep 2026 01:04:58 -0700 (PDT)
+Received-SPF: pass (google.com: domain of 010201a08a5938de-e2f11054-12b2-4a16-a5b3-43b7f6829237-000000@aws-bounce.vinted.com designates 69.169.229.206 as permitted sender) client-ip=69.169.229.206;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@vinted.com header.s=zyqarrajf3fcvbj7g6mtbp735f72y6e3 header.b=LHGAa0bA;
+       dkim=pass header.i=@amazonses.com header.s=shh3fegwg5fppqsuzphvschd53n6ihuv header.b=SjWrolac;
+       spf=pass (google.com: domain of 010201a08a5938de-e2f11054-12b2-4a16-a5b3-43b7f6829237-000000@aws-bounce.vinted.com designates 69.169.229.206 as permitted sender) smtp.mailfrom=010201a08a5938de-e2f11054-12b2-4a16-a5b3-43b7f6829237-000000@aws-bounce.vinted.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=vinted.com
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=zyqarrajf3fcvbj7g6mtbp735f72y6e3; d=vinted.com; t=1789027498;
+	h=Date:MIME-Version:Message-ID:Subject:From:To:Reply-To:Content-Transfer-Encoding:Content-Type;
+	bh=JPEX0w9h294K6/DjchQ/D4reGMnKxwrMYkOeO3/kenI=;
+	b=LHGAa0bAIU1rp3gtwY3qY5ugfJiROe5c2q0QE6kIcTiMKUts+3wmxbQrFd1835TE
+	05H+Fa1Vq9v/gFHR5uwCy7ksflXSkSwdowNrwoPeyIIgCvFQhVFdkUrc+b0/prAmGto
+	KWVcgPpUmzFl3sd1RXBScM4sQ5SakfieLbUue2xI=
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=shh3fegwg5fppqsuzphvschd53n6ihuv; d=amazonses.com; t=1789027498;
+	h=Date:Feedback-ID:MIME-Version:Message-ID:Subject:From:To:Reply-To:Content-Transfer-Encoding:Content-Type;
+	bh=JPEX0w9h294K6/DjchQ/D4reGMnKxwrMYkOeO3/kenI=;
+	b=SjWrolacNq3Tur5mo7IXuWq5LynHgKrW9wD5X9iNR1ZySJnHYiph7USgyoBi9IOu
+	MLsnq2n6h6zLCjecXxjM4bNer/xWob6g6iBGWwAHxip7CnHkjuZBXvFzQ3Geh9VOOMT
+	MeIqShtkSnYsZ7fwAPEwiHa8NfeW4LCpV+xFUJAQ=
+Date: Thu, 10 Sep 2026 08:04:58 +0000
+Feedback-ID: ::1.eu-west-1.QOzjNwxJtlDcPj1T2b+NJY3x2BmLrUAayYYkSNgKC8I=:AmazonSES
+MIME-Version: 1.0
+Message-ID: <010201a08a5938de-e2f11054-12b2-4a16-a5b3-43b7f6829237-000000@eu-west-1.amazonses.com>
+Subject: Help us make space today: Collect your parcel!
+ #1788036855089520
+From: no-reply@vinted.com
+To: xxxxxxxxxx@gmail.com
+Reply-To: no-reply@vinted.com
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset=UTF-8
+X-SES-Outgoing: 2026.09.10-69.169.229.206
+
+<!DOCTYPE html><html><head>
+  <meta charset=3D"UTF-8"/>
+  <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D=
+1.0"/>
+  <style>
+      .main {
+          font-family: 'Helvetica', Helvetica, 'Helvetica Neue', Arial, san=
+s-serif;
+          font-size: 16px;
+          background-color: #f4f4f4;
+          border-radius: 20px;
+          margin: 0;
+          padding: 10px;
+      }
+
+      .container {
+          max-width: 600px;
+          margin: auto;
+          background-color: #fff;
+          border-radius: 15px;
+          overflow: hidden;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .header {
+          background-color: #004654;
+          padding: 20px;
+          font-size: 24px;
+      }
+
+      .content {
+          padding: 20px;
+      }
+
+      .content h1 {
+          font-size: 24px;
+          font-weight: 700;
+          margin: 30px 0 40px;
+          color: #4A4A4A;
+      }
+
+      .content p {
+          margin: 5px 0;
+      }
+
+      .img-div {
+          text-align: center;
+          width: 100%;
+      }
+
+      @media (min-width: 380px) {
+          .img-div .qr-code {
+              margin: 0 auto;
+              background-color: #FeFeFe;
+              border: 4px solid #003f4b;
+              padding: 15px;
+              border-radius: 20px;
+              width: 250px;
+          }
+      }
+      .vinted_color { color: #127078; font-weight: bold; }
+      .background-2{
+          background-color: #F2F3F2;
+      }
+      .img-div .qr-code{
+          margin: 0 auto;
+          background-color: #FeFeFe;
+          border: 4px solid #003f4b;
+          padding: 15px;
+          border-radius: 20px;
+          width: 250px;
+      }
+
+      .img-div img {
+          display: inline-block;
+          width: 70%;
+          max-width: 300px;
+      }
+
+      @media (max-width: 768px) {
+          .mobile-left {
+          margin: 0 auto;
+          text-align: left !important;
+          }
+      }
+      .block-header {
+        font-size:14px; font-weight: 300;
+      }
+</style>
+  <link rel=3D"stylesheet" href=3D"/mailer.css"/>
+</head>
+<body><img src=3D"https://www.vinted.fr//crm/email_open_track?email_code=3D=
+VCARRIER_READY_FOR_PICKUP&amp;hash=3D800dd17cb9aaae26f886a23ed72e7693b8f150=
+212e4ab716e7dfd67ea220741edc1c34a3d6a6478c65c73f43f5f4969d&amp;correlation_=
+id=3D1788036855089520-4301941f-8424-468751" width=3D"1" height=3D"1" alt=3D=
+""/>
+<div class=3D"main">
+  <div class=3D"container">
+    <div class=3D"header">
+      <a href=3D"https://links.vinted.com/e/t/aHR0cHM6Ly92aW50ZWRnby5jb218M=
+Tc4ODAzNjg1NTA4OTUyMC00MzAxOTQxZi04NDI0LTQ2ODc1MXxXX1hhc2M1TE41ajIxRDNEVkMt=
+TTVnWTRiRWt2anpxSXFDWWlXUTBtMVNBPQ=3D=3D" target=3D"_blank">
+        <img src=3D"https://vintedgo.com/assets/vinted-go-logo-white-email.=
+png" alt=3D"" style=3D"width: 180px;"/>
+      </a>
+    </div>
+    <div class=3D"content">
+      <h1 style=3D"color: #004654; font-size: 24px; font-weight: 700; margi=
+n: 30px 0 40px;">
+  Hello XXXXXXXXXX,
+</h1>
+
+<p>Your <b>Vinted Go</b> parcel has arrived and is ready to collect.</p>
+<br/>
+<p>Pick it up right away to make sure there&#39;s room for everyone!</p>
+<br/>
+<br/>
+<div style=3D"background:#F2F3F2; border-top-left-radius:10px; border-top-r=
+ight-radius:10px; text-align:center; padding:24px; font-size: 14px;">
+  <div class=3D"block-header" style=3D" margin-bottom:16px;">Pick-up code</=
+div>
+  <div class=3D"img-div" style=3D"margin-bottom:16px;">
+      <img alt=3D"QR code" style=3D"border: 4px solid #003f4b; border-radiu=
+s: 20px;" src=3D"http://p.vintedgo.com/public/v1/qr_codes/XXXXXXXXXXXXXXXXXXXXXXXXXXXX?ema=
+il_code=3DVCARRIER_READY_FOR_PICKUP&amp;time=3D2026-09-10T08%3A04%3A57Z"/>
+  </div>
+</div>
+<div style=3D"background:#F2F3F2; border-bottom-left-radius:10px; border-bo=
+ttom-right-radius:10px; text-align:center; padding:0 24px 24px 24px; margin=
+:0 0 16px 0; font-size: 14px;">
+  <div class=3D"mobile-left" style=3D"font-size:14px;">
+    Scan this code to collect your parcel or enter: <b>945332</b>
+  </div>
+</div>
+<br/>
+<div style=3D"background:#F2F3F2; border-radius:10px; text-align:center; pa=
+dding:24px; margin:0 0 16px 0; font-size: 14px;">
+  <div class=3D"block-header" style=3D"margin-bottom:16px;">
+    Collect by
+  </div>
+  <div style=3D"font-size:24px; font-weight:700; color:#222; margin-bottom:=
+16px;">
+    <b>09/16/2026</b>
+  </div>
+ =20
+   <div style=3D"font-size:12px; margin-bottom:16px;">
+    We=E2=80=99ll return it to the sender if you run out of time.
+  </div>
+</div>
+<div style=3D"background:#F2F3F2; border-radius:10px; text-align:center; pa=
+dding:24px; margin:0 0 16px 0; font-size: 14px;">
+  <div class=3D"block-header" style=3D"margin-bottom:16px;">Address</div>
+ <div style=3D"font-size:16px; font-weight:700; color:#222; margin-bottom:6=
+px;">
+    <b>Vinted Go Shop</b>
+  </div>
+
+  <div style=3D"font-size:16px; font-weight:700; color:#222; margin-bottom:=
+16px;">
+    <b>
+      Service Point
+    </b>
+  </div>
+  <div style=3D"font-size:16px; font-weight:700; color:#222; margin-bottom:=
+2px;">
+    <b>
+      <a href=3D"https://links.vinted.com/e/t/XXXXXXXX=
+W4vY2Fycmllci1sb2NhdGlvbnM_XX=
+XX=
+XX=3D=3D" target=3D"_blank">Kareldoornmanw=
+eg 2</a>
+    </b>
+    <br/>
+      <b><a href=3D"https://links.vinted.com/e/t/XXXXXXXX=
+XX_XXXXXX=
+DN8MTc4ODAzNjg1NTA4OXXTUyMC00MzAxOTQxZi04NDI0LTQ2ODc1MXxZbXU5TU5LZDRHd2o4RnNh=
+WFB0bEVHRzNnLUtYUkhWXXY1JURzRjbWp5RENFPQ=3D=3D" target=3D"_blank">Leiden</a><=
+/b>
+  </div>
+</div>
+
+    <div style=3D"background:#F2F3F2; border-radius:10px; text-align:center=
+; padding:24px; margin:0 0 16px 0; font-size: 14px;">
+    <div class=3D"block-header" style=3D"margin-bottom:16px;">Order details=
+</div>
+    <div style=3D"font-size:16px; font-weight:700; color:#222; margin-botto=
+m:6px;">
+      <b>Chaussettes - 41/46 - ...<br/>=E2=82=AC6.00</b>
+    </div>
+  </div>
+
+  <div style=3D"background:#F2F3F2; border-radius:10px; text-align:center; =
+padding:24px; margin:0 0 16px 0; font-size: 14px;">
+    <div class=3D"block-header" style=3D"margin-bottom:16px;">Opening hours=
+</div>
+    <div style=3D"font-size:16px; margin-bottom:6px; line-height: 22px;">
+          <div style=3D"padding: 4px;">
+            <b>Monday=E2=80=93Saturday</b>
+            <p>
+              10:00-18:00
+            </p>
+          </div>
+            <div style=3D"border-bottom:1px solid #15191A; opacity: 8%; mar=
+gin:0 24px;"></div>
+          <div style=3D"padding: 4px;">
+            <b>Sunday</b>
+            <p>
+              Closed
+            </p>
+          </div>
+    </div>
+  </div>
+
+<br/>
+<p>Tracking code: <a href=3D"https://links.vinted.com/e/t/1788036855089520" target=3D"_blank">1788036855089520</a></p>
+<br/>
+<p><b>Need help?</b> <a href=3D"https://links.vinted.com/e/t/XX=
+XX=
+XX=3D" target=3D"_b=
+lank">Get answers</a> on our website.</p>
+<br/>
+<p>Your Vinted Go team</p>
+
+    </div>
+  </div>
+</div>
+
+
+</body></html>

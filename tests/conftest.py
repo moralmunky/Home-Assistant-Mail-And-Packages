@@ -1511,3 +1511,27 @@ def mock_imap_shopify_delivered(mock_imap):
     )
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
     return mock_imap
+
+
+@pytest.fixture
+def mock_imap_vinted_go_delivered(mock_imap):
+    """Mock IMAP search with a Vinted Go delivered/ready for pickup email."""
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+    email_file = Path("tests/test_emails/vinted_go_delivered.eml").read_text(
+        encoding="utf-8",
+    )
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+    return mock_imap
+
+
+@pytest.fixture
+def mock_imap_mondial_relay_delivered(mock_imap):
+    """Mock IMAP search with a Mondial Relay delivered/ready for pickup email."""
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+    email_file = Path("tests/test_emails/mondial_relay_delivered.eml").read_text(
+        encoding="utf-8",
+    )
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+    return mock_imap

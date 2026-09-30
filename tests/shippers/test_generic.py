@@ -2178,3 +2178,29 @@ def test_extract_subject_from_headers_non_bytes(hass):
         )
         is False
     )
+
+
+@pytest.mark.asyncio
+async def test_vinted_go_delivered_class(hass, mock_imap_vinted_go_delivered):
+    """Test Vinted Go delivered/ready for pickup email parsing via GenericShipper."""
+    shipper = GenericShipper(hass, {})
+    result = await shipper.process(
+        mock_imap_vinted_go_delivered,
+        "today",
+        "vinted_go_delivered",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["1788036855089520"]
+
+
+@pytest.mark.asyncio
+async def test_mondial_relay_delivered_class(hass, mock_imap_mondial_relay_delivered):
+    """Test Mondial Relay delivered/ready for pickup email parsing via GenericShipper."""
+    shipper = GenericShipper(hass, {})
+    result = await shipper.process(
+        mock_imap_mondial_relay_delivered,
+        "today",
+        "mondial_relay_delivered",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["77116398"]
