@@ -14,7 +14,6 @@
   "issue_tracker": "https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/issues",
   "requirements": [
     "beautifulsoup4",
-    "Pillow>=9.0",
     "dateparser",
     "aioimaplib"
   ],
