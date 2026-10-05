@@ -197,6 +197,7 @@ AMAZON_DELIVERING_SUBJECT = [
 ]
 AMAZON_SHIPMENT_SUBJECT = [
     "Shipped",
+    "Dispatched",
     "Enviado:",
     "Spedito:",
     "Versandt:",
