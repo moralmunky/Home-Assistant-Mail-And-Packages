@@ -681,7 +681,22 @@ def test_extract_amazon_order_details():
 def test_amazon_subject_matching_itemized():
     """Test that AMAZON_SHIPMENT_SUBJECT and AMAZON_ORDERED_SUBJECT match itemized subjects."""
     shipped_subject = "Shipped 2 items: Photography Equipment, Household Supplies"
+    dispatched_subject = "Dispatched: 'Item Name' and 2 more items"
     ordered_subject = "Ordered 1 item: Pantry Staples"
 
     assert any(s.lower() in shipped_subject.lower() for s in AMAZON_SHIPMENT_SUBJECT)
+    assert any(s.lower() in dispatched_subject.lower() for s in AMAZON_SHIPMENT_SUBJECT)
     assert any(s.lower() in ordered_subject.lower() for s in AMAZON_ORDERED_SUBJECT)
+
+
+def test_extract_amazon_order_details_single_quotes():
+    """Test extracting order details with straight or curved single quotes."""
+    fallback = extract_amazon_order_details(
+        "Dispatched: 'Wireless Mouse' and 2 more items", "", None
+    )
+    assert fallback == {"name": "Wireless Mouse"}
+
+    fallback_curved = extract_amazon_order_details(
+        "Dispatched: ‘Wireless Mouse’ and 2 more items", "", None
+    )
+    assert fallback_curved == {"name": "Wireless Mouse"}

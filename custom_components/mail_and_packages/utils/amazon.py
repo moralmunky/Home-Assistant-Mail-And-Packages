@@ -204,7 +204,9 @@ AMAZON_PRODUCT_IMG_REGEX = re.compile(
     r"https://[a-z0-9.-]*(?:media-amazon|images-amazon)\.com/images/I/[^\"'\s)]+"
 )
 AMAZON_ITEM_LINE_REGEX = re.compile(r"^\* (.+)$", re.MULTILINE)
-AMAZON_SHIPPED_SUBJECT_REGEX = re.compile(r"[\u201c\"](.+?)[\u201d\"]")
+AMAZON_SHIPPED_SUBJECT_REGEX = re.compile(
+    r"[\u2018\u2019\u201c\u201d'\"](.+?)[\u2018\u2019\u201c\u201d'\"]"
+)
 
 
 def extract_amazon_order_details(
