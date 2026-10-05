@@ -48,6 +48,7 @@ def test_dpd_uk_registration():
     assert "dpd_uk_tracking" in SENSOR_DATA
     assert "dpd_uk" in SHIPPERS
     assert SENSOR_DATA["dpd_uk_delivered"] == {}
+    assert SENSOR_DATA["dpd_uk_delivering"]["today_only"] is True
     assert SENSOR_DATA["dpd_com_pl_tracking"]["pattern"] == ["\\d{13}[A-Z0-9]{1,2}"]
 
 
@@ -115,3 +116,23 @@ def test_dpd_uk_sender_addresses_are_scoped():
         "yourdelivery@dpd.co.uk",
     ]
     assert "shop@example.com" not in SENSOR_DATA["dpd_uk_delivering"]["email"]
+
+
+def test_dpd_uk_ignores_extended_search_window():
+    """DPD UK arriving-today messages are searched only for the current day."""
+    assert (
+        GenericShipper._determine_search_date(
+            "dpd_uk_delivering",
+            "22-Apr-2026",
+            "19-Apr-2026",
+        )
+        == "22-Apr-2026"
+    )
+    assert (
+        GenericShipper._determine_search_date(
+            "ups_delivering",
+            "22-Apr-2026",
+            "19-Apr-2026",
+        )
+        == "19-Apr-2026"
+    )

@@ -11,8 +11,10 @@ from custom_components.mail_and_packages.const import (
     AMAZON_DELIVERED,
     ATTR_BODY,
     ATTR_COUNT,
+    ATTR_TODAY_ONLY,
     ATTR_TRACKING,
     CONF_FORWARDING_HEADER,
+    SENSOR_DATA,
 )
 from custom_components.mail_and_packages.utils.imap import email_search
 
@@ -36,6 +38,9 @@ class GenericSearchMixin:
         since_date: str | None,
     ) -> str:
         """Determine whether to use extended search window across midnight."""
+        if SENSOR_DATA.get(sensor_type, {}).get(ATTR_TODAY_ONLY):
+            return date
+
         if (
             since_date
             and sensor_type.endswith(
