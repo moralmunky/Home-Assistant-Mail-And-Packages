@@ -46,6 +46,7 @@ ATTR_SUBJECT = "subject"
 ATTR_BODY = "body"
 ATTR_BODY_COUNT = "body_count"
 ATTR_PATTERN = "pattern"
+ATTR_NORMALIZE_WHITESPACE = "normalize_whitespace"
 ATTR_USPS_MAIL = "usps_mail"
 ATTR_UPS_IMAGE = "ups_image"
 ATTR_WALMART_IMAGE = "walmart_image"
@@ -685,6 +686,25 @@ SENSOR_DATA = {
         "pattern": [
             "\\d{13}[A-Z0-9]{1,2}",
         ],
+    },
+    # DPD UK
+    # No delivered-email pattern is registered until a genuine sample is available.
+    "dpd_uk_delivered": {},
+    "dpd_uk_delivering": {
+        "email": [
+            "yourorder@dpd.co.uk",
+            "yourdelivery@dpd.co.uk",
+        ],
+        "subject": [
+            "order will be delivered today between",
+        ],
+    },
+    "dpd_uk_packages": {},
+    "dpd_uk_tracking": {
+        "pattern": [
+            r"(?i)Your parcel:\s*(\d{4}\s+\d{4}\s+\d{3}\s+\d{3})",
+        ],
+        "normalize_whitespace": True,
     },
     # DPD
     "dpd_delivered": {
@@ -1701,6 +1721,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="dpd_com_pl_packages",
     ),
+    # DPD UK
+    "dpd_uk_delivering": SensorEntityDescription(
+        name="Mail DPD UK Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="dpd_uk_delivering",
+    ),
+    "dpd_uk_delivered": SensorEntityDescription(
+        name="Mail DPD UK Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="dpd_uk_delivered",
+    ),
+    "dpd_uk_packages": SensorEntityDescription(
+        name="Mail DPD UK Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="dpd_uk_packages",
+    ),
     # DPD
     "dpd_delivering": SensorEntityDescription(
         name="Mail DPD Delivering",
@@ -2383,6 +2422,7 @@ SHIPPERS = [
     "auspost",
     "inpost_pl",
     "dpd_com_pl",
+    "dpd_uk",
     "dpd",
     "gls",
     "dhl_parcel_nl",
