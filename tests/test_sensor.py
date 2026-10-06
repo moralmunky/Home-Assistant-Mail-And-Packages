@@ -185,6 +185,16 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     assert state
     assert state.state == "7"
 
+    state = s("mail_image_system_path")
+    assert state
+    assert state.state.endswith("mail_today.gif")
+
+    state = s("mail_image_url")
+    assert state
+    assert state.state == "mail_today.gif"
+    assert "image_url" in state.attributes
+    assert "/api/mail_and_packages/image/" in state.attributes["image_url"]
+
 
 @pytest.mark.parametrize(
     ("external_url", "internal_url", "expected_url"),
@@ -231,6 +241,11 @@ async def test_image_path_sensor_urls_legacy_external(
         coordinator,
     )
     assert sensor.native_value == expected_url
+    attrs = sensor.extra_state_attributes
+    if expected_url:
+        assert attrs["image_url"] == expected_url
+    else:
+        assert attrs == {}
 
 
 async def test_image_path_sensor_signed_url(hass):
@@ -261,8 +276,11 @@ async def test_image_path_sensor_signed_url(hass):
         coordinator,
     )
     value = sensor.native_value
-    assert value is not None
-    assert value.startswith(
+    assert value == "test_image.gif"
+    assert len(value) <= 255
+    attrs = sensor.extra_state_attributes
+    assert "image_url" in attrs
+    assert attrs["image_url"].startswith(
         "https://external.hass.url/api/mail_and_packages/image/test_entry_123/test_image.gif?authSig="
     )
 

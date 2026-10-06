@@ -14,7 +14,11 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_RESOURCES
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_RESOURCES,
+    MAX_LENGTH_STATE_STATE,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -158,7 +162,7 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
         return False
 
     @property
-    def extra_state_attributes(self) -> str | None:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return device specific state attributes."""
         attr = {}
         data = self.coordinator.data
@@ -275,25 +279,47 @@ class ImagePathSensors(CoordinatorEntity, RestoreSensor):
             _LOGGER.debug("Updating grid image path to: %s", path)
             the_path = self.hass.config.path(path, grid_image)
         elif self.type == "usps_mail_image_url" and image:
-            url = self._get_base_url()
-            if url:
-                if self.coordinator.config.get(CONF_ALLOW_EXTERNAL):
-                    the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
-                else:
-                    path_to_sign = (
-                        f"/api/mail_and_packages/image/{self._unique_id}/{image}"
-                    )
-                    signed_path = async_sign_path(
-                        self.hass,
-                        path_to_sign,
-                        SIGNED_IMAGE_URL_TTL,
-                    )
-                    the_path = f"{url.rstrip('/')}{signed_path}"
+            the_path = self._build_image_url(image)
 
         if the_path is not None:
-            self._attr_native_value = the_path
+            if len(the_path) > MAX_LENGTH_STATE_STATE:
+                self._attr_native_value = image or the_path[:MAX_LENGTH_STATE_STATE]
+            else:
+                self._attr_native_value = the_path
 
         return getattr(self, "_attr_native_value", None)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return device specific state attributes."""
+        attr: dict[str, Any] = {}
+        if self.type == "usps_mail_image_url":
+            image = (
+                self.coordinator.data.get(ATTR_USPS_IMAGE)
+                if self.coordinator.data
+                else None
+            )
+            if image and (image_url := self._build_image_url(image)):
+                attr["image_url"] = image_url
+
+        return attr
+
+    def _build_image_url(self, image: str) -> str | None:
+        """Construct the full image URL (signed or legacy)."""
+        url = self._get_base_url()
+        if not url:
+            return None
+
+        if self.coordinator.config.get(CONF_ALLOW_EXTERNAL):
+            return f"{url.rstrip('/')}/local/mail_and_packages/{image}"
+
+        path_to_sign = f"/api/mail_and_packages/image/{self._unique_id}/{image}"
+        signed_path = async_sign_path(
+            self.hass,
+            path_to_sign,
+            SIGNED_IMAGE_URL_TTL,
+        )
+        return f"{url.rstrip('/')}{signed_path}"
 
     def _get_base_url(self) -> str | None:
         """Return the best available base URL for building image links."""
