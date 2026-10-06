@@ -15,6 +15,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_entry_oauth2_flow
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import (
     ConfigEntryAuthFailed,
     DataUpdateCoordinator,
@@ -258,10 +259,30 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
         # Post-process external images
         if config.get(CONF_ALLOW_EXTERNAL):
+            _LOGGER.warning(
+                "The 'allow_external' option is deprecated and will be removed in a future release. "
+                "Images are now served securely via Home Assistant API endpoints"
+            )
+            ir.async_create_issue(
+                hass,
+                const.DOMAIN,
+                "deprecated_allow_external",
+                is_fixable=True,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="deprecated_allow_external",
+                learn_more_url="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/USPS-Informed-Delivery-Image",
+                data={"entry_id": self.config_entry.entry_id}
+                if self.config_entry
+                else None,
+            )
             try:
                 await hass.async_add_executor_job(copy_images, hass, config)
             except (OSError, ValueError) as err:
                 _LOGGER.error("Problem creating: %s", err)
+        else:
+            issue_registry = ir.async_get(hass)
+            if (const.DOMAIN, "deprecated_allow_external") in issue_registry.issues:
+                ir.async_delete_issue(hass, const.DOMAIN, "deprecated_allow_external")
 
         return data
 
