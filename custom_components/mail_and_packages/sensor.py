@@ -14,7 +14,11 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_RESOURCES
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_RESOURCES,
+    MAX_LENGTH_STATE_STATE,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -291,9 +295,42 @@ class ImagePathSensors(CoordinatorEntity, RestoreSensor):
                     the_path = f"{url.rstrip('/')}{signed_path}"
 
         if the_path is not None:
-            self._attr_native_value = the_path
+            if len(the_path) > MAX_LENGTH_STATE_STATE:
+                self._attr_native_value = image or the_path[:MAX_LENGTH_STATE_STATE]
+            else:
+                self._attr_native_value = the_path
 
         return getattr(self, "_attr_native_value", None)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return device specific state attributes."""
+        attr: dict[str, Any] = {}
+        if self.type == "usps_mail_image_url":
+            # Ensure native_value has been evaluated
+            _ = self.native_value
+            if (
+                image := (
+                    self.coordinator.data.get(ATTR_USPS_IMAGE)
+                    if self.coordinator.data
+                    else None
+                )
+            ) and (url := self._get_base_url()):
+                if self.coordinator.config.get(CONF_ALLOW_EXTERNAL):
+                    full_url = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
+                else:
+                    path_to_sign = (
+                        f"/api/mail_and_packages/image/{self._unique_id}/{image}"
+                    )
+                    signed_path = async_sign_path(
+                        self.hass,
+                        path_to_sign,
+                        SIGNED_IMAGE_URL_TTL,
+                    )
+                    full_url = f"{url.rstrip('/')}{signed_path}"
+                attr["image_url"] = full_url
+
+        return attr
 
     def _get_base_url(self) -> str | None:
         """Return the best available base URL for building image links."""
