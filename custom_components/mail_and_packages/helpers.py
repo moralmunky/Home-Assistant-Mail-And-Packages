@@ -4,13 +4,9 @@ from __future__ import annotations
 
 import datetime
 import logging
-import os
-from pathlib import Path
-from shutil import copyfile
 from typing import Any
 
 from aioimaplib import IMAP4_SSL
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import (
@@ -26,9 +22,6 @@ from .const import (
 )
 from .shippers import SHIPPER_REGISTRY
 from .shippers.usps import USPSShipper
-from .utils.image import (
-    default_image_path,
-)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -110,22 +103,3 @@ def get_resources(hass: HomeAssistant | None = None) -> dict:
     resources = {k: v.name for k, v in SENSOR_TYPES.items()}
     resources.update({k: v.name for k, v in BINARY_SENSORS.items() if v.selectable})
     return resources
-
-
-def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
-    """Copy processed images to www directory."""
-    image_path = Path(hass.config.path(default_image_path(hass, config)))
-    www_path = Path(hass.config.path()) / "www" / "mail_and_packages"
-
-    if not www_path.is_dir():
-        www_path.mkdir(parents=True, exist_ok=True)
-
-    for root, _, files in os.walk(image_path):
-        for file in files:
-            if file.endswith((".gif", ".jpg", ".png")):
-                src = Path(root) / file
-                dest = www_path / file
-                try:
-                    copyfile(str(src), str(dest))
-                except OSError as err:
-                    _LOGGER.error("Error copying image: %s", err)

@@ -237,7 +237,7 @@ async def test_migration_from_version_14_to_18():
     args, kwargs = mock_hass.config_entries.async_update_entry.call_args
     assert kwargs["data"]["imap_security"] == "SSL"
     assert kwargs["data"]["auth_type"] == "password"
-    assert kwargs["version"] == 20
+    assert kwargs["version"] == 21
 
 
 async def test_migration_from_version_16_to_18():
@@ -262,7 +262,7 @@ async def test_migration_from_version_16_to_18():
     assert "auth" not in kwargs["data"]
     assert kwargs["data"]["token"] == "test_token"
     assert kwargs["data"]["access_token"] == "test_access_token"
-    assert kwargs["version"] == 20
+    assert kwargs["version"] == 21
 
 
 async def test_setup_entry_coordinator_failure():
@@ -788,33 +788,6 @@ async def test_process_emails_folder_select_failure(hass):
 
 
 @pytest.mark.asyncio
-async def test_process_emails_copy_images_error(hass):
-    """Test process_emails when copy_images raises an error."""
-    mock_config = FAKE_CONFIG_DATA.copy()
-    mock_config["allow_external"] = True
-
-    with (
-        patch("homeassistant.helpers.frame.report_usage"),
-        patch(
-            "custom_components.mail_and_packages.coordinator.login",
-            return_value=AsyncMock(),
-        ),
-        patch(
-            "custom_components.mail_and_packages.coordinator.selectfolder",
-            return_value=True,
-        ),
-        patch(
-            "custom_components.mail_and_packages.coordinator.copy_images",
-            side_effect=OSError("Disk full"),
-        ),
-    ):
-        coordinator = MailDataUpdateCoordinator(hass, mock_config)
-        # Should not raise, just log error
-        result = await coordinator.process_emails(hass, mock_config)
-        assert result is not None
-
-
-@pytest.mark.asyncio
 async def test_coordinator_binary_sensor_custom_images(hass):
     """Test coordinator binary sensor update with custom image settings."""
     mock_config = FAKE_CONFIG_DATA.copy()
@@ -1022,6 +995,35 @@ async def test_migrate_moves_missing_options_from_data():
     _, kwargs = mock_hass.config_entries.async_update_entry.call_args
     assert CONF_AMAZON_DOMAIN not in kwargs["data"]
     assert kwargs["options"][CONF_AMAZON_DOMAIN] == "amazon.de"
+
+
+@pytest.mark.asyncio
+async def test_migrate_from_version_20_to_21():
+    """Test migration from version 20 to 21 removes allow_external from data and options."""
+    mock_entry = MagicMock()
+    mock_entry.version = 20
+    mock_entry.data = {
+        CONF_HOST: "imap.test.email",
+        CONF_PORT: 993,
+        CONF_USERNAME: "test@test.email",
+        CONF_PASSWORD: "password",
+        CONF_IMAP_SECURITY: "SSL",
+        CONF_VERIFY_SSL: True,
+        CONF_AUTH_TYPE: "password",
+        "allow_external": True,
+    }
+    mock_entry.options = {
+        "allow_external": True,
+        CONF_AMAZON_DOMAIN: "amazon.com",
+    }
+    mock_hass = MagicMock()
+
+    result = await async_migrate_entry(mock_hass, mock_entry)
+    assert result is True
+    _, kwargs = mock_hass.config_entries.async_update_entry.call_args
+    assert "allow_external" not in kwargs["data"]
+    assert "allow_external" not in kwargs["options"]
+    assert kwargs["version"] == 21
 
 
 @pytest.mark.asyncio

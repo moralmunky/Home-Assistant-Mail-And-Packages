@@ -28,7 +28,6 @@
           "image_security": "Véletlen képfájlnév",
           "imap_timeout": "A kapcsolat időtúllépése előtti idő másodpercben (másodperc, minimum 10)",
           "generate_mp4": "Készítsen mp4-et a képekből",
-          "allow_external": "Kép létrehozása értesítési alkalmazásokhoz (Deprecated)",
           "custom_img": "Használjon egyéni USPS 'nincs posta' képet?",
           "amazon_custom_img": "Használjon egyéni Amazon 'nincs szállítás' képet?",
           "ups_custom_img": "Használjon egyéni UPS 'nincs szállítás' képet?",
@@ -73,7 +72,6 @@
           "generate_mp4": "Készítsen mp4-et a képekből",
           "resources": "Érzékelők listája",
           "imap_timeout": "A kapcsolat időtúllépése előtti idő másodpercben (másodperc, minimum 10)",
-          "allow_external": "Kép létrehozása értesítési alkalmazásokhoz (Deprecated)",
           "custom_img": "Használjon egyéni USPS 'nincs posta' képet?",
           "amazon_custom_img": "Használjon egyéni Amazon 'nincs szállítás' képet?",
           "ups_custom_img": "Használjon egyéni UPS 'nincs szállítás' képet?",
@@ -231,17 +229,6 @@
           }
         }
       }
-    },
-    "deprecated_allow_external": {
-      "title": "External image copying is deprecated",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Disable External Image Copying",
-            "description": "The 'Create image for notification apps' (`allow_external`) setting is deprecated and will be removed in a future release. Images are now served securely via Home Assistant API endpoints using signed URLs without copying files to `/config/www/mail_and_packages/`.\n\nClick Submit to automatically disable this deprecated option on your configuration."
-          }
-        }
-      }
     }
   },
   "options": {
@@ -259,7 +246,6 @@
           "image_security": "Véletlen képfájlnév",
           "imap_timeout": "A kapcsolat időtúllépése előtti idő másodpercben (másodperc, minimum 10)",
           "generate_mp4": "Készítsen mp4-et a képekből",
-          "allow_external": "Kép létrehozása értesítési alkalmazásokhoz (Deprecated)",
           "usps_placeholder": "Tartalmazza az USPS kép nélküli helyőrzőjét a GIF-ben?",
           "custom_img": "Használjon egyéni USPS 'nincs posta' képet?",
           "amazon_custom_img": "Használjon egyéni Amazon 'nincs szállítás' képet?",
@@ -270,9 +256,7 @@
           "generate_grid": "Kép rács létrehozása LLM látásmodellekhez",
           "allow_forwarded_emails": "Engedélyezze a továbbított e-maileket a szolgáltatás alapértelmezett értékén kívül (pl. no-reply@usps.com)"
         },
-        "data_description": {
-          "allow_external": "Deprecated: Images are now served securely via Home Assistant API endpoints using signed URLs. Copying images to www/mail_and_packages/ will be removed in a future release."
-        }
+        "data_description": {}
       },
       "options_3": {
         "title": "Levelek és csomagok (3. lépés a 3-ból)",

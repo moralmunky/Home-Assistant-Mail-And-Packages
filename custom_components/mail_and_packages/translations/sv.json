@@ -28,7 +28,6 @@
           "image_security": "Slumpmässig bildfilnamn",
           "imap_timeout": "Tid i sekunder innan anslutningen kopplas från (sekunder, minst 10)",
           "generate_mp4": "Skapa mp4 från bilder",
-          "allow_external": "Skapa bild för notifikationsappar (Deprecated)",
           "custom_img": "Använd anpassad USPS 'inget post' bild?",
           "amazon_custom_img": "Använd anpassad Amazon 'ingen leverans' bild?",
           "ups_custom_img": "Använd anpassad UPS 'ingen leverans' bild?",
@@ -73,7 +72,6 @@
           "generate_mp4": "Skapa mp4 från bilder",
           "resources": "Sensorlista",
           "imap_timeout": "Tid i sekunder innan anslutningen kopplas från (sekunder, minst 10)",
-          "allow_external": "Skapa bild för notifikationsappar (Deprecated)",
           "custom_img": "Använd anpassad USPS 'inget post' bild?",
           "amazon_custom_img": "Använd anpassad Amazon 'ingen leverans' bild?",
           "ups_custom_img": "Använd anpassad UPS 'ingen leverans' bild?",
@@ -231,17 +229,6 @@
           }
         }
       }
-    },
-    "deprecated_allow_external": {
-      "title": "External image copying is deprecated",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Disable External Image Copying",
-            "description": "The 'Create image for notification apps' (`allow_external`) setting is deprecated and will be removed in a future release. Images are now served securely via Home Assistant API endpoints using signed URLs without copying files to `/config/www/mail_and_packages/`.\n\nClick Submit to automatically disable this deprecated option on your configuration."
-          }
-        }
-      }
     }
   },
   "options": {
@@ -259,7 +246,6 @@
           "image_security": "Slumpmässig bildfilnamn",
           "imap_timeout": "Tid i sekunder innan anslutningen kopplas från (sekunder, minst 10)",
           "generate_mp4": "Skapa mp4 från bilder",
-          "allow_external": "Skapa bild för notifikationsappar (Deprecated)",
           "usps_placeholder": "Inkludera USPS platshållare utan bild i GIF?",
           "custom_img": "Använd anpassad USPS 'inget post' bild?",
           "amazon_custom_img": "Använd anpassad Amazon 'ingen leverans' bild?",
@@ -270,9 +256,7 @@
           "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller",
           "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänsts standardvärde (t.ex. no-reply@usps.com)"
         },
-        "data_description": {
-          "allow_external": "Deprecated: Images are now served securely via Home Assistant API endpoints using signed URLs. Copying images to www/mail_and_packages/ will be removed in a future release."
-        }
+        "data_description": {}
       },
       "options_3": {
         "title": "Post och paket (Steg 3 av 3)",

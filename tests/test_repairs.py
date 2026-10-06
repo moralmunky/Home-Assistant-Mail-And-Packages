@@ -17,7 +17,6 @@ from custom_components.mail_and_packages.const import (
 from custom_components.mail_and_packages.coordinator import MailDataUpdateCoordinator
 from custom_components.mail_and_packages.repairs import (
     AuthRepairFlow,
-    DeprecatedAllowExternalRepairFlow,
     async_create_fix_flow,
 )
 from custom_components.mail_and_packages.sensor import ImagePathSensors, PackagesSensor
@@ -75,69 +74,6 @@ async def test_auth_repair_flow(hass: HomeAssistant):
         result = await flow_no_id.async_step_confirm(user_input={})
         assert result["type"] == "create_entry"
         mock_entry2.async_start_reauth.assert_called_once_with(hass)
-
-
-@pytest.mark.asyncio
-async def test_deprecated_allow_external_repair_flow(hass: HomeAssistant):
-    """Test the deprecated allow_external repair flow."""
-    flow = await async_create_fix_flow(
-        hass, "deprecated_allow_external", {"entry_id": "test_entry"}
-    )
-    assert isinstance(flow, DeprecatedAllowExternalRepairFlow)
-    assert flow.entry_id == "test_entry"
-
-    flow.hass = hass
-
-    # Test step_init
-    result = await flow.async_step_init()
-    assert result["type"] == "form"
-    assert result["step_id"] == "confirm"
-
-    # Test step_confirm show form when user_input is None
-    result = await flow.async_step_confirm(user_input=None)
-    assert result["type"] == "form"
-    assert result["step_id"] == "confirm"
-
-    # Test step_confirm submit with options
-    mock_entry = MagicMock()
-    mock_entry.options = {"allow_external": True, "scan_interval": 5}
-    mock_entry.data = {}
-
-    with (
-        patch.object(
-            hass.config_entries, "async_get_entry", return_value=mock_entry
-        ) as mock_get_entry,
-        patch.object(hass.config_entries, "async_update_entry") as mock_update_entry,
-    ):
-        result = await flow.async_step_confirm(user_input={})
-        assert result["type"] == "create_entry"
-        mock_get_entry.assert_called_once_with("test_entry")
-        mock_update_entry.assert_called_once_with(
-            mock_entry,
-            options={"allow_external": False, "scan_interval": 5},
-        )
-
-    # Test step_confirm submit with data fallback
-    mock_entry_data = MagicMock()
-    mock_entry_data.options = {}
-    mock_entry_data.data = {"allow_external": True, "scan_interval": 5}
-
-    flow_fallback = DeprecatedAllowExternalRepairFlow(entry_id=None)
-    flow_fallback.hass = hass
-
-    with (
-        patch.object(
-            hass.config_entries, "async_entries", return_value=[mock_entry_data]
-        ),
-        patch.object(hass.config_entries, "async_get_entry", return_value=None),
-        patch.object(hass.config_entries, "async_update_entry") as mock_update_entry2,
-    ):
-        result = await flow_fallback.async_step_confirm(user_input={})
-        assert result["type"] == "create_entry"
-        mock_update_entry2.assert_called_once_with(
-            mock_entry_data,
-            data={"allow_external": False, "scan_interval": 5},
-        )
 
 
 @pytest.mark.asyncio

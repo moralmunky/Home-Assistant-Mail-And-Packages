@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.mail_and_packages.helpers import (
-    copy_images,
     fetch,
     get_count,
     get_items,
@@ -97,49 +96,3 @@ def test_get_resources():
     """Test get_resources."""
     resources = get_resources()
     assert "amazon_packages" in resources
-
-
-def test_copy_images_mkdir(hass):
-    """Test copy_images creating the directory."""
-    config = MagicMock()
-    config.get.return_value = "test_storage/"
-
-    with (
-        patch("custom_components.mail_and_packages.helpers.Path") as mock_path,
-        patch("custom_components.mail_and_packages.helpers.os.walk", return_value=[]),
-    ):
-        mock_path_obj = MagicMock()
-        # Mocking Path() calls
-        mock_path.return_value = mock_path_obj
-        mock_path_obj.__truediv__.return_value = mock_path_obj
-        mock_path_obj.is_dir.return_value = False
-
-        copy_images(hass, config)
-        assert mock_path_obj.mkdir.called
-
-
-@patch("custom_components.mail_and_packages.helpers.Path")
-@patch("custom_components.mail_and_packages.helpers.copyfile")
-@patch("custom_components.mail_and_packages.helpers.os.walk")
-def test_copy_images_logic(mock_walk, mock_copy, mock_path, hass):
-    """Test copy_images logic with directory creation and OSError."""
-    config = MagicMock()
-    config.get.return_value = "test_storage/"
-
-    mock_path_obj = MagicMock()
-    mock_path.return_value = mock_path_obj
-    mock_path_obj.__truediv__.return_value = mock_path_obj
-
-    # mkdir path
-    mock_path_obj.is_dir.return_value = False
-
-    # walk path
-    mock_walk.return_value = [("/src", [], ["image.jpg"])]
-
-    # copyfile path triggers OSError
-    mock_copy.side_effect = OSError("Copy failed")
-
-    copy_images(hass, config)
-
-    assert mock_path_obj.mkdir.called
-    assert mock_copy.called

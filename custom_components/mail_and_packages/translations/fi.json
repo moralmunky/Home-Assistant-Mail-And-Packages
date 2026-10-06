@@ -28,7 +28,6 @@
           "image_security": "Satunnainen kuvatiedostonimi",
           "imap_timeout": "Aika sekunneissa ennen yhteyden aikakatkaisua (sekuntia, vähintään 10)",
           "generate_mp4": "Luo mp4 kuvista",
-          "allow_external": "Luo kuva ilmoitussovelluksille (Deprecated)",
           "custom_img": "Käytä mukautettua USPS 'ei postia' kuvaa?",
           "amazon_custom_img": "Käytä mukautettua Amazon 'ei toimituksia' kuvaa?",
           "ups_custom_img": "Käytä mukautettua UPS 'ei toimituksia' kuvaa?",
@@ -73,7 +72,6 @@
           "generate_mp4": "Luo mp4 kuvista",
           "resources": "Anturiluettelo",
           "imap_timeout": "Aika sekunneissa ennen yhteyden aikakatkaisua (sekuntia, vähintään 10)",
-          "allow_external": "Luo kuva ilmoitussovelluksille (Deprecated)",
           "custom_img": "Käytä mukautettua USPS 'ei postia' kuvaa?",
           "amazon_custom_img": "Käytä mukautettua Amazon 'ei toimituksia' kuvaa?",
           "ups_custom_img": "Käytä mukautettua UPS 'ei toimituksia' kuvaa?",
@@ -231,17 +229,6 @@
           }
         }
       }
-    },
-    "deprecated_allow_external": {
-      "title": "External image copying is deprecated",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Disable External Image Copying",
-            "description": "The 'Create image for notification apps' (`allow_external`) setting is deprecated and will be removed in a future release. Images are now served securely via Home Assistant API endpoints using signed URLs without copying files to `/config/www/mail_and_packages/`.\n\nClick Submit to automatically disable this deprecated option on your configuration."
-          }
-        }
-      }
     }
   },
   "options": {
@@ -259,7 +246,6 @@
           "image_security": "Satunnainen kuvatiedostonimi",
           "imap_timeout": "Aika sekunneissa ennen yhteyden aikakatkaisua (sekuntia, vähintään 10)",
           "generate_mp4": "Luo mp4 kuvista",
-          "allow_external": "Luo kuva ilmoitussovelluksille (Deprecated)",
           "usps_placeholder": "Sisällytä USPS:n ei-kuvaa -paikkamerkki GIF-tiedostoon?",
           "custom_img": "Käytä mukautettua USPS 'ei postia' kuvaa?",
           "amazon_custom_img": "Käytä mukautettua Amazon 'ei toimituksia' kuvaa?",
@@ -270,9 +256,7 @@
           "generate_grid": "Luo kuvaverkko LLM-näkömalleille",
           "allow_forwarded_emails": "Salli edelleenlähetetyt sähköpostit palvelun oletusarvon lisäksi (esim. no-reply@usps.com)"
         },
-        "data_description": {
-          "allow_external": "Deprecated: Images are now served securely via Home Assistant API endpoints using signed URLs. Copying images to www/mail_and_packages/ will be removed in a future release."
-        }
+        "data_description": {}
       },
       "options_3": {
         "title": "Posti ja paketit (vaihe 3/3)",

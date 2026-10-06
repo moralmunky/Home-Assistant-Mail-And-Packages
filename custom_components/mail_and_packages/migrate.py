@@ -70,7 +70,7 @@ async def async_migrate_entry(
     updated_config = {**config_entry.data}
     updated_options = {**config_entry.options}
 
-    _migrate_legacy_versions(updated_config, version, config_entry)
+    _migrate_legacy_versions(updated_config, updated_options, version, config_entry)
     _apply_default_config(updated_config)
 
     # Ensure non-IMAP options are removed from data and moved to options
@@ -103,12 +103,13 @@ async def async_migrate_entry(
     return True
 
 
-def _migrate_legacy_versions(updated_config, version, config_entry):
+def _migrate_legacy_versions(updated_config, updated_options, version, config_entry):
     """Handle migration of legacy versions."""
     _migrate_versions_1_to_3(updated_config, version, config_entry)
     _migrate_versions_4_to_16(updated_config, version)
     _migrate_version_17(updated_config, version)
     _migrate_version_18(updated_config, version)
+    _migrate_version_21(updated_config, updated_options, version)
 
 
 def _migrate_versions_1_to_3(updated_config, version, config_entry):
@@ -216,6 +217,13 @@ def _migrate_version_18(updated_config, version):
                 updated_config[CONF_FOLDER] = [
                     f.strip('"') for f in folder if isinstance(f, str)
                 ]
+
+
+def _migrate_version_21(updated_config, updated_options, version):
+    """Handle migration for version 21 (removal of allow_external)."""
+    if version <= 20:
+        updated_config.pop("allow_external", None)
+        updated_options.pop("allow_external", None)
 
 
 def _apply_default_config(updated_config):

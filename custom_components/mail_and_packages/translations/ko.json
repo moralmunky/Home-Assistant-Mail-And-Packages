@@ -28,7 +28,6 @@
           "image_security": "임의의 이미지 파일 이름",
           "imap_timeout": "연결 시간 초과 전 시간(초, 최소 10)",
           "generate_mp4": "이미지에서 mp4 만들기",
-          "allow_external": "알림 앱용 이미지 생성 (Deprecated)",
           "custom_img": "사용자 정의 USPS '우편 없음' 이미지를 사용하시겠습니까?",
           "amazon_custom_img": "사용자 정의 Amazon '배송 없음' 이미지를 사용하시겠습니까?",
           "ups_custom_img": "사용자 정의 UPS '배송 없음' 이미지를 사용하시겠습니까?",
@@ -73,7 +72,6 @@
           "generate_mp4": "이미지에서 mp4 만들기",
           "resources": "센서 목록",
           "imap_timeout": "연결 시간 초과 전 시간(초, 최소 10)",
-          "allow_external": "알림 앱용 이미지 생성 (Deprecated)",
           "custom_img": "사용자 정의 USPS '우편 없음' 이미지를 사용하시겠습니까?",
           "amazon_custom_img": "사용자 정의 Amazon '배송 없음' 이미지를 사용하시겠습니까?",
           "ups_custom_img": "사용자 정의 UPS '배송 없음' 이미지를 사용하시겠습니까?",
@@ -231,17 +229,6 @@
           }
         }
       }
-    },
-    "deprecated_allow_external": {
-      "title": "External image copying is deprecated",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Disable External Image Copying",
-            "description": "The 'Create image for notification apps' (`allow_external`) setting is deprecated and will be removed in a future release. Images are now served securely via Home Assistant API endpoints using signed URLs without copying files to `/config/www/mail_and_packages/`.\n\nClick Submit to automatically disable this deprecated option on your configuration."
-          }
-        }
-      }
     }
   },
   "options": {
@@ -259,7 +246,6 @@
           "image_security": "임의의 이미지 파일 이름",
           "imap_timeout": "연결 시간 초과 전 시간(초, 최소 10)",
           "generate_mp4": "이미지에서 mp4 만들기",
-          "allow_external": "알림 앱용 이미지 생성 (Deprecated)",
           "usps_placeholder": "GIF에 USPS 이미지 없음 자리 표시자를 포함하시겠습니까?",
           "custom_img": "사용자 정의 USPS '우편 없음' 이미지를 사용하시겠습니까?",
           "amazon_custom_img": "사용자 정의 Amazon '배송 없음' 이미지를 사용하시겠습니까?",
@@ -270,9 +256,7 @@
           "generate_grid": "LLM 비전 모델을 위한 이미지 그리드 생성",
           "allow_forwarded_emails": "서비스 기본값 외에 전달된 이메일 허용 (예: no-reply@usps.com)"
         },
-        "data_description": {
-          "allow_external": "Deprecated: Images are now served securely via Home Assistant API endpoints using signed URLs. Copying images to www/mail_and_packages/ will be removed in a future release."
-        }
+        "data_description": {}
       },
       "options_3": {
         "title": "우편 및 패키지 (3단계 중 3단계)",

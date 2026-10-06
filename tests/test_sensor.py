@@ -17,7 +17,6 @@ from custom_components.mail_and_packages.const import (
     AMAZON_ORDER_DETAILS,
     ATTR_ORDER,
     ATTR_ORDER_DETAILS,
-    CONF_ALLOW_EXTERNAL,
     DOMAIN,
 )
 from custom_components.mail_and_packages.sensor import ImagePathSensors, PackagesSensor
@@ -197,59 +196,17 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
 
 
 @pytest.mark.parametrize(
-    ("external_url", "internal_url", "expected_url"),
+    ("external_url", "internal_url", "expected_available"),
     [
-        (
-            "https://external.hass.url",
-            None,
-            "https://external.hass.url/local/mail_and_packages/test_image.gif",
-        ),
-        (
-            None,
-            "http://internal.hass.url",
-            "http://internal.hass.url/local/mail_and_packages/test_image.gif",
-        ),
-        (None, None, None),
+        ("https://external.hass.url", None, True),
+        (None, "http://internal.hass.url", True),
+        (None, None, False),
     ],
 )
-async def test_image_path_sensor_urls_legacy_external(
-    hass, external_url, internal_url, expected_url
+async def test_image_path_sensor_urls(
+    hass, external_url, internal_url, expected_available
 ):
-    """Test ImagePathSensors URL generation logic when allow_external is True."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        data={
-            CONF_HOST: "imap.test.email",
-            CONF_PORT: 993,
-            CONF_USERNAME: "test@test.com",
-            CONF_PASSWORD: "password",
-        },
-    )
-
-    # Mock coordinator data with CONF_ALLOW_EXTERNAL: True
-    coordinator = MagicMock()
-    coordinator.config = {CONF_ALLOW_EXTERNAL: True}
-    coordinator.data = {"usps_image": "test_image.gif", "image_path": "images/"}
-
-    hass.config.external_url = external_url
-    hass.config.internal_url = internal_url
-
-    sensor = ImagePathSensors(
-        hass,
-        entry,
-        MagicMock(key="usps_mail_image_url", name="Mail Image URL"),
-        coordinator,
-    )
-    assert sensor.native_value == expected_url
-    attrs = sensor.extra_state_attributes
-    if expected_url:
-        assert attrs["image_url"] == expected_url
-    else:
-        assert attrs == {}
-
-
-async def test_image_path_sensor_signed_url(hass):
-    """Test ImagePathSensors signed URL generation when allow_external is False."""
+    """Test ImagePathSensors signed URL generation."""
     hass.data[STORAGE_KEY] = "test_refresh_token"
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -263,11 +220,11 @@ async def test_image_path_sensor_signed_url(hass):
     )
 
     coordinator = MagicMock()
-    coordinator.config = {CONF_ALLOW_EXTERNAL: False}
+    coordinator.config = {}
     coordinator.data = {"usps_image": "test_image.gif", "image_path": "images/"}
 
-    hass.config.external_url = "https://external.hass.url"
-    hass.config.internal_url = None
+    hass.config.external_url = external_url
+    hass.config.internal_url = internal_url
 
     sensor = ImagePathSensors(
         hass,
@@ -275,14 +232,16 @@ async def test_image_path_sensor_signed_url(hass):
         MagicMock(key="usps_mail_image_url", name="Mail Image URL"),
         coordinator,
     )
-    value = sensor.native_value
-    assert value == "test_image.gif"
-    assert len(value) <= 255
-    attrs = sensor.extra_state_attributes
-    assert "image_url" in attrs
-    assert attrs["image_url"].startswith(
-        "https://external.hass.url/api/mail_and_packages/image/test_entry_123/test_image.gif?authSig="
-    )
+    if expected_available:
+        assert sensor.native_value == "test_image.gif"
+        assert "image_url" in sensor.extra_state_attributes
+        base = external_url or internal_url
+        assert sensor.extra_state_attributes["image_url"].startswith(
+            f"{base}/api/mail_and_packages/image/test_entry_123/test_image.gif?authSig="
+        )
+    else:
+        assert sensor.native_value is None
+        assert sensor.extra_state_attributes == {}
 
 
 async def test_image_path_sensor_url_ha_cloud(hass):
