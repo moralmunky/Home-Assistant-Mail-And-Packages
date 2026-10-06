@@ -31,7 +31,7 @@
           "resources": "Seznam senzorů",
           "imap_timeout": "Čas v sekundách před vypršením časového limitu připojení (sekund, minimum 10)",
           "amazon_fwds": "Amazon předal e-mailové adresy",
-          "allow_external": "Vytvořte obrázek pro oznamovací aplikaci",
+          "allow_external": "Vytvořte obrázek pro oznamovací aplikaci (Deprecated)",
           "amazon_days": "Dny zpět ke kontrole e-mailů Amazon",
           "custom_img": "Použít vlastní obrázek USPS 'bez pošty'?",
           "amazon_custom_img": "Použít vlastní obrázek Amazon 'bez dodání'?",
@@ -147,7 +147,7 @@
           "generate_mp4": "Create mp4 from images",
           "resources": "Sensors List",
           "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
-          "allow_external": "Create image for notification apps",
+          "allow_external": "Create image for notification apps (Deprecated)",
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
           "ups_custom_img": "Use custom 'no UPS delivery' image?",
@@ -220,7 +220,7 @@
           "image_security": "Random Image Filename",
           "imap_timeout": "Time in seconds before connection timeout (seconds, minimum 10)",
           "generate_mp4": "Create mp4 from images",
-          "allow_external": "Create image for notification apps",
+          "allow_external": "Create image for notification apps (Deprecated)",
           "usps_placeholder": "Zahrnout zástupný symbol USPS bez obrázku do GIF?",
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
@@ -230,6 +230,9 @@
           "generic_custom_img": "Použít vlastní obrázek obecný 'bez dodání'?",
           "generate_grid": "Create image grid for LLM vision models",
           "allow_forwarded_emails": "Allow forwarded emails in addition to a service's default (e.g. no-reply@usps.com)"
+        },
+        "data_description": {
+          "allow_external": "Deprecated: Images are now served securely via Home Assistant API endpoints using signed URLs. Copying images to www/mail_and_packages/ will be removed in a future release."
         }
       },
       "options_3": {
@@ -308,6 +311,17 @@
           "confirm": {
             "title": "Znovu ověřit poštovní server",
             "description": "Ověření k vašemu poštovnímu serveru IMAP selhalo. Kliknutím na odeslat spustíte proces opětovného ověření."
+          }
+        }
+      }
+    },
+    "deprecated_allow_external": {
+      "title": "External image copying is deprecated",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Disable External Image Copying",
+            "description": "The 'Create image for notification apps' (`allow_external`) setting is deprecated and will be removed in a future release. Images are now served securely via Home Assistant API endpoints using signed URLs without copying files to `/config/www/mail_and_packages/`.\n\nClick Submit to automatically disable this deprecated option on your configuration."
           }
         }
       }

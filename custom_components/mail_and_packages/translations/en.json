@@ -48,7 +48,7 @@
           "image_security": "Random Image Filename",
           "imap_timeout": "Mailbox scan time limit (seconds, minimum 10)",
           "generate_mp4": "Create mp4 from images",
-          "allow_external": "Create image for notification apps",
+          "allow_external": "Create image for notification apps (Deprecated)",
           "usps_placeholder": "Include USPS no-image placeholder in GIF?",
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
@@ -119,7 +119,7 @@
           "generate_mp4": "Create mp4 from images",
           "resources": "Sensors List",
           "imap_timeout": "Mailbox scan time limit (seconds, minimum 10)",
-          "allow_external": "Create image for notification apps",
+          "allow_external": "Create image for notification apps (Deprecated)",
           "usps_placeholder": "Include USPS no-image placeholder in GIF?",
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
@@ -223,7 +223,7 @@
           "image_security": "Random Image Filename",
           "imap_timeout": "Mailbox scan time limit (seconds, minimum 10)",
           "generate_mp4": "Create mp4 from images",
-          "allow_external": "Create image for notification apps",
+          "allow_external": "Create image for notification apps (Deprecated)",
           "usps_placeholder": "Include USPS no-image placeholder in GIF?",
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
@@ -238,7 +238,8 @@
         },
         "data_description": {
           "imap_timeout": "Covers the entire scan — login plus every per-carrier IMAP search — not just connecting. Raise this if large mailboxes time out; lower it to fail faster.",
-          "exchange_mode": "Enable compatibility workarounds for Microsoft Exchange/Outlook IMAP servers (avoids nested parentheses in search queries and limits subject batching)."
+          "exchange_mode": "Enable compatibility workarounds for Microsoft Exchange/Outlook IMAP servers (avoids nested parentheses in search queries and limits subject batching).",
+          "allow_external": "Deprecated: Images are now served securely via Home Assistant API endpoints using signed URLs. Copying images to www/mail_and_packages/ will be removed in a future release."
         }
       },
       "options_3": {
@@ -317,6 +318,17 @@
           "confirm": {
             "title": "Re-authenticate Mail Server",
             "description": "Authentication to your IMAP mail server has failed. Click submit to start the re-authentication flow."
+          }
+        }
+      }
+    },
+    "deprecated_allow_external": {
+      "title": "External image copying is deprecated",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Disable External Image Copying",
+            "description": "The 'Create image for notification apps' (`allow_external`) setting is deprecated and will be removed in a future release. Images are now served securely via Home Assistant API endpoints using signed URLs without copying files to `/config/www/mail_and_packages/`.\n\nClick Submit to automatically disable this deprecated option on your configuration."
           }
         }
       }
