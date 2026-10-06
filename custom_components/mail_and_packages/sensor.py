@@ -8,6 +8,7 @@ import datetime
 import logging
 from typing import Any
 
+from homeassistant.components.http.auth import async_sign_path
 from homeassistant.components.sensor import (
     RestoreSensor,
     SensorEntityDescription,
@@ -38,6 +39,7 @@ from .const import (
     ATTR_ORDER_DETAILS,
     ATTR_TRACKING_NUM,
     ATTR_USPS_IMAGE,
+    CONF_ALLOW_EXTERNAL,
     CONF_PATH,
     DOMAIN,
     IMAGE_SENSORS,
@@ -274,7 +276,18 @@ class ImagePathSensors(CoordinatorEntity, RestoreSensor):
         elif self.type == "usps_mail_image_url" and image:
             url = self._get_base_url()
             if url:
-                the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
+                if self.coordinator.config.get(CONF_ALLOW_EXTERNAL):
+                    the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
+                else:
+                    path_to_sign = (
+                        f"/api/mail_and_packages/image/{self._unique_id}/{image}"
+                    )
+                    signed_path = async_sign_path(
+                        self.hass,
+                        path_to_sign,
+                        datetime.timedelta(hours=24),
+                    )
+                    the_path = f"{url.rstrip('/')}{signed_path}"
 
         if the_path is not None:
             self._attr_native_value = the_path
