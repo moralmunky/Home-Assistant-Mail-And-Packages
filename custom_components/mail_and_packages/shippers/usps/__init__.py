@@ -37,6 +37,7 @@ from custom_components.mail_and_packages.utils.image import (
     _generate_mp4,
     cleanup_images,
     copy_overlays,
+    default_image_path,
     generate_delivery_gif,
     generate_grid_img,
     resize_images,
@@ -76,13 +77,23 @@ class USPSShipper(Shipper):
 
         (server_response, data) = await self._search_informed_delivery(account)
 
-        # Bail out on error
-        if server_response != "OK" or data[0] is None:
-            return {ATTR_COUNT: image_count}
-
         # Setup image directory and overlays
         if not await self._setup_image_directory(config["image_output_path"]):
             return {ATTR_COUNT: image_count}
+
+        # If search failed or no email found, ensure no-mail image is set
+        if server_response != "OK" or data[0] is None:
+            await self._copy_nomail_image(
+                config["image_output_path"],
+                config["image_name"],
+                config["custom_img"],
+            )
+            return {
+                ATTR_COUNT: image_count,
+                ATTR_USPS_IMAGE: config["image_name"],
+                ATTR_IMAGE_PATH: config["image_output_path"],
+                ATTR_GRID_IMAGE_NAME: config["image_name"].replace(".gif", "_grid.png"),
+            }
 
         all_msg_content = ""
         if server_response == "OK":
@@ -270,8 +281,11 @@ class USPSShipper(Shipper):
 
     def _get_usps_config(self) -> dict:
         """Get USPS specific configuration."""
+        image_path = self.config.get("image_path")
+        if not image_path:
+            image_path = default_image_path(self.hass, self.config)
         return {
-            "image_output_path": self.config.get("image_path"),
+            "image_output_path": image_path,
             "gif_duration": self.config.get(CONF_DURATION),
             "image_name": self.config.get("usps_image") or "usps_deliveries.gif",
             "gen_mp4": self.config.get(CONF_GENERATE_MP4),
