@@ -124,7 +124,7 @@
           "generate_mp4": "Create mp4 from images",
           "resources": "Sensors List",
           "imap_timeout": "Mailbox scan time limit (seconds, minimum 10)",
-          "allow_external": "Create image for notification apps",
+          "allow_external": "Create image for notification apps (Deprecated)",
           "usps_placeholder": "Include USPS no-image placeholder in GIF?",
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
