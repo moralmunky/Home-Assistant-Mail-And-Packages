@@ -50,6 +50,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 DELIVERED_SUFFIXES = {"delivered"}
+SIGNED_IMAGE_URL_TTL = datetime.timedelta(hours=24)
 
 
 async def async_setup_entry(
@@ -285,7 +286,7 @@ class ImagePathSensors(CoordinatorEntity, RestoreSensor):
                     signed_path = async_sign_path(
                         self.hass,
                         path_to_sign,
-                        datetime.timedelta(hours=24),
+                        SIGNED_IMAGE_URL_TTL,
                     )
                     the_path = f"{url.rstrip('/')}{signed_path}"
 

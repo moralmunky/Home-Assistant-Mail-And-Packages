@@ -61,7 +61,7 @@ class MailAndPackagesImageView(HomeAssistantView):
         base_dir = await anyio.Path(self.hass.config.path(storage_path_str)).resolve()
 
         # Sanitize against path traversal: support filename or subfolder/filename (e.g. usps/file.gif)
-        requested_file = await (base_dir / filename).resolve()
+        requested_file: anyio.Path = await (base_dir / filename).resolve()
         if not requested_file.is_relative_to(base_dir):
             _LOGGER.warning(
                 "Image view path traversal attempt blocked for entry %s: %s",
