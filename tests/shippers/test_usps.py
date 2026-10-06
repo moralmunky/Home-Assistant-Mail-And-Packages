@@ -9,6 +9,8 @@ import pytest
 from custom_components.mail_and_packages.const import (
     ATTR_COUNT,
     ATTR_GRID_IMAGE_NAME,
+    ATTR_IMAGE_PATH,
+    ATTR_USPS_IMAGE,
     CONF_DURATION,
     CONF_FORWARDING_HEADER,
     SENSOR_DATA,
@@ -154,6 +156,9 @@ async def test_informed_digest_no_mail_class(
             "usps_mail",
         )
         assert result[ATTR_COUNT] == 0
+        assert result[ATTR_USPS_IMAGE] == "mail_today.gif"
+        assert result[ATTR_IMAGE_PATH] == "test/path/usps/"
+        assert result[ATTR_GRID_IMAGE_NAME] == "mail_today_grid.png"
 
 
 @pytest.mark.asyncio
@@ -403,8 +408,18 @@ async def test_informed_delivery_search_error(hass):
     mock_account = AsyncMock()
     mock_account.search.return_value = MagicMock(result="BAD", lines=[])
 
-    result = await shipper.process(mock_account, "today", "usps_mail")
-    assert result[ATTR_COUNT] == 0
+    with (
+        patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.shutil.copyfile"
+        ) as mock_copy,
+    ):
+        result = await shipper.process(mock_account, "today", "usps_mail")
+        assert result[ATTR_COUNT] == 0
+        assert result[ATTR_USPS_IMAGE] == "usps_deliveries.gif"
+        assert result[ATTR_IMAGE_PATH] == "custom_components/mail_and_packages/images/"
+        mock_copy.assert_called_once()
 
 
 @pytest.mark.asyncio
