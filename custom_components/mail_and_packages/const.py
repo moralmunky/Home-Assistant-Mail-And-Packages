@@ -35,6 +35,7 @@ ATTR_CODE = "code"
 ATTR_GRID_IMAGE_NAME = "grid_image"
 ATTR_ORDER = "order"
 ATTR_ORDER_DETAILS = "order_details"
+ATTR_DELIVERY_DATE_PATTERN = "delivery_date_pattern"
 ATTR_TRACKING = "tracking"
 ATTR_TRACKING_NUM = "tracking_#"
 ATTR_IMAGE = "image"
@@ -1400,6 +1401,9 @@ SENSOR_DATA = {
         "email": ["noreply@communication.bpost.be"],
         "subject": ["Nous livrerons votre colis"],
         "body": ["aujourd’hui"],
+        "delivery_date_pattern": [
+            r"le\s+(\d{1,2}(?:(?:\s+[a-zA-Zéûùàèôîç]+(?:\s+\d{4})?)|\s*[-/]\s*\d{1,2}\s*[-/]\s*\d{2,4}))",
+        ],
     },
     "bpost_packages": {},
     "bpost_tracking": {

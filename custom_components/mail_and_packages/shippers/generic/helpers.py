@@ -12,6 +12,7 @@ from shutil import copyfile
 from typing import Any
 
 import anyio
+import dateparser
 from aioimaplib import IMAP4_SSL
 from homeassistant.core import HomeAssistant
 
@@ -20,6 +21,7 @@ from custom_components.mail_and_packages.const import (
     ASSET_ROOT,
     ATTR_BODY,
     ATTR_BODY_COUNT,
+    ATTR_DELIVERY_DATE_PATTERN,
     ATTR_PATTERN,
     CAMERA_DATA,
     CAMERA_EXTRACTION_CONFIG,
@@ -27,6 +29,7 @@ from custom_components.mail_and_packages.const import (
     SENSOR_DATA,
 )
 from custom_components.mail_and_packages.utils.cache import EmailCache
+from custom_components.mail_and_packages.utils.date import get_today
 from custom_components.mail_and_packages.utils.email import find_text, find_text_matches
 from custom_components.mail_and_packages.utils.imap import (
     email_fetch,
@@ -297,6 +300,83 @@ async def _collect_carrier_tracking(
     return {f"{prefix}_carrier_tracking": mapping}
 
 
+def _extract_email_text(response_part: bytes | bytearray) -> str:
+    """Extract decoded subject and text parts from an email message part."""
+    msg = email.message_from_bytes(response_part)
+    text_chunks: list[str] = []
+    if subject_str := _decode_subject(response_part):
+        text_chunks.append(subject_str)
+
+    for part in msg.walk():
+        if part.get_content_type() not in ["text/html", "text/plain"]:
+            continue
+        email_msg = part.get_payload(decode=True)
+        try:
+            text_chunks.append(email_msg.decode("utf-8", "ignore"))
+        except (AttributeError, UnicodeError):
+            continue
+
+    return "\n".join(text_chunks)
+
+
+def _matches_date_or_body(
+    text: str,
+    body_patterns: list[re.Pattern],
+    date_patterns: list[re.Pattern],
+    today_date: Any,
+) -> bool:
+    """Check if email text matches relative body terms or delivery date for today."""
+    if any(p.search(text) for p in body_patterns):
+        return True
+
+    for pat in date_patterns:
+        if m := pat.search(text):
+            date_str = m.group(1) if m.groups() else m.group(0)
+            parsed = dateparser.parse(date_str, settings={"DATE_ORDER": "DMY"})
+            if parsed and parsed.date() == today_date:
+                return True
+    return False
+
+
+def _compile_patterns(terms: Any) -> list[re.Pattern]:
+    """Compile term or list of terms into regex patterns."""
+    if isinstance(terms, str):
+        return [re.compile(terms, re.IGNORECASE)]
+    if isinstance(terms, list):
+        return [re.compile(t, re.IGNORECASE) for t in terms]
+    return []
+
+
+async def _process_emails_with_date_pattern(
+    account: IMAP4_SSL,
+    config: dict,
+    ids: list,
+    cache: EmailCache | None = None,
+) -> tuple[int, list]:
+    """Process emails matching relative delivery terms or explicit delivery date matching today."""
+    date_patterns = _compile_patterns(config.get(ATTR_DELIVERY_DATE_PATTERN))
+    body_patterns = _compile_patterns(config.get(ATTR_BODY))
+    today_date = get_today()
+    matched_ids = []
+
+    for eid in ids:
+        if cache:
+            data = (await cache.fetch(eid, "(RFC822)"))[1]
+        else:
+            data = (await email_fetch(account, eid, "(RFC822)"))[1]
+
+        for response_part in data:
+            if not isinstance(response_part, (bytes, bytearray)):
+                continue
+
+            text = _extract_email_text(response_part)
+            if _matches_date_or_body(text, body_patterns, date_patterns, today_date):
+                matched_ids.append(eid)
+                break
+
+    return len(matched_ids), matched_ids
+
+
 async def _process_emails_by_type(
     account: IMAP4_SSL,
     config: dict,
@@ -305,6 +385,14 @@ async def _process_emails_by_type(
     cache: EmailCache | None = None,
 ) -> tuple[int, list]:
     """Process emails based on body search or just count."""
+    if ATTR_DELIVERY_DATE_PATTERN in config:
+        count, matched_ids = await _process_emails_with_date_pattern(
+            account,
+            config,
+            ids,
+            cache,
+        )
+        return current_count + count, matched_ids
     if ATTR_BODY in config:
         body_count = config.get(ATTR_BODY_COUNT, False)
         mock_data = (b" ".join(ids),)

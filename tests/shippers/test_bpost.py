@@ -1,5 +1,6 @@
 """Tests for the bpost shipper."""
 
+import datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -134,15 +135,53 @@ async def test_bpost_delivering(hass):
     assert result[ATTR_TRACKING] == [TRACKING_DELIVERING]
 
 
+EMAIL_DELIVERING_EXPLICIT_DATE = f"""From: bpost <noreply@communication.bpost.be>
+To: testuser@example.com
+Subject: Nous livrerons votre colis BAD IDEA COMPANY LTD le 08-09-2026 entre 09:00 et 10:30
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<body>
+    <p>Nous livrerons votre colis BAD IDEA COMPANY LTD le 08-09-2026 entre 09:00 et 10:30</p>
+    <p>Code-barres {TRACKING_DELIVERING}</p>
+</body>
+</html>
+""".encode()
+
+
+@pytest.mark.asyncio
+async def test_bpost_delivering_explicit_date_today(hass):
+    """Test bpost email with delivery date matching today is counted."""
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.helpers.get_today",
+        return_value=datetime.date(2026, 9, 8),
+    ):
+        result = await _process(
+            hass,
+            EMAIL_DELIVERING_EXPLICIT_DATE,
+            "Nous livrerons votre colis BAD IDEA COMPANY LTD le 08-09-2026 entre 09:00 et 10:30",
+            "bpost_delivering",
+        )
+
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == [TRACKING_DELIVERING]
+
+
 @pytest.mark.asyncio
 async def test_bpost_delivering_future_date_not_counted(hass):
-    """Test bpost email without 'aujourd’hui' is not counted."""
-    result = await _process(
-        hass,
-        EMAIL_DELIVERING_FUTURE_DATE,
-        "Nous livrerons votre colis le 15 octobre",
-        "bpost_delivering",
-    )
+    """Test bpost email with future date is not counted."""
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.helpers.get_today",
+        return_value=datetime.date(2026, 9, 8),
+    ):
+        result = await _process(
+            hass,
+            EMAIL_DELIVERING_FUTURE_DATE,
+            "Nous livrerons votre colis le 15 octobre",
+            "bpost_delivering",
+        )
 
     assert result[ATTR_COUNT] == 0
     assert result[ATTR_TRACKING] == []
