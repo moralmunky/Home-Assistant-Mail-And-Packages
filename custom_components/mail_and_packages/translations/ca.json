@@ -28,7 +28,7 @@
           "image_security": "Nom del fitxer d'imatge aleatòria",
           "imap_timeout": "Temps en segons abans de l'expiració de la connexió (segons, mínim 10)",
           "generate_mp4": "Crea mp4 a partir d'imatges",
-          "allow_external": "Crea una imatge per a aplicacions de notificacions",
+          "allow_external": "Crea una imatge per a aplicacions de notificacions (Deprecated)",
           "custom_img": "Utilitza la imatge personalitzada USPS 'no hi ha correu'?",
           "amazon_custom_img": "Utilitza la imatge personalitzada Amazon 'no hi ha lliurament'?",
           "ups_custom_img": "Utilitza la imatge personalitzada UPS 'no hi ha lliurament'?",
@@ -73,7 +73,7 @@
           "generate_mp4": "Crea mp4 a partir d'imatges",
           "resources": "Llista de sensors",
           "imap_timeout": "Temps en segons abans de l'expiració de la connexió (segons, mínim 10)",
-          "allow_external": "Crea una imatge per a aplicacions de notificacions",
+          "allow_external": "Crea una imatge per a aplicacions de notificacions (Deprecated)",
           "custom_img": "Utilitza la imatge personalitzada USPS 'no hi ha correu'?",
           "amazon_custom_img": "Utilitza la imatge personalitzada Amazon 'no hi ha lliurament'?",
           "ups_custom_img": "Utilitza la imatge personalitzada UPS 'no hi ha lliurament'?",
@@ -231,6 +231,17 @@
           }
         }
       }
+    },
+    "deprecated_allow_external": {
+      "title": "External image copying is deprecated",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Disable External Image Copying",
+            "description": "The 'Create image for notification apps' (`allow_external`) setting is deprecated and will be removed in a future release. Images are now served securely via Home Assistant API endpoints using signed URLs without copying files to `/config/www/mail_and_packages/`.\n\nClick Submit to automatically disable this deprecated option on your configuration."
+          }
+        }
+      }
     }
   },
   "options": {
@@ -248,7 +259,7 @@
           "image_security": "Nom del fitxer d'imatge aleatòria",
           "imap_timeout": "Temps en segons abans de l'expiració de la connexió (segons, mínim 10)",
           "generate_mp4": "Crea mp4 a partir d'imatges",
-          "allow_external": "Crea una imatge per a aplicacions de notificacions",
+          "allow_external": "Crea una imatge per a aplicacions de notificacions (Deprecated)",
           "usps_placeholder": "Incloure la imatge de substitució de l'USPS sense imatge al GIF?",
           "custom_img": "Utilitza la imatge personalitzada USPS 'no hi ha correu'?",
           "amazon_custom_img": "Utilitza la imatge personalitzada Amazon 'no hi ha lliurament'?",
@@ -258,6 +269,9 @@
           "generic_custom_img": "Utilitza la imatge personalitzada genèrica 'no hi ha lliurament'?",
           "generate_grid": "Crea una quadrícula d'imatges per a models de visió LLM",
           "allow_forwarded_emails": "Permet els correus electrònics reenviats a més del valor predeterminat d'un servei (p. ex., no-reply@usps.com)"
+        },
+        "data_description": {
+          "allow_external": "Deprecated: Images are now served securely via Home Assistant API endpoints using signed URLs. Copying images to www/mail_and_packages/ will be removed in a future release."
         }
       },
       "options_3": {

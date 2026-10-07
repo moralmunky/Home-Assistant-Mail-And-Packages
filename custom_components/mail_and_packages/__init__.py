@@ -67,6 +67,7 @@ from .coordinator import (
 )
 from .migrate import async_migrate_entry
 from .utils.image import default_image_path, hash_file
+from .views import MailAndPackagesImageView
 
 __all__ = [
     "ATTR_IMAGE_NAME",
@@ -182,6 +183,11 @@ async def async_setup_entry(
 
     # Fetch initial data in the background so setup doesn't block
     hass.async_create_task(coordinator.async_refresh())
+
+    # Register HTTP view for serving images if not already registered
+    if not hass.data.setdefault(DOMAIN, {}).get("view_registered"):
+        hass.http.register_view(MailAndPackagesImageView(hass))
+        hass.data[DOMAIN]["view_registered"] = True
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 

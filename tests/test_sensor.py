@@ -6,6 +6,7 @@ import types
 from unittest.mock import MagicMock, patch
 
 import pytest
+from homeassistant.components.http.auth import STORAGE_KEY
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -16,6 +17,7 @@ from custom_components.mail_and_packages.const import (
     AMAZON_ORDER_DETAILS,
     ATTR_ORDER,
     ATTR_ORDER_DETAILS,
+    CONF_ALLOW_EXTERNAL,
     DOMAIN,
 )
 from custom_components.mail_and_packages.sensor import ImagePathSensors, PackagesSensor
@@ -183,6 +185,16 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     assert state
     assert state.state == "7"
 
+    state = s("mail_image_system_path")
+    assert state
+    assert state.state.endswith("mail_today.gif")
+
+    state = s("mail_image_url")
+    assert state
+    assert state.state == "mail_today.gif"
+    assert "image_url" in state.attributes
+    assert "/api/mail_and_packages/image/" in state.attributes["image_url"]
+
 
 @pytest.mark.parametrize(
     ("external_url", "internal_url", "expected_url"),
@@ -200,8 +212,10 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
         (None, None, None),
     ],
 )
-async def test_image_path_sensor_urls(hass, external_url, internal_url, expected_url):
-    """Test ImagePathSensors URL generation logic."""
+async def test_image_path_sensor_urls_legacy_external(
+    hass, external_url, internal_url, expected_url
+):
+    """Test ImagePathSensors URL generation logic when allow_external is True."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={
@@ -212,8 +226,9 @@ async def test_image_path_sensor_urls(hass, external_url, internal_url, expected
         },
     )
 
-    # Mock coordinator data
+    # Mock coordinator data with CONF_ALLOW_EXTERNAL: True
     coordinator = MagicMock()
+    coordinator.config = {CONF_ALLOW_EXTERNAL: True}
     coordinator.data = {"usps_image": "test_image.gif", "image_path": "images/"}
 
     hass.config.external_url = external_url
@@ -226,6 +241,48 @@ async def test_image_path_sensor_urls(hass, external_url, internal_url, expected
         coordinator,
     )
     assert sensor.native_value == expected_url
+    attrs = sensor.extra_state_attributes
+    if expected_url:
+        assert attrs["image_url"] == expected_url
+    else:
+        assert attrs == {}
+
+
+async def test_image_path_sensor_signed_url(hass):
+    """Test ImagePathSensors signed URL generation when allow_external is False."""
+    hass.data[STORAGE_KEY] = "test_refresh_token"
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        entry_id="test_entry_123",
+        data={
+            CONF_HOST: "imap.test.email",
+            CONF_PORT: 993,
+            CONF_USERNAME: "test@test.com",
+            CONF_PASSWORD: "password",
+        },
+    )
+
+    coordinator = MagicMock()
+    coordinator.config = {CONF_ALLOW_EXTERNAL: False}
+    coordinator.data = {"usps_image": "test_image.gif", "image_path": "images/"}
+
+    hass.config.external_url = "https://external.hass.url"
+    hass.config.internal_url = None
+
+    sensor = ImagePathSensors(
+        hass,
+        entry,
+        MagicMock(key="usps_mail_image_url", name="Mail Image URL"),
+        coordinator,
+    )
+    value = sensor.native_value
+    assert value == "test_image.gif"
+    assert len(value) <= 255
+    attrs = sensor.extra_state_attributes
+    assert "image_url" in attrs
+    assert attrs["image_url"].startswith(
+        "https://external.hass.url/api/mail_and_packages/image/test_entry_123/test_image.gif?authSig="
+    )
 
 
 async def test_image_path_sensor_url_ha_cloud(hass):
