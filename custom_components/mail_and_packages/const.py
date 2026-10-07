@@ -35,6 +35,7 @@ ATTR_CODE = "code"
 ATTR_GRID_IMAGE_NAME = "grid_image"
 ATTR_ORDER = "order"
 ATTR_ORDER_DETAILS = "order_details"
+ATTR_DELIVERY_DATE_PATTERN = "delivery_date_pattern"
 ATTR_TRACKING = "tracking"
 ATTR_TRACKING_NUM = "tracking_#"
 ATTR_IMAGE = "image"
@@ -1405,6 +1406,27 @@ SENSOR_DATA = {
     "mondial_relay_delivering": {},
     "mondial_relay_packages": {},
     "mondial_relay_tracking": {"pattern": ["\\d{8,12}"]},
+    # bpost
+    "bpost_delivered": {
+        "email": ["noreply@communication.bpost.be"],
+        "subject": ["a été livré"],
+    },
+    "bpost_delivering": {
+        "email": ["noreply@communication.bpost.be"],
+        "subject": ["Nous livrerons votre colis"],
+        "body": ["aujourd’hui"],
+        "delivery_date_pattern": [
+            r"le\s+(\d{1,2}(?:(?:\s+[a-zA-Zéûùàèôîç]+(?:\s+\d{4})?)|\s*[-/]\s*\d{1,2}\s*[-/]\s*\d{2,4}))",
+        ],
+    },
+    "bpost_packages": {},
+    "bpost_tracking": {
+        "pattern": [
+            r"(?i)Code-barres\s+([A-Z0-9]+)",
+            r"\b(?:3232|3299)\d{14,20}\b",
+            r"\b[A-Z]{2}\d{9}[A-Z]{2}\b",
+        ],
+    },
 }
 
 # Sensor definitions
@@ -2279,6 +2301,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="mondial_relay_packages",
     ),
+    # bpost
+    "bpost_delivering": SensorEntityDescription(
+        name="Mail bpost Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="bpost_delivering",
+    ),
+    "bpost_delivered": SensorEntityDescription(
+        name="Mail bpost Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="bpost_delivered",
+    ),
+    "bpost_packages": SensorEntityDescription(
+        name="Mail bpost Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="bpost_packages",
+    ),
     ###
     # !!! Insert new sensors above these summary sensors !!!
     ###
@@ -2440,6 +2481,7 @@ SHIPPERS = [
     "butcherbox",
     "vinted_go",
     "mondial_relay",
+    "bpost",
 ]
 
 # Authentication types
