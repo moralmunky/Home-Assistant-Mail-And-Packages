@@ -19,6 +19,7 @@ DELIVERING_SUBJECT = (
 DELIVERED_SUBJECT = "Votre colis de DHL a été livré"
 TRACKING_DELIVERING = "32321234567890"
 TRACKING_DELIVERED = "CE123456789BE"
+TEST_DATE = "08-Sep-2026"
 
 EMAIL_DELIVERING_TODAY = f"""From: bpost <noreply@communication.bpost.be>
 To: testuser@example.com
@@ -114,7 +115,7 @@ async def _process(hass, raw: bytes, subject_header: str, sensor_type: str) -> d
     ):
         return await shipper.process(
             account=mock_account,
-            date="08-Sep-2026",
+            date=TEST_DATE,
             sensor_type=sensor_type,
         )
 
