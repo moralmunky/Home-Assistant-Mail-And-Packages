@@ -9,7 +9,7 @@ from homeassistant.components.repairs import RepairsFlow
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 
-from .const import DOMAIN
+from .const import CONF_ALLOW_EXTERNAL, DOMAIN
 
 
 class AuthRepairFlow(RepairsFlow):
@@ -46,13 +46,59 @@ class AuthRepairFlow(RepairsFlow):
         )
 
 
+class DeprecatedAllowExternalRepairFlow(RepairsFlow):
+    """Handler for deprecated allow_external repair flow."""
+
+    def __init__(self, entry_id: str | None) -> None:
+        """Initialize."""
+        self.entry_id = entry_id
+
+    async def async_step_init(
+        self, user_input: dict[str, str] | None = None
+    ) -> FlowResult:
+        """Handle the first step of a repair flow."""
+        return await self.async_step_confirm(user_input)
+
+    async def async_step_confirm(
+        self, user_input: dict[str, str] | None = None
+    ) -> FlowResult:
+        """Handle confirm step to disable allow_external."""
+        if user_input is not None:
+            if self.entry_id:
+                entry = self.hass.config_entries.async_get_entry(self.entry_id)
+            else:
+                entries = self.hass.config_entries.async_entries(DOMAIN)
+                entry = entries[0] if entries else None
+
+            if entry:
+                if CONF_ALLOW_EXTERNAL in entry.options:
+                    self.hass.config_entries.async_update_entry(
+                        entry,
+                        options={**entry.options, CONF_ALLOW_EXTERNAL: False},
+                    )
+                elif CONF_ALLOW_EXTERNAL in entry.data:
+                    self.hass.config_entries.async_update_entry(
+                        entry,
+                        data={**entry.data, CONF_ALLOW_EXTERNAL: False},
+                    )
+
+            return self.async_create_entry(title="", data={})
+
+        return self.async_show_form(
+            step_id="confirm",
+            data_schema=vol.Schema({}),
+        )
+
+
 async def async_create_fix_flow(
     hass: HomeAssistant,
     issue_id: str,
     data: dict[str, Any] | None,
 ) -> RepairsFlow:
     """Create a flow to fix a specific issue."""
+    entry_id = data.get("entry_id") if data else None
     if issue_id == "auth_failed":
-        entry_id = data.get("entry_id") if data else None
         return AuthRepairFlow(entry_id)
+    if issue_id == "deprecated_allow_external":
+        return DeprecatedAllowExternalRepairFlow(entry_id)
     raise ValueError(f"Unknown issue {issue_id}")

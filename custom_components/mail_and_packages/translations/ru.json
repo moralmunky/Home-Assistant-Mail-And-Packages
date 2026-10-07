@@ -28,7 +28,7 @@
           "image_security": "Случайное изображение Имя файла",
           "imap_timeout": "Время в секундах до тайм-аута соединения (секунды, минимум 10)",
           "generate_mp4": "Создать mp4 из изображений",
-          "allow_external": "Создать изображение для приложений уведомлений",
+          "allow_external": "Создать изображение для приложений уведомлений (Deprecated)",
           "custom_img": "Использовать пользовательское изображение USPS 'нет почты'?",
           "amazon_custom_img": "Использовать пользовательское изображение Amazon 'нет доставки'?",
           "ups_custom_img": "Использовать пользовательское изображение UPS 'нет доставки'?",
@@ -73,7 +73,7 @@
           "generate_mp4": "Создать mp4 из изображений",
           "resources": "Список датчиков",
           "imap_timeout": "Время в секундах до тайм-аута соединения (секунды, минимум 10)",
-          "allow_external": "Создать изображение для приложений уведомлений",
+          "allow_external": "Создать изображение для приложений уведомлений (Deprecated)",
           "custom_img": "Использовать пользовательское изображение USPS 'нет почты'?",
           "amazon_custom_img": "Использовать пользовательское изображение Amazon 'нет доставки'?",
           "ups_custom_img": "Использовать пользовательское изображение UPS 'нет доставки'?",
@@ -231,6 +231,17 @@
           }
         }
       }
+    },
+    "deprecated_allow_external": {
+      "title": "External image copying is deprecated",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Disable External Image Copying",
+            "description": "The 'Create image for notification apps' (`allow_external`) setting is deprecated and will be removed in a future release. Images are now served securely via Home Assistant API endpoints using signed URLs without copying files to `/config/www/mail_and_packages/`.\n\nClick Submit to automatically disable this deprecated option on your configuration."
+          }
+        }
+      }
     }
   },
   "options": {
@@ -248,7 +259,7 @@
           "image_security": "Случайное изображение Имя файла",
           "imap_timeout": "Время в секундах до тайм-аута соединения (секунды, минимум 10)",
           "generate_mp4": "Создать mp4 из изображений",
-          "allow_external": "Создать изображение для приложений уведомлений",
+          "allow_external": "Создать изображение для приложений уведомлений (Deprecated)",
           "usps_placeholder": "Включить заполнитель без изображения USPS в GIF?",
           "custom_img": "Использовать пользовательское изображение USPS 'нет почты'?",
           "amazon_custom_img": "Использовать пользовательское изображение Amazon 'нет доставки'?",
@@ -258,6 +269,9 @@
           "generic_custom_img": "Использовать пользовательское изображение общее 'нет доставки'?",
           "generate_grid": "Создать сетку изображений для моделей зрения LLM",
           "allow_forwarded_emails": "Разрешить переадресованные электронные письма в дополнение к значениям по умолчанию службы (например, no-reply@usps.com)"
+        },
+        "data_description": {
+          "allow_external": "Deprecated: Images are now served securely via Home Assistant API endpoints using signed URLs. Copying images to www/mail_and_packages/ will be removed in a future release."
         }
       },
       "options_3": {

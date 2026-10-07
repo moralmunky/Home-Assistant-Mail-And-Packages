@@ -1754,3 +1754,80 @@ async def test_sum_delivered_and_delivering_counts_helpers(hass):
     }
     assert sum_delivered_counts(data) == 5
     assert sum_delivering_counts(data) == 5
+
+
+@pytest.mark.asyncio
+async def test_coordinator_usps_no_mail_binary_sensor_update(hass):
+    """Test that when USPS finds no mail, usps_image matches placeholder and usps_update is False."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    data = {
+        "usps_mail": 0,
+        "usps_image": "usps_deliveries.gif",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+
+    with (
+        patch("anyio.Path.exists", return_value=True),
+        patch.object(
+            coordinator,
+            "_get_file_hash_if_changed",
+            AsyncMock(return_value="placeholder_hash"),
+        ),
+    ):
+        await coordinator.async_binary_sensor_update(data)
+
+    assert data.get("usps_update") is False
+
+
+@pytest.mark.asyncio
+async def test_coordinator_deprecated_allow_external_issue(hass):
+    """Test that coordinator creates a repairs issue when allow_external is enabled and deletes it when disabled."""
+    issue_registry = ir.async_get(hass)
+
+    config_with_external = {**FAKE_CONFIG_DATA, "allow_external": True}
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, config_with_external)
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.get_shipper_for_sensor",
+            return_value=AsyncMock(),
+        ),
+        patch("custom_components.mail_and_packages.coordinator.copy_images"),
+    ):
+        await coordinator.process_emails(hass, config_with_external)
+
+    assert (DOMAIN, "deprecated_allow_external") in issue_registry.issues
+    issue = issue_registry.async_get_issue(DOMAIN, "deprecated_allow_external")
+    assert issue.severity == ir.IssueSeverity.WARNING
+    assert issue.is_fixable is True
+
+    # Now run coordinator with allow_external disabled
+    config_without_external = {**FAKE_CONFIG_DATA, "allow_external": False}
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.get_shipper_for_sensor",
+            return_value=AsyncMock(),
+        ),
+    ):
+        await coordinator.process_emails(hass, config_without_external)
+
+    assert (DOMAIN, "deprecated_allow_external") not in issue_registry.issues
