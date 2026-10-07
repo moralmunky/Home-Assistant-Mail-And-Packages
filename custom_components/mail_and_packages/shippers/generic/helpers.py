@@ -20,7 +20,6 @@ from custom_components.mail_and_packages.const import (
     ASSET_ROOT,
     ATTR_BODY,
     ATTR_BODY_COUNT,
-    ATTR_NORMALIZE_WHITESPACE,
     ATTR_PATTERN,
     CAMERA_DATA,
     CAMERA_EXTRACTION_CONFIG,
@@ -246,16 +245,12 @@ async def _process_tracking_numbers(
     if tracking_key not in SENSOR_DATA or ATTR_PATTERN not in SENSOR_DATA[tracking_key]:
         return []
 
-    tracking_config = SENSOR_DATA[tracking_key]
-    pattern = tracking_config[ATTR_PATTERN][0]
+    pattern = SENSOR_DATA[tracking_key][ATTR_PATTERN][0]
     tracking_nums = []
     for sdata in found_data:
         tracking_nums.extend(
             await get_tracking(sdata.decode(), account, pattern, cache)
         )
-
-    if tracking_config.get(ATTR_NORMALIZE_WHITESPACE):
-        tracking_nums = [re.sub(r"\s+", "", value) for value in tracking_nums]
 
     return list(dict.fromkeys(tracking_nums))
 

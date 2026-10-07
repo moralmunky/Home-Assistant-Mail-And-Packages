@@ -71,13 +71,6 @@ def apply_tracking_state(
 
         delivering = list(tracking_details.get(f"{prefix}_delivering", []))
         delivered = list(tracking_details.get(f"{prefix}_delivered", []))
-        tracking_ttl_days = (
-            0
-            if const.SENSOR_DATA.get(f"{prefix}_delivering", {}).get(
-                const.ATTR_TODAY_ONLY
-            )
-            else max_tracking_age_days
-        )
 
         update_tracking_for_prefix(
             in_transit_tracking,
@@ -85,7 +78,7 @@ def apply_tracking_state(
             delivering,
             delivered,
             today_iso,
-            tracking_ttl_days,
+            max_tracking_age_days,
         )
 
         in_transit = in_transit_tracking.get(prefix, {})

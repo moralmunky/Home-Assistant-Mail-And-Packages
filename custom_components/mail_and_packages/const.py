@@ -46,8 +46,6 @@ ATTR_SUBJECT = "subject"
 ATTR_BODY = "body"
 ATTR_BODY_COUNT = "body_count"
 ATTR_PATTERN = "pattern"
-ATTR_NORMALIZE_WHITESPACE = "normalize_whitespace"
-ATTR_TODAY_ONLY = "today_only"
 ATTR_USPS_MAIL = "usps_mail"
 ATTR_UPS_IMAGE = "ups_image"
 ATTR_WALMART_IMAGE = "walmart_image"
@@ -700,15 +698,9 @@ SENSOR_DATA = {
         "subject": [
             "order will be delivered today between",
         ],
-        "today_only": True,
     },
     "dpd_uk_packages": {},
-    "dpd_uk_tracking": {
-        "pattern": [
-            r"(?i)Your parcel:\s*(\d{4}\s+\d{4}\s+\d{3}\s+\d{3})",
-        ],
-        "normalize_whitespace": True,
-    },
+    "dpd_uk_tracking": {},
     # DPD
     "dpd_delivered": {
         "email": [

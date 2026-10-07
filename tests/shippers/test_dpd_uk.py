@@ -1,7 +1,5 @@
 """Tests for DPD UK email handling."""
 
-import re
-
 import pytest
 
 from custom_components.mail_and_packages.const import (
@@ -48,29 +46,13 @@ def test_dpd_uk_registration():
     assert "dpd_uk_tracking" in SENSOR_DATA
     assert "dpd_uk" in SHIPPERS
     assert SENSOR_DATA["dpd_uk_delivered"] == {}
-    assert SENSOR_DATA["dpd_uk_delivering"]["today_only"] is True
+    assert SENSOR_DATA["dpd_uk_tracking"] == {}
     assert SENSOR_DATA["dpd_com_pl_tracking"]["pattern"] == ["\\d{13}[A-Z0-9]{1,2}"]
-
-
-@pytest.mark.parametrize(
-    "text",
-    [
-        "Your parcel: 1234 5678 901 234",
-        "Your parcel:\t1234  5678\n901\t234",
-    ],
-)
-def test_dpd_uk_tracking_pattern_and_normalization(text):
-    """DPD UK references tolerate whitespace and normalize to 14 digits."""
-    config = SENSOR_DATA["dpd_uk_tracking"]
-    match = re.search(config["pattern"][0], text)
-
-    assert match is not None
-    assert re.sub(r"\s+", "", match.group(1)) == "12345678901234"
 
 
 @pytest.mark.asyncio
 async def test_dpd_uk_delivery_day_email(hass, mock_imap):
-    """A delivery-day email is counted and returns canonical tracking."""
+    """A delivery-day email is counted without persistent tracking."""
     email_content = _dpd_uk_email(
         "Your Samsung order will be delivered today between 14:39 - 15:39"
     )
@@ -85,7 +67,7 @@ async def test_dpd_uk_delivery_day_email(hass, mock_imap):
     )
 
     assert result[ATTR_COUNT] == 1
-    assert result[ATTR_TRACKING] == ["12345678901234"]
+    assert result[ATTR_TRACKING] == []
 
 
 @pytest.mark.asyncio

@@ -1027,26 +1027,6 @@ async def test_apply_tracking_state_persists_across_empty_runs(hass):
 
 
 @pytest.mark.asyncio
-async def test_apply_tracking_state_expires_today_only_shipper_at_midnight(hass):
-    """DPD UK tracking expires next day without a delivered notification."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
-
-    coordinator._in_transit_tracking["dpd_uk"] = {"12345678901234": "2026-04-21"}
-    data = {
-        "dpd_uk_delivering": 0,
-        "dpd_uk_delivered": 0,
-        "dpd_uk_packages": 0,
-    }
-
-    coordinator._apply_tracking_state(data, {}, "2026-04-22")
-
-    assert coordinator._in_transit_tracking["dpd_uk"] == {}
-    assert data["dpd_uk_delivering"] == 0
-    assert data["dpd_uk_packages"] == 0
-
-
-@pytest.mark.asyncio
 async def test_process_emails_merges_tracking_details_from_multiple_shippers(hass):
     """Test process_emails merges _tracking_details from multiple shippers instead of overwriting."""
     with patch("homeassistant.helpers.frame.report_usage"):
