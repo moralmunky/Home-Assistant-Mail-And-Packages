@@ -809,6 +809,19 @@ async def test_sum_transit_counts_ignores_packages_rollup(hass):
 
 
 @pytest.mark.asyncio
+async def test_sum_transit_counts_distinguishes_dpd_regions(hass):
+    """DPD region prefixes contribute independently to the transit total."""
+    data = {
+        "dpd_delivering": 1,
+        "dpd_com_pl_delivering": 2,
+        "dpd_nl_delivering": 3,
+        "dpd_uk_delivering": 4,
+    }
+
+    assert sum_transit_counts(data) == 10
+
+
+@pytest.mark.asyncio
 async def test_apply_tracking_state_no_tracking_details(hass):
     """With empty tracking_details, data is unchanged."""
     with patch("homeassistant.helpers.frame.report_usage"):

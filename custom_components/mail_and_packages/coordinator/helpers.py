@@ -230,14 +230,15 @@ def sum_transit_counts(data: dict) -> int:
             transit += value
             continue
 
-        # Match shipper prefix
-        shipper = next((s for s in const.SHIPPERS if key.startswith(s)), None)
-        if not shipper or shipper in shippers_counted:
+        if not key.endswith("_delivering"):
             continue
 
-        if key.endswith("_delivering"):
-            transit += value
-            shippers_counted.add(shipper)
+        shipper = key.removesuffix("_delivering")
+        if shipper not in const.SHIPPERS or shipper in shippers_counted:
+            continue
+
+        transit += value
+        shippers_counted.add(shipper)
 
     return transit
 

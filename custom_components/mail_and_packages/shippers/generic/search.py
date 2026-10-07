@@ -41,7 +41,7 @@ class GenericSearchMixin:
             and sensor_type.endswith(
                 ("_delivering", "_exception", "_delivered", "_packages")
             )
-            and sensor_type != "post_de_delivering"
+            and sensor_type not in {"dpd_uk_delivering", "post_de_delivering"}
         ):
             return since_date
         return date

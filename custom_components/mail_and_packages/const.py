@@ -687,6 +687,20 @@ SENSOR_DATA = {
             "\\d{13}[A-Z0-9]{1,2}",
         ],
     },
+    # DPD UK
+    # No delivered-email pattern is registered until a genuine sample is available.
+    "dpd_uk_delivered": {},
+    "dpd_uk_delivering": {
+        "email": [
+            "yourorder@dpd.co.uk",
+            "yourdelivery@dpd.co.uk",
+        ],
+        "subject": [
+            "order will be delivered today between",
+        ],
+    },
+    "dpd_uk_packages": {},
+    "dpd_uk_tracking": {},
     # DPD
     "dpd_delivered": {
         "email": [
@@ -1702,6 +1716,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="dpd_com_pl_packages",
     ),
+    # DPD UK
+    "dpd_uk_delivering": SensorEntityDescription(
+        name="Mail DPD UK Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="dpd_uk_delivering",
+    ),
+    "dpd_uk_delivered": SensorEntityDescription(
+        name="Mail DPD UK Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="dpd_uk_delivered",
+    ),
+    "dpd_uk_packages": SensorEntityDescription(
+        name="Mail DPD UK Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="dpd_uk_packages",
+    ),
     # DPD
     "dpd_delivering": SensorEntityDescription(
         name="Mail DPD Delivering",
@@ -2384,6 +2417,7 @@ SHIPPERS = [
     "auspost",
     "inpost_pl",
     "dpd_com_pl",
+    "dpd_uk",
     "dpd",
     "gls",
     "dhl_parcel_nl",
