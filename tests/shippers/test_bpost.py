@@ -1,6 +1,7 @@
 """Tests for the bpost shipper."""
 
 import datetime
+import re
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -13,6 +14,11 @@ from custom_components.mail_and_packages.const import (
     SHIPPERS,
 )
 from custom_components.mail_and_packages.shippers.generic import GenericShipper
+from custom_components.mail_and_packages.shippers.generic.helpers import (
+    _compile_patterns,
+    _extract_email_text,
+    _matches_date_or_body,
+)
 
 DELIVERING_SUBJECT = (
     "Nous livrerons votre colis BAD IDEA COMPANY LTD entre 09:00 et 10:30"
@@ -199,3 +205,86 @@ async def test_bpost_delivered(hass):
 
     assert result[ATTR_COUNT] == 1
     assert result[ATTR_TRACKING] == [TRACKING_DELIVERED]
+
+
+@pytest.mark.asyncio
+async def test_bpost_delivering_with_cache_and_multipart(hass):
+    """Test bpost delivering email with email cache and non-text parts."""
+    raw_multipart = (
+        b"From: bpost <noreply@communication.bpost.be>\r\n"
+        b"Subject: " + DELIVERING_SUBJECT.encode() + b"\r\n"
+        b'Content-Type: multipart/mixed; boundary="boundary"\r\n\r\n'
+        b"--boundary\r\n"
+        b"Content-Type: image/png\r\n\r\n"
+        b"fakeimagebytes\r\n"
+        b"--boundary\r\n"
+        b"Content-Type: text/plain; charset=utf-8\r\n\r\n"
+        b"Votre colis sera livre aujourd\xe2\x80\x99hui\r\n"
+        b"--boundary--"
+    )
+
+    async def _mock_fetch(eid, query, shipper=None):
+        if "HEADER" in query:
+            return ("OK", [f"Subject: {DELIVERING_SUBJECT}\r\n".encode()])
+        return ("OK", ["not_bytes", raw_multipart])
+
+    mock_cache = AsyncMock()
+    mock_cache.fetch.side_effect = _mock_fetch
+
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_tracking",
+            return_value=[TRACKING_DELIVERING],
+        ),
+    ):
+        result = await shipper.process(
+            account=mock_account,
+            date=TEST_DATE,
+            sensor_type="bpost_delivering",
+            cache=mock_cache,
+        )
+
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == [TRACKING_DELIVERING]
+
+
+@pytest.mark.asyncio
+async def test_bpost_delivering_pattern_variations(hass):
+    """Test _compile_patterns with string, empty, and invalid types."""
+    str_patterns = _compile_patterns(r"le\s+(\d{2}-\d{2}-\d{4})")
+    assert len(str_patterns) == 1
+
+    empty_patterns = _compile_patterns(None)
+    assert empty_patterns == []
+
+    # Test _matches_date_or_body with no match
+    matched = _matches_date_or_body(
+        "no match text",
+        body_patterns=[],
+        date_patterns=str_patterns,
+        today_date=datetime.date(2026, 9, 8),
+    )
+    assert not matched
+
+    # Test _matches_date_or_body with valid date pattern but unparsable date
+    bad_date_pattern = [re.compile(r"date:\s*(\w+)", re.IGNORECASE)]
+    matched_unparsable = _matches_date_or_body(
+        "date: notadate",
+        body_patterns=[],
+        date_patterns=bad_date_pattern,
+        today_date=datetime.date(2026, 9, 8),
+    )
+    assert not matched_unparsable
+
+    # Test _extract_email_text when decoding payload raises exception
+    with patch("email.message.Message.get_payload", side_effect=UnicodeError):
+        raw_msg = b"From: test@example.com\r\nContent-Type: text/plain\r\n\r\ntest"
+        extracted = _extract_email_text(raw_msg)
+        assert extracted == ""

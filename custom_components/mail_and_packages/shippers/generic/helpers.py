@@ -310,8 +310,8 @@ def _extract_email_text(response_part: bytes | bytearray) -> str:
     for part in msg.walk():
         if part.get_content_type() not in ["text/html", "text/plain"]:
             continue
-        email_msg = part.get_payload(decode=True)
         try:
+            email_msg = part.get_payload(decode=True)
             text_chunks.append(email_msg.decode("utf-8", "ignore"))
         except (AttributeError, UnicodeError):
             continue
