@@ -75,7 +75,7 @@ async def test_dpd_uk_delivery_day_email(hass, mock_imap):
         "Your Samsung order will be delivered today between 14:39 - 15:39"
     )
     mock_imap.select.return_value = ("OK", [b""])
-    mock_imap.uid.side_effect = _generate_search_side_effect()
+    mock_imap.search.side_effect = _generate_search_side_effect()
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_content)
 
     result = await GenericShipper(hass, {}).process(
@@ -96,7 +96,7 @@ async def test_dpd_uk_expected_email_is_not_delivery_day(hass, mock_imap):
         sender="yourorder@dpd.co.uk",
     )
     mock_imap.select.return_value = ("OK", [b""])
-    mock_imap.uid.side_effect = _generate_search_side_effect()
+    mock_imap.search.side_effect = _generate_search_side_effect()
     mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_content)
 
     result = await GenericShipper(hass, {}).process(
