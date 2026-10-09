@@ -1,5 +1,6 @@
 """Tests for USPS shipper utilities."""
 
+from datetime import date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -867,3 +868,140 @@ async def test_copy_nomail_image_relative_path(hass):
 
         await shipper._copy_nomail_image("test/", "test.gif", relative_path)
         mock_copyfile.assert_called_once_with(expected_resolved_path, "test/test.gif")
+
+
+@pytest.mark.asyncio
+async def test_informed_delivery_filters_prior_day_emails(hass):
+    """Test that USPS Informed Delivery ignores digest emails from prior days (fixes #1485)."""
+    shipper = USPSShipper(
+        hass,
+        {
+            "image_path": "test/path/usps/",
+            "usps_image": "mail_today.gif",
+            CONF_DURATION: 5,
+        },
+    )
+
+    # Email 1: Yesterday's email (2 mailpieces)
+    html_yesterday = """
+    <html><body>
+        <img id="mailpiece-image-src-id" src="data:image/jpeg;base64,dGVzdDE=">
+        <img id="mailpiece-image-src-id" src="data:image/jpeg;base64,dGVzdDI=">
+    </body></html>
+    """
+    msg_yesterday = MIMEMultipart("alternative")
+    msg_yesterday["Subject"] = "Your Daily Digest for Wed, Oct 7"
+    msg_yesterday["Date"] = "Wed, 07 Oct 2026 07:50:00 -0400"
+    msg_yesterday.attach(MIMEText(html_yesterday, "html"))
+
+    # Email 2: Today's email (1 mailpiece)
+    html_today = """
+    <html><body>
+        <img id="mailpiece-image-src-id" src="data:image/jpeg;base64,dGVzdDE=">
+    </body></html>
+    """
+    msg_today = MIMEMultipart("alternative")
+    msg_today["Subject"] = "Your Daily Digest for Thu, Oct 8"
+    msg_today["Date"] = "Thu, 08 Oct 2026 07:41:00 -0400"
+    msg_today.attach(MIMEText(html_today, "html"))
+
+    mock_account = AsyncMock()
+    # Search returned both IDs
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"294062 294101"])
+
+    def _fetch_side_effect(num, parts):
+        if str(num) == "294062":
+            return MagicMock(result="OK", lines=[b"RFC822", msg_yesterday.as_bytes()])
+        return MagicMock(result="OK", lines=[b"RFC822", msg_today.as_bytes()])
+
+    mock_account.fetch.side_effect = _fetch_side_effect
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.image.io_save_file",
+            new_callable=MagicMock,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.resize_images",
+            return_value=["test/path/usps/img1.jpg"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
+            return_value="08-Oct-2026",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_today",
+            return_value=date(2026, 10, 8),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.image.random_filename",
+            return_value="random.jpg",
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "usps_mail")
+        # Only today's 1 mailpiece should be counted
+        assert result[ATTR_COUNT] == 1
+
+
+@pytest.mark.asyncio
+async def test_informed_delivery_only_prior_day_emails(hass):
+    """Test that when only prior day emails are returned, no mail is counted."""
+    shipper = USPSShipper(
+        hass,
+        {
+            "image_path": "test/path/usps/",
+            "usps_image": "mail_today.gif",
+            CONF_DURATION: 5,
+        },
+    )
+
+    # Only yesterday's email was returned
+    html_yesterday = """
+    <html><body>
+        <img id="mailpiece-image-src-id" src="data:image/jpeg;base64,dGVzdDE=">
+    </body></html>
+    """
+    msg_yesterday = MIMEMultipart("alternative")
+    msg_yesterday["Subject"] = "Your Daily Digest for Wed, Oct 7"
+    msg_yesterday["Date"] = "Wed, 07 Oct 2026 07:50:00 -0400"
+    msg_yesterday.attach(MIMEText(html_yesterday, "html"))
+
+    mock_account = AsyncMock()
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"294062"])
+    mock_account.fetch.return_value = MagicMock(
+        result="OK", lines=[b"RFC822", msg_yesterday.as_bytes()]
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
+        patch.object(
+            shipper,
+            "_copy_nomail_image",
+            new_callable=AsyncMock,
+        ) as mock_nomail,
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
+            return_value="08-Oct-2026",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_today",
+            return_value=date(2026, 10, 8),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "usps_mail")
+        assert result[ATTR_COUNT] == 0
+        mock_nomail.assert_called_once()
