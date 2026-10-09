@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import contextlib
 import email
+import email.utils
 import logging
 import re
 import shutil
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -32,7 +35,10 @@ from custom_components.mail_and_packages.const import (
 )
 from custom_components.mail_and_packages.shippers.base import Shipper
 from custom_components.mail_and_packages.utils.cache import EmailCache
-from custom_components.mail_and_packages.utils.date import get_formatted_date
+from custom_components.mail_and_packages.utils.date import (
+    get_formatted_date,
+    get_today,
+)
 from custom_components.mail_and_packages.utils.image import (
     _generate_mp4,
     cleanup_images,
@@ -47,6 +53,66 @@ from custom_components.mail_and_packages.utils.imap import email_fetch, email_se
 from .image import extract_jpeg_attachment, extract_usps_images
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def extract_digest_target_date(subject: str | None, current_date: date) -> date | None:
+    """Extract delivery date for USPS Daily Digest from subject line if present."""
+    if not subject:
+        return None
+    candidates: list[date] = []
+    # e.g., "Your Daily Digest for Sat, Nov 21" or "Your Daily Digest for Mon, Oct 31"
+    match = re.search(
+        r"Your Daily Digest for [A-Za-z]+,?\s+([A-Za-z]+)\s+(\d{1,2})",
+        subject,
+        re.IGNORECASE,
+    )
+    if match:
+        month_str, day_str = match.group(1), match.group(2)
+        for yr in (current_date.year, current_date.year - 1, current_date.year + 1):
+            with contextlib.suppress(ValueError):
+                candidates.append(
+                    datetime.strptime(f"{month_str} {day_str} {yr}", "%b %d %Y").date()
+                )
+    # e.g., "Your Daily Digest for Thu, 5/1 is ready to view"
+    match_slash = re.search(
+        r"Your Daily Digest for [A-Za-z]+,?\s+(\d{1,2})/(\d{1,2})",
+        subject,
+        re.IGNORECASE,
+    )
+    if match_slash:
+        month_num, day_num = int(match_slash.group(1)), int(match_slash.group(2))
+        for yr in (current_date.year, current_date.year - 1, current_date.year + 1):
+            with contextlib.suppress(ValueError):
+                candidates.append(date(yr, month_num, day_num))
+    if candidates:
+        return min(candidates, key=lambda d: abs((d - current_date).days))
+    return None
+
+
+def is_email_from_prior_day(
+    subject: str | None,
+    date_header: str | None,
+    target_date: date,
+) -> bool:
+    """Check if a USPS Informed Delivery email is from a prior day."""
+    subject_date = extract_digest_target_date(subject, target_date)
+    if subject_date is not None:
+        return subject_date < target_date
+
+    if date_header:
+        try:
+            parsed_dt = email.utils.parsedate_to_datetime(date_header)
+            if parsed_dt is not None:
+                email_date = (
+                    parsed_dt.astimezone().date()
+                    if parsed_dt.tzinfo
+                    else parsed_dt.date()
+                )
+                return email_date < target_date
+        except (ValueError, TypeError):
+            pass
+
+    return False
 
 
 class USPSShipper(Shipper):
@@ -347,6 +413,7 @@ class USPSShipper(Shipper):
         image_count: int,
         images: list,
         cache: EmailCache | None = None,
+        target_date: date | None = None,
     ) -> tuple[int, list, str]:
         """Process a single USPS Informed Delivery email."""
         if cache:
@@ -355,10 +422,24 @@ class USPSShipper(Shipper):
             msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
         _LOGGER.debug("Processing email number: %s", num)
         all_content = ""
+        check_date = target_date or get_today()
         for response_part in msg_parts:
             if isinstance(response_part, (bytes, bytearray)):
-                all_content += str(response_part, "utf-8", errors="ignore")
                 msg = email.message_from_bytes(response_part)
+                subject = msg.get("Subject")
+                date_header = msg.get("Date")
+
+                if is_email_from_prior_day(subject, date_header, check_date):
+                    _LOGGER.debug(
+                        "Skipping USPS email %s: digest is dated prior to %s (Subject: %s, Date: %s)",
+                        num,
+                        check_date,
+                        subject,
+                        date_header,
+                    )
+                    continue
+
+                all_content += str(response_part, "utf-8", errors="ignore")
                 for part in msg.walk():
                     if part.get_content_type() == "text/html":
                         (image_count, images) = await self._extract_usps_images(
