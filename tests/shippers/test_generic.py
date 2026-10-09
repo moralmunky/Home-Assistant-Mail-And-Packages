@@ -102,6 +102,40 @@ async def test_ups_delivering_pre_arrival_subjects(hass, mock_imap):
 
 
 @pytest.mark.asyncio
+async def test_auspost_delivered_subjects(hass, mock_imap):
+    """Test Australia Post delivered emails match both shipment and parcel subject lines."""
+    shipper = GenericShipper(hass, {})
+
+    raw_template = (
+        'From: "Australia Post" <noreply@notifications.auspost.com.au>\r\n'
+        "To: testuser@fake.email\r\n"
+        "Subject: {subject}\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: text/plain; charset=UTF-8\r\n\r\n"
+        "Your parcel has been delivered.\r\n"
+        "Tracking number: 997053641168\r\n"
+    )
+
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+
+    # Test "Your parcel has been delivered"
+    email_parcel = raw_template.format(subject="Your parcel has been delivered")
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_parcel)
+
+    result_parcel = await shipper.process(mock_imap, "today", "auspost_delivered")
+    assert result_parcel[ATTR_COUNT] == 1
+
+    # Test "Your shipment has been delivered"
+    mock_imap.search.side_effect = _generate_search_side_effect()
+    email_shipment = raw_template.format(subject="Your shipment has been delivered")
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_shipment)
+
+    result_shipment = await shipper.process(mock_imap, "today", "auspost_delivered")
+    assert result_shipment[ATTR_COUNT] == 1
+
+
+@pytest.mark.asyncio
 async def test_fedex_delivered_class(hass, mock_imap_fedex_delivered_with_photo):
     """Test FedEx delivered email parsing via GenericShipper class."""
     shipper = GenericShipper(
