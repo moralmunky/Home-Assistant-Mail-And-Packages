@@ -8,8 +8,11 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from custom_components.mail_and_packages.const import (
+    ATTR_BUTCHERBOX_IMAGE,
     ATTR_COUNT,
     ATTR_TRACKING,
+    CAMERA_DATA,
+    CAMERA_EXTRACTION_CONFIG,
     SENSOR_DATA,
     SENSOR_TYPES,
     SHIPPERS,
@@ -40,12 +43,23 @@ def _load(name: str) -> bytes:
     return Path(f"tests/test_emails/{name}").read_bytes()
 
 
-async def _process(hass, raw: bytes, subject: str, sensor_type: str) -> dict:
-    """Run GenericShipper against a single fixture email."""
-    shipper = GenericShipper(hass, {})
+async def _process(
+    hass, raw: bytes, subject: str, sensor_type: str, image_path: Path
+) -> dict:
+    """Run GenericShipper against a single fixture email.
+
+    A delivered box now has a camera, so the shipper needs a real image_path
+    (the coordinator always sets one); the GLS USA photo fetch is stubbed so no
+    test reaches the network.
+    """
+    shipper = GenericShipper(hass, {"image_path": str(image_path)})
     mock_account = AsyncMock()
 
     with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.download_gls_us_pod",
+            return_value=False,
+        ),
         patch(
             "custom_components.mail_and_packages.shippers.generic.search.email_search",
             return_value=("OK", [b"1"]),
@@ -75,13 +89,14 @@ async def _process(hass, raw: bytes, subject: str, sensor_type: str) -> dict:
 
 
 @pytest.mark.asyncio
-async def test_butcherbox_delivering(hass):
+async def test_butcherbox_delivering(hass, tmp_path):
     """Test ButcherBox out for delivery email parsing."""
     result = await _process(
         hass,
         _load("butcherbox_out_for_delivery.eml"),
         OUT_FOR_DELIVERY_SUBJECT,
         "butcherbox_delivering",
+        tmp_path,
     )
 
     assert result[ATTR_COUNT] == 1
@@ -89,7 +104,7 @@ async def test_butcherbox_delivering(hass):
 
 
 @pytest.mark.asyncio
-async def test_butcherbox_delivered(hass):
+async def test_butcherbox_delivered(hass, tmp_path):
     """Test ButcherBox delivered email parsing.
 
     The subject carries a trailing emoji as a MIME encoded-word, so this also
@@ -100,6 +115,7 @@ async def test_butcherbox_delivered(hass):
         _load("butcherbox_delivered.eml"),
         DELIVERED_SUBJECT,
         "butcherbox_delivered",
+        tmp_path,
     )
 
     assert result[ATTR_COUNT] == 1
@@ -110,7 +126,7 @@ async def test_butcherbox_delivered(hass):
 @pytest.mark.parametrize(
     "sensor_type", ["butcherbox_delivering", "butcherbox_delivered"]
 )
-async def test_butcherbox_shipped_is_not_tracked(hass, sensor_type):
+async def test_butcherbox_shipped_is_not_tracked(hass, sensor_type, tmp_path):
     """ButcherBox's "order has shipped" notice must not count as a package.
 
     General in-transit notices are excluded by design (docs/architecture.md);
@@ -121,6 +137,7 @@ async def test_butcherbox_shipped_is_not_tracked(hass, sensor_type):
         _load("butcherbox_shipped.eml"),
         SHIPPED_SUBJECT,
         sensor_type,
+        tmp_path,
     )
 
     assert result[ATTR_COUNT] == 0
@@ -245,3 +262,118 @@ def test_butcherbox_one_tracking_id_per_email(fixture):
         body = part.get_payload(decode=True).decode("utf-8", "ignore")
         found.update(re.findall(pattern, body))
     assert found == {TRACKING}
+
+
+@pytest.mark.asyncio
+async def test_butcherbox_delivered_fetches_gls_photo(hass, tmp_path):
+    """The delivered box's photo comes from GLS USA, not from the email."""
+    shipper = GenericShipper(hass, {"image_path": str(tmp_path)})
+
+    async def fake_download(_hass, tracking, image_path, shipper_name, image_name):
+        assert tracking == [TRACKING]
+        target = Path(image_path) / shipper_name / image_name
+        target.write_bytes(b"photo")
+        return True
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.download_gls_us_pod",
+            side_effect=fake_download,
+        ) as download,
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch",
+            return_value=("OK", [_load("butcherbox_delivered.eml")]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.email.email_fetch",
+            return_value=("OK", [_load("butcherbox_delivered.eml")]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.shipper.email_fetch",
+            return_value=("OK", [_load("butcherbox_delivered.eml")]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers",
+            return_value=("OK", [f"Subject: {DELIVERED_SUBJECT}\r\n".encode()]),
+        ),
+    ):
+        result = await shipper.process(
+            account=AsyncMock(),
+            date="11-Sep-2026",
+            sensor_type="butcherbox_delivered",
+        )
+
+    download.assert_awaited_once()
+    assert result[ATTR_BUTCHERBOX_IMAGE] == "butcherbox_delivery.jpg"
+    assert (tmp_path / "butcherbox" / "butcherbox_delivery.jpg").read_bytes() == (
+        b"photo"
+    )
+
+
+@pytest.mark.asyncio
+async def test_butcherbox_without_gls_photo_uses_placeholder(hass, tmp_path):
+    """No GLS photo leaves the shipper's usual placeholder in place."""
+    shipper = GenericShipper(hass, {"image_path": str(tmp_path)})
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.download_gls_us_pod",
+            return_value=False,
+        ),
+        patch.object(
+            GenericShipper, "_copy_generic_placeholder", new_callable=AsyncMock
+        ) as placeholder,
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch",
+            return_value=("OK", [_load("butcherbox_delivered.eml")]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.email.email_fetch",
+            return_value=("OK", [_load("butcherbox_delivered.eml")]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.shipper.email_fetch",
+            return_value=("OK", [_load("butcherbox_delivered.eml")]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers",
+            return_value=("OK", [f"Subject: {DELIVERED_SUBJECT}\r\n".encode()]),
+        ),
+    ):
+        await shipper.process(
+            account=AsyncMock(),
+            date="11-Sep-2026",
+            sensor_type="butcherbox_delivered",
+        )
+
+    placeholder.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_butcherbox_delivering_does_not_fetch_photo(hass, tmp_path):
+    """Only a delivered box has a photo to fetch."""
+    with patch.object(
+        GenericShipper, "_fetch_carrier_photo", new_callable=AsyncMock
+    ) as fetch:
+        await _process(
+            hass,
+            _load("butcherbox_out_for_delivery.eml"),
+            OUT_FOR_DELIVERY_SUBJECT,
+            "butcherbox_delivering",
+            tmp_path,
+        )
+    fetch.assert_not_called()
+
+
+def test_butcherbox_has_a_delivery_camera():
+    """ButcherBox gets its own camera, which also feeds the generic one."""
+    assert "butcherbox_camera" in CAMERA_DATA
+    assert CAMERA_EXTRACTION_CONFIG["butcherbox"]["photo_source"] == "gls_us"

@@ -55,6 +55,7 @@ ATTR_GENERIC_IMAGE = "generic_image"
 ATTR_USPS_IMAGE = "usps_image"
 ATTR_POST_DE_IMAGE = "post_de_image"
 ATTR_HOME_DEPOT_IMAGE = "home_depot_image"
+ATTR_BUTCHERBOX_IMAGE = "butcherbox_image"
 
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"
@@ -2406,6 +2407,7 @@ CAMERA_DATA = {
     "amazon_camera": ["Mail Amazon Delivery Camera"],
     "walmart_camera": ["Mail Walmart Delivery Camera"],
     "home_depot_camera": ["Mail Home Depot Delivery Camera"],
+    "butcherbox_camera": ["Mail ButcherBox Delivery Camera"],
     "fedex_camera": ["Mail FedEx Delivery Camera"],
     "generic_camera": ["Mail Generic Delivery Camera"],
     "post_de_camera": ["Mail Post DE Camera"],
@@ -2425,6 +2427,12 @@ CAMERA_EXTRACTION_CONFIG = {
     "fedex": {
         "image_type": "jpeg",
         "attachment_filename_pattern": "delivery",
+    },
+    # ButcherBox's emails carry no photo; its boxes ship with GLS USA, whose
+    # public tracking API serves one for the shipment (utils/gls_us.py).
+    "butcherbox": {
+        "image_type": "jpeg",
+        "photo_source": "gls_us",
     },
 }
 

@@ -22,6 +22,7 @@ from custom_components.mail_and_packages.const import (
 from custom_components.mail_and_packages.shippers.base import Shipper
 from custom_components.mail_and_packages.utils.cache import EmailCache
 from custom_components.mail_and_packages.utils.email import find_text, find_text_matches
+from custom_components.mail_and_packages.utils.gls_us import download_gls_us_pod
 from custom_components.mail_and_packages.utils.imap import (
     email_fetch,
     email_fetch_headers,
@@ -85,6 +86,7 @@ __all__ = [
     "anyio",
     "copyfile",
     "decode_header",
+    "download_gls_us_pod",
     "email",
     "email_fetch",
     "email_fetch_headers",
@@ -192,9 +194,26 @@ class GenericShipper(GenericBatchMixin, GenericSearchMixin, Shipper):
                     account, email_addresses, date, subjects, search_ctx, result
                 )
 
+        if is_delivered and not image_found:
+            image_found = await self._fetch_carrier_photo(shipper_cfg, result)
+
         result[ATTR_COUNT] = count
         await self._finalize_shipper_image(shipper_cfg, image_path, image_found, result)
         return result
+
+    async def _fetch_carrier_photo(
+        self, shipper_cfg: dict[str, Any] | None, result: dict[str, Any]
+    ) -> bool:
+        """Fetch a delivery photo from the carrier when the emails carry none."""
+        if not shipper_cfg or shipper_cfg.get("photo_source") != "gls_us":
+            return False
+        return await download_gls_us_pod(
+            self.hass,
+            result.get(ATTR_TRACKING) or [],
+            shipper_cfg["image_path"],
+            shipper_cfg["name"],
+            shipper_cfg["image_name"],
+        )
 
     async def _copy_generic_placeholder(self, shipper_cfg: dict[str, Any]) -> None:
         """Copy the generic placeholder for the shipper."""

@@ -212,6 +212,7 @@ async def _setup_image_extraction(
         "image_type": extraction_config.get("image_type", "jpeg"),
         "cid_name": extraction_config.get("cid_name"),
         "pattern": extraction_config.get("attachment_filename_pattern"),
+        "photo_source": extraction_config.get("photo_source"),
     }
 
 
