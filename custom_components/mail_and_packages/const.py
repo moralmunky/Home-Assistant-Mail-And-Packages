@@ -790,7 +790,10 @@ SENSOR_DATA = {
     # Australia Post
     "auspost_delivered": {
         "email": ["noreply@notifications.auspost.com.au"],
-        "subject": ["Your shipment has been delivered"],
+        "subject": [
+            "Your shipment has been delivered",
+            "Your parcel has been delivered",
+        ],
     },
     "auspost_delivering": {
         "email": ["noreply@notifications.auspost.com.au"],
