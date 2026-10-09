@@ -16,7 +16,11 @@ from custom_components.mail_and_packages.const import (
     CONF_FORWARDING_HEADER,
     SENSOR_DATA,
 )
-from custom_components.mail_and_packages.shippers.usps import USPSShipper
+from custom_components.mail_and_packages.shippers.usps import (
+    USPSShipper,
+    extract_digest_target_date,
+    is_email_from_prior_day,
+)
 from custom_components.mail_and_packages.utils.cache import EmailCache
 
 
@@ -1005,3 +1009,102 @@ async def test_informed_delivery_only_prior_day_emails(hass):
         result = await shipper.process(mock_account, "today", "usps_mail")
         assert result[ATTR_COUNT] == 0
         mock_nomail.assert_called_once()
+
+
+def test_extract_digest_target_date():
+    """Test extract_digest_target_date under various subject formats and edge cases."""
+    today = date(2026, 10, 8)
+
+    # Empty / None
+    assert extract_digest_target_date(None, today) is None
+    assert extract_digest_target_date("", today) is None
+
+    # Standard format: Your Daily Digest for Day, Month Day
+    assert extract_digest_target_date(
+        "Your Daily Digest for Wed, Oct 7", today
+    ) == date(2026, 10, 7)
+    assert extract_digest_target_date(
+        "Your Daily Digest for Sat, Nov 21", today
+    ) == date(2026, 11, 21)
+
+    # Slash format: Your Daily Digest for Day, M/D
+    assert extract_digest_target_date(
+        "Your Daily Digest for Thu, 5/1 is ready to view", today
+    ) == date(2026, 5, 1)
+    assert extract_digest_target_date("Your Daily Digest for Thu, 10/8", today) == date(
+        2026, 10, 8
+    )
+
+    # Invalid / unparsable formats
+    assert extract_digest_target_date("Delivery notification", today) is None
+    assert extract_digest_target_date("Your Daily Digest for Foo, 99/99", today) is None
+    assert (
+        extract_digest_target_date("Your Daily Digest for Foo, Invalid 99", today)
+        is None
+    )
+
+
+def test_is_email_from_prior_day():
+    """Test is_email_from_prior_day under various subjects and date headers."""
+    today = date(2026, 10, 8)
+
+    # Subject date takes precedence
+    assert (
+        is_email_from_prior_day(
+            "Your Daily Digest for Wed, Oct 7",
+            "Thu, 08 Oct 2026 07:00:00 -0400",
+            today,
+        )
+        is True
+    )
+    assert (
+        is_email_from_prior_day(
+            "Your Daily Digest for Thu, Oct 8",
+            "Wed, 07 Oct 2026 07:00:00 -0400",
+            today,
+        )
+        is False
+    )
+
+    # Subject without date - fallback to Date header
+    assert (
+        is_email_from_prior_day(
+            "USPS Notification",
+            "Wed, 07 Oct 2026 07:00:00 -0400",
+            today,
+        )
+        is True
+    )
+    assert (
+        is_email_from_prior_day(
+            "USPS Notification",
+            "Thu, 08 Oct 2026 07:00:00 -0400",
+            today,
+        )
+        is False
+    )
+
+    # Date header with naive timezone / no tz
+    assert (
+        is_email_from_prior_day(
+            None,
+            "07 Oct 2026 07:00:00",
+            today,
+        )
+        is True
+    )
+    assert (
+        is_email_from_prior_day(
+            None,
+            "08 Oct 2026 07:00:00",
+            today,
+        )
+        is False
+    )
+
+    # Invalid / missing Date header and no subject date
+    assert (
+        is_email_from_prior_day("USPS Notification", "Invalid Date Header", today)
+        is False
+    )
+    assert is_email_from_prior_day(None, None, today) is False
