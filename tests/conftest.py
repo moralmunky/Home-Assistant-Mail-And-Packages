@@ -1,6 +1,6 @@
 """Fixtures for Mail and Packages tests."""
 
-import datetime
+import datetime as dt
 import errno
 import time
 from pathlib import Path
@@ -813,14 +813,14 @@ def mock_update_time():
     with patch(
         "custom_components.mail_and_packages.utils.date.update_time",
     ) as mock_update_time:
-        mock_update_time.return_value = datetime.datetime(
+        mock_update_time.return_value = dt.datetime(
             2022,
             1,
             6,
             12,
             14,
             38,
-            tzinfo=datetime.UTC,
+            tzinfo=dt.UTC,
         ).isoformat(timespec="minutes")
         yield mock_update_time
 

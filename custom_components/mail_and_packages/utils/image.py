@@ -1,7 +1,7 @@
 """Image processing and management utilities for Mail and Packages."""
 
 import contextlib
-import datetime
+import datetime as dt
 import hashlib
 import logging
 import os
@@ -321,7 +321,7 @@ def _get_image_name_from_directory(
             )
             if is_image_file:
                 try:
-                    created = datetime.datetime.fromtimestamp(
+                    created = dt.datetime.fromtimestamp(
                         file_path.stat().st_ctime,
                     ).strftime("%d-%b-%Y")
                     # If it's the correct hash OR created today, we can reuse it

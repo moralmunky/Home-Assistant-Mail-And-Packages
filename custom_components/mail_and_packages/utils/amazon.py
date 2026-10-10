@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import email
 import logging
 import re
@@ -249,16 +249,16 @@ def extract_order_numbers(text: str, pattern: re.Pattern | str) -> list[str]:
 async def parse_amazon_arrival_date(
     hass: Any,
     email_msg: str,
-    email_date: datetime.date,
-) -> datetime.date | None:
+    email_date: dt.date,
+) -> dt.date | None:
     """Determine arrival date from email."""
     today_date = get_today()
 
     # Try using regex for more precise extraction of the arrival date string
     if date_str := amazon_date_regex(email_msg):
-        base_datetime = datetime.datetime.combine(
+        base_datetime = dt.datetime.combine(
             email_date or today_date,
-            datetime.time(),
+            dt.time(),
         )
 
         # 1. Try parsing without PREFER_DATES_FROM: future to handle relative terms (any language)
@@ -276,9 +276,8 @@ async def parse_amazon_arrival_date(
             parsed_date = dateobj.date()
             base_date = email_date or today_date
             # Only accept matches that resolve to email_date (today) or email_date + 1 day (tomorrow)
-            if (
-                parsed_date == base_date
-                or parsed_date == base_date + datetime.timedelta(days=1)
+            if parsed_date == base_date or parsed_date == base_date + dt.timedelta(
+                days=1
             ):
                 return parsed_date
 
@@ -311,9 +310,9 @@ async def parse_amazon_arrival_date(
                 chunk,
                 settings={
                     "PREFER_DATES_FROM": "future",
-                    "RELATIVE_BASE": datetime.datetime.combine(
+                    "RELATIVE_BASE": dt.datetime.combine(
                         email_date or today_date,
-                        datetime.time(),
+                        dt.time(),
                     ),
                     "RETURN_AS_TIMEZONE_AWARE": False,
                 },
@@ -386,7 +385,7 @@ async def search_amazon_emails(
         except (ValueError, TypeError):
             days = DEFAULT_AMAZON_DAYS
 
-    past_date = get_today() - datetime.timedelta(days=days)
+    past_date = get_today() - dt.timedelta(days=days)
     tfmt = past_date.strftime("%d-%b-%Y")
     amazon_subjects = (
         AMAZON_DELIVERED_SUBJECT + AMAZON_SHIPMENT_SUBJECT + AMAZON_ORDERED_SUBJECT

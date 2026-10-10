@@ -88,7 +88,7 @@ async def extract_jpeg_attachment(
         return image_count, images
 
     try:
-        target_path = Path(image_output_path) / filename
+        target_path = Path(image_output_path) / random_filename()
         await hass.async_add_executor_job(
             io_save_file,
             target_path,

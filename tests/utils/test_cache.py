@@ -1,6 +1,6 @@
 """Tests for persistent EmailCache utility."""
 
-import datetime
+import datetime as dt
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -21,9 +21,9 @@ async def test_email_cache_persistent_store_and_purge(hass):
         cache = EmailCache(hass=hass)
         await cache.async_load()
 
-        now = datetime.datetime.now(datetime.UTC)
-        yesterday = now - datetime.timedelta(days=1)
-        four_days_ago = now - datetime.timedelta(days=4)
+        now = dt.datetime.now(dt.UTC)
+        yesterday = now - dt.timedelta(days=1)
+        four_days_ago = now - dt.timedelta(days=4)
 
         # Seed entries including malformed / invalid dates
         cache._persistent_store = {
@@ -96,12 +96,12 @@ async def test_email_cache_fetch_variations(hass):
     # 1. Test restoration from persistent store (tuples, bytes, lists, non-string items)
     cache._persistent_store = {
         "1:(RFC822)": {
-            "fetched_at": datetime.datetime.now(datetime.UTC).isoformat(),
+            "fetched_at": dt.datetime.now(dt.UTC).isoformat(),
             "shipper": "generic",
             "data": ["OK", [["header", "body"], "plain_str", 123, None]],
         },
         "2:HEADER": {
-            "fetched_at": datetime.datetime.now(datetime.UTC).isoformat(),
+            "fetched_at": dt.datetime.now(dt.UTC).isoformat(),
             "shipper": "generic",
             "data": ["OK", "non_list_response"],
         },

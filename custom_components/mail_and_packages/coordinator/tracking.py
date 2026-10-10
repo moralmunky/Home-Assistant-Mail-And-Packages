@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import logging
 from dataclasses import dataclass
 
@@ -36,7 +36,7 @@ def update_tracking_for_prefix(
 
     # Expire entries older than TTL
     cutoff = (
-        datetime.date.fromisoformat(today_iso) - datetime.timedelta(days=ttl_days)
+        dt.date.fromisoformat(today_iso) - dt.timedelta(days=ttl_days)
     ).isoformat()
     expired = [tid for tid, seen in in_transit.items() if seen < cutoff]
     for tid in expired:

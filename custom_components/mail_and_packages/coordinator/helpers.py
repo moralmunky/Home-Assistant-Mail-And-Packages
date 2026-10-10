@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import logging
 import os
 from http import HTTPStatus
@@ -88,7 +88,7 @@ async def async_oauth_access_token(
 def initialize_data(config: dict) -> dict:
     """Initialize core data structure with default values."""
     data = {
-        "mail_updated": datetime.datetime.now(datetime.UTC).isoformat(),
+        "mail_updated": dt.datetime.now(dt.UTC).isoformat(),
         "amazon_delivered_by_others": 0,
     }
     resources = config.get(CONF_RESOURCES, [])

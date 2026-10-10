@@ -352,12 +352,13 @@ SENSOR_DATA = {
         "body_count": True,
     },
     "usps_tracking": {"pattern": ["9[2345]\\d{15,26}"]},
+    # Note: Only verified email addresses are matched here; display names
+    # (e.g. 'USPS Informed Delivery') are excluded to prevent IMAP spoofing.
     "usps_mail": {
         "email": [
             "USPSInformedDelivery@usps.gov",
             "USPSInformeddelivery@email.informeddelivery.usps.com",
             "USPSInformeddelivery@informeddelivery.usps.com",
-            "USPS Informed Delivery",
         ],
         "subject": ["Your Daily Digest"],
     },
@@ -366,7 +367,6 @@ SENSOR_DATA = {
             "USPSInformedDelivery@usps.gov",
             "USPSInformeddelivery@email.informeddelivery.usps.com",
             "USPSInformeddelivery@informeddelivery.usps.com",
-            "USPS Informed Delivery",
         ],
         "subject": ["Your Mail Was Delivered"],
     },

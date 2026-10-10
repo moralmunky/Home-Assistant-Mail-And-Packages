@@ -1,6 +1,6 @@
 """Email caching utility for Mail and Packages."""
 
-import datetime
+import datetime as dt
 import logging
 from typing import Any
 
@@ -68,9 +68,9 @@ class EmailCache:
 
     async def async_purge_expired(self, custom_days: int = 3) -> None:
         """Purge expired cache entries based on carrier expiration rules."""
-        now = datetime.datetime.now(datetime.UTC)
+        now = dt.datetime.now(dt.UTC)
         midnight_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        custom_days_cutoff = now - datetime.timedelta(days=custom_days)
+        custom_days_cutoff = now - dt.timedelta(days=custom_days)
 
         expired_keys = []
         for key, entry in self._persistent_store.items():
@@ -79,7 +79,7 @@ class EmailCache:
                 expired_keys.append(key)
                 continue
             try:
-                fetched_at = datetime.datetime.fromisoformat(fetched_at_str)
+                fetched_at = dt.datetime.fromisoformat(fetched_at_str)
             except ValueError:
                 expired_keys.append(key)
                 continue
@@ -201,7 +201,7 @@ class EmailCache:
             serializable_list = response_list
 
         self._persistent_store[eid_str] = {
-            "fetched_at": datetime.datetime.now(datetime.UTC).isoformat(),
+            "fetched_at": dt.datetime.now(dt.UTC).isoformat(),
             "shipper": shipper,
             "data": [status, serializable_list],
         }

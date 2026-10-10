@@ -1,6 +1,6 @@
 """Test Mail and Packages sensors."""
 
-import datetime
+import datetime as dt
 import sys
 import types
 from unittest.mock import MagicMock, patch
@@ -376,7 +376,7 @@ async def test_mail_updated_sensor_string_conversion(hass):
 
     # Value should be converted to datetime object
     val = sensor.native_value
-    assert isinstance(val, datetime.datetime)
+    assert isinstance(val, dt.datetime)
     assert val.year == 2023
 
 
@@ -396,9 +396,9 @@ async def test_mail_updated_sensor_invalid_date_string(hass):
 
     # Should trigger ValueError handler and return current time
     val = sensor.native_value
-    assert isinstance(val, datetime.datetime)
+    assert isinstance(val, dt.datetime)
     # Verify it returned 'now' (roughly)
-    assert (datetime.datetime.now(datetime.UTC) - val).total_seconds() < 5
+    assert (dt.datetime.now(dt.UTC) - val).total_seconds() < 5
 
 
 @pytest.mark.asyncio
@@ -420,7 +420,7 @@ async def test_mail_updated_sensor_totally_invalid_date(hass):
     val = sensor.native_value
 
     # Should return current time (roughly)
-    assert isinstance(val, datetime.datetime)
+    assert isinstance(val, dt.datetime)
 
 
 @pytest.mark.asyncio
@@ -444,7 +444,7 @@ async def test_packages_sensor_attributes_edge_cases(hass):
         MagicMock(key="mail_updated", name="Mail Updated"),
         coordinator,
     )
-    assert isinstance(sensor_updated.native_value, datetime.datetime)
+    assert isinstance(sensor_updated.native_value, dt.datetime)
 
     # Verify extra_state_attributes returns empty dict when coordinator data is None
     coord_none = MagicMock()
