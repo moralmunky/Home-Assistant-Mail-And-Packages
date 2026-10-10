@@ -217,11 +217,11 @@ def mock_imap():
     mock_imap_class = AsyncMock()
     with (
         patch(
-            "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+            "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4SSL",
             return_value=mock_imap_class,
         ),
         patch(
-            "custom_components.mail_and_packages.utils.imap.IMAP4",
+            "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4",
             return_value=mock_imap_class,
         ),
     ):

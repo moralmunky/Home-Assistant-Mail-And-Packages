@@ -15,6 +15,7 @@ from aioimaplib import (
     AioImapException,
     Cmd,
     Exec,
+    IMAP4ClientProtocol,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -68,6 +69,8 @@ from .imap_utf7 import (
 
 _LOGGER = logging.getLogger(__name__)
 
+HAPPY_EYEBALLS_DELAY = 0.25
+
 # Register ESEARCH command if not already present in aioimaplib
 if "ESEARCH" not in aioimaplib.Commands:
     aioimaplib.Commands["ESEARCH"] = Cmd("ESEARCH", (AUTH, SELECTED), Exec.is_async)
@@ -92,6 +95,32 @@ class InvalidAuth(HomeAssistantError):
     """Raise exception for invalid credentials."""
 
 
+class _HappyEyeballsMixin:
+    """Connect with RFC 8305 Happy Eyeballs instead of one address at a time."""
+
+    def create_client(self, host, port, loop, conn_lost_cb=None, ssl_context=None):
+        """Start the connection task, racing all resolved addresses."""
+        local_loop = loop or asyncio.get_running_loop()
+        self.protocol = IMAP4ClientProtocol(local_loop, conn_lost_cb)
+        self._client_task = local_loop.create_task(
+            local_loop.create_connection(
+                lambda: self.protocol,
+                host,
+                port,
+                ssl=ssl_context,
+                happy_eyeballs_delay=HAPPY_EYEBALLS_DELAY,
+            )
+        )
+
+
+class HappyEyeballsIMAP4(_HappyEyeballsMixin, IMAP4):
+    """Plain IMAP4 client using Happy Eyeballs."""
+
+
+class HappyEyeballsIMAP4SSL(_HappyEyeballsMixin, IMAP4_SSL):
+    """IMAP4 over TLS client using Happy Eyeballs."""
+
+
 async def login(
     hass: HomeAssistant,
     host: str,
@@ -111,11 +140,11 @@ async def login(
     """
     ssl_context = await hass.async_add_executor_job(_build_ssl_context, verify)
     if security == "SSL":
-        account = IMAP4_SSL(
+        account = HappyEyeballsIMAP4SSL(
             host=host, port=port, ssl_context=ssl_context, timeout=timeout
         )
     else:
-        account = IMAP4(host=host, port=port, timeout=timeout)
+        account = HappyEyeballsIMAP4(host=host, port=port, timeout=timeout)
 
     await asyncio.wait_for(account.wait_hello_from_server(), timeout=min(timeout, 15.0))
 

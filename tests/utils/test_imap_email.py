@@ -14,6 +14,9 @@ from custom_components.mail_and_packages.utils.email import (
     validate_email_address,
 )
 from custom_components.mail_and_packages.utils.imap import (
+    HAPPY_EYEBALLS_DELAY,
+    HappyEyeballsIMAP4,
+    HappyEyeballsIMAP4SSL,
     InvalidAuth,
     _build_body_clause,
     _execute_single_search,
@@ -204,12 +207,30 @@ def _mock_hass() -> MagicMock:
     return hass
 
 
+@pytest.mark.parametrize(
+    ("client_cls", "ssl_context"),
+    [
+        (HappyEyeballsIMAP4, None),
+        (HappyEyeballsIMAP4SSL, ssl.create_default_context()),
+    ],
+)
+def test_client_connects_with_happy_eyeballs(client_cls, ssl_context):
+    """Test IMAP clients race resolved addresses instead of trying them in turn."""
+    loop = MagicMock()
+    client = client_cls(host="host", port=993, loop=loop, ssl_context=ssl_context)
+
+    args, kwargs = loop.create_connection.call_args
+    assert args[1:] == ("host", 993)
+    assert args[0]() is client.protocol
+    assert kwargs == {"ssl": ssl_context, "happy_eyeballs_delay": HAPPY_EYEBALLS_DELAY}
+
+
 @pytest.mark.asyncio
 async def test_login_success():
     """Test login success path."""
     mock_hass = _mock_hass()
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+        "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = NONAUTH
@@ -231,7 +252,7 @@ async def test_login_oauth_success():
     """Test login with OAuth2 success path."""
     mock_hass = _mock_hass()
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+        "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = NONAUTH
@@ -260,7 +281,7 @@ async def test_login_no_verify():
     """Test login without SSL verification."""
     mock_hass = _mock_hass()
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+        "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = AUTH
@@ -278,7 +299,7 @@ async def test_login_builds_new_ssl_context_each_call():
     """A context must not be reused: a shared one stalls the next handshake."""
     mock_hass = _mock_hass()
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+        "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = AUTH
@@ -297,7 +318,9 @@ async def test_login_builds_new_ssl_context_each_call():
 async def test_login_non_ssl():
     """Test login with STARTTLS/Plain (non-SSL class)."""
     mock_hass = _mock_hass()
-    with patch("custom_components.mail_and_packages.utils.imap.IMAP4") as mock_imap:
+    with patch(
+        "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4"
+    ) as mock_imap:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = AUTH
         mock_imap.return_value = mock_acc
@@ -313,7 +336,7 @@ async def test_login_failure_no_auth(caplog):
     mock_hass = _mock_hass()
     caplog.set_level("ERROR")
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+        "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = NONAUTH
@@ -329,7 +352,7 @@ async def test_login_protocol_auth_state():
     """Test login when protocol state is already AUTH."""
     mock_hass = _mock_hass()
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+        "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = AUTH
@@ -345,7 +368,7 @@ async def test_login_protocol_state_error():
     """Test login when protocol state is unexpected."""
     mock_hass = _mock_hass()
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+        "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = "UNKNOWN"
@@ -660,7 +683,7 @@ async def test_login_exception(caplog):
     mock_hass = _mock_hass()
     caplog.set_level("ERROR")
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+        "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.login.side_effect = OSError("Connection error")
@@ -678,7 +701,7 @@ async def test_login_state_fail(caplog):
     mock_hass = _mock_hass()
     caplog.set_level("ERROR")
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+        "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.login.return_value = MagicMock(result="OK", lines=[b"Logged in"])
@@ -1937,7 +1960,7 @@ async def test_login_timeout_error():
     """Test login propagates TimeoutError."""
     mock_hass = _mock_hass()
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+        "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.login.side_effect = TimeoutError()
@@ -2184,7 +2207,7 @@ async def test_login_oauth_failed(caplog):
     """Test login with OAuth2 failure path."""
     mock_hass = _mock_hass()
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+        "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = NONAUTH
@@ -2243,7 +2266,7 @@ async def test_login_oauth_timeout(caplog):
     """Test login with OAuth2 timeout path."""
     mock_hass = _mock_hass()
     with patch(
-        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+        "custom_components.mail_and_packages.utils.imap.HappyEyeballsIMAP4SSL",
     ) as mock_imap_ssl:
         mock_acc = AsyncMock()
         mock_acc.protocol.state = NONAUTH

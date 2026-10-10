@@ -75,8 +75,8 @@ async def get_imap_connection(
         )
         raise ConfigEntryAuthFailed from err
     except Exception as err:
-        _LOGGER.error("Error logging into IMAP: %s", err)
-        raise UpdateFailed(f"Login failed: {err}") from err
+        _LOGGER.error("Error logging into IMAP: %r", err)
+        raise UpdateFailed(f"Login failed: {err!r}") from err
 
     issue_registry = ir.async_get(hass)
     if (DOMAIN, "auth_failed") in issue_registry.issues:
