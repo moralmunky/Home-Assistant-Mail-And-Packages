@@ -1,6 +1,6 @@
 """Tests for the bpost shipper."""
 
-import datetime
+import datetime as dt
 import re
 from unittest.mock import AsyncMock, patch
 
@@ -162,7 +162,7 @@ async def test_bpost_delivering_explicit_date_today(hass):
     """Test bpost email with delivery date matching today is counted."""
     with patch(
         "custom_components.mail_and_packages.shippers.generic.helpers.get_today",
-        return_value=datetime.date(2026, 9, 8),
+        return_value=dt.date(2026, 9, 8),
     ):
         result = await _process(
             hass,
@@ -180,7 +180,7 @@ async def test_bpost_delivering_future_date_not_counted(hass):
     """Test bpost email with future date is not counted."""
     with patch(
         "custom_components.mail_and_packages.shippers.generic.helpers.get_today",
-        return_value=datetime.date(2026, 9, 8),
+        return_value=dt.date(2026, 9, 8),
     ):
         result = await _process(
             hass,
@@ -269,7 +269,7 @@ async def test_bpost_delivering_pattern_variations(hass):
         "no match text",
         body_patterns=[],
         date_patterns=str_patterns,
-        today_date=datetime.date(2026, 9, 8),
+        today_date=dt.date(2026, 9, 8),
     )
     assert not matched
 
@@ -279,7 +279,7 @@ async def test_bpost_delivering_pattern_variations(hass):
         "date: notadate",
         body_patterns=[],
         date_patterns=bad_date_pattern,
-        today_date=datetime.date(2026, 9, 8),
+        today_date=dt.date(2026, 9, 8),
     )
     assert not matched_unparsable
 

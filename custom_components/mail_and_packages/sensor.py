@@ -4,7 +4,7 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 
-import datetime
+import datetime as dt
 import logging
 from typing import Any
 
@@ -54,7 +54,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 DELIVERED_SUFFIXES = {"delivered"}
-SIGNED_IMAGE_URL_TTL = datetime.timedelta(hours=24)
+SIGNED_IMAGE_URL_TTL = dt.timedelta(hours=24)
 
 
 async def async_setup_entry(
@@ -146,11 +146,11 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
             # Safely handle string vs datetime to prevent ValueError
             if isinstance(value, str):
                 try:
-                    value = datetime.datetime.fromisoformat(value)
+                    value = dt.datetime.fromisoformat(value)
                 except ValueError:
-                    value = datetime.datetime.now(datetime.UTC)
+                    value = dt.datetime.now(dt.UTC)
             elif value is None and getattr(self, "_attr_native_value", None) is None:
-                value = datetime.datetime.now(datetime.UTC)
+                value = dt.datetime.now(dt.UTC)
 
         if value is not None:
             self._attr_native_value = value

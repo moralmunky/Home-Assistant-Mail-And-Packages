@@ -1,6 +1,6 @@
 """Tests for date utility functions."""
 
-import datetime
+import datetime as dt
 
 import pytest
 
@@ -13,7 +13,7 @@ from custom_components.mail_and_packages.utils.date import (
 
 def test_get_today():
     """Test get_today returns a date."""
-    assert isinstance(get_today(), datetime.date)
+    assert isinstance(get_today(), dt.date)
 
 
 def test_get_formatted_date():
@@ -25,5 +25,5 @@ def test_get_formatted_date():
 async def test_update_time():
     """Test update_time returns a datetime."""
     result = await update_time()
-    assert isinstance(result, datetime.datetime)
-    assert result.tzinfo == datetime.UTC
+    assert isinstance(result, dt.datetime)
+    assert result.tzinfo == dt.UTC

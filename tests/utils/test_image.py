@@ -1,6 +1,6 @@
 """Tests for image utilities."""
 
-import datetime
+import datetime as dt
 import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -318,7 +318,7 @@ async def test_image_file_name_amazon_custom():
         mock_existing_file = MagicMock()
         mock_existing_file.name = "old_amazon.jpg"
         mock_existing_file.suffix = ".jpg"
-        mock_existing_file.stat.return_value.st_ctime = datetime.datetime(
+        mock_existing_file.stat.return_value.st_ctime = dt.datetime(
             2026,
             3,
             24,
@@ -538,7 +538,7 @@ async def test_image_file_name_existing_today():
         mock_existing_file.name = "today_image.gif"
         mock_existing_file.suffix = ".gif"
         # Today's date (matched by get_formatted_date mock)
-        mock_existing_file.stat.return_value.st_ctime = datetime.datetime(
+        mock_existing_file.stat.return_value.st_ctime = dt.datetime(
             2026,
             3,
             25,

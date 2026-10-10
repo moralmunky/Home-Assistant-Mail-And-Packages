@@ -1,6 +1,6 @@
 """Tests for Amazon shipper utilities."""
 
-import datetime
+import datetime as dt
 import re
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -53,7 +53,7 @@ async def test_amazon_otp(hass):
     with (
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-            return_value=datetime.date(2024, 12, 19),
+            return_value=dt.date(2024, 12, 19),
         ),
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.amazon_email_addresses",
@@ -109,7 +109,7 @@ async def test_amazon_hub(hass, mock_imap_amazon_the_hub):
     shipper = AmazonShipper(hass, {"amazon_fwds": ""})
     with patch(
         "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-        return_value=datetime.date(2020, 9, 25),
+        return_value=dt.date(2020, 9, 25),
     ):
         result = await shipper.process(mock_imap_amazon_the_hub, "today", AMAZON_HUB)
         assert result[AMAZON_HUB] == 1
@@ -139,7 +139,7 @@ async def test_amazon_hub_2(hass, mock_imap_amazon_the_hub_2):
     # Test successful parsing with the fixture
     with patch(
         "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-        return_value=datetime.date(2020, 9, 25),
+        return_value=dt.date(2020, 9, 25),
     ):
         result = await shipper.process(mock_imap_amazon_the_hub_2, "today", AMAZON_HUB)
         assert result[AMAZON_HUB] == 1
@@ -204,7 +204,7 @@ async def test_amazon_delivered_with_order_in_body(hass):
         ) as mock_fetch,
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-            return_value=datetime.date(2025, 10, 29),
+            return_value=dt.date(2025, 10, 29),
         ),
     ):
         mock_search.return_value = ("OK", [b"1 2"])
@@ -244,7 +244,7 @@ async def test_amazon_shipped_minus_delivered_with_body_orders(hass):
         ) as mock_fetch,
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-            return_value=datetime.date(2025, 10, 29),
+            return_value=dt.date(2025, 10, 29),
         ),
     ):
 
@@ -352,7 +352,7 @@ async def test_amazon_hub_more_coverage(hass):
         ),
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-            return_value=datetime.date(2020, 9, 25),
+            return_value=dt.date(2020, 9, 25),
         ),
     ):
         result = await shipper.process(mock_account, "today", AMAZON_HUB)
@@ -375,14 +375,14 @@ async def test_amazon_parsing_more_coverage(hass, caplog):
     # 3. parse_amazon_arrival_date (async)
     with patch(
         "custom_components.mail_and_packages.utils.amazon.dateparser.parse",
-        return_value=datetime.datetime(2026, 1, 1),
+        return_value=dt.datetime(2026, 1, 1),
     ):
         result = await parse_amazon_arrival_date(
             hass,
             "Arriving Tomorrow",
-            datetime.date(2025, 12, 31),
+            dt.date(2025, 12, 31),
         )
-        assert result == datetime.date(2026, 1, 1)
+        assert result == dt.date(2026, 1, 1)
 
 
 @pytest.mark.asyncio
@@ -394,7 +394,7 @@ async def test_get_items_more_coverage(hass):
 
     # We'll use multiple email IDs
     unique_ids = [b"1", b"2", b"3", b"4"]
-    today = datetime.date.today()
+    today = dt.date.today()
 
     with (
         patch(
@@ -469,7 +469,7 @@ async def test_amazon_exception(hass):
         ) as mock_fetch,
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-            return_value=datetime.date(2025, 10, 29),
+            return_value=dt.date(2025, 10, 29),
         ),
     ):
         mock_search.return_value = ("OK", [b"1"])
@@ -551,12 +551,12 @@ async def test_amazon_search_delivered_it(hass, mock_imap_amazon_delivered_it):
 @pytest.mark.asyncio
 async def test_parse_amazon_arrival_date(hass):
     """Test parse_amazon_arrival_date utility."""
-    email_date = datetime.date(2020, 9, 25)
+    email_date = dt.date(2020, 9, 25)
 
     # 1. Standard absolute date parsing
     body = "Your order has shipped. Arriving: Saturday, September 26."
     result = await parse_amazon_arrival_date(hass, body, email_date)
-    assert result == datetime.date(2020, 9, 26)
+    assert result == dt.date(2020, 9, 26)
 
     # 2. English "today" relative date
     body_today = "Your order has shipped. Arriving today by 8 PM."
@@ -566,7 +566,7 @@ async def test_parse_amazon_arrival_date(hass):
     # 3. English "tomorrow" relative date
     body_tomorrow = "Your order has shipped. Arriving tomorrow by 8 PM."
     result_tomorrow = await parse_amazon_arrival_date(hass, body_tomorrow, email_date)
-    assert result_tomorrow == email_date + datetime.timedelta(days=1)
+    assert result_tomorrow == email_date + dt.timedelta(days=1)
 
     # 4. Dutch "vandaag" relative date
     body_vandaag = "Je pakket wordt vandaag bezorgd."
@@ -576,12 +576,12 @@ async def test_parse_amazon_arrival_date(hass):
     # 5. Dutch "morgen" relative date
     body_morgen = "Je pakket wordt morgen bezorgd."
     result_morgen = await parse_amazon_arrival_date(hass, body_morgen, email_date)
-    assert result_morgen == email_date + datetime.timedelta(days=1)
+    assert result_morgen == email_date + dt.timedelta(days=1)
 
     # 6. Italian "domani" relative date
     body_domani = "In arrivo domani"
     result_domani = await parse_amazon_arrival_date(hass, body_domani, email_date)
-    assert result_domani == email_date + datetime.timedelta(days=1)
+    assert result_domani == email_date + dt.timedelta(days=1)
 
     # 7. Italian "oggi" relative date
     body_oggi = "In arrivo oggi"
@@ -622,7 +622,7 @@ async def test_amazon_packages_counts(hass, mock_imap_amazon_shipped):
     with (
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-            return_value=datetime.date(2020, 9, 26),
+            return_value=dt.date(2020, 9, 26),
         ),
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
@@ -739,7 +739,7 @@ async def test_process_amazon_email_non_bytes(hass):
     """Test _process_amazon_email with non-bytes part (Line 151)."""
     shipper = AmazonShipper(hass, {})
     ctx = {
-        "today": datetime.date.today(),
+        "today": dt.date.today(),
         "deliveries_today": [],
         "amazon_delivered": [],
     }
@@ -757,7 +757,7 @@ async def test_process_amazon_email_non_bytes(hass):
 async def test_handle_shipping_email_no_order_id(hass):
     """Test _handle_shipping_email with no order ID (Line 205)."""
     shipper = AmazonShipper(hass, {})
-    today = datetime.date(2025, 1, 1)
+    today = dt.date(2025, 1, 1)
     ctx = {
         "today": today,
         "deliveries_today": [],
@@ -810,7 +810,7 @@ async def test_amazon_exception_body_match(hass):
         ),
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-            return_value=datetime.date.today(),
+            return_value=dt.date.today(),
         ),
     ):
         result = await shipper.process(mock_account, "today", AMAZON_EXCEPTION)
@@ -965,7 +965,7 @@ async def test_process_with_cache(hass):
         [b"RFC822", b"Subject: Shipped: 1\n\nOrder 111-1234567-1234567 shipped."],
     )
     ctx = {
-        "today": datetime.date.today(),
+        "today": dt.date.today(),
         "deliveries_today": [],
         "amazon_delivered": [],
         "all_shipped_orders": set(),
@@ -1073,7 +1073,7 @@ async def test_amazon_forwarding_header_mode_sets_fwds_none(hass):
     with (
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-            return_value=datetime.date(2024, 12, 19),
+            return_value=dt.date(2024, 12, 19),
         ),
         patch.object(shipper, "_parse_amazon_emails", side_effect=capture_fwds),
     ):
@@ -1205,7 +1205,7 @@ async def test_amazon_de_emails(hass):
     with (
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-            return_value=datetime.date(2026, 7, 13),  # 2026-07-13 is a Monday
+            return_value=dt.date(2026, 7, 13),  # 2026-07-13 is a Monday
         ),
         patch(
             "custom_components.mail_and_packages.utils.amazon.email_search",
@@ -1268,7 +1268,7 @@ async def test_amazon_de_versendet_ankunft_emails(hass):
     with (
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-            return_value=datetime.date(2026, 7, 22),
+            return_value=dt.date(2026, 7, 22),
         ),
         patch(
             "custom_components.mail_and_packages.utils.amazon.email_search",
@@ -1309,7 +1309,7 @@ async def test_amazon_delivering_order_subtraction(hass):
     with (
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-            return_value=datetime.date(2026, 7, 22),
+            return_value=dt.date(2026, 7, 22),
         ),
         patch(
             "custom_components.mail_and_packages.utils.amazon.email_search",
@@ -1357,7 +1357,7 @@ async def test_amazon_delivering_no_order_id_no_arrival_date(hass):
     with (
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-            return_value=datetime.date(2026, 7, 22),
+            return_value=dt.date(2026, 7, 22),
         ),
         patch(
             "custom_components.mail_and_packages.utils.amazon.email_search",
@@ -1487,11 +1487,11 @@ async def test_amazon_packages_order_details(hass):
         ),
         patch(
             "custom_components.mail_and_packages.shippers.amazon.search.get_today",
-            return_value=datetime.date(2026, 7, 15),
+            return_value=dt.date(2026, 7, 15),
         ),
         patch(
             "custom_components.mail_and_packages.utils.amazon.get_today",
-            return_value=datetime.date(2026, 7, 15),
+            return_value=dt.date(2026, 7, 15),
         ),
     ):
         result = await shipper.process(mock_account, "today", AMAZON_PACKAGES)

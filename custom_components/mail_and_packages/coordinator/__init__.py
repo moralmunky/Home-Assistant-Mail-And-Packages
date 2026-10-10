@@ -1,7 +1,7 @@
 """Data coordinator for Mail and Packages."""
 
 import asyncio
-import datetime
+import datetime as dt
 import logging
 import sys
 from datetime import timedelta
@@ -86,9 +86,9 @@ __all__ = [
     "check_camera_update",
     "const",
     "copy_images",
-    "datetime",
     "dedupe_marketplace_duplicates",
     "default_image_path",
+    "dt",
     "get_shipper_for_sensor",
     "hash_file",
     "initialize_data",
@@ -235,11 +235,11 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             await cache.async_load()
             await cache.async_purge_expired(custom_days=days)
 
-            now = datetime.datetime.now()
+            now = dt.datetime.now()
             today = now.strftime("%d-%b-%Y")
             today_iso = now.date().isoformat()
             days = config.get(CONF_CUSTOM_DAYS, DEFAULT_CUSTOM_DAYS)
-            since_date = (now - datetime.timedelta(days=days)).strftime("%d-%b-%Y")
+            since_date = (now - dt.timedelta(days=days)).strftime("%d-%b-%Y")
 
             # Process logic
             shipper_data = await self._update_shippers(

@@ -1,7 +1,7 @@
 """Tests for MailDataUpdateCoordinator sensor processing."""
 
 import asyncio
-import datetime
+import datetime as dt
 from http import HTTPStatus
 from unittest.mock import AsyncMock, patch
 
@@ -858,13 +858,13 @@ async def test_process_emails_passes_since_date(hass):
             "custom_components.mail_and_packages.coordinator.get_shipper_for_sensor",
             return_value=mock_shipper,
         ),
-        patch("custom_components.mail_and_packages.coordinator.datetime") as mock_dt,
+        patch("custom_components.mail_and_packages.coordinator.dt") as mock_dt,
     ):
-        fixed_now = datetime.datetime(2026, 4, 22, 12, 0, 0)
+        fixed_now = dt.datetime(2026, 4, 22, 12, 0, 0)
         mock_dt.datetime.now.return_value = fixed_now
-        mock_dt.timedelta = datetime.timedelta
-        mock_dt.date = datetime.date
-        mock_dt.UTC = datetime.UTC
+        mock_dt.timedelta = dt.timedelta
+        mock_dt.date = dt.date
+        mock_dt.UTC = dt.UTC
         await coordinator.process_emails(hass, config)
 
     call_kwargs = mock_shipper.process_batch.call_args

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import logging
 import os
 from pathlib import Path
@@ -55,7 +55,7 @@ async def get_count(
         return {ATTR_COUNT: 0, ATTR_TRACKING: []}
 
     shipper = shipper_class(hass, {CONF_PATH: image_path})
-    today = datetime.datetime.now().strftime("%d-%b-%Y")
+    today = dt.datetime.now().strftime("%d-%b-%Y")
     return await shipper.process(account, today, sensor_type)
 
 
@@ -67,7 +67,7 @@ async def get_mails(
 ) -> int:
     """Legacy get_mails wrapper for tests."""
     shipper = USPSShipper(hass, config)
-    today = datetime.datetime.now().strftime("%d-%b-%Y")
+    today = dt.datetime.now().strftime("%d-%b-%Y")
     result = await shipper.process(account, today, "usps_mail")
     return result.get(ATTR_COUNT, 0)
 
@@ -84,7 +84,7 @@ async def fetch(
         return 0
 
     shipper = shipper_class(hass, config)
-    today = datetime.datetime.now().strftime("%d-%b-%Y")
+    today = dt.datetime.now().strftime("%d-%b-%Y")
     data = await shipper.process(account, today, sensor)
     return data.get(ATTR_COUNT, 0)
 
@@ -101,7 +101,7 @@ async def get_items(
         return {ATTR_COUNT: 0, ATTR_TRACKING: []}
 
     shipper = shipper_class(hass, config)
-    today = datetime.datetime.now().strftime("%d-%b-%Y")
+    today = dt.datetime.now().strftime("%d-%b-%Y")
     return await shipper.process(account, today, sensor)
 
 
