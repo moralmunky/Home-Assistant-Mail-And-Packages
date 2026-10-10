@@ -343,6 +343,24 @@ async def test_get_imap_connection_exception(hass):
 
 
 @pytest.mark.asyncio
+async def test_get_imap_connection_timeout_names_exception(hass, caplog):
+    """Test a login timeout is logged by type rather than as an empty string."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            side_effect=TimeoutError(),
+        ),
+        pytest.raises(UpdateFailed, match=r"Login failed: TimeoutError\(\)"),
+    ):
+        await coordinator._get_imap_connection(FAKE_CONFIG_DATA)
+
+    assert "Error logging into IMAP: TimeoutError()" in caplog.text
+
+
+@pytest.mark.asyncio
 async def test_process_emails_no_shipper(hass):
     """Test process_emails skips if no shipper is found."""
     with patch("homeassistant.helpers.frame.report_usage"):
