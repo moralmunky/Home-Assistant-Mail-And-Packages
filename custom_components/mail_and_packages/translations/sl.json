@@ -28,7 +28,6 @@
           "image_security": "Naključno ime datoteke",
           "imap_timeout": "Čas v sekundah pred prekinitvijo povezave (sekunde, najmanj 10)",
           "generate_mp4": "Ustvari mp4 iz slik",
-          "allow_external": "Ustvari sliko za aplikacije za obvestila (Deprecated)",
           "custom_img": "Uporabite prilagojeno sliko USPS 'brez pošte'?",
           "amazon_custom_img": "Uporabite prilagojeno sliko Amazon 'brez dostave'?",
           "ups_custom_img": "Uporabite prilagojeno sliko UPS 'brez dostave'?",
@@ -73,7 +72,6 @@
           "generate_mp4": "Ustvari mp4 iz slik",
           "resources": "Seznam senzorjev",
           "imap_timeout": "Čas v sekundah pred prekinitvijo povezave (sekunde, najmanj 10)",
-          "allow_external": "Ustvari sliko za aplikacije za obvestila (Deprecated)",
           "custom_img": "Uporabite prilagojeno sliko USPS 'brez pošte'?",
           "amazon_custom_img": "Uporabite prilagojeno sliko Amazon 'brez dostave'?",
           "ups_custom_img": "Uporabite prilagojeno sliko UPS 'brez dostave'?",
@@ -231,17 +229,6 @@
           }
         }
       }
-    },
-    "deprecated_allow_external": {
-      "title": "External image copying is deprecated",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Disable External Image Copying",
-            "description": "The 'Create image for notification apps' (`allow_external`) setting is deprecated and will be removed in a future release. Images are now served securely via Home Assistant API endpoints using signed URLs without copying files to `/config/www/mail_and_packages/`.\n\nClick Submit to automatically disable this deprecated option on your configuration."
-          }
-        }
-      }
     }
   },
   "options": {
@@ -259,7 +246,6 @@
           "image_security": "Naključno ime datoteke",
           "imap_timeout": "Čas v sekundah pred prekinitvijo povezave (sekunde, najmanj 10)",
           "generate_mp4": "Ustvari mp4 iz slik",
-          "allow_external": "Ustvari sliko za aplikacije za obvestila (Deprecated)",
           "usps_placeholder": "Ali naj se v GIF vključi nadomestni znak USPS brez slike?",
           "custom_img": "Uporabite prilagojeno sliko USPS 'brez pošte'?",
           "amazon_custom_img": "Uporabite prilagojeno sliko Amazon 'brez dostave'?",
@@ -270,9 +256,7 @@
           "generate_grid": "Ustvari mrežo slik za vizualne modele LLM",
           "allow_forwarded_emails": "Dovoli posredovane e-poštne sporočila poleg privzete vrednosti storitve (npr. no-reply@usps.com)"
         },
-        "data_description": {
-          "allow_external": "Deprecated: Images are now served securely via Home Assistant API endpoints using signed URLs. Copying images to www/mail_and_packages/ will be removed in a future release."
-        }
+        "data_description": {}
       },
       "options_3": {
         "title": "Pošta in paketi (korak 3 od 3)",

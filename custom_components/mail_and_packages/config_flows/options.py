@@ -76,7 +76,6 @@ OPTIONS_KEYS = {
     "generate_grid",
     "gif_duration",
     "custom_days",
-    "allow_external",
     "image_security",
     "imap_timeout",
     "image_name",

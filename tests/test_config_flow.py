@@ -115,7 +115,6 @@ _LOGGER = logging.getLogger(__name__)
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "custom_img": True,
                 "folder": "INBOX",
@@ -170,7 +169,6 @@ _LOGGER = logging.getLogger(__name__)
             },
             "Mail and Packages (imap.test.email)",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -353,7 +351,6 @@ async def test_form(
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "custom_img": True,
                 "folder": "INBOX",
@@ -408,7 +405,6 @@ async def test_form(
             },
             "Mail and Packages (imap.test.email)",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -588,7 +584,6 @@ async def test_form_no_fwds(
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "custom_img": True,
                 "folder": "INBOX",
@@ -639,7 +634,6 @@ async def test_form_no_fwds(
             },
             "Mail and Packages (imap.test.email)",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -846,7 +840,6 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap_connect
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "folder": "INBOX",
                 "generate_grid": True,
@@ -1026,7 +1019,6 @@ async def test_form_invalid_ffmpeg(
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "custom_img": False,
                 "folder": "INBOX",
@@ -1077,7 +1069,6 @@ async def test_form_invalid_ffmpeg(
             },
             "Mail and Packages (imap.test.email)",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "custom_img": False,
                 "amazon_days": 3,
@@ -1255,7 +1246,6 @@ async def test_form_index_error(
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "custom_img": False,
                 "folder": "INBOX",
@@ -1306,7 +1296,6 @@ async def test_form_index_error(
             },
             "Mail and Packages (imap.test.email)",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "custom_img": False,
                 "amazon_days": 3,
@@ -1484,7 +1473,6 @@ async def test_form_index_error_2(
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "custom_img": False,
                 "folder": "INBOX",
@@ -1537,7 +1525,6 @@ async def test_form_index_error_2(
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "usps_placeholder": True,
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "custom_img": False,
                 "amazon_days": 3,
@@ -1691,7 +1678,6 @@ async def test_form_storage_error(
             },
             "reconfig_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "custom_img": True,
                 "folder": "INBOX",
@@ -1748,7 +1734,6 @@ async def test_form_storage_error(
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "usps_placeholder": True,
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -1937,7 +1922,6 @@ async def test_reconfigure(
             },
             "reconfig_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "custom_img": True,
                 "folder": "INBOX",
@@ -1986,7 +1970,6 @@ async def test_reconfigure(
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "usps_placeholder": True,
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -2163,7 +2146,6 @@ async def test_reconfigure_no_amazon(
             },
             "reconfig_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "custom_img": False,
                 "folder": "INBOX",
@@ -2215,7 +2197,6 @@ async def test_reconfigure_no_amazon(
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "usps_placeholder": True,
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -2442,7 +2423,6 @@ async def test_config_flow_with_amazon_custom_image_only(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                "allow_external": False,
                 "custom_img": False,
                 "amazon_custom_img": True,
                 "folder": "INBOX",
@@ -2504,7 +2484,6 @@ async def test_config_flow_with_amazon_custom_image_only(
         assert result["title"] == "Mail and Packages (imap.test.email)"
         actual_data = result["data"]
         expected_data = {
-            "allow_external": False,
             "allow_forwarded_emails": False,
             "amazon_days": 3,
             "amazon_domain": "amazon.com",
@@ -2630,7 +2609,6 @@ async def test_config_flow_with_ups_custom_image_only(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                "allow_external": False,
                 "custom_img": False,
                 "ups_custom_img": True,
                 "folder": "INBOX",
@@ -2694,7 +2672,6 @@ async def test_config_flow_with_ups_custom_image_only(
         actual_data["resources"] = sorted(actual_data["resources"])
 
         expected_data = {
-            "allow_external": False,
             "allow_forwarded_emails": False,
             "amazon_days": 3,
             "amazon_domain": "amazon.com",
@@ -2762,7 +2739,6 @@ async def integration_fixture_v10_migration(hass, caplog):
         "amazon_days": 3,
         "amazon_domain": "amazon.com",
         "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
-        "allow_external": False,
         "custom_img": False,
         "custom_img_file": "custom_components/mail_and_packages/images/mail_none.gif",
         "folder": "INBOX",
@@ -2880,7 +2856,6 @@ async def test_migration_from_version_10_to_11(hass, caplog):
         "amazon_days": 3,
         "amazon_domain": "amazon.com",
         "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
-        "allow_external": False,
         "custom_img": False,
         "custom_img_file": "custom_components/mail_and_packages/images/mail_none.gif",
         "folder": "INBOX",
@@ -2970,7 +2945,6 @@ async def test_migration_from_version_9_to_11(hass, caplog):
         "amazon_days": 3,
         "amazon_domain": "amazon.com",
         "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
-        "allow_external": False,
         "custom_img": False,
         "custom_img_file": "custom_components/mail_and_packages/images/mail_none.gif",
         "folder": "INBOX",
@@ -3057,7 +3031,6 @@ async def test_migration_from_version_11_no_changes(hass, caplog):
         "amazon_days": 3,
         "amazon_domain": "amazon.com",
         "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
-        "allow_external": False,
         "custom_img": False,
         "custom_img_file": "custom_components/mail_and_packages/images/mail_none.gif",
         "folder": "INBOX",
@@ -3142,7 +3115,6 @@ async def test_migration_preserves_existing_custom_image_settings(hass, caplog):
         "amazon_days": 3,
         "amazon_domain": "amazon.com",
         "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
-        "allow_external": False,
         "custom_img": True,
         "custom_img_file": "images/custom_mail.gif",
         "amazon_custom_img": True,  # Already set
@@ -3294,7 +3266,6 @@ async def test_migration_with_minimal_config(hass, caplog):
             },
             "reconfig_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "custom_img": False,
                 "folder": "INBOX",
@@ -3412,7 +3383,6 @@ async def test_reconfig_amazon_error(
             },
             "reconfig_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "custom_img": False,
                 "folder": "INBOX",
@@ -3626,7 +3596,6 @@ async def test_walmart_custom_image_in_config_flow(hass, mock_imap_no_email):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                "allow_external": False,
                 "custom_img": False,
                 "walmart_custom_img": True,  # Enable Walmart custom image
                 "folder": "INBOX",
@@ -3688,7 +3657,6 @@ async def test_generic_custom_image_validation(hass: HomeAssistant, mock_imap_no
         "password": "notarealpassword",
         "imap_security": "SSL",
         "verify_ssl": False,
-        "allow_external": False,
         "custom_img": False,
         "generic_custom_img": True,
         "usps_placeholder": True,
@@ -3774,7 +3742,6 @@ async def test_generic_custom_image_in_config_flow(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                "allow_external": False,
                 "custom_img": False,
                 "generic_custom_img": True,
                 "usps_placeholder": True,
@@ -3866,7 +3833,6 @@ async def test_post_de_custom_image_in_config_flow(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                "allow_external": False,
                 "custom_img": False,
                 "post_de_custom_img": True,
                 "folder": "INBOX",
@@ -3922,7 +3888,6 @@ async def test_migration_to_version_12(hass: HomeAssistant, mock_imap_no_email):
             "password": "notarealpassword",
             "imap_security": "SSL",
             "verify_ssl": False,
-            "allow_external": False,
             "custom_img": False,
             "folder": "INBOX",
             "generate_grid": False,
@@ -3981,7 +3946,6 @@ async def test_migration_to_version_13(hass: HomeAssistant, mock_imap_no_email):
             "password": "notarealpassword",
             "imap_security": "SSL",
             "verify_ssl": False,
-            "allow_external": False,
             "custom_img": False,
             "folder": "INBOX",
             "generate_grid": False,
@@ -4701,7 +4665,6 @@ async def test_validate_forwarded_emails_missing_and_invalid():
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "custom_img": True,
                 "folder": "INBOX",
@@ -4758,7 +4721,6 @@ async def test_validate_forwarded_emails_missing_and_invalid():
             },
             "Mail and Packages (imap.test.email)",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "forwarded_emails": ["user@example.com", "testuser@example.com"],
                 "amazon_days": 3,
@@ -4951,7 +4913,6 @@ async def test_form_allow_forwarded_emails(
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "custom_img": True,
                 "folder": "INBOX",
@@ -5008,7 +4969,6 @@ async def test_form_allow_forwarded_emails(
             },
             "Mail and Packages (imap.test.email)",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -5196,7 +5156,6 @@ async def test_form_allowed_forwarded_emails_entered_none(
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "custom_img": False,
                 "folder": "INBOX",
@@ -5241,7 +5200,6 @@ async def test_form_allowed_forwarded_emails_entered_none(
             },
             "Mail and Packages (imap.test.email)",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "forwarded_emails": ["user@example.com", "testuser@example.com"],
                 "custom_img": False,
@@ -5410,7 +5368,6 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "custom_img": False,
                 "folder": "INBOX",
@@ -5462,7 +5419,6 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
             },
             "Mail and Packages (imap.test.email)",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -5635,7 +5591,6 @@ async def test_form_allow_forwarded_emails_without_custom_img(
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "custom_img": False,
                 "folder": "INBOX",
@@ -5687,7 +5642,6 @@ async def test_form_allow_forwarded_emails_without_custom_img(
             },
             "Mail and Packages (imap.test.email)",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -5862,7 +5816,6 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "custom_img": True,
                 "folder": "INBOX",
@@ -5919,7 +5872,6 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
             },
             "Mail and Packages (imap.test.email)",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": False,
                 "forwarded_emails": "(none)",
                 "amazon_days": 3,
@@ -6101,7 +6053,6 @@ async def test_form_allow_forwarded_emails_none_entered(
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "custom_img": True,
                 "folder": "INBOX",
@@ -6148,7 +6099,6 @@ async def test_form_allow_forwarded_emails_none_entered(
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "usps_placeholder": True,
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -6279,7 +6229,6 @@ async def test_form_allowed_forwards_missing_email_addresses(
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "custom_img": True,
                 "folder": "INBOX",
@@ -6324,7 +6273,6 @@ async def test_form_allowed_forwards_missing_email_addresses(
             },
             "Mail and Packages (imap.test.email)",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -6470,7 +6418,6 @@ async def test_form_allowed_forwards_invalid_email_address_format(
             },
             "reconfig_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "custom_img": True,
                 "folder": "INBOX",
@@ -6527,7 +6474,6 @@ async def test_form_allowed_forwards_invalid_email_address_format(
             },
             "Mail and Packages (imap.test.email)",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "forwarded_emails": ["user@example.com", "testuser@example.com"],
                 "amazon_days": 3,
@@ -6733,7 +6679,6 @@ async def test_reconfigure_allow_forwarded_emails(
             },
             "config_2",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "custom_img": True,
                 "folder": "INBOX",
@@ -6790,7 +6735,6 @@ async def test_reconfigure_allow_forwarded_emails(
             },
             "Mail and Packages (imap.test.email)",
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "forwarded_emails": ["no-reply@usps.com"],
                 "amazon_days": 3,
@@ -7173,7 +7117,6 @@ async def test_step_2_finish_flow(hass, mock_imap):
     assert result["type"] == "form"
     assert result["step_id"] == "config_2"
     input_2 = {
-        "allow_external": False,
         "allow_forwarded_emails": False,
         "custom_img": False,
         "folder": "INBOX",
@@ -7232,7 +7175,6 @@ async def test_step_forwarded_emails_skip_amazon(hass, mock_imap):
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {
-            "allow_external": False,
             "allow_forwarded_emails": True,
             "custom_img": True,
             "folder": "INBOX",
@@ -7343,7 +7285,6 @@ async def test_reconfig_forwarded_emails_to_reconfig_3(
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "custom_img": True,
                 "folder": "INBOX",
@@ -7389,7 +7330,6 @@ async def test_reconfig_storage_validation_error(hass, mock_imap_no_email, integ
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {
-                "allow_external": False,
                 "allow_forwarded_emails": True,
                 "custom_img": True,
                 "folder": "INBOX",
@@ -7838,7 +7778,6 @@ async def test_options_flow_edge_cases(
                 "resources": ["amazon_delivered", "usps_mail"],
                 "gif_duration": 5,
                 "imap_timeout": 30,
-                "allow_external": True,
                 "usps_placeholder": True,
                 "custom_img": True,
                 "allow_forwarded_emails": True,
@@ -7923,7 +7862,6 @@ async def test_options_flow_edge_cases_2(
                 "resources": ["usps_mail"],  # No Amazon sensor!
                 "gif_duration": 5,
                 "imap_timeout": 30,
-                "allow_external": True,
                 "usps_placeholder": True,
                 "custom_img": True,
                 "allow_forwarded_emails": True,
@@ -7976,7 +7914,6 @@ async def test_options_flow_edge_cases_3(
                 "resources": ["usps_mail"],  # No Amazon sensor!
                 "gif_duration": 5,
                 "imap_timeout": 30,
-                "allow_external": True,
                 "usps_placeholder": True,
                 "custom_img": False,  # False!
                 "allow_forwarded_emails": True,
@@ -8037,7 +7974,6 @@ async def test_options_flow_empty_amazon_fwds(
                 "resources": ["amazon_delivered", "usps_mail"],
                 "gif_duration": 5,
                 "imap_timeout": 30,
-                "allow_external": True,
                 "usps_placeholder": True,
                 "custom_img": False,
                 "allow_forwarded_emails": False,
@@ -8599,7 +8535,6 @@ async def test_options_flow_amazon_fwds_list_default(hass: HomeAssistant):
                 "scan_interval": 30,
                 "gif_duration": 5,
                 "imap_timeout": 60,
-                "allow_external": False,
                 "usps_placeholder": False,
                 "custom_img": False,
                 "allow_forwarded_emails": False,

@@ -43,7 +43,6 @@ from .const import (
     ATTR_ORDER_DETAILS,
     ATTR_TRACKING_NUM,
     ATTR_USPS_IMAGE,
-    CONF_ALLOW_EXTERNAL,
     CONF_PATH,
     DOMAIN,
     IMAGE_SENSORS,
@@ -305,13 +304,10 @@ class ImagePathSensors(CoordinatorEntity, RestoreSensor):
         return attr
 
     def _build_image_url(self, image: str) -> str | None:
-        """Construct the full image URL (signed or legacy)."""
+        """Construct the full signed image URL."""
         url = self._get_base_url()
         if not url:
             return None
-
-        if self.coordinator.config.get(CONF_ALLOW_EXTERNAL):
-            return f"{url.rstrip('/')}/local/mail_and_packages/{image}"
 
         path_to_sign = f"/api/mail_and_packages/image/{self._unique_id}/{image}"
         signed_path = async_sign_path(

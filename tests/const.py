@@ -100,7 +100,6 @@ FAKE_CONFIG_DATA_BAD = {
 }
 
 FAKE_CONFIG_DATA = {
-    "allow_external": False,
     "amazon_days": 3,
     "amazon_domain": "amazon.com",
     "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
@@ -185,7 +184,6 @@ FAKE_CONFIG_DATA = {
 
 # Configuration with no Amazon sensors and no custom images
 FAKE_CONFIG_DATA_NO_AMAZON = {
-    "allow_external": False,
     "custom_img": False,
     "amazon_custom_img": False,
     "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
@@ -253,7 +251,6 @@ FAKE_CONFIG_DATA_NO_AMAZON = {
 }
 
 FAKE_CONFIG_DATA_EXTERNAL = {
-    "allow_external": True,
     "amazon_days": 3,
     "amazon_domain": "amazon.com",
     "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
@@ -321,7 +318,6 @@ FAKE_CONFIG_DATA_EXTERNAL = {
 }
 
 FAKE_CONFIG_DATA_CORRECTED_EXTERNAL = {
-    "allow_external": True,
     "amazon_days": 3,
     "amazon_domain": "amazon.com",
     "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
@@ -398,7 +394,6 @@ FAKE_CONFIG_DATA_CORRECTED_EXTERNAL = {
 }
 
 FAKE_CONFIG_DATA_CORRECTED = {
-    "allow_external": False,
     "amazon_days": 3,
     "amazon_domain": "amazon.com",
     "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
@@ -783,7 +778,6 @@ FAKE_CONFIG_DATA_MISSING_TIMEOUT = {
 }
 
 FAKE_CONFIG_DATA_AMAZON_FWD_STRING = {
-    "allow_external": True,
     "amazon_domain": "amazon.com",
     "amazon_fwds": "fakeuser@fake.email",
     "amazon_custom_img": False,
@@ -851,7 +845,6 @@ FAKE_CONFIG_DATA_AMAZON_FWD_STRING = {
 FAKE_CONFIG_DATA_CUSTOM_IMG = {
     "amazon_days": 3,
     "amazon_domain": "amazon.com",
-    "allow_external": False,
     "amazon_fwds": ["fakeuser@fake.email", "fakeuser2@fake.email"],
     "custom_img": True,
     "custom_img_file": "images/test.gif",
@@ -1038,7 +1031,6 @@ FAKE_UPDATE_DATA_BIN = {
     "gls_tracking": ["51687952111"],
 }
 FAKE_CONFIG_DATA_V4_MIGRATE = {
-    "allow_external": True,
     "amazon_domain": "amazon.com",
     "amazon_fwds": ['""'],
     "custom_img": False,
@@ -1101,7 +1093,6 @@ FAKE_CONFIG_DATA_V4_MIGRATE = {
 }
 
 FAKE_CONFIG_DATA_USPS_DELIVERED = {
-    "allow_external": False,
     "amazon_days": 3,
     "amazon_domain": "amazon.com",
     "amazon_fwds": "fakeuser@fake.email, fakeuser2@fake.email",
@@ -1128,7 +1119,6 @@ FAKE_CONFIG_DATA_USPS_DELIVERED = {
 }
 
 FAKE_CONFIG_DATA_CAPOST = {
-    "allow_external": False,
     "amazon_custom_img": False,
     "amazon_custom_img_file": "custom_components/mail_and_packages/no_deliveries_amazon.jpg",
     "ups_custom_img": False,
@@ -1157,7 +1147,6 @@ FAKE_CONFIG_DATA_CAPOST = {
 }
 
 FAKE_CONFIG_DATA_FORWARDED_EMAILS_NO_AMAZON = {
-    "allow_external": False,
     "custom_img": False,
     "folder": '"INBOX"',
     "generate_mp4": False,

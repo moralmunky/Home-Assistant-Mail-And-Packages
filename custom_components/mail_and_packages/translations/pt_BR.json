@@ -28,7 +28,6 @@
           "image_security": "Nome da imagem aleatória",
           "imap_timeout": "Tempo em segundos antes do tempo limite de conexão (segundos, mínimo 10)",
           "generate_mp4": "Crie mp4 a partir de imagens",
-          "allow_external": "Crie imagem para aplicativos de notificação (Deprecated)",
           "custom_img": "Usar imagem personalizada USPS 'sem correio'?",
           "amazon_custom_img": "Usar imagem personalizada Amazon 'sem entrega'?",
           "ups_custom_img": "Usar imagem personalizada UPS 'sem entrega'?",
@@ -73,7 +72,6 @@
           "generate_mp4": "Crie mp4 a partir de imagens",
           "resources": "Lista de Sensores",
           "imap_timeout": "Tempo em segundos antes do tempo limite de conexão (segundos, mínimo 10)",
-          "allow_external": "Crie imagem para aplicativos de notificação (Deprecated)",
           "custom_img": "Usar imagem personalizada USPS 'sem correio'?",
           "amazon_custom_img": "Usar imagem personalizada Amazon 'sem entrega'?",
           "ups_custom_img": "Usar imagem personalizada UPS 'sem entrega'?",
@@ -231,17 +229,6 @@
           }
         }
       }
-    },
-    "deprecated_allow_external": {
-      "title": "External image copying is deprecated",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Disable External Image Copying",
-            "description": "The 'Create image for notification apps' (`allow_external`) setting is deprecated and will be removed in a future release. Images are now served securely via Home Assistant API endpoints using signed URLs without copying files to `/config/www/mail_and_packages/`.\n\nClick Submit to automatically disable this deprecated option on your configuration."
-          }
-        }
-      }
     }
   },
   "options": {
@@ -259,7 +246,6 @@
           "image_security": "Nome da imagem aleatória",
           "imap_timeout": "Tempo em segundos antes do tempo limite de conexão (segundos, mínimo 10)",
           "generate_mp4": "Crie mp4 a partir de imagens",
-          "allow_external": "Crie imagem para aplicativos de notificação (Deprecated)",
           "usps_placeholder": "Incluir marcador de posição sem imagem USPS no GIF?",
           "custom_img": "Usar imagem personalizada USPS 'sem correio'?",
           "amazon_custom_img": "Usar imagem personalizada Amazon 'sem entrega'?",
@@ -270,9 +256,7 @@
           "generate_grid": "Criar grade de imagens para modelos de visão LLM",
           "allow_forwarded_emails": "Permitir e-mails encaminhados além do padrão de um serviço (ex: no-reply@usps.com)"
         },
-        "data_description": {
-          "allow_external": "Deprecated: Images are now served securely via Home Assistant API endpoints using signed URLs. Copying images to www/mail_and_packages/ will be removed in a future release."
-        }
+        "data_description": {}
       },
       "options_3": {
         "title": "Correio e Pacotes (Etapa 3 de 3)",

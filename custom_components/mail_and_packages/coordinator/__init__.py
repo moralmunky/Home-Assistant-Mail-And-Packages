@@ -15,7 +15,6 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_entry_oauth2_flow
-from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import (
     ConfigEntryAuthFailed,
     DataUpdateCoordinator,
@@ -25,7 +24,6 @@ from homeassistant.helpers.update_coordinator import (
 from custom_components.mail_and_packages import const
 from custom_components.mail_and_packages.const import (
     AUTH_TYPE_PASSWORD,
-    CONF_ALLOW_EXTERNAL,
     CONF_AUTH_TYPE,
     CONF_CUSTOM_DAYS,
     CONF_IMAP_TIMEOUT,
@@ -33,7 +31,6 @@ from custom_components.mail_and_packages.const import (
     DEFAULT_IMAP_TIMEOUT,
     MAX_TRACKING_AGE_DAYS,
 )
-from custom_components.mail_and_packages.helpers import copy_images
 from custom_components.mail_and_packages.shippers import get_shipper_for_sensor
 from custom_components.mail_and_packages.utils.cache import EmailCache
 from custom_components.mail_and_packages.utils.image import (
@@ -85,7 +82,6 @@ __all__ = [
     "binary_sensor_update",
     "check_camera_update",
     "const",
-    "copy_images",
     "datetime",
     "dedupe_marketplace_duplicates",
     "default_image_path",
@@ -256,33 +252,6 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             await cache.async_save()
         finally:
             await logout(account)
-
-        # Post-process external images
-        if config.get(CONF_ALLOW_EXTERNAL):
-            _LOGGER.warning(
-                "The 'allow_external' option is deprecated and will be removed in a future release. "
-                "Images are now served securely via Home Assistant API endpoints"
-            )
-            ir.async_create_issue(
-                hass,
-                const.DOMAIN,
-                "deprecated_allow_external",
-                is_fixable=True,
-                severity=ir.IssueSeverity.WARNING,
-                translation_key="deprecated_allow_external",
-                learn_more_url="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/USPS-Informed-Delivery-Image",
-                data={"entry_id": self.config_entry.entry_id}
-                if self.config_entry
-                else None,
-            )
-            try:
-                await hass.async_add_executor_job(copy_images, hass, config)
-            except (OSError, ValueError) as err:
-                _LOGGER.error("Problem creating: %s", err)
-        else:
-            issue_registry = ir.async_get(hass)
-            if (const.DOMAIN, "deprecated_allow_external") in issue_registry.issues:
-                ir.async_delete_issue(hass, const.DOMAIN, "deprecated_allow_external")
 
         return data
 

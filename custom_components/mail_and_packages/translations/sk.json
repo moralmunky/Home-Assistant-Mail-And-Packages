@@ -28,7 +28,6 @@
           "image_security": "Náhodný názov súboru obrázka",
           "imap_timeout": "Čas v sekundách pred časovým limitom pripojenia (sekundy, minimálne 10)",
           "generate_mp4": "Vytvorte mp4 z obrázkov",
-          "allow_external": "Vytvorte obrázok pre aplikácie upozornení (Deprecated)",
           "custom_img": "Použiť vlastný obrázok USPS 'bez pošty'?",
           "amazon_custom_img": "Použiť vlastný obrázok Amazon 'bez dodávky'?",
           "ups_custom_img": "Použiť vlastný obrázok UPS 'bez dodávky'?",
@@ -73,7 +72,6 @@
           "generate_mp4": "Vytvorte mp4 z obrázkov",
           "resources": "Zoznam senzorov",
           "imap_timeout": "Čas v sekundách pred časovým limitom pripojenia (sekundy, minimálne 10)",
-          "allow_external": "Vytvorte obrázok pre aplikácie upozornení (Deprecated)",
           "custom_img": "Použiť vlastný obrázok USPS 'bez pošty'?",
           "amazon_custom_img": "Použiť vlastný obrázok Amazon 'bez dodávky'?",
           "ups_custom_img": "Použiť vlastný obrázok UPS 'bez dodávky'?",
@@ -231,17 +229,6 @@
           }
         }
       }
-    },
-    "deprecated_allow_external": {
-      "title": "External image copying is deprecated",
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "title": "Disable External Image Copying",
-            "description": "The 'Create image for notification apps' (`allow_external`) setting is deprecated and will be removed in a future release. Images are now served securely via Home Assistant API endpoints using signed URLs without copying files to `/config/www/mail_and_packages/`.\n\nClick Submit to automatically disable this deprecated option on your configuration."
-          }
-        }
-      }
     }
   },
   "options": {
@@ -259,7 +246,6 @@
           "image_security": "Náhodný názov súboru obrázka",
           "imap_timeout": "Čas v sekundách pred časovým limitom pripojenia (sekundy, minimálne 10)",
           "generate_mp4": "Vytvorte mp4 z obrázkov",
-          "allow_external": "Vytvorte obrázok pre aplikácie upozornení (Deprecated)",
           "usps_placeholder": "Zahrnúť zástupný symbol USPS bez obrázka do GIF?",
           "custom_img": "Použiť vlastný obrázok USPS 'bez pošty'?",
           "amazon_custom_img": "Použiť vlastný obrázok Amazon 'bez dodávky'?",
@@ -270,9 +256,7 @@
           "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM",
           "allow_forwarded_emails": "Povoliť preposielané e-maily okrem predvolenej hodnoty služby (napr. no-reply@usps.com)"
         },
-        "data_description": {
-          "allow_external": "Deprecated: Images are now served securely via Home Assistant API endpoints using signed URLs. Copying images to www/mail_and_packages/ will be removed in a future release."
-        }
+        "data_description": {}
       },
       "options_3": {
         "title": "Pošta a balíky (Krok 3 z 3)",

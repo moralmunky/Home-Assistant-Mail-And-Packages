@@ -26,7 +26,7 @@ OVERLAY = ["overlay.png", "vignette.png", "white.png"]
 GENERIC_DELIVERIES_GIF = "generic_deliveries.gif"
 SERVICE_UPDATE_FILE_PATH = "update_file_path"
 CAMERA = "cameras"
-CONFIG_VER = 20
+CONFIG_VER = 21
 
 # Attributes
 ATTR_AMAZON_IMAGE = "amazon_image"
@@ -57,7 +57,6 @@ ATTR_POST_DE_IMAGE = "post_de_image"
 ATTR_HOME_DEPOT_IMAGE = "home_depot_image"
 
 # Configuration Properties
-CONF_ALLOW_EXTERNAL = "allow_external"
 CONF_CAMERA_NAME = "camera_name"
 CONF_CUSTOM_IMG = "custom_img"
 CONF_CUSTOM_IMG_FILE = "custom_img_file"
@@ -111,7 +110,6 @@ DEFAULT_VERIFY_SSL = True
 MAX_TRACKING_AGE_DAYS = 14
 DEFAULT_GIF_FILE_NAME = "mail_today.gif"
 DEFAULT_AMAZON_FWDS = "(none)"
-DEFAULT_ALLOW_EXTERNAL = False
 DEFAULT_CUSTOM_IMG = False
 DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/mail_none.gif"
 DEFAULT_AMAZON_CUSTOM_IMG = False
