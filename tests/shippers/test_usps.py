@@ -3,6 +3,7 @@
 from datetime import date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -20,6 +21,9 @@ from custom_components.mail_and_packages.shippers.usps import (
     USPSShipper,
     extract_digest_target_date,
     is_email_from_prior_day,
+)
+from custom_components.mail_and_packages.shippers.usps.image import (
+    extract_jpeg_attachment,
 )
 from custom_components.mail_and_packages.utils.cache import EmailCache
 
@@ -649,6 +653,33 @@ async def test_extract_jpeg_attachment_os_error(hass):
     ):
         count, images = await shipper._extract_jpeg_attachment(part, "test/", 0, [])
         assert count == 0
+
+
+@pytest.mark.asyncio
+async def test_extract_jpeg_attachment_path_traversal_prevention(hass, tmp_path):
+    """Test that extract_jpeg_attachment uses random_filename and prevents path traversal."""
+    output_dir = tmp_path / "images"
+    output_dir.mkdir()
+
+    part = MagicMock()
+    # Malicious filenames attempting absolute path and relative directory traversal
+    part.get_filename.return_value = "../../evil.py"
+    part.get_payload.return_value = b"malicious content"
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.usps.image.random_filename",
+        return_value="safe_random.jpg",
+    ):
+        count, images = await extract_jpeg_attachment(
+            hass, part, str(output_dir), 0, []
+        )
+
+    assert count == 1
+    assert len(images) == 1
+    saved_path = Path(images[0])
+    # Ensure saved file stays within output directory and doesn't use the traversal name
+    assert saved_path.parent.resolve() == output_dir.resolve()
+    assert saved_path.name == "safe_random.jpg"
 
 
 @pytest.mark.asyncio
