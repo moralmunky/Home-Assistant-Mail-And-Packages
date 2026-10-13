@@ -15,10 +15,20 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_UPDATE_DATA_REDACTED
 @pytest.mark.asyncio
 async def test_config_entry_diagnostics(hass):
     """Test the config entry level diagnostics data dump."""
+    config_data = {
+        **FAKE_CONFIG_DATA,
+        "token": {
+            "access_token": "secret_access_token",
+            "refresh_token": "secret_refresh_token",
+            "expires_at": 1234567890,
+            "expires_in": 3600,
+        },
+        "auth_implementation": "google",
+    }
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="imap.test.email",
-        data=FAKE_CONFIG_DATA,
+        data=config_data,
     )
 
     entry.add_to_hass(hass)
@@ -30,6 +40,8 @@ async def test_config_entry_diagnostics(hass):
     assert result["config"]["data"][CONF_PASSWORD] == "**REDACTED**"
     assert result["config"]["data"][CONF_USERNAME] == "**REDACTED**"
     assert result["config"]["data"][CONF_AMAZON_FWDS] == "**REDACTED**"
+    assert result["config"]["data"]["token"] == "**REDACTED**"
+    assert result["config"]["data"]["auth_implementation"] == "**REDACTED**"
 
 
 @pytest.mark.asyncio
