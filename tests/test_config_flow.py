@@ -40,6 +40,9 @@ from custom_components.mail_and_packages.config_flow import (
 from custom_components.mail_and_packages.config_flows.mailbox import (
     _get_target as gt_mb,
 )
+from custom_components.mail_and_packages.config_flows.mailbox import (
+    _validate_oauth_login,
+)
 from custom_components.mail_and_packages.config_flows.options import (
     _get_target as gt_op,
 )
@@ -86,6 +89,7 @@ from custom_components.mail_and_packages.const import (
     DEFAULT_STORAGE,
     DOMAIN,
 )
+from custom_components.mail_and_packages.utils.imap import InvalidAuth
 from tests.const import (
     DEFAULT_CUSTOM_IMAGE_DATA,
 )
@@ -8723,3 +8727,114 @@ async def test_create_mailbox_entry_falls_back_to_shared_folder(hass):
 
     assert flow._data[CONF_STORAGE] == DEFAULT_STORAGE
     flow.async_create_entry.assert_called_once()
+
+
+OAUTH_IMAP_INPUT = {
+    CONF_HOST: "imap.gmail.com",
+    CONF_PORT: 993,
+    CONF_USERNAME: "user@gmail.com",
+    CONF_IMAP_SECURITY: "SSL",
+    "token": {"access_token": "fake-token"},
+}
+
+
+def _patch_oauth_imap(login, logout=None):
+    """Patch the IMAP login and logout used by the OAuth sign in check."""
+    return (
+        patch(
+            "custom_components.mail_and_packages.config_flow.login",
+            login,
+        ),
+        patch(
+            "custom_components.mail_and_packages.config_flow.logout",
+            logout or AsyncMock(),
+        ),
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("token", [None, "not-a-dict", {}, {"access_token": ""}])
+async def test_validate_oauth_login_without_token(hass, token):
+    """Without an access token the mailbox is reported as refusing IMAP."""
+    user_input = {**OAUTH_IMAP_INPUT, "token": token}
+    login = AsyncMock()
+    patch_login, patch_logout = _patch_oauth_imap(login)
+    with patch_login, patch_logout:
+        assert await _validate_oauth_login(hass, user_input) == "oauth_imap_refused"
+    login.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_validate_oauth_login_success(hass):
+    """A mailbox that accepts IMAP and has an inbox passes the check."""
+    client = MagicMock()
+    client.select = AsyncMock(return_value=("OK", [b"1"]))
+    login = AsyncMock(return_value=client)
+    logout = AsyncMock()
+    patch_login, patch_logout = _patch_oauth_imap(login, logout)
+    with patch_login, patch_logout:
+        assert await _validate_oauth_login(hass, OAUTH_IMAP_INPUT) is None
+    assert login.call_args.kwargs["oauth_token"] == "fake-token"
+    assert login.call_args.kwargs["verify"] is True
+    logout.assert_awaited_once_with(client)
+
+
+@pytest.mark.asyncio
+async def test_validate_oauth_login_missing_inbox(hass):
+    """A mailbox without an inbox is reported as missing its inbox."""
+    client = MagicMock()
+    client.select = AsyncMock(return_value=("NO", [b"Mailbox not found"]))
+    logout = AsyncMock()
+    patch_login, patch_logout = _patch_oauth_imap(
+        AsyncMock(return_value=client), logout
+    )
+    with patch_login, patch_logout:
+        result = await _validate_oauth_login(hass, OAUTH_IMAP_INPUT)
+    assert result == "oauth_missing_inbox"
+    logout.assert_awaited_once_with(client)
+
+
+@pytest.mark.asyncio
+async def test_validate_oauth_login_refused(hass):
+    """A server that rejects the OAuth login is reported as refusing IMAP."""
+    logout = AsyncMock()
+    patch_login, patch_logout = _patch_oauth_imap(
+        AsyncMock(side_effect=InvalidAuth), logout
+    )
+    with patch_login, patch_logout:
+        result = await _validate_oauth_login(hass, OAUTH_IMAP_INPUT)
+    assert result == "oauth_imap_refused"
+    logout.assert_not_called()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "error",
+    [
+        TimeoutError(),
+        AioImapException("connection lost"),
+        ConnectionRefusedError("refused"),
+        OSError("network unreachable"),
+    ],
+)
+async def test_validate_oauth_login_cannot_connect(hass, error):
+    """Connection failures after sign in are reported as cannot connect."""
+    patch_login, patch_logout = _patch_oauth_imap(AsyncMock(side_effect=error))
+    with patch_login, patch_logout:
+        result = await _validate_oauth_login(hass, OAUTH_IMAP_INPUT)
+    assert result == "oauth_cannot_connect"
+
+
+@pytest.mark.asyncio
+async def test_validate_oauth_login_select_error_logs_out(hass):
+    """The IMAP session is closed when the inbox check fails to connect."""
+    client = MagicMock()
+    client.select = AsyncMock(side_effect=TimeoutError())
+    logout = AsyncMock()
+    patch_login, patch_logout = _patch_oauth_imap(
+        AsyncMock(return_value=client), logout
+    )
+    with patch_login, patch_logout:
+        result = await _validate_oauth_login(hass, OAUTH_IMAP_INPUT)
+    assert result == "oauth_cannot_connect"
+    logout.assert_awaited_once_with(client)
