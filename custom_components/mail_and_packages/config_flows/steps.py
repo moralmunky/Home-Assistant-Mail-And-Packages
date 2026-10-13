@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 import sys
 from typing import Any
 
-from homeassistant.const import CONF_HOST, CONF_RESOURCES
+from homeassistant.const import CONF_RESOURCES
+from homeassistant.util import slugify
 
 from custom_components.mail_and_packages.const import (
     CONF_ALLOW_EXTERNAL,
@@ -70,6 +72,7 @@ from custom_components.mail_and_packages.const import (
     DEFAULT_WALMART_CUSTOM_IMG,
     DEFAULT_WALMART_CUSTOM_IMG_FILE,
 )
+from custom_components.mail_and_packages.entity import mailbox_device_name
 
 from .schemas import (
     _get_schema_step_2,
@@ -78,7 +81,11 @@ from .schemas import (
     _get_schema_step_forwarded_emails,
     _get_schema_step_storage,
 )
+
+from .validation import _validate_path_input
 from .validation import _validate_user_input as default_validate_user_input
+
+_LOGGER = logging.getLogger(__name__)
 
 AMAZON_SENSORS = [
     "amazon_packages",
@@ -110,6 +117,39 @@ class ConfigFlowStepsMixin:
     async_show_form: Any
     async_create_entry: Any
 
+    def _default_storage(self) -> str:
+        """Return the default image folder for this mailbox.
+
+        Each mailbox gets its own subfolder because image cleanup removes every
+        image in the folder; mailboxes sharing one folder would delete each
+        other's images.
+        """
+        return f"{DEFAULT_STORAGE}{slugify(mailbox_device_name(self._data))}/"
+
+    async def _async_create_mailbox_entry(self):
+        """Create the config entry, giving the mailbox its own image folder.
+
+        Setup can finish without showing the storage step, so a per-mailbox
+        folder is assigned (and created) here when none was chosen.
+        """
+        if not self._data.get(CONF_STORAGE):
+            storage = self._default_storage()
+            errors: dict[str, str] = {}
+            await self.hass.async_add_executor_job(
+                _validate_path_input, {CONF_STORAGE: storage}, errors, self.hass
+            )
+            if errors:
+                _LOGGER.warning(
+                    "Could not create image folder %s; using the shared default",
+                    storage,
+                )
+            else:
+                self._data[CONF_STORAGE] = storage
+        return self.async_create_entry(
+            title=f"Mail and Packages ({mailbox_device_name(self._data)})",
+            data=self._data,
+        )
+
     async def async_step_config_2(self, user_input=None):
         """Configure form step 2."""
         self._errors = {}
@@ -136,10 +176,7 @@ class ConfigFlowStepsMixin:
                 if has_custom_image:
                     return await self.async_step_config_3()
 
-                return self.async_create_entry(
-                    title=f"Mail and Packages ({self._data[CONF_HOST]})",
-                    data=self._data,
-                )
+                return await self._async_create_mailbox_entry()
             return await self._show_config_2(user_input)
 
         return await self._show_config_2(user_input)
@@ -314,10 +351,7 @@ class ConfigFlowStepsMixin:
             val_fn = _get_target_val_fn()
             self._errors, user_input = await val_fn(self._data, self.hass)
             if len(self._errors) == 0:
-                return self.async_create_entry(
-                    title=f"Mail and Packages ({self._data[CONF_HOST]})",
-                    data=self._data,
-                )
+                return await self._async_create_mailbox_entry()
             return await self._show_config_storage(user_input)
 
         return await self._show_config_storage(user_input)
@@ -326,7 +360,7 @@ class ConfigFlowStepsMixin:
         """Step 3 setup."""
         # Defaults
         defaults = {
-            CONF_STORAGE: DEFAULT_STORAGE,
+            CONF_STORAGE: self._default_storage(),
         }
 
         cf = sys.modules.get("custom_components.mail_and_packages.config_flow")

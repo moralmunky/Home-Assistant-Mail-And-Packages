@@ -50,6 +50,7 @@ from .const import (
     SENSOR_TYPES,
     VERSION,
 )
+from .entity import mailbox_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -120,7 +121,7 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
         """Return device information about the mailbox."""
         return {
             "connections": {(DOMAIN, self._unique_id)},
-            "name": self._host,
+            "name": mailbox_device_name(self._config.data),
             "manufacturer": "IMAP E-Mail",
             "sw_version": VERSION,
         }
@@ -240,7 +241,7 @@ class ImagePathSensors(CoordinatorEntity, RestoreSensor):
         """Return device information about the mailbox."""
         return {
             "connections": {(DOMAIN, self._unique_id)},
-            "name": self._host,
+            "name": mailbox_device_name(self._config.data),
             "manufacturer": "IMAP E-Mail",
             "sw_version": VERSION,
         }

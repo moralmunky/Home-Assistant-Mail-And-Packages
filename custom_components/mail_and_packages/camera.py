@@ -34,6 +34,7 @@ from .const import (
     SENSOR_NAME,
     VERSION,
 )
+from .entity import mailbox_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -351,7 +352,7 @@ class MailCam(CoordinatorEntity, Camera):
         """Return device information about the mailbox."""
         return {
             "connections": {(DOMAIN, self._unique_id)},
-            "name": self._host,
+            "name": mailbox_device_name(self.config_data),
             "manufacturer": "IMAP E-Mail",
             "sw_version": VERSION,
         }
