@@ -7498,14 +7498,29 @@ async def test_oauth_config_flow_selection(hass, mock_imap_no_email):
             assert auth_data.get("prompt") == "select_account"
 
         # And async_oauth_create_entry triggers config_2
-        # Mock _get_mailboxes to avoid network calls
-        with patch(
-            "custom_components.mail_and_packages.config_flow._get_mailboxes",
-            return_value=["INBOX"],
+        # Mock _get_mailboxes and the IMAP sign in check to avoid network calls
+        with (
+            patch(
+                "custom_components.mail_and_packages.config_flow._get_mailboxes",
+                return_value=["INBOX"],
+            ),
+            patch(
+                "custom_components.mail_and_packages.config_flow._validate_oauth_login",
+                return_value=None,
+            ),
         ):
             result2 = await handler.async_oauth_create_entry({"access_token": "fake"})
             assert result2["type"] == "form"
             assert result2["step_id"] == "config_2"
+
+        # A mailbox that refuses IMAP after sign in stops with a clear reason
+        with patch(
+            "custom_components.mail_and_packages.config_flow._validate_oauth_login",
+            return_value="oauth_imap_refused",
+        ):
+            result3 = await handler.async_oauth_create_entry({"access_token": "fake"})
+            assert result3["type"] == "abort"
+            assert result3["reason"] == "oauth_imap_refused"
 
 
 @pytest.mark.asyncio
