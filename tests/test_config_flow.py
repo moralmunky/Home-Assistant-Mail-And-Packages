@@ -2,6 +2,7 @@
 
 import contextlib
 import logging
+import pathlib
 import ssl
 import tempfile
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -49,6 +50,9 @@ from custom_components.mail_and_packages.config_flows.steps import (
     _get_target as gt_st,
 )
 from custom_components.mail_and_packages.config_flows.validation import (
+    _create_storage_dir,
+)
+from custom_components.mail_and_packages.config_flows.validation import (
     _get_target as gt_va,
 )
 from custom_components.mail_and_packages.const import (
@@ -79,6 +83,7 @@ from custom_components.mail_and_packages.const import (
     CONF_WALMART_CUSTOM_IMG,
     CONF_WALMART_CUSTOM_IMG_FILE,
     CONFIG_VER,
+    DEFAULT_STORAGE,
     DOMAIN,
 )
 from tests.const import (
@@ -168,7 +173,7 @@ _LOGGER = logging.getLogger(__name__)
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": False,
@@ -406,7 +411,7 @@ async def test_form(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": False,
@@ -637,7 +642,7 @@ async def test_form_no_fwds(
             {
                 "custom_img_file": "images/test.gif",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": False,
@@ -892,7 +897,7 @@ async def test_form_connection_error(input_1, step_id_2, hass, mock_imap_connect
             },
             "config_4",
             {},
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "amazon_days": 3,
                 "amazon_domain": "amazon.com",
@@ -1075,7 +1080,7 @@ async def test_form_invalid_ffmpeg(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": False,
@@ -1304,7 +1309,7 @@ async def test_form_index_error(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": False,
@@ -1531,9 +1536,9 @@ async def test_form_index_error_2(
             },
             "config_storage",
             {
-                "storage": "custom_components/mail_and_packages/images/",
+                "storage": "/nonexistent/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "usps_placeholder": True,
@@ -1744,7 +1749,7 @@ async def test_form_storage_error(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "usps_placeholder": True,
@@ -1982,7 +1987,7 @@ async def test_reconfigure(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "usps_placeholder": True,
@@ -2211,7 +2216,7 @@ async def test_reconfigure_no_amazon(
             {
                 "storage": ".storage/mail_and_packages/images",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "usps_placeholder": True,
@@ -2501,7 +2506,7 @@ async def test_config_flow_with_amazon_custom_image_only(
         )
 
         assert result["type"] is FlowResultType.CREATE_ENTRY
-        assert result["title"] == "Mail and Packages (imap.test.email)"
+        assert result["title"] == "Mail and Packages (test@test.email)"
         actual_data = result["data"]
         expected_data = {
             "allow_external": False,
@@ -2688,7 +2693,7 @@ async def test_config_flow_with_ups_custom_image_only(
         )
 
         assert result["type"] is FlowResultType.CREATE_ENTRY
-        assert result["title"] == "Mail and Packages (imap.test.email)"
+        assert result["title"] == "Mail and Packages (test@test.email)"
         # Sort the actual data for comparison
         actual_data = result["data"].copy()
         actual_data["resources"] = sorted(actual_data["resources"])
@@ -3435,7 +3440,7 @@ async def test_reconfig_amazon_error(
             },
             "reconfig_storage",
             {
-                "storage": "invalid/readonly/path",
+                "storage": "/nonexistent/readonly/path",
             },
         ),
     ],
@@ -3666,7 +3671,7 @@ async def test_walmart_custom_image_in_config_flow(hass, mock_imap_no_email):
 
         # Should create entry successfully
         assert result["type"] == "create_entry"
-        assert result["title"] == "Mail and Packages (imap.test.email)"
+        assert result["title"] == "Mail and Packages (test@test.email)"
 
         # Verify Walmart custom image settings are saved
         entry = result["result"]
@@ -3805,7 +3810,7 @@ async def test_generic_custom_image_in_config_flow(
             },
         )
         assert result["type"] == FlowResultType.CREATE_ENTRY
-        assert result["title"] == "Mail and Packages (imap.test.email)"
+        assert result["title"] == "Mail and Packages (test@test.email)"
 
         # Verify generic custom image settings are saved
         entry = result["result"]
@@ -3896,7 +3901,7 @@ async def test_post_de_custom_image_in_config_flow(
             },
         )
         assert result["type"] == FlowResultType.CREATE_ENTRY
-        assert result["title"] == "Mail and Packages (imap.test.email)"
+        assert result["title"] == "Mail and Packages (test@test.email)"
 
         # Verify post de custom image settings are saved
         entry = result["result"]
@@ -4756,7 +4761,7 @@ async def test_validate_forwarded_emails_missing_and_invalid():
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
@@ -5006,7 +5011,7 @@ async def test_form_allow_forwarded_emails(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": False,
@@ -5239,7 +5244,7 @@ async def test_form_allowed_forwarded_emails_entered_none(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
@@ -5460,7 +5465,7 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
@@ -5685,7 +5690,7 @@ async def test_form_allow_forwarded_emails_without_custom_img(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
@@ -5917,7 +5922,7 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": False,
@@ -6144,7 +6149,7 @@ async def test_form_allow_forwarded_emails_none_entered(
             {
                 "forwarded_emails": "",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
                 "usps_placeholder": True,
@@ -6322,7 +6327,7 @@ async def test_form_allowed_forwards_missing_email_addresses(
             {
                 "forwarded_emails": "hello world",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
@@ -6525,7 +6530,7 @@ async def test_form_allowed_forwards_invalid_email_address_format(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
@@ -6788,7 +6793,7 @@ async def test_reconfigure_allow_forwarded_emails(
             {
                 "storage": "custom_components/mail_and_packages/images/",
             },
-            "Mail and Packages (imap.test.email)",
+            "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
                 "allow_forwarded_emails": True,
@@ -7202,7 +7207,7 @@ async def test_step_2_finish_flow(hass, mock_imap):
             input_2,
         )
     assert result["type"] == "create_entry"
-    assert result["title"] == "Mail and Packages (imap.test.email)"
+    assert result["title"] == "Mail and Packages (test@test.email)"
     assert result["data"]["allow_forwarded_emails"] is False
     assert result["data"]["custom_img"] is False
 
@@ -8655,3 +8660,51 @@ async def test_get_target_fallback():
     sentinel = object()
     for gt_fn in (gt_mb, gt_sc, gt_st, gt_va, gt_op):
         assert gt_fn("_non_existent_symbol_for_test_", sentinel) is sentinel
+
+
+def test_create_storage_dir_without_hass():
+    """No folder is created when there is no Home Assistant instance."""
+    assert _create_storage_dir("images", None, pathlib.Path) is False
+
+
+def test_create_storage_dir_outside_config_dir(hass):
+    """A folder outside the config directory is never created."""
+    path_cls = MagicMock()
+    assert _create_storage_dir("/nonexistent/images", hass, path_cls) is False
+    path_cls.assert_not_called()
+
+
+def test_create_storage_dir_inside_config_dir(hass):
+    """A missing folder inside the config directory is created."""
+    path = hass.config.path("mail_and_packages_test_images", "box")
+    assert _create_storage_dir(path, hass, pathlib.Path) is True
+    assert pathlib.Path(path).is_dir()
+
+
+def test_create_storage_dir_mkdir_error(hass):
+    """A folder that cannot be created is reported as missing."""
+    path_cls = MagicMock()
+    path_cls.return_value.mkdir.side_effect = OSError("read only")
+    path = hass.config.path("mail_and_packages_test_images", "readonly")
+    assert _create_storage_dir(path, hass, path_cls) is False
+
+
+@pytest.mark.asyncio
+async def test_create_mailbox_entry_falls_back_to_shared_folder(hass):
+    """The shared image folder is used when the per mailbox folder fails."""
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    flow._data = {CONF_HOST: "imap.test.email", CONF_USERNAME: "test@test.email"}
+    flow.async_create_entry = MagicMock(return_value={"type": "create_entry"})
+
+    def _fail(user_input, errors, hass_obj):
+        errors[CONF_STORAGE] = "path_not_found"
+
+    with patch(
+        "custom_components.mail_and_packages.config_flows.steps._validate_path_input",
+        side_effect=_fail,
+    ):
+        await flow._async_create_mailbox_entry()
+
+    assert flow._data[CONF_STORAGE] == DEFAULT_STORAGE
+    flow.async_create_entry.assert_called_once()

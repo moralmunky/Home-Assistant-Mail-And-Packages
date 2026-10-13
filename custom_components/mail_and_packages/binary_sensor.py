@@ -13,7 +13,10 @@ from homeassistant.helpers.update_coordinator import (
 
 from . import MailAndPackagesConfigEntry
 from .const import BINARY_SENSORS, DOMAIN, VERSION
-from .entity import MailandPackagesBinarySensorEntityDescription
+from .entity import (
+    MailandPackagesBinarySensorEntityDescription,
+    mailbox_device_name,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,7 +63,7 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
         """Return device information about the mailbox."""
         return {
             "connections": {(DOMAIN, self._unique_id)},
-            "name": self._host,
+            "name": mailbox_device_name(self._config.data),
             "manufacturer": "IMAP E-Mail",
             "sw_version": VERSION,
         }
