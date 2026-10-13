@@ -11,6 +11,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import (
+    CONF_HOST,
     CONF_PASSWORD,
     CONF_PORT,
     CONF_USERNAME,
@@ -51,6 +52,7 @@ from custom_components.mail_and_packages.config_flows.validation import (
     _validate_amazon_fwds,
     _validate_forwarded_emails,
     _validate_login,
+    _validate_oauth_login,
     _validate_path_input,
     _validate_user_input,
 )
@@ -104,6 +106,7 @@ __all__ = [
     "_validate_amazon_fwds",
     "_validate_forwarded_emails",
     "_validate_login",
+    "_validate_oauth_login",
     "_validate_path_input",
     "_validate_user_input",
     "login",
@@ -145,6 +148,10 @@ class MailAndPackagesFlowHandler(
         auth_type = self._data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
         scopes = OAUTH_SCOPES.get(auth_type, "")
         data = {"scope": scopes}
+        # Pre-select the mailbox the user typed so they cannot accidentally
+        # authorize a different signed-in account.
+        if username := self._data.get(CONF_USERNAME):
+            data["login_hint"] = username
         if auth_type == AUTH_TYPE_OAUTH_GOOGLE:
             data.update(
                 {
@@ -258,6 +265,16 @@ class MailAndPackagesFlowHandler(
                 return self.async_abort(reason="reauth_successful")
             _LOGGER.debug("%s reconfigured.", DOMAIN)
             return self.async_abort(reason="reconfigure_successful")
+        # Make sure the mail server accepts the new sign-in before continuing,
+        # so problems surface now instead of as a mailbox that never updates.
+        if reason := await _validate_oauth_login(self.hass, self._data):
+            return self.async_abort(
+                reason=reason,
+                description_placeholders={
+                    "host": self._data.get(CONF_HOST, ""),
+                    "username": self._data.get(CONF_USERNAME, ""),
+                },
+            )
         return await self.async_step_config_2()
 
     async def _show_auth_form(self, user_input):

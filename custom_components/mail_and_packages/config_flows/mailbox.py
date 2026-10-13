@@ -186,3 +186,56 @@ async def _validate_login(
             await logout_fn(imap_client)
 
     return errors
+
+
+async def _validate_oauth_login(
+    hass: HomeAssistant,
+    user_input: dict[str, Any],
+) -> str | None:
+    """Check that a freshly signed-in OAuth mailbox accepts IMAP.
+
+    Returns None on success, or an abort reason explaining what to fix.
+    """
+    login_fn = _get_target("login", default_login)
+    logout_fn = _get_target("logout", default_logout)
+
+    token = user_input.get("token")
+    oauth_token = token.get("access_token") if isinstance(token, dict) else None
+    if not oauth_token:
+        return "oauth_imap_refused"
+
+    imap_client = None
+    try:
+        imap_client = await login_fn(
+            hass,
+            host=user_input[CONF_HOST],
+            port=user_input[CONF_PORT],
+            user=user_input[CONF_USERNAME],
+            pwd="",
+            security=user_input[CONF_IMAP_SECURITY],
+            verify=user_input.get(CONF_VERIFY_SSL, True),
+            oauth_token=oauth_token,
+        )
+        result, _data = await imap_client.select()
+    except InvalidAuth:
+        _LOGGER.error(
+            "Signed in, but %s refused IMAP access for this mailbox",
+            user_input[CONF_HOST],
+        )
+        return "oauth_imap_refused"
+    except (TimeoutError, AioImapException, ConnectionRefusedError, OSError) as err:
+        _LOGGER.error(
+            "Unable to connect after sign-in: %s (IMAP server %s:%s, class: %s)",
+            err if str(err) else "Authentication failed or timed out",
+            user_input[CONF_HOST],
+            user_input[CONF_PORT],
+            type(err).__name__,
+        )
+        return "oauth_cannot_connect"
+    finally:
+        if imap_client is not None:
+            await logout_fn(imap_client)
+
+    if result != "OK":
+        return "oauth_missing_inbox"
+    return None
