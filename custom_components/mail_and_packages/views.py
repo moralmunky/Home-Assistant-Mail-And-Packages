@@ -11,6 +11,7 @@ from homeassistant.components.http import KEY_AUTHENTICATED, HomeAssistantView
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
+from .summary import is_summary_entry
 from .utils.image import default_image_path
 
 _LOGGER = logging.getLogger(__name__)
@@ -44,7 +45,11 @@ class MailAndPackagesImageView(HomeAssistantView):
             return web.Response(status=401, text="Unauthorized")
 
         config_entry = self.hass.config_entries.async_get_entry(entry_id)
-        if not config_entry or config_entry.domain != DOMAIN:
+        if (
+            not config_entry
+            or config_entry.domain != DOMAIN
+            or is_summary_entry(config_entry)
+        ):
             _LOGGER.debug(
                 "Image view request rejected: unknown config entry %s", entry_id
             )

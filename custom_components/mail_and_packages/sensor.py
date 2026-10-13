@@ -11,6 +11,7 @@ from typing import Any
 from homeassistant.components.http.auth import async_sign_path
 from homeassistant.components.sensor import (
     RestoreSensor,
+    SensorEntity,
     SensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -19,7 +20,8 @@ from homeassistant.const import (
     CONF_RESOURCES,
     MAX_LENGTH_STATE_STATE,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -48,9 +50,12 @@ from .const import (
     DOMAIN,
     IMAGE_SENSORS,
     SENSOR_TYPES,
+    SIGNAL_MAILBOX_UPDATED,
+    SUMMARY_DEVICE_NAME,
     VERSION,
 )
 from .entity import mailbox_device_name
+from .summary import combine, is_summary_entry, loaded_mailbox_data
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -64,6 +69,13 @@ async def async_setup_entry(
     async_add_entities,
 ):
     """Set up the sensor entities."""
+    if is_summary_entry(entry):
+        async_add_entities(
+            SummarySensor(entry, SENSOR_TYPES[key])
+            for key in sorted(entry.runtime_data.keys)
+        )
+        return
+
     coordinator = entry.runtime_data.coordinator
     resources = coordinator.config.get(CONF_RESOURCES, [])
 
@@ -334,3 +346,47 @@ class ImagePathSensors(CoordinatorEntity, RestoreSensor):
     def should_poll(self) -> bool:
         """No need to poll. Coordinator notifies entity of updates."""
         return False
+
+
+class SummarySensor(SensorEntity):
+    """A total across every mailbox, counting shared tracking numbers once."""
+
+    _attr_should_poll = False
+
+    def __init__(
+        self, config: ConfigEntry, sensor_description: SensorEntityDescription
+    ) -> None:
+        """Initialize the summary sensor."""
+        self.entity_description = sensor_description
+        self._config = config
+        self.type = sensor_description.key
+        self._attr_name = sensor_description.name
+        self._attr_unique_id = f"summary_{self.type}_{config.entry_id}"
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, f"summary_{config.entry_id}")},
+            "name": SUMMARY_DEVICE_NAME,
+            "manufacturer": "Mail and Packages",
+            "model": "Combined mailboxes",
+            "sw_version": VERSION,
+        }
+        self._attr_extra_state_attributes = {}
+
+    async def async_added_to_hass(self) -> None:
+        """Recalculate now and whenever any mailbox refreshes."""
+        await super().async_added_to_hass()
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, SIGNAL_MAILBOX_UPDATED, self._async_recalculate
+            )
+        )
+        self._async_recalculate()
+
+    @callback
+    def _async_recalculate(self) -> None:
+        """Combine the latest data from all loaded mailboxes."""
+        value, attributes = combine(self.type, loaded_mailbox_data(self.hass))
+        self._attr_native_value = value
+        self._attr_extra_state_attributes = attributes
+        self._attr_available = value is not None
+        if self.hass is not None and self.entity_id:
+            self.async_write_ha_state()

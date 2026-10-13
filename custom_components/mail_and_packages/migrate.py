@@ -46,6 +46,7 @@ from .const import (
     DEFAULT_WALMART_CUSTOM_IMG_FILE,
 )
 from .coordinator import MailAndPackagesConfigEntry
+from .summary import is_summary_entry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -65,6 +66,11 @@ async def async_migrate_entry(
     """Migrate an old config entry."""
     version = config_entry.version
     new_version = CONFIG_VER
+
+    if is_summary_entry(config_entry):
+        # The summary has no mailbox settings to migrate.
+        hass.config_entries.async_update_entry(config_entry, version=new_version)
+        return True
 
     _LOGGER.debug("Migrating from version %s", version)
     updated_config = {**config_entry.data}

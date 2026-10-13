@@ -9,7 +9,8 @@ from homeassistant.components.repairs import RepairsFlow
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 
-from .const import CONF_ALLOW_EXTERNAL, DOMAIN
+from .const import CONF_ALLOW_EXTERNAL
+from .summary import mailbox_entries
 
 
 class AuthRepairFlow(RepairsFlow):
@@ -33,7 +34,7 @@ class AuthRepairFlow(RepairsFlow):
             if self.entry_id:
                 entry = self.hass.config_entries.async_get_entry(self.entry_id)
             else:
-                entries = self.hass.config_entries.async_entries(DOMAIN)
+                entries = mailbox_entries(self.hass)
                 entry = entries[0] if entries else None
 
             if entry:
@@ -67,7 +68,7 @@ class DeprecatedAllowExternalRepairFlow(RepairsFlow):
             if self.entry_id:
                 entry = self.hass.config_entries.async_get_entry(self.entry_id)
             else:
-                entries = self.hass.config_entries.async_entries(DOMAIN)
+                entries = mailbox_entries(self.hass)
                 entry = entries[0] if entries else None
 
             if entry:
