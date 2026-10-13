@@ -18,6 +18,14 @@ VERSION = "0.0.0-dev"  # Now updated by release workflow
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
+
+# Combined "All mailboxes" summary entry
+CONF_ENTRY_TYPE = "entry_type"
+ENTRY_TYPE_SUMMARY = "summary"
+SUMMARY_UNIQUE_ID = "all_mailboxes_summary"
+SUMMARY_PLATFORMS = ["sensor"]
+SUMMARY_DEVICE_NAME = "All mailboxes"
+SIGNAL_MAILBOX_UPDATED = f"{DOMAIN}_mailbox_updated"
 DATA = "data"
 COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
