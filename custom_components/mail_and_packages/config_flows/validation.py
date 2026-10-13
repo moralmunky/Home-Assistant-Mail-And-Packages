@@ -309,6 +309,7 @@ from .mailbox import (  # noqa: E402
     _get_mailboxes,
     _parse_folder_list,
     _validate_login,
+    _validate_oauth_login,
 )
 
 __all__ = [
@@ -319,6 +320,7 @@ __all__ = [
     "_validate_amazon_fwds",
     "_validate_forwarded_emails",
     "_validate_login",
+    "_validate_oauth_login",
     "_validate_path_input",
     "_validate_user_input",
 ]

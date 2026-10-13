@@ -3,7 +3,19 @@
     "abort": {
       "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed.",
       "reconfigure_successful": "Reconfigure Successful",
-      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled.",
+      "oauth_imap_refused": "You signed in, but {host} refused mail (IMAP) access for {username}. Check that the address you entered is the account you signed in with, that IMAP is turned on for the mailbox (Gmail settings, or Exchange admin center > mailbox > Email apps for Microsoft 365), and that your app includes the mail permission. The OAuth setup guide linked on the first setup screen has the details.",
+      "oauth_cannot_connect": "You signed in, but Home Assistant could not reach {host}. Check the server name and port, and that Home Assistant can reach the internet, then try again.",
+      "oauth_missing_inbox": "You signed in, but the mailbox for {username} has no inbox Home Assistant can open.",
+      "missing_credentials": "No OAuth app is set up for Mail and Packages yet. Add your Google or Microsoft client ID and secret under Settings > Devices & services > Application credentials, then try again. The OAuth setup guide linked on the first setup screen has the details.",
+      "missing_configuration": "No OAuth app is set up for Mail and Packages yet. Add your client ID and secret under Settings > Devices & services > Application credentials.",
+      "oauth_error": "The sign-in service returned an error. Check your OAuth app's redirect URI (https://my.home-assistant.io/redirect/oauth) and, for Microsoft, that the app allows accounts in any organizational directory.",
+      "oauth_failed": "Sign-in did not finish. Please try again.",
+      "oauth_timeout": "Sign-in took too long to finish. Please try again.",
+      "authorize_url_timeout": "Timed out preparing the sign-in page. Please try again.",
+      "no_url_available": "Home Assistant has no URL configured for the sign-in redirect. Set one under Settings > System > Network.",
+      "user_rejected_authorize": "Sign-in was cancelled or access was not granted.",
+      "reauth_successful": "Signed in again successfully."
     },
     "error": {
       "cannot_connect": "Unable to connect or login to the mail server. Please check the log for details.",
@@ -15,18 +27,19 @@
       "missing_forwarded_emails": "Missing forwarded email addresses. You may enter '(none)' to clear this setting.",
       "path_not_found": "Directory not found",
       "invalid_auth": "Invalid authentication details. Please check your username and password.",
-      "ssl_error": "An SSL error occurred. Change SSL cipher list and try again."
+      "ssl_error": "An SSL error occurred. Change SSL cipher list and try again.",
+      "missing_inbox": "Logged in, but the mailbox has no inbox that can be opened."
     },
     "step": {
       "user": {
-        "description": "Select the authentication method for your mail server.",
+        "description": "Select how Mail and Packages signs in to your mailbox.\n\nPassword works with any IMAP mail server that accepts a password or app password.\n\nThe Google (Gmail) and Microsoft (Outlook/Exchange) options sign in with that account instead. Before picking one, register your own OAuth app with Google or Microsoft and add it under Settings > Devices & services > Application credentials. Step by step notes: [OAuth setup guide](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/main/docs/oauth_setup.txt).",
         "data": {
           "auth_type": "Authentication Type"
         },
         "title": "Authentication Method"
       },
       "imap_config": {
-        "description": "Please enter the connection information of your mail server.",
+        "description": "Please enter the connection information of your mail server.\n\nFor Google or Microsoft sign in, the username has to be the exact address of the account you will sign in with; the sign in page selects it for you. Gmail uses imap.gmail.com and Microsoft 365 uses outlook.office365.com, both on port 993 with SSL.\n\nA Microsoft app has to allow accounts in any organizational directory (multitenant) and include the redirect URI https://my.home-assistant.io/redirect/oauth. If sign in fails, see the [OAuth setup guide](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/blob/main/docs/oauth_setup.txt).",
         "data": {
           "host": "Host",
           "password": "Password",
