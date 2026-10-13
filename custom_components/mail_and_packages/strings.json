@@ -9,7 +9,7 @@
       "oauth_missing_inbox": "You signed in, but the mailbox for {username} has no inbox Home Assistant can open.",
       "missing_credentials": "No OAuth app is set up for Mail and Packages yet. Add your Google or Microsoft client ID and secret under Settings > Devices & services > Application credentials, then try again. The OAuth setup guide linked on the first setup screen has the details.",
       "missing_configuration": "No OAuth app is set up for Mail and Packages yet. Add your client ID and secret under Settings > Devices & services > Application credentials.",
-      "oauth_error": "The sign-in service returned an error. Check your OAuth app's redirect URI (https://my.home-assistant.io/redirect/oauth) and, for Microsoft, that the app allows accounts in any organizational directory.",
+      "oauth_error": "The sign-in service returned an error. Check that your OAuth app's redirect URI is the My Home Assistant OAuth redirect address shown in the setup guide and, for Microsoft, that the app allows accounts in any organizational directory.",
       "oauth_failed": "Sign-in did not finish. Please try again.",
       "oauth_timeout": "Sign-in took too long to finish. Please try again.",
       "authorize_url_timeout": "Timed out preparing the sign-in page. Please try again.",
