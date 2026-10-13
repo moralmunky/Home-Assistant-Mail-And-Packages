@@ -8,7 +8,7 @@ than one mailbox, e.g. when shipping emails are forwarded between accounts.
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 from collections import Counter
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
@@ -155,16 +155,16 @@ def _as_int(value: Any) -> int | None:
     return max(0, int(value))
 
 
-def _as_datetime(value: Any) -> datetime.datetime | None:
+def _as_datetime(value: Any) -> dt.datetime | None:
     """Return value as an aware datetime, or None."""
-    if isinstance(value, datetime.datetime):
-        return value if value.tzinfo else value.replace(tzinfo=datetime.UTC)
+    if isinstance(value, dt.datetime):
+        return value if value.tzinfo else value.replace(tzinfo=dt.UTC)
     if isinstance(value, str):
         try:
-            parsed = datetime.datetime.fromisoformat(value)
+            parsed = dt.datetime.fromisoformat(value)
         except ValueError:
             return None
-        return parsed if parsed.tzinfo else parsed.replace(tzinfo=datetime.UTC)
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=dt.UTC)
     return None
 
 
