@@ -2,6 +2,7 @@
 
 import contextlib
 import logging
+import pathlib
 import ssl
 import tempfile
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -49,6 +50,9 @@ from custom_components.mail_and_packages.config_flows.steps import (
     _get_target as gt_st,
 )
 from custom_components.mail_and_packages.config_flows.validation import (
+    _create_storage_dir,
+)
+from custom_components.mail_and_packages.config_flows.validation import (
     _get_target as gt_va,
 )
 from custom_components.mail_and_packages.const import (
@@ -79,6 +83,7 @@ from custom_components.mail_and_packages.const import (
     CONF_WALMART_CUSTOM_IMG,
     CONF_WALMART_CUSTOM_IMG_FILE,
     CONFIG_VER,
+    DEFAULT_STORAGE,
     DOMAIN,
 )
 from tests.const import (
@@ -8655,3 +8660,51 @@ async def test_get_target_fallback():
     sentinel = object()
     for gt_fn in (gt_mb, gt_sc, gt_st, gt_va, gt_op):
         assert gt_fn("_non_existent_symbol_for_test_", sentinel) is sentinel
+
+
+def test_create_storage_dir_without_hass():
+    """No folder is created when there is no Home Assistant instance."""
+    assert _create_storage_dir("images", None, pathlib.Path) is False
+
+
+def test_create_storage_dir_outside_config_dir(hass):
+    """A folder outside the config directory is never created."""
+    path_cls = MagicMock()
+    assert _create_storage_dir("/nonexistent/images", hass, path_cls) is False
+    path_cls.assert_not_called()
+
+
+def test_create_storage_dir_inside_config_dir(hass):
+    """A missing folder inside the config directory is created."""
+    path = hass.config.path("mail_and_packages_test_images", "box")
+    assert _create_storage_dir(path, hass, pathlib.Path) is True
+    assert pathlib.Path(path).is_dir()
+
+
+def test_create_storage_dir_mkdir_error(hass):
+    """A folder that cannot be created is reported as missing."""
+    path_cls = MagicMock()
+    path_cls.return_value.mkdir.side_effect = OSError("read only")
+    path = hass.config.path("mail_and_packages_test_images", "readonly")
+    assert _create_storage_dir(path, hass, path_cls) is False
+
+
+@pytest.mark.asyncio
+async def test_create_mailbox_entry_falls_back_to_shared_folder(hass):
+    """The shared image folder is used when the per mailbox folder fails."""
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    flow._data = {CONF_HOST: "imap.test.email", CONF_USERNAME: "test@test.email"}
+    flow.async_create_entry = MagicMock(return_value={"type": "create_entry"})
+
+    def _fail(user_input, errors, hass_obj):
+        errors[CONF_STORAGE] = "path_not_found"
+
+    with patch(
+        "custom_components.mail_and_packages.config_flows.steps._validate_path_input",
+        side_effect=_fail,
+    ):
+        await flow._async_create_mailbox_entry()
+
+    assert flow._data[CONF_STORAGE] == DEFAULT_STORAGE
+    flow.async_create_entry.assert_called_once()

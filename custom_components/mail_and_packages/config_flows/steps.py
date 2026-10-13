@@ -142,6 +142,7 @@ class ConfigFlowStepsMixin:
                     "Could not create image folder %s; using the shared default",
                     storage,
                 )
+                self._data[CONF_STORAGE] = DEFAULT_STORAGE
             else:
                 self._data[CONF_STORAGE] = storage
         return self.async_create_entry(
