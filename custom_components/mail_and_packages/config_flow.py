@@ -211,10 +211,6 @@ class MailAndPackagesFlowHandler(
         self.context["title_placeholders"] = {"name": SUMMARY_DEVICE_NAME}
         return await self.async_step_summary_confirm()
 
-    async def async_step_unignore(self, user_input: dict[str, Any]) -> ConfigFlowResult:
-        """Offer the summary again after the user un-ignores it."""
-        return await self.async_step_integration_discovery({})
-
     async def async_step_summary_confirm(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:

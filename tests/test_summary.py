@@ -348,18 +348,6 @@ async def test_discovery_creates_summary(hass):
     assert result["data"] == {CONF_ENTRY_TYPE: ENTRY_TYPE_SUMMARY}
 
 
-async def test_unignore_offers_summary_again(hass):
-    """The unignore step offers the summary again."""
-    _add_mailbox(hass, "a@example.com", MAILBOX_A)
-    _add_mailbox(hass, "b@example.com", MAILBOX_B)
-    flow = MailAndPackagesFlowHandler()
-    flow.hass = hass
-    flow.context = {"source": config_entries.SOURCE_INTEGRATION_DISCOVERY}
-    result = await flow.async_step_unignore({"unique_id": SUMMARY_UNIQUE_ID})
-    assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "summary_confirm"
-
-
 async def test_summary_cannot_be_reconfigured(hass):
     """The summary has nothing to reconfigure."""
     summary = _add_summary(hass)
