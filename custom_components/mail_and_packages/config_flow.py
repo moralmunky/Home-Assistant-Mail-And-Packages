@@ -142,7 +142,7 @@ class MailAndPackagesFlowHandler(
     def async_supports_options_flow(
         cls, config_entry: config_entries.ConfigEntry
     ) -> bool:
-        """The combined summary has no mailbox options."""
+        """Return whether the entry has options; the summary has none."""
         return not is_summary_entry(config_entry)
 
     @staticmethod
@@ -227,9 +227,7 @@ class MailAndPackagesFlowHandler(
         self._set_confirm_only()
         return self.async_show_form(
             step_id="summary_confirm",
-            description_placeholders={
-                "count": str(len(mailbox_entries(self.hass)))
-            },
+            description_placeholders={"count": str(len(mailbox_entries(self.hass)))},
         )
 
     async def async_step_reconfigure(

@@ -63,9 +63,7 @@ def summary_entry(hass: HomeAssistant) -> ConfigEntry | None:
     return next(
         (
             entry
-            for entry in hass.config_entries.async_entries(
-                DOMAIN, include_ignore=True
-            )
+            for entry in hass.config_entries.async_entries(DOMAIN, include_ignore=True)
             if is_summary_entry(entry) or entry.unique_id == SUMMARY_UNIQUE_ID
         ),
         None,
@@ -147,7 +145,7 @@ def deduplicated_count(counts: list[int], id_sets: list[set[str]]) -> int:
     total = sum(counts)
     occurrences = Counter(item for ids in id_sets for item in ids)
     duplicates = sum(seen - 1 for seen in occurrences.values() if seen > 1)
-    return min(total, max(max(counts), total - duplicates))
+    return min(total, max(*counts, total - duplicates))
 
 
 def _as_int(value: Any) -> int | None:
@@ -205,4 +203,3 @@ def combine(
     if combined_ids:
         attributes["tracking_#"] = combined_ids
     return value, attributes
-
