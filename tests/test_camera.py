@@ -25,6 +25,25 @@ from tests.const import FAKE_CONFIG_DATA_CUSTOM_IMG
 pytestmark = pytest.mark.asyncio
 
 
+async def _async_setup_custom_img_entry(hass) -> MockConfigEntry:
+    """Unload existing config entries and load entry with custom image settings."""
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        await hass.config_entries.async_unload(entry.entry_id)
+        await hass.async_block_till_done()
+        await hass.config_entries.async_remove(entry.entry_id)
+        await hass.async_block_till_done()
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="imap.test.email",
+        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    return entry
+
+
 async def test_update_file_path(
     hass,
     mock_imap_no_email,
@@ -34,8 +53,6 @@ async def test_update_file_path(
 ):
     """Test update_file_path service."""
     entry = integration
-
-    entries = hass.config_entries.async_entries(DOMAIN)
     usps_eid = resolve_entity_id(
         entity_registry, entry.entry_id, "camera", "usps_camera"
     )
@@ -69,22 +86,7 @@ async def test_update_file_path(
             in state.attributes.get("file_path")
         )
 
-    # Unload the config
-    await hass.config_entries.async_unload(entries[0].entry_id)
-    await hass.async_block_till_done()
-    await hass.config_entries.async_remove(entries[0].entry_id)
-    await hass.async_block_till_done()
-
-    # Load new config with custom img settings
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
-    )
-
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = await _async_setup_custom_img_entry(hass)
     usps_eid = resolve_entity_id(
         entity_registry, entry.entry_id, "camera", "usps_camera"
     )
@@ -124,8 +126,6 @@ async def test_ups_camera(
 ):
     """Test UPS camera functionality."""
     entry = integration
-
-    entries = hass.config_entries.async_entries(DOMAIN)
     ups_eid = resolve_entity_id(entity_registry, entry.entry_id, "camera", "ups_camera")
 
     with (
@@ -148,22 +148,7 @@ async def test_ups_camera(
             in state.attributes.get("file_path")
         )
 
-    # Unload the config
-    await hass.config_entries.async_unload(entries[0].entry_id)
-    await hass.async_block_till_done()
-    await hass.config_entries.async_remove(entries[0].entry_id)
-    await hass.async_block_till_done()
-
-    # Load new config with custom img settings
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
-    )
-
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = await _async_setup_custom_img_entry(hass)
     ups_eid = resolve_entity_id(entity_registry, entry.entry_id, "camera", "ups_camera")
 
     with (
@@ -497,16 +482,7 @@ async def test_amazon_camera_custom_img(
     entity_registry: er.EntityRegistry,
 ):
     """Test Amazon camera with custom image settings."""
-    # Load new config with custom img settings
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
-    )
-
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = await _async_setup_custom_img_entry(hass)
     amazon_eid = resolve_entity_id(
         entity_registry, entry.entry_id, "camera", "amazon_camera"
     )
@@ -647,23 +623,7 @@ async def test_ups_camera_with_custom_image(
     entity_registry: er.EntityRegistry,
 ):
     """Test UPS camera with custom image functionality."""
-    # Unload the default config
-    entries = hass.config_entries.async_entries(DOMAIN)
-    await hass.config_entries.async_unload(entries[0].entry_id)
-    await hass.async_block_till_done()
-    await hass.config_entries.async_remove(entries[0].entry_id)
-    await hass.async_block_till_done()
-
-    # Load config with custom UPS image settings
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
-    )
-
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = await _async_setup_custom_img_entry(hass)
     ups_eid = resolve_entity_id(entity_registry, entry.entry_id, "camera", "ups_camera")
 
     with (
@@ -696,23 +656,7 @@ async def test_amazon_camera_with_custom_image(
     entity_registry: er.EntityRegistry,
 ):
     """Test Amazon camera with custom image functionality."""
-    # Unload the default config
-    entries = hass.config_entries.async_entries(DOMAIN)
-    await hass.config_entries.async_unload(entries[0].entry_id)
-    await hass.async_block_till_done()
-    await hass.config_entries.async_remove(entries[0].entry_id)
-    await hass.async_block_till_done()
-
-    # Load config with custom Amazon image settings
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
-    )
-
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = await _async_setup_custom_img_entry(hass)
     amazon_eid = resolve_entity_id(
         entity_registry, entry.entry_id, "camera", "amazon_camera"
     )
@@ -915,8 +859,6 @@ async def test_generic_camera(
 ):
     """Test Generic camera functionality."""
     entry = integration
-
-    entries = hass.config_entries.async_entries(DOMAIN)
     generic_eid = resolve_entity_id(
         entity_registry, entry.entry_id, "camera", "generic_camera"
     )
@@ -941,22 +883,7 @@ async def test_generic_camera(
             in state.attributes.get("file_path")
         )
 
-    # Unload the config
-    await hass.config_entries.async_unload(entries[0].entry_id)
-    await hass.async_block_till_done()
-    await hass.config_entries.async_remove(entries[0].entry_id)
-    await hass.async_block_till_done()
-
-    # Load new config with custom img settings
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
-    )
-
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = await _async_setup_custom_img_entry(hass)
     generic_eid = resolve_entity_id(
         entity_registry, entry.entry_id, "camera", "generic_camera"
     )
@@ -1575,23 +1502,7 @@ async def test_generic_camera_with_custom_image(
     entity_registry: er.EntityRegistry,
 ):
     """Test Generic camera with custom image functionality."""
-    # Unload the default config
-    entries = hass.config_entries.async_entries(DOMAIN)
-    await hass.config_entries.async_unload(entries[0].entry_id)
-    await hass.async_block_till_done()
-    await hass.config_entries.async_remove(entries[0].entry_id)
-    await hass.async_block_till_done()
-
-    # Load config with custom Generic image settings
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
-    )
-
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = await _async_setup_custom_img_entry(hass)
     generic_eid = resolve_entity_id(
         entity_registry, entry.entry_id, "camera", "generic_camera"
     )
@@ -1840,8 +1751,6 @@ async def test_walmart_camera(
 ):
     """Test Walmart camera functionality."""
     entry = integration
-
-    entries = hass.config_entries.async_entries(DOMAIN)
     walmart_eid = resolve_entity_id(
         entity_registry, entry.entry_id, "camera", "walmart_camera"
     )
@@ -1866,22 +1775,7 @@ async def test_walmart_camera(
             in state.attributes.get("file_path")
         )
 
-    # Unload the config
-    await hass.config_entries.async_unload(entries[0].entry_id)
-    await hass.async_block_till_done()
-    await hass.config_entries.async_remove(entries[0].entry_id)
-    await hass.async_block_till_done()
-
-    # Load new config with custom img settings
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
-    )
-
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = await _async_setup_custom_img_entry(hass)
     walmart_eid = resolve_entity_id(
         entity_registry, entry.entry_id, "camera", "walmart_camera"
     )
@@ -1969,23 +1863,7 @@ async def test_walmart_camera_with_custom_image(
     entity_registry: er.EntityRegistry,
 ):
     """Test Walmart camera with custom image functionality."""
-    # Unload the default config
-    entries = hass.config_entries.async_entries(DOMAIN)
-    await hass.config_entries.async_unload(entries[0].entry_id)
-    await hass.async_block_till_done()
-    await hass.config_entries.async_remove(entries[0].entry_id)
-    await hass.async_block_till_done()
-
-    # Load config with custom Walmart image settings
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
-    )
-
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = await _async_setup_custom_img_entry(hass)
     walmart_eid = resolve_entity_id(
         entity_registry, entry.entry_id, "camera", "walmart_camera"
     )
@@ -2065,8 +1943,6 @@ async def test_fedex_camera(
 ):
     """Test FedEx camera functionality."""
     entry = integration
-
-    entries = hass.config_entries.async_entries(DOMAIN)
     fedex_eid = resolve_entity_id(
         entity_registry, entry.entry_id, "camera", "fedex_camera"
     )
@@ -2091,22 +1967,7 @@ async def test_fedex_camera(
             in state.attributes.get("file_path")
         )
 
-    # Unload the config
-    await hass.config_entries.async_unload(entries[0].entry_id)
-    await hass.async_block_till_done()
-    await hass.config_entries.async_remove(entries[0].entry_id)
-    await hass.async_block_till_done()
-
-    # Load new config with custom img settings
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
-    )
-
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = await _async_setup_custom_img_entry(hass)
     fedex_eid = resolve_entity_id(
         entity_registry, entry.entry_id, "camera", "fedex_camera"
     )
@@ -2196,23 +2057,7 @@ async def test_fedex_camera_with_custom_image(
     entity_registry: er.EntityRegistry,
 ):
     """Test FedEx camera with custom image functionality."""
-    # Unload the default config
-    entries = hass.config_entries.async_entries(DOMAIN)
-    await hass.config_entries.async_unload(entries[0].entry_id)
-    await hass.async_block_till_done()
-    await hass.config_entries.async_remove(entries[0].entry_id)
-    await hass.async_block_till_done()
-
-    # Load config with custom FedEx image settings
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="imap.test.email",
-        data=FAKE_CONFIG_DATA_CUSTOM_IMG,
-    )
-
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    entry = await _async_setup_custom_img_entry(hass)
     fedex_eid = resolve_entity_id(
         entity_registry, entry.entry_id, "camera", "fedex_camera"
     )
