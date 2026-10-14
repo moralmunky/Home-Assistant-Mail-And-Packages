@@ -2,7 +2,10 @@
 
 import asyncio
 import logging
+import shutil
+from pathlib import Path
 
+import anyio
 from homeassistant.config_entries import (
     SOURCE_INTEGRATION_DISCOVERY,
     ConfigEntry,
@@ -187,6 +190,13 @@ async def async_setup_entry(
                     data={**config_entry.data, CONF_RESOURCES: sorted_resources},
                 )
 
+    # Ensure storage directory exists
+    storage_path_str = default_image_path(hass, config_entry)
+    storage_dir = Path(hass.config.path(storage_path_str))
+    await hass.async_add_executor_job(
+        lambda: storage_dir.mkdir(parents=True, exist_ok=True)
+    )
+
     # Setup the data coordinator
     coordinator = MailDataUpdateCoordinator(hass, config, config_entry)
 
@@ -204,7 +214,9 @@ async def async_setup_entry(
     hass.async_create_task(coordinator.async_refresh())
 
     # Register HTTP view for serving images if not already registered
-    if not hass.data.setdefault(DOMAIN, {}).get("view_registered"):
+    if not hass.data.setdefault(DOMAIN, {}).get("view_registered") and getattr(
+        hass, "http", None
+    ):
         hass.http.register_view(MailAndPackagesImageView(hass))
         hass.data[DOMAIN]["view_registered"] = True
 
@@ -321,3 +333,24 @@ async def async_unload_entry(
             )
 
     return unload_ok
+
+
+async def async_remove_entry(
+    hass: HomeAssistant,
+    config_entry: MailAndPackagesConfigEntry,
+) -> None:
+    """Handle removal of an entry and clean up its storage directory."""
+    if is_summary_entry(config_entry):
+        return
+
+    storage_path_str = default_image_path(hass, config_entry)
+    storage_dir = Path(hass.config.path(storage_path_str))
+    if await anyio.Path(storage_dir).exists():
+        _LOGGER.debug(
+            "Removing image directory for entry %s: %s",
+            config_entry.entry_id,
+            storage_dir,
+        )
+        await hass.async_add_executor_job(
+            lambda: shutil.rmtree(storage_dir, ignore_errors=True)
+        )

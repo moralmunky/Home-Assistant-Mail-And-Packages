@@ -9,7 +9,7 @@ from homeassistant.components.repairs import RepairsFlow
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 
-from .const import CONF_ALLOW_EXTERNAL
+from .const import CONF_ALLOW_EXTERNAL, CONF_STORAGE
 from .summary import mailbox_entries
 
 
@@ -91,6 +91,52 @@ class DeprecatedAllowExternalRepairFlow(RepairsFlow):
         )
 
 
+class DeprecatedStorageRepairFlow(RepairsFlow):
+    """Handler for deprecated storage repair flow."""
+
+    def __init__(self, entry_id: str | None) -> None:
+        """Initialize."""
+        self.entry_id = entry_id
+
+    async def async_step_init(
+        self, user_input: dict[str, str] | None = None
+    ) -> FlowResult:
+        """Handle the first step of a repair flow."""
+        return await self.async_step_confirm(user_input)
+
+    async def async_step_confirm(
+        self, user_input: dict[str, str] | None = None
+    ) -> FlowResult:
+        """Handle confirm step to remove deprecated storage configuration."""
+        if user_input is not None:
+            if self.entry_id:
+                entry = self.hass.config_entries.async_get_entry(self.entry_id)
+            else:
+                entries = mailbox_entries(self.hass)
+                entry = entries[0] if entries else None
+
+            if entry:
+                updates: dict[str, Any] = {}
+                if CONF_STORAGE in entry.options:
+                    new_options = {**entry.options}
+                    new_options.pop(CONF_STORAGE, None)
+                    updates["options"] = new_options
+                if CONF_STORAGE in entry.data:
+                    new_data = {**entry.data}
+                    new_data.pop(CONF_STORAGE, None)
+                    updates["data"] = new_data
+
+                if updates:
+                    self.hass.config_entries.async_update_entry(entry, **updates)
+
+            return self.async_create_entry(title="", data={})
+
+        return self.async_show_form(
+            step_id="confirm",
+            data_schema=vol.Schema({}),
+        )
+
+
 async def async_create_fix_flow(
     hass: HomeAssistant,
     issue_id: str,
@@ -102,4 +148,6 @@ async def async_create_fix_flow(
         return AuthRepairFlow(entry_id)
     if issue_id == "deprecated_allow_external":
         return DeprecatedAllowExternalRepairFlow(entry_id)
+    if issue_id == "deprecated_storage":
+        return DeprecatedStorageRepairFlow(entry_id)
     raise ValueError(f"Unknown issue {issue_id}")

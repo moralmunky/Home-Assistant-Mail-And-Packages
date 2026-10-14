@@ -81,7 +81,6 @@ from .schemas import (
     _get_schema_step_forwarded_emails,
     _get_schema_step_storage,
 )
-from .validation import _validate_path_input
 from .validation import _validate_user_input as default_validate_user_input
 
 _LOGGER = logging.getLogger(__name__)
@@ -126,25 +125,7 @@ class ConfigFlowStepsMixin:
         return f"{DEFAULT_STORAGE}{slugify(mailbox_device_name(self._data))}/"
 
     async def _async_create_mailbox_entry(self):
-        """Create the config entry, giving the mailbox its own image folder.
-
-        Setup can finish without showing the storage step, so a per-mailbox
-        folder is assigned (and created) here when none was chosen.
-        """
-        if not self._data.get(CONF_STORAGE):
-            storage = self._default_storage()
-            errors: dict[str, str] = {}
-            await self.hass.async_add_executor_job(
-                _validate_path_input, {CONF_STORAGE: storage}, errors, self.hass
-            )
-            if errors:
-                _LOGGER.warning(
-                    "Could not create image folder %s; using the shared default",
-                    storage,
-                )
-                self._data[CONF_STORAGE] = DEFAULT_STORAGE
-            else:
-                self._data[CONF_STORAGE] = storage
+        """Create the config entry."""
         return self.async_create_entry(
             title=f"Mail and Packages ({mailbox_device_name(self._data)})",
             data=self._data,
@@ -230,7 +211,7 @@ class ConfigFlowStepsMixin:
             val_fn = _get_target_val_fn()
             self._errors, user_input = await val_fn(self._data, self.hass)
             if len(self._errors) == 0:
-                return await self.async_step_config_storage()
+                return await self._async_create_mailbox_entry()
             return await self._show_config_3(user_input)
 
         return await self._show_config_3(user_input)
@@ -274,7 +255,7 @@ class ConfigFlowStepsMixin:
                     or self._data.get(CONF_POST_DE_CUSTOM_IMG)
                 ):
                     return await self.async_step_config_3()
-                return await self.async_step_config_storage()
+                return await self._async_create_mailbox_entry()
 
             return await self._show_config_amazon(user_input)
 
@@ -317,9 +298,11 @@ class ConfigFlowStepsMixin:
                 if self._data[CONF_CUSTOM_IMG]:
                     return await self.async_step_config_3()
 
-                return await self.async_step_config_storage()
+                return await self._async_create_mailbox_entry()
 
             return await self._show_config_forwarded_emails(user_input)
+
+        return await self._show_config_forwarded_emails(user_input)
 
         return await self._show_config_forwarded_emails(user_input)
 

@@ -30,6 +30,7 @@ from custom_components.mail_and_packages.const import (
     DEFAULT_FEDEX_CUSTOM_IMG_FILE,
     DEFAULT_UPS_CUSTOM_IMG_FILE,
     DEFAULT_WALMART_CUSTOM_IMG_FILE,
+    DOMAIN,
     GENERIC_DELIVERIES_GIF,
     OVERLAY,
 )
@@ -54,11 +55,13 @@ _LOGGER = logging.getLogger(__name__)
 
 def default_image_path(
     hass: HomeAssistant,  # pylint: disable=unused-argument
-    config_entry: ConfigEntry,
+    config_entry: ConfigEntry | dict,
 ) -> str:
     """Return value of the default image path.
 
-    Returns the default path based on logic
+    Returns the default path based on logic. Prefers custom storage if configured
+    (for backwards compatibility), otherwise scopes image storage automatically
+    to mail_and_packages/<entry_id>/.
     """
     storage = None
     try:
@@ -71,6 +74,11 @@ def default_image_path(
 
     if storage:
         return storage.rstrip("/") + "/"
+
+    entry_id = getattr(config_entry, "entry_id", None)
+    if entry_id:
+        return f"{DOMAIN}/{entry_id}/"
+
     return "custom_components/mail_and_packages/images/"
 
 

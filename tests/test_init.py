@@ -2,6 +2,7 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import anyio
 import pytest
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
@@ -12,18 +13,21 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.mail_and_packages import (
     async_migrate_entry,
     async_remove_config_entry_device,
+    async_remove_entry,
     async_setup_entry,
     update_listener,
 )
 from custom_components.mail_and_packages.const import (
     CONF_AMAZON_DOMAIN,
     CONF_AUTH_TYPE,
+    CONF_ENTRY_TYPE,
     CONF_FOLDER,
     CONF_FORWARDED_EMAILS,
     CONF_IMAP_SECURITY,
     CONF_SCAN_INTERVAL,
     CONF_VERIFY_SSL,
     DOMAIN,
+    ENTRY_TYPE_SUMMARY,
     PLATFORMS,
 )
 from custom_components.mail_and_packages.coordinator import (
@@ -268,6 +272,7 @@ async def test_migration_from_version_16_to_18():
 async def test_setup_entry_coordinator_failure():
     """Test setup_entry when coordinator fails to update."""
     mock_hass = MagicMock()
+    mock_hass.async_add_executor_job = AsyncMock()
     mock_hass.config_entries.async_forward_entry_setups = AsyncMock()
     data = FAKE_CONFIG_DATA.copy()
     data["resources"] = ["usps_mail"]  # Override for this test
@@ -303,6 +308,7 @@ async def test_setup_entry_coordinator_failure():
 async def test_setup_entry_auth_failure():
     """Test setup_entry when coordinator fails with ConfigEntryAuthFailed."""
     mock_hass = MagicMock()
+    mock_hass.async_add_executor_job = AsyncMock()
     mock_hass.config_entries.async_forward_entry_setups = AsyncMock()
     mock_config_entry = MockConfigEntry(
         domain=DOMAIN,
@@ -586,6 +592,7 @@ async def test_coordinator_binary_sensor_update_amazon_same_hashes():
 async def test_setup_entry_refresh_failure():
     """Test setup_entry when the coordinator fails to refresh data."""
     mock_hass = MagicMock()
+    mock_hass.async_add_executor_job = AsyncMock()
     mock_hass.config_entries.async_forward_entry_setups = AsyncMock()
     mock_config_entry = MockConfigEntry(
         domain=DOMAIN,
@@ -1084,3 +1091,73 @@ async def test_update_listener_options_change_triggers_reload():
 
     # async_reload SHOULD be called
     mock_hass.config_entries.async_reload.assert_called_once_with("test_entry")
+
+
+@pytest.mark.asyncio
+async def test_async_setup_entry_creates_storage_dir(hass, tmp_path):
+    """Test that async_setup_entry creates the entry-scoped storage directory."""
+    data = {k: v for k, v in FAKE_CONFIG_DATA.items() if k != "storage"}
+    data["resources"] = ["usps_mail"]
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data=data,
+        entry_id="entry_scoped_setup_test",
+    )
+    entry.add_to_hass(hass)
+
+    with (
+        patch("homeassistant.helpers.frame.report_usage"),
+        patch(
+            "custom_components.mail_and_packages.MailDataUpdateCoordinator",
+        ) as mock_coordinator_class,
+        patch.object(
+            hass.config_entries,
+            "async_forward_entry_setups",
+            AsyncMock(return_value=True),
+        ),
+    ):
+        mock_coordinator = mock_coordinator_class.return_value
+        mock_coordinator.async_refresh = AsyncMock()
+        mock_coordinator.last_update_success = True
+
+        result = await async_setup_entry(hass, entry)
+        assert result is True
+
+    expected_path = anyio.Path(hass.config.path(DOMAIN, "entry_scoped_setup_test"))
+    assert await expected_path.exists()
+    assert await expected_path.is_dir()
+
+
+@pytest.mark.asyncio
+async def test_async_remove_entry_removes_storage_dir(hass):
+    """Test that async_remove_entry removes the entry's storage directory."""
+    data = {k: v for k, v in FAKE_CONFIG_DATA.items() if k != "storage"}
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data=data,
+        entry_id="entry_scoped_remove_test",
+    )
+    entry.add_to_hass(hass)
+
+    storage_dir = anyio.Path(hass.config.path(DOMAIN, "entry_scoped_remove_test"))
+    await storage_dir.mkdir(parents=True, exist_ok=True)
+    test_file = storage_dir / "test.jpg"
+    await test_file.write_text("dummy")
+    assert await storage_dir.exists()
+
+    await async_remove_entry(hass, entry)
+    assert not await storage_dir.exists()
+
+
+@pytest.mark.asyncio
+async def test_async_remove_entry_summary_noop(hass):
+    """Test that async_remove_entry returns immediately for summary entry."""
+    summary_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_ENTRY_TYPE: ENTRY_TYPE_SUMMARY},
+        entry_id="summary_entry_test",
+    )
+    summary_entry.add_to_hass(hass)
+
+    # Should return early without attempting directory operations
+    await async_remove_entry(hass, summary_entry)

@@ -1811,3 +1811,84 @@ async def test_coordinator_deprecated_allow_external_issue(hass):
         await coordinator.process_emails(hass, config_without_external)
 
     assert (DOMAIN, "deprecated_allow_external") not in issue_registry.issues
+
+
+@pytest.mark.asyncio
+async def test_deprecated_storage_repair_issue(hass):
+    """Test deprecated_storage repair issue creation and clearing."""
+    issue_registry = ir.async_get(hass)
+
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={**FAKE_CONFIG_DATA, "storage": "/custom/path"},
+        entry_id="test_deprecated_storage_entry",
+    )
+    config_entry.add_to_hass(hass)
+
+    with patch("homeassistant.helpers.frame.report_usage"):
+        coordinator = MailDataUpdateCoordinator(
+            hass, dict(config_entry.data), config_entry
+        )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.get_shipper_for_sensor",
+            return_value=AsyncMock(),
+        ),
+        patch("custom_components.mail_and_packages.coordinator.copy_images"),
+    ):
+        await coordinator.process_emails(hass, dict(config_entry.data))
+
+    assert (DOMAIN, "deprecated_storage") in issue_registry.issues
+    issue = issue_registry.async_get_issue(DOMAIN, "deprecated_storage")
+    assert issue.severity == ir.IssueSeverity.WARNING
+    assert issue.is_fixable is True
+    assert coordinator._warned_deprecated_storage is True
+
+    # Second run with storage should not re-warn
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.get_shipper_for_sensor",
+            return_value=AsyncMock(),
+        ),
+        patch("custom_components.mail_and_packages.coordinator.copy_images"),
+    ):
+        await coordinator.process_emails(hass, dict(config_entry.data))
+    assert (DOMAIN, "deprecated_storage") in issue_registry.issues
+
+    # Now update config_entry data without storage configured
+    clean_data = {k: v for k, v in config_entry.data.items() if k != "storage"}
+    hass.config_entries.async_update_entry(config_entry, data=clean_data)
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.get_shipper_for_sensor",
+            return_value=AsyncMock(),
+        ),
+    ):
+        await coordinator.process_emails(hass, clean_data)
+
+    assert (DOMAIN, "deprecated_storage") not in issue_registry.issues
