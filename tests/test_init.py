@@ -289,7 +289,6 @@ async def test_setup_entry_coordinator_failure():
     mock_coordinator.async_refresh = AsyncMock()
 
     with (
-        patch("homeassistant.helpers.frame.report_usage"),
         patch(
             "custom_components.mail_and_packages.MailDataUpdateCoordinator",
         ) as mock_coordinator_class,
@@ -323,7 +322,6 @@ async def test_setup_entry_auth_failure():
     mock_coordinator.async_refresh = AsyncMock()
 
     with (
-        patch("homeassistant.helpers.frame.report_usage"),
         patch(
             "custom_components.mail_and_packages.MailDataUpdateCoordinator",
         ) as mock_coordinator_class,
@@ -370,8 +368,7 @@ async def test_async_remove_config_entry_device():
 async def test_coordinator_async_refresh_error(hass):
     """Test coordinator update failure."""
     mock_config = FAKE_CONFIG_DATA.copy()
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, mock_config)
+    coordinator = MailDataUpdateCoordinator(hass, mock_config)
 
     with (
         patch(
@@ -389,39 +386,37 @@ async def test_coordinator_binary_sensor_update_usps_hash_comparison():
     mock_hass = MagicMock()
     mock_config = FAKE_CONFIG_DATA.copy()
 
-    # Patch frame.report_usage to avoid "Frame helper not set up" error
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
-        coordinator._data = {
-            "usps_image": "test_image.gif",
-            "image_path": "custom_components/mail_and_packages/images/",
-        }
+    coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+    coordinator._data = {
+        "usps_image": "test_image.gif",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
 
-        # Mock async_add_executor_job to return mtimes AND hashes
-        # Order: mtime(img), hash(img), mtime(none), hash(none)
-        mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[100.0, "hash1", 100.0, "hash2"],
-        )
+    # Mock async_add_executor_job to return mtimes AND hashes
+    # Order: mtime(img), hash(img), mtime(none), hash(none)
+    mock_hass.async_add_executor_job = AsyncMock(
+        side_effect=[100.0, "hash1", 100.0, "hash2"],
+    )
 
-        with (
-            patch(
-                "custom_components.mail_and_packages.coordinator.default_image_path",
-                return_value="custom_components/mail_and_packages/images/",
-            ),
-            patch(
-                "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
-                new_callable=AsyncMock,
-                return_value=True,
-            ),
-            patch(
-                "custom_components.mail_and_packages.coordinator.hash_file",
-                side_effect=["hash1", "hash2"],
-            ),
-        ):
-            await coordinator._binary_sensor_update()
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.default_image_path",
+            return_value="custom_components/mail_and_packages/images/",
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
+            new_callable=AsyncMock,
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.hash_file",
+            side_effect=["hash1", "hash2"],
+        ),
+    ):
+        await coordinator._binary_sensor_update()
 
-            # Should set usps_update to True since hashes are different
-            assert coordinator._data["usps_update"] is True
+        # Should set usps_update to True since hashes are different
+        assert coordinator._data["usps_update"] is True
 
 
 @pytest.mark.asyncio
@@ -430,39 +425,37 @@ async def test_coordinator_binary_sensor_update_amazon_hash_comparison():
     mock_hass = MagicMock()
     mock_config = FAKE_CONFIG_DATA.copy()
 
-    # Patch frame.report_usage to avoid "Frame helper not set up" error
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
-        coordinator._data = {
-            "amazon_image": "test_amazon.jpg",
-            "image_path": "custom_components/mail_and_packages/images/",
-        }
+    coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+    coordinator._data = {
+        "amazon_image": "test_amazon.jpg",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
 
-        # Mock async_add_executor_job to return mtimes AND hashes
-        # Order: mtime(img), hash(img), mtime(none), hash(none)
-        mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[100.0, "hash1", 100.0, "hash2"],
-        )
+    # Mock async_add_executor_job to return mtimes AND hashes
+    # Order: mtime(img), hash(img), mtime(none), hash(none)
+    mock_hass.async_add_executor_job = AsyncMock(
+        side_effect=[100.0, "hash1", 100.0, "hash2"],
+    )
 
-        with (
-            patch(
-                "custom_components.mail_and_packages.coordinator.default_image_path",
-                return_value="custom_components/mail_and_packages/images/",
-            ),
-            patch(
-                "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
-                new_callable=AsyncMock,
-                return_value=True,
-            ),
-            patch(
-                "custom_components.mail_and_packages.coordinator.hash_file",
-                side_effect=["hash1", "hash2"],
-            ),
-        ):
-            await coordinator._binary_sensor_update()
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.default_image_path",
+            return_value="custom_components/mail_and_packages/images/",
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
+            new_callable=AsyncMock,
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.hash_file",
+            side_effect=["hash1", "hash2"],
+        ),
+    ):
+        await coordinator._binary_sensor_update()
 
-            # Should set amazon_update to True since hashes are different
-            assert coordinator._data["amazon_update"] is True
+        # Should set amazon_update to True since hashes are different
+        assert coordinator._data["amazon_update"] is True
 
 
 @pytest.mark.asyncio
@@ -471,39 +464,37 @@ async def test_coordinator_binary_sensor_update_ups_hash_comparison():
     mock_hass = MagicMock()
     mock_config = FAKE_CONFIG_DATA.copy()
 
-    # Patch frame.report_usage to avoid "Frame helper not set up" error
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
-        coordinator._data = {
-            "ups_image": "test_ups.jpg",
-            "image_path": "custom_components/mail_and_packages/images/",
-        }
+    coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+    coordinator._data = {
+        "ups_image": "test_ups.jpg",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
 
-        # Mock async_add_executor_job to return mtimes AND hashes
-        # Order: mtime(img), hash(img), mtime(none), hash(none)
-        mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[100.0, "hash1", 100.0, "hash2"],
-        )
+    # Mock async_add_executor_job to return mtimes AND hashes
+    # Order: mtime(img), hash(img), mtime(none), hash(none)
+    mock_hass.async_add_executor_job = AsyncMock(
+        side_effect=[100.0, "hash1", 100.0, "hash2"],
+    )
 
-        with (
-            patch(
-                "custom_components.mail_and_packages.coordinator.default_image_path",
-                return_value="custom_components/mail_and_packages/images/",
-            ),
-            patch(
-                "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
-                new_callable=AsyncMock,
-                return_value=True,
-            ),
-            patch(
-                "custom_components.mail_and_packages.coordinator.hash_file",
-                side_effect=["hash1", "hash2"],
-            ),
-        ):
-            await coordinator._binary_sensor_update()
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.default_image_path",
+            return_value="custom_components/mail_and_packages/images/",
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
+            new_callable=AsyncMock,
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.hash_file",
+            side_effect=["hash1", "hash2"],
+        ),
+    ):
+        await coordinator._binary_sensor_update()
 
-            # Should set ups_update to True since hashes are different
-            assert coordinator._data["ups_update"] is True
+        # Should set ups_update to True since hashes are different
+        assert coordinator._data["ups_update"] is True
 
 
 @pytest.mark.asyncio
@@ -512,39 +503,37 @@ async def test_coordinator_binary_sensor_update_same_hashes():
     mock_hass = MagicMock()
     mock_config = FAKE_CONFIG_DATA.copy()
 
-    # Patch frame.report_usage to avoid "Frame helper not set up" error
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
-        coordinator._data = {
-            "usps_image": "test_image.gif",
-            "image_path": "custom_components/mail_and_packages/images/",
-        }
+    coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+    coordinator._data = {
+        "usps_image": "test_image.gif",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
 
-        # Mock async_add_executor_job to return mtimes AND hashes
-        # Order: mtime(img), hash(img), mtime(none), hash(none)
-        mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[100.0, "same_hash", 100.0, "same_hash"],
-        )
+    # Mock async_add_executor_job to return mtimes AND hashes
+    # Order: mtime(img), hash(img), mtime(none), hash(none)
+    mock_hass.async_add_executor_job = AsyncMock(
+        side_effect=[100.0, "same_hash", 100.0, "same_hash"],
+    )
 
-        with (
-            patch(
-                "custom_components.mail_and_packages.coordinator.default_image_path",
-                return_value="custom_components/mail_and_packages/images/",
-            ),
-            patch(
-                "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
-                new_callable=AsyncMock,
-                return_value=True,
-            ),
-            patch(
-                "custom_components.mail_and_packages.coordinator.hash_file",
-                side_effect=["same_hash", "same_hash"],
-            ),
-        ):
-            await coordinator._binary_sensor_update()
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.default_image_path",
+            return_value="custom_components/mail_and_packages/images/",
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
+            new_callable=AsyncMock,
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.hash_file",
+            side_effect=["same_hash", "same_hash"],
+        ),
+    ):
+        await coordinator._binary_sensor_update()
 
-            # Should set usps_update to False since hashes are the same
-            assert coordinator._data["usps_update"] is False
+        # Should set usps_update to False since hashes are the same
+        assert coordinator._data["usps_update"] is False
 
 
 @pytest.mark.asyncio
@@ -553,40 +542,38 @@ async def test_coordinator_binary_sensor_update_amazon_same_hashes():
     mock_hass = MagicMock()
     mock_config = FAKE_CONFIG_DATA.copy()
 
-    # Patch frame.report_usage to avoid "Frame helper not set up" error
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
-        coordinator._data = {
-            "amazon_image": "test_amazon.jpg",
-            "image_path": "custom_components/mail_and_packages/images/",
-        }
+    coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+    coordinator._data = {
+        "amazon_image": "test_amazon.jpg",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
 
-        # Mock async_add_executor_job to return mtimes AND hashes
-        # We provide extra values to ensure the mock doesn't run out (returning a Mock object),
-        # which would cause the equality check to fail.
-        mock_hass.async_add_executor_job = AsyncMock(
-            side_effect=[100.0, "same_hash", 100.0, "same_hash", 100.0, "same_hash"],
-        )
+    # Mock async_add_executor_job to return mtimes AND hashes
+    # We provide extra values to ensure the mock doesn't run out (returning a Mock object),
+    # which would cause the equality check to fail.
+    mock_hass.async_add_executor_job = AsyncMock(
+        side_effect=[100.0, "same_hash", 100.0, "same_hash", 100.0, "same_hash"],
+    )
 
-        with (
-            patch(
-                "custom_components.mail_and_packages.coordinator.default_image_path",
-                return_value="custom_components/mail_and_packages/images/",
-            ),
-            patch(
-                "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
-                new_callable=AsyncMock,
-                return_value=True,
-            ),
-            patch(
-                "custom_components.mail_and_packages.coordinator.hash_file",
-                side_effect=["same_hash", "same_hash"],
-            ),
-        ):
-            await coordinator._binary_sensor_update()
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.default_image_path",
+            return_value="custom_components/mail_and_packages/images/",
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
+            new_callable=AsyncMock,
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.hash_file",
+            side_effect=["same_hash", "same_hash"],
+        ),
+    ):
+        await coordinator._binary_sensor_update()
 
-            # Should set amazon_update to False since hashes are the same
-            assert coordinator._data["amazon_update"] is False
+        # Should set amazon_update to False since hashes are the same
+        assert coordinator._data["amazon_update"] is False
 
 
 async def test_setup_entry_refresh_failure():
@@ -604,7 +591,6 @@ async def test_setup_entry_refresh_failure():
         entry_id="test_entry",
     )
     with (
-        patch("homeassistant.helpers.frame.report_usage"),
         patch(
             "custom_components.mail_and_packages.MailDataUpdateCoordinator",
         ) as mock_coordinator_class,
@@ -662,24 +648,23 @@ async def test_get_file_hash_cache_hit():
     mock_hass = MagicMock()
     mock_config = FAKE_CONFIG_DATA.copy()
 
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
+    coordinator = MailDataUpdateCoordinator(mock_hass, mock_config)
 
-        file_path = "test.gif"
-        mtime = 100.0
-        file_hash = "abc123"
+    file_path = "test.gif"
+    mtime = 100.0
+    file_hash = "abc123"
 
-        # First call: populate cache
-        mock_hass.async_add_executor_job = AsyncMock(side_effect=[mtime, file_hash])
-        result1 = await coordinator._get_file_hash_if_changed(file_path)
-        assert result1 == file_hash
-        assert mock_hass.async_add_executor_job.call_count == 2
+    # First call: populate cache
+    mock_hass.async_add_executor_job = AsyncMock(side_effect=[mtime, file_hash])
+    result1 = await coordinator._get_file_hash_if_changed(file_path)
+    assert result1 == file_hash
+    assert mock_hass.async_add_executor_job.call_count == 2
 
-        # Second call: same mtime, should return value from cache
-        mock_hass.async_add_executor_job = AsyncMock(return_value=mtime)
-        result2 = await coordinator._get_file_hash_if_changed(file_path)
-        assert result2 == file_hash
-        assert mock_hass.async_add_executor_job.call_count == 1
+    # Second call: same mtime, should return value from cache
+    mock_hass.async_add_executor_job = AsyncMock(return_value=mtime)
+    result2 = await coordinator._get_file_hash_if_changed(file_path)
+    assert result2 == file_hash
+    assert mock_hass.async_add_executor_job.call_count == 1
 
 
 @pytest.mark.asyncio
@@ -710,8 +695,7 @@ async def test_update_with_oauth(hass, mock_update):
     mock_config[CONF_AUTH_TYPE] = "oauth2_microsoft"
     mock_config_entry = MockConfigEntry(domain=DOMAIN, data=mock_config)
 
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, mock_config)
+    coordinator = MailDataUpdateCoordinator(hass, mock_config)
     coordinator.config_entry = mock_config_entry
 
     with (
@@ -746,8 +730,7 @@ async def test_update_with_oauth_error(hass, mock_update):
     mock_config[CONF_AUTH_TYPE] = "oauth2_microsoft"
     mock_config_entry = MockConfigEntry(domain=DOMAIN, data=mock_config)
 
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, mock_config)
+    coordinator = MailDataUpdateCoordinator(hass, mock_config)
     coordinator.config_entry = mock_config_entry
 
     with (
@@ -764,8 +747,7 @@ async def test_update_with_oauth_error(hass, mock_update):
 async def test_get_file_hash_os_error(hass):
     """Test get_file_hash_if_changed when os.path.getmtime raises OSError."""
     mock_config = FAKE_CONFIG_DATA.copy()
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, mock_config)
+    coordinator = MailDataUpdateCoordinator(hass, mock_config)
 
     with patch("os.path.getmtime", side_effect=OSError):
         result = await coordinator._get_file_hash_if_changed("test.gif")
@@ -779,7 +761,6 @@ async def test_process_emails_folder_select_failure(hass):
     mock_config["folder"] = "invalid_folder"
 
     with (
-        patch("homeassistant.helpers.frame.report_usage"),
         patch(
             "custom_components.mail_and_packages.coordinator.login",
             return_value=AsyncMock(),
@@ -801,7 +782,6 @@ async def test_process_emails_copy_images_error(hass):
     mock_config["allow_external"] = True
 
     with (
-        patch("homeassistant.helpers.frame.report_usage"),
         patch(
             "custom_components.mail_and_packages.coordinator.login",
             return_value=AsyncMock(),
@@ -828,30 +808,29 @@ async def test_coordinator_binary_sensor_custom_images(hass):
     mock_config["amazon_custom_img"] = True
     mock_config["amazon_custom_img_file"] = "custom_amazon.jpg"
 
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, mock_config)
-        coordinator._data = {
-            "amazon_image": "test.jpg",
-            "image_path": "images/",
-        }
+    coordinator = MailDataUpdateCoordinator(hass, mock_config)
+    coordinator._data = {
+        "amazon_image": "test.jpg",
+        "image_path": "images/",
+    }
 
-        with (
-            patch(
-                "custom_components.mail_and_packages.coordinator.default_image_path",
-                return_value="images/",
-            ),
-            patch(
-                "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
-                new_callable=AsyncMock,
-                return_value=True,
-            ),
-            patch(
-                "custom_components.mail_and_packages.coordinator.MailDataUpdateCoordinator._get_file_hash_if_changed",
-                side_effect=["hash1", "hash1"],
-            ),
-        ):
-            await coordinator._binary_sensor_update()
-            assert coordinator._data["amazon_update"] is False
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.default_image_path",
+            return_value="images/",
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.anyio.Path.exists",
+            new_callable=AsyncMock,
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.MailDataUpdateCoordinator._get_file_hash_if_changed",
+            side_effect=["hash1", "hash1"],
+        ),
+    ):
+        await coordinator._binary_sensor_update()
+        assert coordinator._data["amazon_update"] is False
 
 
 @pytest.mark.asyncio
@@ -1106,7 +1085,6 @@ async def test_async_setup_entry_creates_storage_dir(hass, tmp_path):
     entry.add_to_hass(hass)
 
     with (
-        patch("homeassistant.helpers.frame.report_usage"),
         patch(
             "custom_components.mail_and_packages.MailDataUpdateCoordinator",
         ) as mock_coordinator_class,

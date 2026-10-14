@@ -32,8 +32,7 @@ from tests.const import FAKE_CONFIG_DATA, FAKE_CONFIG_DATA_USPS_DELIVERED
 @pytest.mark.asyncio
 async def test_process_emails_batch_success(hass):
     """Test process_emails processes sensors in batch successfully."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     mock_shipper = AsyncMock()
     mock_shipper.name = "test_shipper"
@@ -65,8 +64,7 @@ async def test_process_emails_batch_success(hass):
 @pytest.mark.asyncio
 async def test_process_emails_batch_exception(hass, caplog):
     """Test process_emails handles exception during batch processing."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     mock_shipper = AsyncMock()
     mock_shipper.name = "test_shipper"
@@ -94,8 +92,7 @@ async def test_process_emails_batch_exception(hass, caplog):
 @pytest.mark.asyncio
 async def test_process_emails_invalid_return(hass):
     """Test process_emails gracefully handles non-dict return."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     mock_shipper = AsyncMock()
     mock_shipper.name = "test_shipper"
@@ -129,8 +126,7 @@ async def test_mail_delivered_latches_on_across_polls(hass):
     transient miss must not flip a real delivery back to off — that would
     make an off->on state-trigger automation re-fire on every scan cycle.
     """
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA_USPS_DELIVERED)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA_USPS_DELIVERED)
 
     mock_shipper = AsyncMock()
     mock_shipper.name = "usps"
@@ -170,8 +166,7 @@ async def test_mail_delivered_latches_on_across_polls(hass):
 @pytest.mark.asyncio
 async def test_mail_delivered_latch_resets_on_new_day(hass):
     """usps_mail_delivered latch must reset once the day rolls over."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA_USPS_DELIVERED)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA_USPS_DELIVERED)
 
     mock_shipper = AsyncMock()
     mock_shipper.name = "usps"
@@ -209,8 +204,7 @@ async def test_mail_delivered_latch_resets_on_new_day(hass):
 
 def test_latch_mail_delivered_noop_when_sensor_not_present(hass):
     """_latch_mail_delivered must not add the key when the sensor isn't in use."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     data = {"some_other_sensor": 1}
     coordinator._latch_mail_delivered(data, "2026-08-05")
@@ -269,8 +263,7 @@ def test_mail_delivered_latch_state_properties_and_direct():
 
 def test_coordinator_mail_delivered_latch_property_setters(hass):
     """Test backward-compatible property setters on MailDataUpdateCoordinator."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     coordinator._mail_delivered_latch_date = "2026-08-05"
     assert coordinator._mail_delivered_latch_state.date == "2026-08-05"
@@ -284,8 +277,7 @@ def test_coordinator_mail_delivered_latch_property_setters(hass):
 @pytest.mark.asyncio
 async def test_async_update_data_timeout_logs_and_returns_cached_data(hass, caplog):
     """When the scan exceeds its time budget, log an error and return cached data if available."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     coordinator.timeout = 0.01
 
@@ -313,8 +305,7 @@ async def test_async_update_data_timeout_logs_and_returns_cached_data(hass, capl
 @pytest.mark.asyncio
 async def test_get_imap_connection_invalid_auth(hass):
     """Test _get_imap_connection handles InvalidAuth."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     with (
         patch(
@@ -329,8 +320,7 @@ async def test_get_imap_connection_invalid_auth(hass):
 @pytest.mark.asyncio
 async def test_get_imap_connection_exception(hass):
     """Test _get_imap_connection handles generic Exception."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     with (
         patch(
@@ -345,8 +335,7 @@ async def test_get_imap_connection_exception(hass):
 @pytest.mark.asyncio
 async def test_process_emails_no_shipper(hass):
     """Test process_emails skips if no shipper is found."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     with (
         patch(
@@ -371,8 +360,7 @@ async def test_process_emails_no_shipper(hass):
 @pytest.mark.asyncio
 async def test_aggregate_package_counts(hass):
     """Test that package counts are correctly aggregated."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     # Mock data to be aggregated
     test_data = {
@@ -422,8 +410,7 @@ async def test_aggregate_package_counts(hass):
 @pytest.mark.asyncio
 async def test_aggregate_package_counts_no_resource(hass):
     """Test that aggregation doesn't add sensors not in initialize_data."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     test_data = {
         "usps_delivering": 1,
@@ -445,8 +432,7 @@ async def test_aggregate_transit_excludes_delivered_packages(hass):
     single package as both "1 in transit" and "1 delivered" for the rest of
     the day, until the counts reset at midnight.
     """
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     # Out for delivery: one package, in transit.
     out_for_delivery = {
@@ -476,8 +462,7 @@ async def test_aggregate_transit_excludes_delivered_packages(hass):
 @pytest.mark.asyncio
 async def test_get_imap_connection_selectfolder_exception(hass):
     """Test _get_imap_connection handles exception from selectfolder."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     mock_account = AsyncMock()
     with (
@@ -507,8 +492,7 @@ async def test_get_imap_connection_selectfolder_exception(hass):
 @pytest.mark.asyncio
 async def test_update_tracking_adds_new_delivering(hass):
     """New delivering tracking numbers are added with today's date."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     today = "2026-04-22"
     coordinator._update_tracking_for_prefix("ups", ["1Z123", "1Z456"], [], today, 14)
@@ -522,8 +506,7 @@ async def test_update_tracking_adds_new_delivering(hass):
 @pytest.mark.asyncio
 async def test_update_tracking_removes_delivered(hass):
     """Delivering tracking numbers that appear in delivered are removed."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     coordinator._in_transit_tracking["ups"] = {
         "1Z123": "2026-04-20",
@@ -538,8 +521,7 @@ async def test_update_tracking_removes_delivered(hass):
 @pytest.mark.asyncio
 async def test_update_tracking_expires_old_entries(hass):
     """Tracking numbers older than TTL are expired."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     coordinator._in_transit_tracking["ups"] = {
         "1ZOLD": "2026-04-01",  # 21 days old — beyond 14-day TTL
@@ -554,8 +536,7 @@ async def test_update_tracking_expires_old_entries(hass):
 @pytest.mark.asyncio
 async def test_update_tracking_no_duplicate_add(hass):
     """Already-known tracking numbers keep their original first-seen date."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     original_date = "2026-04-20"
     coordinator._in_transit_tracking["ups"] = {"1Z123": original_date}
@@ -567,8 +548,7 @@ async def test_update_tracking_no_duplicate_add(hass):
 @pytest.mark.asyncio
 async def test_apply_tracking_state_overrides_delivering(hass):
     """_apply_tracking_state replaces IMAP-reported count with persisted count."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     # Pre-populate two tracking numbers in transit
     coordinator._in_transit_tracking["ups"] = {
@@ -592,8 +572,7 @@ async def test_apply_tracking_state_overrides_delivering(hass):
 @pytest.mark.asyncio
 async def test_apply_tracking_state_removes_delivered(hass):
     """Packages marked delivered are removed from in-transit tracking."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     coordinator._in_transit_tracking["fedex"] = {
         "9261290": "2026-04-20",
@@ -620,8 +599,7 @@ async def test_apply_tracking_state_all_delivered_zeroes_count(hass):
     becomes EMPTY, otherwise the raw IMAP count (which cannot dedup
     prior-day deliveries) leaks through as the sensor value.
     """
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     coordinator._in_transit_tracking["fedex"] = {
         "9261290": "2026-04-20",
@@ -657,8 +635,7 @@ async def test_apply_tracking_state_delivered_only_details_keeps_count(hass):
     legitimate email-based count. A delivered notification for an unrelated
     package must not force-override that count to len(in_transit) == 0.
     """
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     # Two delivering emails matched but tracking extraction found nothing;
     # an unrelated package delivered earlier in the window has a number.
@@ -673,8 +650,7 @@ async def test_apply_tracking_state_delivered_only_details_keeps_count(hass):
 @pytest.mark.asyncio
 async def test_apply_tracking_state_no_details_keeps_email_count(hass):
     """Carriers with no tracking details keep their email-based counts."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     # walmart has no tracking-number extraction this scan; its email-based
     # count must not be clobbered by an override to zero.
@@ -690,8 +666,7 @@ async def test_apply_tracking_state_no_details_keeps_email_count(hass):
 @pytest.mark.asyncio
 async def test_apply_tracking_state_exception_does_not_affect_delivering(hass):
     """Exception tracking numbers must not set or override delivering counts."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     data = {
         "ups_delivering": 0,
@@ -714,8 +689,7 @@ async def test_apply_tracking_state_exception_does_not_affect_delivering(hass):
 @pytest.mark.asyncio
 async def test_apply_tracking_state_mixed_delivering_and_exception(hass):
     """Exception tracking numbers are ignored in delivering tracking and count."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     data = {
         "ups_delivering": 1,
@@ -738,8 +712,7 @@ async def test_apply_tracking_state_mixed_delivering_and_exception(hass):
 @pytest.mark.asyncio
 async def test_apply_tracking_state_derives_packages_total(hass):
     """*_packages sensors are derived from in_transit tracking + delivered count."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     coordinator._in_transit_tracking["dhl"] = {"OFD1": "2026-04-20"}
     data = {
@@ -761,8 +734,7 @@ async def test_apply_tracking_state_derives_packages_total(hass):
 @pytest.mark.asyncio
 async def test_apply_tracking_state_overwrites_empty_config_packages(hass):
     """Empty-config *_packages are still derived from OFD transit + delivered."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     coordinator._in_transit_tracking["hermes"] = {
         "H1": "2026-04-20",
@@ -824,8 +796,7 @@ async def test_sum_transit_counts_distinguishes_dpd_regions(hass):
 @pytest.mark.asyncio
 async def test_apply_tracking_state_no_tracking_details(hass):
     """With empty tracking_details, data is unchanged."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     data = {"ups_delivering": 2, "ups_delivered": 1}
     coordinator._apply_tracking_state(data, {}, "2026-04-22")
@@ -838,8 +809,7 @@ async def test_apply_tracking_state_no_tracking_details(hass):
 async def test_process_emails_passes_since_date(hass):
     """process_emails passes since_date to shippers based on CONF_CUSTOM_DAYS."""
     config = {**FAKE_CONFIG_DATA, "custom_days": 3}
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, config)
+    coordinator = MailDataUpdateCoordinator(hass, config)
 
     mock_shipper = AsyncMock()
     mock_shipper.name = "test_shipper"
@@ -875,8 +845,7 @@ async def test_process_emails_passes_since_date(hass):
 @pytest.mark.asyncio
 async def test_process_emails_strips_tracking_details_from_output(hass):
     """_tracking_details key is consumed and not exposed in coordinator data."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     mock_shipper = AsyncMock()
     mock_shipper.name = "test_shipper"
@@ -981,8 +950,7 @@ async def test_get_imap_connection_folders_normalization(hass):
 @pytest.mark.asyncio
 async def test_coordinator_post_de_binary_sensor_update(hass):
     """Test coordinator _binary_sensor_update correctly sets none_image for post_de."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     # Populate data with post_de_image attribute
     coordinator._data = {
@@ -1010,8 +978,7 @@ async def test_coordinator_post_de_binary_sensor_update(hass):
 @pytest.mark.asyncio
 async def test_apply_tracking_state_persists_across_empty_runs(hass):
     """Verify that tracking numbers persist in data even when tracking_details is empty."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     # Pre-populate tracking numbers in transit
     coordinator._in_transit_tracking["ups"] = {
@@ -1029,8 +996,7 @@ async def test_apply_tracking_state_persists_across_empty_runs(hass):
 @pytest.mark.asyncio
 async def test_process_emails_merges_tracking_details_from_multiple_shippers(hass):
     """Test process_emails merges _tracking_details from multiple shippers instead of overwriting."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     mock_shipper1 = AsyncMock()
     mock_shipper1.name = "fedex"
@@ -1083,8 +1049,7 @@ async def test_process_emails_merges_tracking_details_from_multiple_shippers(has
 @pytest.mark.asyncio
 async def test_process_emails_delivered_tracking(hass):
     """Test process_emails populates and isolates delivered tracking from in-transit."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     # Mock a shipper that returns both delivering and delivered details
     mock_shipper = AsyncMock()
@@ -1130,8 +1095,7 @@ async def test_process_emails_delivered_tracking(hass):
 @pytest.mark.asyncio
 async def test_process_emails_delivered_tracking_reversed_order(hass):
     """Test process_emails isolates delivered tracking even with reversed insertion order."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     # Mock a shipper that returns delivered details before delivering details in the dict
     mock_shipper = AsyncMock()
@@ -1176,8 +1140,7 @@ async def test_process_emails_delivered_tracking_reversed_order(hass):
 @pytest.mark.asyncio
 async def test_coordinator_get_file_hash_if_changed(hass):
     """Test _get_file_hash_if_changed caching and error paths."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     with (
         patch("os.path.getmtime", return_value=12345),
@@ -1205,9 +1168,8 @@ async def test_coordinator_oauth_token_refresh(hass):
     entry = MockConfigEntry(domain="mail_and_packages", data=config)
     entry.add_to_hass(hass)
 
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, config)
-        coordinator.config_entry = entry
+    coordinator = MailDataUpdateCoordinator(hass, config)
+    coordinator.config_entry = entry
 
     mock_session = AsyncMock()
     mock_session.token = {"access_token": "refreshed_oauth_token"}
@@ -1272,9 +1234,8 @@ async def test_coordinator_oauth_token_revoked_triggers_reauth(hass, caplog):
     entry = MockConfigEntry(domain="mail_and_packages", data=config)
     entry.add_to_hass(hass)
 
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, config)
-        coordinator.config_entry = entry
+    coordinator = MailDataUpdateCoordinator(hass, config)
+    coordinator.config_entry = entry
 
     mock_session = AsyncMock()
     mock_session.async_ensure_token_valid.side_effect = _oauth_error(
@@ -1309,9 +1270,8 @@ async def test_coordinator_oauth_token_server_error_is_retryable(hass):
     entry = MockConfigEntry(domain="mail_and_packages", data=config)
     entry.add_to_hass(hass)
 
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, config)
-        coordinator.config_entry = entry
+    coordinator = MailDataUpdateCoordinator(hass, config)
+    coordinator.config_entry = entry
 
     mock_session = AsyncMock()
     mock_session.async_ensure_token_valid.side_effect = _oauth_error(
@@ -1338,8 +1298,7 @@ async def test_coordinator_oauth_token_server_error_is_retryable(hass):
 async def test_coordinator_process_emails_copy_external_images_error(hass, caplog):
     """Test process_emails handles copy_images OSError/ValueError gracefully."""
     config = {**FAKE_CONFIG_DATA, "allow_external": True}
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, config)
+    coordinator = MailDataUpdateCoordinator(hass, config)
 
     with (
         patch(
@@ -1363,8 +1322,7 @@ async def test_coordinator_process_emails_copy_external_images_error(hass, caplo
 @pytest.mark.asyncio
 async def test_coordinator_get_imap_connection_folder_failures(hass):
     """Test _get_imap_connection folder selection exception and invalid folder return."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     # 1. Folder selection exception
     with (
@@ -1402,8 +1360,7 @@ async def test_coordinator_get_imap_connection_folder_failures(hass):
 @pytest.mark.asyncio
 async def test_coordinator_get_imap_connection_deletes_auth_failed_issue(hass):
     """Test _get_imap_connection deletes auth_failed issue if present."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     # Pre-register issue in registry
     issue_registry = ir.async_get(hass)
@@ -1439,8 +1396,7 @@ async def test_coordinator_async_update_data_error_with_cached_data_and_auth_fai
     hass,
 ):
     """Test _async_update_data re-raises ConfigEntryAuthFailed and returns cached data on generic error."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     # 1. ConfigEntryAuthFailed is re-raised
     with (
@@ -1467,8 +1423,7 @@ async def test_coordinator_async_update_data_error_with_cached_data_and_auth_fai
 @pytest.mark.asyncio
 async def test_coordinator_binary_sensor_update_different_hash_and_post_de(hass):
     """Test _binary_sensor_update when image hash differs from none hash for USPS and post_de."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     coordinator._data = {
         "usps_image": "mail_123.jpg",
@@ -1497,8 +1452,7 @@ async def test_coordinator_binary_sensor_update_same_hash_and_custom_img(hass):
         "amazon_custom_img": True,
         "amazon_custom_img_file": "custom_amazon.jpg",
     }
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, config)
+    coordinator = MailDataUpdateCoordinator(hass, config)
 
     coordinator._data = {
         "usps_image": "mail_123.jpg",
@@ -1528,9 +1482,8 @@ async def test_coordinator_oauth_token_refresh_client_response_error_non_400_401
     entry = MockConfigEntry(domain="mail_and_packages", data=config)
     entry.add_to_hass(hass)
 
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, config)
-        coordinator.config_entry = entry
+    coordinator = MailDataUpdateCoordinator(hass, config)
+    coordinator.config_entry = entry
 
     mock_session = AsyncMock()
     mock_session.async_ensure_token_valid.side_effect = _oauth_error(
@@ -1556,8 +1509,7 @@ async def test_coordinator_binary_sensor_update_missing_image_attr_and_default_n
     hass,
 ):
     """Test _binary_sensor_update when image attribute isn't in const (line 668) and standard default none image (line 704)."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     coordinator._data = {
         "ups_image": "ups_123.jpg",
@@ -1583,8 +1535,7 @@ async def test_coordinator_binary_sensor_update_missing_image_attr_and_default_n
 @pytest.mark.asyncio
 async def test_coordinator_async_binary_sensor_update_with_data(hass):
     """Test async_binary_sensor_update and async_check_camera_update with explicit data parameter."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     data = {
         "usps_image": "mail_123.jpg",
@@ -1608,8 +1559,7 @@ async def test_coordinator_async_binary_sensor_update_with_data(hass):
 @pytest.mark.asyncio
 async def test_coordinator_check_camera_update_fallback_data_none(hass):
     """Test _check_camera_update and check_camera_update fallback when data is None."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     coordinator._data = {
         "ups_image": "ups_123.jpg",
@@ -1739,8 +1689,7 @@ async def test_sum_delivered_and_delivering_counts_helpers(hass):
 @pytest.mark.asyncio
 async def test_coordinator_usps_no_mail_binary_sensor_update(hass):
     """Test that when USPS finds no mail, usps_image matches placeholder and usps_update is False."""
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     data = {
         "usps_mail": 0,
@@ -1767,8 +1716,7 @@ async def test_coordinator_deprecated_allow_external_issue(hass):
     issue_registry = ir.async_get(hass)
 
     config_with_external = {**FAKE_CONFIG_DATA, "allow_external": True}
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(hass, config_with_external)
+    coordinator = MailDataUpdateCoordinator(hass, config_with_external)
 
     with (
         patch(
@@ -1825,10 +1773,7 @@ async def test_deprecated_storage_repair_issue(hass):
     )
     config_entry.add_to_hass(hass)
 
-    with patch("homeassistant.helpers.frame.report_usage"):
-        coordinator = MailDataUpdateCoordinator(
-            hass, dict(config_entry.data), config_entry
-        )
+    coordinator = MailDataUpdateCoordinator(hass, dict(config_entry.data), config_entry)
 
     with (
         patch(
