@@ -76,6 +76,8 @@ def default_image_path(
         return storage.rstrip("/") + "/"
 
     entry_id = getattr(config_entry, "entry_id", None)
+    if not entry_id and isinstance(config_entry, dict):
+        entry_id = config_entry.get("entry_id")
     if entry_id:
         return f"{DOMAIN}/{entry_id}/"
 

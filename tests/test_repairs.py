@@ -40,7 +40,11 @@ async def test_auth_repair_flow(hass: HomeAssistant):
     # Set up flow on hass
     flow.hass = hass
 
-    # Test step_init
+    # Test step_init (with and without initial data from repairs flow manager)
+    result = await flow.async_step_init({"issue_id": "auth_failed"})
+    assert result["type"] == "form"
+    assert result["step_id"] == "confirm"
+
     result = await flow.async_step_init()
     assert result["type"] == "form"
     assert result["step_id"] == "confirm"
@@ -89,7 +93,11 @@ async def test_deprecated_allow_external_repair_flow(hass: HomeAssistant):
 
     flow.hass = hass
 
-    # Test step_init
+    # Test step_init (with and without initial data from repairs flow manager)
+    result = await flow.async_step_init({"issue_id": "deprecated_allow_external"})
+    assert result["type"] == "form"
+    assert result["step_id"] == "confirm"
+
     result = await flow.async_step_init()
     assert result["type"] == "form"
     assert result["step_id"] == "confirm"
@@ -152,7 +160,11 @@ async def test_deprecated_storage_repair_flow(hass: HomeAssistant):
 
     flow.hass = hass
 
-    # Test step_init
+    # Test step_init (with and without initial data from repairs flow manager)
+    result = await flow.async_step_init({"issue_id": "deprecated_storage"})
+    assert result["type"] == "form"
+    assert result["step_id"] == "confirm"
+
     result = await flow.async_step_init()
     assert result["type"] == "form"
     assert result["step_id"] == "confirm"
@@ -164,8 +176,12 @@ async def test_deprecated_storage_repair_flow(hass: HomeAssistant):
 
     # Test step_confirm submit with options and data
     mock_entry = MagicMock()
-    mock_entry.options = {"storage": "custom/path/", "scan_interval": 5}
-    mock_entry.data = {"storage": "custom/path/"}
+    mock_entry.options = {
+        "storage": "custom/path/",
+        "image_path": "custom/path/",
+        "scan_interval": 5,
+    }
+    mock_entry.data = {"storage": "custom/path/", "image_path": "custom/path/"}
 
     with (
         patch.object(
@@ -186,7 +202,11 @@ async def test_deprecated_storage_repair_flow(hass: HomeAssistant):
     mock_entry_data = MagicMock()
     mock_entry_data.domain = DOMAIN
     mock_entry_data.options = {}
-    mock_entry_data.data = {"storage": "custom/path/", "scan_interval": 5}
+    mock_entry_data.data = {
+        "storage": "custom/path/",
+        "image_path": "custom/path/",
+        "scan_interval": 5,
+    }
 
     flow_fallback = DeprecatedStorageRepairFlow(entry_id=None)
     flow_fallback.hass = hass

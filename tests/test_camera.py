@@ -98,12 +98,12 @@ async def test_update_file_path(
     ):
         state = hass.states.get(usps_eid)
         assert "Mail USPS Camera" in state.attributes.get("friendly_name")
-        assert "images/test.gif" in state.attributes.get("file_path")
+        assert state.attributes.get("file_path").endswith("test.gif")
 
         service_data = {"entity_id": usps_eid}
         await hass.services.async_call(DOMAIN, "update_image", service_data)
         await hass.async_block_till_done()
-        assert "images/test.gif" in state.attributes.get("file_path")
+        assert state.attributes.get("file_path").endswith("test.gif")
         assert "Custom No Mail: images/test.gif" in caplog.text
 
     # TODO: Add process_mail and check camera file path

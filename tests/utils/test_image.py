@@ -208,6 +208,13 @@ async def test_default_image_path():
         default_image_path(mock_hass, mock_entry) == "mail_and_packages/test_entry_123/"
     )
 
+    # Test without storage config with entry_id in dict
+    mock_dict_with_id = {"entry_id": "test_dict_456"}
+    assert (
+        default_image_path(mock_hass, mock_dict_with_id)
+        == "mail_and_packages/test_dict_456/"
+    )
+
 
 @pytest.mark.asyncio
 async def test_image_file_name_amazon_courier():

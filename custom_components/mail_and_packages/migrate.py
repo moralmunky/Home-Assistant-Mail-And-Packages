@@ -96,6 +96,10 @@ async def async_migrate_entry(
             if key not in updated_options:
                 updated_options[key] = val
 
+    if version <= 21:
+        updated_options.pop(CONF_STORAGE, None)
+        updated_options.pop(CONF_PATH, None)
+
     if updated_config != config_entry.data or updated_options != config_entry.options:
         hass.config_entries.async_update_entry(
             config_entry,
@@ -115,6 +119,7 @@ def _migrate_legacy_versions(updated_config, version, config_entry):
     _migrate_versions_4_to_16(updated_config, version)
     _migrate_version_17(updated_config, version)
     _migrate_version_18(updated_config, version)
+    _migrate_version_21(updated_config, version)
 
 
 def _migrate_versions_1_to_3(updated_config, version, config_entry):
@@ -224,18 +229,26 @@ def _migrate_version_18(updated_config, version):
                 ]
 
 
-def _apply_default_config(updated_config):
+def _migrate_version_21(updated_config, version):
+    """Handle migration for version 21 (remove deprecated storage and path options)."""
+    if version <= 21:
+        updated_config.pop(CONF_STORAGE, None)
+        updated_config.pop(CONF_PATH, None)
+
+
+def _apply_default_config(updated_config, version=CONFIG_VER):
     """Ensure default configurations are present."""
     # Require configs on all migration paths
-    if CONF_PATH not in updated_config:
-        updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
+    if version < 21:
+        if CONF_PATH not in updated_config:
+            updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
+
+        # Add default for image storage config
+        if CONF_STORAGE not in updated_config:
+            updated_config[CONF_STORAGE] = "custom_components/mail_and_packages/images/"
 
     if CONF_RESOURCES not in updated_config:
         updated_config[CONF_RESOURCES] = []
-
-    # Add default for image storage config
-    if CONF_STORAGE not in updated_config:
-        updated_config[CONF_STORAGE] = "custom_components/mail_and_packages/images/"
 
     _apply_courier_image_defaults(updated_config)
     _apply_walmart_generic_fedex_defaults(updated_config)

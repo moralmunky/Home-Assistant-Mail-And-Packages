@@ -26,6 +26,7 @@ from custom_components.mail_and_packages.const import (
     CONF_IMAP_SECURITY,
     CONF_SCAN_INTERVAL,
     CONF_VERIFY_SSL,
+    CONFIG_VER,
     DOMAIN,
     ENTRY_TYPE_SUMMARY,
     PLATFORMS,
@@ -241,7 +242,7 @@ async def test_migration_from_version_14_to_18():
     args, kwargs = mock_hass.config_entries.async_update_entry.call_args
     assert kwargs["data"]["imap_security"] == "SSL"
     assert kwargs["data"]["auth_type"] == "password"
-    assert kwargs["version"] == 20
+    assert kwargs["version"] == CONFIG_VER
 
 
 async def test_migration_from_version_16_to_18():
@@ -266,7 +267,36 @@ async def test_migration_from_version_16_to_18():
     assert "auth" not in kwargs["data"]
     assert kwargs["data"]["token"] == "test_token"
     assert kwargs["data"]["access_token"] == "test_access_token"
-    assert kwargs["version"] == 20
+    assert kwargs["version"] == CONFIG_VER
+
+
+async def test_migration_from_version_20_to_21():
+    """Test migration from version 20 to 21 removes storage and path."""
+    mock_config_entry = MagicMock()
+    mock_config_entry.version = 20
+    mock_config_entry.data = {
+        "host": "imap.gmail.com",
+        "storage": "custom_components/mail_and_packages/images/",
+        "image_path": "custom_components/mail_and_packages/images/",
+    }
+    mock_config_entry.options = {
+        "storage": "custom_components/mail_and_packages/images/",
+        "image_path": "custom_components/mail_and_packages/images/",
+        "scan_interval": 20,
+    }
+
+    mock_hass = MagicMock()
+
+    result = await async_migrate_entry(mock_hass, mock_config_entry)
+    assert result is True
+
+    args, kwargs = mock_hass.config_entries.async_update_entry.call_args
+    assert "storage" not in kwargs["data"]
+    assert "image_path" not in kwargs["data"]
+    assert "storage" not in kwargs["options"]
+    assert "image_path" not in kwargs["options"]
+    assert kwargs["options"]["scan_interval"] == 20
+    assert kwargs["version"] == 21
 
 
 async def test_setup_entry_coordinator_failure():

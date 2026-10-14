@@ -56,6 +56,7 @@ from .const import (
 )
 from .entity import mailbox_device_name
 from .summary import combine, is_summary_entry, loaded_mailbox_data
+from .utils.image import default_image_path
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -278,14 +279,18 @@ class ImagePathSensors(CoordinatorEntity, RestoreSensor):
 
         grid_image = self.coordinator.data.get(ATTR_GRID_IMAGE_NAME)
 
-        path = self.coordinator.data.get(
-            ATTR_IMAGE_PATH,
-            self.coordinator.config.get(CONF_PATH),
+        path = (
+            self.coordinator.data.get(ATTR_IMAGE_PATH)
+            or self.coordinator.config.get(CONF_PATH)
+            or default_image_path(
+                self.hass,
+                self.coordinator.config_entry or self.coordinator.config,
+            )
         )
 
         the_path = None
 
-        if self.type == "usps_mail_image_system_path" and image:
+        if self.type == "usps_mail_image_system_path" and image and path:
             _LOGGER.debug("Updating system image path to: %s", path)
             the_path = self.hass.config.path(path, image)
         elif self.type == "usps_mail_grid_image_path" and grid_image:
@@ -320,14 +325,14 @@ class ImagePathSensors(CoordinatorEntity, RestoreSensor):
             "usps_mail_grid_image_path",
         ):
             # Compute path from current coordinator data
-            path = (
-                self.coordinator.data.get(
-                    ATTR_IMAGE_PATH,
-                    self.coordinator.config.get(CONF_PATH),
+            path = None
+            if self.coordinator.data:
+                path = self.coordinator.data.get(ATTR_IMAGE_PATH)
+            if not path:
+                path = self.coordinator.config.get(CONF_PATH) or default_image_path(
+                    self.hass,
+                    self.coordinator.config_entry or self.coordinator.config,
                 )
-                if self.coordinator.data
-                else self.coordinator.config.get(CONF_PATH)
-            )
             image_key = (
                 ATTR_GRID_IMAGE_NAME
                 if self.type == "usps_mail_grid_image_path"

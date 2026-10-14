@@ -34,7 +34,7 @@ OVERLAY = ["overlay.png", "vignette.png", "white.png"]
 GENERIC_DELIVERIES_GIF = "generic_deliveries.gif"
 SERVICE_UPDATE_FILE_PATH = "update_file_path"
 CAMERA = "cameras"
-CONFIG_VER = 20
+CONFIG_VER = 21
 
 # Attributes
 ATTR_AMAZON_IMAGE = "amazon_image"
