@@ -15,6 +15,7 @@ from custom_components.mail_and_packages.const import (
     AMAZON_EXCEPTION,
     AMAZON_ORDER,
     AMAZON_ORDER_DETAILS,
+    ATTR_IMAGE_PATH,
     ATTR_ORDER,
     ATTR_ORDER_DETAILS,
     CONF_ALLOW_EXTERNAL,
@@ -544,6 +545,7 @@ async def test_image_path_sensor_grid(hass):
     )
     expected = f"{hass.config.path()}/images/test_grid.png"
     assert sensor.native_value == expected
+    assert sensor.extra_state_attributes == {ATTR_IMAGE_PATH: expected}
 
 
 @pytest.mark.asyncio
@@ -566,10 +568,40 @@ async def test_image_path_sensor_state_retention(hass):
     )
     expected = f"{hass.config.path()}/images/test.gif"
     assert sensor.native_value == expected
+    assert sensor.extra_state_attributes == {ATTR_IMAGE_PATH: expected}
 
     # Simulate next update having no new usps_image data
     coordinator.data = {"image_path": "images/"}
     assert sensor.native_value == expected
+    assert sensor.extra_state_attributes == {ATTR_IMAGE_PATH: expected}
+
+
+@pytest.mark.asyncio
+async def test_image_path_sensor_exceeds_max_length(hass):
+    """Test ImagePathSensors when path exceeds MAX_LENGTH_STATE_STATE (255 chars)."""
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
+    coordinator = MagicMock()
+    # Create a path that will exceed 255 chars
+    long_dir = "a" * 260
+    coordinator.data = {
+        "usps_image": "mail_today.jpg",
+        "image_path": f"{long_dir}/",
+    }
+
+    sensor = ImagePathSensors(
+        hass,
+        entry,
+        MagicMock(
+            key="usps_mail_image_system_path", name="USPS Mail Image System Path"
+        ),
+        coordinator,
+    )
+    full_path = f"{hass.config.path()}/{long_dir}/mail_today.jpg"
+    assert len(full_path) > 255
+    # State falls back to image filename so state does not error out on HA's 255 limit
+    assert sensor.native_value == "mail_today.jpg"
+    # Attribute holds the complete untruncated full path
+    assert sensor.extra_state_attributes == {ATTR_IMAGE_PATH: full_path}
 
 
 @pytest.mark.asyncio
