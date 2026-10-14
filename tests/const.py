@@ -73,6 +73,14 @@ DEFAULT_TEST_RESOURCES = [
     "inpost_pl_packages",
 ]
 
+DEFAULT_TEST_RESOURCES_NO_AMAZON = [
+    r for r in DEFAULT_TEST_RESOURCES if not r.startswith("amazon_")
+]
+
+DEFAULT_TEST_RESOURCES_NO_AMAZON_DELIVERED = [
+    r for r in DEFAULT_TEST_RESOURCES if r != "amazon_delivered"
+]
+
 
 FAKE_CONFIG_DATA_BAD = {
     "folder": '"INBOX"',
