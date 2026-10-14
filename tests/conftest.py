@@ -94,6 +94,29 @@ def _generate_fetch_side_effect(content):
 
 
 @pytest.fixture(autouse=True)
+def mock_report_usage():
+    """Automatically mock homeassistant.helpers.frame.report_usage across all tests."""
+    with patch("homeassistant.helpers.frame.report_usage"):
+        yield
+
+
+@pytest.fixture
+def mock_coordinator_imap():
+    """Mock coordinator IMAP login and selectfolder."""
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ) as mock_login,
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ) as mock_selectfolder,
+    ):
+        yield mock_login, mock_selectfolder
+
+
+@pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(request):
     """Enable custom integration tests."""
     # Only enable if the test actually uses the hass fixture
