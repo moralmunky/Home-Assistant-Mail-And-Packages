@@ -626,6 +626,14 @@ async def test_image_path_sensor_attributes_uninitialized(hass):
     # Access attributes directly without prior native_value call
     assert sensor.extra_state_attributes == {ATTR_IMAGE_PATH: expected}
 
+    # Verify attributes update dynamically when coordinator image changes
+    coordinator.data = {
+        "usps_image": "mail_new.jpg",
+        "image_path": "images/",
+    }
+    expected_new = f"{hass.config.path()}/images/mail_new.jpg"
+    assert sensor.extra_state_attributes == {ATTR_IMAGE_PATH: expected_new}
+
 
 @pytest.mark.asyncio
 async def test_amazon_packages_order_details_attribute(hass):

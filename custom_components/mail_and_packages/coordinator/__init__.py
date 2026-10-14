@@ -129,6 +129,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self._in_transit_tracking: dict[str, dict[str, str]] = {}
         self._mail_delivered_latch_state = MailDeliveredLatchState()
         self.email_cache = EmailCache(hass=hass)
+        self._warned_deprecated_storage = False
 
         _LOGGER.debug("Data will be update every %s", self.interval)
 
@@ -295,23 +296,26 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             entry_storage = config.get(CONF_STORAGE)
 
         if entry_storage:
-            _LOGGER.warning(
-                "The 'storage' option is deprecated and will be removed in a future release. "
-                "Images are now stored automatically in entry-scoped directories"
-            )
-            ir.async_create_issue(
-                hass,
-                const.DOMAIN,
-                "deprecated_storage",
-                is_fixable=True,
-                severity=ir.IssueSeverity.WARNING,
-                translation_key="deprecated_storage",
-                learn_more_url="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/USPS-Informed-Delivery-Image",
-                data={"entry_id": self.config_entry.entry_id}
-                if self.config_entry
-                else None,
-            )
+            if not self._warned_deprecated_storage:
+                _LOGGER.warning(
+                    "The 'storage' option is deprecated and will be removed in a future release. "
+                    "Images are now stored automatically in entry-scoped directories"
+                )
+                ir.async_create_issue(
+                    hass,
+                    const.DOMAIN,
+                    "deprecated_storage",
+                    is_fixable=True,
+                    severity=ir.IssueSeverity.WARNING,
+                    translation_key="deprecated_storage",
+                    learn_more_url="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/USPS-Informed-Delivery-Image",
+                    data={"entry_id": self.config_entry.entry_id}
+                    if self.config_entry
+                    else None,
+                )
+                self._warned_deprecated_storage = True
         else:
+            self._warned_deprecated_storage = False
             issue_registry = ir.async_get(hass)
             if (const.DOMAIN, "deprecated_storage") in issue_registry.issues:
                 ir.async_delete_issue(hass, const.DOMAIN, "deprecated_storage")

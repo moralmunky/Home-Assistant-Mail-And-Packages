@@ -319,30 +319,28 @@ class ImagePathSensors(CoordinatorEntity, RestoreSensor):
             "usps_mail_image_system_path",
             "usps_mail_grid_image_path",
         ):
-            full_path = getattr(self, "_full_path", None)
-            if full_path is None:
-                # Calculate path if not yet evaluated or on restore
-                path = (
-                    self.coordinator.data.get(
-                        ATTR_IMAGE_PATH,
-                        self.coordinator.config.get(CONF_PATH),
-                    )
-                    if self.coordinator.data
-                    else self.coordinator.config.get(CONF_PATH)
+            # Compute path from current coordinator data
+            path = (
+                self.coordinator.data.get(
+                    ATTR_IMAGE_PATH,
+                    self.coordinator.config.get(CONF_PATH),
                 )
-                image_key = (
-                    ATTR_GRID_IMAGE_NAME
-                    if self.type == "usps_mail_grid_image_path"
-                    else ATTR_USPS_IMAGE
-                )
-                img = (
-                    self.coordinator.data.get(image_key)
-                    if self.coordinator.data
-                    else None
-                )
-                if path and img:
-                    full_path = self.hass.config.path(path, img)
-                    self._full_path = full_path
+                if self.coordinator.data
+                else self.coordinator.config.get(CONF_PATH)
+            )
+            image_key = (
+                ATTR_GRID_IMAGE_NAME
+                if self.type == "usps_mail_grid_image_path"
+                else ATTR_USPS_IMAGE
+            )
+            img = (
+                self.coordinator.data.get(image_key) if self.coordinator.data else None
+            )
+            if path and img:
+                full_path = self.hass.config.path(path, img)
+                self._full_path = full_path
+            else:
+                full_path = getattr(self, "_full_path", None)
 
             if full_path:
                 attr[ATTR_IMAGE_PATH] = full_path

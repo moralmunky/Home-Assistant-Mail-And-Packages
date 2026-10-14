@@ -1851,6 +1851,26 @@ async def test_deprecated_storage_repair_issue(hass):
     issue = issue_registry.async_get_issue(DOMAIN, "deprecated_storage")
     assert issue.severity == ir.IssueSeverity.WARNING
     assert issue.is_fixable is True
+    assert coordinator._warned_deprecated_storage is True
+
+    # Second run with storage should not re-warn
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            return_value=AsyncMock(),
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.selectfolder",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.coordinator.get_shipper_for_sensor",
+            return_value=AsyncMock(),
+        ),
+        patch("custom_components.mail_and_packages.coordinator.copy_images"),
+    ):
+        await coordinator.process_emails(hass, dict(config_entry.data))
+    assert (DOMAIN, "deprecated_storage") in issue_registry.issues
 
     # Now update config_entry data without storage configured
     clean_data = {k: v for k, v in config_entry.data.items() if k != "storage"}
