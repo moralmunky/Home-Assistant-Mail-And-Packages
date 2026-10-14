@@ -44,6 +44,35 @@ DEFAULT_CUSTOM_IMAGE_DATA = {
     CONF_POST_DE_CUSTOM_IMG_FILE: DEFAULT_POST_DE_CUSTOM_IMG_FILE,
 }
 
+DEFAULT_TEST_RESOURCES = [
+    "amazon_packages",
+    "fedex_delivered",
+    "fedex_delivering",
+    "fedex_packages",
+    "mail_updated",
+    "ups_delivered",
+    "ups_delivering",
+    "ups_packages",
+    "usps_delivered",
+    "usps_delivering",
+    "usps_mail",
+    "usps_packages",
+    "zpackages_delivered",
+    "zpackages_transit",
+    "dhl_delivered",
+    "dhl_delivering",
+    "dhl_packages",
+    "amazon_delivered",
+    "auspost_delivered",
+    "auspost_delivering",
+    "auspost_packages",
+    "poczta_polska_delivering",
+    "poczta_polska_packages",
+    "inpost_pl_delivered",
+    "inpost_pl_delivering",
+    "inpost_pl_packages",
+]
+
 
 FAKE_CONFIG_DATA_BAD = {
     "folder": '"INBOX"',
