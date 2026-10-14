@@ -9,7 +9,7 @@ from homeassistant.components.repairs import RepairsFlow
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 
-from .const import CONF_ALLOW_EXTERNAL, CONF_STORAGE
+from .const import CONF_ALLOW_EXTERNAL, CONF_PATH, CONF_STORAGE
 from .summary import mailbox_entries
 
 
@@ -24,7 +24,7 @@ class AuthRepairFlow(RepairsFlow):
         self, user_input: dict[str, str] | None = None
     ) -> FlowResult:
         """Handle the first step of a repair flow."""
-        return await self.async_step_confirm(user_input)
+        return await self.async_step_confirm()
 
     async def async_step_confirm(
         self, user_input: dict[str, str] | None = None
@@ -58,7 +58,7 @@ class DeprecatedAllowExternalRepairFlow(RepairsFlow):
         self, user_input: dict[str, str] | None = None
     ) -> FlowResult:
         """Handle the first step of a repair flow."""
-        return await self.async_step_confirm(user_input)
+        return await self.async_step_confirm()
 
     async def async_step_confirm(
         self, user_input: dict[str, str] | None = None
@@ -102,30 +102,35 @@ class DeprecatedStorageRepairFlow(RepairsFlow):
         self, user_input: dict[str, str] | None = None
     ) -> FlowResult:
         """Handle the first step of a repair flow."""
-        return await self.async_step_confirm(user_input)
+        return await self.async_step_confirm()
 
     async def async_step_confirm(
         self, user_input: dict[str, str] | None = None
     ) -> FlowResult:
         """Handle confirm step to remove deprecated storage configuration."""
         if user_input is not None:
-            if self.entry_id:
-                entry = self.hass.config_entries.async_get_entry(self.entry_id)
-            else:
-                entries = mailbox_entries(self.hass)
-                entry = entries[0] if entries else None
+            entry = (
+                self.hass.config_entries.async_get_entry(self.entry_id)
+                if self.entry_id
+                else (mailbox_entries(self.hass) or [None])[0]
+            )
 
             if entry:
+                new_options = {
+                    k: v
+                    for k, v in entry.options.items()
+                    if k not in (CONF_STORAGE, CONF_PATH)
+                }
+                new_data = {
+                    k: v
+                    for k, v in entry.data.items()
+                    if k not in (CONF_STORAGE, CONF_PATH)
+                }
                 updates: dict[str, Any] = {}
-                if CONF_STORAGE in entry.options:
-                    new_options = {**entry.options}
-                    new_options.pop(CONF_STORAGE, None)
+                if new_options != entry.options:
                     updates["options"] = new_options
-                if CONF_STORAGE in entry.data:
-                    new_data = {**entry.data}
-                    new_data.pop(CONF_STORAGE, None)
+                if new_data != entry.data:
                     updates["data"] = new_data
-
                 if updates:
                     self.hass.config_entries.async_update_entry(entry, **updates)
 

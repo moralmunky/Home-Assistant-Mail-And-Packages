@@ -122,6 +122,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self.timeout = config.get(CONF_IMAP_TIMEOUT, DEFAULT_IMAP_TIMEOUT)
         self.config = config
         self.config_entry = config_entry
+        if self.config_entry and "entry_id" not in self.config:
+            self.config["entry_id"] = self.config_entry.entry_id
         self.hass = hass
         self._data = {}
         self._file_mtime_cache = {}
