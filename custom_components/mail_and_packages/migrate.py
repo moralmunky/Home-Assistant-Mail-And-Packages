@@ -236,17 +236,8 @@ def _migrate_version_21(updated_config, version):
         updated_config.pop(CONF_PATH, None)
 
 
-def _apply_default_config(updated_config, version=CONFIG_VER):
+def _apply_default_config(updated_config):
     """Ensure default configurations are present."""
-    # Require configs on all migration paths
-    if version < 21:
-        if CONF_PATH not in updated_config:
-            updated_config[CONF_PATH] = "custom_components/mail_and_packages/images/"
-
-        # Add default for image storage config
-        if CONF_STORAGE not in updated_config:
-            updated_config[CONF_STORAGE] = "custom_components/mail_and_packages/images/"
-
     if CONF_RESOURCES not in updated_config:
         updated_config[CONF_RESOURCES] = []
 
