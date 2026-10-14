@@ -2210,9 +2210,10 @@ async def test_migration_from_version_9_to_11(hass, caplog):
     # Verify migration occurred
     assert f"Migration complete to version {CONFIG_VER}" in caplog.text
 
-    # Verify all missing fields were added and deprecated fields removed
+    # Verify all missing fields were added
     config = {**entry.data, **entry.options}
-    assert "storage" not in config
+    assert "storage" in config
+    assert config["storage"] == "custom_components/mail_and_packages/images/"
 
     assert CONF_AMAZON_CUSTOM_IMG in config
     assert config[CONF_AMAZON_CUSTOM_IMG] is False
@@ -2446,7 +2447,7 @@ async def test_migration_with_minimal_config(hass, caplog):
     assert "amazon_domain" in config
     assert "imap_security" in entry.data
     assert "verify_ssl" in entry.data
-    assert "storage" not in config
+    assert "storage" in config
     assert CONF_AMAZON_CUSTOM_IMG in config
     assert CONF_AMAZON_CUSTOM_IMG_FILE in config
     assert CONF_UPS_CUSTOM_IMG in config
