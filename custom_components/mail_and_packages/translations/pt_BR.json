@@ -242,6 +242,17 @@
           }
         }
       }
+    },
+    "deprecated_storage": {
+      "title": "Custom image storage folder is deprecated",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Use Managed Image Storage",
+            "description": "The custom image storage folder setting is deprecated and will be removed in a future release. Images are now stored automatically in entry-scoped internal directories and served securely via signed URLs.\n\nClick Submit to remove this deprecated setting and use managed internal storage."
+          }
+        }
+      }
     }
   },
   "options": {
