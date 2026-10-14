@@ -192,14 +192,20 @@ async def test_default_image_path():
     del mock_config.get
     assert default_image_path(mock_hass, mock_config) == "/config/images/"
 
-    # Test without storage config
-    mock_config = MagicMock()
-    mock_config.options = {}
-    mock_config.data = {}
-    mock_config.get.return_value = None
+    # Test without storage config and without entry_id
+    mock_config = {}
     assert "custom_components/mail_and_packages/images/" in default_image_path(
         mock_hass,
         mock_config,
+    )
+
+    # Test without storage config with entry_id
+    mock_entry = MagicMock()
+    mock_entry.options = {}
+    mock_entry.data = {}
+    mock_entry.entry_id = "test_entry_123"
+    assert (
+        default_image_path(mock_hass, mock_entry) == "mail_and_packages/test_entry_123/"
     )
 
 

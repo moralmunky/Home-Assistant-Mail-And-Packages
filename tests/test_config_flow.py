@@ -80,13 +80,11 @@ from custom_components.mail_and_packages.const import (
     CONF_IMAP_SECURITY,
     CONF_POST_DE_CUSTOM_IMG,
     CONF_POST_DE_CUSTOM_IMG_FILE,
-    CONF_STORAGE,
     CONF_UPS_CUSTOM_IMG,
     CONF_UPS_CUSTOM_IMG_FILE,
     CONF_WALMART_CUSTOM_IMG,
     CONF_WALMART_CUSTOM_IMG_FILE,
     CONFIG_VER,
-    DEFAULT_STORAGE,
     DOMAIN,
 )
 from custom_components.mail_and_packages.utils.imap import InvalidAuth
@@ -106,8 +104,6 @@ _LOGGER = logging.getLogger(__name__)
         "input_3",
         "step_id_4",
         "input_4",
-        "step_id_5",
-        "input_5",
         "title",
         "data",
     ),
@@ -173,10 +169,6 @@ _LOGGER = logging.getLogger(__name__)
             {
                 "custom_img_file": "images/test.gif",
             },
-            "config_storage",
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
             "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
@@ -199,7 +191,6 @@ _LOGGER = logging.getLogger(__name__)
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -251,8 +242,6 @@ async def test_form(
     input_3,
     step_id_4,
     input_4,
-    step_id_5,
-    input_5,
     title,
     data,
     hass,
@@ -319,13 +308,6 @@ async def test_form(
             input_4,
         )
 
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_5
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_5,
-        )
-
     assert result["type"] == "create_entry"
     assert result["title"] == title
     assert result["data"] == data
@@ -344,8 +326,6 @@ async def test_form(
         "input_3",
         "step_id_4",
         "input_4",
-        "step_id_5",
-        "input_5",
         "title",
         "data",
     ),
@@ -411,10 +391,6 @@ async def test_form(
             {
                 "custom_img_file": "images/test.gif",
             },
-            "config_storage",
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
             "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
@@ -437,7 +413,6 @@ async def test_form(
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -488,8 +463,6 @@ async def test_form_no_fwds(
     input_3,
     step_id_4,
     input_4,
-    step_id_5,
-    input_5,
     title,
     data,
     hass,
@@ -555,12 +528,6 @@ async def test_form_no_fwds(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             input_4,
-        )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_5
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_5,
         )
 
     assert result["type"] == "create_entry"
@@ -1017,8 +984,6 @@ async def test_form_invalid_ffmpeg(
         "input_2",
         "step_id_3",
         "input_3",
-        "step_id_4",
-        "input_4",
         "title",
         "data",
     ),
@@ -1080,10 +1045,6 @@ async def test_form_invalid_ffmpeg(
                 "amazon_days": 3,
                 "amazon_fwds": "(none)",
             },
-            "config_storage",
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
             "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
@@ -1105,7 +1066,6 @@ async def test_form_invalid_ffmpeg(
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -1154,8 +1114,6 @@ async def test_form_index_error(
     input_2,
     step_id_3,
     input_3,
-    step_id_4,
-    input_4,
     title,
     data,
     hass,
@@ -1222,13 +1180,6 @@ async def test_form_index_error(
             input_3,
         )
 
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_4
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_4,
-        )
-
     assert "error" not in result
     assert result["type"] == "create_entry"
     assert result["title"] == title
@@ -1246,8 +1197,6 @@ async def test_form_index_error(
         "input_2",
         "step_id_3",
         "input_3",
-        "step_id_4",
-        "input_4",
         "title",
         "data",
     ),
@@ -1309,10 +1258,6 @@ async def test_form_index_error(
                 "amazon_days": 3,
                 "amazon_fwds": "(none)",
             },
-            "config_storage",
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
             "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
@@ -1334,7 +1279,6 @@ async def test_form_index_error(
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -1383,8 +1327,6 @@ async def test_form_index_error_2(
     input_2,
     step_id_3,
     input_3,
-    step_id_4,
-    input_4,
     title,
     data,
     hass,
@@ -1452,13 +1394,6 @@ async def test_form_index_error_2(
             input_3,
         )
 
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_4
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_4,
-        )
-
     assert result["type"] == "create_entry"
     assert result["title"] == title
     assert result["data"] == data
@@ -1477,213 +1412,6 @@ async def test_form_index_error_2(
         "input_3",
         "step_id_4",
         "input_4",
-        "title",
-        "data",
-    ),
-    [
-        (
-            {
-                "auth_type": "password",
-                "host": "imap.test.email",
-                "port": "993",
-                "username": "test@test.email",
-                "password": "notarealpassword",
-                "imap_security": "SSL",
-                "verify_ssl": False,
-            },
-            "config_2",
-            {
-                "allow_external": False,
-                "allow_forwarded_emails": False,
-                "custom_img": False,
-                "folder": "INBOX",
-                "generate_grid": False,
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "custom_days": 3,
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
-            },
-            "config_amazon",
-            {
-                "amazon_domain": "amazon.com",
-                "amazon_days": 3,
-                "amazon_fwds": "(none)",
-            },
-            "config_storage",
-            {
-                "storage": "/nonexistent/mail_and_packages/images/",
-            },
-            "Mail and Packages (test@test.email)",
-            {
-                **DEFAULT_CUSTOM_IMAGE_DATA,
-                "usps_placeholder": True,
-                "allow_external": False,
-                "allow_forwarded_emails": False,
-                "custom_img": False,
-                "amazon_days": 3,
-                "amazon_domain": "amazon.com",
-                "amazon_fwds": [],
-                "auth_type": "password",
-                "host": "imap.test.email",
-                "port": 993,
-                "username": "test@test.email",
-                "password": "notarealpassword",
-                "folder": "INBOX",
-                "generate_grid": False,
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_security": "SSL",
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
-                "resources": [
-                    "amazon_packages",
-                    "fedex_delivered",
-                    "fedex_delivering",
-                    "fedex_packages",
-                    "mail_updated",
-                    "ups_delivered",
-                    "ups_delivering",
-                    "ups_packages",
-                    "usps_delivered",
-                    "usps_delivering",
-                    "usps_mail",
-                    "usps_packages",
-                    "zpackages_delivered",
-                    "zpackages_transit",
-                    "dhl_delivered",
-                    "dhl_delivering",
-                    "dhl_packages",
-                    "amazon_delivered",
-                    "auspost_delivered",
-                    "auspost_delivering",
-                    "auspost_packages",
-                    "poczta_polska_delivering",
-                    "poczta_polska_packages",
-                    "inpost_pl_delivered",
-                    "inpost_pl_delivering",
-                    "inpost_pl_packages",
-                ],
-                "verify_ssl": False,
-            },
-        ),
-    ],
-)
-@pytest.mark.asyncio
-async def test_form_storage_error(
-    input_1,
-    step_id_2,
-    input_2,
-    step_id_3,
-    input_3,
-    step_id_4,
-    input_4,
-    title,
-    data,
-    hass,
-    mock_imap,
-):
-    """Test we get the form."""
-    await setup.async_setup_component(hass, "persistent_notification", {})
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={"source": config_entries.SOURCE_USER},
-    )
-    assert result["type"] == "form"
-    assert result["errors"] == {}
-
-    with (
-        patch(
-            "custom_components.mail_and_packages.config_flow._check_ffmpeg",
-            return_value=True,
-        ),
-        patch("custom_components.mail_and_packages.async_setup", return_value=True),
-        patch(
-            "custom_components.mail_and_packages.async_setup_entry",
-            return_value=True,
-        ),
-    ):
-        auth_input = (
-            {"auth_type": input_1.pop("auth_type", "password")}
-            if isinstance(input_1, dict)
-            else {"auth_type": "password"}
-        )
-        await hass.config_entries.flow.async_configure(result["flow_id"], auth_input)
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_1,
-        )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_2
-
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_2,
-        )
-
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_3
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_3,
-        )
-        with patch(
-            "pathlib.Path.exists",
-            return_value=False,
-        ):
-            assert result["type"] == "form"
-            assert result["step_id"] == step_id_4
-            result = await hass.config_entries.flow.async_configure(
-                result["flow_id"],
-                input_4,
-            )
-
-    assert result["type"] == "form"
-    assert result["step_id"] == step_id_4
-    assert result["errors"] == {CONF_STORAGE: "path_not_found"}
-
-
-@pytest.mark.parametrize(
-    (
-        "input_1",
-        "step_id_2",
-        "input_2",
-        "step_id_3",
-        "input_3",
-        "step_id_4",
-        "input_4",
-        "step_id_5",
-        "input_5",
         "title",
         "data",
     ),
@@ -1749,10 +1477,6 @@ async def test_form_storage_error(
             {
                 "custom_img_file": "images/test.gif",
             },
-            "reconfig_storage",
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
             "Mail and Packages (test@test.email)",
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
@@ -1780,7 +1504,7 @@ async def test_form_storage_error(
                 "imap_timeout": 120,
                 "scan_interval": 60,
                 "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
+                "storage": ".storage/mail_and_packages/images",
                 "resources": [
                     "amazon_delivered",
                     "amazon_packages",
@@ -1824,8 +1548,6 @@ async def test_reconfigure(
     input_3,
     step_id_4,
     input_4,
-    step_id_5,
-    input_5,
     title,
     data,
     hass: HomeAssistant,
@@ -1886,7 +1608,6 @@ async def test_reconfigure(
 
         opt_step_3 = step_id_3.replace("reconfig_", "options_")
         opt_step_4 = step_id_4.replace("reconfig_", "options_")
-        opt_step_5 = step_id_5.replace("reconfig_", "options_")
 
         result = await hass.config_entries.options.async_configure(
             options_result["flow_id"],
@@ -1906,13 +1627,6 @@ async def test_reconfigure(
             result["flow_id"],
             input_4,
         )
-        assert result["type"] == "form"
-        assert result["step_id"] == opt_step_5
-
-        result = await hass.config_entries.options.async_configure(
-            result["flow_id"],
-            input_5,
-        )
         assert result["type"] is FlowResultType.CREATE_ENTRY
         await hass.async_block_till_done()
 
@@ -1928,8 +1642,6 @@ async def test_reconfigure(
         "input_2",
         "step_id_3",
         "input_3",
-        "step_id_4",
-        "input_4",
         "title",
         "data",
     ),
@@ -1987,10 +1699,6 @@ async def test_reconfigure(
             {
                 "custom_img_file": "images/test.gif",
             },
-            "reconfig_storage",
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
             "Mail and Packages (test@test.email)",
             {
                 **DEFAULT_CUSTOM_IMAGE_DATA,
@@ -2018,7 +1726,7 @@ async def test_reconfigure(
                 "imap_timeout": 120,
                 "scan_interval": 60,
                 "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
+                "storage": ".storage/mail_and_packages/images",
                 "resources": [
                     "auspost_delivered",
                     "auspost_delivering",
@@ -2058,8 +1766,6 @@ async def test_reconfigure_no_amazon(
     input_2,
     step_id_3,
     input_3,
-    step_id_4,
-    input_4,
     title,
     data,
     hass: HomeAssistant,
@@ -2119,7 +1825,6 @@ async def test_reconfigure_no_amazon(
         assert options_result["step_id"] == "init"
 
         opt_step_3 = step_id_3.replace("reconfig_", "options_")
-        opt_step_4 = step_id_4.replace("reconfig_", "options_")
 
         result = await hass.config_entries.options.async_configure(
             options_result["flow_id"],
@@ -2131,13 +1836,6 @@ async def test_reconfigure_no_amazon(
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             input_3,
-        )
-        assert result["type"] == "form"
-        assert result["step_id"] == opt_step_4
-
-        result = await hass.config_entries.options.async_configure(
-            result["flow_id"],
-            input_4,
         )
         assert result["type"] is FlowResultType.CREATE_ENTRY
         await hass.async_block_till_done()
@@ -2154,8 +1852,6 @@ async def test_reconfigure_no_amazon(
         "input_2",
         "step_id_3",
         "input_3",
-        "step_id_4",
-        "input_4",
         "title",
         "data",
     ),
@@ -2215,10 +1911,6 @@ async def test_reconfigure_no_amazon(
                 "amazon_domain": "amazon.com",
                 "amazon_days": 3,
                 "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
-            },
-            "reconfig_storage",
-            {
-                "storage": ".storage/mail_and_packages/images",
             },
             "Mail and Packages (test@test.email)",
             {
@@ -2287,8 +1979,6 @@ async def test_reconfigure_with_default_images(
     input_2,
     step_id_3,
     input_3,
-    step_id_4,
-    input_4,
     title,
     data,
     hass: HomeAssistant,
@@ -2348,7 +2038,6 @@ async def test_reconfigure_with_default_images(
         assert options_result["step_id"] == "init"
 
         opt_step_3 = step_id_3.replace("reconfig_", "options_")
-        opt_step_4 = step_id_4.replace("reconfig_", "options_")
 
         result = await hass.config_entries.options.async_configure(
             options_result["flow_id"],
@@ -2360,13 +2049,6 @@ async def test_reconfigure_with_default_images(
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             input_3,
-        )
-        assert result["type"] == "form"
-        assert result["step_id"] == opt_step_4
-
-        result = await hass.config_entries.options.async_configure(
-            result["flow_id"],
-            input_4,
         )
         assert result["type"] is FlowResultType.CREATE_ENTRY
         await hass.async_block_till_done()
@@ -2499,16 +2181,6 @@ async def test_config_flow_with_amazon_custom_image_only(
             },
         )
 
-        assert result["type"] == "form"
-        assert result["step_id"] == "config_storage"
-
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                "storage": ".storage/mail_and_packages/images",
-            },
-        )
-
         assert result["type"] is FlowResultType.CREATE_ENTRY
         assert result["title"] == "Mail and Packages (test@test.email)"
         actual_data = result["data"]
@@ -2534,7 +2206,6 @@ async def test_config_flow_with_amazon_custom_image_only(
             "imap_timeout": 30,
             "scan_interval": 20,
             "custom_days": 3,
-            "storage": ".storage/mail_and_packages/images",
             "resources": [
                 "mail_updated",
                 "usps_delivered",
@@ -2686,16 +2357,6 @@ async def test_config_flow_with_ups_custom_image_only(
             },
         )
 
-        assert result["type"] == "form"
-        assert result["step_id"] == "config_storage"
-
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                "storage": ".storage/mail_and_packages/images",
-            },
-        )
-
         assert result["type"] is FlowResultType.CREATE_ENTRY
         assert result["title"] == "Mail and Packages (test@test.email)"
         # Sort the actual data for comparison
@@ -2740,7 +2401,6 @@ async def test_config_flow_with_ups_custom_image_only(
                     "zpackages_transit",
                 ],
             ),
-            "storage": ".storage/mail_and_packages/images",
             "verify_ssl": False,
             "amazon_custom_img": False,
             "fedex_custom_img": False,
@@ -3398,122 +3058,29 @@ async def test_reconfig_amazon_error(
     assert result["step_id"] == "options_amazon"
 
 
-@pytest.mark.parametrize(
-    (
-        "input_1",
-        "step_id_2",
-        "input_2",
-        "step_id_3",
-        "input_3",
-        "step_id_4",
-        "input_4",
-    ),
-    [
-        (
-            {
-                "auth_type": "password",
-                "host": "imap.test.email",
-                "port": "993",
-                "username": "test@test.email",
-                "password": "notarealpassword",
-                "imap_security": "SSL",
-                "verify_ssl": False,
-            },
-            "reconfig_2",
-            {
-                "allow_external": False,
-                "allow_forwarded_emails": False,
-                "custom_img": False,
-                "folder": "INBOX",
-                "generate_grid": False,
-                "generate_mp4": False,
-                "gif_duration": 5,
-                "imap_timeout": 30,
-                "scan_interval": 20,
-                "custom_days": 3,
-                "resources": [
-                    "amazon_packages",
-                    "usps_delivered",
-                ],
-            },
-            "reconfig_amazon",
-            {
-                "amazon_domain": "amazon.com",
-                "amazon_days": 3,
-                "amazon_fwds": "fakeuser@test.email,fakeuser2@test.email",
-            },
-            "reconfig_storage",
-            {
-                "storage": "/nonexistent/readonly/path",
-            },
-        ),
-    ],
-)
 @pytest.mark.asyncio
 async def test_reconfig_storage_error(
     hass: HomeAssistant,
     mock_imap_no_email,
     integration,
-    input_1,
-    step_id_2,
-    input_2,
-    step_id_3,
-    input_3,
-    step_id_4,
-    input_4,
 ):
-    """Test reconfigure flow with storage configuration error."""
+    """Test options flow backward compatibility with options_storage validation error."""
     entry = hass.config_entries.async_entries(DOMAIN)[0]
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={
-            "source": config_entries.SOURCE_RECONFIGURE,
-            "entry_id": entry.entry_id,
-        },
-    )
+    # Initialize options flow handler
+    flow = MailAndPackagesOptionsFlow(entry)
+    flow.hass = hass
+    flow._data = dict(entry.data)
+    flow._data.update(entry.options)
 
-    auth_input = (
-        {"auth_type": input_1.pop("auth_type", "password")}
-        if isinstance(input_1, dict)
-        else {"auth_type": "password"}
-    )
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], auth_input
-    )
-    assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "reconfig_imap"
+    # Calling async_step_options_storage directly with invalid storage
+    with patch("pathlib.Path.exists", return_value=False):
+        result = await flow.async_step_options_storage(
+            {"storage": "/nonexistent/readonly/path"}
+        )
 
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], input_1)
-    assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "reconfigure_successful"
-    await hass.async_block_till_done()
-
-    # Options flow
-    options_result = await hass.config_entries.options.async_init(entry.entry_id)
-    assert options_result["type"] is FlowResultType.FORM
-    assert options_result["step_id"] == "init"
-
-    opt_step_3 = step_id_3.replace("reconfig_", "options_")
-    opt_step_4 = step_id_4.replace("reconfig_", "options_")
-
-    result = await hass.config_entries.options.async_configure(
-        options_result["flow_id"], input_2
-    )
-    assert result["type"] == "form"
-    assert result["step_id"] == opt_step_3
-
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"], input_3
-    )
-    assert result["type"] == "form"
-    assert result["step_id"] == opt_step_4
-
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"], input_4
-    )
-    assert result["type"] == "form"
-    assert result["step_id"] == opt_step_4
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "options_storage"
     assert result["errors"] == {"storage": "path_not_found"}
 
 
@@ -3661,18 +3228,6 @@ async def test_walmart_custom_image_in_config_flow(hass, mock_imap_no_email):
             },
         )
 
-        # Should proceed to storage step
-        assert result["type"] == "form"
-        assert result["step_id"] == "config_storage"
-
-        # Complete storage step
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
-        )
-
         # Should create entry successfully
         assert result["type"] == "create_entry"
         assert result["title"] == "Mail and Packages (test@test.email)"
@@ -3803,16 +3358,6 @@ async def test_generic_custom_image_in_config_flow(
                 "generic_custom_img_file": "custom_components/mail_and_packages/images/generic.jpg",
             },
         )
-        assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == "config_storage"
-
-        # Step 4: Storage settings
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
-        )
         assert result["type"] == FlowResultType.CREATE_ENTRY
         assert result["title"] == "Mail and Packages (test@test.email)"
 
@@ -3892,16 +3437,6 @@ async def test_post_de_custom_image_in_config_flow(
             result["flow_id"],
             {
                 "post_de_custom_img_file": "custom_components/mail_and_packages/images/post_de.jpg",
-            },
-        )
-        assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == "config_storage"
-
-        # Step 4: Storage settings
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                "storage": "custom_components/mail_and_packages/images/",
             },
         )
         assert result["type"] == FlowResultType.CREATE_ENTRY
@@ -4594,8 +4129,10 @@ async def test_reconfig_2_schema_validation(hass, integration, mock_imap):
 
 
 @pytest.mark.asyncio
-async def test_reconfigure_flow_skip_to_storage(hass, mock_imap_no_email, integration):
-    """Test reconfigure flow skips directly to storage when no special options are enabled."""
+async def test_reconfigure_flow_saves_options_directly(
+    hass, mock_imap_no_email, integration
+):
+    """Test reconfigure flow saves options directly when no special options are enabled."""
     entry = integration
     reconfig_login_data = {
         "host": "imap.test.email",
@@ -4648,8 +4185,7 @@ async def test_reconfigure_flow_skip_to_storage(hass, mock_imap_no_email, integr
             "generate_grid": False,
         },
     )
-    assert result["type"] == "form"
-    assert result["step_id"] == "options_storage"
+    assert result["type"] is FlowResultType.CREATE_ENTRY
 
 
 @pytest.mark.asyncio
@@ -4692,8 +4228,6 @@ async def test_validate_forwarded_emails_missing_and_invalid():
         "input_4",
         "step_id_5",
         "input_5",
-        "step_id_6",
-        "input_6",
         "title",
         "data",
     ),
@@ -4761,10 +4295,6 @@ async def test_validate_forwarded_emails_missing_and_invalid():
             {
                 "custom_img_file": "images/test.gif",
             },
-            "config_storage",
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
             "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
@@ -4788,7 +4318,6 @@ async def test_validate_forwarded_emails_missing_and_invalid():
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -4841,8 +4370,6 @@ async def test_form_allow_forwarded_emails(
     input_4,
     step_id_5,
     input_5,
-    step_id_6,
-    input_6,
     title,
     data,
     hass,
@@ -4915,12 +4442,6 @@ async def test_form_allow_forwarded_emails(
             result["flow_id"],
             input_5,
         )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_6
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_6,
-        )
 
         assert result["type"] == "create_entry"
         assert result["title"] == title
@@ -4942,8 +4463,6 @@ async def test_form_allow_forwarded_emails(
         "input_4",
         "step_id_5",
         "input_5",
-        "step_id_6",
-        "input_6",
         "title",
         "data",
     ),
@@ -5011,10 +4530,6 @@ async def test_form_allow_forwarded_emails(
             {
                 "custom_img_file": "images/test.gif",
             },
-            "config_storage",
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
             "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
@@ -5037,7 +4552,6 @@ async def test_form_allow_forwarded_emails(
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -5090,8 +4604,6 @@ async def test_form_allowed_forwarded_emails_entered_none(
     input_4,
     step_id_5,
     input_5,
-    step_id_6,
-    input_6,
     title,
     data,
     hass,
@@ -5164,12 +4676,6 @@ async def test_form_allowed_forwarded_emails_entered_none(
             result["flow_id"],
             input_5,
         )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_6
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_6,
-        )
 
         assert result["type"] == "create_entry"
         assert result["title"] == title
@@ -5187,8 +4693,6 @@ async def test_form_allowed_forwarded_emails_entered_none(
         "input_2",
         "step_id_3",
         "input_3",
-        "step_id_4",
-        "input_4",
         "title",
         "data",
     ),
@@ -5244,10 +4748,6 @@ async def test_form_allowed_forwarded_emails_entered_none(
             },
             "config_forwarded_emails",
             {"forwarded_emails": "user@example.com,testuser@example.com"},
-            "config_storage",
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
             "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
@@ -5267,7 +4767,6 @@ async def test_form_allowed_forwarded_emails_entered_none(
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "fedex_delivered",
                     "fedex_delivering",
@@ -5314,8 +4813,6 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
     input_2,
     step_id_3,
     input_3,
-    step_id_4,
-    input_4,
     title,
     data,
     hass,
@@ -5376,12 +4873,6 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
             result["flow_id"],
             input_3,
         )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_4
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_4,
-        )
 
         assert result["type"] == "create_entry"
         assert result["title"] == title
@@ -5401,8 +4892,6 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
         "input_3",
         "step_id_4",
         "input_4",
-        "step_id_5",
-        "input_5",
         "title",
         "data",
     ),
@@ -5465,10 +4954,6 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
                 "amazon_days": 3,
                 "amazon_fwds": "(none)",
             },
-            "config_storage",
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
             "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
@@ -5491,7 +4976,6 @@ async def test_form_allow_forwarded_emails_without_amazon_or_custom_img(
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -5541,8 +5025,6 @@ async def test_form_allow_forwarded_emails_without_custom_img(
     input_3,
     step_id_4,
     input_4,
-    step_id_5,
-    input_5,
     title,
     data,
     hass,
@@ -5601,12 +5083,6 @@ async def test_form_allow_forwarded_emails_without_custom_img(
             result["flow_id"],
             input_4,
         )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_5
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_5,
-        )
 
     assert result["type"] == "create_entry"
     assert result["title"] == title
@@ -5626,8 +5102,6 @@ async def test_form_allow_forwarded_emails_without_custom_img(
         "input_3",
         "step_id_4",
         "input_4",
-        "step_id_5",
-        "input_5",
         "title",
         "data",
     ),
@@ -5690,10 +5164,6 @@ async def test_form_allow_forwarded_emails_without_custom_img(
                 "amazon_days": 3,
                 "amazon_fwds": "(none)",
             },
-            "config_storage",
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
             "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
@@ -5716,7 +5186,6 @@ async def test_form_allow_forwarded_emails_without_custom_img(
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -5766,8 +5235,6 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
     input_3,
     step_id_4,
     input_4,
-    step_id_5,
-    input_5,
     title,
     data,
     hass,
@@ -5826,12 +5293,6 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
             result["flow_id"],
             input_4,
         )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_5
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_5,
-        )
 
     assert result["type"] == "create_entry"
     assert result["title"] == title
@@ -5853,8 +5314,6 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
         "input_4",
         "step_id_5",
         "input_5",
-        "step_id_6",
-        "input_6",
         "title",
         "data",
     ),
@@ -5922,10 +5381,6 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
             {
                 "custom_img_file": "images/test.gif",
             },
-            "config_storage",
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
             "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
@@ -5949,7 +5404,6 @@ async def test_form_allow_forwarded_emails_with_custom_img_no_amazon(
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -6002,8 +5456,6 @@ async def test_form_allow_forwarded_emails_none_entered(
     input_4,
     step_id_5,
     input_5,
-    step_id_6,
-    input_6,
     title,
     data,
     hass,
@@ -6075,12 +5527,6 @@ async def test_form_allow_forwarded_emails_none_entered(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             input_5,
-        )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_6
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_6,
         )
 
     # this gets automatically removed when set to "(none)"
@@ -6461,8 +5907,6 @@ async def test_form_allowed_forwards_invalid_email_address_format(
         "input_4",
         "step_id_5",
         "input_5",
-        "step_id_6",
-        "input_6",
         "title",
         "data",
     ),
@@ -6530,10 +5974,6 @@ async def test_form_allowed_forwards_invalid_email_address_format(
             {
                 "custom_img_file": "images/test.gif",
             },
-            "reconfig_storage",
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
             "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
@@ -6560,7 +6000,7 @@ async def test_form_allowed_forwards_invalid_email_address_format(
                 "imap_timeout": 120,
                 "scan_interval": 60,
                 "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
+                "storage": ".storage/mail_and_packages/images",
                 "resources": [
                     "amazon_delivered",
                     "amazon_packages",
@@ -6607,8 +6047,6 @@ async def test_reconfigure_allow_forwarded_emails(
     input_4,
     step_id_5,
     input_5,
-    step_id_6,
-    input_6,
     title,
     data,
     hass: HomeAssistant,
@@ -6671,7 +6109,6 @@ async def test_reconfigure_allow_forwarded_emails(
         opt_step_3 = step_id_3.replace("reconfig_", "options_")
         opt_step_4 = step_id_4.replace("reconfig_", "options_")
         opt_step_5 = step_id_5.replace("reconfig_", "options_")
-        opt_step_6 = step_id_6.replace("reconfig_", "options_")
 
         result = await hass.config_entries.options.async_configure(
             options_result["flow_id"],
@@ -6698,13 +6135,6 @@ async def test_reconfigure_allow_forwarded_emails(
             result["flow_id"],
             input_5,
         )
-        assert result["type"] == "form"
-        assert result["step_id"] == opt_step_6
-
-        result = await hass.config_entries.options.async_configure(
-            result["flow_id"],
-            input_6,
-        )
         assert result["type"] is FlowResultType.CREATE_ENTRY
         await hass.async_block_till_done()
 
@@ -6724,8 +6154,6 @@ async def test_reconfigure_allow_forwarded_emails(
         "input_4",
         "step_id_5",
         "input_5",
-        "step_id_6",
-        "input_6",
         "title",
         "data",
     ),
@@ -6793,10 +6221,6 @@ async def test_reconfigure_allow_forwarded_emails(
             {
                 "custom_img_file": "images/test.gif",
             },
-            "config_storage",
-            {
-                "storage": "custom_components/mail_and_packages/images/",
-            },
             "Mail and Packages (test@test.email)",
             {
                 "allow_external": False,
@@ -6820,7 +6244,6 @@ async def test_reconfigure_allow_forwarded_emails(
                 "imap_timeout": 30,
                 "scan_interval": 20,
                 "custom_days": 3,
-                "storage": "custom_components/mail_and_packages/images/",
                 "resources": [
                     "amazon_packages",
                     "fedex_delivered",
@@ -6873,8 +6296,6 @@ async def test_form_allow_forwarded_emails_using_service_address(
     input_4,
     step_id_5,
     input_5,
-    step_id_6,
-    input_6,
     title,
     data,
     hass,
@@ -6947,12 +6368,6 @@ async def test_form_allow_forwarded_emails_using_service_address(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             input_5,
-        )
-        assert result["type"] == "form"
-        assert result["step_id"] == step_id_6
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            input_6,
         )
 
     assert result["type"] == "create_entry"
@@ -7387,59 +6802,14 @@ async def test_reconfig_forwarded_emails_to_reconfig_3(
 async def test_reconfig_storage_validation_error(hass, mock_imap_no_email, integration):
     """Test validation error in reconfig storage step."""
     entry = integration
-    result = await hass.config_entries.options.async_init(entry.entry_id)
-    assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "init"
+    flow = MailAndPackagesOptionsFlow(entry)
+    flow.hass = hass
+    flow._data = dict(entry.data)
+    flow._data.update(entry.options)
 
-    with patch(
-        "custom_components.mail_and_packages.config_flow._check_ffmpeg",
-        return_value=True,
-    ):
-        result = await hass.config_entries.options.async_configure(
-            result["flow_id"],
-            {
-                "allow_external": False,
-                "allow_forwarded_emails": True,
-                "custom_img": True,
-                "folder": "INBOX",
-                "scan_interval": 20,
-                "custom_days": 3,
-                "resources": ["mail_updated"],
-            },
-        )
-    with (
-        patch(
-            "custom_components.mail_and_packages.config_flow.validate_email_address",
-            return_value=True,
-        ),
-        patch("pathlib.Path.exists", return_value=True),
-        patch("os.path.isfile", return_value=True),
-    ):
-        result = await hass.config_entries.options.async_configure(
-            result["flow_id"],
-            {
-                "forwarded_emails": "forwarder@example.com",
-            },
-        )
-    assert result["step_id"] == "options_3"
-    with (
-        patch("pathlib.Path.is_file", return_value=True),
-        patch("pathlib.Path.exists", return_value=True),
-    ):
-        result = await hass.config_entries.options.async_configure(
-            result["flow_id"],
-            {
-                "custom_img_file": "test_image.gif",
-            },
-        )
-    assert result["errors"] == {}
-    assert result["step_id"] == "options_storage"
     with patch("pathlib.Path.exists", return_value=False):
-        result = await hass.config_entries.options.async_configure(
-            result["flow_id"],
-            {
-                "storage": "/invalid/path/does/not/exist",
-            },
+        result = await flow.async_step_options_storage(
+            {"storage": "/invalid/path/does/not/exist"}
         )
     assert result["type"] == "form"
     assert result["step_id"] == "options_storage"
@@ -7893,21 +7263,11 @@ async def test_options_flow_edge_cases(
         assert result["type"] is FlowResultType.FORM
         assert result["step_id"] == "options_3"
 
-        # Submit custom images step
+        # Submit custom images step to complete flow
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {
                 "custom_img_file": "images/custom_usps.jpg",
-            },
-        )
-        assert result["type"] is FlowResultType.FORM
-        assert result["step_id"] == "options_storage"
-
-        # Submit storage path to complete flow
-        result = await hass.config_entries.options.async_configure(
-            result["flow_id"],
-            {
-                "storage": "custom_components/mail_and_packages/images/",
             },
         )
         assert result["type"] is FlowResultType.CREATE_ENTRY
@@ -8009,15 +7369,15 @@ async def test_options_flow_edge_cases_3(
         assert result["type"] is FlowResultType.FORM
         assert result["step_id"] == "options_forwarded_emails"
 
-        # Submit forwarded emails, should route directly to options_storage
+        # Submit forwarded emails, should save and complete flow
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             {
                 "forwarded_emails": "good@email.com",
             },
         )
-        assert result["type"] is FlowResultType.FORM
-        assert result["step_id"] == "options_storage"
+        assert result["type"] is FlowResultType.CREATE_ENTRY
+        await hass.async_block_till_done()
 
 
 @pytest.mark.asyncio
@@ -8706,27 +8066,6 @@ def test_create_storage_dir_mkdir_error(hass):
     path_cls.return_value.mkdir.side_effect = OSError("read only")
     path = hass.config.path("mail_and_packages_test_images", "readonly")
     assert _create_storage_dir(path, hass, path_cls) is False
-
-
-@pytest.mark.asyncio
-async def test_create_mailbox_entry_falls_back_to_shared_folder(hass):
-    """The shared image folder is used when the per mailbox folder fails."""
-    flow = MailAndPackagesFlowHandler()
-    flow.hass = hass
-    flow._data = {CONF_HOST: "imap.test.email", CONF_USERNAME: "test@test.email"}
-    flow.async_create_entry = MagicMock(return_value={"type": "create_entry"})
-
-    def _fail(user_input, errors, hass_obj):
-        errors[CONF_STORAGE] = "path_not_found"
-
-    with patch(
-        "custom_components.mail_and_packages.config_flows.steps._validate_path_input",
-        side_effect=_fail,
-    ):
-        await flow._async_create_mailbox_entry()
-
-    assert flow._data[CONF_STORAGE] == DEFAULT_STORAGE
-    flow.async_create_entry.assert_called_once()
 
 
 OAUTH_IMAP_INPUT = {

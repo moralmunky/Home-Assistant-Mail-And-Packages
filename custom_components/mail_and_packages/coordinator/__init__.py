@@ -29,6 +29,7 @@ from custom_components.mail_and_packages.const import (
     CONF_AUTH_TYPE,
     CONF_CUSTOM_DAYS,
     CONF_IMAP_TIMEOUT,
+    CONF_STORAGE,
     DEFAULT_CUSTOM_DAYS,
     DEFAULT_IMAP_TIMEOUT,
     MAX_TRACKING_AGE_DAYS,
@@ -283,6 +284,37 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             issue_registry = ir.async_get(hass)
             if (const.DOMAIN, "deprecated_allow_external") in issue_registry.issues:
                 ir.async_delete_issue(hass, const.DOMAIN, "deprecated_allow_external")
+
+        # Check for deprecated custom storage path configuration
+        entry_storage = None
+        if self.config_entry:
+            entry_storage = self.config_entry.options.get(
+                CONF_STORAGE
+            ) or self.config_entry.data.get(CONF_STORAGE)
+        elif config.get(CONF_STORAGE):
+            entry_storage = config.get(CONF_STORAGE)
+
+        if entry_storage:
+            _LOGGER.warning(
+                "The 'storage' option is deprecated and will be removed in a future release. "
+                "Images are now stored automatically in entry-scoped directories"
+            )
+            ir.async_create_issue(
+                hass,
+                const.DOMAIN,
+                "deprecated_storage",
+                is_fixable=True,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="deprecated_storage",
+                learn_more_url="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/USPS-Informed-Delivery-Image",
+                data={"entry_id": self.config_entry.entry_id}
+                if self.config_entry
+                else None,
+            )
+        else:
+            issue_registry = ir.async_get(hass)
+            if (const.DOMAIN, "deprecated_storage") in issue_registry.issues:
+                ir.async_delete_issue(hass, const.DOMAIN, "deprecated_storage")
 
         return data
 

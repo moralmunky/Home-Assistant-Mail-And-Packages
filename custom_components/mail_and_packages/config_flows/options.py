@@ -103,6 +103,14 @@ class OptionsFlowStepsMixin:
     async_show_form: Any
     async_create_entry: Any
 
+    def _async_save_options(self) -> Any:
+        """Save cleaned options."""
+        for key in list(self._data.keys()):
+            if key not in OPTIONS_KEYS:
+                self._data.pop(key, None)
+
+        return self.async_create_entry(title="", data=self._data)
+
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
@@ -123,7 +131,7 @@ class OptionsFlowStepsMixin:
                     return await self.async_step_options_amazon()
                 if self._data.get(CONF_CUSTOM_IMG, False):
                     return await self.async_step_options_3()
-                return await self.async_step_options_storage()
+                return self._async_save_options()
 
             return await self._show_options_2(user_input)
 
@@ -158,7 +166,7 @@ class OptionsFlowStepsMixin:
                     return await self.async_step_options_amazon()
                 if self._data.get(CONF_CUSTOM_IMG, False):
                     return await self.async_step_options_3()
-                return await self.async_step_options_storage()
+                return self._async_save_options()
         return await self._show_options_forwarded_emails(user_input)
 
     async def _show_options_forwarded_emails(
@@ -187,7 +195,7 @@ class OptionsFlowStepsMixin:
             if len(self._errors) == 0:
                 if self._data.get(CONF_CUSTOM_IMG, False):
                     return await self.async_step_options_3()
-                return await self.async_step_options_storage()
+                return self._async_save_options()
             return await self._show_options_amazon(user_input)
         return await self._show_options_amazon(user_input)
 
@@ -215,7 +223,7 @@ class OptionsFlowStepsMixin:
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data, self.hass)
             if len(self._errors) == 0:
-                return await self.async_step_options_storage()
+                return self._async_save_options()
             return await self._show_options_3(user_input)
         return await self._show_options_3(user_input)
 
@@ -230,17 +238,13 @@ class OptionsFlowStepsMixin:
     async def async_step_options_storage(
         self, user_input: dict[str, Any] | None = None
     ) -> Any:
-        """Configure storage options."""
+        """Configure storage options (retained for backward compatibility)."""
         self._errors = {}
         if user_input is not None:
             self._data.update(user_input)
             self._errors, user_input = await _validate_user_input(self._data, self.hass)
             if len(self._errors) == 0:
-                for key in list(self._data.keys()):
-                    if key not in OPTIONS_KEYS:
-                        self._data.pop(key, None)
-
-                return self.async_create_entry(title="", data=self._data)
+                return self._async_save_options()
 
             return await self._show_options_storage(user_input)
 

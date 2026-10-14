@@ -18,6 +18,7 @@ from custom_components.mail_and_packages.coordinator import MailDataUpdateCoordi
 from custom_components.mail_and_packages.repairs import (
     AuthRepairFlow,
     DeprecatedAllowExternalRepairFlow,
+    DeprecatedStorageRepairFlow,
     async_create_fix_flow,
 )
 from custom_components.mail_and_packages.sensor import ImagePathSensors, PackagesSensor
@@ -137,6 +138,71 @@ async def test_deprecated_allow_external_repair_flow(hass: HomeAssistant):
         mock_update_entry2.assert_called_once_with(
             mock_entry_data,
             data={"allow_external": False, "scan_interval": 5},
+        )
+
+
+@pytest.mark.asyncio
+async def test_deprecated_storage_repair_flow(hass: HomeAssistant):
+    """Test the deprecated storage repair flow."""
+    flow = await async_create_fix_flow(
+        hass, "deprecated_storage", {"entry_id": "test_entry"}
+    )
+    assert isinstance(flow, DeprecatedStorageRepairFlow)
+    assert flow.entry_id == "test_entry"
+
+    flow.hass = hass
+
+    # Test step_init
+    result = await flow.async_step_init()
+    assert result["type"] == "form"
+    assert result["step_id"] == "confirm"
+
+    # Test step_confirm show form when user_input is None
+    result = await flow.async_step_confirm(user_input=None)
+    assert result["type"] == "form"
+    assert result["step_id"] == "confirm"
+
+    # Test step_confirm submit with options and data
+    mock_entry = MagicMock()
+    mock_entry.options = {"storage": "custom/path/", "scan_interval": 5}
+    mock_entry.data = {"storage": "custom/path/"}
+
+    with (
+        patch.object(
+            hass.config_entries, "async_get_entry", return_value=mock_entry
+        ) as mock_get_entry,
+        patch.object(hass.config_entries, "async_update_entry") as mock_update_entry,
+    ):
+        result = await flow.async_step_confirm(user_input={})
+        assert result["type"] == "create_entry"
+        mock_get_entry.assert_called_once_with("test_entry")
+        mock_update_entry.assert_called_once_with(
+            mock_entry,
+            options={"scan_interval": 5},
+            data={},
+        )
+
+    # Test step_confirm submit without entry_id (fallback to entries)
+    mock_entry_data = MagicMock()
+    mock_entry_data.domain = DOMAIN
+    mock_entry_data.options = {}
+    mock_entry_data.data = {"storage": "custom/path/", "scan_interval": 5}
+
+    flow_fallback = DeprecatedStorageRepairFlow(entry_id=None)
+    flow_fallback.hass = hass
+
+    with (
+        patch.object(
+            hass.config_entries, "async_entries", return_value=[mock_entry_data]
+        ),
+        patch.object(hass.config_entries, "async_get_entry", return_value=None),
+        patch.object(hass.config_entries, "async_update_entry") as mock_update_entry2,
+    ):
+        result = await flow_fallback.async_step_confirm(user_input={})
+        assert result["type"] == "create_entry"
+        mock_update_entry2.assert_called_once_with(
+            mock_entry_data,
+            data={"scan_interval": 5},
         )
 
 
