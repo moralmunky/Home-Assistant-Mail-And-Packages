@@ -605,6 +605,29 @@ async def test_image_path_sensor_exceeds_max_length(hass):
 
 
 @pytest.mark.asyncio
+async def test_image_path_sensor_attributes_uninitialized(hass):
+    """Test ImagePathSensors extra_state_attributes when evaluated directly without native_value first."""
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
+    coordinator = MagicMock()
+    coordinator.data = {
+        "usps_image": "mail_today.jpg",
+        "image_path": "images/",
+    }
+
+    sensor = ImagePathSensors(
+        hass,
+        entry,
+        MagicMock(
+            key="usps_mail_image_system_path", name="USPS Mail Image System Path"
+        ),
+        coordinator,
+    )
+    expected = f"{hass.config.path()}/images/mail_today.jpg"
+    # Access attributes directly without prior native_value call
+    assert sensor.extra_state_attributes == {ATTR_IMAGE_PATH: expected}
+
+
+@pytest.mark.asyncio
 async def test_amazon_packages_order_details_attribute(hass):
     """The amazon_packages sensor exposes order_details only when present."""
     entry = MockConfigEntry(

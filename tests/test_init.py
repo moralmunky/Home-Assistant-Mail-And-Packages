@@ -20,12 +20,14 @@ from custom_components.mail_and_packages import (
 from custom_components.mail_and_packages.const import (
     CONF_AMAZON_DOMAIN,
     CONF_AUTH_TYPE,
+    CONF_ENTRY_TYPE,
     CONF_FOLDER,
     CONF_FORWARDED_EMAILS,
     CONF_IMAP_SECURITY,
     CONF_SCAN_INTERVAL,
     CONF_VERIFY_SSL,
     DOMAIN,
+    ENTRY_TYPE_SUMMARY,
     PLATFORMS,
 )
 from custom_components.mail_and_packages.coordinator import (
@@ -1145,3 +1147,17 @@ async def test_async_remove_entry_removes_storage_dir(hass):
 
     await async_remove_entry(hass, entry)
     assert not await storage_dir.exists()
+
+
+@pytest.mark.asyncio
+async def test_async_remove_entry_summary_noop(hass):
+    """Test that async_remove_entry returns immediately for summary entry."""
+    summary_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_ENTRY_TYPE: ENTRY_TYPE_SUMMARY},
+        entry_id="summary_entry_test",
+    )
+    summary_entry.add_to_hass(hass)
+
+    # Should return early without attempting directory operations
+    await async_remove_entry(hass, summary_entry)

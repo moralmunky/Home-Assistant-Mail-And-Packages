@@ -3083,6 +3083,19 @@ async def test_reconfig_storage_error(
     assert result["step_id"] == "options_storage"
     assert result["errors"] == {"storage": "path_not_found"}
 
+    # Calling async_step_options_storage with None to show form
+    result_none = await flow.async_step_options_storage(None)
+    assert result_none["type"] == FlowResultType.FORM
+    assert result_none["step_id"] == "options_storage"
+
+    # Calling async_step_options_storage with valid storage saves options
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("os.access", return_value=True),
+    ):
+        result_valid = await flow.async_step_options_storage({"storage": "/valid/path"})
+    assert result_valid["type"] == FlowResultType.CREATE_ENTRY
+
 
 async def test_walmart_custom_image_validation():
     """Test Walmart custom image file validation."""
