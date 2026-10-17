@@ -13,6 +13,9 @@ from custom_components.mail_and_packages.camera import (
     _get_sensor_name_for_camera,
     _is_camera_enabled,
 )
+from custom_components.mail_and_packages.camera_helpers import (
+    collect_generic_delivery_images,
+)
 from custom_components.mail_and_packages.const import (
     ATTR_AMAZON_IMAGE,
     ATTR_IMAGE_PATH,
@@ -2754,3 +2757,57 @@ async def test_post_de_camera_and_on_demand_update(hass, integration):
     cam.async_schedule_update_ha_state = MagicMock()
     await cam.async_on_demand_update()
     cam.async_schedule_update_ha_state.assert_called_once_with(True)
+
+
+def _generic_collect(tmp_path, image_name, **coordinator_extra):
+    """Run collect_generic_delivery_images for a single UPS delivery."""
+    shipper_dir = tmp_path / "ups"
+    shipper_dir.mkdir(exist_ok=True)
+    (shipper_dir / image_name).write_bytes(b"synthetic image bytes")
+    coordinator_data = {
+        "ups_image": image_name,
+        ATTR_IMAGE_PATH: f"{tmp_path}/",
+        "ups_delivered": 1,
+        **coordinator_extra,
+    }
+    return collect_generic_delivery_images(
+        {"ups_camera": ["Mail UPS Delivery Camera"]},
+        coordinator_data,
+        {"resources": ["ups_delivered"]},
+        lambda path, image: f"{path}{image}",
+        lambda base_name, file_path: False,
+    )
+
+
+async def test_collect_generic_images_skips_uuid_named_placeholder(tmp_path):
+    """A placeholder saved under a UUID name is excluded (update flag is False).
+
+    With no photo in the email the shipper's placeholder is copied under a random
+    name, which the "no_deliveries" name check cannot recognise.
+    """
+    images = _generic_collect(
+        tmp_path,
+        "0b6f3c1e-7d1a-4f5e-9a55-3f0c2d6a1e44.jpg",
+        ups_update=False,
+    )
+    assert images == []
+
+
+async def test_collect_generic_images_keeps_real_photo(tmp_path):
+    """A real photo (update flag is True) is still collected."""
+    name = "0b6f3c1e-7d1a-4f5e-9a55-3f0c2d6a1e44.jpg"
+    images = _generic_collect(tmp_path, name, ups_update=True)
+    assert images == [f"{tmp_path}/ups/{name}"]
+
+
+async def test_collect_generic_images_without_update_flag_is_unchanged(tmp_path):
+    """A missing update flag is not treated as a placeholder."""
+    name = "0b6f3c1e-7d1a-4f5e-9a55-3f0c2d6a1e44.jpg"
+    images = _generic_collect(tmp_path, name)
+    assert images == [f"{tmp_path}/ups/{name}"]
+
+
+async def test_collect_generic_images_still_skips_named_placeholder(tmp_path):
+    """The original no_deliveries name check keeps working."""
+    images = _generic_collect(tmp_path, "no_deliveries_ups.jpg", ups_update=True)
+    assert images == []

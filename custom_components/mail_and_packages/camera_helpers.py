@@ -174,9 +174,21 @@ def collect_generic_delivery_images(
         path = f"{coordinator_data[ATTR_IMAGE_PATH]}{path_suffix}"
         delivery_file_path = path_resolver(path, image)
 
-        is_no_mail = image.startswith(
-            no_mail_check,
-        ) or custom_checker(base_name, delivery_file_path)
+        # When no photo is found the shipper's placeholder is copied under a
+        # random file name, so the name check below cannot spot it. The hash
+        # comparison in check_camera_update already can: it sets <shipper>_update
+        # to False when the saved file is the placeholder. A missing key is not
+        # a placeholder (the hash check did not run), so only an explicit False
+        # counts.
+        is_placeholder = coordinator_data.get(f"{base_name}_update") is False
+
+        is_no_mail = (
+            image.startswith(
+                no_mail_check,
+            )
+            or custom_checker(base_name, delivery_file_path)
+            or is_placeholder
+        )
 
         delivery_count_key = f"{base_name}_delivered"
         has_current_deliveries = (
