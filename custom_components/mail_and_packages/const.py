@@ -2428,8 +2428,9 @@ CAMERA_EXTRACTION_CONFIG = {
         "image_type": "jpeg",
         "cid_name": "deliveryPhoto",
     },
+    # Walmart's delivery photo has been seen as both PNG and JPEG, so accept either.
     "walmart": {
-        "image_type": "png",
+        "image_type": ["png", "jpeg"],
         "cid_name": "deliveryProofLabel",
     },
     "fedex": {

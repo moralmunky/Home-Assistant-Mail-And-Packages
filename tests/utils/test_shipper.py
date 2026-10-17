@@ -1,15 +1,71 @@
 """Tests for shipper utilities."""
 
+import base64
+import io
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from PIL import Image
 
+from custom_components.mail_and_packages.const import CAMERA_EXTRACTION_CONFIG
 from custom_components.mail_and_packages.utils.cache import EmailCache
 from custom_components.mail_and_packages.utils.shipper import (
+    _image_subtypes,
     generic_delivery_image_extraction,
     get_tracking,
     save_image_data_to_disk,
 )
+
+SAVE_TARGET = (
+    "custom_components.mail_and_packages.utils.shipper.save_image_data_to_disk"
+)
+
+
+def _synthetic_image(fmt: str) -> bytes:
+    """Return a tiny generated image (no real photo or email content)."""
+    buf = io.BytesIO()
+    Image.new("RGB", (2, 2), "white").save(buf, format=fmt)
+    return buf.getvalue()
+
+
+PNG_BYTES = _synthetic_image("PNG")
+JPEG_BYTES = _synthetic_image("JPEG")
+IMAGE_BY_SUBTYPE = {
+    "png": PNG_BYTES,
+    "jpeg": JPEG_BYTES,
+    "jpg": JPEG_BYTES,
+    "pjpeg": JPEG_BYTES,
+}
+
+
+def _cid_message(subtype: str, cid: str = "deliveryProofLabel") -> bytes:
+    """Build a related message with one inline image of the given MIME subtype."""
+    msg = MIMEMultipart("related")
+    msg.attach(MIMEText(f'<html><body><img src="cid:{cid}"></body></html>', "html"))
+    image = MIMEImage(IMAGE_BY_SUBTYPE[subtype], _subtype=subtype)
+    image.add_header("Content-ID", f"<{cid}>")
+    msg.attach(image)
+    return msg.as_bytes()
+
+
+def _attachment_message(subtype: str, filename: str) -> bytes:
+    """Build a mixed message with one attached image."""
+    msg = MIMEMultipart("mixed")
+    msg.attach(MIMEText("Body", "plain"))
+    image = MIMEImage(IMAGE_BY_SUBTYPE[subtype], _subtype=subtype)
+    image.add_header("Content-Disposition", "attachment", filename=filename)
+    msg.attach(image)
+    return msg.as_bytes()
+
+
+def _html_message(subtype: str) -> bytes:
+    """Build an HTML-only message with a base64 data URI image."""
+    data = base64.b64encode(IMAGE_BY_SUBTYPE[subtype]).decode()
+    html = f'<html><body><img src="data:image/{subtype};base64,{data}"></body></html>'
+    return MIMEText(html, "html").as_bytes()
 
 
 @pytest.mark.asyncio
@@ -501,3 +557,129 @@ async def test_get_tracking_with_cache():
 
     result = await get_tracking("1", mock_acc, "1Z?[0-9A-Z]{16}", cache=cache)
     assert result == ["1Z1234567890123456"]
+
+
+@pytest.mark.parametrize(
+    ("image_type", "expected"),
+    [
+        ("png", ("png",)),
+        ("jpeg", ("jpeg", "jpg", "pjpeg")),
+        ("jpg", ("jpeg", "jpg", "pjpeg")),
+        ("JPEG", ("jpeg", "jpg", "pjpeg")),
+        (["png", "jpeg"], ("png", "jpeg", "jpg", "pjpeg")),
+        (("png", "jpg"), ("png", "jpeg", "jpg", "pjpeg")),
+        (["png", "png"], ("png",)),
+    ],
+)
+def test_image_subtypes_normalizes_str_and_sequences(image_type, expected):
+    """A string or a list of types normalizes to the accepted MIME subtypes."""
+    assert _image_subtypes(image_type) == expected
+
+
+@pytest.mark.parametrize("subtype", ["png", "jpeg", "jpg", "pjpeg"])
+def test_extraction_cid_accepts_png_and_jpeg(subtype):
+    """CID pass saves the inline image whichever accepted type it carries."""
+    sdata = _cid_message(subtype)
+    expected = IMAGE_BY_SUBTYPE[subtype]
+    with patch(SAVE_TARGET, return_value=True) as mock_save:
+        result = generic_delivery_image_extraction(
+            sdata,
+            "/p/",
+            "i.jpg",
+            "walmart",
+            ["png", "jpeg"],
+            cid_name="deliveryProofLabel",
+        )
+    assert result is True
+    assert mock_save.call_args[0][2] == expected
+
+
+@pytest.mark.parametrize("subtype", ["png", "jpeg", "jpg", "pjpeg"])
+def test_extraction_base64_accepts_png_and_jpeg(subtype):
+    """Base64 pass decodes a data URI of any accepted type."""
+    sdata = _html_message(subtype)
+    expected = IMAGE_BY_SUBTYPE[subtype]
+    with patch(SAVE_TARGET, return_value=True) as mock_save:
+        result = generic_delivery_image_extraction(
+            sdata, "/p/", "i.jpg", "walmart", ["png", "jpeg"]
+        )
+    assert result is True
+    assert mock_save.call_args[0][2] == expected
+
+
+@pytest.mark.parametrize("subtype", ["png", "jpeg", "jpg", "pjpeg"])
+def test_extraction_attachment_accepts_png_and_jpeg(subtype):
+    """Attachment pass saves a matching attachment of any accepted type."""
+    sdata = _attachment_message(subtype, "delivery_photo.bin")
+    expected = IMAGE_BY_SUBTYPE[subtype]
+    with patch(SAVE_TARGET, return_value=True) as mock_save:
+        result = generic_delivery_image_extraction(
+            sdata,
+            "/p/",
+            "i.jpg",
+            "walmart",
+            ["png", "jpeg"],
+            attachment_filename_pattern="delivery",
+        )
+    assert result is True
+    assert mock_save.call_args[0][2] == expected
+
+
+@pytest.mark.parametrize("subtype", ["png", "jpeg"])
+def test_extraction_cid_wrong_content_id_returns_false(subtype):
+    """A non-matching Content-ID is not extracted, whatever the image type."""
+    sdata = _cid_message(subtype, cid="somethingElse")
+    with patch(SAVE_TARGET, return_value=True) as mock_save:
+        result = generic_delivery_image_extraction(
+            sdata,
+            "/p/",
+            "i.jpg",
+            "walmart",
+            ["png", "jpeg"],
+            cid_name="deliveryProofLabel",
+        )
+    assert result is False
+    mock_save.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("config_type", "part_subtype", "expected"),
+    [
+        ("jpeg", "jpeg", True),
+        ("jpeg", "png", False),
+        ("png", "png", True),
+        ("png", "jpeg", False),
+    ],
+)
+def test_extraction_string_image_type_stays_strict(config_type, part_subtype, expected):
+    """A plain string config (UPS, FedEx, ButcherBox) still accepts only its own type."""
+    sdata = _cid_message(part_subtype, cid="deliveryPhoto")
+    with patch(SAVE_TARGET, return_value=True):
+        result = generic_delivery_image_extraction(
+            sdata, "/p/", "i.jpg", "ups", config_type, cid_name="deliveryPhoto"
+        )
+    assert result is expected
+
+
+@pytest.mark.parametrize("subtype", ["png", "jpeg"])
+def test_walmart_config_extracts_photo_of_either_type(subtype):
+    """The shipped Walmart config extracts the photo whether it is PNG or JPEG."""
+    walmart = CAMERA_EXTRACTION_CONFIG["walmart"]
+    sdata = _cid_message(subtype, cid=walmart["cid_name"])
+    with patch(SAVE_TARGET, return_value=True) as mock_save:
+        result = generic_delivery_image_extraction(
+            sdata,
+            "/p/",
+            "i.jpg",
+            "walmart",
+            walmart["image_type"],
+            cid_name=walmart["cid_name"],
+        )
+    assert result is True
+    assert mock_save.call_args[0][2] == IMAGE_BY_SUBTYPE[subtype]
+
+
+def test_other_shippers_keep_string_image_types():
+    """UPS, FedEx and ButcherBox configs are unchanged plain strings."""
+    for shipper in ("ups", "fedex", "butcherbox"):
+        assert CAMERA_EXTRACTION_CONFIG[shipper]["image_type"] == "jpeg"
