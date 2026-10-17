@@ -6,6 +6,7 @@ import base64
 import email
 import logging
 import re
+from collections.abc import Sequence
 from email.header import decode_header, make_header
 from pathlib import Path
 from typing import Any
@@ -17,6 +18,26 @@ from custom_components.mail_and_packages.utils.cache import EmailCache
 from .imap import email_fetch
 
 _LOGGER = logging.getLogger(__name__)
+
+# Every spelling of JPEG seen as an image MIME subtype or in a data URI.
+_JPEG_SUBTYPES = ("jpeg", "jpg", "pjpeg")
+
+
+def _image_subtypes(image_type: str | Sequence[str]) -> tuple[str, ...]:
+    """Return the image MIME subtypes accepted for the configured image type.
+
+    ``image_type`` is a single subtype ("jpeg") or several (["png", "jpeg"]),
+    for carriers whose photo format is not consistent. Any spelling of JPEG
+    (jpeg, jpg, pjpeg) accepts all of them.
+    """
+    requested = [image_type] if isinstance(image_type, str) else image_type
+    subtypes: list[str] = []
+    for item in requested:
+        name = item.lower()
+        for subtype in _JPEG_SUBTYPES if name in _JPEG_SUBTYPES else (name,):
+            if subtype not in subtypes:
+                subtypes.append(subtype)
+    return tuple(subtypes)
 
 
 async def get_tracking(
@@ -175,7 +196,7 @@ def generic_delivery_image_extraction(
     image_path: str,
     image_name: str,
     shipper_name: str,
-    image_type: str,
+    image_type: str | Sequence[str],
     cid_name: str | None = None,
     attachment_filename_pattern: str | None = None,
 ) -> bool:
@@ -217,12 +238,12 @@ def _extract_from_cid(
     cid_name: str,
     shipper_name: str,
     full_path: str,
-    image_type: str,
+    image_type: str | Sequence[str],
 ) -> bool:
     """Pass 1: Look for CID embedded images."""
-    content_type = f"image/{image_type}"
+    content_types = {f"image/{subtype}" for subtype in _image_subtypes(image_type)}
     for part in msg.walk():
-        if part.get_content_type() == content_type:
+        if part.get_content_type() in content_types:
             content_id = part.get("Content-ID")
             if content_id and content_id.strip("<>") == cid_name:
                 return save_image_data_to_disk(
@@ -238,10 +259,12 @@ def _extract_from_html(
     cid_name: str | None,
     shipper_name: str,
     full_path: str,
-    image_type: str,
+    image_type: str | Sequence[str],
 ) -> bool:
     """Pass 2: Look for HTML content with CID references or base64."""
-    base64_pattern = rf"data:image/{image_type};base64,((?:[A-Za-z0-9+/]{{4}})*(?:[A-Za-z0-9+/]{{2}}==|[A-Za-z0-9+/]{{3}}=)?)"
+    # Non-capturing group, so findall still returns only the base64 payload.
+    subtypes = "|".join(re.escape(s) for s in _image_subtypes(image_type))
+    base64_pattern = rf"data:image/(?:{subtypes});base64,((?:[A-Za-z0-9+/]{{4}})*(?:[A-Za-z0-9+/]{{2}}==|[A-Za-z0-9+/]{{3}}=)?)"
 
     for part in msg.walk():
         if part.get_content_type() != "text/html":
@@ -282,12 +305,12 @@ def _extract_from_attachments(
     pattern: str | None,
     shipper_name: str,
     full_path: str,
-    image_type: str,
+    image_type: str | Sequence[str],
 ) -> bool:
     """Pass 3: Look for attachments."""
-    content_type = f"image/{image_type}"
+    content_types = {f"image/{subtype}" for subtype in _image_subtypes(image_type)}
     for part in msg.walk():
-        if part.get_content_type() == content_type:
+        if part.get_content_type() in content_types:
             filename = part.get_filename()
             if not filename:
                 continue
