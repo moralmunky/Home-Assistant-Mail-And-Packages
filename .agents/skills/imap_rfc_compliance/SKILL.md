@@ -41,7 +41,21 @@ Ensure all IMAP mock objects (such as mock connections or mock responses in `tes
 * Do not write mocks that silently succeed on incorrect syntax.
 * Refer to [test_imap_email.py](file:///home/firstof9/github/Home-Assistant-Mail-And-Packages/tests/utils/test_imap_email.py) for examples of standard search string assertion assertions.
 
-### 6. Persistent Email Caching
+### 6. Batch UID FETCH Formatting & Line Safety
+To minimize network round-trips over high-latency TLS connections, use multi-UID batch fetching when verifying subjects or headers across multiple candidate emails:
+* **Syntax**: Format sequence sets as comma-separated UIDs without spaces: `UID FETCH <uid1>,<uid2>,... (BODY[HEADER.FIELDS (SUBJECT)])`.
+* **Utility**: Use `email_fetch_headers_batch(account, nums)` from [imap_fetch.py](file:///home/firstof9/github/Home-Assistant-Mail-And-Packages/custom_components/mail_and_packages/utils/imap_fetch.py).
+* **Chunking Limits**: Cap batch fetches at `_MAX_HEADER_CHUNK = 50` UIDs per command to prevent IMAP command line buffer overflows on strict servers.
+* **Fallback**: Always handle partial batch responses or protocol exceptions gracefully by falling back to scalar single-message fetching.
+
+### 7. Batch Test Mock Fidelity
+When mocking IMAP responses for batch queries in `tests/`:
+* Emulate real server response structure: batch FETCH responses alternate between header tuple lines (`(b"* <seq> FETCH (UID <num> ...)", b"Header: ...\r\n\r\n")`) and byte closing delimiters (`b")"`).
+* Header bodies in test mocks must include standard RFC line terminations (`\r\n\r\n`) so Python's `email.message_from_bytes` can parse message fields correctly.
+* Verify both happy paths and edge cases (e.g. servers omitting requested UIDs from the batch response, raw byte lines, and network timeouts).
+
+### 8. Persistent Email Caching
 All email fetch calls (`email_fetch`, `email_fetch_headers`, `email_fetch_text`) should be routed through `EmailCache.fetch()`:
 * Cache keys store distinct payload sections via `f"{eid_str}:{parts}"`.
 * Raw byte structures must be preserved across storage operations using `latin-1` encoding (see [email_cache_architecture](file:///home/firstof9/github/Home-Assistant-Mail-And-Packages/.agents/skills/email_cache_architecture/SKILL.md)).
+* For batch checks, probe cached headers first via `EmailCache.get_cached()` and store newly verified batches via `EmailCache.store()`.
