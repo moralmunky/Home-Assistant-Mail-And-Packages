@@ -31,6 +31,7 @@ from .imap_fetch import (
     email_fetch_headers,
     email_fetch_headers_batch,
     email_fetch_text,
+    parse_uidvalidity,
     selectfolder,
 )
 from .imap_query import (
@@ -315,6 +316,7 @@ __all__ = [
     "login",
     "logout",
     "parse_search_response",
+    "parse_uidvalidity",
     "quote_folder",
     "selectfolder",
 ]

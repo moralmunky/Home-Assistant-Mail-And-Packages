@@ -253,3 +253,52 @@ async def test_email_cache_get_cached_and_store():
     cache._cache_headers.clear()
     cached_persistent = cache.get_cached("50", "HEADER")
     assert cached_persistent == ("OK", [b"Subject: Test\r\n"])
+
+
+@pytest.mark.asyncio
+async def test_email_cache_clear_all():
+    """Test EmailCache clear_all clears both transient and persistent stores."""
+    cache = EmailCache()
+    cache.store("10", "(RFC822)", ("OK", [b"email data"]))
+    assert "10:(RFC822)" in cache._persistent_store
+    assert "10" in cache._cache_rfc822
+
+    cache.clear_all()
+    assert len(cache._persistent_store) == 0
+    assert len(cache._cache_rfc822) == 0
+
+
+@pytest.mark.asyncio
+async def test_email_cache_uidvalidity_invalidation(hass, caplog):
+    """Test EmailCache invalidates cache when UIDVALIDITY changes."""
+    with patch(
+        "custom_components.mail_and_packages.utils.cache.Store"
+    ) as mock_store_cls:
+        mock_store = AsyncMock()
+        mock_store.async_load.return_value = {
+            "entries": {"101:(RFC822)": {"data": ["OK", ["data"]]}},
+            "uidvalidity": {"INBOX": "12345"},
+        }
+        mock_store_cls.return_value = mock_store
+
+        cache = EmailCache(hass=hass)
+        await cache.async_load()
+
+        assert "101:(RFC822)" in cache._persistent_store
+        assert cache._uidvalidity == {"INBOX": "12345"}
+
+        # Same UIDVALIDITY: no invalidation
+        await cache.async_check_uidvalidity("INBOX", "12345")
+        assert "101:(RFC822)" in cache._persistent_store
+
+        # Changed UIDVALIDITY: cache invalidated
+        await cache.async_check_uidvalidity("INBOX", "67890")
+        assert len(cache._persistent_store) == 0
+        assert cache._uidvalidity["INBOX"] == "67890"
+        assert (
+            "UIDVALIDITY changed for folder INBOX (was 12345, now 67890)" in caplog.text
+        )
+
+        # None current_uidvalidity: no action taken
+        await cache.async_check_uidvalidity("INBOX", None)
+        assert cache._uidvalidity["INBOX"] == "67890"
