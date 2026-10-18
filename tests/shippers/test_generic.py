@@ -1018,6 +1018,71 @@ async def test_verify_matched_subjects_empty_expected(hass):
     mock_account.fetch.assert_not_called()
 
 
+@pytest.mark.asyncio
+async def test_verify_matched_subjects_batch(hass, caplog):
+    """Test _verify_matched_subjects uses batch header fetching for multiple IDs."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    caplog.set_level("DEBUG")
+
+    batch_lines = [
+        (
+            b"1 (UID 100 BODY[HEADER.FIELDS (SUBJECT)] {36}",
+            b"Subject: Package delivered\r\n\r\n",
+        ),
+        b")",
+        (
+            b"2 (UID 101 BODY[HEADER.FIELDS (SUBJECT)] {34}",
+            b"Subject: Order shipped\r\n\r\n",
+        ),
+        b")",
+    ]
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers_batch",
+        new_callable=AsyncMock,
+        return_value=("OK", batch_lines),
+    ) as mock_batch:
+        expected = ["Package delivered"]
+        verified = await shipper._verify_matched_subjects(
+            mock_account, [b"100", b"101"], "ups_delivered", expected
+        )
+        assert mock_batch.called
+        assert verified == [b"100"]
+        assert "Matched email for ups_delivered (ID 100)" in caplog.text
+        assert "Email ID 101 rejected for ups_delivered" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_verify_matched_subjects_batch_failure_fallback(hass, caplog):
+    """Test _verify_matched_subjects falls back to scalar fetches when batch fails."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    caplog.set_level("DEBUG")
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers_batch",
+            new_callable=AsyncMock,
+            side_effect=OSError("Batch fetch error"),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers",
+            new_callable=AsyncMock,
+            side_effect=[
+                ("OK", [b"Subject: Package delivered\r\n"]),
+                ("OK", [b"Subject: Order shipped\r\n"]),
+            ],
+        ),
+    ):
+        expected = ["Package delivered"]
+        verified = await shipper._verify_matched_subjects(
+            mock_account, [b"200", b"201"], "fedex_delivered", expected
+        )
+        assert "Batch header fetch failed, falling back to scalar" in caplog.text
+        assert verified == [b"200"]
+
+
 def test_decode_subject_string_with_encoding(hass):
     """Test _decode_subject when decode_header returns a string and an encoding."""
     shipper = GenericShipper(hass, {})

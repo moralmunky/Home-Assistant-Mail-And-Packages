@@ -29,6 +29,7 @@ from .imap_fetch import (
     email_fetch,
     email_fetch_batch,
     email_fetch_headers,
+    email_fetch_headers_batch,
     email_fetch_text,
     selectfolder,
 )
@@ -305,6 +306,7 @@ __all__ = [
     "email_fetch",
     "email_fetch_batch",
     "email_fetch_headers",
+    "email_fetch_headers_batch",
     "email_fetch_text",
     "email_search",
     "encode_folder_ref",

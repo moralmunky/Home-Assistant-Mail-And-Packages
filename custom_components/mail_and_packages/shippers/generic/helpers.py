@@ -13,7 +13,7 @@ from typing import Any
 
 import anyio
 import dateparser
-from aioimaplib import IMAP4_SSL
+from aioimaplib import IMAP4_SSL, AioImapException
 from homeassistant.core import HomeAssistant
 
 from custom_components.mail_and_packages.const import (
@@ -34,6 +34,7 @@ from custom_components.mail_and_packages.utils.email import find_text, find_text
 from custom_components.mail_and_packages.utils.imap import (
     email_fetch,
     email_fetch_headers,
+    email_fetch_headers_batch,
 )
 from custom_components.mail_and_packages.utils.shipper import (
     generic_delivery_image_extraction,
@@ -126,6 +127,108 @@ def _extract_subject_from_headers(
     return False
 
 
+def _parse_header_batch_lines(lines: list[Any]) -> dict[str, list[Any]]:
+    """Map IMAP batch FETCH response lines back to their UID."""
+    chunk_map: dict[str, list[Any]] = {}
+    curr_uid: str | None = None
+    for line in lines:
+        if isinstance(line, tuple):
+            prefix = line[0] if len(line) > 0 else b""
+            prefix_str = (
+                prefix.decode("ascii", "ignore")
+                if isinstance(prefix, (bytes, bytearray))
+                else str(prefix)
+            )
+            if uid_match := re.search(r"UID\s+(\d+)", prefix_str):
+                curr_uid = uid_match.group(1)
+            if curr_uid:
+                chunk_map.setdefault(curr_uid, []).extend(line)
+        elif isinstance(line, (bytes, bytearray)):
+            line_str = line.decode("ascii", "ignore")
+            if uid_match := re.search(r"UID\s+(\d+)", line_str):
+                curr_uid = uid_match.group(1)
+            if curr_uid:
+                chunk_map.setdefault(curr_uid, []).append(line)
+    return chunk_map
+
+
+async def _fetch_single_header(
+    account: IMAP4_SSL,
+    eid: bytes,
+    shipper_name: str,
+    cache: EmailCache | None,
+) -> list[Any] | None:
+    """Fetch header for a single email UID with error handling."""
+    try:
+        if cache:
+            return (
+                await cache.fetch(
+                    eid, "(BODY[HEADER.FIELDS (SUBJECT)])", shipper=shipper_name
+                )
+            )[1]
+        return (await email_fetch_headers(account, eid))[1]
+    except (OSError, AttributeError) as err:
+        _LOGGER.debug("Could not fetch subject for email %s: %s", eid, err)
+        return None
+
+
+async def _fetch_headers_scalar(
+    account: IMAP4_SSL,
+    chunk: list[bytes],
+    shipper_name: str,
+    cache: EmailCache | None,
+) -> dict[bytes, list[Any]]:
+    """Fetch email headers one-by-one as fallback."""
+    headers = {}
+    for eid in chunk:
+        if hdata := await _fetch_single_header(account, eid, shipper_name, cache):
+            headers[eid] = hdata
+    return headers
+
+
+async def _fetch_header_chunk(
+    account: IMAP4_SSL,
+    chunk: list[bytes],
+    shipper_name: str,
+    cache: EmailCache | None,
+) -> dict[bytes, list[Any]]:
+    """Fetch a chunk of email headers using batch fetch with scalar fallback."""
+    if len(chunk) == 1:
+        eid = chunk[0]
+        header_data = await _fetch_single_header(account, eid, shipper_name, cache)
+        return {eid: header_data} if header_data else {}
+
+    try:
+        res = await email_fetch_headers_batch(account, chunk)
+        if res[0] == "OK":
+            chunk_map = _parse_header_batch_lines(res[1])
+            headers: dict[bytes, list[Any]] = {}
+            for eid in chunk:
+                eid_s = eid.decode() if isinstance(eid, bytes) else str(eid)
+                raw_uid = eid_s.rsplit("/", 1)[-1]
+                if raw_uid in chunk_map:
+                    hdata = chunk_map[raw_uid]
+                    headers[eid] = hdata
+                    if cache:
+                        cache.store(
+                            eid_s,
+                            "(BODY[HEADER.FIELDS (SUBJECT)])",
+                            ("OK", hdata),
+                            shipper=shipper_name,
+                        )
+                elif hdata := await _fetch_single_header(
+                    account, eid, shipper_name, cache
+                ):
+                    headers[eid] = hdata
+            return headers
+    except TimeoutError:
+        raise
+    except (AioImapException, OSError, AttributeError) as err:
+        _LOGGER.debug("Batch header fetch failed, falling back to scalar: %s", err)
+
+    return await _fetch_headers_scalar(account, chunk, shipper_name, cache)
+
+
 async def _verify_matched_subjects(
     account: IMAP4_SSL,
     email_ids: list[bytes],
@@ -141,29 +244,40 @@ async def _verify_matched_subjects(
     verified_ids = []
     expected_subjects_lower = [s.lower() for s in expected_subjects]
 
-    for eid in email_ids:
-        try:
-            if cache:
-                header_data = (
-                    await cache.fetch(
-                        eid, "(BODY[HEADER.FIELDS (SUBJECT)])", shipper=shipper_name
-                    )
-                )[1]
-            else:
-                header_data = (await email_fetch_headers(account, eid))[1]
+    uncached_ids: list[bytes] = []
+    headers_by_id: dict[bytes, list[Any]] = {}
 
-            if _extract_subject_from_headers(
-                header_data, sensor_type, eid, expected_subjects_lower
-            ):
-                verified_ids.append(eid)
-            else:
-                _LOGGER.debug(
-                    "Email ID %s rejected for %s: Subject did not match any expected subjects.",
-                    eid.decode() if isinstance(eid, bytes) else eid,
-                    sensor_type,
-                )
-        except (OSError, AttributeError) as err:
-            _LOGGER.debug("Could not fetch subject for email %s: %s", eid, err)
+    for eid in email_ids:
+        if cache and hasattr(cache, "get_cached"):
+            try:
+                cached = cache.get_cached(eid, "(BODY[HEADER.FIELDS (SUBJECT)])")
+                if isinstance(cached, tuple) and len(cached) > 1:
+                    headers_by_id[eid] = cached[1]
+                    continue
+            except (TypeError, AttributeError):
+                pass
+        uncached_ids.append(eid)
+
+    chunk_size = 50
+    for i in range(0, len(uncached_ids), chunk_size):
+        chunk = uncached_ids[i : i + chunk_size]
+        chunk_headers = await _fetch_header_chunk(account, chunk, shipper_name, cache)
+        headers_by_id.update(chunk_headers)
+
+    for eid in email_ids:
+        header_data = headers_by_id.get(eid)
+        if not header_data:
+            continue
+        if _extract_subject_from_headers(
+            header_data, sensor_type, eid, expected_subjects_lower
+        ):
+            verified_ids.append(eid)
+        else:
+            _LOGGER.debug(
+                "Email ID %s rejected for %s: Subject did not match any expected subjects.",
+                eid.decode() if isinstance(eid, bytes) else eid,
+                sensor_type,
+            )
 
     return verified_ids
 

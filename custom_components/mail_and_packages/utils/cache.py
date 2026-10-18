@@ -180,6 +180,28 @@ class EmailCache:
             self._store_persistent(cache_key, res, shipper)
         return res
 
+    def get_cached(self, email_id: str | bytes, parts: str) -> tuple | None:
+        """Get cached email data if present in memory or persistent store."""
+        eid_str = email_id.decode() if isinstance(email_id, bytes) else str(email_id)
+        cache_key = f"{eid_str}:{parts}"
+        persistent = self._get_persistent_cache(cache_key)
+        if persistent is not None:
+            return persistent
+        return self._get_memory_cache(eid_str, parts)
+
+    def store(
+        self,
+        email_id: str | bytes,
+        parts: str,
+        data: tuple,
+        shipper: str = "generic",
+    ) -> None:
+        """Store email data into memory and persistent cache."""
+        eid_str = email_id.decode() if isinstance(email_id, bytes) else str(email_id)
+        cache_key = f"{eid_str}:{parts}"
+        self._store_memory_cache(eid_str, parts, data)
+        self._store_persistent(cache_key, data, shipper)
+
     def _store_persistent(self, eid_str: str, data: tuple, shipper: str) -> None:
         """Store fetched email data in persistent structure."""
         # Convert bytes objects inside tuple response for JSON serialization safety using latin-1 encoding to preserve exact 1-to-1 byte representations
