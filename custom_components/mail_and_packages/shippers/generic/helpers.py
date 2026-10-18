@@ -248,14 +248,13 @@ async def _verify_matched_subjects(
     headers_by_id: dict[bytes, list[Any]] = {}
 
     for eid in email_ids:
-        if cache and hasattr(cache, "get_cached"):
-            try:
-                cached = cache.get_cached(eid, "(BODY[HEADER.FIELDS (SUBJECT)])")
-                if isinstance(cached, tuple) and len(cached) > 1:
-                    headers_by_id[eid] = cached[1]
-                    continue
-            except (TypeError, AttributeError):
-                pass
+        if cache:
+            cached = getattr(cache, "get_cached", lambda *_: None)(
+                eid, "(BODY[HEADER.FIELDS (SUBJECT)])"
+            )
+            if isinstance(cached, tuple) and len(cached) > 1:
+                headers_by_id[eid] = cached[1]
+                continue
         uncached_ids.append(eid)
 
     chunk_size = 50

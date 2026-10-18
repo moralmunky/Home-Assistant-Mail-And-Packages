@@ -1083,6 +1083,61 @@ async def test_verify_matched_subjects_batch_failure_fallback(hass, caplog):
         assert verified == [b"200"]
 
 
+@pytest.mark.asyncio
+async def test_verify_matched_subjects_batch_bytes_and_unmatched(hass, caplog):
+    """Test _verify_matched_subjects with byte line responses and fallback for missing UID."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    cache = EmailCache(mock_account)
+    caplog.set_level("DEBUG")
+
+    # Line 1: header line with UID 300
+    # Line 2: UID 301 is missing from batch lines, triggering single-fetch fallback
+    batch_lines = [
+        b"* 1 FETCH (UID 300 BODY[HEADER.FIELDS (SUBJECT)] {24}\r\n",
+        b"Subject: Item arrived\r\n\r\n",
+        b")",
+    ]
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers_batch",
+            new_callable=AsyncMock,
+            return_value=("OK", batch_lines),
+        ),
+        patch.object(
+            cache,
+            "fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"Subject: Item arrived\r\n"]),
+        ),
+    ):
+        expected = ["Item arrived"]
+        verified = await shipper._verify_matched_subjects(
+            mock_account, [b"300", b"301"], "ups_delivered", expected, cache=cache
+        )
+        assert verified == [b"300", b"301"]
+
+
+@pytest.mark.asyncio
+async def test_verify_matched_subjects_batch_timeout(hass):
+    """Test _verify_matched_subjects propagates TimeoutError on batch fetch."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers_batch",
+            new_callable=AsyncMock,
+            side_effect=TimeoutError(),
+        ),
+        pytest.raises(TimeoutError),
+    ):
+        await shipper._verify_matched_subjects(
+            mock_account, [b"400", b"401"], "ups_delivered", ["Subject"]
+        )
+
+
 def test_decode_subject_string_with_encoding(hass):
     """Test _decode_subject when decode_header returns a string and an encoding."""
     shipper = GenericShipper(hass, {})
