@@ -152,6 +152,9 @@ def _parse_header_batch_lines(lines: list[Any]) -> dict[str, list[Any]]:
     return chunk_map
 
 
+_MAX_HEADER_CHUNK = 50
+
+
 async def _fetch_single_header(
     account: IMAP4_SSL,
     eid: bytes,
@@ -205,6 +208,7 @@ async def _fetch_header_chunk(
             headers: dict[bytes, list[Any]] = {}
             for eid in chunk:
                 eid_s = eid.decode() if isinstance(eid, bytes) else str(eid)
+                # UID may be bare ("100") or folder-prefixed ("INBOX/100")
                 raw_uid = eid_s.rsplit("/", 1)[-1]
                 if raw_uid in chunk_map:
                     hdata = chunk_map[raw_uid]
@@ -248,6 +252,7 @@ async def _verify_matched_subjects(
     headers_by_id: dict[bytes, list[Any]] = {}
 
     for eid in email_ids:
+        # Cache probe — use public API if available (added in this PR)
         if cache:
             cached = getattr(cache, "get_cached", lambda *_: None)(
                 eid, "(BODY[HEADER.FIELDS (SUBJECT)])"
@@ -257,9 +262,8 @@ async def _verify_matched_subjects(
                 continue
         uncached_ids.append(eid)
 
-    chunk_size = 50
-    for i in range(0, len(uncached_ids), chunk_size):
-        chunk = uncached_ids[i : i + chunk_size]
+    for i in range(0, len(uncached_ids), _MAX_HEADER_CHUNK):
+        chunk = uncached_ids[i : i + _MAX_HEADER_CHUNK]
         chunk_headers = await _fetch_header_chunk(account, chunk, shipper_name, cache)
         headers_by_id.update(chunk_headers)
 
