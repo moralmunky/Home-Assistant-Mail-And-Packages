@@ -14,7 +14,9 @@ from custom_components.mail_and_packages.camera import (
     _is_camera_enabled,
 )
 from custom_components.mail_and_packages.camera_helpers import (
+    _LAST_GIF_CACHE,
     collect_generic_delivery_images,
+    generate_generic_deliveries_gif,
 )
 from custom_components.mail_and_packages.const import (
     ATTR_AMAZON_IMAGE,
@@ -26,6 +28,14 @@ from tests.conftest import resolve_entity_id
 from tests.const import FAKE_CONFIG_DATA_CUSTOM_IMG
 
 pytestmark = pytest.mark.asyncio
+
+
+@pytest.fixture(autouse=True)
+def reset_gif_cache():
+    """Reset the generic delivery GIF cache between test runs."""
+    _LAST_GIF_CACHE.clear()
+    yield
+    _LAST_GIF_CACHE.clear()
 
 
 async def _async_setup_custom_img_entry(hass) -> MockConfigEntry:
@@ -2811,3 +2821,56 @@ async def test_collect_generic_images_still_skips_named_placeholder(tmp_path):
     """The original no_deliveries name check keeps working."""
     images = _generic_collect(tmp_path, "no_deliveries_ups.jpg", ups_update=True)
     assert images == []
+
+
+async def test_generate_generic_deliveries_gif_mtime_caching(hass, tmp_path):
+    """Test generate_generic_deliveries_gif skips generation when mtimes are unchanged."""
+    img1 = tmp_path / "img1.jpg"
+
+    img1.write_bytes(b"image1")
+    img2 = tmp_path / "img2.jpg"
+    img2.write_bytes(b"image2")
+
+    images = [str(img1), str(img2)]
+    gif_file = tmp_path / "generic_deliveries.gif"
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.camera_helpers.resize_images",
+            return_value=[str(img1), str(img2)],
+        ) as mock_resize,
+        patch(
+            "custom_components.mail_and_packages.camera_helpers.generate_delivery_gif",
+            return_value=True,
+        ) as mock_gif,
+        patch(
+            "custom_components.mail_and_packages.camera_helpers.cleanup_images",
+        ),
+    ):
+        # 1. First run generates the GIF
+        gif_file.write_bytes(b"gif_content")
+        res_path, is_gen = await generate_generic_deliveries_gif(
+            hass, images, str(tmp_path), 5
+        )
+        assert res_path == str(gif_file)
+        assert not is_gen
+        assert mock_gif.call_count == 1
+        assert mock_resize.call_count == 1
+
+        # 2. Second run with unchanged files skips generation
+        res_path_2, is_gen_2 = await generate_generic_deliveries_gif(
+            hass, images, str(tmp_path), 5
+        )
+        assert res_path_2 == str(gif_file)
+        assert not is_gen_2
+        assert mock_gif.call_count == 1
+        assert mock_resize.call_count == 1
+
+        # 3. Third run: modification time updated triggers regeneration
+        img1.write_bytes(b"image1_updated")
+        res_path_3, is_gen_3 = await generate_generic_deliveries_gif(
+            hass, images, str(tmp_path), 5
+        )
+        assert res_path_3 == str(gif_file)
+        assert mock_gif.call_count == 2
+        assert mock_resize.call_count == 2
