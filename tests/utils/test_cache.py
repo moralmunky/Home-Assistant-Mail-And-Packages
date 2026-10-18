@@ -253,3 +253,75 @@ async def test_email_cache_get_cached_and_store():
     cache._cache_headers.clear()
     cached_persistent = cache.get_cached("50", "HEADER")
     assert cached_persistent == ("OK", [b"Subject: Test\r\n"])
+
+
+@pytest.mark.asyncio
+async def test_email_cache_fetch_batch_coherence():
+    """Test EmailCache.fetch_batch partitioning, cache hits, and write-back."""
+    mock_account = AsyncMock()
+    cache = EmailCache(mock_account)
+
+    # 1. Empty list
+    assert await cache.fetch_batch([]) == ("OK", [])
+
+    # 2. Pre-populate cache for UID "100"
+    cache.store(
+        "100",
+        "(BODY[HEADER.FIELDS (SUBJECT)])",
+        ("OK", [b"* 1 FETCH (UID 100 ...)\r\n", b"Subject: First\r\n\r\n", b")"]),
+        shipper="ups",
+    )
+
+    # 3. All cached (UID 100) -> zero IMAP calls
+    with patch(
+        "custom_components.mail_and_packages.utils.cache.email_fetch_batch"
+    ) as mock_fetch:
+        res = await cache.fetch_batch(
+            ["100"], parts="(BODY[HEADER.FIELDS (SUBJECT)])", shipper="ups"
+        )
+        assert res[0] == "OK"
+        assert b"Subject: First\r\n\r\n" in res[1]
+        assert not mock_fetch.called
+
+    # 4. Partial cache hit: UID 100 is cached, UID 101 is missing
+    batch_lines = [
+        b"* 2 FETCH (UID 101 BODY[HEADER.FIELDS (SUBJECT)] {24}\r\n",
+        b"Subject: Second\r\n\r\n",
+        b")",
+    ]
+    with patch(
+        "custom_components.mail_and_packages.utils.cache.email_fetch_batch",
+        AsyncMock(return_value=("OK", batch_lines)),
+    ) as mock_fetch:
+        res = await cache.fetch_batch(
+            ["100", "101"], parts="(BODY[HEADER.FIELDS (SUBJECT)])", shipper="ups"
+        )
+        assert res[0] == "OK"
+        # Only missing UID "101" was queried over IMAP
+        mock_fetch.assert_called_once_with(
+            mock_account, ["101"], "(BODY[HEADER.FIELDS (SUBJECT)])"
+        )
+        # Combined result contains both
+        assert b"Subject: First\r\n\r\n" in res[1]
+        assert b"Subject: Second\r\n\r\n" in res[1]
+
+        # Verify UID 101 was stored in cache
+        cached_101 = cache.get_cached("101", "(BODY[HEADER.FIELDS (SUBJECT)])")
+        assert cached_101 is not None
+        assert cached_101[0] == "OK"
+
+    # 5. IMAP error propagation
+    with patch(
+        "custom_components.mail_and_packages.utils.cache.email_fetch_batch",
+        AsyncMock(return_value=("BAD", ["IMAP error"])),
+    ):
+        res = await cache.fetch_batch(["999"], "(RFC822)")
+        assert res == ("BAD", ["IMAP error"])
+
+    # 6. Fallback when batch response lines have no UID delimiters
+    with patch(
+        "custom_components.mail_and_packages.utils.cache.email_fetch_batch",
+        AsyncMock(return_value=("OK", [b"Raw undelimited message bytes"])),
+    ):
+        res = await cache.fetch_batch(["200"], "(RFC822)")
+        assert res == ("OK", [b"Raw undelimited message bytes"])
