@@ -1,5 +1,6 @@
 """Tests for generic shipper utilities."""
 
+import datetime as dt
 import re
 import threading
 from pathlib import Path
@@ -16,6 +17,10 @@ from custom_components.mail_and_packages.const import (
 )
 from custom_components.mail_and_packages.shippers import generic
 from custom_components.mail_and_packages.shippers.generic import GenericShipper
+from custom_components.mail_and_packages.shippers.generic.helpers import (
+    _extract_date_from_headers,
+    _filter_emails_by_date,
+)
 from custom_components.mail_and_packages.utils.cache import EmailCache
 from tests.conftest import (
     _generate_fetch_side_effect,
@@ -1308,11 +1313,10 @@ async def test_process_delivering_uses_since_date(hass):
 
 @pytest.mark.asyncio
 async def test_process_delivered_uses_since_date(hass, tmp_path):
-    """_delivered sensors search twice: since_date for tracking dedup, date for count.
+    """_delivered sensors use since_date for tracking dedup and filter today locally.
 
-    The first call uses since_date so delivered tracking numbers can cancel out
-    old in-transit emails. The second call uses today's date so the sensor count
-    resets at midnight.
+    A single IMAP search with since_date is performed; today-only delivered count
+    and tracking are determined locally from email Date headers.
     """
     shipper = GenericShipper(hass, {"image_path": str(tmp_path)})
     mock_account = AsyncMock()
@@ -1328,11 +1332,122 @@ async def test_process_delivered_uses_since_date(hass, tmp_path):
             mock_account, "22-Apr-2026", "ups_delivered", since_date="19-Apr-2026"
         )
 
-    assert mock_search.call_count == 2
-    # First call: extended window for tracking deduplication
+    assert mock_search.call_count == 1
+    # Single call: extended window for tracking deduplication
     assert mock_search.call_args_list[0].kwargs["date"] == "19-Apr-2026"
-    # Second call: today only so the count resets at midnight
-    assert mock_search.call_args_list[1].kwargs["date"] == "22-Apr-2026"
+
+
+@pytest.mark.asyncio
+async def test_process_delivered_today_local_filtering(hass, tmp_path):
+    """Test delivered packages are filtered to today locally without a second search."""
+    shipper = GenericShipper(hass, {"image_path": str(tmp_path)})
+    mock_account = AsyncMock()
+
+    # Two candidate emails returned from extended search window
+    found_data = [b"101 102"]
+
+    # Email 101 date is yesterday (21-Apr-2026), Email 102 date is today (22-Apr-2026)
+    def fake_email_fetch_headers_batch(account, chunk):
+        lines = [
+            (
+                b"1 (UID 101 BODY[HEADER.FIELDS (SUBJECT)] {40}",
+                b"Subject: Your UPS Package was delivered\r\n\r\n",
+            ),
+            b")",
+            (
+                b"2 (UID 102 BODY[HEADER.FIELDS (SUBJECT)] {40}",
+                b"Subject: Your UPS Package was delivered\r\n\r\n",
+            ),
+            b")",
+        ]
+        return ("OK", lines)
+
+    def fake_email_fetch_batch(account, chunk, parts="(RFC822)"):
+        lines = [
+            (
+                b"1 (UID 101 BODY[HEADER.FIELDS (DATE)] {35}",
+                b"Date: Tue, 21 Apr 2026 12:00:00 +0000\r\n\r\n",
+            ),
+            b")",
+            (
+                b"2 (UID 102 BODY[HEADER.FIELDS (DATE)] {35}",
+                b"Date: Wed, 22 Apr 2026 14:00:00 +0000\r\n\r\n",
+            ),
+            b")",
+        ]
+        return ("OK", lines)
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
+            return_value=("OK", found_data),
+        ) as mock_search,
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_batch",
+            side_effect=fake_email_fetch_batch,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers_batch",
+            side_effect=fake_email_fetch_headers_batch,
+        ),
+        patch.object(
+            shipper,
+            "_process_tracking_numbers",
+            AsyncMock(side_effect=[["TRACK101", "TRACK102"], ["TRACK102"]]),
+        ),
+        patch.object(hass, "async_add_executor_job", new_callable=AsyncMock),
+    ):
+        result = await shipper.process(
+            mock_account, "22-Apr-2026", "ups_delivered", since_date="19-Apr-2026"
+        )
+
+    # Only one remote IMAP search was executed
+    assert mock_search.call_count == 1
+    # Full multi-day tracking numbers preserved in pre_filtered_tracking
+    assert result["pre_filtered_tracking"] == ["TRACK101", "TRACK102"]
+    # Today's tracking numbers and count filtered to today
+    assert result[ATTR_TRACKING] == ["TRACK102"]
+    assert result[ATTR_COUNT] == 1
+
+
+@pytest.mark.asyncio
+async def test_extract_date_from_headers():
+    """Test extracting date object from email Date header."""
+    # Valid Date header
+    headers = [b"Date: Wed, 22 Apr 2026 14:00:00 +0000\r\n\r\n"]
+    extracted = _extract_date_from_headers(headers)
+    assert extracted == dt.date(2026, 4, 22)
+
+    # Empty or invalid header
+    assert _extract_date_from_headers([]) is None
+    assert _extract_date_from_headers([b"Not a valid date"]) is None
+
+
+@pytest.mark.asyncio
+async def test_filter_emails_by_date_scalar_fallback(hass):
+    """Test _filter_emails_by_date falls back to scalar when batch fetch fails."""
+    mock_account = AsyncMock()
+    # Batch fetch raises an exception
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_batch",
+            side_effect=OSError("Batch fetch error"),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch",
+            side_effect=[
+                ("OK", [b"Date: Tue, 21 Apr 2026 12:00:00 +0000\r\n\r\n"]),
+                ("OK", [b"Date: Wed, 22 Apr 2026 14:00:00 +0000\r\n\r\n"]),
+            ],
+        ),
+    ):
+        matched = await _filter_emails_by_date(
+            mock_account,
+            [b"101", b"102"],
+            "22-Apr-2026",
+            "ups",
+        )
+        assert matched == [b"102"]
 
 
 @pytest.mark.asyncio

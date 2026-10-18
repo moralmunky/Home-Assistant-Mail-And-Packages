@@ -3,6 +3,7 @@
 import logging
 
 import pytest
+from freezegun import freeze_time
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -120,7 +121,7 @@ async def test_binary_sensor_mail_delivered(
         version=9,
     )
 
-    with caplog.at_level(logging.DEBUG):
+    with caplog.at_level(logging.DEBUG), freeze_time("2024-07-24 19:01:54"):
         entry.add_to_hass(hass)
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
