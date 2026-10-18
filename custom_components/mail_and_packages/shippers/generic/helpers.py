@@ -43,6 +43,8 @@ from custom_components.mail_and_packages.utils.shipper import (
 
 _LOGGER = logging.getLogger(__name__)
 
+_MAX_HEADER_CHUNK = 50
+
 
 @dataclass
 class SearchContext:
@@ -150,9 +152,6 @@ def _parse_header_batch_lines(lines: list[Any]) -> dict[str, list[Any]]:
             if curr_uid:
                 chunk_map.setdefault(curr_uid, []).append(line)
     return chunk_map
-
-
-_MAX_HEADER_CHUNK = 50
 
 
 async def _fetch_single_header(
