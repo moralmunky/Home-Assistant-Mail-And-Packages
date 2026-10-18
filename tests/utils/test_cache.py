@@ -235,3 +235,21 @@ async def test_persistent_cache_corrupted_structure(hass):
     assert cache._get_persistent_cache("bad_len") is None
     assert cache._get_persistent_cache("not_list") is None
     assert cache._get_persistent_cache("no_data") is None
+
+
+@pytest.mark.asyncio
+async def test_email_cache_get_cached_and_store():
+    """Test EmailCache get_cached and store public methods."""
+    cache = EmailCache()
+    assert cache.get_cached("50", "HEADER") is None
+
+    # Store in memory and persistent cache
+    cache.store("50", "HEADER", ("OK", [b"Subject: Test\r\n"]), shipper="generic")
+    cached = cache.get_cached("50", "HEADER")
+    assert cached == ("OK", [b"Subject: Test\r\n"])
+    assert "50:HEADER" in cache._persistent_store
+
+    # Test get_cached from persistent cache when memory cache is cleared
+    cache._cache_headers.clear()
+    cached_persistent = cache.get_cached("50", "HEADER")
+    assert cached_persistent == ("OK", [b"Subject: Test\r\n"])

@@ -185,7 +185,7 @@ async def email_fetch_batch(
     if not nums:
         return ("OK", [])
 
-    if account.host == "imap.mail.me.com":
+    if account.host == "imap.mail.me.com" and parts == "(RFC822)":
         parts = "BODY[]"
 
     has_folder_prefix = any(
@@ -196,3 +196,12 @@ async def email_fetch_batch(
         return await _fetch_batch_single_folder(account, nums, parts)
 
     return await _fetch_batch_multi_folder(account, nums, parts)
+
+
+async def email_fetch_headers_batch(
+    account: "IMAP4_SSL", nums: list[str | bytes]
+) -> tuple:
+    """Download only the subject header of multiple emails asynchronously in a batch."""
+    return await email_fetch_batch(
+        account, nums, parts="(BODY[HEADER.FIELDS (SUBJECT)])"
+    )

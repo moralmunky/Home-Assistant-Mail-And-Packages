@@ -29,6 +29,7 @@ from custom_components.mail_and_packages.utils.imap import (
     email_fetch,
     email_fetch_batch,
     email_fetch_headers,
+    email_fetch_headers_batch,
     email_fetch_text,
     email_search,
     encode_folder_ref,
@@ -825,6 +826,23 @@ async def test_email_fetch_batch_me_com():
 
     await email_fetch_batch(mock_imap, ["1"])
     mock_imap.uid.assert_called_with("FETCH", "1", "BODY[]")
+
+
+@pytest.mark.asyncio
+async def test_email_fetch_headers_batch_success():
+    """Test email_fetch_headers_batch success path."""
+    mock_imap = AsyncMock()
+    mock_res = MagicMock()
+    mock_res.result = "OK"
+    mock_res.lines = [b"Headers content"]
+    mock_imap.uid.return_value = mock_res
+
+    result = await email_fetch_headers_batch(mock_imap, ["10", "20"])
+    assert result[0] == "OK"
+    assert result[1] == [b"Headers content"]
+    mock_imap.uid.assert_called_with(
+        "FETCH", "10,20", "(BODY[HEADER.FIELDS (SUBJECT)])"
+    )
 
 
 @pytest.mark.asyncio
