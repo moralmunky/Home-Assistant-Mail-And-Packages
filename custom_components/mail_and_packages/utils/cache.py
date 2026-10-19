@@ -256,7 +256,7 @@ class EmailCache:
         email_ids: list[str | bytes],
         parts: str = "(RFC822)",
         shipper: str = "generic",
-    ) -> tuple:
+    ) -> tuple[str, list[Any]]:
         """Fetch multiple emails in a batch with cache awareness."""
         if not email_ids:
             return ("OK", [])
@@ -294,6 +294,9 @@ class EmailCache:
                 self.store(eid_str, parts, ("OK", entry_data), shipper=shipper)
                 cached_by_id[raw_uid] = entry_data
 
+        # If parsed_map is completely empty (e.g. server omitted UID delimiters in lines),
+        # preserve all raw fetched_lines as extra_lines so callers still receive the payload.
+        # Note: RFC-compliant IMAP servers return all requested UIDs delimited with 'UID <n>'.
         extra_lines = fetched_lines if not parsed_map else None
         return (
             "OK",

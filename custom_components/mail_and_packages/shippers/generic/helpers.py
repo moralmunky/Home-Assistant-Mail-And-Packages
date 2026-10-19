@@ -234,9 +234,7 @@ async def _verify_matched_subjects(
     for eid in email_ids:
         # Cache probe — use public API if available (added in this PR)
         if cache:
-            cached = getattr(cache, "get_cached", lambda *_: None)(
-                eid, "(BODY[HEADER.FIELDS (SUBJECT)])"
-            )
+            cached = cache.get_cached(eid, "(BODY[HEADER.FIELDS (SUBJECT)])")
             if isinstance(cached, tuple) and len(cached) > 1:
                 headers_by_id[eid] = cached[1]
                 continue
