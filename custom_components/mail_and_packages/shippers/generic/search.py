@@ -75,6 +75,7 @@ class GenericSearchMixin:
         found_data: list[Any],
     ) -> int:
         """Filter delivered emails locally to get today-only counts and tracking."""
+        # IMAP SEARCH responses return space-delimited UID byte strings (e.g. [b"101 102 103"])
         candidate_uids: list[bytes] = []
         for sdata in found_data:
             if isinstance(sdata, (bytes, bytearray)):

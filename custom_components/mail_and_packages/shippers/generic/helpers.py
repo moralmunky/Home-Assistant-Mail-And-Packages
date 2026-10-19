@@ -387,6 +387,9 @@ def _parse_target_date(target_date_str: str) -> dt.date:
     try:
         return dt.datetime.strptime(target_date_str, "%d-%b-%Y").date()
     except ValueError:
+        _LOGGER.debug(
+            "Invalid target_date format '%s', falling back to today", target_date_str
+        )
         return get_today()
 
 
