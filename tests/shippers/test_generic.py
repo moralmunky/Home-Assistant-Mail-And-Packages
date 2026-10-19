@@ -1603,6 +1603,17 @@ async def test_filter_emails_by_date_empty_and_cached_and_shipper_wrapper(hass):
     )
     assert matched == [b"101"]
 
+    # When header_data is missing/empty for an email ID in uncached fetch
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.helpers._fetch_date_header_chunk",
+        new_callable=AsyncMock,
+        return_value={},
+    ):
+        empty_header_matched = await _filter_emails_by_date(
+            mock_account, [b"999"], "22-Apr-2026", "ups", None
+        )
+        assert empty_header_matched == []
+
     # Call GenericShipper._filter_emails_by_date wrapper directly
     shipper = GenericShipper(hass, {})
     shipper_matched = await shipper._filter_emails_by_date(
