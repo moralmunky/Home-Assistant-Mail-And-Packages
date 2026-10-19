@@ -37,6 +37,7 @@ from custom_components.mail_and_packages.utils.imap import (
     login,
     logout,
     parse_search_response,
+    parse_uidvalidity,
     quote_folder,
     selectfolder,
 )
@@ -2389,3 +2390,64 @@ def test_get_imap_attr_fallback():
     sentinel = object()
     result = _get_imap_attr("nonexistent_attribute_xyz", sentinel)
     assert result is sentinel
+
+
+def test_parse_uidvalidity():
+    """Test parse_uidvalidity helper across various line data types and formats."""
+    # Bytes format
+    lines_bytes = [
+        b"* 23 EXISTS",
+        b"* 0 RECENT",
+        b"* OK [UIDVALIDITY 3857529045] UIDs valid",
+        b"* OK [UIDNEXT 4392] Predicted next UID",
+    ]
+    assert parse_uidvalidity(lines_bytes) == "3857529045"
+
+    # String format
+    lines_str = ["* OK [UIDVALIDITY 12345] UIDs valid"]
+    assert parse_uidvalidity(lines_str) == "12345"
+
+    # Tuple / nested format
+    lines_tuple = [(b"* OK [UIDVALIDITY 67890] UIDs valid", b"extra")]
+    assert parse_uidvalidity(lines_tuple) == "67890"
+
+    # No UIDVALIDITY present
+    lines_none = [b"* 23 EXISTS", b"* 0 RECENT"]
+    assert parse_uidvalidity(lines_none) is None
+
+    # Empty list
+    assert parse_uidvalidity([]) is None
+
+
+@pytest.mark.asyncio
+async def test_selectfolder_uidvalidity_tracking():
+    """Test that selectfolder parses and stores UIDVALIDITY on the account instance."""
+    mock_acc = AsyncMock()
+    mock_acc._current_folder = None
+    mock_acc.select.return_value = MagicMock(
+        result="OK",
+        lines=[
+            b"* 10 EXISTS",
+            b"* OK [UIDVALIDITY 998877] UIDs valid",
+        ],
+    )
+
+    result = await selectfolder(mock_acc, "INBOX")
+    assert result is True
+    assert getattr(mock_acc, "_uidvalidity", None) == "998877"
+    assert getattr(mock_acc, "_folder_uidvalidity", {}).get("INBOX") == "998877"
+
+    # Selecting a different folder with different UIDVALIDITY
+    mock_acc._current_folder = None
+    mock_acc.select.return_value = MagicMock(
+        result="OK",
+        lines=[
+            b"* 5 EXISTS",
+            b"* OK [UIDVALIDITY 112233] UIDs valid",
+        ],
+    )
+    result = await selectfolder(mock_acc, "Spam")
+    assert result is True
+    assert getattr(mock_acc, "_uidvalidity", None) == "112233"
+    assert mock_acc._folder_uidvalidity.get("INBOX") == "998877"
+    assert mock_acc._folder_uidvalidity.get("Spam") == "112233"

@@ -237,6 +237,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             cache = self.email_cache
             cache.set_account(account)
             await cache.async_load()
+
+            await self._sync_cache_uidvalidity(account, cache)
             await cache.async_purge_expired(custom_days=days)
 
             now = dt.datetime.now()
@@ -362,6 +364,14 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             cache,
             shipper_fn=get_shipper_for_sensor,
         )
+
+    @staticmethod
+    async def _sync_cache_uidvalidity(account: IMAP4_SSL, cache: EmailCache) -> None:
+        """Synchronize folder UIDVALIDITY values with the email cache."""
+        folder_uidvals = getattr(account, "_folder_uidvalidity", None)
+        if isinstance(folder_uidvals, dict):
+            for folder_name, uidval in folder_uidvals.items():
+                await cache.async_check_uidvalidity(folder_name, uidval)
 
     @staticmethod
     def _dedupe_marketplace_duplicates(

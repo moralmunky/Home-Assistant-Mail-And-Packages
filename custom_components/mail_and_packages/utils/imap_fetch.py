@@ -1,4 +1,4 @@
-"""IMAP folder selection and email fetch utilities."""
+"""IMAP message fetching and folder management utilities."""
 
 import logging
 import re
@@ -12,6 +12,32 @@ if TYPE_CHECKING:
     from aioimaplib import IMAP4_SSL
 
 _LOGGER = logging.getLogger(__name__)
+
+_UIDVALIDITY_PATTERN = re.compile(rb"\[UIDVALIDITY\s+(\d+)\]", re.IGNORECASE)
+_UIDVALIDITY_STR_PATTERN = re.compile(r"\[UIDVALIDITY\s+(\d+)\]", re.IGNORECASE)
+
+
+def _extract_uidvalidity_from_item(item: Any) -> str | None:
+    """Extract UIDVALIDITY from bytes or str."""
+    if isinstance(item, (bytes, bytearray)):
+        if match := _UIDVALIDITY_PATTERN.search(item):
+            return match.group(1).decode("ascii")
+    elif isinstance(item, str):
+        if match := _UIDVALIDITY_STR_PATTERN.search(item):
+            return match.group(1)
+    return None
+
+
+def parse_uidvalidity(lines: list[Any]) -> str | None:
+    """Extract UIDVALIDITY value from IMAP SELECT response lines."""
+    for line in lines:
+        if (val := _extract_uidvalidity_from_item(line)) is not None:
+            return val
+        if isinstance(line, (tuple, list)):
+            for item in line:
+                if (val := _extract_uidvalidity_from_item(item)) is not None:
+                    return val
+    return None
 
 
 async def selectfolder(account: "IMAP4_SSL", folder: str) -> bool:
@@ -40,6 +66,15 @@ async def selectfolder(account: "IMAP4_SSL", folder: str) -> bool:
         return False
     else:
         account._current_folder = folder  # noqa: SLF001
+        lines = getattr(res, "lines", None) or (
+            res[1:] if isinstance(res, (tuple, list)) else []
+        )
+        if uidval := parse_uidvalidity(lines if isinstance(lines, list) else [lines]):
+            account._uidvalidity = uidval  # noqa: SLF001
+            folder_map = getattr(account, "_folder_uidvalidity", None)
+            if not isinstance(folder_map, dict):
+                account._folder_uidvalidity = {}  # noqa: SLF001
+            account._folder_uidvalidity[folder] = uidval  # noqa: SLF001
         return True
 
 

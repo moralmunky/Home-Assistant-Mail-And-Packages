@@ -42,6 +42,7 @@ class EmailCache:
         self._cache_headers: dict[str, tuple] = {}
         # Persistent metadata mapping: eid_str -> {"fetched_at": iso_str, "shipper": name, "data": tuple}
         self._persistent_store: dict[str, dict[str, Any]] = {}
+        self._uidvalidity: dict[str, str] = {}
 
     def set_account(self, account: IMAP4_SSL) -> None:
         """Set active IMAP account for the current scan cycle."""
@@ -59,18 +60,44 @@ class EmailCache:
             data = await self._store.async_load()
             if isinstance(data, dict):
                 self._persistent_store = data.get("entries", {})
+                self._uidvalidity = data.get("uidvalidity", {})
         except OSError as err:
             _LOGGER.warning("Failed to load email cache: %s", err)
             self._persistent_store = {}
+            self._uidvalidity = {}
 
     async def async_save(self) -> None:
         """Save persistent cache to storage."""
         if not self._store:
             return
         try:
-            await self._store.async_save({"entries": self._persistent_store})
+            await self._store.async_save(
+                {
+                    "entries": self._persistent_store,
+                    "uidvalidity": self._uidvalidity,
+                }
+            )
         except OSError as err:
             _LOGGER.warning("Failed to save email cache: %s", err)
+
+    async def async_check_uidvalidity(
+        self, folder: str, current_uidvalidity: str | None
+    ) -> None:
+        """Check if UIDVALIDITY changed for a folder and invalidate cache if so."""
+        if not current_uidvalidity:
+            return
+
+        stored_uidvalidity = self._uidvalidity.get(folder)
+        if stored_uidvalidity and stored_uidvalidity != current_uidvalidity:
+            _LOGGER.warning(
+                "UIDVALIDITY changed for folder %s (was %s, now %s). Invalidating email cache.",
+                folder,
+                stored_uidvalidity,
+                current_uidvalidity,
+            )
+            self.clear_all()
+
+        self._uidvalidity[folder] = current_uidvalidity
 
     async def async_purge_expired(self, custom_days: int = 3) -> None:
         """Purge expired cache entries based on carrier expiration rules."""
@@ -308,3 +335,8 @@ class EmailCache:
         self._cache_rfc822.clear()
         self._cache_text.clear()
         self._cache_headers.clear()
+
+    def clear_all(self) -> None:
+        """Clear all cached emails from both transient and persistent tiers."""
+        self.clear()
+        self._persistent_store.clear()
