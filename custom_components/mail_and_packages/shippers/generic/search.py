@@ -10,13 +10,12 @@ from aioimaplib import IMAP4_SSL
 from custom_components.mail_and_packages.const import (
     AMAZON_DELIVERED,
     ATTR_BODY,
-    ATTR_COUNT,
     ATTR_TRACKING,
     CONF_FORWARDING_HEADER,
 )
 from custom_components.mail_and_packages.utils.imap import email_search
 
-from .helpers import SearchContext
+from .helpers import SearchContext, _filter_emails_by_date
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -70,33 +69,39 @@ class GenericSearchMixin:
     async def _process_delivered_today(
         self,
         account: IMAP4_SSL,
-        email_addresses: list[str],
         date: str,
-        subjects: list[str],
         base_ctx: SearchContext,
         result: dict[str, Any],
+        found_data: list[Any],
     ) -> int:
-        """Perform second pass for delivered sensors to get today-only counts."""
-        today_ctx = SearchContext(
-            sensor_type=base_ctx.sensor_type,
-            config=base_ctx.config,
-            shipper_cfg=base_ctx.shipper_cfg,
-            result={ATTR_COUNT: 0, ATTR_TRACKING: []},
-            cache=base_ctx.cache,
-            forwarding_header=base_ctx.forwarding_header,
+        """Filter delivered emails locally to get today-only counts and tracking."""
+        # IMAP SEARCH responses return space-delimited UID byte strings (e.g. [b"101 102 103"])
+        candidate_uids: list[bytes] = []
+        for sdata in found_data:
+            if isinstance(sdata, (bytes, bytearray)):
+                candidate_uids.extend(eid for eid in sdata.split() if eid)
+
+        if not candidate_uids:
+            result[ATTR_TRACKING] = []
+            return 0
+
+        shipper_name = (
+            base_ctx.shipper_cfg.get("name", "") if base_ctx.shipper_cfg else ""
         )
-        today_count, today_found, _ = await self._search_for_emails(
+        today_uids = await _filter_emails_by_date(
             account,
-            email_addresses,
+            candidate_uids,
             date,
-            subjects,
-            today_ctx,
+            shipper_name,
+            base_ctx.cache,
         )
+
+        today_found: list[Any] = [b" ".join(today_uids)] if today_uids else []
         today_tracking = await self._process_tracking_numbers(
             base_ctx.sensor_type, today_found, account, base_ctx.cache
         )
         result[ATTR_TRACKING] = today_tracking
-        return len(today_tracking) if today_tracking else today_count
+        return len(today_tracking) if today_tracking else len(today_uids)
 
     async def _finalize_shipper_image(
         self,

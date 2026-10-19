@@ -57,6 +57,9 @@ from .helpers import (
     _extract_subject_from_headers as helper_extract_subject_from_headers,
 )
 from .helpers import (
+    _filter_emails_by_date as helper_filter_emails_by_date,
+)
+from .helpers import (
     _filter_unique_ids as helper_filter_unique_ids,
 )
 from .helpers import (
@@ -191,7 +194,7 @@ class GenericShipper(GenericBatchMixin, GenericSearchMixin, Shipper):
             result["pre_filtered_tracking"] = result.get(ATTR_TRACKING, [])
             if since_date and search_date != date:
                 count = await self._process_delivered_today(
-                    account, email_addresses, date, subjects, search_ctx, result
+                    account, date, search_ctx, result, found_data
                 )
 
         if is_delivered and not image_found:
@@ -322,3 +325,16 @@ class GenericShipper(GenericBatchMixin, GenericSearchMixin, Shipper):
     ) -> None:
         """Check for Amazon mentions in emails."""
         await helper_check_amazon_mentions(account, ids, result, cache)
+
+    async def _filter_emails_by_date(
+        self,
+        account: IMAP4_SSL,
+        email_ids: list[bytes],
+        target_date_str: str,
+        shipper_name: str,
+        cache: EmailCache | None = None,
+    ) -> list[bytes]:
+        """Filter email IDs to those sent on target_date."""
+        return await helper_filter_emails_by_date(
+            account, email_ids, target_date_str, shipper_name, cache
+        )
