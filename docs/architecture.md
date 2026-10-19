@@ -106,6 +106,7 @@ During each coordinator update cycle:
 Mail and Packages provides camera entities for mail visualization and shipper delivery photos:
 
 ### USPS Informed Delivery Camera
+- **Digest Date Filtering**: The date in the decoded email subject takes precedence over the email's `Date` header when excluding prior-day digests, including MIME-encoded and folded subjects. Undecodable subjects retain the existing raw-subject and `Date` header fallback.
 - **Mail Piece Assembly**: Images attached to USPS Informed Delivery emails are parsed and converted into an animated GIF or MP4 showing all scanned letters for the day.
 - **Vision Grid Generation**: An optional composite image grid can be generated containing tiled mail piece images, optimized for downstream LLM vision integrations.
 - **Midnight Reset**: Mail cameras revert to a placeholder image after midnight local time or when no new mail images have arrived.

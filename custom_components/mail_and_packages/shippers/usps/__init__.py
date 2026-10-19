@@ -9,6 +9,8 @@ import logging
 import re
 import shutil
 from datetime import date, datetime
+from email.errors import HeaderParseError
+from email.header import decode_header, make_header
 from pathlib import Path
 from typing import Any
 
@@ -427,6 +429,13 @@ class USPSShipper(Shipper):
             if isinstance(response_part, (bytes, bytearray)):
                 msg = email.message_from_bytes(response_part)
                 subject = msg.get("Subject")
+                if subject:
+                    # Decode all encoded words before applying digest-date precedence.
+                    # Keep the raw subject/date fallback if a header is malformed.
+                    with contextlib.suppress(
+                        LookupError, UnicodeError, HeaderParseError
+                    ):
+                        subject = str(make_header(decode_header(subject)))
                 date_header = msg.get("Date")
 
                 if is_email_from_prior_day(subject, date_header, check_date):
