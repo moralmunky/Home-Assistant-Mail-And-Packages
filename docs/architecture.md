@@ -50,6 +50,8 @@ Each supported carrier defines up to three standard package sensor entities in `
 | **`*_delivered`** | Packages successfully **delivered today** (resets at midnight) | List of `email` senders, `subject` patterns, optional `body` patterns | **Yes** |
 | **`*_packages`** | Computed rollup total of active package volume for the carrier | `{}` (Empty dictionary) | **No** (Computed dynamically) |
 
+Amazon converts timezone-aware email `Date` headers to the host's local date before using them for arrival-date parsing and today's delivery counts, matching `get_today()` and the generic carrier header parser. Headers without a timezone retain their calendar date.
+
 ### Additional Global Sensors
 - **`sensor.mail_packages_in_transit`**: Total count of all packages across all carriers currently out for delivery today.
 - **`sensor.mail_packages_delivered`**: Total count of all packages delivered today across all carriers.

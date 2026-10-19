@@ -170,7 +170,9 @@ class AmazonSearchMixin(AmazonImageMixin):
         if not date_str:
             return None
         parsed = await self.hass.async_add_executor_job(dateparser.parse, date_str)
-        return parsed.date() if parsed else None
+        if not parsed:
+            return None
+        return parsed.astimezone().date() if parsed.tzinfo else parsed.date()
 
     def _handle_delivered_email(self, subject: str, body: str | None, ctx: dict):
         """Handle an Amazon 'delivered' email."""
