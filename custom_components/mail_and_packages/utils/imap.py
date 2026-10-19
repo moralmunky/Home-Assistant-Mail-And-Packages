@@ -31,6 +31,7 @@ from .imap_fetch import (
     email_fetch_headers,
     email_fetch_headers_batch,
     email_fetch_text,
+    parse_batch_fetch_lines,
     parse_uidvalidity,
     selectfolder,
 )
@@ -315,6 +316,7 @@ __all__ = [
     "get_subject_batch_size",
     "login",
     "logout",
+    "parse_batch_fetch_lines",
     "parse_search_response",
     "parse_uidvalidity",
     "quote_folder",

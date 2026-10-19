@@ -241,3 +241,28 @@ async def email_fetch_headers_batch(
     return await email_fetch_batch(
         account, nums, parts="(BODY[HEADER.FIELDS (SUBJECT)])"
     )
+
+
+def parse_batch_fetch_lines(lines: list[Any]) -> dict[str, list[Any]]:
+    """Map IMAP batch FETCH response lines back to their UID."""
+    chunk_map: dict[str, list[Any]] = {}
+    curr_uid: str | None = None
+    for line in lines:
+        if isinstance(line, tuple):
+            prefix = line[0] if len(line) > 0 else b""
+            prefix_str = (
+                prefix.decode("ascii", "ignore")
+                if isinstance(prefix, (bytes, bytearray))
+                else str(prefix)
+            )
+            if uid_match := re.search(r"UID\s+(\d+)", prefix_str):
+                curr_uid = uid_match.group(1)
+            if curr_uid:
+                chunk_map.setdefault(curr_uid, []).extend(line)
+        elif isinstance(line, (bytes, bytearray)):
+            line_str = line.decode("ascii", "ignore")
+            if uid_match := re.search(r"UID\s+(\d+)", line_str):
+                curr_uid = uid_match.group(1)
+            if curr_uid:
+                chunk_map.setdefault(curr_uid, []).append(line)
+    return chunk_map

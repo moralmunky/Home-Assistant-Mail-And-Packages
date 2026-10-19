@@ -26,6 +26,17 @@ IMAP email responses contain raw `bytes` (MIME boundaries, binary attachments, h
 2. **Deserialization (`fetch`)**:
    - When loading cached payloads from `_persistent_store`, `str` instances are re-encoded back to `bytes` using `latin-1` to restore original byte representations.
 
+## Batch Fetching & Cache Coherence
+
+The `fetch_batch` method (`EmailCache.fetch_batch`) optimizes multi-message downloads while maintaining full cache coherence:
+
+1. **Partitioning**: Incoming email UIDs are checked against both memory and persistent storage (`get_cached`). Only uncached UIDs are sent over the network to `email_fetch_batch`.
+2. **Dual-Tier Write-Back**: When the batch IMAP response returns, parsed message parts are mapped back to their originating UIDs and stored immediately in both the in-memory tier and persistent store (`store`).
+3. **Graceful Fallback**: If a server does not delimit messages or fails during batch fetch, cached lines are safely preserved and combined.
+4. **Public Access Methods**:
+   - `get_cached(email_id, parts)`: Non-fetching lookup checking persistent store then memory cache.
+   - `store(email_id, parts, data, shipper)`: Public dual-tier write-through storage for pre-fetched or batch-parsed entries.
+
 ## Expiration & Purge Lifecycle
 
 The `async_purge_expired(custom_days: int)` method enforces carrier-specific retention:

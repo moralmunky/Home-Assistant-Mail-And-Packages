@@ -8,7 +8,13 @@ from aioimaplib import IMAP4_SSL
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
-from .imap import email_fetch, email_fetch_batch, email_fetch_headers, email_fetch_text
+from .imap import (
+    email_fetch,
+    email_fetch_batch,
+    email_fetch_headers,
+    email_fetch_text,
+    parse_batch_fetch_lines,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -255,13 +261,74 @@ class EmailCache:
             "data": [status, serializable_list],
         }
 
+    def _assemble_batch_lines(
+        self,
+        email_ids: list[str | bytes],
+        cached_by_id: dict[str, list[Any]],
+        extra_lines: list[Any] | None = None,
+    ) -> list[Any]:
+        """Assemble cached and fetched lines in the order of requested email_ids."""
+        combined_lines = []
+        for eid in email_ids:
+            eid_str = eid.decode() if isinstance(eid, bytes) else str(eid)
+            raw_uid = eid_str.rsplit("/", 1)[-1]
+            if raw_uid in cached_by_id:
+                combined_lines.extend(cached_by_id[raw_uid])
+        if extra_lines:
+            combined_lines.extend(extra_lines)
+        return combined_lines
+
     async def fetch_batch(
-        self, email_ids: list[str | bytes], parts: str = "(RFC822)"
-    ) -> tuple:
-        """Fetch multiple emails in a batch."""
+        self,
+        email_ids: list[str | bytes],
+        parts: str = "(RFC822)",
+        shipper: str = "generic",
+    ) -> tuple[str, list[Any]]:
+        """Fetch multiple emails in a batch with cache awareness."""
+        if not email_ids:
+            return ("OK", [])
+
+        missing_ids: list[str | bytes] = []
+        cached_by_id: dict[str, list[Any]] = {}
+
+        for eid in email_ids:
+            cached = self.get_cached(eid, parts)
+            if cached and cached[0] == "OK" and isinstance(cached[1], list):
+                eid_str = eid.decode() if isinstance(eid, bytes) else str(eid)
+                raw_uid = eid_str.rsplit("/", 1)[-1]
+                cached_by_id[raw_uid] = cached[1]
+            else:
+                missing_ids.append(eid)
+
+        if not missing_ids:
+            return ("OK", self._assemble_batch_lines(email_ids, cached_by_id))
+
         if self.account is None:
             return ("NO", ["No active IMAP connection"])
-        return await email_fetch_batch(self.account, email_ids, parts)
+
+        res = await email_fetch_batch(self.account, missing_ids, parts)
+        if res[0] != "OK":
+            return res
+
+        fetched_lines = res[1] if isinstance(res[1], list) else []
+        parsed_map = parse_batch_fetch_lines(fetched_lines)
+
+        for eid in missing_ids:
+            eid_str = eid.decode() if isinstance(eid, bytes) else str(eid)
+            raw_uid = eid_str.rsplit("/", 1)[-1]
+            if raw_uid in parsed_map:
+                entry_data = parsed_map[raw_uid]
+                self.store(eid_str, parts, ("OK", entry_data), shipper=shipper)
+                cached_by_id[raw_uid] = entry_data
+
+        # If parsed_map is completely empty (e.g. server omitted UID delimiters in lines),
+        # preserve all raw fetched_lines as extra_lines so callers still receive the payload.
+        # Note: RFC-compliant IMAP servers return all requested UIDs delimited with 'UID <n>'.
+        extra_lines = fetched_lines if not parsed_map else None
+        return (
+            "OK",
+            self._assemble_batch_lines(email_ids, cached_by_id, extra_lines),
+        )
 
     def clear(self) -> None:
         """Clear the transient per-scan cache."""
