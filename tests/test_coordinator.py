@@ -1837,3 +1837,26 @@ async def test_deprecated_storage_repair_issue(hass):
         await coordinator.process_emails(hass, clean_data)
 
     assert (DOMAIN, "deprecated_storage") not in issue_registry.issues
+
+
+@pytest.mark.asyncio
+async def test_coordinator_sync_cache_uidvalidity():
+    """Test MailDataUpdateCoordinator._sync_cache_uidvalidity synchronizes folder UIDVALIDITY."""
+    mock_account = AsyncMock()
+    mock_account._folder_uidvalidity = {"INBOX": "12345", "Spam": "67890"}
+
+    mock_cache = AsyncMock()
+    await MailDataUpdateCoordinator._sync_cache_uidvalidity(mock_account, mock_cache)
+
+    assert mock_cache.async_check_uidvalidity.call_count == 2
+    mock_cache.async_check_uidvalidity.assert_any_call("INBOX", "12345")
+    mock_cache.async_check_uidvalidity.assert_any_call("Spam", "67890")
+
+    # When account has no valid dict for _folder_uidvalidity
+    mock_account_no_dict = AsyncMock()
+    mock_account_no_dict._folder_uidvalidity = None
+    mock_cache.reset_mock()
+    await MailDataUpdateCoordinator._sync_cache_uidvalidity(
+        mock_account_no_dict, mock_cache
+    )
+    mock_cache.async_check_uidvalidity.assert_not_called()
