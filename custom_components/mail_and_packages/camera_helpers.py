@@ -34,6 +34,9 @@ if TYPE_CHECKING:
 SERVICE_UPDATE_IMAGE = "update_image"
 _LOGGER = logging.getLogger(__name__)
 
+# Cache of GIF paths to image mtime signatures to avoid redundant Pillow re-encoding
+_LAST_GIF_CACHE: dict[str, tuple[tuple[str, float], ...]] = {}
+
 
 def get_sensor_name_for_camera(camera_type: str) -> str | None:
     """Get the sensor name that corresponds to a camera type."""
@@ -229,6 +232,32 @@ async def generate_generic_deliveries_gif(
     full_storage_path = Path(hass.config.path(image_storage_path))
     gif_path = str(full_storage_path / GENERIC_DELIVERIES_GIF)
 
+    # Compute mtime signature of input images
+    def _get_images_signature(images: list[str]) -> tuple[tuple[str, float], ...]:
+        sig = []
+        for img in images:
+            try:
+                sig.append((img, Path(img).stat().st_mtime))
+            except OSError:
+                sig.append((img, 0.0))
+        return tuple(sig)
+
+    current_signature = await hass.async_add_executor_job(
+        _get_images_signature, delivery_images
+    )
+
+    last_signature = _LAST_GIF_CACHE.get(gif_path)
+    if (
+        last_signature is not None
+        and current_signature == last_signature
+        and await anyio.Path(gif_path).exists()
+    ):
+        _LOGGER.debug(
+            "Generic camera - delivery image mtimes unchanged, skipping GIF regeneration: %s",
+            gif_path,
+        )
+        return gif_path, False
+
     # Generate delivery GIF using image utilities
     resized_images = await hass.async_add_executor_job(
         resize_images, delivery_images, 800, 600
@@ -244,12 +273,14 @@ async def generate_generic_deliveries_gif(
 
     if gif_created:
         result_file_path = gif_path
+        _LAST_GIF_CACHE[gif_path] = current_signature
         _LOGGER.debug(
             "Generic camera - created animated GIF with %d delivery images at %s",
             len(delivery_images),
             gif_path,
         )
     else:
+        _LAST_GIF_CACHE.pop(gif_path, None)
         _LOGGER.warning(
             "Failed to create animated GIF, using first delivery image",
         )
