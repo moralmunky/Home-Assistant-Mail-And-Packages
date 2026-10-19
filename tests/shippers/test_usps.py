@@ -1,5 +1,6 @@
 """Tests for USPS shipper utilities."""
 
+import base64
 from datetime import date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -1040,6 +1041,132 @@ async def test_informed_delivery_only_prior_day_emails(hass):
         result = await shipper.process(mock_account, "today", "usps_mail")
         assert result[ATTR_COUNT] == 0
         mock_nomail.assert_called_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("use_cache", [False, True], ids=["imap", "cache"])
+@pytest.mark.parametrize("encoding", ["plain", "quoted", "base64", "folded"])
+@pytest.mark.parametrize(
+    ("digest_date", "date_header", "expected_count"),
+    [
+        ("Wed, Oct 7", "08 Oct 2026 12:00:00", 0),
+        ("Thu, Oct 8", "07 Oct 2026 12:00:00", 1),
+        ("Wed, Oct 7", None, 0),
+        ("Thu, Oct 8", None, 1),
+    ],
+    ids=[
+        "old-subject-new-header",
+        "new-subject-old-header",
+        "old-no-header",
+        "new-no-header",
+    ],
+)
+async def test_process_usps_email_encoded_digest_date(
+    hass, tmp_path, use_cache, encoding, digest_date, date_header, expected_count
+):
+    """Equivalent encoded subjects must preserve which digest images are saved."""
+    subject = f"Your Daily Digest for {digest_date}"
+    if encoding == "quoted":
+        subject = f"=?UTF-8?Q?{subject.replace(' ', '_')}?="
+    elif encoding == "base64":
+        subject = f"=?UTF-8?B?{base64.b64encode(subject.encode()).decode()}?="
+    elif encoding == "folded":
+        # Split across the phrase/date boundary, with different declared charsets.
+        subject = (
+            "=?UTF-8?Q?Your_Daily_Digest_for_?=\r\n "
+            f"=?ISO-8859-1?Q?{digest_date.replace(' ', '_')}?="
+        )
+
+    image_data = f"mailpiece for {digest_date}".encode()
+    headers = f"Subject: {subject}\r\n"
+    if date_header:
+        headers += f"Date: {date_header}\r\n"
+    raw_email = (
+        headers
+        + 'Content-Type: text/html; charset="utf-8"\r\n\r\n'
+        + '<img id="mailpiece-image-src-id" src="data:image/jpeg;base64,'
+        + base64.b64encode(image_data).decode()
+        + '">'
+    ).encode()
+    account = AsyncMock()
+    cache = EmailCache(account) if use_cache else None
+    if cache:
+        cache.store("1", "(RFC822)", ("OK", [raw_email]))
+
+    shipper = USPSShipper(hass, {})
+    with patch(
+        "custom_components.mail_and_packages.shippers.usps.email_fetch",
+        return_value=("OK", [raw_email]),
+    ) as mock_fetch:
+        count, images, content = await shipper._process_usps_email(
+            account, "1", str(tmp_path), 0, [], cache, date(2026, 10, 8)
+        )
+
+    assert count == expected_count
+    assert len(images) == expected_count
+    assert set(tmp_path.iterdir()) == {Path(image) for image in images}
+    if expected_count:
+        assert (
+            await hass.async_add_executor_job(Path(images[0]).read_bytes) == image_data
+        )
+        assert content == raw_email.decode()
+    else:
+        assert content == ""
+    if use_cache:
+        mock_fetch.assert_not_awaited()
+    else:
+        mock_fetch.assert_awaited_once_with(account, "1", "(RFC822)")
+    account.fetch.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "subject",
+    [
+        None,
+        "",
+        "USPS Notification",
+        "=?unknown-charset?Q?Your_Daily_Digest_for_Thu,_Oct_8?=",
+        "=?utf-8?B?/w==?=",
+        "=?utf-8?B?A?=",
+    ],
+    ids=[
+        "missing",
+        "empty",
+        "no-date",
+        "unknown-charset",
+        "invalid-utf8",
+        "invalid-base64",
+    ],
+)
+@pytest.mark.parametrize(
+    ("date_header", "expected_content"),
+    [("07 Oct 2026 12:00:00", False), ("Invalid Date", True), (None, True)],
+    ids=["old-header", "invalid-header", "no-header"],
+)
+async def test_process_usps_email_subject_fallback(
+    hass, tmp_path, subject, date_header, expected_content
+):
+    """Undecodable or missing subjects retain the existing date fallback policy."""
+    headers = ""
+    if subject is not None:
+        headers += f"Subject: {subject}\r\n"
+    if date_header is not None:
+        headers += f"Date: {date_header}\r\n"
+    raw_email = (headers + "\r\nSynthetic body").encode()
+
+    shipper = USPSShipper(hass, {})
+    with patch(
+        "custom_components.mail_and_packages.shippers.usps.email_fetch",
+        return_value=("OK", [raw_email]),
+    ):
+        count, images, content = await shipper._process_usps_email(
+            AsyncMock(), "1", str(tmp_path), 0, [], target_date=date(2026, 10, 8)
+        )
+
+    assert count == 0
+    assert images == []
+    assert content == (raw_email.decode() if expected_content else "")
 
 
 def test_extract_digest_target_date():
