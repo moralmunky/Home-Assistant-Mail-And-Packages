@@ -4,6 +4,7 @@ import datetime as dt
 import re
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import format_datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -1264,6 +1265,8 @@ async def test_amazon_de_versendet_ankunft_emails(hass):
         },
     )
     mock_account = AsyncMock()
+    # This test covers German arrival wording on the local day, not timezone conversion.
+    sent_at = format_datetime(dt.datetime(2026, 7, 22, 3, 19).astimezone())
 
     with (
         patch(
@@ -1282,8 +1285,8 @@ async def test_amazon_de_versendet_ankunft_emails(hass):
     ):
         content = (
             b"Subject: =?utf-8?Q?Versendet:_=E2=80=9EHASKYY_Goldband=E2=80=9C?=\n"
-            b"Date: Wed, 22 Jul 2026 03:19:00 +0200\n"
-            b"Content-Type: text/plain; charset=utf-8\n\n"
+            + f"Date: {sent_at}\n".encode()
+            + b"Content-Type: text/plain; charset=utf-8\n\n"
             b"Dein Paket wurde versendet!\n"
             b"Ankunft heute\n"
             b"Order: 303-1873062-3277126"
