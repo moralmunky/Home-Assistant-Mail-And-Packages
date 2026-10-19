@@ -2,6 +2,7 @@
 
 import base64
 from datetime import date
+from email.message import EmailMessage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
@@ -681,6 +682,78 @@ async def test_extract_jpeg_attachment_path_traversal_prevention(hass, tmp_path)
     # Ensure saved file stays within output directory and doesn't use the traversal name
     assert saved_path.parent.resolve() == output_dir.resolve()
     assert saved_path.name == "safe_random.jpg"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("attachment_name", "include_attachment"),
+    [
+        ("ra_0.jpg", False),
+        ("prefix_ra_0.jpg", False),
+        ("Mail Attachment.txt", False),
+        ("mailerProvidedImage.jpg", False),
+        ("content.jpg", False),
+        ("package.jpg", False),
+        ("image002.jpg", True),
+        ("../../scan.jpg", True),
+        ("/untrusted/scan.jpg", True),
+        (None, False),
+    ],
+)
+async def test_process_usps_email_filters_attachment_names_before_randomizing(
+    hass, tmp_path, attachment_name, include_attachment
+):
+    """Known announcement names stay excluded after safe output names replace them."""
+    msg = EmailMessage()
+    msg["Subject"] = "Your Daily Digest for Mon, Oct 19"
+    msg["Date"] = "Mon, 19 Oct 2026 09:00:00 -0400"
+    msg.set_content("Synthetic digest")
+    msg.add_alternative(
+        '<img id="mailpiece-image-src-id" src="cid:scan">'
+        '<img id="campaign-ridealong-image-src-id" src="cid:extra">',
+        subtype="html",
+    )
+    html_part = msg.get_payload()[1]
+    html_part.add_related(
+        b"synthetic scan",
+        maintype="image",
+        subtype="jpeg",
+        cid="<scan>",
+        filename="scan.jpg",
+    )
+    options = {"filename": attachment_name} if attachment_name else {}
+    html_part.add_related(
+        b"synthetic attachment",
+        maintype="image",
+        subtype="jpeg",
+        cid="<extra>",
+        **options,
+    )
+    account = AsyncMock()
+    cache = EmailCache(account)
+    cache.store("1", "(RFC822)", ("OK", [msg.as_bytes()]))
+    shipper = USPSShipper(hass, {})
+
+    count, images, content = await shipper._process_usps_email(
+        account, "1", str(tmp_path), 0, [], cache, date(2026, 10, 19)
+    )
+    filtered = await shipper._process_usps_images(content, images)
+
+    expected_count = 2 if include_attachment else 1
+    assert count == expected_count
+    assert len(filtered) == expected_count
+    assert set(tmp_path.iterdir()) == {Path(image) for image in filtered}
+    saved_payloads = set()
+    for image in filtered:
+        saved_path = Path(image)
+        assert saved_path.parent == tmp_path
+        assert saved_path.name not in ("scan.jpg", attachment_name)
+        saved_payloads.add(await hass.async_add_executor_job(saved_path.read_bytes))
+    expected_payloads = {b"synthetic scan"}
+    if include_attachment:
+        expected_payloads.add(b"synthetic attachment")
+    assert saved_payloads == expected_payloads
+    account.fetch.assert_not_awaited()
 
 
 @pytest.mark.asyncio

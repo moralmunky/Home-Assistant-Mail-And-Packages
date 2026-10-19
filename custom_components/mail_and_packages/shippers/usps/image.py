@@ -81,7 +81,8 @@ async def extract_jpeg_attachment(
     """Extract image from JPEG attachment."""
     _LOGGER.debug("Extracting image from email attachment")
     filename = part.get_filename()
-    junkmail = ["mailer", "content", "package"]
+    # Filter announcement names before randomizing the saved filename.
+    junkmail = ["mailer", "content", "package", "ra_0", "Mail Attachment.txt"]
     if filename is None:
         return image_count, images
     if any(junk in filename for junk in junkmail):
