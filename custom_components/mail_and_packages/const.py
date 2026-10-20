@@ -235,6 +235,7 @@ AMAZON_DELIVERING = "amazon_delivering"
 AMAZON_IMG_LIST = [
     "us-prod-temp.s3.amazonaws.com",
     "gb-prod-temp.s3.eu-west-1.amazonaws.com",
+    "jp-prod-temp.s3.us-west-2.amazonaws.com",
 ]
 AMAZON_IMG_PATTERN = (
     "(https://)([\\w_-]+(?:(?:\\.[\\w_-]+)+))([\\w.,@?^=%&:/~+#-;]*[\\w@?^=%&/~+#-;])?"

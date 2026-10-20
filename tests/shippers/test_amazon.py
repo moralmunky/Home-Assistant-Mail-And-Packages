@@ -1507,3 +1507,31 @@ async def test_amazon_packages_order_details(hass):
     assert details["702-4925201-8953856"]["image"].startswith(
         "https://m.media-amazon.com/images/I/"
     )
+
+
+@pytest.mark.parametrize(
+    "host",
+    [
+        "us-prod-temp.s3.amazonaws.com",
+        "gb-prod-temp.s3.eu-west-1.amazonaws.com",
+        "jp-prod-temp.s3.us-west-2.amazonaws.com",
+    ],
+)
+def test_extract_amazon_image_urls_accepts_delivery_photo_hosts(host):
+    """Delivery photo hosts for US, UK and AU emails are accepted."""
+    from email.message import EmailMessage
+
+    from custom_components.mail_and_packages.shippers.amazon.helpers import (
+        _extract_amazon_image_urls,
+    )
+
+    url = f"https://{host}/imageId-76d0abad-c156-118b-bf25-acadf606d030"
+    msg = EmailMessage()
+    msg.set_content("plain")
+    msg.add_alternative(
+        f'<html><img src="{url}"><img src="https://m.media-amazon.com/images/I/x.jpg">'
+        "</html>",
+        subtype="html",
+    )
+
+    assert _extract_amazon_image_urls(msg) == [url]
