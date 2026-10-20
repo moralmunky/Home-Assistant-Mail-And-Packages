@@ -2,6 +2,7 @@
 
 import datetime as dt
 import re
+from email.message import EmailMessage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import format_datetime
@@ -25,6 +26,9 @@ from custom_components.mail_and_packages.const import (
     CONF_FORWARDING_HEADER,
 )
 from custom_components.mail_and_packages.shippers.amazon import AmazonShipper
+from custom_components.mail_and_packages.shippers.amazon.helpers import (
+    _extract_amazon_image_urls,
+)
 from custom_components.mail_and_packages.utils.amazon import (
     _extract_hub_code,
     amazon_date_regex,
@@ -1519,12 +1523,6 @@ async def test_amazon_packages_order_details(hass):
 )
 def test_extract_amazon_image_urls_accepts_delivery_photo_hosts(host):
     """Delivery photo hosts for US, UK and AU emails are accepted."""
-    from email.message import EmailMessage
-
-    from custom_components.mail_and_packages.shippers.amazon.helpers import (
-        _extract_amazon_image_urls,
-    )
-
     url = f"https://{host}/imageId-76d0abad-c156-118b-bf25-acadf606d030"
     msg = EmailMessage()
     msg.set_content("plain")
