@@ -57,4 +57,4 @@ Out of scope:
 
 - Vulnerabilities in Home Assistant itself. Report them through the [Home Assistant security policy](https://www.home-assistant.io/security/).
 - Vulnerabilities in third-party libraries. Report them to that library's maintainers.
-- Attacks that require control of the Home Assistant host or a Home Assistant administrator account.
+- Attacks that require control of the Home Assistant host or a Home Assistant login.
