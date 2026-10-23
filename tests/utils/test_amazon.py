@@ -138,6 +138,8 @@ def test_amazon_date_regex_default():
     """Test amazon_date_regex with default patterns."""
     # AMAZON_TIME_PATTERN_REGEX contains "Arriving (\w+ \d+)"
     assert amazon_date_regex("Arriving March 25") == "March 25"
+    assert amazon_date_regex("Expected by Fri, Oct 23") == "Fri, Oct 23"
+    assert amazon_date_regex("Expected by Oct 23") == "Oct 23"
 
 
 @pytest.mark.asyncio

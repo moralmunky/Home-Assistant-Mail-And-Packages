@@ -271,6 +271,7 @@ AMAZON_TIME_PATTERN = [
     "In arrivo",
     "Zustellung:",
     "Ankunft",
+    "Expected by",
 ]
 AMAZON_TIME_PATTERN_END = [
     "Previously expected:",
@@ -292,6 +293,11 @@ AMAZON_TIME_PATTERN_REGEX = [
     "Arriving (\\w+ \\d+)",
     "Arriving (\\w+ ?\\d*)",
     "Arriving (\\w+)",
+    "Expected by (\\w+ \\d+) - (\\w+ \\d+)",
+    "Expected by (\\w+,? \\w+ \\d+)",
+    "Expected by (\\w+ \\d+)",
+    "Expected by (\\w+ ?\\d*)",
+    "Expected by (\\w+)",
     "Zustellung:? (heute)",
     "Zustellung:? (\\w+ \\d+) - (\\w+ \\d+)",
     "Zustellung:? (\\w+ \\d+)",
