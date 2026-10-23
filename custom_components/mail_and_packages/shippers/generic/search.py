@@ -38,7 +38,7 @@ class GenericSearchMixin:
         if (
             since_date
             and sensor_type.endswith(
-                ("_delivering", "_exception", "_delivered", "_packages")
+                ("_delivering", "_exception", "_delivered", "_packages", "_pickup")
             )
             and sensor_type not in {"dpd_uk_delivering", "post_de_delivering"}
         ):

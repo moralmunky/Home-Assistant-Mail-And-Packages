@@ -11,6 +11,7 @@ from typing import Any
 
 import anyio
 from aioimaplib import IMAP4_SSL
+from homeassistant.util import dt as dt_util
 
 from custom_components.mail_and_packages.const import (
     ATTR_COUNT,
@@ -74,6 +75,7 @@ from .helpers import (
 from .helpers import (
     _verify_matched_subjects as helper_verify_matched_subjects,
 )
+from .pickup import parse_pickup, summarize_pickups
 from .search import GenericSearchMixin
 
 _LOGGER = logging.getLogger(__name__)
@@ -113,6 +115,23 @@ class GenericShipper(GenericBatchMixin, GenericSearchMixin, Shipper):
     def handles_sensor(cls, sensor_type: str) -> bool:
         """Return True if this shipper handles the given sensor type."""
         return sensor_type in SENSOR_DATA
+
+    @staticmethod
+    async def _pickup_details(account, cache, found_data):
+        """Read matched pickup messages and summarize their current state."""
+        events = []
+        for ids in found_data:
+            for email_id in ids.split():
+                _, messages = (
+                    await cache.fetch(email_id, "(RFC822)", shipper="usps_pickup")
+                    if cache
+                    else await email_fetch(account, email_id, "(RFC822)")
+                )
+                for raw_message in messages:
+                    if isinstance(raw_message, (bytes, bytearray)):
+                        if event := parse_pickup(raw_message):
+                            events.append(event)
+        return summarize_pickups(events, dt_util.now().date())
 
     async def process(
         self,
@@ -199,6 +218,12 @@ class GenericShipper(GenericBatchMixin, GenericSearchMixin, Shipper):
 
         if is_delivered and not image_found:
             image_found = await self._fetch_carrier_photo(shipper_cfg, result)
+
+        if sensor_type == "usps_pickup":
+            result["usps_pickup_details"] = await self._pickup_details(
+                account, cache, found_data
+            )
+            count = result["usps_pickup_details"]["packages"] or 0
 
         result[ATTR_COUNT] = count
         await self._finalize_shipper_image(shipper_cfg, image_path, image_found, result)

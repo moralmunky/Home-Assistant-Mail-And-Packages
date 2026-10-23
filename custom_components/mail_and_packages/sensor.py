@@ -190,6 +190,9 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
             if tracking := data.get(self._tracking_key):
                 attr[ATTR_TRACKING_NUM] = tracking
 
+        if self.type == "usps_pickup":
+            attr.update(data.get("usps_pickup_details") or {})
+
         if "Amazon" in self._name:
             self._add_amazon_attributes(attr, data)
         elif self._name == "Mail USPS Mail":
