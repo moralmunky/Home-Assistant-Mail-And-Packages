@@ -1201,6 +1201,23 @@ SENSOR_DATA = {
             "(?:[A-Z]{2}[0-9][0-9A-Z]{13,15}|[A-Z]{2}[0-9]{9}[A-Z]{2}|[0-9]{13}|[0-9]{20})"
         ],
     },
+    # Temu
+    "temu_delivered": {
+        "email": ["orders@transaction.temu.com"],
+        "subject": ["Your Temu order delivered notification"],
+    },
+    "temu_delivering": {
+        "email": ["orders@transaction.temu.com"],
+        "subject": [
+            "Order shipped and GOFO tracking number is ready",
+            "Order shipped and FedEx tracking number is ready",
+            "Your Temu order has been transferred to GOFO for delivery",
+            "Your Temu package is arriving soon",
+        ],
+    },
+    "temu_packages": {},
+    # GOFO uses GFUS plus twelve digits; FedEx uses twelve digits.
+    "temu_tracking": {"pattern": ["(?:GFUS[0-9]{12}|(?<![0-9])[0-9]{12}(?![0-9]))"]},
     # DPD Netherlands
     "dpd_nl_delivered": {
         "email": [
@@ -1598,6 +1615,24 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="aliexpress_packages",
+    ),
+    "temu_delivered": SensorEntityDescription(
+        name="Mail Temu Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="temu_delivered",
+    ),
+    "temu_delivering": SensorEntityDescription(
+        name="Mail Temu Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="temu_delivering",
+    ),
+    "temu_packages": SensorEntityDescription(
+        name="Mail Temu Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="temu_packages",
     ),
     # Canada Post
     "capost_delivered": SensorEntityDescription(
@@ -2464,6 +2499,7 @@ SENSOR_ICON = 2
 # Regexes are applied case-insensitively to the email text parts; group 1 is
 # the carrier tracking number.
 MARKETPLACE_CARRIER_TRACKING = {
+    "temu": r"(?:tracking number is|Waybill no\.|View details on (?:GOFO|FedEx))\s+(GFUS[0-9]{12}|[0-9]{12})",
     "etsy": r"tracking number:?\s*#?([A-Za-z0-9]{8,34})",
     "shopify": r"tracking number:?\s*#?([A-Za-z0-9]{8,34})",
     "home_depot": r"Tracking ID:?\s*#?([A-Za-z0-9]{8,34})",
@@ -2472,6 +2508,7 @@ MARKETPLACE_CARRIER_TRACKING = {
 # For sensors with delivering and delivered statuses
 SHIPPERS = [
     "aliexpress",
+    "temu",
     "amazon",
     "capost",
     "dhl",
