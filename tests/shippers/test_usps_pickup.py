@@ -2,6 +2,8 @@
 
 import re
 from datetime import date
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from unittest.mock import AsyncMock, patch
 
@@ -9,7 +11,7 @@ import pytest
 
 from custom_components.mail_and_packages.const import SENSOR_DATA
 from custom_components.mail_and_packages.sensor import PackagesSensor
-from custom_components.mail_and_packages.shippers.generic import GenericShipper
+from custom_components.mail_and_packages.shippers.generic import GenericShipper, pickup
 from custom_components.mail_and_packages.shippers.generic.pickup import (
     parse_pickup,
     summarize_pickups,
@@ -37,12 +39,14 @@ COMPLETION = """<html><body>
 </body></html>"""
 
 
-def message(html, completed=False):
-    """Build an email with the real subject and redacted HTML structure."""
+def message(html, completed=False, subject=None):
+    """Build an email with redacted HTML and a selectable subject."""
     msg = MIMEText(html, "html")
-    msg["Subject"] = "USPS - Your Package Pickup Request" + (
-        "" if completed else " Confirmation"
-    )
+    if subject is None:
+        subject = "USPS - Your Package Pickup Request" + (
+            "" if completed else " Confirmation"
+        )
+    msg["Subject"] = subject
     return msg.as_bytes()
 
 
@@ -53,6 +57,76 @@ def booking(when, ref="WEC784165980", packages=16):
         .replace("WEC784165980", ref)
         .replace("<span>16</span>", f"<span>{packages}</span>")
     )
+
+
+def test_parse_pickup_rejects_unrecognized_subject():
+    """Reject unrelated messages."""
+    assert parse_pickup(message(CONFIRMATION, subject="Other")) is None
+
+
+def test_parse_pickup_rejects_unexpected_subject_suffix():
+    """Reject unsupported USPS subject suffixes."""
+    subject = "USPS - Your Package Pickup Request Update"
+    assert parse_pickup(message(CONFIRMATION, subject=subject)) is None
+
+
+def test_html_part_without_bytes_payload(monkeypatch):
+    """Ignore an HTML part with a nonbytes decoded payload."""
+    msg = MIMEMultipart()
+    part = MIMEBase("text", "html")
+    msg.attach(part)
+    monkeypatch.setattr(part, "get_payload", lambda decode=True: "text")
+    assert pickup._pickup_text(msg) == ""
+
+
+def test_parse_pickup_with_empty_html_body():
+    """Return no pickup when an HTML part has an empty body."""
+    msg = MIMEText("", "html")
+    msg["Subject"] = "USPS - Your Package Pickup Request Confirmation"
+    assert parse_pickup(msg.as_bytes()) is None
+
+
+def test_parse_pickup_without_html_body():
+    """Return no pickup for plain text mail."""
+    assert parse_pickup(MIMEText("plain text").as_bytes()) is None
+
+
+def test_completed_pickup_with_spaces_in_subject():
+    """Normalize surrounding whitespace in a completion subject."""
+    html = COMPLETION
+    msg = MIMEText(html, "html")
+    msg["Subject"] = " USPS - Your Package Pickup Request "
+    assert parse_pickup(msg.as_bytes())["completed"] is True
+
+
+def test_parse_pickup_requires_completion_phrase():
+    """Require the USPS completion phrase."""
+    html = "<html>Scheduled Pickup Date: 10/20/2026 Confirmation #: WEC123456789</html>"
+    assert parse_pickup(message(html, completed=True)) is None
+
+
+def test_parse_pickup_without_date():
+    """Return no pickup when the date is absent."""
+    assert parse_pickup(message("<html>Confirmation #: WEC123456789</html>")) is None
+
+
+def test_parse_pickup_with_invalid_date():
+    """Reject malformed calendar dates."""
+    html = CONFIRMATION.replace("10/20/2026", "13/40/2026")
+    assert parse_pickup(message(html)) is None
+
+
+def test_parse_pickup_without_reference():
+    """Return no pickup without a reference."""
+    html = "<html>Requested Pickup Date 10/20/2026</html>"
+    assert parse_pickup(message(html)) is None
+
+
+def test_parse_pickup_without_package_count():
+    """Allow a missing package count."""
+    html = "<html>Requested Pickup Date Confirmation # 10/20/2026 WEC123456789</html>"
+    result = parse_pickup(message(html))
+    assert result["packages"] is None
 
 
 def test_real_message_shapes_and_count_regex():
