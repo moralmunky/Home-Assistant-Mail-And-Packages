@@ -363,7 +363,7 @@ SENSOR_DATA = {
     "usps_pickup": {
         "email": ["auto-reply@usps.com"],
         "subject": ["USPS - Your Package Pickup Request"],
-        "body": ["Total Packages: (\\d+)"],
+        "body": [r"Total Packages:(?:\s|<[^>]*>)*(\d+)"],
         "body_count": True,
     },
     "usps_tracking": {"pattern": ["9[2345]\\d{15,26}"]},
