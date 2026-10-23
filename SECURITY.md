@@ -25,7 +25,6 @@ These people triage private reports:
 
 - @moralmunky (maintainer)
 - @firstof9 (maintainer)
-- @jasonjhofmann (security triage)
 
 ### What to include in your report
 
