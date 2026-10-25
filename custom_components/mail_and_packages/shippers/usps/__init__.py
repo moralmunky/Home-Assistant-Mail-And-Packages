@@ -22,8 +22,11 @@ from custom_components.mail_and_packages.const import (
     ATTR_COUNT,
     ATTR_EMAIL,
     ATTR_GRID_IMAGE_NAME,
+    ATTR_HAS_MAIL_IMAGES,
     ATTR_IMAGE_PATH,
+    ATTR_SCANNED_IMAGES,
     ATTR_SUBJECT,
+    ATTR_UNSCANNED_PIECES,
     ATTR_USPS_IMAGE,
     ATTR_USPS_MAIL,
     CONF_CUSTOM_IMG_FILE,
@@ -158,6 +161,9 @@ class USPSShipper(Shipper):
             )
             return {
                 ATTR_COUNT: image_count,
+                ATTR_SCANNED_IMAGES: 0,
+                ATTR_UNSCANNED_PIECES: 0,
+                ATTR_HAS_MAIL_IMAGES: False,
                 ATTR_USPS_IMAGE: config["image_name"],
                 ATTR_IMAGE_PATH: config["image_output_path"],
                 ATTR_GRID_IMAGE_NAME: config["image_name"].replace(".gif", "_grid.png"),
@@ -179,12 +185,31 @@ class USPSShipper(Shipper):
 
         # Process images
         images = await self._process_usps_images(all_msg_content, images)
-        image_count = len(images)
+
+        placeholder_str = str(ASSET_ROOT / "image-no-mailpieces700.jpg")
+        scanned_count = len([img for img in images if img != placeholder_str])
+        has_mail_images = scanned_count > 0
+
+        # Count unscanned mailpieces from both new and legacy USPS Informed Delivery formats
+        unscanned_matches = all_msg_content.count("mailpiece-with-no-image-id")
+        if unscanned_matches == 0:
+            legacy_matches = len(
+                re.findall(r"\bimage-no-mailpieces?700\.jpg\b", all_msg_content)
+            )
+            unscanned_matches = legacy_matches
+        unscanned_count = (
+            unscanned_matches
+            if (unscanned_matches > 0 or placeholder_str not in images)
+            else 1
+        )
+        if placeholder_str in images and unscanned_count == 0:
+            unscanned_count = 1
+
+        total_count = scanned_count + unscanned_count
 
         # Generate filtered list for GIF/MP4/Grid
         gif_images = images.copy()
         if not config.get("usps_placeholder", True):
-            placeholder_str = str(ASSET_ROOT / "image-no-mailpieces700.jpg")
             if placeholder_str in gif_images:
                 gif_images.remove(placeholder_str)
 
@@ -192,7 +217,10 @@ class USPSShipper(Shipper):
         await self._create_camera_media(gif_images, config, images_delete)
 
         return {
-            ATTR_COUNT: image_count,
+            ATTR_COUNT: total_count,
+            ATTR_SCANNED_IMAGES: scanned_count,
+            ATTR_UNSCANNED_PIECES: unscanned_count,
+            ATTR_HAS_MAIL_IMAGES: has_mail_images,
             ATTR_USPS_IMAGE: config["image_name"],
             ATTR_IMAGE_PATH: config["image_output_path"],
             ATTR_GRID_IMAGE_NAME: config["image_name"].replace(".gif", "_grid.png"),
@@ -266,7 +294,7 @@ class USPSShipper(Shipper):
         """Process USPS images (placeholder and filtering)."""
         # Old USPS format: plain-text email body contained the filename as a reference.
         # New format is handled in _extract_usps_images on properly decoded HTML.
-        if re.compile(r"\bimage-no-mailpieces?700\.jpg\b").search(content) is not None:
+        if re.findall(r"\bimage-no-mailpieces?700\.jpg\b", content):
             placeholder = ASSET_ROOT / "image-no-mailpieces700.jpg"
             placeholder_str = str(placeholder)
             if placeholder.exists() and placeholder_str not in images:

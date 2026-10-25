@@ -38,12 +38,15 @@ from .const import (
     AMAZON_OTP_CODE,
     ATTR_CODE,
     ATTR_GRID_IMAGE_NAME,
+    ATTR_HAS_MAIL_IMAGES,
     ATTR_IMAGE,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
     ATTR_ORDER,
     ATTR_ORDER_DETAILS,
+    ATTR_SCANNED_IMAGES,
     ATTR_TRACKING_NUM,
+    ATTR_UNSCANNED_PIECES,
     ATTR_USPS_IMAGE,
     CONF_ALLOW_EXTERNAL,
     CONF_PATH,
@@ -196,10 +199,17 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
         if "Amazon" in self._name:
             self._add_amazon_attributes(attr, data)
         elif self._name == "Mail USPS Mail":
-            if image_name := data.get(ATTR_IMAGE_NAME):
-                attr[ATTR_IMAGE] = image_name
+            self._add_usps_mail_attributes(attr, data)
 
         return attr
+
+    def _add_usps_mail_attributes(self, attr: dict, data: dict) -> None:
+        """Add USPS Mail specific attributes to the sensor."""
+        if image_name := data.get(ATTR_IMAGE_NAME):
+            attr[ATTR_IMAGE] = image_name
+        for key in (ATTR_SCANNED_IMAGES, ATTR_UNSCANNED_PIECES, ATTR_HAS_MAIL_IMAGES):
+            if key in data:
+                attr[key] = data[key]
 
     def _add_amazon_order_attributes(self, attr: dict, data: dict, order: Any) -> None:
         """Attach the order list plus per-order item details when available."""
