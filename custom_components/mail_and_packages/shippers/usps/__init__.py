@@ -197,13 +197,11 @@ class USPSShipper(Shipper):
                 re.findall(r"\bimage-no-mailpieces?700\.jpg\b", all_msg_content)
             )
             unscanned_matches = legacy_matches
-        unscanned_count = (
-            unscanned_matches
-            if (unscanned_matches > 0 or placeholder_str not in images)
-            else 1
-        )
-        if placeholder_str in images and unscanned_count == 0:
-            unscanned_count = 1
+
+        if placeholder_str in images:
+            unscanned_count = max(1, unscanned_matches)
+        else:
+            unscanned_count = unscanned_matches
 
         total_count = scanned_count + unscanned_count
 
