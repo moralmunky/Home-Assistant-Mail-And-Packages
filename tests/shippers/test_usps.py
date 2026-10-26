@@ -13,7 +13,10 @@ import pytest
 from custom_components.mail_and_packages.const import (
     ATTR_COUNT,
     ATTR_GRID_IMAGE_NAME,
+    ATTR_HAS_MAIL_IMAGES,
     ATTR_IMAGE_PATH,
+    ATTR_SCANNED_IMAGES,
+    ATTR_UNSCANNED_PIECES,
     ATTR_USPS_IMAGE,
     CONF_DURATION,
     CONF_FORWARDING_HEADER,
@@ -284,6 +287,9 @@ async def test_informed_delivery_placeholder_image(hass):
         result = await shipper.process(mock_account, "today", "usps_mail")
         # should find 1 placeholder
         assert result[ATTR_COUNT] == 1
+        assert result[ATTR_SCANNED_IMAGES] == 0
+        assert result[ATTR_UNSCANNED_PIECES] == 1
+        assert result[ATTR_HAS_MAIL_IMAGES] is False
 
 
 @pytest.mark.asyncio
@@ -343,6 +349,81 @@ async def test_informed_delivery_placeholder_image_new_format(hass):
     ):
         result = await shipper.process(mock_account, "today", "usps_mail")
         assert result[ATTR_COUNT] == 1
+        assert result[ATTR_SCANNED_IMAGES] == 0
+        assert result[ATTR_UNSCANNED_PIECES] == 1
+        assert result[ATTR_HAS_MAIL_IMAGES] is False
+
+
+@pytest.mark.asyncio
+async def test_informed_delivery_mixed_scanned_and_multiple_unscanned(hass):
+    """Test USPS Informed Delivery with both scanned images and multiple unscanned pieces."""
+    shipper = USPSShipper(
+        hass,
+        {
+            "image_path": "test/path/usps/",
+            "usps_image": "mail_today.gif",
+            CONF_DURATION: 5,
+            "usps_placeholder": False,
+        },
+    )
+
+    html_content = (
+        "<html><body>"
+        '<img id="mailpiece-image-src-id" src="data:image/jpeg;base64,VEVTVF9JTUFHRQ==">'
+        '<div id="mailpiece-with-no-image-id"><p>Piece 1</p></div>'
+        '<div id="mailpiece-with-no-image-id"><p>Piece 2</p></div>'
+        "</body></html>"
+    )
+    msg = MIMEMultipart("alternative")
+    msg.attach(MIMEText(html_content, "html"))
+    msg_bytes = msg.as_bytes()
+
+    mock_account = AsyncMock()
+    mock_account.search.return_value = MagicMock(result="OK", lines=[b"1"])
+    mock_account.fetch.return_value = MagicMock(
+        result="OK",
+        lines=[b"RFC822", msg_bytes],
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.usps.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.usps.copy_overlays"),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.Path.exists",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.image.io_save_file",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.image.random_filename",
+            return_value="test/path/usps/mailpiece1.jpg",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.resize_images",
+            return_value=["test/path/usps/mailpiece1.jpg"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.generate_delivery_gif",
+        ) as mock_gif,
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
+            return_value="25-Sep-2020",
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", "usps_mail")
+        assert result[ATTR_COUNT] == 3
+        assert result[ATTR_SCANNED_IMAGES] == 1
+        assert result[ATTR_UNSCANNED_PIECES] == 2
+        assert result[ATTR_HAS_MAIL_IMAGES] is True
+        mock_gif.assert_called_once()
+        # Ensure placeholder was not included in camera media
+        called_images = mock_gif.call_args[0][0]
+        assert "image-no-mailpieces700.jpg" not in str(called_images)
 
 
 @pytest.mark.asyncio

@@ -15,9 +15,12 @@ from custom_components.mail_and_packages.const import (
     AMAZON_EXCEPTION,
     AMAZON_ORDER,
     AMAZON_ORDER_DETAILS,
+    ATTR_HAS_MAIL_IMAGES,
     ATTR_IMAGE_PATH,
     ATTR_ORDER,
     ATTR_ORDER_DETAILS,
+    ATTR_SCANNED_IMAGES,
+    ATTR_UNSCANNED_PIECES,
     CONF_ALLOW_EXTERNAL,
     DOMAIN,
 )
@@ -55,6 +58,9 @@ async def test_sensor(hass, mock_update, entity_registry: er.EntityRegistry):
     assert state.state == "6"
 
     assert state.attributes["image"] == "mail_today.gif"
+    assert state.attributes[ATTR_SCANNED_IMAGES] == 5
+    assert state.attributes[ATTR_UNSCANNED_PIECES] == 1
+    assert state.attributes[ATTR_HAS_MAIL_IMAGES] is True
 
     state = s("mail_usps_delivered")
     assert state

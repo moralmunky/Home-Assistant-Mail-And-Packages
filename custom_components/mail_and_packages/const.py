@@ -64,6 +64,9 @@ ATTR_USPS_IMAGE = "usps_image"
 ATTR_POST_DE_IMAGE = "post_de_image"
 ATTR_HOME_DEPOT_IMAGE = "home_depot_image"
 ATTR_BUTCHERBOX_IMAGE = "butcherbox_image"
+ATTR_SCANNED_IMAGES = "scanned_images"
+ATTR_UNSCANNED_PIECES = "unscanned_pieces"
+ATTR_HAS_MAIL_IMAGES = "has_mail_images"
 
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"
