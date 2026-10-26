@@ -26,7 +26,10 @@ This skill defines the requirements for adding or updating carrier-specific ship
   - *Why it must remain `{}`*: An empty config signals to the shipper and coordinator processing engines that the sensor does not perform its own IMAP searches; instead, its value is automatically calculated as a computed rollup total (`delivering + delivered`).
 * For complete architectural details and design rationales on why general "in-transit" packages are excluded, consult [docs/architecture.md](file:///home/firstof9/github/Home-Assistant-Mail-And-Packages/docs/architecture.md).
 
-### 4. Testing New Shippers
+### 4. Shipper Icons
+* When adding a new shipper, please add an appropriate carrier icon to resources/icons.zip if one is available, using a clear carrier-specific filename. If no suitable icon is available, document that in the PR description rather than silently omitting the icon.
+
+### 5. Testing New Shippers
 * Create a corresponding test file under `tests/shippers/` (e.g. `test_new_shipper.py`).
 * Use the shared mock fixtures and mock IMAP client overrides defined in [conftest.py](file:///home/firstof9/github/Home-Assistant-Mail-And-Packages/tests/conftest.py).
 * Verify that email content parsing, sensor values, and edge cases (such as subject mismatches or empty bodies) are fully covered.
