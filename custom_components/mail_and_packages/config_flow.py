@@ -134,7 +134,6 @@ class MailAndPackagesFlowHandler(
     """Config flow for Mail and Packages."""
 
     VERSION = CONFIG_VER
-    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
     DOMAIN = DOMAIN
 
     @classmethod
