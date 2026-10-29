@@ -187,7 +187,7 @@ async def login(
 
     try:
         await _authenticate_imap_account(account, user, pwd, oauth_token, timeout)
-    except BaseException:
+    except Exception:
         await logout(account)
         raise
 
