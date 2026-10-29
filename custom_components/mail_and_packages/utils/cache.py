@@ -22,6 +22,24 @@ STORAGE_VERSION = 1
 STORAGE_KEY = "mail_and_packages.email_cache"
 
 
+def get_cache_store_key(entry_id: str | None = None) -> str:
+    """Return the persistent storage key for an email cache instance."""
+    if entry_id:
+        return f"{STORAGE_KEY}.{entry_id}"
+    return STORAGE_KEY
+
+
+async def async_remove_cache(hass: HomeAssistant, entry_id: str) -> None:
+    """Remove the persistent email cache store for a config entry."""
+    store: Store[dict[str, Any]] = Store(
+        hass, STORAGE_VERSION, get_cache_store_key(entry_id)
+    )
+    try:
+        await store.async_remove()
+    except OSError as err:
+        _LOGGER.warning("Failed to remove email cache for entry %s: %s", entry_id, err)
+
+
 class EmailCache:
     """Cache for IMAP email fetches to avoid duplicate downloads across scans."""
 

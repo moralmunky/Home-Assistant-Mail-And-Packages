@@ -12,7 +12,7 @@ This skill documents the design patterns, byte-preservation rules, and expiratio
 The `EmailCache` utility (`custom_components/mail_and_packages/utils/cache.py`) avoids duplicate IMAP email re-downloads across update cycles by leveraging Home Assistant's `Store` helper (`homeassistant.helpers.storage.Store`).
 
 - **Cache Keying**: Persistent store entries are keyed by `f"{eid_str}:{parts}"` (e.g. `"101:(RFC822)"`, `"102:HEADER"`) to store specific fetch payloads distinctly.
-- **Singleton Lifecycle**: Managed as a single persistent instance on `MailDataUpdateCoordinator.email_cache`.
+- **Entry-Scoped Lifecycle**: Managed as a single persistent instance per mailbox on `MailDataUpdateCoordinator.email_cache`, scoped by `entry_id` (`mail_and_packages.email_cache.<entry_id>` via `get_cache_store_key(entry_id)`), and cleaned up via `async_remove_cache` when the config entry is removed.
 - **Transient Caches**: Cleared on every scan cycle via `set_account()` / `clear()`, while `_persistent_store` retains records across Home Assistant restarts.
 
 ## Byte Preservation & Serialization Rules

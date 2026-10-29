@@ -85,6 +85,7 @@ from .summary import (
     summary_entry,
     summary_keys,
 )
+from .utils.cache import async_remove_cache
 from .utils.image import default_image_path, hash_file
 from .views import MailAndPackagesImageView
 
@@ -342,6 +343,8 @@ async def async_remove_entry(
     """Handle removal of an entry and clean up its storage directory."""
     if is_summary_entry(config_entry):
         return
+
+    await async_remove_cache(hass, config_entry.entry_id)
 
     storage_path_str = default_image_path(hass, config_entry)
     storage_dir = Path(hass.config.path(storage_path_str))
