@@ -1246,6 +1246,8 @@ def test_dhl_delivering_subjects():
     assert "kommt heute" in delivering
     assert "ist unterwegs" not in delivering
     assert SENSOR_DATA["dhl_packages"] == {}
+    assert "paketankuendigung@dhl.de" in SENSOR_DATA["dhl_delivering"]["email"]
+    assert "paketankuendigung@dhl.de" in SENSOR_DATA["dhl_delivered"]["email"]
 
 
 def _load_email(name: str) -> bytes:
