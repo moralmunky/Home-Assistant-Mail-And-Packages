@@ -321,6 +321,7 @@ async def test_get_imap_connection_invalid_auth(hass):
 async def test_get_imap_connection_exception(hass):
     """Test _get_imap_connection handles generic Exception."""
     coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+    issue_registry = ir.async_get(hass)
 
     with (
         patch(
@@ -330,6 +331,23 @@ async def test_get_imap_connection_exception(hass):
         pytest.raises(UpdateFailed, match="Login failed"),
     ):
         await coordinator._get_imap_connection(FAKE_CONFIG_DATA)
+
+    assert (DOMAIN, "auth_failed") not in issue_registry.issues
+
+    # Transient Exchange XOAUTH2 backend error raises UpdateFailed without creating auth_failed repair
+    with (
+        patch(
+            "custom_components.mail_and_packages.coordinator.login",
+            side_effect=AioImapException("User is authenticated but not connected."),
+        ),
+        pytest.raises(
+            UpdateFailed,
+            match="Login failed: User is authenticated but not connected",
+        ),
+    ):
+        await coordinator._get_imap_connection(FAKE_CONFIG_DATA)
+
+    assert (DOMAIN, "auth_failed") not in issue_registry.issues
 
 
 @pytest.mark.asyncio

@@ -2232,6 +2232,91 @@ async def test_login_oauth_failed(caplog):
             "OAuth login failed. Result: NO, Lines: [b'AUTHENTICATIONFAILED']"
             in caplog.text
         )
+        mock_acc.logout.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_login_oauth_authenticated_but_not_connected(caplog):
+    """Test Exchange transient 'User is authenticated but not connected.' raises AioImapException instead of InvalidAuth."""
+    mock_hass = _mock_hass()
+    with patch(
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+    ) as mock_imap_ssl:
+        mock_acc = AsyncMock()
+        mock_acc.protocol.state = NONAUTH
+        mock_res = MagicMock(
+            result="NO",
+            lines=[b"User is authenticated but not connected."],
+        )
+        mock_acc.xoauth2.return_value = mock_res
+        mock_imap_ssl.return_value = mock_acc
+
+        with pytest.raises(
+            AioImapException, match="User is authenticated but not connected"
+        ):
+            await login(
+                mock_hass,
+                "outlook.office365.com",
+                993,
+                "user@example.com",
+                "",
+                "SSL",
+                oauth_token="token",
+            )
+        assert (
+            "OAuth login authenticated but mailbox backend is not connected"
+            in caplog.text
+        )
+        mock_acc.logout.assert_awaited_once()
+
+    # Also cover string lines and non-list lines in _is_transient_oauth_not_connected
+    with patch(
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+    ) as mock_imap_ssl:
+        mock_acc = AsyncMock()
+        mock_acc.protocol.state = NONAUTH
+        mock_acc.xoauth2.return_value = MagicMock(
+            result="NO",
+            lines=["User is authenticated but not connected."],
+        )
+        mock_imap_ssl.return_value = mock_acc
+
+        with pytest.raises(
+            AioImapException, match="User is authenticated but not connected"
+        ):
+            await login(
+                mock_hass,
+                "outlook.office365.com",
+                993,
+                "user@example.com",
+                "",
+                "SSL",
+                oauth_token="token",
+            )
+        mock_acc.logout.assert_awaited_once()
+
+    with patch(
+        "custom_components.mail_and_packages.utils.imap.IMAP4_SSL",
+    ) as mock_imap_ssl:
+        mock_acc = AsyncMock()
+        mock_acc.protocol.state = NONAUTH
+        mock_acc.xoauth2.return_value = MagicMock(
+            result="NO",
+            lines=None,
+        )
+        mock_imap_ssl.return_value = mock_acc
+
+        with pytest.raises(InvalidAuth):
+            await login(
+                mock_hass,
+                "outlook.office365.com",
+                993,
+                "user@example.com",
+                "",
+                "SSL",
+                oauth_token="token",
+            )
+        mock_acc.logout.assert_awaited_once()
 
 
 @pytest.mark.asyncio
