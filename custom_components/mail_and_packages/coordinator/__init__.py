@@ -36,7 +36,10 @@ from custom_components.mail_and_packages.const import (
 )
 from custom_components.mail_and_packages.helpers import copy_images
 from custom_components.mail_and_packages.shippers import get_shipper_for_sensor
-from custom_components.mail_and_packages.utils.cache import EmailCache
+from custom_components.mail_and_packages.utils.cache import (
+    EmailCache,
+    get_cache_store_key,
+)
 from custom_components.mail_and_packages.utils.image import (
     default_image_path,
     hash_file,
@@ -130,7 +133,14 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self._hash_cache = {}
         self._in_transit_tracking: dict[str, dict[str, str]] = {}
         self._mail_delivered_latch_state = MailDeliveredLatchState()
-        self.email_cache = EmailCache(hass=hass)
+        entry_id = (
+            self.config_entry.entry_id
+            if self.config_entry
+            else self.config.get("entry_id")
+        )
+        self.email_cache = EmailCache(
+            hass=hass, store_key=get_cache_store_key(entry_id)
+        )
         self._warned_deprecated_storage = False
 
         _LOGGER.debug("Data will be update every %s", self.interval)

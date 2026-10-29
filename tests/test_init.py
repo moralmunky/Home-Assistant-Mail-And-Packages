@@ -1108,7 +1108,7 @@ async def test_async_setup_entry_creates_storage_dir(hass, tmp_path):
 
 @pytest.mark.asyncio
 async def test_async_remove_entry_removes_storage_dir(hass):
-    """Test that async_remove_entry removes the entry's storage directory."""
+    """Test that async_remove_entry removes the entry's storage directory and email cache."""
     data = {k: v for k, v in FAKE_CONFIG_DATA.items() if k != "storage"}
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -1123,7 +1123,13 @@ async def test_async_remove_entry_removes_storage_dir(hass):
     await test_file.write_text("dummy")
     assert await storage_dir.exists()
 
-    await async_remove_entry(hass, entry)
+    with patch(
+        "custom_components.mail_and_packages.async_remove_cache",
+        new_callable=AsyncMock,
+    ) as mock_remove_cache:
+        await async_remove_entry(hass, entry)
+        mock_remove_cache.assert_awaited_once_with(hass, "entry_scoped_remove_test")
+
     assert not await storage_dir.exists()
 
 

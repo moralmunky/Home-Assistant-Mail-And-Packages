@@ -5,7 +5,12 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from custom_components.mail_and_packages.utils.cache import EmailCache
+from custom_components.mail_and_packages.utils.cache import (
+    STORAGE_KEY,
+    EmailCache,
+    async_remove_cache,
+    get_cache_store_key,
+)
 
 
 @pytest.mark.asyncio
@@ -374,3 +379,66 @@ async def test_email_cache_uidvalidity_invalidation(hass, caplog):
         # None current_uidvalidity: no action taken
         await cache.async_check_uidvalidity("INBOX", None)
         assert cache._uidvalidity["INBOX"] == "67890"
+
+
+def test_get_cache_store_key():
+    """Test get_cache_store_key returns entry-scoped or default storage key."""
+    assert get_cache_store_key() == STORAGE_KEY
+    assert get_cache_store_key(None) == STORAGE_KEY
+    assert get_cache_store_key("") == STORAGE_KEY
+    assert get_cache_store_key("abc123") == f"{STORAGE_KEY}.abc123"
+
+
+@pytest.mark.asyncio
+async def test_email_cache_isolated_between_entries(hass, caplog):
+    """Test two EmailCache instances with entry-scoped keys do not collide on UIDVALIDITY."""
+    cache_a = EmailCache(hass=hass, store_key=get_cache_store_key("entry_a"))
+    cache_b = EmailCache(hass=hass, store_key=get_cache_store_key("entry_b"))
+
+    assert cache_a._store.key == f"{STORAGE_KEY}.entry_a"
+    assert cache_b._store.key == f"{STORAGE_KEY}.entry_b"
+
+    cache_a.store("101", "(RFC822)", ("OK", [b"mail a"]))
+    cache_b.store("101", "(RFC822)", ("OK", [b"mail b"]))
+
+    await cache_a.async_check_uidvalidity("INBOX", "657910205")
+    await cache_b.async_check_uidvalidity("INBOX", "1")
+    await cache_a.async_save()
+    await cache_b.async_save()
+
+    # Reload from disk into fresh instances and verify alternating scans don't invalidate
+    reloaded_a = EmailCache(hass=hass, store_key=get_cache_store_key("entry_a"))
+    reloaded_b = EmailCache(hass=hass, store_key=get_cache_store_key("entry_b"))
+    await reloaded_a.async_load()
+    await reloaded_b.async_load()
+
+    await reloaded_a.async_check_uidvalidity("INBOX", "657910205")
+    await reloaded_b.async_check_uidvalidity("INBOX", "1")
+
+    assert "UIDVALIDITY changed" not in caplog.text
+    assert reloaded_a.get_cached("101", "(RFC822)") == ("OK", [b"mail a"])
+    assert reloaded_b.get_cached("101", "(RFC822)") == ("OK", [b"mail b"])
+
+
+@pytest.mark.asyncio
+async def test_async_remove_cache(hass, caplog):
+    """Test async_remove_cache removes the entry store and logs on OSError."""
+    with patch(
+        "custom_components.mail_and_packages.utils.cache.Store"
+    ) as mock_store_cls:
+        mock_store = AsyncMock()
+        mock_store_cls.return_value = mock_store
+
+        await async_remove_cache(hass, "entry_to_remove")
+        mock_store_cls.assert_called_once_with(
+            hass, 1, f"{STORAGE_KEY}.entry_to_remove"
+        )
+        mock_store.async_remove.assert_awaited_once()
+
+        # Verify OSError is caught and logged
+        mock_store.async_remove.side_effect = OSError("Remove failed")
+        await async_remove_cache(hass, "entry_to_remove")
+        assert (
+            "Failed to remove email cache for entry entry_to_remove: Remove failed"
+            in caplog.text
+        )

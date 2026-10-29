@@ -1860,3 +1860,38 @@ async def test_coordinator_sync_cache_uidvalidity():
         mock_account_no_dict, mock_cache
     )
     mock_cache.async_check_uidvalidity.assert_not_called()
+
+
+def test_coordinator_email_cache_store_key_scoped_to_entry(hass):
+    """Test MailDataUpdateCoordinator scopes EmailCache store_key to config_entry.entry_id."""
+    entry_a = MockConfigEntry(
+        domain=DOMAIN,
+        data=dict(FAKE_CONFIG_DATA),
+        entry_id="mailbox_entry_a",
+    )
+    entry_b = MockConfigEntry(
+        domain=DOMAIN,
+        data=dict(FAKE_CONFIG_DATA),
+        entry_id="mailbox_entry_b",
+    )
+
+    coord_a = MailDataUpdateCoordinator(hass, dict(FAKE_CONFIG_DATA), entry_a)
+    coord_b = MailDataUpdateCoordinator(hass, dict(FAKE_CONFIG_DATA), entry_b)
+    coord_from_config = MailDataUpdateCoordinator(
+        hass, {**FAKE_CONFIG_DATA, "entry_id": "from_config_id"}
+    )
+    coord_unscoped = MailDataUpdateCoordinator(hass, dict(FAKE_CONFIG_DATA))
+
+    assert (
+        coord_a.email_cache._store.key
+        == "mail_and_packages.email_cache.mailbox_entry_a"
+    )
+    assert (
+        coord_b.email_cache._store.key
+        == "mail_and_packages.email_cache.mailbox_entry_b"
+    )
+    assert (
+        coord_from_config.email_cache._store.key
+        == "mail_and_packages.email_cache.from_config_id"
+    )
+    assert coord_unscoped.email_cache._store.key == "mail_and_packages.email_cache"
