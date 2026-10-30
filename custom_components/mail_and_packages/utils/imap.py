@@ -95,6 +95,71 @@ class InvalidAuth(HomeAssistantError):
     """Raise exception for invalid credentials."""
 
 
+def _is_transient_oauth_not_connected(res: object) -> bool:
+    """Return True if an XOAUTH2 response indicates a transient Exchange backend error."""
+    lines = getattr(res, "lines", None)
+    if not isinstance(lines, (list, tuple)):
+        return False
+    for line in lines:
+        text = (
+            line.decode("utf-8", "ignore")
+            if isinstance(line, (bytes, bytearray))
+            else str(line)
+        )
+        if "user is authenticated but not connected" in text.lower():
+            return True
+    return False
+
+
+async def _authenticate_imap_account(
+    account: IMAP4_SSL | IMAP4,
+    user: str,
+    pwd: str,
+    oauth_token: str | None,
+    timeout: float,
+) -> None:
+    """Wait for server greeting and authenticate the IMAP account."""
+    await asyncio.wait_for(account.wait_hello_from_server(), timeout=min(timeout, 15.0))
+
+    if account.protocol.state == NONAUTH:
+        try:
+            if oauth_token:
+                try:
+                    res = await asyncio.wait_for(
+                        account.xoauth2(user, oauth_token),
+                        timeout=min(timeout, 15.0),
+                    )
+                    if account.protocol.state not in {AUTH, SELECTED}:
+                        if _is_transient_oauth_not_connected(res):
+                            _LOGGER.warning(
+                                "OAuth login authenticated but mailbox backend is not connected for %s. Lines: %s",
+                                user,
+                                getattr(res, "lines", None),
+                            )
+                            raise AioImapException(
+                                "User is authenticated but not connected."
+                            )
+                        _LOGGER.error(
+                            "OAuth login failed. Result: %s, Lines: %s",
+                            getattr(res, "result", None),
+                            getattr(res, "lines", None),
+                        )
+                except TimeoutError:
+                    _LOGGER.warning("OAuth authentication timed out for %s", user)
+                    raise
+            else:
+                await account.login(user, pwd)
+        except (AioImapException, OSError) as err:
+            _LOGGER.error("Error logging in to IMAP Server: %s", err)
+            raise
+
+    if account.protocol.state not in {AUTH, SELECTED}:
+        _LOGGER.error(
+            "Error logging in to IMAP Server. State: %s", account.protocol.state
+        )
+        raise InvalidAuth
+
+
 async def login(
     hass: HomeAssistant,
     host: str,
@@ -120,36 +185,12 @@ async def login(
     else:
         account = IMAP4(host=host, port=port, timeout=timeout)
 
-    await asyncio.wait_for(account.wait_hello_from_server(), timeout=min(timeout, 15.0))
+    try:
+        await _authenticate_imap_account(account, user, pwd, oauth_token, timeout)
+    except Exception:
+        await logout(account)
+        raise
 
-    if account.protocol.state == NONAUTH:
-        try:
-            if oauth_token:
-                try:
-                    res = await asyncio.wait_for(
-                        account.xoauth2(user, oauth_token),
-                        timeout=min(timeout, 15.0),
-                    )
-                    if account.protocol.state not in {AUTH, SELECTED}:
-                        _LOGGER.error(
-                            "OAuth login failed. Result: %s, Lines: %s",
-                            getattr(res, "result", None),
-                            getattr(res, "lines", None),
-                        )
-                except TimeoutError:
-                    _LOGGER.warning("OAuth authentication timed out for %s", user)
-                    raise
-            else:
-                await account.login(user, pwd)
-        except (AioImapException, OSError) as err:
-            _LOGGER.error("Error logging in to IMAP Server: %s", err)
-            raise
-
-    if account.protocol.state not in {AUTH, SELECTED}:
-        _LOGGER.error(
-            "Error logging in to IMAP Server. State: %s", account.protocol.state
-        )
-        raise InvalidAuth
     return account
 
 
