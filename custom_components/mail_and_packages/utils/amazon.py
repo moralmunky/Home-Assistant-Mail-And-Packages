@@ -118,7 +118,7 @@ DOMAIN_SENDER_MAP = {
 
 
 def filter_amazon_strings(strings: list[str], domain: str) -> list[str]:
-    """Filter list of strings based on the domain language."""
+    """Keep base English strings and the configured marketplace's language strings."""
     all_mapped_strings = []
     for lang_list in DOMAIN_LANG_MAP.values():
         all_mapped_strings.extend(lang_list)
@@ -133,10 +133,7 @@ def filter_amazon_strings(strings: list[str], domain: str) -> list[str]:
         mapped_for_domain = DOMAIN_LANG_MAP[domain]
         domain_strings = [s for s in strings if any(m in s for m in mapped_for_domain)]
 
-    # Only amazon.ca and unmapped domains (like .com, .co.uk) should use base English strings
-    if domain in DOMAIN_LANG_MAP and domain != "amazon.ca":
-        return list(dict.fromkeys(domain_strings))
-
+    # A marketplace domain does not determine the customer's email language.
     return list(dict.fromkeys(base_strings + domain_strings))
 
 

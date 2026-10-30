@@ -9,6 +9,9 @@ import aiohttp
 import pytest
 
 from custom_components.mail_and_packages.const import (
+    AMAZON_DELIVERED_SUBJECT,
+    AMAZON_DELIVERING_SUBJECT,
+    AMAZON_DOMAINS,
     AMAZON_IMG_PATTERN,
     AMAZON_ORDERED_SUBJECT,
     AMAZON_SHIPMENT_SUBJECT,
@@ -290,9 +293,9 @@ def test_filter_amazon_strings_branches():
     assert result == ["order-update@"]
 
     # Test with mapped domain (.de)
-    # Should only return German strings
+    # Should return both English and German strings
     result = filter_amazon_strings(test_list, "amazon.de")
-    assert result == ["versandbestaetigung@"]
+    assert result == ["order-update@", "versandbestaetigung@"]
 
     # Test with amazon.ca
     # Should return both English and French strings
@@ -306,6 +309,35 @@ def test_filter_amazon_strings_branches():
     test_list = ["order-update@", "confirmar-envio@"]
     result = filter_amazon_strings(test_list, "amazon.com")
     assert result == ["order-update@"]
+
+
+@pytest.mark.parametrize("domain", [*AMAZON_DOMAINS, "amazon.example"])
+@pytest.mark.parametrize(
+    ("subjects", "english_subjects"),
+    [
+        (AMAZON_DELIVERED_SUBJECT, ["Delivered", "Your Amazon order has arrived!"]),
+        (AMAZON_DELIVERING_SUBJECT, ["Out for delivery:"]),
+        (AMAZON_SHIPMENT_SUBJECT, ["Shipped", "Dispatched", "Out for delivery:"]),
+        (AMAZON_ORDERED_SUBJECT, ["Ordered"]),
+    ],
+    ids=["delivered", "delivering", "shipment", "ordered"],
+)
+def test_filter_amazon_strings_retains_english(domain, subjects, english_subjects):
+    """Keep English status subjects regardless of the marketplace domain."""
+    filtered = filter_amazon_strings(subjects, domain)
+    for subject in english_subjects:
+        assert subject in filtered
+
+
+@pytest.mark.parametrize("domain", ["amazon.de", "amazon.ca", "amazon.com"])
+def test_filter_amazon_strings_deduplicates_without_mutating_input(domain):
+    """Keep stable English/local ordering without duplicates or input mutations."""
+    subjects = ["Geliefert:", "Delivered", "Delivered", "Geliefert:", "Entregado:"]
+    original = subjects.copy()
+    expected = ["Delivered", "Geliefert:"] if domain == "amazon.de" else ["Delivered"]
+    assert filter_amazon_strings(subjects, domain) == expected
+    assert subjects == original
+    assert filter_amazon_strings([], domain) == []
 
 
 @pytest.mark.asyncio
@@ -512,6 +544,10 @@ async def test_search_amazon_emails_single_and_multi_domain():
             domain="amazon.de",
         )
         assert res_single == [b"1", b"2"]
+        single_subjects = mock_search.call_args.kwargs["subject"]
+        assert "Delivered" in single_subjects
+        assert "Geliefert:" in single_subjects
+        assert "Livré" not in single_subjects
 
         res_multi = await search_amazon_emails(
             account=mock_account,
@@ -521,6 +557,11 @@ async def test_search_amazon_emails_single_and_multi_domain():
         )
         assert res_multi == [b"1", b"2"]
         assert mock_search.call_count == 2
+        multi_subjects = mock_search.call_args.kwargs["subject"]
+        assert "Delivered" in multi_subjects
+        assert "Geliefert:" in multi_subjects
+        assert "Livré" not in multi_subjects
+        assert len(multi_subjects) == len(set(multi_subjects))
 
 
 def test_amazon_email_addresses_fr():
@@ -616,7 +657,7 @@ def test_filter_amazon_strings_fr():
     assert "Livrés" in filtered
     assert "Livraison" in filtered
     assert "Commandé" in filtered
-    assert "Shipped:" not in filtered
+    assert "Shipped:" in filtered
 
 
 def test_amazon_date_regex_fr():
