@@ -1540,3 +1540,58 @@ def test_extract_amazon_image_urls_accepts_delivery_photo_hosts(host):
     )
 
     assert _extract_amazon_image_urls(msg) == [url]
+
+
+@pytest.mark.asyncio
+async def test_amazon_parse_context_deduplication(hass):
+    """Verify search_amazon_emails runs only once per process/process_batch cycle."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_account.host = "imap.gmail.com"
+    cache = EmailCache(mock_account)
+
+    raw = await hass.async_add_executor_job(
+        Path("tests/test_emails/amazon_shipped_details.eml").read_bytes
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.search_amazon_emails",
+            new_callable=AsyncMock,
+            return_value=[b"1"],
+        ) as mock_search,
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [bytearray(raw)]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
+            return_value=dt.date(2026, 7, 15),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", AMAZON_PACKAGES)
+        assert mock_search.call_count == 1
+        assert result[AMAZON_PACKAGES] == 0
+        assert result[AMAZON_ORDER] == ["702-4925201-8953856"]
+        assert "702-4925201-8953856" in result[AMAZON_ORDER_DETAILS]
+
+        mock_search.reset_mock()
+        cache._cache_rfc822["1"] = ("OK", [bytearray(raw)])
+        batch_result = await shipper.process_batch(
+            mock_account,
+            "today",
+            [AMAZON_PACKAGES, "amazon_delivering", AMAZON_ORDER],
+            cache,
+        )
+        assert mock_search.call_count == 1
+        assert batch_result[AMAZON_PACKAGES] == 0
+        assert batch_result["amazon_delivering"] == 0
+        assert batch_result[AMAZON_ORDER] == ["702-4925201-8953856"]
+        assert shipper._parsed_context_cache is None
+
+        # Verify standalone calls to AMAZON_DELIVERING and AMAZON_ORDER do not leak cache
+        await shipper.process(mock_account, "today", "amazon_delivering")
+        assert shipper._parsed_context_cache is None
+        await shipper.process(mock_account, "today", AMAZON_ORDER)
+        assert shipper._parsed_context_cache is None

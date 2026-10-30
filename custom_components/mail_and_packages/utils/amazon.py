@@ -128,10 +128,13 @@ def filter_amazon_strings(strings: list[str], domain: str) -> list[str]:
 
     base_strings = [s for s in strings if not is_mapped(s)]
 
-    domain_strings = []
-    if domain in DOMAIN_LANG_MAP:
-        mapped_for_domain = DOMAIN_LANG_MAP[domain]
-        domain_strings = [s for s in strings if any(m in s for m in mapped_for_domain)]
+    domain_strings: list[str] = []
+    for dom in _split_amazon_domains(domain) if domain else []:
+        if dom in DOMAIN_LANG_MAP:
+            mapped_for_domain = DOMAIN_LANG_MAP[dom]
+            domain_strings.extend(
+                s for s in strings if any(m in s for m in mapped_for_domain)
+            )
 
     # A marketplace domain does not determine the customer's email language.
     return list(dict.fromkeys(base_strings + domain_strings))
@@ -388,14 +391,7 @@ async def search_amazon_emails(
         AMAZON_DELIVERED_SUBJECT + AMAZON_SHIPMENT_SUBJECT + AMAZON_ORDERED_SUBJECT
     )
     if domain:
-        domains = _split_amazon_domains(domain)
-        if len(domains) == 1:
-            amazon_subjects = filter_amazon_strings(amazon_subjects, domains[0])
-        else:
-            filtered: list[str] = []
-            for dom in domains:
-                filtered.extend(filter_amazon_strings(amazon_subjects, dom))
-            amazon_subjects = list(dict.fromkeys(filtered))
+        amazon_subjects = filter_amazon_strings(amazon_subjects, domain)
 
     (server_response, sdata) = await email_search(
         account=account,
