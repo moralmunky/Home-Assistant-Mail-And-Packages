@@ -61,18 +61,31 @@ class AmazonSearchMixin(AmazonImageMixin):
 
     hass: Any
     config: dict[str, Any]
+    _parsed_context_cache: dict[tuple[Any, ...], dict[str, Any]] | None = None
 
-    async def _parse_amazon_emails(
+    async def _get_amazon_context(
         self,
         account: IMAP4_SSL,
-        param: str,
         fwds: list[str] | None = None,
         days: int = DEFAULT_AMAZON_DAYS,
         domain: str | None = None,
         cache: EmailCache | None = None,
         forwarding_header: str = "",
-    ) -> list[str] | int:
-        """Parse Amazon emails for delivery date and order number."""
+    ) -> dict[str, Any]:
+        """Build or return the memoized Amazon email parsing context."""
+        cache_key = (
+            id(account),
+            tuple(fwds) if fwds is not None else None,
+            days,
+            domain,
+            forwarding_header,
+        )
+        if (
+            self._parsed_context_cache is not None
+            and cache_key in self._parsed_context_cache
+        ):
+            return self._parsed_context_cache[cache_key]
+
         today_date = get_today()
         address_list = amazon_email_addresses(fwds, domain)
         unique_emails = await search_amazon_emails(
@@ -80,7 +93,7 @@ class AmazonSearchMixin(AmazonImageMixin):
         )
         order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
 
-        context = {
+        context: dict[str, Any] = {
             "today": today_date,
             "packages_arriving_today": {},
             "packages_delivering_today": {},
@@ -95,6 +108,26 @@ class AmazonSearchMixin(AmazonImageMixin):
 
         for email_id in unique_emails:
             await self._process_amazon_email(account, email_id, context, cache)
+
+        if self._parsed_context_cache is not None:
+            self._parsed_context_cache[cache_key] = context
+
+        return context
+
+    async def _parse_amazon_emails(
+        self,
+        account: IMAP4_SSL,
+        param: str,
+        fwds: list[str] | None = None,
+        days: int = DEFAULT_AMAZON_DAYS,
+        domain: str | None = None,
+        cache: EmailCache | None = None,
+        forwarding_header: str = "",
+    ) -> Any:
+        """Parse Amazon emails for delivery date and order number."""
+        context = await self._get_amazon_context(
+            account, fwds, days, domain, cache, forwarding_header
+        )
 
         if param == "delivering":
             orders = list(context["packages_delivering_today"].keys())

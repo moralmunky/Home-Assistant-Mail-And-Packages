@@ -310,6 +310,15 @@ def test_filter_amazon_strings_branches():
     result = filter_amazon_strings(test_list, "amazon.com")
     assert result == ["order-update@"]
 
+    # Test with comma-separated multi-domain string
+    test_list = ["Delivered", "Geliefert:", "Livré", "Entregado:"]
+    result = filter_amazon_strings(test_list, "amazon.de,amazon.fr")
+    assert result == [
+        "Delivered",
+        "Geliefert:",
+        "Livré",
+    ]
+
 
 @pytest.mark.parametrize("domain", [*AMAZON_DOMAINS, "amazon.example"])
 @pytest.mark.parametrize(

@@ -74,6 +74,38 @@ class AmazonShipper(AmazonSearchMixin, Shipper):
         """Return True if this shipper handles the given sensor type."""
         return sensor_type.startswith("amazon_") or sensor_type == AMAZON_PACKAGES
 
+    async def _process_amazon_packages(
+        self,
+        account: IMAP4_SSL,
+        fwds: list[str] | None,
+        days: int,
+        domain: str | None,
+        cache: EmailCache | None,
+        forwarding_header: str,
+    ) -> dict[str, Any]:
+        """Process AMAZON_PACKAGES sensor and associated order attributes."""
+        owns_cache = self._parsed_context_cache is None
+        if owns_cache:
+            self._parsed_context_cache = {}
+        try:
+            count = await self._parse_amazon_emails(
+                account, "count", fwds, days, domain, cache, forwarding_header
+            )
+            orders = await self._parse_amazon_emails(
+                account, "order", fwds, days, domain, cache, forwarding_header
+            )
+            details = await self._parse_amazon_emails(
+                account, "details", fwds, days, domain, cache, forwarding_header
+            )
+        finally:
+            if owns_cache:
+                self._parsed_context_cache = None
+        return {
+            AMAZON_PACKAGES: count,
+            AMAZON_ORDER: orders,
+            AMAZON_ORDER_DETAILS: details,
+        }
+
     async def process(
         self,
         account: IMAP4_SSL,
@@ -93,20 +125,9 @@ class AmazonShipper(AmazonSearchMixin, Shipper):
         domain = self.config.get(CONF_AMAZON_DOMAIN)
 
         if sensor_type == AMAZON_PACKAGES:
-            count = await self._parse_amazon_emails(
-                account, "count", fwds, days, domain, cache, forwarding_header
+            return await self._process_amazon_packages(
+                account, fwds, days, domain, cache, forwarding_header
             )
-            orders = await self._parse_amazon_emails(
-                account, "order", fwds, days, domain, cache, forwarding_header
-            )
-            details = await self._parse_amazon_emails(
-                account, "details", fwds, days, domain, cache, forwarding_header
-            )
-            return {
-                AMAZON_PACKAGES: count,
-                AMAZON_ORDER: orders,
-                AMAZON_ORDER_DETAILS: details,
-            }
 
         if sensor_type == AMAZON_DELIVERING:
             count, orders = await self._parse_amazon_emails(
@@ -169,13 +190,17 @@ class AmazonShipper(AmazonSearchMixin, Shipper):
     ) -> dict[str, Any]:
         """Process multiple Amazon sensors in batch."""
         res = {}
-        for sensor in sensors:
-            sensor_res = await self.process(account, date, sensor, cache)
-            res.update(sensor_res)
-            # Replicate coordinator dictionary logic
-            if sensor not in sensor_res:
-                if ATTR_COUNT in sensor_res:
-                    res[sensor] = sensor_res[ATTR_COUNT]
+        self._parsed_context_cache = {}
+        try:
+            for sensor in sensors:
+                sensor_res = await self.process(account, date, sensor, cache)
+                res.update(sensor_res)
+                # Replicate coordinator dictionary logic
+                if sensor not in sensor_res:
+                    if ATTR_COUNT in sensor_res:
+                        res[sensor] = sensor_res[ATTR_COUNT]
+        finally:
+            self._parsed_context_cache = None
         return res
 
     # Delegate helper methods for backward compatibility with direct callers/tests
