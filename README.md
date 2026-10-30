@@ -33,6 +33,8 @@ Huge contributions from [@firstof9](https://github.com/firstof9) moving the proj
 
 From your Home Assistant instance, the integration connects via IMAP to the email account where your shipment notifications are sent. It checks the subject lines of today's emails from [supported shippers](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Supported-Shipper-Requirements) against known delivery status language and counts matches. For USPS Informed Delivery emails it also downloads the mail piece images and combines them into a rotating GIF.
 
+For Amazon, the configured marketplace domain selects its localized status subjects alongside the supported English subjects. For example, `amazon.de` supports both German and English notifications; choosing a marketplace does not restrict notifications to its local language.
+
 See the [wiki](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki) for full details.
 
 > **Note:** The integration does not delete or modify your emails. Do not delete delivery emails on the day they arrive, as the integration needs to find them during its scans. You can filter shipping notifications into a dedicated folder and point the integration at that folder. Delivery images revert to the no-mail placeholder after the first scan past midnight, local time.
