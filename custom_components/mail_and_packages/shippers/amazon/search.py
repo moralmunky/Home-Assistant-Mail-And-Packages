@@ -61,7 +61,10 @@ class AmazonSearchMixin(AmazonImageMixin):
 
     hass: Any
     config: dict[str, Any]
-    _parsed_context_cache: dict[tuple[Any, ...], dict[str, Any]] | None = None
+    _parsed_context_cache: (
+        dict[tuple[int, tuple[str, ...] | None, int, str | None, str], dict[str, Any]]
+        | None
+    ) = None
 
     async def _get_amazon_context(
         self,
