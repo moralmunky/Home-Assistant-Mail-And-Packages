@@ -1588,3 +1588,10 @@ async def test_amazon_parse_context_deduplication(hass):
         assert batch_result[AMAZON_PACKAGES] == 0
         assert batch_result["amazon_delivering"] == 0
         assert batch_result[AMAZON_ORDER] == ["702-4925201-8953856"]
+        assert shipper._parsed_context_cache is None
+
+        # Verify standalone calls to AMAZON_DELIVERING and AMAZON_ORDER do not leak cache
+        await shipper.process(mock_account, "today", "amazon_delivering")
+        assert shipper._parsed_context_cache is None
+        await shipper.process(mock_account, "today", AMAZON_ORDER)
+        assert shipper._parsed_context_cache is None
