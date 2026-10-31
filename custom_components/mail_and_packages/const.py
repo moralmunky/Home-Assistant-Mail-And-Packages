@@ -346,8 +346,14 @@ AMAZON_EXCEPTION_ORDER = "amazon_exception_order"
 AMAZON_PATTERN = "[0-9]{3}-[0-9]{7}-[0-9]{7}"
 AMAZON_OTP = "amazon_otp"
 AMAZON_OTP_CODE = "amazon_otp_code"
-AMAZON_OTP_REGEX = "(\n)(\\d{6})(\n)"
-AMAZON_OTP_SUBJECT = "A one-time password is required for your Amazon delivery"
+AMAZON_OTP_REGEX = (
+    r"(?i)(?:(?:tu contraseña temporal es|tu contraseña de un solo uso es|"
+    r"your one-time password is)\s*:?\s*|(?:^|\n)\s*)(\d{6})(?=\s*(?:\n|$))"
+)
+AMAZON_OTP_SUBJECT = [
+    "A one-time password is required for your Amazon delivery",
+    "Llega hoy:",
+]
 
 AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT = ["AMAZON"]
 

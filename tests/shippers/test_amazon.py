@@ -87,8 +87,8 @@ async def test_amazon_otp(hass):
         mock_fetch.return_value = ("OK", [bytearray(msg_text.encode())])
 
         result = await shipper.process(mock_account, "today", AMAZON_OTP)
-        assert AMAZON_OTP_CODE in result[AMAZON_OTP]
-        assert result[AMAZON_OTP][AMAZON_OTP_CODE] == ["123456"]
+        assert result[AMAZON_OTP] == 1
+        assert result[AMAZON_OTP_CODE] == ["123456"]
 
         # Scenario 2: Successful Extraction (Multipart)
         mock_search.return_value = ("OK", [b"2"])
@@ -97,7 +97,8 @@ async def test_amazon_otp(hass):
         mock_fetch.return_value = ("OK", [bytearray(msg.as_bytes())])
 
         result = await shipper.process(mock_account, "today", AMAZON_OTP)
-        assert result[AMAZON_OTP][AMAZON_OTP_CODE] == ["654321"]
+        assert result[AMAZON_OTP] == 1
+        assert result[AMAZON_OTP_CODE] == ["654321"]
 
         # Scenario 3: No Match found
         mock_search.return_value = ("OK", [b"3"])
@@ -105,7 +106,47 @@ async def test_amazon_otp(hass):
         mock_fetch.return_value = ("OK", [bytearray(msg_no_match.encode())])
 
         result = await shipper.process(mock_account, "today", AMAZON_OTP)
-        assert result[AMAZON_OTP][AMAZON_OTP_CODE] == []
+        assert result[AMAZON_OTP] == 0
+        assert result[AMAZON_OTP_CODE] == []
+
+
+@pytest.mark.asyncio
+async def test_amazon_otp_extracts_spanish_code_from_visible_html(hass):
+    """Amazon OTP ignores CSS numbers and extracts the Spanish visible code."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    message = MIMEMultipart()
+    message.attach(
+        MIMEText(
+            """
+            <html>
+              <head><style>.delivery { z-index: 123456; }</style></head>
+              <body>Tu contraseña temporal es: <strong>654321</strong></body>
+            </html>
+            """,
+            "html",
+        )
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
+            return_value=dt.date(2026, 9, 5),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [bytearray(message.as_bytes())]),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", AMAZON_OTP)
+
+    assert result == {AMAZON_OTP: 1, AMAZON_OTP_CODE: ["654321"]}
 
 
 @pytest.mark.asyncio
