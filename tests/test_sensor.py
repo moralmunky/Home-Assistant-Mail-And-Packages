@@ -507,7 +507,10 @@ async def test_packages_sensor_attributes_edge_cases(hass):
 
     # Test attributes for Amazon OTP
     coord_otp = MagicMock()
-    coord_otp.data = {"amazon_otp_code": ["654321"]}
+    coord_otp.data = {
+        AMAZON_ORDER: ["123-1234567-1234567"],
+        "amazon_otp_code": ["654321"],
+    }
     sensor_otp_desc = MagicMock(key="amazon_otp")
     sensor_otp_desc.name = "Mail Amazon OTP"
     sensor_otp = PackagesSensor(
@@ -517,6 +520,7 @@ async def test_packages_sensor_attributes_edge_cases(hass):
     )
     attrs_otp = sensor_otp.extra_state_attributes
     assert attrs_otp["code"] == ["654321"]
+    assert ATTR_ORDER not in attrs_otp
 
     # Test attributes for Amazon Delivering
     coord_delivering = MagicMock()

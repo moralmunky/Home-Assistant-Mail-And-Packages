@@ -150,10 +150,9 @@ class AmazonShipper(AmazonSearchMixin, Shipper):
             )
 
         if sensor_type == AMAZON_OTP:
-            result = await self._amazon_otp(
+            return await self._amazon_otp(
                 account, fwds, domain, cache, forwarding_header
             )
-            return {sensor_type: result}
 
         if sensor_type == AMAZON_EXCEPTION:
             return await self._amazon_exception(
