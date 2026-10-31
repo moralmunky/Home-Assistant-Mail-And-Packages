@@ -573,6 +573,10 @@ SENSOR_DATA = {
             "bezorger onderweg",
             "komen we bij je langs",
         ],
+        "delivery_date_pattern": [
+            r"Estimated delivery:\s+([A-Za-z]+\s+\d{1,2},?\s+\d{4})",
+            r"Entrega (?:estimada|prevista):\s+(\d{1,2}\s+de\s+[A-Za-záéíóúñ]+\s+de\s+\d{4})",
+        ],
     },
     "dhl_packages": {},
     "dhl_tracking": {
