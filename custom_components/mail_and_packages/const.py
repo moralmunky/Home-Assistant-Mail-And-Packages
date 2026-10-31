@@ -212,6 +212,8 @@ AMAZON_SHIPMENT_SUBJECT = [
     "Shipped",
     "Dispatched",
     "Enviado:",
+    "Envío realizado:",
+    "realizado:",
     "Spedito:",
     "Versandt:",
     "Versendet:",
@@ -220,6 +222,7 @@ AMAZON_SHIPMENT_SUBJECT = [
 ]
 AMAZON_ORDERED_SUBJECT = [
     "Ordered",
+    "Pedido:",
     "Pedido efetuado:",
     "Commandé",
 ]
@@ -268,6 +271,7 @@ AMAZON_TIME_PATTERN = [
     "Arrivée :",
     "Livraison :",
     "Arrive aujourd'hui",
+    "Llega ",
     "Chega ",
     "Verwachte bezorgdatum:",
     "Votre date de livraison prévue est :",
@@ -292,6 +296,7 @@ AMAZON_TIME_PATTERN_END = [
     "Je pakket volgen",
 ]
 AMAZON_TIME_PATTERN_REGEX = [
+    r"Llega\s+(hoy|mañana)",
     "Arriving (\\w+ \\d+) - (\\w+ \\d+)",
     "Arriving (\\w+ \\d+)",
     "Arriving (\\w+ ?\\d*)",
