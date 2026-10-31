@@ -21,6 +21,7 @@ from custom_components.mail_and_packages.const import (
     AMAZON_ORDER_DETAILS,
     AMAZON_OTP,
     AMAZON_OTP_CODE,
+    AMAZON_OTP_REGEX,
     AMAZON_PACKAGES,
     ATTR_COUNT,
     CONF_FORWARDING_HEADER,
@@ -28,6 +29,9 @@ from custom_components.mail_and_packages.const import (
 from custom_components.mail_and_packages.shippers.amazon import AmazonShipper
 from custom_components.mail_and_packages.shippers.amazon.helpers import (
     _extract_amazon_image_urls,
+)
+from custom_components.mail_and_packages.shippers.amazon.search import (
+    _extract_amazon_otp_code,
 )
 from custom_components.mail_and_packages.utils.amazon import (
     _extract_hub_code,
@@ -147,6 +151,29 @@ async def test_amazon_otp_extracts_spanish_code_from_visible_html(hass):
         result = await shipper.process(mock_account, "today", AMAZON_OTP)
 
     assert result == {AMAZON_OTP: 1, AMAZON_OTP_CODE: ["654321"]}
+
+
+def test_extract_amazon_otp_skips_non_bytes_payload():
+    """Amazon OTP skips text MIME parts without a decoded byte payload."""
+    part = MagicMock()
+    part.get_content_type.return_value = "text/plain"
+    part.get_payload.return_value = None
+    message = MagicMock()
+    message.walk.return_value = [part]
+
+    assert _extract_amazon_otp_code(message, AMAZON_OTP_REGEX) is None
+
+
+def test_extract_amazon_otp_falls_back_for_unknown_charset():
+    """Amazon OTP decodes as UTF-8 when the declared charset is unknown."""
+    part = MagicMock()
+    part.get_content_type.return_value = "text/plain"
+    part.get_payload.return_value = "Tu contraseña temporal es: 654321".encode()
+    part.get_content_charset.return_value = "unknown-amazon-charset"
+    message = MagicMock()
+    message.walk.return_value = [part]
+
+    assert _extract_amazon_otp_code(message, AMAZON_OTP_REGEX) == "654321"
 
 
 @pytest.mark.asyncio
