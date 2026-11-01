@@ -1317,6 +1317,67 @@ async def test_process_delivering_uses_since_date(hass):
     assert call_date == "19-Apr-2026"
 
 
+@pytest.mark.parametrize(
+    ("body", "today", "expected_count"),
+    [
+        ("Estimated delivery: August 31, 2026", dt.date(2026, 8, 31), 1),
+        ("Entrega prevista: 31 de agosto de 2026", dt.date(2026, 8, 31), 1),
+        ("Estimated delivery: August 31, 2026", dt.date(2026, 8, 30), 0),
+    ],
+)
+@pytest.mark.asyncio
+async def test_dhl_delivering_matches_estimated_delivery_date(
+    hass, body, today, expected_count
+):
+    """DHL ODD notices count only when their estimated delivery date is today."""
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    cache = EmailCache(mock_account)
+    cache._cache_rfc822["1"] = (
+        "OK",
+        [
+            b"RFC822",
+            (
+                "Subject: DHL On Demand Delivery\r\n"
+                "Content-Type: text/plain; charset=utf-8\r\n\r\n"
+                f"{body}"
+            ).encode(),
+        ],
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch.object(
+            shipper,
+            "_verify_matched_subjects",
+            new_callable=AsyncMock,
+            return_value=[b"1"],
+        ),
+        patch.object(
+            shipper,
+            "_process_tracking_numbers",
+            new_callable=AsyncMock,
+            return_value=[],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.get_today",
+            return_value=today,
+        ),
+    ):
+        result = await shipper.process(
+            mock_account,
+            "31-Aug-2026",
+            "dhl_delivering",
+            cache=cache,
+        )
+
+    assert result[ATTR_COUNT] == expected_count
+
+
 @pytest.mark.asyncio
 async def test_process_delivered_uses_since_date(hass, tmp_path):
     """_delivered sensors use since_date for tracking dedup and filter today locally.
