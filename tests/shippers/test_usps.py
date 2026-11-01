@@ -80,6 +80,10 @@ async def test_informed_delivery_emails_class(
             "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
             return_value="25-Sep-2020",
         ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_today",
+            return_value=date(2020, 9, 25),
+        ),
     ):
         result = await shipper.process(
             mock_imap_usps_informed_digest,
@@ -127,6 +131,10 @@ async def test_new_informed_delivery_emails_class(
             "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
             return_value="25-Sep-2020",
         ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_today",
+            return_value=date(2020, 9, 25),
+        ),
     ):
         result = await shipper.process(
             mock_imap_usps_new_informed_digest,
@@ -162,6 +170,10 @@ async def test_informed_digest_no_mail_class(
         patch(
             "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
             return_value="25-Sep-2020",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_today",
+            return_value=date(2020, 9, 25),
         ),
     ):
         result = await shipper.process(
@@ -231,6 +243,10 @@ async def test_informed_delivery_with_images_class(hass):
             return_value="25-Sep-2020",
         ),
         patch(
+            "custom_components.mail_and_packages.shippers.usps.get_today",
+            return_value=date(2020, 9, 25),
+        ),
+        patch(
             "custom_components.mail_and_packages.shippers.usps.image.random_filename",
             return_value="random.jpg",
         ),
@@ -282,6 +298,10 @@ async def test_informed_delivery_placeholder_image(hass):
         patch(
             "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
             return_value="25-Sep-2020",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_today",
+            return_value=date(2020, 9, 25),
         ),
     ):
         result = await shipper.process(mock_account, "today", "usps_mail")
@@ -345,6 +365,10 @@ async def test_informed_delivery_placeholder_image_new_format(hass):
         patch(
             "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
             return_value="25-Sep-2020",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_today",
+            return_value=date(2020, 9, 25),
         ),
     ):
         result = await shipper.process(mock_account, "today", "usps_mail")
@@ -413,6 +437,10 @@ async def test_informed_delivery_mixed_scanned_and_multiple_unscanned(hass):
         patch(
             "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
             return_value="25-Sep-2020",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_today",
+            return_value=date(2020, 9, 25),
         ),
     ):
         result = await shipper.process(mock_account, "today", "usps_mail")
@@ -486,6 +514,10 @@ async def test_informed_delivery_announcement_filtering(hass):
         patch(
             "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
             return_value="25-Sep-2020",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_today",
+            return_value=date(2020, 9, 25),
         ),
     ):
         result = await shipper.process(mock_account, "today", "usps_mail")
@@ -579,6 +611,10 @@ async def test_informed_delivery_resize_error(hass):
         patch(
             "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
             return_value="25-Sep-2020",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_today",
+            return_value=date(2020, 9, 25),
         ),
     ):
         result = await shipper.process(mock_account, "today", "usps_mail")
@@ -1020,6 +1056,10 @@ async def test_usps_placeholder_disabled(hass, mock_imap_usps_informed_digest_mi
         patch(
             "custom_components.mail_and_packages.shippers.usps.get_formatted_date",
             return_value="25-Sep-2020",
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.usps.get_today",
+            return_value=date(2020, 9, 25),
         ),
     ):
         result = await shipper.process(
