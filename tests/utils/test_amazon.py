@@ -681,6 +681,33 @@ def test_amazon_date_regex_fr():
     assert amazon_date_regex("Arrivée prévue aujourd'hui") == "aujourd'hui"
 
 
+def test_filter_amazon_strings_es_supports_current_subjects():
+    """Amazon España keeps current shipped and ordered subject prefixes."""
+    shipment_subjects = filter_amazon_strings(
+        AMAZON_SHIPMENT_SUBJECT,
+        "amazon.es",
+    )
+    ordered_subjects = filter_amazon_strings(
+        AMAZON_ORDERED_SUBJECT,
+        "amazon.es",
+    )
+
+    assert "Envío realizado:" in shipment_subjects
+    assert "Pedido:" in ordered_subjects
+
+
+@pytest.mark.parametrize(
+    ("message", "expected"),
+    [
+        ("Tu envío llega hoy antes de las 22:00", "hoy"),
+        ("Tu envío llega mañana antes de las 22:00", "mañana"),
+    ],
+)
+def test_amazon_date_regex_es(message, expected):
+    """Amazon España relative arrival wording returns the relative day."""
+    assert amazon_date_regex(message) == expected
+
+
 def test_extract_amazon_urls_from_msg_edge_cases():
     """Test _extract_amazon_urls_from_msg edge cases."""
     pattern = re.compile(rf"{AMAZON_IMG_PATTERN}")

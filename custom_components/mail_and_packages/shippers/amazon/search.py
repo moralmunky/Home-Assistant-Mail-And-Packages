@@ -6,6 +6,7 @@ import datetime as dt
 import email
 import logging
 import re
+from html.parser import HTMLParser
 from typing import Any
 
 import dateparser
@@ -54,6 +55,60 @@ from .helpers import (
 from .image import AmazonImageMixin
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class _AmazonOTPHTMLParser(HTMLParser):
+    """Extract visible text from an Amazon HTML email."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._skip_depth = 0
+        self.text_parts: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        """Ignore CSS and scripts, which may contain unrelated six-digit values."""
+        if tag in ("style", "script"):
+            self._skip_depth += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        """Resume collecting visible text after CSS or scripts."""
+        if tag in ("style", "script") and self._skip_depth:
+            self._skip_depth -= 1
+
+    def handle_data(self, data: str) -> None:
+        """Collect visible text nodes."""
+        if not self._skip_depth and data.strip():
+            self.text_parts.append(data)
+
+
+def _extract_amazon_otp_code(msg: email.message.Message, regex: str) -> str | None:
+    """Return an OTP found in the visible plain-text or HTML message body."""
+    pattern = re.compile(regex)
+
+    for part in msg.walk():
+        content_type = part.get_content_type()
+        if content_type not in ("text/plain", "text/html"):
+            continue
+
+        payload = part.get_payload(decode=True)
+        if not isinstance(payload, bytes):
+            continue
+
+        charset = part.get_content_charset() or "utf-8"
+        try:
+            body = payload.decode(charset, "ignore")
+        except LookupError:
+            body = payload.decode("utf-8", "ignore")
+
+        if content_type == "text/html":
+            parser = _AmazonOTPHTMLParser()
+            parser.feed(body)
+            body = "\n".join(parser.text_parts)
+
+        if found := pattern.search(body):
+            return found.group(found.lastindex or 0)
+
+    return None
 
 
 class AmazonSearchMixin(AmazonImageMixin):
@@ -339,9 +394,8 @@ class AmazonSearchMixin(AmazonImageMixin):
                 for response_part in msg_parts:
                     if isinstance(response_part, (bytes, bytearray)):
                         msg = email.message_from_bytes(response_part)
-                        body = get_email_body(msg)
-                        if (found := re.compile(regex).search(body)) is not None:
-                            code.append(found.group(2))
+                        if otp_code := _extract_amazon_otp_code(msg, regex):
+                            code.append(otp_code)
         return {AMAZON_OTP: len(code), AMAZON_OTP_CODE: code}
 
     async def _amazon_exception(

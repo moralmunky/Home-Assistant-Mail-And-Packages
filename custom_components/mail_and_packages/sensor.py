@@ -225,14 +225,14 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
         elif self.type == AMAZON_DELIVERING:
             if order := data.get("amazon_delivering_order"):
                 attr[ATTR_ORDER] = order
-        elif order := data.get(AMAZON_ORDER):
-            self._add_amazon_order_attributes(attr, data, order)
         elif self.type == AMAZON_HUB:
             if code := data.get(AMAZON_HUB_CODE, data.get(ATTR_CODE)):
                 attr[ATTR_CODE] = code
         elif self.type == AMAZON_OTP:
             if code := data.get(AMAZON_OTP_CODE, data.get(ATTR_CODE)):
                 attr[ATTR_CODE] = code
+        elif order := data.get(AMAZON_ORDER):
+            self._add_amazon_order_attributes(attr, data, order)
 
 
 class ImagePathSensors(CoordinatorEntity, RestoreSensor):

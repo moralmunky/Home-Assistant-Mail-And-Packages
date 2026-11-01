@@ -212,6 +212,8 @@ AMAZON_SHIPMENT_SUBJECT = [
     "Shipped",
     "Dispatched",
     "Enviado:",
+    "Envío realizado:",
+    "realizado:",
     "Spedito:",
     "Versandt:",
     "Versendet:",
@@ -220,6 +222,7 @@ AMAZON_SHIPMENT_SUBJECT = [
 ]
 AMAZON_ORDERED_SUBJECT = [
     "Ordered",
+    "Pedido:",
     "Pedido efetuado:",
     "Commandé",
 ]
@@ -268,6 +271,7 @@ AMAZON_TIME_PATTERN = [
     "Arrivée :",
     "Livraison :",
     "Arrive aujourd'hui",
+    "Llega ",
     "Chega ",
     "Verwachte bezorgdatum:",
     "Votre date de livraison prévue est :",
@@ -292,6 +296,7 @@ AMAZON_TIME_PATTERN_END = [
     "Je pakket volgen",
 ]
 AMAZON_TIME_PATTERN_REGEX = [
+    r"Llega\s+(hoy|mañana)",
     "Arriving (\\w+ \\d+) - (\\w+ \\d+)",
     "Arriving (\\w+ \\d+)",
     "Arriving (\\w+ ?\\d*)",
@@ -341,8 +346,14 @@ AMAZON_EXCEPTION_ORDER = "amazon_exception_order"
 AMAZON_PATTERN = "[0-9]{3}-[0-9]{7}-[0-9]{7}"
 AMAZON_OTP = "amazon_otp"
 AMAZON_OTP_CODE = "amazon_otp_code"
-AMAZON_OTP_REGEX = "(\n)(\\d{6})(\n)"
-AMAZON_OTP_SUBJECT = "A one-time password is required for your Amazon delivery"
+AMAZON_OTP_REGEX = (
+    r"(?i)(?:(?:tu contraseña temporal es|tu contraseña de un solo uso es|"
+    r"your one-time password is)\s*:?\s*|(?:^|\n)\s*)(\d{6})(?=\s*(?:\n|$))"
+)
+AMAZON_OTP_SUBJECT = [
+    "A one-time password is required for your Amazon delivery",
+    "Llega hoy:",
+]
 
 AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT = ["AMAZON"]
 
