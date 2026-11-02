@@ -34,7 +34,7 @@ This repository is a **Home Assistant Custom Integration** that connects to an I
 
 ## 2. Python Environment & Dependency Management
 
-- **Target Python Version**: **3.13 / 3.15**
+- **Target Python Version**: **3.15**
 - **Environment Tooling**: **`uv`** is the standard tool for environment creation and dependency management.
 
 ### Setup and Testing
