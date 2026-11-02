@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.14"]
+        python-version: ["3.15"]
     name: Python ${{ matrix.python-version }}
     steps:
       - name: Harden Runner
@@ -43,7 +43,7 @@ jobs:
         run: tox
 
       - name: 📤 Upload coverage artifact
-        if: matrix.python-version == '3.14'
+        if: matrix.python-version == '3.15'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: coverage-data
