@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import email
+import email.utils
 import io
 import logging
 import shutil
@@ -26,7 +28,7 @@ from custom_components.mail_and_packages.const import (
     SENSOR_DATA,
 )
 from custom_components.mail_and_packages.utils.cache import EmailCache
-from custom_components.mail_and_packages.utils.date import get_formatted_date
+from custom_components.mail_and_packages.utils.date import get_today
 from custom_components.mail_and_packages.utils.image import (
     _generate_mp4,
     cleanup_images,
@@ -236,7 +238,11 @@ class PostDEShipper(Shipper):
     async def _search_emails(self, account: IMAP4_SSL) -> tuple:
         """Search for Post DE Briefankündigung emails."""
         _LOGGER.debug("Attempting to find Post DE Briefankündigung mail")
-        _LOGGER.debug("Post DE search date: %s", get_formatted_date())
+        # Deutsche Post sends Briefankündigung emails shortly after midnight local time.
+        # Mail servers record INTERNALDATE in UTC (which may be late on the previous calendar day),
+        # so search SINCE yesterday to avoid missing midnight notification emails.
+        search_date = (get_today() - dt.timedelta(days=1)).strftime("%d-%b-%Y")
+        _LOGGER.debug("Post DE search date: %s", search_date)
 
         config = SENSOR_DATA["post_de_mail"]
         email_addresses = config.get("email", [])
@@ -258,7 +264,7 @@ class PostDEShipper(Shipper):
         return await email_search(
             account=account,
             address=email_addresses,
-            date=get_formatted_date(),
+            date=search_date,
             subject=subjects,
             header=forwarding_header,
         )
@@ -358,6 +364,27 @@ class PostDEShipper(Shipper):
             if not isinstance(response_part, (bytes, bytearray)):
                 continue
             msg = email.message_from_bytes(response_part)
+
+            # Check date header - only count emails received on or after today in local time
+            date_header = msg.get("Date")
+            if date_header:
+                try:
+                    parsed_dt = email.utils.parsedate_to_datetime(date_header)
+                    email_date = (
+                        parsed_dt.astimezone().date()
+                        if parsed_dt.tzinfo
+                        else parsed_dt.date()
+                    )
+                    if email_date < get_today():
+                        _LOGGER.debug(
+                            "Skipping Post DE email %s: email dated prior to today (%s)",
+                            num,
+                            email_date,
+                        )
+                        continue
+                except (ValueError, TypeError):
+                    pass
+
             for part in msg.walk():
                 saved_path = await self._extract_post_de_scan(part, image_output_path)
                 if saved_path:

@@ -1,5 +1,6 @@
 """Tests for Post DE Briefankündigung shipper."""
 
+import datetime as dt
 import io
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -11,6 +12,7 @@ from PIL import UnidentifiedImageError
 from custom_components.mail_and_packages.const import (
     CONF_DURATION,
     CONF_FORWARDING_HEADER,
+    SENSOR_DATA,
 )
 from custom_components.mail_and_packages.shippers.post_de import PostDEShipper
 from custom_components.mail_and_packages.utils.cache import EmailCache
@@ -283,15 +285,15 @@ async def test_post_de_forwarding_header_mode(hass):
 
 @pytest.mark.asyncio
 async def test_post_de_ignores_since_date(hass):
-    """Test PostDEShipper ignores since_date and uses current date for search."""
+    """Test PostDEShipper searches since yesterday and ignores since_date argument."""
     shipper = PostDEShipper(hass, {"image_path": "test/"})
     mock_account = AsyncMock()
     mock_account.search.return_value = MagicMock(result="OK", lines=[])
 
     with (
         patch(
-            "custom_components.mail_and_packages.shippers.post_de.get_formatted_date",
-            return_value="15-Jun-2026",
+            "custom_components.mail_and_packages.shippers.post_de.get_today",
+            return_value=dt.date(2026, 6, 15),
         ),
         patch(
             "custom_components.mail_and_packages.shippers.post_de.email_search",
@@ -305,8 +307,181 @@ async def test_post_de_ignores_since_date(hass):
             EmailCache(mock_account),
             since_date="01-Jun-2026",
         )
-        # Search date should be current formatted date (15-Jun-2026), ignoring since_date
-        assert mock_search.call_args.kwargs["date"] == "15-Jun-2026"
+        # Search date should be yesterday relative to today (14-Jun-2026), ignoring since_date
+        assert mock_search.call_args.kwargs["date"] == "14-Jun-2026"
+
+
+@pytest.mark.asyncio
+async def test_post_de_midnight_email_counts_today(hass):
+    """Test Post DE email received late UTC / midnight local is counted today."""
+    shipper = PostDEShipper(
+        hass,
+        {
+            "image_path": "test/path/post_de/",
+            "post_de_image": "post_de_deliveries.gif",
+            CONF_DURATION: 5,
+        },
+    )
+
+    msg = MIMEMultipart("related")
+    # Sent at 23:17 UTC on Nov 3, which is 00:17 on Nov 4 in UTC+1 (Berlin)
+    msg["Date"] = "Tue, 03 Nov 2026 23:17:05 +0000"
+
+    image_part = MIMEText(
+        "iVBORw0KGgoAAAANSUhEUgAAAJYAAACWCAYAAAA8AXHiAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAEVJREFUeJztwTEBAAAAwqD1T20ND6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB4DdowAAEcA8w8AAAAAElFTkSuQmCC",
+        _subtype="png",
+    )
+    image_part.set_type("image/png")
+    image_part.add_header("Content-Transfer-Encoding", "base64")
+    msg.attach(image_part)
+    msg_bytes = msg.as_bytes()
+
+    mock_account = AsyncMock()
+
+    fixed_today = dt.date(2026, 11, 4)
+    fake_local_dt = dt.datetime(2026, 11, 4, 0, 17, 5)
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.get_today",
+            return_value=fixed_today,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.email_search",
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.email_fetch",
+            return_value=("OK", [b"RFC822", msg_bytes]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.post_de.cleanup_images"),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.email.utils.parsedate_to_datetime"
+        ) as mock_parsedate,
+        patch.object(
+            shipper, "_check_and_save_image", return_value="/test/scan.png"
+        ) as mock_save,
+        patch.object(shipper, "_generate_mail_image"),
+    ):
+        mock_dt = MagicMock()
+        mock_dt.tzinfo = dt.UTC
+        mock_dt.astimezone.return_value.date.return_value = fake_local_dt.date()
+        mock_parsedate.return_value = mock_dt
+
+        result = await shipper.process(mock_account, "today", "post_de_mail")
+        assert result["post_de_mail"] == 1
+        assert mock_save.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_post_de_prior_day_email_skipped(hass):
+    """Test Post DE email from previous day in local time is skipped."""
+    shipper = PostDEShipper(
+        hass,
+        {
+            "image_path": "test/path/post_de/",
+            "post_de_image": "post_de_deliveries.gif",
+            CONF_DURATION: 5,
+        },
+    )
+
+    msg = MIMEMultipart("related")
+    msg["Date"] = "Mon, 02 Nov 2026 10:00:00 +0100"
+
+    image_part = MIMEText("test", _subtype="png")
+    image_part.set_type("image/png")
+    msg.attach(image_part)
+    msg_bytes = msg.as_bytes()
+
+    mock_account = AsyncMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.get_today",
+            return_value=dt.date(2026, 11, 4),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.email_search",
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.email_fetch",
+            return_value=("OK", [b"RFC822", msg_bytes]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.post_de.cleanup_images"),
+        patch("custom_components.mail_and_packages.shippers.post_de.shutil.copyfile"),
+        patch.object(
+            shipper, "_check_and_save_image", return_value="/test/scan.png"
+        ) as mock_save,
+    ):
+        result = await shipper.process(mock_account, "today", "post_de_mail")
+        assert result["post_de_mail"] == 0
+        mock_save.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_post_de_invalid_or_missing_date_header(hass):
+    """Test Post DE email with unparsable or missing date header is not skipped."""
+    shipper = PostDEShipper(
+        hass,
+        {
+            "image_path": "test/path/post_de/",
+            "post_de_image": "post_de_deliveries.gif",
+            CONF_DURATION: 5,
+        },
+    )
+
+    msg = MIMEMultipart("related")
+    msg["Date"] = "Invalid Date String"
+
+    image_part = MIMEText("test", _subtype="png")
+    image_part.set_type("image/png")
+    msg.attach(image_part)
+    msg_bytes = msg.as_bytes()
+
+    mock_account = AsyncMock()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.get_today",
+            return_value=dt.date(2026, 11, 4),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.email_search",
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.email_fetch",
+            return_value=("OK", [b"RFC822", msg_bytes]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.post_de.anyio.Path.is_dir",
+            return_value=True,
+        ),
+        patch("custom_components.mail_and_packages.shippers.post_de.cleanup_images"),
+        patch.object(
+            shipper, "_check_and_save_image", return_value="/test/scan.png"
+        ) as mock_save,
+        patch.object(shipper, "_generate_mail_image"),
+    ):
+        result = await shipper.process(mock_account, "today", "post_de_mail")
+        assert result["post_de_mail"] == 1
+        assert mock_save.call_count == 1
+
+
+def test_post_de_subject_ascii_prefix():
+    """Verify Post DE subject in SENSOR_DATA uses ASCII prefix without umlauts."""
+    subjects = SENSOR_DATA["post_de_mail"]["subject"]
+    assert "Ein Brief kommt in" in subjects
+    assert "Ein Brief kommt in Kürze bei Ihnen an" not in subjects
 
 
 @pytest.mark.asyncio

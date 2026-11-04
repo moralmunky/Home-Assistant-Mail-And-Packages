@@ -1134,7 +1134,7 @@ SENSOR_DATA = {
             "ankuendigung@brief.deutschepost.de",
         ],
         "subject": [
-            "Ein Brief kommt in Kürze bei Ihnen an",
+            "Ein Brief kommt in",
             "Ein Brief ist unterwegs zu Ihnen",
         ],
     },
