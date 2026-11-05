@@ -25,9 +25,9 @@ def update_tracking_for_prefix(
 
     in_transit = in_transit_tracking[prefix]
 
-    # Add new delivering tracking numbers (record first-seen date)
+    # Add or update delivering tracking numbers (record last-seen date)
     for tid in delivering:
-        if tid and tid not in in_transit:
+        if tid:
             in_transit[tid] = today_iso
 
     # Remove delivered tracking numbers
@@ -92,7 +92,9 @@ def apply_tracking_state(
                     data.get(f"{prefix}_delivering"),
                 )
             data[f"{prefix}_tracking"] = list(in_transit.keys())
-            data[f"{prefix}_delivering"] = len(in_transit)
+            data[f"{prefix}_delivering"] = sum(
+                1 for seen in in_transit.values() if seen == today_iso
+            )
         if in_transit:
             delivered_count = data.get(f"{prefix}_delivered", 0)
             data[f"{prefix}_packages"] = len(in_transit) + (

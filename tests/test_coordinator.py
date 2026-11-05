@@ -552,23 +552,23 @@ async def test_update_tracking_expires_old_entries(hass):
 
 
 @pytest.mark.asyncio
-async def test_update_tracking_no_duplicate_add(hass):
-    """Already-known tracking numbers keep their original first-seen date."""
+async def test_update_tracking_updates_seen_date_on_new_match(hass):
+    """Delivering matching on a new day updates the last-seen date."""
     coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     original_date = "2026-04-20"
     coordinator._in_transit_tracking["ups"] = {"1Z123": original_date}
     coordinator._update_tracking_for_prefix("ups", ["1Z123"], [], "2026-04-22", 14)
 
-    assert coordinator._in_transit_tracking["ups"]["1Z123"] == original_date
+    assert coordinator._in_transit_tracking["ups"]["1Z123"] == "2026-04-22"
 
 
 @pytest.mark.asyncio
 async def test_apply_tracking_state_overrides_delivering(hass):
-    """_apply_tracking_state replaces IMAP-reported count with persisted count."""
+    """_apply_tracking_state sets delivering to today-only count and packages to in-transit total."""
     coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
-    # Pre-populate two tracking numbers in transit
+    # Pre-populate two tracking numbers in transit from prior days
     coordinator._in_transit_tracking["ups"] = {
         "1Z111": "2026-04-20",
         "1Z222": "2026-04-21",
@@ -581,10 +581,35 @@ async def test_apply_tracking_state_overrides_delivering(hass):
     }
     coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
 
-    # 1Z111, 1Z222 carried over + 1Z333 newly added = 3
-    assert data["ups_delivering"] == 3
+    # Only 1Z333 matched today = 1 delivering
+    assert data["ups_delivering"] == 1
+    # 1Z111, 1Z222 carried over + 1Z333 newly added = 3 packages in transit
     assert data["ups_packages"] == 3  # 3 in transit + 0 delivered
     assert set(data["ups_tracking"]) == {"1Z111", "1Z222", "1Z333"}
+
+
+@pytest.mark.asyncio
+async def test_apply_tracking_state_midnight_expiration_zeroes_delivering(hass):
+    """Delivering resets to 0 at midnight when no delivering email arrives today."""
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    # Pre-populate tracking number from yesterday with no delivered email
+    coordinator._in_transit_tracking["fedex"] = {
+        "9261290": "2026-04-21",
+    }
+
+    data = {"fedex_delivering": 0, "fedex_delivered": 0, "fedex_packages": 0}
+    tracking_details = {
+        "fedex_delivering": [],
+        "fedex_delivered": [],
+    }
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+
+    # Delivering count resets to 0 because 9261290 was not matched today
+    assert data["fedex_delivering"] == 0
+    # Package is still in transit across midnight
+    assert data["fedex_packages"] == 1
+    assert data["fedex_tracking"] == ["9261290"]
 
 
 @pytest.mark.asyncio
@@ -594,12 +619,12 @@ async def test_apply_tracking_state_removes_delivered(hass):
 
     coordinator._in_transit_tracking["fedex"] = {
         "9261290": "2026-04-20",
-        "9261999": "2026-04-21",
+        "9261999": "2026-04-22",
     }
 
     data = {"fedex_delivering": 2, "fedex_delivered": 1, "fedex_packages": 3}
     tracking_details = {
-        "fedex_delivering": [],
+        "fedex_delivering": ["9261999"],
         "fedex_delivered": ["9261290"],
     }
     coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
@@ -769,7 +794,8 @@ async def test_apply_tracking_state_overwrites_empty_config_packages(hass):
     }
     coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
 
-    assert data["hermes_delivering"] == 3
+    # Only H3 is seen today, so hermes_delivering == 1
+    assert data["hermes_delivering"] == 1
     assert data["hermes_packages"] == 4  # 3 in transit + 1 delivered
     assert set(data["hermes_tracking"]) == {"H1", "H2", "H3"}
 
