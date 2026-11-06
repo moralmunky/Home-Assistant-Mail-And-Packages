@@ -1,0 +1,21 @@
+Delivered-To: testuser@example.com
+MIME-Version: 1.0
+From: Amazon.com <shipment-tracking@amazon.com>
+Date: Fri, 06 Nov 2026 09:56:00 +0000
+Subject: Out for delivery 1 item: Computer Components
+To: testuser@example.com
+Content-Type: text/plain; charset="UTF-8"
+
+Your package is out for delivery!
+
+Arriving today 1 PM - 4 PM
+
+1 item: Computer Components
+
+Order # 111-1234567-1234567
+
+Your one-time password is 123456
+
+For security, the recipient of this package must provide this one-time
+password to the driver in person to receive the package. Do not
+communicate this password to the driver over phone or intercom.

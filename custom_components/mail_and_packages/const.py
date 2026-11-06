@@ -44,6 +44,10 @@ ATTR_GRID_IMAGE_NAME = "grid_image"
 ATTR_ORDER = "order"
 ATTR_ORDER_DETAILS = "order_details"
 ATTR_DELIVERY_DATE_PATTERN = "delivery_date_pattern"
+ATTR_DELIVERY_DATE = "delivery_date"
+ATTR_DELIVERY_WINDOW = "delivery_window"
+ATTR_DELIVERY_WINDOW_END = "delivery_window_end"
+ATTR_DELIVERY_WINDOW_START = "delivery_window_start"
 ATTR_TRACKING = "tracking"
 ATTR_TRACKING_NUM = "tracking_#"
 ATTR_IMAGE = "image"
@@ -346,13 +350,24 @@ AMAZON_EXCEPTION_ORDER = "amazon_exception_order"
 AMAZON_PATTERN = "[0-9]{3}-[0-9]{7}-[0-9]{7}"
 AMAZON_OTP = "amazon_otp"
 AMAZON_OTP_CODE = "amazon_otp_code"
+AMAZON_OTP_DELIVERY_DATE = "amazon_otp_delivery_date"
+AMAZON_OTP_DELIVERY_WINDOW = "amazon_otp_delivery_window"
+AMAZON_OTP_DELIVERY_WINDOW_END = "amazon_otp_delivery_window_end"
+AMAZON_OTP_DELIVERY_WINDOW_START = "amazon_otp_delivery_window_start"
+AMAZON_OTP_ORDER = "amazon_otp_order"
 AMAZON_OTP_REGEX = (
     r"(?i)(?:(?:tu contraseña temporal es|tu contraseña de un solo uso es|"
     r"your one-time password is)\s*:?\s*|(?:^|\n)\s*)(\d{6})(?=\s*(?:\n|$))"
 )
+AMAZON_OTP_DELIVERY_WINDOW_REGEX = (
+    r"(?i)Arriving\s+today\s+"
+    r"(\d{1,2}(?::\d{2})?\s*[AP]M)\s*[-–]\s*"
+    r"(\d{1,2}(?::\d{2})?\s*[AP]M)"
+)
 AMAZON_OTP_SUBJECT = [
     "A one-time password is required for your Amazon delivery",
     "Llega hoy:",
+    "Out for delivery",
 ]
 
 AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT = ["AMAZON"]

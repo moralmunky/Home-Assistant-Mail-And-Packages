@@ -36,7 +36,16 @@ from .const import (
     AMAZON_ORDER_DETAILS,
     AMAZON_OTP,
     AMAZON_OTP_CODE,
+    AMAZON_OTP_DELIVERY_DATE,
+    AMAZON_OTP_DELIVERY_WINDOW,
+    AMAZON_OTP_DELIVERY_WINDOW_END,
+    AMAZON_OTP_DELIVERY_WINDOW_START,
+    AMAZON_OTP_ORDER,
     ATTR_CODE,
+    ATTR_DELIVERY_DATE,
+    ATTR_DELIVERY_WINDOW,
+    ATTR_DELIVERY_WINDOW_END,
+    ATTR_DELIVERY_WINDOW_START,
     ATTR_GRID_IMAGE_NAME,
     ATTR_HAS_MAIL_IMAGES,
     ATTR_IMAGE,
@@ -217,6 +226,35 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
         if details := data.get(AMAZON_ORDER_DETAILS):
             attr[ATTR_ORDER_DETAILS] = details
 
+    def _add_amazon_otp_attributes(self, attr: dict, data: dict) -> None:
+        """Add the OTP code, its order, and its delivery details."""
+        if code := data.get(AMAZON_OTP_CODE, data.get(ATTR_CODE)):
+            attr[ATTR_CODE] = code
+        if order := data.get(AMAZON_OTP_ORDER):
+            attr[ATTR_ORDER] = order
+        self._add_amazon_otp_delivery_attributes(attr, data)
+
+    @staticmethod
+    def _add_amazon_otp_delivery_attributes(attr: dict, data: dict) -> None:
+        """Expose the first OTP delivery date and window as scalar attributes.
+
+        The code attribute stays a list (several deliveries can need a
+        code on the same day), but automations and conditional dashboard
+        cards need a single day and window to act on, so the first
+        delivery's values are also exposed directly.
+        """
+        for data_key, attr_key in (
+            (AMAZON_OTP_DELIVERY_DATE, ATTR_DELIVERY_DATE),
+            (AMAZON_OTP_DELIVERY_WINDOW, ATTR_DELIVERY_WINDOW),
+            (AMAZON_OTP_DELIVERY_WINDOW_START, ATTR_DELIVERY_WINDOW_START),
+            (AMAZON_OTP_DELIVERY_WINDOW_END, ATTR_DELIVERY_WINDOW_END),
+        ):
+            values = data.get(data_key)
+            if isinstance(values, list) and values:
+                attr[attr_key] = values[0]
+            elif isinstance(values, str) and values:
+                attr[attr_key] = values
+
     def _add_amazon_attributes(self, attr: dict, data: dict) -> None:
         """Add Amazon specific attributes to the sensor."""
         if self.type == AMAZON_EXCEPTION:
@@ -229,8 +267,7 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
             if code := data.get(AMAZON_HUB_CODE, data.get(ATTR_CODE)):
                 attr[ATTR_CODE] = code
         elif self.type == AMAZON_OTP:
-            if code := data.get(AMAZON_OTP_CODE, data.get(ATTR_CODE)):
-                attr[ATTR_CODE] = code
+            self._add_amazon_otp_attributes(attr, data)
         elif order := data.get(AMAZON_ORDER):
             self._add_amazon_order_attributes(attr, data, order)
 
