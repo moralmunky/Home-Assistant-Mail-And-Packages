@@ -39,6 +39,8 @@ from custom_components.mail_and_packages.shippers.amazon.helpers import (
 from custom_components.mail_and_packages.shippers.amazon.search import (
     _extract_amazon_otp_code,
     _extract_amazon_otp_details,
+    _extract_window_details,
+    _format_window_time,
 )
 from custom_components.mail_and_packages.utils.amazon import (
     _extract_hub_code,
@@ -216,6 +218,32 @@ async def test_amazon_otp_out_for_delivery(hass):
         AMAZON_OTP_ORDER: ["111-1234567-1234567"],
         AMAZON_OTP_DELIVERY_DATE: ["2026-11-06"],
     }
+
+
+def test_format_window_time_variants():
+    """Window times format as 24-hour, with unparseable values rejected."""
+    assert _format_window_time("1 PM") == "13:00"
+    assert _format_window_time("1:30 PM") == "13:30"
+    assert _format_window_time("13 PM") is None
+
+
+def test_extract_window_details_keeps_first_window():
+    """A second window in a later message part does not replace the first."""
+    details = {}
+    _extract_window_details("Arriving today 1 PM - 4 PM", details)
+    _extract_window_details("Arriving today 2 PM - 5 PM", details)
+    assert details[AMAZON_OTP_DELIVERY_WINDOW] == "1 PM - 4 PM"
+    assert details[AMAZON_OTP_DELIVERY_WINDOW_START] == "13:00"
+    assert details[AMAZON_OTP_DELIVERY_WINDOW_END] == "16:00"
+
+
+def test_extract_amazon_otp_details_bad_date():
+    """An unparseable Date header yields no delivery date."""
+    message = EmailMessage()
+    message["Date"] = "not-a-date"
+    message.set_content("Your one-time password is 123456\n")
+
+    assert _extract_amazon_otp_details(message) == {}
 
 
 def test_extract_amazon_otp_skips_non_bytes_payload():
