@@ -80,6 +80,7 @@ from custom_components.mail_and_packages.const import (
     CONF_IMAP_SECURITY,
     CONF_POST_DE_CUSTOM_IMG,
     CONF_POST_DE_CUSTOM_IMG_FILE,
+    CONF_STORAGE,
     CONF_UPS_CUSTOM_IMG,
     CONF_UPS_CUSTOM_IMG_FILE,
     CONF_WALMART_CUSTOM_IMG,
@@ -5504,6 +5505,52 @@ async def test_step_config_amazon_validation_error(hass):
         # Should return the form again due to validation error
         mock_show_form.assert_called_once()
         assert flow._errors[CONF_AMAZON_FWDS] == "invalid_email_format"
+
+
+@pytest.mark.asyncio
+async def test_step_config_storage_show_submit_and_error(hass):
+    """Test the storage step: form display, error re-show, entry creation."""
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    flow._data = {CONF_USERNAME: "a@example.com"}
+
+    # No input yet: the storage form is shown
+    with patch.object(flow, "async_show_form") as mock_show_form:
+        await flow.async_step_config_storage(None)
+        mock_show_form.assert_called_once()
+        assert mock_show_form.call_args.kwargs["step_id"] == "config_storage"
+
+    user_input = {CONF_STORAGE: "mail_and_packages/a_example_com/"}
+
+    # Validation errors: the form is shown again and the errors are kept
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow._validate_user_input",
+            new_callable=AsyncMock,
+            return_value=({"base": "invalid_storage"}, user_input),
+        ),
+        patch.object(flow, "async_show_form") as mock_show_form,
+    ):
+        await flow.async_step_config_storage(user_input)
+        mock_show_form.assert_called_once()
+        assert flow._errors == {"base": "invalid_storage"}
+
+    # Valid input: the mailbox entry is created from the collected data
+    with (
+        patch(
+            "custom_components.mail_and_packages.config_flow._validate_user_input",
+            new_callable=AsyncMock,
+            return_value=({}, user_input),
+        ),
+        patch.object(flow, "async_create_entry") as mock_create_entry,
+    ):
+        await flow.async_step_config_storage(user_input)
+        mock_create_entry.assert_called_once()
+        assert (
+            mock_create_entry.call_args.kwargs["title"]
+            == "Mail and Packages (a@example.com)"
+        )
+        assert flow._data[CONF_STORAGE] == user_input[CONF_STORAGE]
 
 
 @pytest.mark.asyncio
