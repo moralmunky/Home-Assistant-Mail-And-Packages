@@ -221,7 +221,7 @@ async def test_amazon_otp_out_for_delivery(hass):
 
 
 def test_format_window_time_variants():
-    """Window times format as 24-hour, with unparseable values rejected."""
+    """Window times format as 24-hour, with invalid values rejected."""
     assert _format_window_time("1 PM") == "13:00"
     assert _format_window_time("1:30 PM") == "13:30"
     assert _format_window_time("13 PM") is None
@@ -238,7 +238,7 @@ def test_extract_window_details_keeps_first_window():
 
 
 def test_extract_amazon_otp_details_bad_date():
-    """An unparseable Date header yields no delivery date."""
+    """A Date header that cannot be parsed yields no delivery date."""
     message = EmailMessage()
     message["Date"] = "not-a-date"
     message.set_content("Your one-time password is 123456\n")
