@@ -19,6 +19,9 @@ from homeassistant.const import (
 from homeassistant.core import callback
 from homeassistant.helpers import config_entry_oauth2_flow
 
+from custom_components.mail_and_packages.application_credentials import (
+    implementation_for_auth_type,
+)
 from custom_components.mail_and_packages.config_flows.options import (
     OptionsFlowStepsMixin,
 )
@@ -284,8 +287,6 @@ class MailAndPackagesFlowHandler(
 
             if auth_type != AUTH_TYPE_PASSWORD:
                 self._data[CONF_VERIFY_SSL] = True
-                self.hass.data.setdefault(DOMAIN, {})
-                self.hass.data[DOMAIN]["oauth_provider"] = auth_type
                 return await self.async_step_pick_implementation()
 
             self._errors = await _validate_login(
@@ -298,6 +299,20 @@ class MailAndPackagesFlowHandler(
             return await self._show_imap_form(user_input)
 
         return await self._show_imap_form(user_input)
+
+    async def async_step_auth(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Sign in through the server for this mailbox's own auth type.
+
+        Setup, reauth and reconfigure all pass through here after a
+        credential is picked, so the authorize and token requests always
+        match the provider chosen for this mailbox.
+        """
+        self.flow_impl = implementation_for_auth_type(
+            self.flow_impl, self._data[CONF_AUTH_TYPE]
+        )
+        return await super().async_step_auth(user_input)
 
     async def async_oauth_create_entry(
         self,
