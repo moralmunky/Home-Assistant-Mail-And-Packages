@@ -24,6 +24,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from . import MailAndPackagesConfigEntry
 from .const import (
@@ -36,11 +37,14 @@ from .const import (
     AMAZON_ORDER_DETAILS,
     AMAZON_OTP,
     AMAZON_OTP_CODE,
+    AMAZON_OTP_DELIVERY_CODE,
     AMAZON_OTP_DELIVERY_DATE,
     AMAZON_OTP_DELIVERY_WINDOW,
     AMAZON_OTP_DELIVERY_WINDOW_END,
     AMAZON_OTP_DELIVERY_WINDOW_START,
     AMAZON_OTP_ORDER,
+    AMAZON_OTP_WINDOW_END,
+    AMAZON_OTP_WINDOW_START,
     ATTR_CODE,
     ATTR_DELIVERY_DATE,
     ATTR_DELIVERY_WINDOW,
@@ -166,6 +170,18 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
         """Return the state of the sensor."""
         if self.coordinator.data is None:
             return getattr(self, "_attr_native_value", None)
+
+        if self.type in (AMAZON_OTP_WINDOW_START, AMAZON_OTP_WINDOW_END):
+            # Computed from the delivery date and window bounds; assigning
+            # even None matters, so a stale restored value from a previous
+            # day is never reported once today's data has loaded.
+            self._attr_native_value = self._amazon_otp_window_value()
+            return self._attr_native_value
+
+        if self.type == AMAZON_OTP_DELIVERY_CODE:
+            self._attr_native_value = self._amazon_otp_code_value()
+            return self._attr_native_value
+
         value = self.coordinator.data.get(self.type)
 
         if self.type == "mail_updated":
@@ -255,8 +271,56 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
             elif isinstance(values, str) and values:
                 attr[attr_key] = values
 
+    @staticmethod
+    def _first_string(value: Any) -> str | None:
+        """Return the first non-empty string from a list or scalar value."""
+        if isinstance(value, list):
+            if value and isinstance(value[0], str) and value[0]:
+                return value[0]
+            return None
+        return value if isinstance(value, str) and value else None
+
+    def _amazon_otp_code_value(self) -> str | None:
+        """Return today's first Amazon OTP code, if there is one."""
+        data = self.coordinator.data or {}
+        return self._first_string(data.get(AMAZON_OTP_CODE, data.get(ATTR_CODE)))
+
+    def _amazon_otp_window_value(self) -> dt.datetime | None:
+        """Combine the OTP delivery date and window bound into a timestamp.
+
+        Returns None when there is no code today or when the date or the
+        window bound for this sensor is missing or unparsable, so the
+        sensor reads unknown instead of raising or reporting a stale day.
+        """
+        data = self.coordinator.data or {}
+        if not self._amazon_otp_code_value():
+            return None
+        bound_key = (
+            AMAZON_OTP_DELIVERY_WINDOW_START
+            if self.type == AMAZON_OTP_WINDOW_START
+            else AMAZON_OTP_DELIVERY_WINDOW_END
+        )
+        date_text = self._first_string(data.get(AMAZON_OTP_DELIVERY_DATE))
+        time_text = self._first_string(data.get(bound_key))
+        if not date_text or not time_text:
+            return None
+        try:
+            day = dt.date.fromisoformat(date_text)
+            at = dt.time.fromisoformat(time_text)
+        except ValueError:
+            return None
+        return dt.datetime.combine(day, at, tzinfo=dt_util.get_default_time_zone())
+
     def _add_amazon_attributes(self, attr: dict, data: dict) -> None:
         """Add Amazon specific attributes to the sensor."""
+        if self.type in (
+            AMAZON_OTP_DELIVERY_CODE,
+            AMAZON_OTP_WINDOW_END,
+            AMAZON_OTP_WINDOW_START,
+        ):
+            # The OTP window and code sensors carry their value as the
+            # state; the generic Amazon order attributes do not apply.
+            return
         if self.type == AMAZON_EXCEPTION:
             if order := data.get(AMAZON_EXCEPTION_ORDER, data.get(ATTR_ORDER)):
                 attr[ATTR_ORDER] = order
