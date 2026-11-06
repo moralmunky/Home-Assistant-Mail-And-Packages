@@ -1,6 +1,7 @@
 """Tests for Amazon shipper utilities."""
 
 import datetime as dt
+import email
 import re
 from email.message import EmailMessage
 from email.mime.multipart import MIMEMultipart
@@ -21,6 +22,11 @@ from custom_components.mail_and_packages.const import (
     AMAZON_ORDER_DETAILS,
     AMAZON_OTP,
     AMAZON_OTP_CODE,
+    AMAZON_OTP_DELIVERY_DATE,
+    AMAZON_OTP_DELIVERY_WINDOW,
+    AMAZON_OTP_DELIVERY_WINDOW_END,
+    AMAZON_OTP_DELIVERY_WINDOW_START,
+    AMAZON_OTP_ORDER,
     AMAZON_OTP_REGEX,
     AMAZON_PACKAGES,
     ATTR_COUNT,
@@ -32,6 +38,9 @@ from custom_components.mail_and_packages.shippers.amazon.helpers import (
 )
 from custom_components.mail_and_packages.shippers.amazon.search import (
     _extract_amazon_otp_code,
+    _extract_amazon_otp_details,
+    _extract_window_details,
+    _format_window_time,
 )
 from custom_components.mail_and_packages.utils.amazon import (
     _extract_hub_code,
@@ -151,6 +160,90 @@ async def test_amazon_otp_extracts_spanish_code_from_visible_html(hass):
         result = await shipper.process(mock_account, "today", AMAZON_OTP)
 
     assert result == {AMAZON_OTP: 1, AMAZON_OTP_CODE: ["654321"]}
+
+
+def _out_for_delivery_email_bytes() -> bytes:
+    """Read the sanitized out-for-delivery OTP fixture."""
+    return Path("tests/test_emails/amazon_otp_out_for_delivery.eml").read_bytes()
+
+
+def test_extract_amazon_otp_details_out_for_delivery():
+    """OTP delivery details come from a sanitized out-for-delivery email."""
+    message = email.message_from_bytes(_out_for_delivery_email_bytes())
+
+    assert _extract_amazon_otp_code(message, AMAZON_OTP_REGEX) == "123456"
+    assert _extract_amazon_otp_details(message) == {
+        AMAZON_OTP_DELIVERY_WINDOW: "1 PM - 4 PM",
+        AMAZON_OTP_DELIVERY_WINDOW_START: "13:00",
+        AMAZON_OTP_DELIVERY_WINDOW_END: "16:00",
+        AMAZON_OTP_ORDER: "111-1234567-1234567",
+        AMAZON_OTP_DELIVERY_DATE: "2026-11-06",
+    }
+
+
+@pytest.mark.asyncio
+async def test_amazon_otp_out_for_delivery(hass):
+    """An out-for-delivery subject email yields code, date, and window."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    email_bytes = _out_for_delivery_email_bytes()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
+            return_value=dt.date(2026, 11, 6),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ) as mock_search,
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [bytearray(email_bytes)]),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", AMAZON_OTP)
+
+    # The out-for-delivery format is searched, not just the OTP subject.
+    searched_subjects = mock_search.call_args.args[3]
+    assert "Out for delivery" in searched_subjects
+    assert result == {
+        AMAZON_OTP: 1,
+        AMAZON_OTP_CODE: ["123456"],
+        AMAZON_OTP_DELIVERY_WINDOW: ["1 PM - 4 PM"],
+        AMAZON_OTP_DELIVERY_WINDOW_START: ["13:00"],
+        AMAZON_OTP_DELIVERY_WINDOW_END: ["16:00"],
+        AMAZON_OTP_ORDER: ["111-1234567-1234567"],
+        AMAZON_OTP_DELIVERY_DATE: ["2026-11-06"],
+    }
+
+
+def test_format_window_time_variants():
+    """Window times format as 24-hour, with invalid values rejected."""
+    assert _format_window_time("1 PM") == "13:00"
+    assert _format_window_time("1:30 PM") == "13:30"
+    assert _format_window_time("13 PM") is None
+
+
+def test_extract_window_details_keeps_first_window():
+    """A second window in a later message part does not replace the first."""
+    details = {}
+    _extract_window_details("Arriving today 1 PM - 4 PM", details)
+    _extract_window_details("Arriving today 2 PM - 5 PM", details)
+    assert details[AMAZON_OTP_DELIVERY_WINDOW] == "1 PM - 4 PM"
+    assert details[AMAZON_OTP_DELIVERY_WINDOW_START] == "13:00"
+    assert details[AMAZON_OTP_DELIVERY_WINDOW_END] == "16:00"
+
+
+def test_extract_amazon_otp_details_bad_date():
+    """A Date header that cannot be parsed yields no delivery date."""
+    message = EmailMessage()
+    message["Date"] = "not-a-date"
+    message.set_content("Your one-time password is 123456\n")
+
+    assert _extract_amazon_otp_details(message) == {}
 
 
 def test_extract_amazon_otp_skips_non_bytes_payload():

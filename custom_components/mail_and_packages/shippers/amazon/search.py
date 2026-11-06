@@ -6,6 +6,7 @@ import datetime as dt
 import email
 import logging
 import re
+from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from typing import Any
 
@@ -25,8 +26,15 @@ from custom_components.mail_and_packages.const import (
     AMAZON_ORDERED_SUBJECT,
     AMAZON_OTP,
     AMAZON_OTP_CODE,
+    AMAZON_OTP_DELIVERY_DATE,
+    AMAZON_OTP_DELIVERY_WINDOW,
+    AMAZON_OTP_DELIVERY_WINDOW_END,
+    AMAZON_OTP_DELIVERY_WINDOW_REGEX,
+    AMAZON_OTP_DELIVERY_WINDOW_START,
+    AMAZON_OTP_ORDER,
     AMAZON_OTP_REGEX,
     AMAZON_OTP_SUBJECT,
+    AMAZON_PATTERN,
     DEFAULT_AMAZON_DAYS,
 )
 from custom_components.mail_and_packages.utils.amazon import (
@@ -81,10 +89,9 @@ class _AmazonOTPHTMLParser(HTMLParser):
             self.text_parts.append(data)
 
 
-def _extract_amazon_otp_code(msg: email.message.Message, regex: str) -> str | None:
-    """Return an OTP found in the visible plain-text or HTML message body."""
-    pattern = re.compile(regex)
-
+def _iter_visible_texts(msg: email.message.Message) -> list[str]:
+    """Return the visible text of each plain-text or HTML message part."""
+    texts = []
     for part in msg.walk():
         content_type = part.get_content_type()
         if content_type not in ("text/plain", "text/html"):
@@ -105,10 +112,75 @@ def _extract_amazon_otp_code(msg: email.message.Message, regex: str) -> str | No
             parser.feed(body)
             body = "\n".join(parser.text_parts)
 
+        texts.append(body)
+    return texts
+
+
+def _extract_amazon_otp_code(msg: email.message.Message, regex: str) -> str | None:
+    """Return an OTP found in the visible plain-text or HTML message body."""
+    pattern = re.compile(regex)
+
+    for body in _iter_visible_texts(msg):
         if found := pattern.search(body):
             return found.group(found.lastindex or 0)
 
     return None
+
+
+def _format_window_time(value: str) -> str | None:
+    """Format a window time such as '1 PM' or '1:30 PM' as 24-hour HH:MM."""
+    normalized = " ".join(value.upper().split())
+    for fmt in ("%I %p", "%I:%M %p"):
+        try:
+            return dt.datetime.strptime(normalized, fmt).strftime("%H:%M")
+        except ValueError:
+            continue
+    return None
+
+
+def _extract_window_details(body: str, details: dict[str, str]) -> None:
+    """Add the delivery window from a body text to the details, if any."""
+    if AMAZON_OTP_DELIVERY_WINDOW in details:
+        return
+    if found := re.compile(AMAZON_OTP_DELIVERY_WINDOW_REGEX).search(body):
+        start_raw = " ".join(found.group(1).upper().split())
+        end_raw = " ".join(found.group(2).upper().split())
+        details[AMAZON_OTP_DELIVERY_WINDOW] = f"{start_raw} - {end_raw}"
+        if start := _format_window_time(start_raw):
+            details[AMAZON_OTP_DELIVERY_WINDOW_START] = start
+        if end := _format_window_time(end_raw):
+            details[AMAZON_OTP_DELIVERY_WINDOW_END] = end
+
+
+def _extract_amazon_otp_details(msg: email.message.Message) -> dict[str, str]:
+    """Return delivery details found alongside an Amazon OTP.
+
+    Extracts the delivery window (for example "Arriving today 1 PM - 4 PM"
+    in an out-for-delivery email), the order number, and the delivery
+    date (the date of the email, which is the delivery day for these
+    same-day notices). Only values actually found are returned.
+    """
+    details: dict[str, str] = {}
+    order_pattern = re.compile(AMAZON_PATTERN)
+
+    for body in _iter_visible_texts(msg):
+        _extract_window_details(body, details)
+        if AMAZON_OTP_ORDER not in details:
+            if order := order_pattern.search(body):
+                details[AMAZON_OTP_ORDER] = order.group(0)
+        if AMAZON_OTP_DELIVERY_WINDOW in details and AMAZON_OTP_ORDER in details:
+            break
+
+    date_str = msg.get("Date")
+    if date_str:
+        try:
+            parsed = parsedate_to_datetime(date_str)
+        except (TypeError, ValueError):
+            parsed = None
+        if parsed is not None:
+            details[AMAZON_OTP_DELIVERY_DATE] = parsed.date().isoformat()
+
+    return details
 
 
 class AmazonSearchMixin(AmazonImageMixin):
@@ -373,6 +445,7 @@ class AmazonSearchMixin(AmazonImageMixin):
     ) -> dict[str, Any]:
         """Find Amazon OTP code."""
         code = []
+        details: dict[str, list[str]] = {}
         today = get_today().strftime("%d-%b-%Y")
         address_list = amazon_email_addresses(fwds, domain)
         subject = AMAZON_OTP_SUBJECT
@@ -395,8 +468,15 @@ class AmazonSearchMixin(AmazonImageMixin):
                     if isinstance(response_part, (bytes, bytearray)):
                         msg = email.message_from_bytes(response_part)
                         if otp_code := _extract_amazon_otp_code(msg, regex):
-                            code.append(otp_code)
-        return {AMAZON_OTP: len(code), AMAZON_OTP_CODE: code}
+                            if otp_code not in code:
+                                code.append(otp_code)
+                                for key, value in _extract_amazon_otp_details(
+                                    msg
+                                ).items():
+                                    details.setdefault(key, []).append(value)
+        result: dict[str, Any] = {AMAZON_OTP: len(code), AMAZON_OTP_CODE: code}
+        result.update(details)
+        return result
 
     async def _amazon_exception(
         self,

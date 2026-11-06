@@ -522,6 +522,44 @@ async def test_packages_sensor_attributes_edge_cases(hass):
     assert attrs_otp["code"] == ["654321"]
     assert ATTR_ORDER not in attrs_otp
 
+    # Test delivery date/window attributes for Amazon OTP
+    coord_otp_delivery = MagicMock()
+    coord_otp_delivery.data = {
+        "amazon_otp_code": ["123456"],
+        "amazon_otp_order": ["111-1234567-1234567"],
+        "amazon_otp_delivery_date": ["2026-11-06"],
+        "amazon_otp_delivery_window": ["1 PM - 4 PM"],
+        "amazon_otp_delivery_window_start": ["13:00"],
+        "amazon_otp_delivery_window_end": ["16:00"],
+    }
+    sensor_otp_delivery = PackagesSensor(
+        entry,
+        sensor_otp_desc,
+        coord_otp_delivery,
+    )
+    attrs_delivery = sensor_otp_delivery.extra_state_attributes
+    assert attrs_delivery["code"] == ["123456"]
+    assert attrs_delivery[ATTR_ORDER] == ["111-1234567-1234567"]
+    assert attrs_delivery["delivery_date"] == "2026-11-06"
+    assert attrs_delivery["delivery_window"] == "1 PM - 4 PM"
+    assert attrs_delivery["delivery_window_start"] == "13:00"
+    assert attrs_delivery["delivery_window_end"] == "16:00"
+
+    # Delivery attributes also accept plain string values
+    coord_otp_str = MagicMock()
+    coord_otp_str.data = {
+        "amazon_otp_delivery_date": "2026-11-06",
+        "amazon_otp_delivery_window_start": "13:00",
+    }
+    sensor_otp_str = PackagesSensor(
+        entry,
+        sensor_otp_desc,
+        coord_otp_str,
+    )
+    attrs_str = sensor_otp_str.extra_state_attributes
+    assert attrs_str["delivery_date"] == "2026-11-06"
+    assert attrs_str["delivery_window_start"] == "13:00"
+
     # Test attributes for Amazon Delivering
     coord_delivering = MagicMock()
     coord_delivering.data = {"amazon_delivering_order": ["303-1873062-3277126"]}
