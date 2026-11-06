@@ -22,6 +22,9 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from custom_components.mail_and_packages import const
+from custom_components.mail_and_packages.application_credentials import (
+    implementation_for_auth_type,
+)
 from custom_components.mail_and_packages.shippers import get_shipper_for_sensor
 from custom_components.mail_and_packages.utils.cache import EmailCache
 from custom_components.mail_and_packages.utils.image import (
@@ -48,12 +51,12 @@ async def async_oauth_access_token(
     Assistant starts a reauth flow instead of retrying forever.
     """
     try:
-        hass.data.setdefault(const.DOMAIN, {})
-        hass.data[const.DOMAIN]["oauth_provider"] = auth_type
-
-        implementation = await flow_mod.async_get_config_entry_implementation(
-            hass,
-            config_entry,
+        implementation = implementation_for_auth_type(
+            await flow_mod.async_get_config_entry_implementation(
+                hass,
+                config_entry,
+            ),
+            auth_type,
         )
         session = flow_mod.OAuth2Session(
             hass,

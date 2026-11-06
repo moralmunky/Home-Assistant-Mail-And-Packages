@@ -11,6 +11,9 @@ from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNA
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_entry_oauth2_flow
 
+from custom_components.mail_and_packages.application_credentials import (
+    implementation_for_auth_type,
+)
 from custom_components.mail_and_packages.const import (
     AUTH_TYPE_PASSWORD,
     CONF_AUTH_TYPE,
@@ -61,13 +64,12 @@ class ReconfigureFlowMixin:
             return None
 
         try:
-            self.hass.data.setdefault(DOMAIN, {})
-            self.hass.data[DOMAIN]["oauth_provider"] = auth_type
-            implementation = (
+            implementation = implementation_for_auth_type(
                 await config_entry_oauth2_flow.async_get_config_entry_implementation(
                     self.hass,
                     self._entry,
-                )
+                ),
+                auth_type,
             )
             session = config_entry_oauth2_flow.OAuth2Session(
                 self.hass,
@@ -119,8 +121,6 @@ class ReconfigureFlowMixin:
                     return self.async_abort(reason="reconfigure_successful")
 
                 self._data[CONF_VERIFY_SSL] = True
-                self.hass.data.setdefault(DOMAIN, {})
-                self.hass.data[DOMAIN]["oauth_provider"] = auth_type
                 return await self.async_step_pick_implementation()
 
             self._errors = await _validate_login(self.hass, self._data)
