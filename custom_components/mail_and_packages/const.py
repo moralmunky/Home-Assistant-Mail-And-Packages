@@ -2603,7 +2603,10 @@ DHL_ECOMMERCE_TRACKING_PATTERN = r"420\d{26,28}"
 # optional carrier name in between (matching the eBay sample's structure),
 # and the explicit "DHL eCommerce tracking number:" label (the store
 # sample's structure). A delivered-subject email without one of these
-# fingerprints is not counted as Shopify.
+# fingerprints is not counted as Shopify. Only one alternation branch can
+# match, so exactly one of group(1) / group(2) is set and the other is
+# None; consumers read the number as ``match.group(1) or match.group(2)``
+# (see helpers._shopify_store_numbers).
 SHOPIFY_STORE_TRACKING_PATTERN = (
     r"Carrier\s*(?:tracking\s+number\s*)?:\s*"
     r"(?:[A-Za-z][A-Za-z .&'-]{1,30}?\s+)?(420\d{26,28})"

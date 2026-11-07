@@ -271,6 +271,9 @@ def _adjust_packages_rollup(data: dict, prefix: str, delta: int) -> None:
     entry), mirroring remove_marketplace_package.
     """
     packages_sensor = f"{prefix}_packages"
+    # Computed <prefix>_packages rollups are the SENSOR_DATA entries whose
+    # config is an empty dict, so this truthiness check identifies them
+    # (mirroring remove_marketplace_package).
     if not const.SENSOR_DATA.get(packages_sensor) and isinstance(
         data.get(packages_sensor), int
     ):
