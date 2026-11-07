@@ -873,6 +873,52 @@ async def test_process_batch_retains_exception_tracking(hass, mock_imap_usps_exc
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("mock_fixture", "sensor_key", "tracking_number"),
+    [
+        ("mock_imap_ups_exception", "ups_exception", "1Z9999W99999999999"),
+        ("mock_imap_fedex_exception", "fedex_exception", "123456789012"),
+        ("mock_imap_walmart_exception", "walmart_exception", "1234567-12345678"),
+        (
+            "mock_imap_home_depot_exception",
+            "home_depot_exception",
+            "WK12345678",
+        ),
+        ("mock_imap_post_nl_exception", "post_nl_exception", "3SABCD123456"),
+    ],
+)
+async def test_process_batch_retains_exception_tracking_per_carrier(
+    hass, request, mock_fixture, sensor_key, tracking_number
+):
+    """Every exception carrier retains its number like USPS does (#1577).
+
+    Until now only USPS (and Amazon, a bespoke shipper) had an exception
+    email fixture, so the <prefix>_exception_tracking retention added by
+    #1577 had fixture-level proof for USPS alone. These fixtures are
+    assembled from each carrier's shipped sender, subject, and tracking
+    patterns in const.py; PostNL's is its missed-delivery notice.
+    """
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+        ),
+    ):
+        result = await shipper.process_batch(
+            request.getfixturevalue(mock_fixture),
+            "today",
+            [sensor_key],
+            None,
+        )
+
+    prefix = sensor_key.removesuffix("_exception")
+    assert result[sensor_key] == 1
+    assert result[f"{prefix}_exception_tracking"] == [tracking_number]
+    assert result["_tracking_details"][sensor_key] == [tracking_number]
+
+
+@pytest.mark.asyncio
 async def test_process_batch_exception_tracking_matches_later_delivery(hass):
     """The same number appears in exception_tracking, then delivered_tracking.
 

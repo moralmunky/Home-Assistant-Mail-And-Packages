@@ -224,6 +224,20 @@ def _delivery_attempted_email_bytes() -> bytes:
     return Path("tests/test_emails/amazon_delivery_attempted.eml").read_bytes()
 
 
+def _attempted_chain_out_for_delivery_bytes() -> bytes:
+    """Read the out-for-delivery fixture linked to the attempted order."""
+    return Path(
+        "tests/test_emails/amazon_delivery_attempted_out_for_delivery.eml"
+    ).read_bytes()
+
+
+def _attempted_chain_delivered_bytes() -> bytes:
+    """Read the delivered fixture linked to the attempted order."""
+    return Path(
+        "tests/test_emails/amazon_delivery_attempted_delivered.eml"
+    ).read_bytes()
+
+
 def test_extract_amazon_otp_details_out_for_delivery():
     """OTP delivery details come from a sanitized out-for-delivery email."""
     message = email.message_from_bytes(_out_for_delivery_email_bytes())
@@ -1164,6 +1178,108 @@ async def test_amazon_attempted_delivered_lifecycle(hass):
         == set()
     )
     assert attempted[AMAZON_ATTEMPTED_ORDER] == [order]
+
+
+@pytest.mark.asyncio
+async def test_amazon_attempted_chain_fixtures(hass):
+    """The linked fixture chain: attempted, out for delivery, delivered.
+
+    #1575 shipped the attempted fixture but merged before its two
+    companion fixtures could land. All three fixtures share the fake
+    order 111-2222222-3333333, so the full chain can be exercised over
+    real email files: the attempted sensor lists the order, the OTP
+    out-for-delivery email reports the same order with its code and
+    window, and the delivered email resolves it.
+    """
+    shipper = AmazonShipper(
+        hass,
+        {"image_path": "test/path/amazon/", "amazon_image": "testfilename.jpg"},
+    )
+    mock_account = AsyncMock()
+    mock_account.host = "imap.gmail.com"
+    order = "111-2222222-3333333"
+
+    # 1. The delivery is attempted and missed.
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [bytearray(_delivery_attempted_email_bytes())]),
+        ),
+    ):
+        attempted = await shipper.process(mock_account, "today", AMAZON_ATTEMPTED)
+    assert attempted[AMAZON_ATTEMPTED] == 1
+    assert attempted[AMAZON_ATTEMPTED_ORDER] == [order]
+
+    # 2. The next day the package is out for delivery with a one-time
+    # password, under the same order.
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
+            return_value=dt.date(2026, 11, 6),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=(
+                "OK",
+                [bytearray(_attempted_chain_out_for_delivery_bytes())],
+            ),
+        ),
+    ):
+        out_for_delivery = await shipper.process(mock_account, "today", AMAZON_OTP)
+    assert out_for_delivery == {
+        AMAZON_OTP: 1,
+        AMAZON_OTP_CODE: ["123456"],
+        AMAZON_OTP_DELIVERY_WINDOW: ["1 PM - 4 PM"],
+        AMAZON_OTP_DELIVERY_WINDOW_START: ["13:00"],
+        AMAZON_OTP_DELIVERY_WINDOW_END: ["16:00"],
+        AMAZON_OTP_ORDER: [order],
+        AMAZON_OTP_DELIVERY_DATE: ["2026-11-06"],
+    }
+
+    # 3. The delivered email for the same order arrives.
+    with (
+        patch.object(
+            AmazonShipper,
+            "_amazon_search",
+            new_callable=AsyncMock,
+            return_value=1,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.search_amazon_emails",
+            new_callable=AsyncMock,
+            return_value=[b"1"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [bytearray(_attempted_chain_delivered_bytes())]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
+            return_value=dt.date(2026, 11, 7),
+        ),
+    ):
+        delivered = await shipper.process(mock_account, "today", AMAZON_DELIVERED)
+    assert delivered[AMAZON_DELIVERED] == 1
+    assert delivered[AMAZON_DELIVERED_ORDER] == [order]
+
+    # The chain resolves: nothing attempted remains undelivered.
+    assert (
+        set(attempted[AMAZON_ATTEMPTED_ORDER]) - set(delivered[AMAZON_DELIVERED_ORDER])
+        == set()
+    )
 
 
 @pytest.mark.asyncio
