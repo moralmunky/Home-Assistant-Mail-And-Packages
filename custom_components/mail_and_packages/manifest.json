@@ -2,6 +2,9 @@
   "domain": "mail_and_packages",
   "name": "Mail and Packages",
   "after_dependencies": ["cloud"],
+  "categories": [
+    "productivity_information.shopping_groceries"
+  ],
   "codeowners": [
     "@moralmunky",
     "@firstof9"
