@@ -35,6 +35,7 @@ from .const import (
     VERSION,
 )
 from .entity import mailbox_device_name
+from .views import CONTENT_TYPES
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -59,6 +60,16 @@ class MailCam(CoordinatorEntity, Camera):
     def config_data(self) -> dict[str, Any]:
         """Return merged data and options."""
         return {**self.config.data, **self.config.options}
+
+    @property
+    def content_type(self) -> str:
+        """Return the content type of the image being served."""
+        ext = Path(self._file_path).suffix.lower()
+        return CONTENT_TYPES.get(ext, "image/jpeg")
+
+    @content_type.setter
+    def content_type(self, value: str) -> None:
+        """Allow setting content_type during Camera.__init__."""
 
     def __init__(
         self,
