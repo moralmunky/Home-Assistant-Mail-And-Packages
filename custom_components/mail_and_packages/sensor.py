@@ -81,6 +81,7 @@ from .utils.image import default_image_path
 _LOGGER = logging.getLogger(__name__)
 
 DELIVERED_SUFFIXES = {"delivered"}
+EXCEPTION_SUFFIXES = {"exception"}
 SIGNED_IMAGE_URL_TTL = dt.timedelta(hours=24)
 
 
@@ -138,6 +139,8 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
             prefix = "_".join(parts[:-1])
             if parts[-1] in DELIVERED_SUFFIXES:
                 self._tracking_key = f"{prefix}_delivered_tracking"
+            elif parts[-1] in EXCEPTION_SUFFIXES:
+                self._tracking_key = f"{prefix}_exception_tracking"
             else:
                 self._tracking_key = f"{prefix}_tracking"
         else:

@@ -75,10 +75,16 @@ class GenericBatchMixin:
             if sensor not in sensor_res and ATTR_COUNT in sensor_res:
                 sensor_res[sensor] = sensor_res[ATTR_COUNT]
 
-            # Capture today-only tracking for _delivered sensors BEFORE
-            # _deduplicate_batch_tracking runs (which currently only modifies
-            # _delivering and _packages sensor results).
-            if sensor_res.get(ATTR_TRACKING) and sensor.endswith("_delivered"):
+            # Capture per-sensor tracking for _delivered and _exception
+            # sensors BEFORE _deduplicate_batch_tracking runs, so each
+            # sensor's own list is retained as <sensor>_tracking (the
+            # coordinator otherwise discards exception numbers). The
+            # exception list stays in sync with the deduplicated count:
+            # _apply_deduplication rewrites both lists when delivered
+            # numbers are subtracted.
+            if sensor_res.get(ATTR_TRACKING) and sensor.endswith(
+                ("_delivered", "_exception")
+            ):
                 sensor_res[f"{sensor}_tracking"] = sensor_res[ATTR_TRACKING]
 
             # Record results for post-processing
@@ -141,6 +147,11 @@ class GenericBatchMixin:
 
             if len(new_tracking) != len(original_tracking):
                 sensor_res[ATTR_TRACKING] = new_tracking
+                # Keep a retained <sensor>_tracking list (exception
+                # sensors) in sync with the deduplicated list so the
+                # exposed numbers always match the exposed count.
+                if f"{sensor}_tracking" in sensor_res:
+                    sensor_res[f"{sensor}_tracking"] = new_tracking
                 sensor_res[sensor] = len(new_tracking)
                 if ATTR_COUNT in sensor_res:
                     sensor_res[ATTR_COUNT] = len(new_tracking)
