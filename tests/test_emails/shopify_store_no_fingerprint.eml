@@ -1,0 +1,16 @@
+Delivered-To: redacted@gmail.com
+Return-Path: <news@random-retailer.example>
+From: Random Retailer <news@random-retailer.example>
+To: redacted@gmail.com
+Subject: A shipment from order #98765 has been delivered
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+Date: Mon, 16 Mar 2026 14:02:00 -0400
+
+<html>
+  <body>
+    <p>Order #98765</p>
+    <h1>Your shipment has been delivered</h1>
+    <p>Thanks for shopping with us.</p>
+  </body>
+</html>

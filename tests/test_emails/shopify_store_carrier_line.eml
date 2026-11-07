@@ -1,0 +1,18 @@
+Delivered-To: redacted@gmail.com
+Return-Path: <help@example-store.com>
+From: Example Store <help@example-store.com>
+To: redacted@gmail.com
+Subject: A shipment from order #12346 has been delivered
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+Date: Mon, 16 Mar 2026 15:12:00 -0400
+
+<html>
+  <body>
+    <p>Order #12346</p>
+    <h1>The last item in your order has been delivered</h1>
+    <p>Carrier: DHL eCommerce America 42033333333333333333333333333</p>
+    <p>Items in this shipment</p>
+    <p>Example Gadget x1</p>
+  </body>
+</html>

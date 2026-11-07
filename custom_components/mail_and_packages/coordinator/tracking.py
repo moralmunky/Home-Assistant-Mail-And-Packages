@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 import logging
+import re
 from dataclasses import dataclass
 
 from custom_components.mail_and_packages import const
@@ -169,6 +170,111 @@ def dedupe_marketplace_duplicates(
                 remove_marketplace_package(
                     data, tracking_details, prefix, marketplace_id, carrier_num
                 )
+
+
+def attribute_dhl_marketplace_packages(
+    data: dict,
+    tracking_details: dict[str, list],
+) -> None:
+    """Move marketplace-reported DHL eCommerce packages to the DHL sensors.
+
+    Runs before dedupe_marketplace_duplicates, which consumes (pops) the
+    carrier-tracking mappings this step reads: when a marketplace email's
+    embedded carrier number is a full DHL eCommerce number and no carrier
+    shipper already holds that number, the package was really shipped by
+    DHL, so it counts under DHL instead of the marketplace. Numbers a
+    carrier already holds are left for the dedup pass to drop from the
+    marketplace side. Counts move in
+    ``data``; the tracking number joins the DHL tracking-details list for
+    its state, so the coordinator's tracking-state step picks it up as
+    DHL in-transit/delivered. Marketplace ids are kept on the marketplace
+    tracking lists (they are how the marketplace email is referenced);
+    the DHL side is keyed by the carrier number itself.
+    """
+    marketplace_prefixes = tuple(const.MARKETPLACE_CARRIER_TRACKING)
+
+    ecommerce_re = re.compile(const.DHL_ECOMMERCE_TRACKING_PATTERN)
+    carrier_numbers = {
+        str(num).upper()
+        for sensor, ids in tracking_details.items()
+        if not sensor.startswith(marketplace_prefixes)
+        for num in ids or []
+    }
+
+    for prefix in marketplace_prefixes:
+        mapping = data.get(f"{prefix}_carrier_tracking") or {}
+        if not isinstance(mapping, dict):
+            continue
+        for marketplace_id, carrier_num in list(mapping.items()):
+            carrier_num = str(carrier_num)
+            if not ecommerce_re.fullmatch(carrier_num):
+                continue
+            if carrier_num.upper() in carrier_numbers:
+                # A carrier shipper already holds this number; the dedup
+                # pass owns that case.
+                continue
+            if _attribute_dhl_number(
+                data,
+                tracking_details,
+                prefix,
+                marketplace_id,
+                carrier_num,
+                carrier_numbers,
+            ):
+                _adjust_packages_rollup(data, prefix, -1)
+                _adjust_packages_rollup(data, "dhl", 1)
+
+
+def _attribute_dhl_number(
+    data: dict,
+    tracking_details: dict[str, list],
+    prefix: str,
+    marketplace_id: str,
+    carrier_num: str,
+    carrier_numbers: set[str],
+) -> bool:
+    """Move one marketplace package to the DHL sensors for its state.
+
+    Returns True when the marketplace id sat on a delivering or
+    delivered list and the package moved; the caller then adjusts the
+    packages rollups. The carrier number joins the DHL tracking list
+    for that state and the carrier-held set, so a second marketplace
+    reporting the same number defers to the DHL record.
+    """
+    moved = False
+    for suffix in ("_delivering", "_delivered"):
+        sensor = f"{prefix}{suffix}"
+        ids = tracking_details.get(sensor)
+        if not ids or marketplace_id not in ids:
+            continue
+        moved = True
+        if isinstance(data.get(sensor), int):
+            data[sensor] = max(0, data[sensor] - 1)
+        dhl_sensor = f"dhl{suffix}"
+        if isinstance(data.get(dhl_sensor), int):
+            data[dhl_sensor] += 1
+        tracking_details.setdefault(dhl_sensor, []).append(carrier_num)
+        carrier_numbers.add(carrier_num.upper())
+        _LOGGER.debug(
+            "Attributed %s package %s to DHL (DHL eCommerce tracking %s)",
+            prefix,
+            marketplace_id,
+            carrier_num,
+        )
+    return moved
+
+
+def _adjust_packages_rollup(data: dict, prefix: str, delta: int) -> None:
+    """Adjust a computed ``<prefix>_packages`` rollup by delta.
+
+    Only applies when the rollup is a computed sensor (empty SENSOR_DATA
+    entry), mirroring remove_marketplace_package.
+    """
+    packages_sensor = f"{prefix}_packages"
+    if not const.SENSOR_DATA.get(packages_sensor) and isinstance(
+        data.get(packages_sensor), int
+    ):
+        data[packages_sensor] = max(0, data[packages_sensor] + delta)
 
 
 def remove_marketplace_package(

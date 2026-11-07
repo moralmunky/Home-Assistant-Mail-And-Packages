@@ -1,0 +1,19 @@
+Delivered-To: redacted@gmail.com
+Return-Path: <help@example-store.com>
+From: Example Store <help@example-store.com>
+To: redacted@gmail.com
+Subject: A shipment from order #12345 has been delivered
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+Date: Mon, 16 Mar 2026 13:48:00 -0400
+
+<html>
+  <body>
+    <p>Order #12345</p>
+    <h1>The last item in your order has been delivered</h1>
+    <p>DHL eCommerce tracking number: 42011111111111111111111111111</p>
+    <p>Items in this shipment</p>
+    <p>Example Widget x1</p>
+    <p>Ship to: John Doe, 123 Main St. Springfield</p>
+  </body>
+</html>

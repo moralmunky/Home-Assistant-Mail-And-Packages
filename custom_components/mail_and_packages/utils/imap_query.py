@@ -102,7 +102,7 @@ def _build_body_clause(body: str | list[str] = "", is_yahoo: bool = False) -> st
 
 
 def build_search(
-    address: list,
+    address: list | None,
     date: str,
     subject: str | list[str] = "",
     body: str | list[str] = "",
@@ -124,28 +124,25 @@ def build_search(
     SimpleLogin AND carriers whose emails arrive directly in the mailbox.
     IMAP HEADER does substring matching, so "mcinfo@ups.com" will match a
     header value of "UPS <mcinfo@ups.com>".
+
+    Pass ``address=None`` to search without a sender (FROM) restriction,
+    e.g. for a subject-only search; an empty list is an error.
     """
     the_date = f"SINCE {date}"
 
-    if not address:
+    if address is not None and not address:
         raise ValueError("address list must not be empty")
 
-    addr_clause = _build_address_clause(address, header, is_yahoo, is_exchange)
+    addr_clause = (
+        _build_address_clause(address, header, is_yahoo, is_exchange) if address else ""
+    )
     subject_part = _build_subject_clause(subject, is_yahoo)
     body_part = _build_body_clause(body, is_yahoo)
 
     criteria_parts = [p for p in (subject_part, body_part) if p]
-    if criteria_parts:
-        search_criteria = " ".join(criteria_parts)
-        imap_search = (
-            f"({addr_clause} {search_criteria} {the_date})"
-            if is_yahoo
-            else f"{addr_clause} {search_criteria} {the_date}"
-        )
-    else:
-        imap_search = (
-            f"({addr_clause} {the_date})" if is_yahoo else f"{addr_clause} {the_date}"
-        )
+    query_parts = [p for p in (addr_clause, *criteria_parts, the_date) if p]
+    joined_query = " ".join(query_parts)
+    imap_search = f"({joined_query})" if is_yahoo else joined_query
 
     _LOGGER.debug("DEBUG imap_search: %s", imap_search)
 
@@ -232,7 +229,7 @@ def _parse_esearch_line(line_bytes: bytes) -> list[bytes]:
 class SearchBatchParams:
     """Parameters for IMAP search batch operations."""
 
-    address_batches: list[list[str]]
+    address_batches: list[list[str] | None]
     subject_batches: list[list[str] | str]
     date: str
     body_search: str | list[str]

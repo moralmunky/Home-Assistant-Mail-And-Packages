@@ -196,7 +196,7 @@ async def login(
 
 async def email_search(
     account: IMAP4_SSL,
-    address: list,
+    address: list | None,
     date: str,
     subject: str | list[str] = "",
     body: str | list[str] = "",

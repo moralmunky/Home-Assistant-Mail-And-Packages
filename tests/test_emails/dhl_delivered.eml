@@ -1,0 +1,25 @@
+Delivered-To: redacted@gmail.com
+Return-Path: <NoReply.ODD@dhl.com>
+From: DHL EXPRESS <NoReply.ODD@dhl.com>
+To: redacted@gmail.com
+Subject: DHL On Demand Delivery
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+Date: Wed, 02 Apr 2025 15:28:00 -0400
+
+<html>
+  <body>
+    <h1>DELIVERED!</h1>
+    <p>Hello Customer,</p>
+    <p>Your DHL Express shipment with waybill number 1234509876 from
+    EXAMPLE SHIPPER has been delivered on Wed Apr 02 at 15:10. For more
+    details, click here.</p>
+    <p>Thank you for using On Demand Delivery.</p>
+    <h2>DELIVERY INFORMATION</h2>
+    <p>Waybill No. 1234509876</p>
+    <p>Delivery Address: 123 Main St, Springfield</p>
+    <h1>¡ENTREGADO!</h1>
+    <p>Su envío DHL Express con número de guía 1234509876 de
+    EXAMPLE SHIPPER ha sido entregado el mié abr 02 a las 15:10.</p>
+  </body>
+</html>

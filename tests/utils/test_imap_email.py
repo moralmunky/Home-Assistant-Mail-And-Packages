@@ -410,6 +410,19 @@ def test_build_search_empty_address_raises():
         build_search([], "25-Mar-2026", subject="Test")
 
 
+def test_build_search_no_address_searches_subject_only():
+    """address=None builds a subject+date search with no FROM clause."""
+    utf8, search = build_search(None, "25-Mar-2026", subject="has been delivered")
+    assert "FROM" not in search
+    assert search == 'SUBJECT "has been delivered" SINCE 25-Mar-2026'
+
+    utf8, search_yahoo = build_search(
+        None, "25-Mar-2026", subject="has been delivered", is_yahoo=True
+    )
+    assert "FROM" not in search_yahoo
+    assert search_yahoo == '(SUBJECT "has been delivered" SINCE 25-Mar-2026)'
+
+
 def test_build_search_no_subject():
     """Test build_search without subject."""
     utf8, search = build_search(["test@example.com"], "25-Mar-2026", subject=None)
