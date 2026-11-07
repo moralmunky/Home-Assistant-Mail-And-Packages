@@ -127,7 +127,7 @@ def apply_amazon_attempted_state(
     data: dict,
     open_attempted: dict[str, str],
     today_iso: str,
-    ttl_days: int,
+    max_tracking_age_days: int,
 ) -> None:
     """Persist Amazon attempted orders as open until delivered.
 
@@ -151,7 +151,7 @@ def apply_amazon_attempted_state(
         open_attempted.pop(order, None)
 
     cutoff = (
-        dt.date.fromisoformat(today_iso) - dt.timedelta(days=ttl_days)
+        dt.date.fromisoformat(today_iso) - dt.timedelta(days=max_tracking_age_days)
     ).isoformat()
     for order, seen in list(open_attempted.items()):
         if seen < cutoff:
