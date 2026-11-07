@@ -649,6 +649,35 @@ async def test_packages_sensor_attributes_edge_cases(hass):
     attrs_delivered_orders = sensor_delivered.extra_state_attributes
     assert attrs_delivered_orders[ATTR_ORDER] == ["111-2222222-3333333"]
 
+    # Contention: when the generic amazon_order list is also present, the
+    # attempted and delivered sensors must still expose their own order
+    # lists (the branch-ordering bug class #1556 fixed for the OTP code).
+    coord_attempted_contention = MagicMock()
+    coord_attempted_contention.data = {
+        AMAZON_ATTEMPTED_ORDER: ["111-2222222-3333333"],
+        AMAZON_ORDER: ["999-8888888-7777777"],
+    }
+    sensor_attempted_contention = PackagesSensor(
+        entry,
+        sensor_attempted_desc,
+        coord_attempted_contention,
+    )
+    attrs_attempted_contention = sensor_attempted_contention.extra_state_attributes
+    assert attrs_attempted_contention[ATTR_ORDER] == ["111-2222222-3333333"]
+
+    coord_delivered_contention = MagicMock()
+    coord_delivered_contention.data = {
+        AMAZON_DELIVERED_ORDER: ["111-2222222-3333333"],
+        AMAZON_ORDER: ["999-8888888-7777777"],
+    }
+    sensor_delivered_contention = PackagesSensor(
+        entry,
+        sensor_delivered_desc,
+        coord_delivered_contention,
+    )
+    attrs_delivered_contention = sensor_delivered_contention.extra_state_attributes
+    assert attrs_delivered_contention[ATTR_ORDER] == ["111-2222222-3333333"]
+
 
 @pytest.mark.asyncio
 async def test_amazon_otp_window_and_code_sensors(hass):
