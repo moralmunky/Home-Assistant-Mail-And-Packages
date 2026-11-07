@@ -2,7 +2,7 @@
 
 import datetime as dt
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant import config_entries
@@ -275,6 +275,27 @@ async def test_mailboxes_changed_refreshes_or_reloads_summary(hass, summary_setu
         )
         _async_mailboxes_changed(hass)
         reload.assert_called_once_with(summary.entry_id)
+
+
+async def test_mailboxes_changed_offers_summary_at_two_mailboxes(hass):
+    """With no summary entry, a second mailbox triggers the summary offer."""
+    _add_mailbox(hass, "a@example.com", MAILBOX_A)
+    with patch.object(
+        hass.config_entries.flow, "async_init", new_callable=AsyncMock
+    ) as flow_init:
+        _async_mailboxes_changed(hass)
+        await hass.async_block_till_done()
+        flow_init.assert_not_called()
+
+        _add_mailbox(hass, "b@example.com", MAILBOX_B)
+        _async_mailboxes_changed(hass)
+        await hass.async_block_till_done()
+
+    flow_init.assert_called_once()
+    args, kwargs = flow_init.call_args
+    assert args[0] == DOMAIN
+    assert kwargs["context"] == {"source": config_entries.SOURCE_INTEGRATION_DISCOVERY}
+    assert kwargs["data"] == {}
 
 
 async def test_mailboxes_changed_ignores_unloaded_summary(hass):
