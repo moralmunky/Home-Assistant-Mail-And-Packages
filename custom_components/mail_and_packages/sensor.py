@@ -28,6 +28,10 @@ from homeassistant.util import dt as dt_util
 
 from . import MailAndPackagesConfigEntry
 from .const import (
+    AMAZON_ATTEMPTED,
+    AMAZON_ATTEMPTED_ORDER,
+    AMAZON_DELIVERED,
+    AMAZON_DELIVERED_ORDER,
     AMAZON_DELIVERING,
     AMAZON_EXCEPTION,
     AMAZON_EXCEPTION_ORDER,
@@ -321,8 +325,22 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
             # The OTP window and code sensors carry their value as the
             # state; the generic Amazon order attributes do not apply.
             return
-        if self.type == AMAZON_EXCEPTION:
-            if order := data.get(AMAZON_EXCEPTION_ORDER, data.get(ATTR_ORDER)):
+        self._add_amazon_typed_attributes(attr, data)
+
+    def _add_amazon_typed_attributes(self, attr: dict, data: dict) -> None:
+        """Add the order or code attribute matching the Amazon sensor type."""
+        # Sensor type -> (order list data key, fallback data key). The
+        # attempted and exception sensors fall back to the generic order
+        # key like they always have; delivered falls back to the packages
+        # order list, which is what it exposed before it had its own key.
+        order_keys = {
+            AMAZON_ATTEMPTED: (AMAZON_ATTEMPTED_ORDER, ATTR_ORDER),
+            AMAZON_EXCEPTION: (AMAZON_EXCEPTION_ORDER, ATTR_ORDER),
+            AMAZON_DELIVERED: (AMAZON_DELIVERED_ORDER, AMAZON_ORDER),
+        }
+        if self.type in order_keys:
+            order_key, fallback_key = order_keys[self.type]
+            if order := data.get(order_key, data.get(fallback_key)):
                 attr[ATTR_ORDER] = order
         elif self.type == AMAZON_DELIVERING:
             if order := data.get("amazon_delivering_order"):

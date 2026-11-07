@@ -14,6 +14,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import (
+    AMAZON_ATTEMPTED_SUBJECT,
     AMAZON_DELIVERED_SUBJECT,
     AMAZON_EXCEPTION_SUBJECT,
     AMAZON_HUB_SUBJECT,
@@ -34,6 +35,7 @@ _LOGGER = logging.getLogger(__name__)
 
 # Legacy constants for tests
 
+amazon_attempted = AMAZON_ATTEMPTED_SUBJECT
 amazon_exception = AMAZON_EXCEPTION_SUBJECT
 amazon_hub = AMAZON_HUB_SUBJECT
 amazon_otp = AMAZON_OTP_SUBJECT

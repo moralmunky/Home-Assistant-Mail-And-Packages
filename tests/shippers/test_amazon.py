@@ -13,7 +13,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.mail_and_packages.const import (
+    AMAZON_ATTEMPTED,
+    AMAZON_ATTEMPTED_COUNT,
+    AMAZON_ATTEMPTED_ORDER,
+    AMAZON_ATTEMPTED_SUBJECT_LIST,
     AMAZON_DELIVERED,
+    AMAZON_DELIVERED_ORDER,
     AMAZON_EXCEPTION,
     AMAZON_EXCEPTION_ORDER,
     AMAZON_HUB,
@@ -165,6 +170,11 @@ async def test_amazon_otp_extracts_spanish_code_from_visible_html(hass):
 def _out_for_delivery_email_bytes() -> bytes:
     """Read the sanitized out-for-delivery OTP fixture."""
     return Path("tests/test_emails/amazon_otp_out_for_delivery.eml").read_bytes()
+
+
+def _delivery_attempted_email_bytes() -> bytes:
+    """Read the sanitized delivery attempted fixture."""
+    return Path("tests/test_emails/amazon_delivery_attempted.eml").read_bytes()
 
 
 def test_extract_amazon_otp_details_out_for_delivery():
@@ -645,6 +655,341 @@ async def test_amazon_exception(hass):
         result = await shipper.process(mock_account, "today", AMAZON_EXCEPTION)
         assert result[AMAZON_EXCEPTION] == 1
         assert result[AMAZON_EXCEPTION_ORDER] == ["111-1234567-1234567"]
+
+
+@pytest.mark.asyncio
+async def test_amazon_attempted(hass):
+    """Test Amazon attempted sensor."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_account.host = "imap.gmail.com"
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+        ) as mock_search,
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+        ) as mock_fetch,
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
+            return_value=dt.date(2025, 10, 29),
+        ),
+    ):
+        mock_search.return_value = ("OK", [b"1"])
+        content = b"Subject: Delivery attempted: Wireless Headphones\n\nWe will try again tomorrow. Order #111-2222222-3333333"
+        mock_fetch.return_value = ("OK", [bytearray(content)])
+
+        result = await shipper.process(mock_account, "today", AMAZON_ATTEMPTED)
+        assert result[AMAZON_ATTEMPTED] == 1
+        assert result[AMAZON_ATTEMPTED_COUNT] == 1
+        assert result[AMAZON_ATTEMPTED_ORDER] == ["111-2222222-3333333"]
+        assert result[AMAZON_ATTEMPTED_SUBJECT_LIST] == [
+            "Delivery attempted: Wireless Headphones"
+        ]
+        # The search targets the attempted subject, like the exception
+        # search targets its own subject.
+        assert mock_search.call_args.kwargs["subject"] == "Delivery attempted"
+
+
+@pytest.mark.asyncio
+async def test_amazon_attempted_fixture(hass):
+    """Test Amazon attempted sensor with the sanitized sample fixture."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_account.host = "imap.gmail.com"
+    content = _delivery_attempted_email_bytes()
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [bytearray(content)]),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", AMAZON_ATTEMPTED)
+        assert result[AMAZON_ATTEMPTED] == 1
+        assert result[AMAZON_ATTEMPTED_COUNT] == 1
+        assert result[AMAZON_ATTEMPTED_ORDER] == ["111-2222222-3333333"]
+        assert result[AMAZON_ATTEMPTED_SUBJECT_LIST] == [
+            "Delivery attempted: Wireless Headphones"
+        ]
+
+
+@pytest.mark.asyncio
+async def test_amazon_attempted_via_imap_mock(hass, mock_imap_amazon_attempted):
+    """Test Amazon attempted sensor through the mock IMAP account."""
+    shipper = AmazonShipper(hass, {})
+    result = await shipper.process(
+        mock_imap_amazon_attempted,
+        "today",
+        AMAZON_ATTEMPTED,
+    )
+    assert result[AMAZON_ATTEMPTED] == 1
+    assert result[AMAZON_ATTEMPTED_ORDER] == ["111-2222222-3333333"]
+
+
+@pytest.mark.asyncio
+async def test_amazon_attempted_dedupes_orders(hass):
+    """Attempted orders and subjects are deduplicated preserving order."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_account.host = "imap.gmail.com"
+    contents = {
+        "1": b"Subject: Delivery attempted: Item One\n\nOrder #111-2222222-3333333",
+        "2": b"Subject: Delivery attempted: Item Two\n\nOrder #111-2222222-3333333 Order #111-4444444-5555555",
+    }
+
+    async def _fetch(account, email_id, parts):
+        fetch_id = email_id.decode() if isinstance(email_id, bytes) else email_id
+        return ("OK", [bytearray(contents[fetch_id])])
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1 2"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+        ) as mock_fetch,
+    ):
+        mock_fetch.side_effect = _fetch
+        result = await shipper.process(mock_account, "today", AMAZON_ATTEMPTED)
+        assert result[AMAZON_ATTEMPTED] == 2
+        assert result[AMAZON_ATTEMPTED_ORDER] == [
+            "111-2222222-3333333",
+            "111-4444444-5555555",
+        ]
+        assert result[AMAZON_ATTEMPTED_SUBJECT_LIST] == [
+            "Delivery attempted: Item One",
+            "Delivery attempted: Item Two",
+        ]
+
+
+@pytest.mark.asyncio
+async def test_amazon_attempted_no_order_no_count(hass):
+    """An attempted email without an order number does not count."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_account.host = "imap.gmail.com"
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=(
+                "OK",
+                [bytearray(b"Subject: Delivery attempted: Item\n\nNo identifier")],
+            ),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", AMAZON_ATTEMPTED)
+        assert result[AMAZON_ATTEMPTED] == 0
+        assert result[AMAZON_ATTEMPTED_ORDER] == []
+        assert result[AMAZON_ATTEMPTED_SUBJECT_LIST] == []
+
+
+@pytest.mark.asyncio
+async def test_amazon_attempted_search_failures(hass):
+    """Attempted search failures and empty results return zeroed data."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_account.host = "imap.gmail.com"
+
+    for response in (("BAD", [b""]), ("OK", [None])):
+        with patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=response,
+        ):
+            result = await shipper.process(mock_account, "today", AMAZON_ATTEMPTED)
+            assert result[AMAZON_ATTEMPTED] == 0
+            assert result[AMAZON_ATTEMPTED_COUNT] == 0
+            assert result[AMAZON_ATTEMPTED_ORDER] == []
+            assert result[AMAZON_ATTEMPTED_SUBJECT_LIST] == []
+
+
+@pytest.mark.asyncio
+async def test_amazon_attempted_with_cache(hass):
+    """Test _amazon_attempted using the email cache."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_account.host = "imap.gmail.com"
+    cache = EmailCache()
+    cache._cache_rfc822["1"] = (
+        "OK",
+        [
+            b"RFC822",
+            b"Subject: Delivery attempted: Wireless Headphones\n\nWe will try again tomorrow. Order #111-2222222-3333333",
+        ],
+    )
+    with patch(
+        "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+        new_callable=AsyncMock,
+        return_value=("OK", [b"1"]),
+    ):
+        result = await shipper._amazon_attempted(mock_account, cache=cache)
+        assert result[AMAZON_ATTEMPTED] == 1
+        assert result[AMAZON_ATTEMPTED_ORDER] == ["111-2222222-3333333"]
+
+
+@pytest.mark.asyncio
+async def test_amazon_attempted_standalone_from_packages(hass):
+    """Attempted processing is standalone, like the exception flow.
+
+    It must not build the amazon_packages counting context (the
+    attempted subject is not part of the packages search union), so an
+    attempt can never inflate the package counts.
+    """
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_account.host = "imap.gmail.com"
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.search_amazon_emails",
+            new_callable=AsyncMock,
+        ) as mock_context_search,
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=(
+                "OK",
+                [
+                    bytearray(
+                        b"Subject: Delivery attempted: Wireless Headphones\n\nOrder #111-2222222-3333333"
+                    )
+                ],
+            ),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", AMAZON_ATTEMPTED)
+        assert result[AMAZON_ATTEMPTED] == 1
+        assert AMAZON_PACKAGES not in result
+        mock_context_search.assert_not_called()
+
+
+def test_extract_attempted_from_parts_none(hass):
+    """Test _extract_attempted_from_parts returns None without an order."""
+    shipper = AmazonShipper(hass, {})
+    order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
+    # Non-bytes part
+    assert shipper._extract_attempted_from_parts([None], order_pattern) is None
+    # Message without an order number
+    raw = b"Subject: Delivery attempted: Something\n\nNo order number here"
+    assert shipper._extract_attempted_from_parts([raw], order_pattern) is None
+
+
+def test_extract_attempted_from_parts_subject_order(hass):
+    """Test _extract_attempted_from_parts falls back to the subject."""
+    shipper = AmazonShipper(hass, {})
+    order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")
+    raw = b"Subject: Delivery attempted: Order 111-2222222-3333333\n\nBody without identifier"
+    extracted = shipper._extract_attempted_from_parts([raw], order_pattern)
+    assert extracted is not None
+    orders, subject = extracted
+    assert orders == ["111-2222222-3333333"]
+    assert subject == "Delivery attempted: Order 111-2222222-3333333"
+
+
+@pytest.mark.asyncio
+async def test_amazon_attempted_delivered_lifecycle(hass):
+    """Attempted and delivered states track the same order independently.
+
+    The attempted sensor lists the order when the delivery is missed;
+    when the Delivered email for the same order later arrives, the
+    delivered sensor lists it too, so a template comparing the two
+    order lists sees the attempt as resolved (the issue #1182 clearing
+    behaviour). Neither state's list is modified by the other.
+    """
+    shipper = AmazonShipper(
+        hass,
+        {"image_path": "test/path/amazon/", "amazon_image": "testfilename.jpg"},
+    )
+    mock_account = AsyncMock()
+    mock_account.host = "imap.gmail.com"
+    order = "111-2222222-3333333"
+    today = dt.date.today()
+
+    # 1. The delivery is attempted and missed.
+    attempted_content = _delivery_attempted_email_bytes()
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [bytearray(attempted_content)]),
+        ),
+    ):
+        attempted = await shipper.process(mock_account, "today", AMAZON_ATTEMPTED)
+    assert attempted[AMAZON_ATTEMPTED] == 1
+    assert attempted[AMAZON_ATTEMPTED_ORDER] == [order]
+
+    # Before the delivery lands, the order is unresolved.
+    assert set(attempted[AMAZON_ATTEMPTED_ORDER]) == {order}
+
+    # 2. The Delivered email for the same order arrives.
+    delivered_content = (
+        f"Date: {today.strftime('%a, %d %b %Y %H:%M:%S +0000')}\n"
+        "Subject: Delivered: Wireless Headphones\n\n"
+        f"Order #{order}"
+    ).encode()
+    with (
+        patch.object(
+            AmazonShipper,
+            "_amazon_search",
+            new_callable=AsyncMock,
+            return_value=1,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.search_amazon_emails",
+            new_callable=AsyncMock,
+            return_value=[b"1"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [bytearray(delivered_content)]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
+            return_value=today,
+        ),
+    ):
+        delivered = await shipper.process(mock_account, "today", AMAZON_DELIVERED)
+    assert delivered[AMAZON_DELIVERED] == 1
+    assert delivered[AMAZON_DELIVERED_ORDER] == [order]
+
+    # 3. The delivered list now resolves the attempted order, while the
+    # attempted state itself is tracked independently and unchanged.
+    assert (
+        set(attempted[AMAZON_ATTEMPTED_ORDER]) - set(delivered[AMAZON_DELIVERED_ORDER])
+        == set()
+    )
+    assert attempted[AMAZON_ATTEMPTED_ORDER] == [order]
 
 
 @pytest.mark.asyncio

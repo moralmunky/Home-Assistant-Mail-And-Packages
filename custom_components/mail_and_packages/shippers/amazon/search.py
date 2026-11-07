@@ -14,6 +14,11 @@ import dateparser
 from aioimaplib import IMAP4_SSL
 
 from custom_components.mail_and_packages.const import (
+    AMAZON_ATTEMPTED,
+    AMAZON_ATTEMPTED_COUNT,
+    AMAZON_ATTEMPTED_ORDER,
+    AMAZON_ATTEMPTED_SUBJECT,
+    AMAZON_ATTEMPTED_SUBJECT_LIST,
     AMAZON_DELIVERED_SUBJECT,
     AMAZON_DELIVERING_SUBJECT,
     AMAZON_EXCEPTION,
@@ -56,6 +61,7 @@ from custom_components.mail_and_packages.utils.imap import (
 from .helpers import (
     _calculate_delivering_count,
     _calculate_final_count,
+    _extract_attempted_from_parts,
     _extract_exception_from_parts,
     _extract_first_order_id,
     _extract_hub_code_from_parts,
@@ -262,6 +268,9 @@ class AmazonSearchMixin(AmazonImageMixin):
         if param == "delivering":
             orders = list(context["packages_delivering_today"].keys())
             return _calculate_delivering_count(context), orders
+
+        if param == "delivered":
+            return list(context["amazon_delivered"])
 
         final_count = _calculate_final_count(context)
 
@@ -513,3 +522,56 @@ class AmazonSearchMixin(AmazonImageMixin):
                     count += 1
                     orders.extend(extracted_orders)
         return {AMAZON_EXCEPTION: count, AMAZON_EXCEPTION_ORDER: orders}
+
+    async def _amazon_attempted(
+        self,
+        account: IMAP4_SSL,
+        fwds: list[str] | None = None,
+        domain: str | None = None,
+        cache: EmailCache | None = None,
+        forwarding_header: str = "",
+    ) -> dict[str, Any]:
+        """Find Amazon delivery attempted emails.
+
+        Mirrors _amazon_exception: a standalone search that does not
+        take part in the amazon_packages counting context, so an attempt
+        never inflates the package counts. Orders are deduplicated
+        preserving order, matching the delivered extraction which checks
+        the subject and falls back to the body (both paths are searched
+        here, like the exception extraction).
+        """
+        count = 0
+        orders: list[str] = []
+        subjects: list[str] = []
+        today = get_today().strftime("%d-%b-%Y")
+        address_list = amazon_email_addresses(fwds, domain)
+        subject = AMAZON_ATTEMPTED_SUBJECT
+        (server_response, data) = await email_search(
+            account=account,
+            address=address_list,
+            date=today,
+            subject=subject,
+            header=forwarding_header,
+        )
+        if server_response == "OK" and data[0] is not None:
+            order_pattern = re.compile(AMAZON_PATTERN)
+            for num in data[0].split():
+                if cache:
+                    msg_parts = (await cache.fetch(num, "(RFC822)"))[1]
+                else:
+                    msg_parts = (await email_fetch(account, num, "(RFC822)"))[1]
+
+                if extracted := _extract_attempted_from_parts(msg_parts, order_pattern):
+                    extracted_orders, email_subject = extracted
+                    count += 1
+                    for order in extracted_orders:
+                        if order not in orders:
+                            orders.append(order)
+                    if email_subject and email_subject not in subjects:
+                        subjects.append(email_subject)
+        return {
+            AMAZON_ATTEMPTED: count,
+            AMAZON_ATTEMPTED_COUNT: count,
+            AMAZON_ATTEMPTED_ORDER: orders,
+            AMAZON_ATTEMPTED_SUBJECT_LIST: subjects,
+        }

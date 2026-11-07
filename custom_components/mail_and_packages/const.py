@@ -347,6 +347,12 @@ AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
 AMAZON_EXCEPTION = "amazon_exception"
 AMAZON_EXCEPTION_ORDER = "amazon_exception_order"
+AMAZON_ATTEMPTED_SUBJECT = "Delivery attempted"
+AMAZON_ATTEMPTED = "amazon_attempted"
+AMAZON_ATTEMPTED_COUNT = "amazon_attempted_count"
+AMAZON_ATTEMPTED_ORDER = "amazon_attempted_order"
+AMAZON_ATTEMPTED_SUBJECT_LIST = "amazon_attempted_subject"
+AMAZON_DELIVERED_ORDER = "amazon_delivered_order"
 AMAZON_PATTERN = "[0-9]{3}-[0-9]{7}-[0-9]{7}"
 AMAZON_OTP = "amazon_otp"
 AMAZON_OTP_CODE = "amazon_otp_code"
@@ -1625,6 +1631,12 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:archive-alert",
         key="amazon_exception",
+    ),
+    "amazon_attempted": SensorEntityDescription(
+        name="Mail Amazon Attempted",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:archive-alert",
+        key="amazon_attempted",
     ),
     "amazon_hub": SensorEntityDescription(
         name="Mail Amazon Hub Packages",
