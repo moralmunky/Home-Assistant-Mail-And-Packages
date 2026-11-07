@@ -14,6 +14,10 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import (
+    AMAZON_ATTEMPTED,
+    AMAZON_ATTEMPTED_ORDER,
+    AMAZON_DELIVERED,
+    AMAZON_DELIVERED_ORDER,
     AMAZON_EXCEPTION,
     AMAZON_ORDER,
     AMAZON_ORDER_DETAILS,
@@ -575,6 +579,45 @@ async def test_packages_sensor_attributes_edge_cases(hass):
     )
     attrs_delivering = sensor_delivering.extra_state_attributes
     assert attrs_delivering[ATTR_ORDER] == ["303-1873062-3277126"]
+
+    # Test attributes for Amazon Attempted: the attempted order list is
+    # exposed, falling back to the generic order key like the exception
+    # sensor does.
+    coord_attempted = MagicMock()
+    coord_attempted.data = {AMAZON_ATTEMPTED_ORDER: ["111-2222222-3333333"]}
+    sensor_attempted_desc = MagicMock(key=AMAZON_ATTEMPTED)
+    sensor_attempted_desc.name = "Mail Amazon Attempted"
+    sensor_attempted = PackagesSensor(
+        entry,
+        sensor_attempted_desc,
+        coord_attempted,
+    )
+    attrs_attempted = sensor_attempted.extra_state_attributes
+    assert attrs_attempted[ATTR_ORDER] == ["111-2222222-3333333"]
+
+    coord_attempted_fallback = MagicMock()
+    coord_attempted_fallback.data = {ATTR_ORDER: ["111-2222222-3333333"]}
+    sensor_attempted_fallback = PackagesSensor(
+        entry,
+        sensor_attempted_desc,
+        coord_attempted_fallback,
+    )
+    attrs_attempted_fallback = sensor_attempted_fallback.extra_state_attributes
+    assert attrs_attempted_fallback[ATTR_ORDER] == ["111-2222222-3333333"]
+
+    # Test attributes for Amazon Delivered: the delivered order list is
+    # exposed so templates can match attempted orders against deliveries.
+    coord_delivered = MagicMock()
+    coord_delivered.data = {AMAZON_DELIVERED_ORDER: ["111-2222222-3333333"]}
+    sensor_delivered_desc = MagicMock(key=AMAZON_DELIVERED)
+    sensor_delivered_desc.name = "Mail Amazon Packages Delivered"
+    sensor_delivered = PackagesSensor(
+        entry,
+        sensor_delivered_desc,
+        coord_delivered,
+    )
+    attrs_delivered_orders = sensor_delivered.extra_state_attributes
+    assert attrs_delivered_orders[ATTR_ORDER] == ["111-2222222-3333333"]
 
 
 @pytest.mark.asyncio

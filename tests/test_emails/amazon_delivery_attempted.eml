@@ -1,0 +1,46 @@
+From: "Amazon.com" <order-update@amazon.com>
+Reply-To: no-reply@amazon.com
+To: fakeuser@fake.email
+Subject: Delivery attempted: Wireless Headphones
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+	boundary="----=_Part_1234567_123456789.1616799814029"
+Date: Fri, 26 Mar 2021 14:46:00 +0000
+
+------=_Part_1234567_123456789.1616799814029
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+Amazon.com
+---------------------------------------------------------------------------
+
+Hi FakeUser,
+
+We attempted to deliver your package today but were unable to complete
+the delivery. We will try again tomorrow.
+
+A one-time password is required for this delivery, so please be
+available to receive the package in person.
+
+Order #111-2222222-3333333
+
+    Wireless Headphones, Bluetooth, Over-Ear, Noise Cancelling
+
+---------------------------------------------------------------------------
+
+This email was sent from an email address that can't receive emails.
+Please don't reply to this email.
+------=_Part_1234567_123456789.1616799814029
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+<html>
+<body>
+<p>Hi FakeUser,</p>
+<p>We attempted to deliver your package today but were unable to complete
+the delivery. We will try again tomorrow.</p>
+<p>Order #111-2222222-3333333</p>
+<p>Wireless Headphones, Bluetooth, Over-Ear, Noise Cancelling</p>
+</body>
+</html>
+------=_Part_1234567_123456789.1616799814029--

@@ -90,6 +90,7 @@ AMAZON_SENSORS = [
     "amazon_delivering",
     "amazon_delivered",
     "amazon_exception",
+    "amazon_attempted",
 ]
 
 

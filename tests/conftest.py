@@ -1171,6 +1171,18 @@ def mock_imap_amazon_exception(mock_imap):
 
 
 @pytest.fixture
+def mock_imap_amazon_attempted(mock_imap):
+    """Mock IMAP search with Amazon delivery attempted email."""
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+    email_file = Path("tests/test_emails/amazon_delivery_attempted.eml").read_text(
+        encoding="utf-8",
+    )
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+    return mock_imap
+
+
+@pytest.fixture
 def mock_imap_auspost_out_for_delivery(mock_imap):
     """Mock IMAP search with AU Post out for delivery email."""
     mock_imap.select.return_value = ("OK", [b""])

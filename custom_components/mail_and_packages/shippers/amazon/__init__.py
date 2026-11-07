@@ -11,7 +11,9 @@ from aioimaplib import IMAP4_SSL
 
 from custom_components.mail_and_packages import const
 from custom_components.mail_and_packages.const import (
+    AMAZON_ATTEMPTED,
     AMAZON_DELIVERED,
+    AMAZON_DELIVERED_ORDER,
     AMAZON_DELIVERED_SUBJECT,
     AMAZON_DELIVERING,
     AMAZON_EXCEPTION,
@@ -33,6 +35,9 @@ from custom_components.mail_and_packages.const import (
 from custom_components.mail_and_packages.shippers.base import Shipper
 from custom_components.mail_and_packages.utils.cache import EmailCache
 
+from .helpers import (
+    _extract_attempted_from_parts as helper_extract_attempted_from_parts,
+)
 from .helpers import (
     _extract_exception_from_parts as helper_extract_exception_from_parts,
 )
@@ -159,6 +164,11 @@ class AmazonShipper(AmazonSearchMixin, Shipper):
                 account, fwds, domain, cache, forwarding_header
             )
 
+        if sensor_type == AMAZON_ATTEMPTED:
+            return await self._amazon_attempted(
+                account, fwds, domain, cache, forwarding_header
+            )
+
         if sensor_type == AMAZON_DELIVERED:
             image_path = self.config.get("image_path")
             image_name = self.config.get("amazon_image")
@@ -171,8 +181,12 @@ class AmazonShipper(AmazonSearchMixin, Shipper):
                 cache,
                 forwarding_header,
             )
+            delivered_orders = await self._parse_amazon_emails(
+                account, "delivered", fwds, days, domain, cache, forwarding_header
+            )
             return {
                 sensor_type: result,
+                AMAZON_DELIVERED_ORDER: delivered_orders,
                 const.ATTR_AMAZON_IMAGE: image_name,
                 const.ATTR_IMAGE_PATH: image_path,
             }
@@ -233,3 +247,11 @@ class AmazonShipper(AmazonSearchMixin, Shipper):
     ) -> list[str] | None:
         """Extract matching order numbers if email matches exception body."""
         return helper_extract_exception_from_parts(msg_parts, order_pattern)
+
+    def _extract_attempted_from_parts(
+        self,
+        msg_parts: list[Any],
+        order_pattern: re.Pattern[str],
+    ) -> tuple[list[str], str] | None:
+        """Extract order numbers and subject from a delivery attempted email."""
+        return helper_extract_attempted_from_parts(msg_parts, order_pattern)

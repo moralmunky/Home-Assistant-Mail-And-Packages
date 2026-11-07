@@ -148,3 +148,29 @@ def _extract_exception_from_parts(
                     orders.extend(found)
                 return orders
     return None
+
+
+def _extract_attempted_from_parts(
+    msg_parts: list[Any],
+    order_pattern: re.Pattern[str],
+) -> tuple[list[str], str] | None:
+    """Extract order numbers and subject from a delivery attempted email.
+
+    The attempted search already matches on the "Delivery attempted"
+    subject, so unlike the exception extraction there is no body phrase
+    to confirm; an email only counts when at least one order number is
+    found in its body or subject.
+    """
+    for response_part in msg_parts:
+        if isinstance(response_part, (bytes, bytearray)):
+            msg = email.message_from_bytes(response_part)
+            body = get_email_body(msg)
+            subject = get_decoded_subject(msg)
+            orders = []
+            if found := order_pattern.findall(body):
+                orders.extend(found)
+            if found := order_pattern.findall(subject):
+                orders.extend(found)
+            if orders:
+                return orders, subject
+    return None
