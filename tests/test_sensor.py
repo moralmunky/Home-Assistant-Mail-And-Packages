@@ -7,8 +7,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from homeassistant.components.http.auth import STORAGE_KEY
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mail_and_packages.const import (
@@ -23,6 +25,7 @@ from custom_components.mail_and_packages.const import (
     ATTR_UNSCANNED_PIECES,
     CONF_ALLOW_EXTERNAL,
     DOMAIN,
+    SENSOR_TYPES,
 )
 from custom_components.mail_and_packages.sensor import ImagePathSensors, PackagesSensor
 from tests.conftest import resolve_entity_id
@@ -575,6 +578,111 @@ async def test_packages_sensor_attributes_edge_cases(hass):
 
 
 @pytest.mark.asyncio
+async def test_amazon_otp_window_and_code_sensors(hass):
+    """Window start/end are timestamps and the code sensor is a scalar.
+
+    The window sensors combine the delivery date and window bounds from
+    the OTP email (coordinator values may be lists or plain strings) so a
+    plain ``time`` trigger can fire on them; all three sensors are
+    unknown when there is no OTP code today.
+    """
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})
+    tz = dt_util.get_default_time_zone()
+
+    def make_sensor(key, data):
+        coordinator = MagicMock()
+        coordinator.data = data
+        return PackagesSensor(entry, SENSOR_TYPES[key], coordinator)
+
+    # Sensor definitions: names and device classes
+    start_desc = SENSOR_TYPES["amazon_otp_window_start"]
+    end_desc = SENSOR_TYPES["amazon_otp_window_end"]
+    code_desc = SENSOR_TYPES["amazon_otp_delivery_code"]
+    assert start_desc.name == "Mail Amazon Delivery Window Start"
+    assert end_desc.name == "Mail Amazon Delivery Window End"
+    assert code_desc.name == "Mail Amazon Delivery Code"
+    assert start_desc.device_class == SensorDeviceClass.TIMESTAMP
+    assert end_desc.device_class == SensorDeviceClass.TIMESTAMP
+    assert code_desc.device_class is None
+
+    full_data = {
+        "amazon_otp_code": ["123456", "999999"],
+        "amazon_otp_delivery_date": ["2026-11-06"],
+        "amazon_otp_delivery_window_start": ["13:00"],
+        "amazon_otp_delivery_window_end": ["16:00"],
+        AMAZON_ORDER: ["111-1234567-1234567"],
+    }
+    start = make_sensor("amazon_otp_window_start", full_data)
+    end = make_sensor("amazon_otp_window_end", full_data)
+    code = make_sensor("amazon_otp_delivery_code", full_data)
+    assert start.native_value == dt.datetime(2026, 11, 6, 13, 0, tzinfo=tz)
+    assert end.native_value == dt.datetime(2026, 11, 6, 16, 0, tzinfo=tz)
+    assert start.native_value.tzinfo is not None
+    # The code sensor exposes the first code as a plain string
+    assert code.native_value == "123456"
+    # No Amazon order attributes leak onto the new sensors
+    assert start.extra_state_attributes == {}
+    assert code.extra_state_attributes == {}
+
+    # Coordinator values as plain strings work the same way
+    string_data = {
+        "amazon_otp_code": "123456",
+        "amazon_otp_delivery_date": "2026-11-06",
+        "amazon_otp_delivery_window_start": "13:00",
+        "amazon_otp_delivery_window_end": "16:00",
+    }
+    assert make_sensor(
+        "amazon_otp_window_start", string_data
+    ).native_value == dt.datetime(2026, 11, 6, 13, 0, tzinfo=tz)
+    assert make_sensor("amazon_otp_delivery_code", string_data).native_value == "123456"
+
+    # A code without a window: window sensors unknown, code still set
+    code_only = {"amazon_otp_code": ["123456"]}
+    assert make_sensor("amazon_otp_window_start", code_only).native_value is None
+    assert make_sensor("amazon_otp_window_end", code_only).native_value is None
+    assert make_sensor("amazon_otp_delivery_code", code_only).native_value == "123456"
+
+    # Malformed date or time values are unknown, never an exception
+    bad_data = {
+        "amazon_otp_code": ["123456"],
+        "amazon_otp_delivery_date": ["not-a-date"],
+        "amazon_otp_delivery_window_start": ["1 PM"],
+        "amazon_otp_delivery_window_end": ["25:99"],
+    }
+    assert make_sensor("amazon_otp_window_start", bad_data).native_value is None
+    assert make_sensor("amazon_otp_window_end", bad_data).native_value is None
+
+    # A window bound without its pair is unknown too
+    date_only = {
+        "amazon_otp_code": ["123456"],
+        "amazon_otp_delivery_date": ["2026-11-06"],
+    }
+    assert make_sensor("amazon_otp_window_start", date_only).native_value is None
+    time_only = {
+        "amazon_otp_code": ["123456"],
+        "amazon_otp_delivery_window_end": ["16:00"],
+    }
+    assert make_sensor("amazon_otp_window_end", time_only).native_value is None
+
+    # Empty or non-string coordinator values never produce a state
+    weird_data = {"amazon_otp_code": [""], "amazon_otp_delivery_date": [20261106]}
+    assert make_sensor("amazon_otp_delivery_code", weird_data).native_value is None
+    assert make_sensor("amazon_otp_window_start", weird_data).native_value is None
+    assert (
+        make_sensor(
+            "amazon_otp_delivery_code", {"amazon_otp_code": 123456}
+        ).native_value
+        is None
+    )
+
+    # No OTP email today: all three sensors unknown
+    empty_data = {"amazon_otp": 0, "amazon_otp_code": []}
+    assert make_sensor("amazon_otp_window_start", empty_data).native_value is None
+    assert make_sensor("amazon_otp_window_end", empty_data).native_value is None
+    assert make_sensor("amazon_otp_delivery_code", empty_data).native_value is None
+    assert make_sensor("amazon_otp_delivery_code", {}).native_value is None
+
+
 async def test_image_path_sensor_grid(hass):
     """Test ImagePathSensors URL generation logic for grid image paths."""
     entry = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: "test"})

@@ -350,6 +350,9 @@ AMAZON_EXCEPTION_ORDER = "amazon_exception_order"
 AMAZON_PATTERN = "[0-9]{3}-[0-9]{7}-[0-9]{7}"
 AMAZON_OTP = "amazon_otp"
 AMAZON_OTP_CODE = "amazon_otp_code"
+AMAZON_OTP_DELIVERY_CODE = "amazon_otp_delivery_code"
+AMAZON_OTP_WINDOW_END = "amazon_otp_window_end"
+AMAZON_OTP_WINDOW_START = "amazon_otp_window_start"
 AMAZON_OTP_DELIVERY_DATE = "amazon_otp_delivery_date"
 AMAZON_OTP_DELIVERY_WINDOW = "amazon_otp_delivery_window"
 AMAZON_OTP_DELIVERY_WINDOW_END = "amazon_otp_delivery_window_end"
@@ -1633,6 +1636,23 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         name="Mail Amazon OTP Code",
         icon="mdi:counter",
         key="amazon_otp",
+    ),
+    "amazon_otp_delivery_code": SensorEntityDescription(
+        name="Mail Amazon Delivery Code",
+        icon="mdi:form-textbox-password",
+        key="amazon_otp_delivery_code",
+    ),
+    "amazon_otp_window_end": SensorEntityDescription(
+        name="Mail Amazon Delivery Window End",
+        icon="mdi:clock-end",
+        key="amazon_otp_window_end",
+        device_class=SensorDeviceClass.TIMESTAMP,
+    ),
+    "amazon_otp_window_start": SensorEntityDescription(
+        name="Mail Amazon Delivery Window Start",
+        icon="mdi:clock-start",
+        key="amazon_otp_window_start",
+        device_class=SensorDeviceClass.TIMESTAMP,
     ),
     # AliExpress
     "aliexpress_delivered": SensorEntityDescription(
