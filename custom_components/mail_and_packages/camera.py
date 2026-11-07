@@ -69,7 +69,9 @@ class MailCam(CoordinatorEntity, Camera):
 
     @content_type.setter
     def content_type(self, value: str) -> None:
-        """Allow setting content_type during Camera.__init__."""
+        """Allow setting content_type during Camera.__init__ without overriding dynamic property."""
+        # Camera.__init__ sets self.content_type = "image/jpeg"; this no-op setter
+        # absorbs that assignment so our dynamic getter remains authoritative.
 
     def __init__(
         self,
