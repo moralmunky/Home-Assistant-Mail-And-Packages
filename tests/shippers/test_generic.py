@@ -839,6 +839,127 @@ async def test_process_batch_deduplication(hass):
 
 
 @pytest.mark.asyncio
+async def test_process_batch_retains_exception_tracking(hass, mock_imap_usps_exception):
+    """A USPS exception batch retains the exception number for templates.
+
+    The batch must expose usps_exception_tracking (the exception sensor's
+    own numbers) so Home Assistant templates can match an exception to a
+    later delivery instead of reading the in-transit list.
+    """
+    shipper = GenericShipper(
+        hass,
+        {
+            "image_path": "test/path/usps/",
+        },
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.Path.mkdir"
+        ),
+    ):
+        result = await shipper.process_batch(
+            mock_imap_usps_exception,
+            "today",
+            ["usps_exception"],
+            None,
+        )
+
+    assert result["usps_exception"] == 1
+    assert result["usps_exception_tracking"] == ["92748902410637553123456789"]
+    assert result["_tracking_details"]["usps_exception"] == [
+        "92748902410637553123456789"
+    ]
+
+
+@pytest.mark.asyncio
+async def test_process_batch_exception_tracking_matches_later_delivery(hass):
+    """The same number appears in exception_tracking, then delivered_tracking.
+
+    Scan 1 sees only the exception email; scan 2 sees only the delivered
+    email. Templates clear the exception alert by comparing the two lists.
+    """
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_cache = MagicMock()
+    number = "92748902410637553123456789"
+
+    async def _exception_process(account, date, sensor, cache, **kwargs):
+        return {
+            "usps_exception": 1,
+            ATTR_TRACKING: [number],
+            ATTR_COUNT: 1,
+        }
+
+    with patch.object(shipper, "process", side_effect=_exception_process):
+        exception_result = await shipper.process_batch(
+            mock_account, "today", ["usps_exception"], mock_cache
+        )
+
+    assert exception_result["usps_exception_tracking"] == [number]
+
+    async def _delivered_process(account, date, sensor, cache, **kwargs):
+        return {
+            "usps_delivered": 1,
+            ATTR_TRACKING: [number],
+            ATTR_COUNT: 1,
+            "pre_filtered_tracking": [number],
+        }
+
+    with patch.object(shipper, "process", side_effect=_delivered_process):
+        delivered_result = await shipper.process_batch(
+            mock_account, "today", ["usps_delivered"], mock_cache
+        )
+
+    assert delivered_result["usps_delivered_tracking"] == [number]
+    # The template-clearing comparison the feature exists for.
+    assert set(exception_result["usps_exception_tracking"]) & set(
+        delivered_result["usps_delivered_tracking"]
+    ) == {number}
+
+
+@pytest.mark.asyncio
+async def test_process_batch_exception_tracking_cleared_when_delivered(hass):
+    """Same-scan delivery subtracts the number from exception_tracking too.
+
+    The retained list must stay consistent with the exception count when
+    batch deduplication removes an already-delivered number.
+    """
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_cache = MagicMock()
+    number = "1Z999EXCEPTION"
+
+    async def _mock_process(account, date, sensor, cache, **kwargs):
+        if sensor == "ups_exception":
+            return {
+                "ups_exception": 1,
+                ATTR_TRACKING: [number],
+                ATTR_COUNT: 1,
+            }
+        if sensor == "ups_delivered":
+            return {
+                "ups_delivered": 1,
+                ATTR_TRACKING: [number],
+                ATTR_COUNT: 1,
+                "pre_filtered_tracking": [number],
+            }
+        return {sensor: 0, ATTR_TRACKING: []}
+
+    with patch.object(shipper, "process", side_effect=_mock_process):
+        result = await shipper.process_batch(
+            mock_account,
+            "today",
+            ["ups_exception", "ups_delivered"],
+            mock_cache,
+        )
+
+    assert result["ups_exception"] == 0
+    assert result["ups_exception_tracking"] == []
+    assert result["ups_delivered_tracking"] == [number]
+
+
+@pytest.mark.asyncio
 async def test_process_batch_dedup_uses_extended_window_delivered(hass):
     """Dedup subtracts packages delivered on PRIOR days, not just today.
 

@@ -22,6 +22,7 @@ from custom_components.mail_and_packages.const import (
     ATTR_ORDER,
     ATTR_ORDER_DETAILS,
     ATTR_SCANNED_IMAGES,
+    ATTR_TRACKING_NUM,
     ATTR_UNSCANNED_PIECES,
     CONF_ALLOW_EXTERNAL,
     DOMAIN,
@@ -465,6 +466,35 @@ async def test_packages_sensor_attributes_edge_cases(hass):
         coord_none,
     )
     assert sensor_none.extra_state_attributes == {}
+
+    # Test attributes for generic exception sensors: tracking_# must be the
+    # exception sensor's own retained numbers, not the in-transit list.
+    coord_exc = MagicMock()
+    coord_exc.data = {
+        "usps_exception_tracking": ["92748902410637553123456789"],
+        "usps_tracking": ["9400111899223397712345"],
+    }
+    sensor_exc_desc = MagicMock(key="usps_exception")
+    sensor_exc_desc.name = "Mail USPS Exception"
+    sensor_exc = PackagesSensor(
+        entry,
+        sensor_exc_desc,
+        coord_exc,
+    )
+    assert sensor_exc._tracking_key == "usps_exception_tracking"
+    attrs_exc = sensor_exc.extra_state_attributes
+    assert attrs_exc[ATTR_TRACKING_NUM] == ["92748902410637553123456789"]
+
+    # With no exception numbers retained, the attribute is absent rather
+    # than falling back to the in-transit list.
+    coord_exc_empty = MagicMock()
+    coord_exc_empty.data = {"usps_tracking": ["9400111899223397712345"]}
+    sensor_exc_empty = PackagesSensor(
+        entry,
+        sensor_exc_desc,
+        coord_exc_empty,
+    )
+    assert ATTR_TRACKING_NUM not in sensor_exc_empty.extra_state_attributes
 
     # Test attributes for Amazon Exception sensors
 

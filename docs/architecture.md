@@ -49,6 +49,7 @@ Each supported carrier defines up to three standard package sensor entities in `
 | **`*_delivering`** | Packages currently **out for delivery** or scheduled for delivery **today** | List of `email` senders, `subject` patterns, optional `body` patterns | **Yes** |
 | **`*_delivered`** | Packages successfully **delivered today** (resets at midnight) | List of `email` senders, `subject` patterns, optional `body` patterns | **Yes** |
 | **`*_packages`** | Computed rollup total of active package volume for the carrier | `{}` (Empty dictionary) | **No** (Computed dynamically) |
+| **`*_exception`** | Delivery exceptions/delays found in carrier emails; the extracted tracking numbers are retained as `<prefix>_exception_tracking` and shown on the sensor's `tracking_#` attribute so templates can match an exception to a later delivery | List of `email` senders, `subject` patterns, optional `body` patterns | **Yes** |
 
 Amazon converts timezone-aware email `Date` headers to the host's local date before using them for arrival-date parsing and today's delivery counts, matching `get_today()` and the generic carrier header parser. Headers without a timezone retain their calendar date.
 
