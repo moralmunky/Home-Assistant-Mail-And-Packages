@@ -2874,3 +2874,30 @@ async def test_generate_generic_deliveries_gif_mtime_caching(hass, tmp_path):
         assert res_path_3 == str(gif_file)
         assert mock_gif.call_count == 2
         assert mock_resize.call_count == 2
+
+
+async def test_mailcam_content_type(hass):
+    """Test MailCam content_type reflects file extension dynamically."""
+    mock_entry = MockConfigEntry(domain=DOMAIN, data={})
+    coordinator = MagicMock()
+    coordinator.data = {}
+
+    cam = MailCam(hass, "usps_camera", mock_entry, coordinator)
+
+    cam._file_path = "/path/to/mail_none.gif"
+    assert cam.content_type == "image/gif"
+
+    cam._file_path = "/path/to/scan.png"
+    assert cam.content_type == "image/png"
+
+    cam._file_path = "/path/to/delivery.jpg"
+    assert cam.content_type == "image/jpeg"
+
+    cam._file_path = "/path/to/delivery.jpeg"
+    assert cam.content_type == "image/jpeg"
+
+    cam._file_path = "/path/to/video.mp4"
+    assert cam.content_type == "video/mp4"
+
+    cam._file_path = "/path/to/unknown.xyz"
+    assert cam.content_type == "image/jpeg"
