@@ -5,6 +5,7 @@ from __future__ import annotations
 import email
 import logging
 import re
+from html.parser import HTMLParser
 from typing import Any
 
 from custom_components.mail_and_packages import const
@@ -24,6 +25,57 @@ from custom_components.mail_and_packages.utils.amazon import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class _AmazonVisibleTextParser(HTMLParser):
+    """Extract visible text from an Amazon HTML email."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._skip_depth = 0
+        self.text_parts: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        """Ignore CSS and scripts, which may contain unrelated numbers."""
+        if tag in ("style", "script"):
+            self._skip_depth += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        """Resume collecting visible text after CSS or scripts."""
+        if tag in ("style", "script") and self._skip_depth:
+            self._skip_depth -= 1
+
+    def handle_data(self, data: str) -> None:
+        """Collect visible text nodes."""
+        if not self._skip_depth and data.strip():
+            self.text_parts.append(data)
+
+
+def _iter_visible_texts(msg: email.message.Message) -> list[str]:
+    """Return the visible text of each plain-text or HTML message part."""
+    texts = []
+    for part in msg.walk():
+        content_type = part.get_content_type()
+        if content_type not in ("text/plain", "text/html"):
+            continue
+
+        payload = part.get_payload(decode=True)
+        if not isinstance(payload, bytes):
+            continue
+
+        charset = part.get_content_charset() or "utf-8"
+        try:
+            body = payload.decode(charset, "ignore")
+        except LookupError:
+            body = payload.decode("utf-8", "ignore")
+
+        if content_type == "text/html":
+            parser = _AmazonVisibleTextParser()
+            parser.feed(body)
+            body = "\n".join(parser.text_parts)
+
+        texts.append(body)
+    return texts
 
 
 def _extract_first_order_id(
@@ -159,16 +211,18 @@ def _extract_attempted_from_parts(
     The attempted search already matches on the "Delivery attempted"
     subject, so unlike the exception extraction there is no body phrase
     to confirm; an email only counts when at least one order number is
-    found in its body or subject.
+    found in its visible body text or subject. Only visible text is
+    searched: numbers inside HTML style or script content are not
+    orders (the same pollution #1556 removed from OTP extraction).
     """
     for response_part in msg_parts:
         if isinstance(response_part, (bytes, bytearray)):
             msg = email.message_from_bytes(response_part)
-            body = get_email_body(msg)
             subject = get_decoded_subject(msg)
             orders = []
-            if found := order_pattern.findall(body):
-                orders.extend(found)
+            for body in _iter_visible_texts(msg):
+                if found := order_pattern.findall(body):
+                    orders.extend(found)
             if found := order_pattern.findall(subject):
                 orders.extend(found)
             if orders:

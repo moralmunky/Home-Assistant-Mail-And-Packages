@@ -167,6 +167,53 @@ async def test_amazon_otp_extracts_spanish_code_from_visible_html(hass):
     assert result == {AMAZON_OTP: 1, AMAZON_OTP_CODE: ["654321"]}
 
 
+def test_extract_amazon_otp_code_spanish_single_use_phrase():
+    """The single-use Spanish OTP phrase from #1556 extracts the code."""
+    message = MIMEText(
+        "Tu contraseña de un solo uso es: 654321\nGracias por tu pedido.",
+        "plain",
+        "utf-8",
+    )
+
+    assert _extract_amazon_otp_code(message, AMAZON_OTP_REGEX) == "654321"
+
+
+def test_extract_amazon_otp_code_ignores_script_numbers():
+    """OTP extraction ignores numbers inside HTML script elements."""
+    message = MIMEText(
+        """
+        <html>
+          <head>
+            <script>var trackingId = 111111;</script>
+            <style>.delivery { z-index: 222222; }</style>
+          </head>
+          <body>Tu contraseña temporal es: <strong>654321</strong></body>
+        </html>
+        """,
+        "html",
+    )
+
+    assert _extract_amazon_otp_code(message, AMAZON_OTP_REGEX) == "654321"
+
+    script_only = MIMEText(
+        "<html><head><script>var trackingId = 111111;</script></head>"
+        "<body>Tu pedido está en camino.</body></html>",
+        "html",
+    )
+
+    assert _extract_amazon_otp_code(script_only, AMAZON_OTP_REGEX) is None
+
+
+def test_extract_amazon_otp_code_bare_line_fallback():
+    """A code alone on its own line still matches, as before #1556."""
+    message = MIMEText(
+        "Your Amazon package is out for delivery.\n123456\nShow this code to the driver.",
+        "plain",
+    )
+
+    assert _extract_amazon_otp_code(message, AMAZON_OTP_REGEX) == "123456"
+
+
 def _out_for_delivery_email_bytes() -> bytes:
     """Read the sanitized out-for-delivery OTP fixture."""
     return Path("tests/test_emails/amazon_otp_out_for_delivery.eml").read_bytes()
@@ -175,6 +222,20 @@ def _out_for_delivery_email_bytes() -> bytes:
 def _delivery_attempted_email_bytes() -> bytes:
     """Read the sanitized delivery attempted fixture."""
     return Path("tests/test_emails/amazon_delivery_attempted.eml").read_bytes()
+
+
+def _attempted_chain_out_for_delivery_bytes() -> bytes:
+    """Read the out-for-delivery fixture linked to the attempted order."""
+    return Path(
+        "tests/test_emails/amazon_delivery_attempted_out_for_delivery.eml"
+    ).read_bytes()
+
+
+def _attempted_chain_delivered_bytes() -> bytes:
+    """Read the delivered fixture linked to the attempted order."""
+    return Path(
+        "tests/test_emails/amazon_delivery_attempted_delivered.eml"
+    ).read_bytes()
 
 
 def test_extract_amazon_otp_details_out_for_delivery():
@@ -228,6 +289,41 @@ async def test_amazon_otp_out_for_delivery(hass):
         AMAZON_OTP_ORDER: ["111-1234567-1234567"],
         AMAZON_OTP_DELIVERY_DATE: ["2026-11-06"],
     }
+
+
+@pytest.mark.asyncio
+async def test_amazon_otp_spanish_subject_and_single_use_phrase(hass):
+    """A Spanish OTP email is found via its subject and phrase (#1556)."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    content = (
+        b"Subject: Llega hoy: Tu pedido de Amazon\n\n"
+        b"Tu contrase\xc3\xb1a de un solo uso es: 654321\n"
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
+            return_value=dt.date(2026, 9, 5),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ) as mock_search,
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [bytearray(content)]),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", AMAZON_OTP)
+
+    # The Spanish arriving-today subject from #1556 is searched, like the
+    # out-for-delivery subject above.
+    searched_subjects = mock_search.call_args.args[3]
+    assert "Llega hoy:" in searched_subjects
+    assert result == {AMAZON_OTP: 1, AMAZON_OTP_CODE: ["654321"]}
 
 
 def test_format_window_time_variants():
@@ -695,6 +791,98 @@ async def test_amazon_attempted(hass):
 
 
 @pytest.mark.asyncio
+async def test_amazon_attempted_ignores_orders_in_html_style_and_script(hass):
+    """Attempted extraction ignores order numbers in style/script content.
+
+    Regression test for the #1556 OTP bug class: #1575 extracted attempted
+    orders from the raw body, so numbers that only appear inside HTML
+    style or script elements were reported as attempted orders.
+    """
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_account.host = "imap.gmail.com"
+    message = MIMEMultipart()
+    message["Subject"] = "Delivery attempted"
+    message.attach(
+        MIMEText(
+            """
+            <html>
+              <head>
+                <style>.tracking { content: "111-9999999-8888888"; }</style>
+                <script>var orderId = "111-7777777-6666666";</script>
+              </head>
+              <body>We tried to deliver your package. We will try again tomorrow.</body>
+            </html>
+            """,
+            "html",
+        )
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [bytearray(message.as_bytes())]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
+            return_value=dt.date(2025, 10, 29),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", AMAZON_ATTEMPTED)
+
+    assert result[AMAZON_ATTEMPTED] == 0
+    assert result[AMAZON_ATTEMPTED_ORDER] == []
+
+
+@pytest.mark.asyncio
+async def test_amazon_attempted_extracts_visible_html_order_only(hass):
+    """A visible HTML order is extracted while a style trap is ignored."""
+    shipper = AmazonShipper(hass, {})
+    mock_account = AsyncMock()
+    mock_account.host = "imap.gmail.com"
+    message = MIMEMultipart()
+    message["Subject"] = "Delivery attempted"
+    message.attach(
+        MIMEText(
+            """
+            <html>
+              <head><style>.tracking { content: "111-9999999-8888888"; }</style></head>
+              <body>Order #111-2222222-3333333 could not be delivered.</body>
+            </html>
+            """,
+            "html",
+        )
+    )
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [bytearray(message.as_bytes())]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
+            return_value=dt.date(2025, 10, 29),
+        ),
+    ):
+        result = await shipper.process(mock_account, "today", AMAZON_ATTEMPTED)
+
+    assert result[AMAZON_ATTEMPTED] == 1
+    assert result[AMAZON_ATTEMPTED_ORDER] == ["111-2222222-3333333"]
+
+
+@pytest.mark.asyncio
 async def test_amazon_attempted_fixture(hass):
     """Test Amazon attempted sensor with the sanitized sample fixture."""
     shipper = AmazonShipper(hass, {})
@@ -993,6 +1181,108 @@ async def test_amazon_attempted_delivered_lifecycle(hass):
 
 
 @pytest.mark.asyncio
+async def test_amazon_attempted_chain_fixtures(hass):
+    """The linked fixture chain: attempted, out for delivery, delivered.
+
+    #1575 shipped the attempted fixture but merged before its two
+    companion fixtures could land. All three fixtures share the fake
+    order 111-2222222-3333333, so the full chain can be exercised over
+    real email files: the attempted sensor lists the order, the OTP
+    out-for-delivery email reports the same order with its code and
+    window, and the delivered email resolves it.
+    """
+    shipper = AmazonShipper(
+        hass,
+        {"image_path": "test/path/amazon/", "amazon_image": "testfilename.jpg"},
+    )
+    mock_account = AsyncMock()
+    mock_account.host = "imap.gmail.com"
+    order = "111-2222222-3333333"
+
+    # 1. The delivery is attempted and missed.
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [bytearray(_delivery_attempted_email_bytes())]),
+        ),
+    ):
+        attempted = await shipper.process(mock_account, "today", AMAZON_ATTEMPTED)
+    assert attempted[AMAZON_ATTEMPTED] == 1
+    assert attempted[AMAZON_ATTEMPTED_ORDER] == [order]
+
+    # 2. The next day the package is out for delivery with a one-time
+    # password, under the same order.
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
+            return_value=dt.date(2026, 11, 6),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=(
+                "OK",
+                [bytearray(_attempted_chain_out_for_delivery_bytes())],
+            ),
+        ),
+    ):
+        out_for_delivery = await shipper.process(mock_account, "today", AMAZON_OTP)
+    assert out_for_delivery == {
+        AMAZON_OTP: 1,
+        AMAZON_OTP_CODE: ["123456"],
+        AMAZON_OTP_DELIVERY_WINDOW: ["1 PM - 4 PM"],
+        AMAZON_OTP_DELIVERY_WINDOW_START: ["13:00"],
+        AMAZON_OTP_DELIVERY_WINDOW_END: ["16:00"],
+        AMAZON_OTP_ORDER: [order],
+        AMAZON_OTP_DELIVERY_DATE: ["2026-11-06"],
+    }
+
+    # 3. The delivered email for the same order arrives.
+    with (
+        patch.object(
+            AmazonShipper,
+            "_amazon_search",
+            new_callable=AsyncMock,
+            return_value=1,
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.search_amazon_emails",
+            new_callable=AsyncMock,
+            return_value=[b"1"],
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [bytearray(_attempted_chain_delivered_bytes())]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
+            return_value=dt.date(2026, 11, 7),
+        ),
+    ):
+        delivered = await shipper.process(mock_account, "today", AMAZON_DELIVERED)
+    assert delivered[AMAZON_DELIVERED] == 1
+    assert delivered[AMAZON_DELIVERED_ORDER] == [order]
+
+    # The chain resolves: nothing attempted remains undelivered.
+    assert (
+        set(attempted[AMAZON_ATTEMPTED_ORDER]) - set(delivered[AMAZON_DELIVERED_ORDER])
+        == set()
+    )
+
+
+@pytest.mark.asyncio
 async def test_amazon_search_no_emails_found(hass):
     """Test Amazon search when no emails are found in sdata[0]."""
     shipper = AmazonShipper(hass, {})
@@ -1105,6 +1395,16 @@ async def test_parse_amazon_arrival_date(hass):
     body_oggi = "In arrivo oggi"
     result_oggi = await parse_amazon_arrival_date(hass, body_oggi, email_date)
     assert result_oggi == email_date
+
+    # 8. Spanish "hoy" relative date (#1556)
+    body_hoy = "Tu envío llega hoy antes de las 22:00"
+    result_hoy = await parse_amazon_arrival_date(hass, body_hoy, email_date)
+    assert result_hoy == email_date
+
+    # 9. Spanish "mañana" relative date (#1556)
+    body_manana = "Tu envío llega mañana antes de las 22:00"
+    result_manana = await parse_amazon_arrival_date(hass, body_manana, email_date)
+    assert result_manana == email_date + dt.timedelta(days=1)
 
 
 @pytest.mark.asyncio

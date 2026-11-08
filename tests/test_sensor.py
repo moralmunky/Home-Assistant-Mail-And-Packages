@@ -500,6 +500,33 @@ async def test_packages_sensor_attributes_edge_cases(hass):
     )
     assert ATTR_TRACKING_NUM not in sensor_exc_empty.extra_state_attributes
 
+    # The same retention exposure holds for every other exception
+    # carrier: each exception sensor reads its own retained list, never
+    # the in-transit list.
+    exception_carriers = {
+        "ups": ("1Z9999W99999999999", "1Z8888W88888888888"),
+        "fedex": ("123456789012", "987654321098"),
+        "walmart": ("1234567-12345678", "8765432-87654321"),
+        "home_depot": ("WK12345678", "WN87654321"),
+        "post_nl": ("3SABCD123456", "3SWXYZ654321"),
+    }
+    for prefix, (exception_number, transit_number) in exception_carriers.items():
+        coord_carrier = MagicMock()
+        coord_carrier.data = {
+            f"{prefix}_exception_tracking": [exception_number],
+            f"{prefix}_tracking": [transit_number],
+        }
+        sensor_carrier_desc = MagicMock(key=f"{prefix}_exception")
+        sensor_carrier_desc.name = f"Mail {prefix} Exception"
+        sensor_carrier = PackagesSensor(
+            entry,
+            sensor_carrier_desc,
+            coord_carrier,
+        )
+        assert sensor_carrier._tracking_key == f"{prefix}_exception_tracking"
+        attrs_carrier = sensor_carrier.extra_state_attributes
+        assert attrs_carrier[ATTR_TRACKING_NUM] == [exception_number]
+
     # Test attributes for Amazon Exception sensors
 
     coord_ex = MagicMock()
@@ -648,6 +675,35 @@ async def test_packages_sensor_attributes_edge_cases(hass):
     )
     attrs_delivered_orders = sensor_delivered.extra_state_attributes
     assert attrs_delivered_orders[ATTR_ORDER] == ["111-2222222-3333333"]
+
+    # Contention: when the generic amazon_order list is also present, the
+    # attempted and delivered sensors must still expose their own order
+    # lists (the branch-ordering bug class #1556 fixed for the OTP code).
+    coord_attempted_contention = MagicMock()
+    coord_attempted_contention.data = {
+        AMAZON_ATTEMPTED_ORDER: ["111-2222222-3333333"],
+        AMAZON_ORDER: ["999-8888888-7777777"],
+    }
+    sensor_attempted_contention = PackagesSensor(
+        entry,
+        sensor_attempted_desc,
+        coord_attempted_contention,
+    )
+    attrs_attempted_contention = sensor_attempted_contention.extra_state_attributes
+    assert attrs_attempted_contention[ATTR_ORDER] == ["111-2222222-3333333"]
+
+    coord_delivered_contention = MagicMock()
+    coord_delivered_contention.data = {
+        AMAZON_DELIVERED_ORDER: ["111-2222222-3333333"],
+        AMAZON_ORDER: ["999-8888888-7777777"],
+    }
+    sensor_delivered_contention = PackagesSensor(
+        entry,
+        sensor_delivered_desc,
+        coord_delivered_contention,
+    )
+    attrs_delivered_contention = sensor_delivered_contention.extra_state_attributes
+    assert attrs_delivered_contention[ATTR_ORDER] == ["111-2222222-3333333"]
 
 
 @pytest.mark.asyncio

@@ -1,0 +1,41 @@
+From: "Amazon.com" <order-update@amazon.com>
+Reply-To: no-reply@amazon.com
+To: fakeuser@fake.email
+Subject: Delivered: Your Amazon.com order #111-2222222-3333333
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+	boundary="----=_Part_1234567_123456789.1616799814030"
+Date: Sat, 07 Nov 2026 18:51:20 +0000
+
+------=_Part_1234567_123456789.1616799814030
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+Amazon.com
+---------------------------------------------------------------------------
+
+Hi FakeUser,
+
+Your package has been delivered!
+
+Order #111-2222222-3333333
+
+    Wireless Headphones, Bluetooth, Over-Ear, Noise Cancelling
+
+---------------------------------------------------------------------------
+
+This email was sent from an email address that can't receive emails.
+Please don't reply to this email.
+------=_Part_1234567_123456789.1616799814030
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+<html>
+<body>
+<p>Hi FakeUser,</p>
+<p>Your package has been delivered!</p>
+<p>Order #111-2222222-3333333</p>
+<p>Wireless Headphones, Bluetooth, Over-Ear, Noise Cancelling</p>
+</body>
+</html>
+------=_Part_1234567_123456789.1616799814030--
