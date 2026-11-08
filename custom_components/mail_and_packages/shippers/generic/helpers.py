@@ -25,10 +25,13 @@ from custom_components.mail_and_packages.const import (
     ATTR_BODY_COUNT,
     ATTR_DELIVERY_DATE_PATTERN,
     ATTR_PATTERN,
+    ATTR_SUBJECT,
+    ATTR_TRACKING,
     CAMERA_DATA,
     CAMERA_EXTRACTION_CONFIG,
     MARKETPLACE_CARRIER_TRACKING,
     SENSOR_DATA,
+    SHOPIFY_STORE_TRACKING_PATTERN,
 )
 from custom_components.mail_and_packages.utils.cache import EmailCache
 from custom_components.mail_and_packages.utils.date import get_today
@@ -38,6 +41,7 @@ from custom_components.mail_and_packages.utils.imap import (
     email_fetch_batch,
     email_fetch_headers,
     email_fetch_headers_batch,
+    email_search,
     parse_batch_fetch_lines,
 )
 from custom_components.mail_and_packages.utils.shipper import (
@@ -555,6 +559,131 @@ async def _collect_carrier_tracking(
     if not mapping:
         return {}
     return {f"{prefix}_carrier_tracking": mapping}
+
+
+async def _merge_shopify_store_deliveries(
+    account: IMAP4_SSL,
+    date: str,
+    since_date: str | None,
+    ctx: SearchContext,
+    result: dict[str, Any],
+    found_data: list,
+    count: int,
+) -> int:
+    """Add deliveries from Shopify stores mailing from their own domain.
+
+    Store senders are unknowable, so this runs a second search for the
+    delivered subject with no sender restriction and keeps only emails
+    carrying the Shopify body fingerprint (SHOPIFY_STORE_TRACKING_PATTERN:
+    a full DHL eCommerce number on a carrier line). Candidates whose
+    subject does not verify, that were already counted by the sender-based
+    search, or that lack the fingerprint are skipped. Returns the merged
+    count; result[ATTR_TRACKING] and the carrier-tracking mapping are
+    extended in place.
+    """
+    _, store_ids = await email_search(
+        account=account,
+        address=None,
+        date=since_date or date,
+        subject=ctx.config.get(ATTR_SUBJECT, []),
+        body="",
+        header="",
+    )
+    if not store_ids or not store_ids[0]:
+        return count
+
+    verified_ids = await _verify_matched_subjects(
+        account,
+        store_ids[0].split(),
+        ctx.sensor_type,
+        ctx.config.get(ATTR_SUBJECT, []),
+        ctx.cache,
+    )
+
+    id_pattern = SENSOR_DATA["shopify_tracking"][ATTR_PATTERN][0]
+    fingerprint_re = re.compile(SHOPIFY_STORE_TRACKING_PATTERN)
+    marketplace_re = re.compile(MARKETPLACE_CARRIER_TRACKING["shopify"], re.IGNORECASE)
+    known_ids = {eid for sdata in found_data for eid in sdata.split()}
+    store_tracking: list[str] = []
+    carrier_mapping: dict[str, str] = {}
+    for eid in verified_ids:
+        if eid in known_ids:
+            continue
+        tracking = await get_tracking(
+            eid.decode() if isinstance(eid, bytes) else str(eid),
+            account,
+            id_pattern,
+            ctx.cache,
+        )
+        if not tracking or tracking[0] in (result.get(ATTR_TRACKING) or []):
+            continue
+        if tracking[0] in store_tracking:
+            continue
+        if ctx.cache:
+            msg_parts = (await ctx.cache.fetch(eid, "(RFC822)"))[1]
+        else:
+            msg_parts = (await email_fetch(account, eid, "(RFC822)"))[1]
+        carrier_number, marketplace_number = _shopify_store_numbers(
+            msg_parts, fingerprint_re, marketplace_re
+        )
+        if not carrier_number:
+            continue
+        if marketplace_number:
+            carrier_mapping[tracking[0]] = marketplace_number
+        else:
+            carrier_mapping[tracking[0]] = carrier_number
+        store_tracking.append(tracking[0])
+        found_data.append(eid)
+        known_ids.add(eid)
+
+    return count + _apply_store_tracking(result, store_tracking, carrier_mapping)
+
+
+def _shopify_store_numbers(
+    msg_parts: list,
+    fingerprint_re: re.Pattern,
+    marketplace_re: re.Pattern,
+) -> tuple[str | None, str | None]:
+    """Extract the fingerprint and marketplace numbers from email parts.
+
+    Returns (carrier_number, marketplace_number); either may be None.
+    Non-bytes response parts (IMAP tuple headers) are skipped.
+    """
+    carrier_number: str | None = None
+    marketplace_number: str | None = None
+    for response_part in msg_parts:
+        if not isinstance(response_part, (bytes, bytearray)):
+            continue
+        text = _extract_email_text(response_part)
+        if match := fingerprint_re.search(text):
+            carrier_number = match.group(1) or match.group(2)
+        if match := marketplace_re.search(text):
+            marketplace_number = match.group(1)
+        if carrier_number and marketplace_number:
+            break
+    return carrier_number, marketplace_number
+
+
+def _apply_store_tracking(
+    result: dict[str, Any],
+    store_tracking: list[str],
+    carrier_mapping: dict[str, str],
+) -> int:
+    """Merge store-scan tracking into the shipper result in place.
+
+    Returns how many store deliveries were merged (0 when the scan
+    found none).
+    """
+    if not store_tracking:
+        return 0
+    merged = list(result.get(ATTR_TRACKING) or [])
+    merged.extend(t for t in store_tracking if t not in merged)
+    result[ATTR_TRACKING] = merged
+    if existing := result.get("shopify_carrier_tracking"):
+        existing.update(carrier_mapping)
+    else:
+        result["shopify_carrier_tracking"] = carrier_mapping
+    return len(store_tracking)
 
 
 def _extract_email_text(response_part: bytes | bytearray) -> str:

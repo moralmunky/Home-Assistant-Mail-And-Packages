@@ -1043,13 +1043,27 @@ SENSOR_DATA = {
     "home_depot_tracking": {"pattern": [r"\bW[KN]\d{8}\b"]},
     # Shopify (standard order-notification templates). Sender varies per
     # store; these cover Shopify's shared sending infrastructure. Stores
-    # sending from their own domain need their sender added here.
+    # sending from their own domain are handled separately: the generic
+    # shipper additionally scans for the delivered subject without a
+    # sender restriction and only counts emails carrying the Shopify
+    # body fingerprint (SHOPIFY_STORE_TRACKING_PATTERN).
     "shopify_delivered": {
         "email": [
             "t.shopifyemail.com",
             "no-reply@parcelpanel.net",
         ],
         "subject": ["has been delivered"],
+    },
+    # eBay (fixed ebay@ebay.com sender). Only the out-for-delivery state
+    # is sample-backed; no genuine eBay delivered email is on file, so no
+    # delivered subject is invented here.
+    "ebay_delivering": {
+        "email": ["ebay@ebay.com"],
+        "subject": ["Out for delivery"],
+    },
+    "ebay_packages": {},
+    "ebay_tracking": {
+        "pattern": [r"Tracking\snumber:?\s*#?([A-Za-z0-9]{8,34})"],
     },
     "shopify_delivering": {
         "email": [
@@ -1702,6 +1716,18 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="temu_packages",
+    ),
+    "ebay_delivering": SensorEntityDescription(
+        name="Mail eBay Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="ebay_delivering",
+    ),
+    "ebay_packages": SensorEntityDescription(
+        name="Mail eBay Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="ebay_packages",
     ),
     # Canada Post
     "capost_delivered": SensorEntityDescription(
@@ -2572,12 +2598,38 @@ MARKETPLACE_CARRIER_TRACKING = {
     "etsy": r"tracking number:?\s*#?([A-Za-z0-9]{8,34})",
     "shopify": r"tracking number:?\s*#?([A-Za-z0-9]{8,34})",
     "home_depot": r"Tracking ID:?\s*#?([A-Za-z0-9]{8,34})",
+    "ebay": r"tracking number:?\s*#?([A-Za-z0-9]{8,34})",
 }
+
+# DHL eCommerce (US) tracking numbers: "420" + 5-digit destination ZIP +
+# serial. The two genuine samples on file are 29 and 31 digits long in
+# total, so the serial is 21-23 digits. Attribution requires a FULL match
+# of the whole extracted token (re.fullmatch); a 420-shaped substring of a
+# longer token must never attribute a package to DHL.
+DHL_ECOMMERCE_TRACKING_PATTERN = r"420\d{26,28}"
+
+# Body fingerprint for mail from Shopify stores sending from their own
+# domain (the sender is not one of the known shopify_delivered senders, so
+# the store's email itself is the only evidence). Both branches carry a
+# full DHL eCommerce number (group 1 or 2): the "Carrier: ..." line with an
+# optional carrier name in between (matching the eBay sample's structure),
+# and the explicit "DHL eCommerce tracking number:" label (the store
+# sample's structure). A delivered-subject email without one of these
+# fingerprints is not counted as Shopify. Only one alternation branch can
+# match, so exactly one of group(1) / group(2) is set and the other is
+# None; consumers read the number as ``match.group(1) or match.group(2)``
+# (see helpers._shopify_store_numbers).
+SHOPIFY_STORE_TRACKING_PATTERN = (
+    r"Carrier\s*(?:tracking\s+number\s*)?:\s*"
+    r"(?:[A-Za-z][A-Za-z .&'-]{1,30}?\s+)?(420\d{26,28})"
+    r"|DHL eCommerce tracking number:?\s*(420\d{26,28})"
+)
 
 # For sensors with delivering and delivered statuses
 SHIPPERS = [
     "aliexpress",
     "temu",
+    "ebay",
     "amazon",
     "capost",
     "dhl",

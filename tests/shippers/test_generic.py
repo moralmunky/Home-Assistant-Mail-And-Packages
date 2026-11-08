@@ -13,11 +13,16 @@ from custom_components.mail_and_packages.const import (
     ATTR_SUBJECT,
     ATTR_TRACKING,
     CONF_FORWARDING_HEADER,
+    MARKETPLACE_CARRIER_TRACKING,
     SENSOR_DATA,
+)
+from custom_components.mail_and_packages.coordinator import (
+    MailDataUpdateCoordinator,
 )
 from custom_components.mail_and_packages.shippers import generic
 from custom_components.mail_and_packages.shippers.generic import GenericShipper
 from custom_components.mail_and_packages.shippers.generic.helpers import (
+    SearchContext,
     _extract_date_from_headers,
     _fetch_date_header_chunk,
     _fetch_single_date_header,
@@ -2831,3 +2836,563 @@ async def test_mondial_relay_delivered_class(hass, mock_imap_mondial_relay_deliv
     )
     assert result[ATTR_COUNT] == 1
     assert result[ATTR_TRACKING] == ["77116398"]
+
+
+# ---------------------------------------------------------------------------
+# eBay, DHL attribution, Shopify store-domain and fixture-pair tests
+# ---------------------------------------------------------------------------
+
+EBAY_DHL_ECOMMERCE_NUMBER = "420" + "2" * 28
+SHOPIFY_STORE_DHL_NUMBER = "420" + "1" * 26
+SHOPIFY_STORE_CARRIER_LINE_NUMBER = "420" + "3" * 26
+TEMU_FEDEX_NUMBER = "885814254426"
+DHL_WAYBILL = "1234509876"
+
+
+async def test_ebay_out_for_delivery_class(hass, mock_imap_ebay_out_for_delivery):
+    """Test eBay out-for-delivery email parsing via GenericShipper."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_ebay_out_for_delivery,
+        "today",
+        "ebay_delivering",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == [EBAY_DHL_ECOMMERCE_NUMBER]
+    assert result["ebay_carrier_tracking"] == {
+        EBAY_DHL_ECOMMERCE_NUMBER: EBAY_DHL_ECOMMERCE_NUMBER,
+    }
+
+
+async def test_ebay_dhl_attribution_end_to_end(hass, mock_imap_ebay_out_for_delivery):
+    """An eBay DHL eCommerce shipment is attributed to DHL, not eBay."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = await shipper.process(
+        mock_imap_ebay_out_for_delivery, "today", "ebay_delivering"
+    )
+
+    data = {
+        "ebay_delivering": result[ATTR_COUNT],
+        "ebay_packages": result[ATTR_COUNT],
+        "dhl_delivering": 0,
+        "dhl_packages": 0,
+        "ebay_carrier_tracking": result["ebay_carrier_tracking"],
+    }
+    tracking_details = {
+        "ebay_delivering": list(result[ATTR_TRACKING]),
+        "dhl_delivering": [],
+    }
+
+    MailDataUpdateCoordinator._attribute_dhl_marketplace_packages(
+        data, tracking_details
+    )
+    MailDataUpdateCoordinator._dedupe_marketplace_duplicates(data, tracking_details)
+
+    assert data["ebay_delivering"] == 0
+    assert data["ebay_packages"] == 0
+    assert data["dhl_delivering"] == 1
+    assert data["dhl_packages"] == 1
+    assert tracking_details["dhl_delivering"] == [EBAY_DHL_ECOMMERCE_NUMBER]
+
+
+async def test_shopify_store_domain_delivered_counts(
+    hass, mock_imap_shopify_store_delivered
+):
+    """A Shopify store-domain delivered email is counted as Shopify."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_shopify_store_delivered, "today", "shopify_delivered"
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["12345"]
+    assert result["shopify_carrier_tracking"] == {
+        "12345": SHOPIFY_STORE_DHL_NUMBER,
+    }
+
+
+async def test_shopify_store_domain_carrier_line_counts(
+    hass, mock_imap_shopify_store_carrier_line
+):
+    """Store mail naming the carrier inline yields its DHL number."""
+
+    # A real server answers the sender-restricted search with nothing for
+    # a store-domain sender; only the sender-unrestricted store scan in
+    # the shipper finds the email, so model the server that way.
+    async def search(*args, **kwargs):
+        criteria = " ".join(str(arg) for arg in args)
+        res = MagicMock()
+        res.result = "OK"
+        res.lines = [b""] if "FROM" in criteria else [b"1"]
+        return res
+
+    mock_imap_shopify_store_carrier_line.search = AsyncMock(side_effect=search)
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_shopify_store_carrier_line, "today", "shopify_delivered"
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["12346"]
+    # The main sender-based flow cannot produce this mapping (no
+    # "tracking number:" label); only the fingerprint-gated store scan can.
+    assert result["shopify_carrier_tracking"] == {
+        "12346": SHOPIFY_STORE_CARRIER_LINE_NUMBER,
+    }
+
+
+async def test_shopify_delivered_store_mail_with_since_date(
+    hass, mock_imap_shopify_store_delivered
+):
+    """The store merge also applies when a since_date window is used."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(
+        mock_imap_shopify_store_delivered,
+        "16-Mar-2026",
+        "shopify_delivered",
+        since_date="13-Mar-2026",
+    )
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == ["12345"]
+
+
+async def test_shopify_store_dhl_attribution_end_to_end(
+    hass, mock_imap_shopify_store_delivered
+):
+    """A store-domain DHL eCommerce delivery is attributed to DHL."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = await shipper.process(
+        mock_imap_shopify_store_delivered, "today", "shopify_delivered"
+    )
+
+    data = {
+        "shopify_delivered": result[ATTR_COUNT],
+        "shopify_packages": result[ATTR_COUNT],
+        "dhl_delivered": 0,
+        "dhl_packages": 0,
+        "shopify_carrier_tracking": result["shopify_carrier_tracking"],
+    }
+    tracking_details = {
+        "shopify_delivered": list(result[ATTR_TRACKING]),
+        "dhl_delivered": [],
+    }
+
+    MailDataUpdateCoordinator._attribute_dhl_marketplace_packages(
+        data, tracking_details
+    )
+    MailDataUpdateCoordinator._dedupe_marketplace_duplicates(data, tracking_details)
+
+    assert data["shopify_delivered"] == 0
+    assert data["shopify_packages"] == 0
+    assert data["dhl_delivered"] == 1
+    assert data["dhl_packages"] == 1
+    assert tracking_details["dhl_delivered"] == [SHOPIFY_STORE_DHL_NUMBER]
+
+
+def _shopify_store_ctx(result, cache=None):
+    """Build the SearchContext for direct store-merge calls."""
+    return SearchContext(
+        sensor_type="shopify_delivered",
+        config=SENSOR_DATA["shopify_delivered"],
+        shipper_cfg=None,
+        result=result,
+        cache=cache,
+    )
+
+
+async def test_merge_shopify_store_deliveries_adds_store_mail(
+    hass, mock_imap_shopify_store_delivered
+):
+    """The store scan merges a store delivery the sender search missed."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = {ATTR_TRACKING: []}
+
+    count = await shipper._merge_shopify_store_deliveries(
+        mock_imap_shopify_store_delivered,
+        "today",
+        None,
+        _shopify_store_ctx(result),
+        result,
+        [],
+        0,
+    )
+
+    assert count == 1
+    assert result[ATTR_TRACKING] == ["12345"]
+    assert result["shopify_carrier_tracking"] == {
+        "12345": SHOPIFY_STORE_DHL_NUMBER,
+    }
+
+
+async def test_merge_shopify_store_deliveries_fingerprint_fallback(
+    hass, mock_imap_shopify_store_carrier_line
+):
+    """Without a tracking-number label the fingerprint number is used."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = {ATTR_TRACKING: []}
+
+    count = await shipper._merge_shopify_store_deliveries(
+        mock_imap_shopify_store_carrier_line,
+        "today",
+        None,
+        _shopify_store_ctx(result),
+        result,
+        [],
+        0,
+    )
+
+    assert count == 1
+    assert result[ATTR_TRACKING] == ["12346"]
+    assert result["shopify_carrier_tracking"] == {
+        "12346": SHOPIFY_STORE_CARRIER_LINE_NUMBER,
+    }
+
+
+async def test_merge_shopify_store_deliveries_requires_fingerprint(
+    hass, mock_imap_shopify_store_no_fingerprint
+):
+    """Same subject shape without the fingerprint is not merged."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = {ATTR_TRACKING: []}
+
+    count = await shipper._merge_shopify_store_deliveries(
+        mock_imap_shopify_store_no_fingerprint,
+        "today",
+        None,
+        _shopify_store_ctx(result),
+        result,
+        [],
+        0,
+    )
+
+    assert count == 0
+    assert result[ATTR_TRACKING] == []
+    assert "shopify_carrier_tracking" not in result
+
+
+async def test_merge_shopify_store_deliveries_skips_counted_tracking(
+    hass, mock_imap_shopify_store_delivered
+):
+    """A store email whose order is already counted is skipped."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = {ATTR_TRACKING: ["12345"]}
+
+    count = await shipper._merge_shopify_store_deliveries(
+        mock_imap_shopify_store_delivered,
+        "today",
+        None,
+        _shopify_store_ctx(result),
+        result,
+        [],
+        1,
+    )
+
+    assert count == 1
+    assert "shopify_carrier_tracking" not in result
+
+
+async def test_merge_shopify_store_deliveries_dedupes_within_scan(
+    hass, mock_imap_shopify_store_delivered
+):
+    """Two copies of the same store email in one scan merge only once."""
+
+    async def search(*args, **kwargs):
+        res = MagicMock()
+        res.result = "OK"
+        res.lines = [b"1 2"]
+        return res
+
+    mock_imap_shopify_store_delivered.search = AsyncMock(side_effect=search)
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = {ATTR_TRACKING: []}
+
+    count = await shipper._merge_shopify_store_deliveries(
+        mock_imap_shopify_store_delivered,
+        "today",
+        None,
+        _shopify_store_ctx(result),
+        result,
+        [],
+        0,
+    )
+
+    assert count == 1
+    assert result[ATTR_TRACKING] == ["12345"]
+
+
+async def test_merge_shopify_store_deliveries_skips_without_order_ref(hass, mock_imap):
+    """A fingerprint email without a Shopify order reference is skipped."""
+    email_text = (
+        "From: Example Store <help@example-store.com>\n"
+        "Subject: Your package has been delivered\n"
+        "Content-Type: text/plain; charset=UTF-8\n"
+        "\n"
+        f"Carrier: DHL eCommerce America {SHOPIFY_STORE_DHL_NUMBER}\n"
+    )
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_text)
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = {ATTR_TRACKING: []}
+
+    count = await shipper._merge_shopify_store_deliveries(
+        mock_imap,
+        "today",
+        None,
+        _shopify_store_ctx(result),
+        result,
+        [],
+        0,
+    )
+
+    assert count == 0
+    assert result[ATTR_TRACKING] == []
+
+
+async def test_merge_shopify_store_deliveries_extends_existing_mapping(
+    hass, mock_imap_shopify_store_delivered
+):
+    """Store results extend a carrier mapping the sender search produced."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = {
+        ATTR_TRACKING: [],
+        "shopify_carrier_tracking": {"99999": "SOMEOTHERNUMBER1"},
+    }
+
+    count = await shipper._merge_shopify_store_deliveries(
+        mock_imap_shopify_store_delivered,
+        "today",
+        None,
+        _shopify_store_ctx(result),
+        result,
+        [],
+        0,
+    )
+
+    assert count == 1
+    assert result["shopify_carrier_tracking"] == {
+        "99999": "SOMEOTHERNUMBER1",
+        "12345": SHOPIFY_STORE_DHL_NUMBER,
+    }
+
+
+async def test_merge_shopify_store_deliveries_uses_cache(
+    hass, mock_imap_shopify_store_delivered
+):
+    """With a cache configured the store scan fetches through it."""
+    email_bytes = _load_email("shopify_store_delivered.eml")
+    cache = MagicMock()
+    cache.get_cached.return_value = None
+    cache.fetch = AsyncMock(return_value=("OK", [email_bytes]))
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = {ATTR_TRACKING: []}
+
+    count = await shipper._merge_shopify_store_deliveries(
+        mock_imap_shopify_store_delivered,
+        "today",
+        None,
+        _shopify_store_ctx(result, cache=cache),
+        result,
+        [],
+        0,
+    )
+
+    assert count == 1
+    assert result["shopify_carrier_tracking"] == {
+        "12345": SHOPIFY_STORE_DHL_NUMBER,
+    }
+
+
+async def test_merge_shopify_store_deliveries_skips_counted_email_id(
+    hass, mock_imap_shopify_store_delivered
+):
+    """A store email the sender search already counted is skipped by ID."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = {ATTR_TRACKING: []}
+
+    count = await shipper._merge_shopify_store_deliveries(
+        mock_imap_shopify_store_delivered,
+        "today",
+        None,
+        _shopify_store_ctx(result),
+        result,
+        [b"1"],
+        0,
+    )
+
+    assert count == 0
+    assert result[ATTR_TRACKING] == []
+    assert "shopify_carrier_tracking" not in result
+
+
+async def test_merge_shopify_store_deliveries_skips_non_bytes_parts(
+    hass, mock_imap_shopify_store_delivered
+):
+    """Tuple elements in an IMAP fetch response are skipped, not parsed."""
+    email_bytes = _load_email("shopify_store_delivered.eml")
+    fetch_result = (
+        "OK",
+        [(b"1 (UID 1 BODY[] {1234}", email_bytes), email_bytes],
+    )
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    result = {ATTR_TRACKING: []}
+
+    with patch(
+        "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch",
+        new_callable=AsyncMock,
+        return_value=fetch_result,
+    ):
+        count = await shipper._merge_shopify_store_deliveries(
+            mock_imap_shopify_store_delivered,
+            "today",
+            None,
+            _shopify_store_ctx(result),
+            result,
+            [],
+            0,
+        )
+
+    assert count == 1
+    assert result[ATTR_TRACKING] == ["12345"]
+    assert result["shopify_carrier_tracking"] == {
+        "12345": SHOPIFY_STORE_DHL_NUMBER,
+    }
+
+
+async def test_temu_delivered_class(hass, mock_imap_temu_delivered):
+    """Test Temu delivered email parsing via GenericShipper."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(mock_imap_temu_delivered, "today", "temu_delivered")
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == [TEMU_FEDEX_NUMBER]
+    assert result["temu_carrier_tracking"] == {
+        TEMU_FEDEX_NUMBER: TEMU_FEDEX_NUMBER,
+    }
+
+
+async def test_temu_fedex_fixture_pair_is_not_double_counted(hass, mock_imap):
+    """The Temu/FedEx fixture pair dedupes to the FedEx record."""
+    temu_text = _load_email("temu_delivered.eml").decode("utf-8")
+    fedex_text = _load_email("fedex_delivered.eml").decode("utf-8")
+
+    async def fetch(email_id, parts):
+        # Batch fetches arrive as one call for "1,2": answer with both
+        # messages as tuple-typed parts so parse_batch_fetch_lines can
+        # route each message back to its UID.
+        uid_str = email_id.decode() if isinstance(email_id, bytes) else str(email_id)
+        res = MagicMock()
+        res.result = "OK"
+        if "," in uid_str:
+            res.lines = [
+                (b"1 (UID 1 BODY[] {1234}", temu_text.encode("utf-8")),
+                (b"2 (UID 2 BODY[] {1234}", fedex_text.encode("utf-8")),
+            ]
+            return res
+        content = temu_text if uid_str == "1" else fedex_text
+        header = f"{uid_str} (UID {uid_str} BODY[TEXT] {{1234}}".encode()
+        res.lines = [header, content.encode("utf-8")]
+        return res
+
+    async def search(*args, **kwargs):
+        res = MagicMock()
+        res.result = "OK"
+        res.lines = [b"1 2"]
+        return res
+
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.search = AsyncMock(side_effect=search)
+    mock_imap.fetch.side_effect = fetch
+
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+    temu_result = await shipper.process(mock_imap, "today", "temu_delivered")
+    fedex_result = await shipper.process(mock_imap, "today", "fedex_delivered")
+
+    data = {
+        "temu_delivered": temu_result[ATTR_COUNT],
+        "temu_packages": temu_result[ATTR_COUNT],
+        "fedex_delivered": fedex_result[ATTR_COUNT],
+        "fedex_packages": fedex_result[ATTR_COUNT],
+        "temu_carrier_tracking": temu_result["temu_carrier_tracking"],
+    }
+    tracking_details = {
+        "temu_delivered": list(temu_result[ATTR_TRACKING]),
+        "fedex_delivered": list(fedex_result[ATTR_TRACKING]),
+    }
+
+    MailDataUpdateCoordinator._dedupe_marketplace_duplicates(data, tracking_details)
+
+    assert data["temu_delivered"] == 0
+    assert data["temu_packages"] == 0
+    assert data["fedex_delivered"] == 1
+    assert tracking_details["fedex_delivered"] == [TEMU_FEDEX_NUMBER]
+
+
+async def test_dhl_delivered_class(hass, mock_imap_dhl_delivered):
+    """Test DHL Express delivered email parsing via GenericShipper."""
+    shipper = GenericShipper(hass, {"image_path": "test/path/"})
+
+    result = await shipper.process(mock_imap_dhl_delivered, "today", "dhl_delivered")
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == [DHL_WAYBILL]
+
+
+@pytest.mark.asyncio
+async def test_dhl_out_for_delivery_fixture_characterization(hass):
+    """Pin current behavior for the existing DHL out-for-delivery fixture.
+
+    The fixture (pre-existing, previously referenced by no test) is a DHL
+    On Demand Delivery "Your Delivery Is Today" email. Characterization:
+    it counts once as dhl_delivering with the waybill from the body text
+    (4212345678, which precedes the table's 4294142591), and it does not
+    count as dhl_delivered.
+    """
+    raw_email = _load_email("dhl_out_for_delivery.eml")
+    shipper = GenericShipper(hass, {})
+    mock_account = AsyncMock()
+    cache = EmailCache(mock_account)
+    cache._cache_rfc822["1"] = ("OK", [b"RFC822", raw_email])
+
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.search.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.generic.helpers.email_fetch_headers",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"Subject: DHL On Demand Delivery\r\n"]),
+        ),
+    ):
+        result = await shipper.process_batch(
+            mock_account,
+            "today",
+            ["dhl_delivering", "dhl_delivered"],
+            cache=cache,
+        )
+
+    assert result["dhl_delivering"] == 1
+    assert result["dhl_delivered"] == 0
+    assert result["_tracking_details"]["dhl_delivering"] == ["4212345678"]
+    assert result["_tracking_details"].get("dhl_delivered", []) == []
+
+
+def test_shopify_marketplace_regex_extracts_full_dhl_ecommerce_number():
+    """The shopify carrier regex extracts the full 420 number from label text."""
+    pattern = re.compile(MARKETPLACE_CARRIER_TRACKING["shopify"], re.IGNORECASE)
+    match = pattern.search(
+        f"DHL eCommerce tracking number: {SHOPIFY_STORE_DHL_NUMBER}",
+    )
+    assert match is not None
+    assert match.group(1) == SHOPIFY_STORE_DHL_NUMBER
+
+
+def test_ebay_marketplace_regex_extracts_full_dhl_ecommerce_number():
+    """The ebay carrier regex extracts the full 420 number from sample text."""
+    pattern = re.compile(MARKETPLACE_CARRIER_TRACKING["ebay"], re.IGNORECASE)
+    match = pattern.search(f"Tracking number: {EBAY_DHL_ECOMMERCE_NUMBER}")
+    assert match is not None
+    assert match.group(1) == EBAY_DHL_ECOMMERCE_NUMBER

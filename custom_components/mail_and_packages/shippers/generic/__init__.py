@@ -64,6 +64,9 @@ from .helpers import (
     _filter_unique_ids as helper_filter_unique_ids,
 )
 from .helpers import (
+    _merge_shopify_store_deliveries as helper_merge_shopify_store_deliveries,
+)
+from .helpers import (
     _process_emails_by_type as helper_process_emails_by_type,
 )
 from .helpers import (
@@ -225,9 +228,68 @@ class GenericShipper(GenericBatchMixin, GenericSearchMixin, Shipper):
             )
             count = result["usps_pickup_details"]["packages"] or 0
 
+        if sensor_type == "shopify_delivered":
+            count = await self._apply_shopify_store_merge(
+                account,
+                date,
+                since_date,
+                search_date,
+                search_ctx,
+                result,
+                found_data,
+                count,
+            )
+
         result[ATTR_COUNT] = count
         await self._finalize_shipper_image(shipper_cfg, image_path, image_found, result)
         return result
+
+    async def _merge_shopify_store_deliveries(
+        self,
+        account: IMAP4_SSL,
+        date: str,
+        since_date: str | None,
+        ctx: SearchContext,
+        result: dict[str, Any],
+        found_data: list,
+        count: int,
+    ) -> int:
+        """Delegate to the helpers implementation."""
+        return await helper_merge_shopify_store_deliveries(
+            account, date, since_date, ctx, result, found_data, count
+        )
+
+    async def _apply_shopify_store_merge(
+        self,
+        account: IMAP4_SSL,
+        date: str,
+        since_date: str | None,
+        search_date: str,
+        search_ctx: SearchContext,
+        result: dict[str, Any],
+        found_data: list,
+        count: int,
+    ) -> int:
+        """Merge Shopify store-domain deliveries into a delivered result.
+
+        When a wider window was searched, the today-only delivered view
+        is recomputed over the merged (sender-based + store) email set.
+        """
+        count = await self._merge_shopify_store_deliveries(
+            account,
+            date,
+            since_date,
+            search_ctx,
+            result,
+            found_data,
+            count,
+        )
+        if since_date and search_date != date:
+            result["pre_filtered_tracking"] = result.get(ATTR_TRACKING, [])
+            count = await self._process_delivered_today(
+                account, date, search_ctx, result, found_data
+            )
+        return count
 
     async def _fetch_carrier_photo(
         self, shipper_cfg: dict[str, Any] | None, result: dict[str, Any]

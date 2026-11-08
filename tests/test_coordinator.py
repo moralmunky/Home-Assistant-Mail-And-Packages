@@ -2182,3 +2182,241 @@ def test_coordinator_email_cache_store_key_scoped_to_entry(hass):
         == "mail_and_packages.email_cache.from_config_id"
     )
     assert coord_unscoped.email_cache._store.key == "mail_and_packages.email_cache"
+
+
+DHL_ECOMMERCE_NUMBER_31 = "420" + "2" * 28
+DHL_ECOMMERCE_NUMBER_29 = "420" + "1" * 26
+
+
+def test_attribute_dhl_marketplace_delivering():
+    """A marketplace delivering package with a DHL eCommerce number moves to DHL."""
+    data = {
+        "ebay_delivering": 1,
+        "ebay_packages": 1,
+        "dhl_delivering": 0,
+        "dhl_delivered": 0,
+        "dhl_packages": 0,
+        "ebay_carrier_tracking": {DHL_ECOMMERCE_NUMBER_31: DHL_ECOMMERCE_NUMBER_31},
+    }
+    tracking_details = {
+        "ebay_delivering": [DHL_ECOMMERCE_NUMBER_31],
+        "dhl_delivering": [],
+        "dhl_delivered": [],
+    }
+
+    MailDataUpdateCoordinator._attribute_dhl_marketplace_packages(
+        data, tracking_details
+    )
+
+    assert data["ebay_delivering"] == 0
+    assert data["ebay_packages"] == 0
+    assert data["dhl_delivering"] == 1
+    assert data["dhl_packages"] == 1
+    assert tracking_details["dhl_delivering"] == [DHL_ECOMMERCE_NUMBER_31]
+
+
+def test_attribute_dhl_marketplace_delivered():
+    """A marketplace delivered package with a DHL eCommerce number moves to DHL."""
+    data = {
+        "shopify_delivered": 1,
+        "shopify_packages": 1,
+        "dhl_delivered": 0,
+        "dhl_packages": 0,
+        "shopify_carrier_tracking": {"12345": DHL_ECOMMERCE_NUMBER_29},
+    }
+    tracking_details = {"shopify_delivered": ["12345"]}
+
+    MailDataUpdateCoordinator._attribute_dhl_marketplace_packages(
+        data, tracking_details
+    )
+
+    assert data["shopify_delivered"] == 0
+    assert data["shopify_packages"] == 0
+    assert data["dhl_delivered"] == 1
+    assert data["dhl_packages"] == 1
+    assert tracking_details["dhl_delivered"] == [DHL_ECOMMERCE_NUMBER_29]
+
+
+def test_attribute_dhl_marketplace_carrier_record_wins():
+    """When a carrier already holds the number, attribution leaves it alone."""
+    data = {
+        "ebay_delivering": 1,
+        "ebay_packages": 1,
+        "dhl_delivering": 1,
+        "dhl_packages": 1,
+        "ebay_carrier_tracking": {DHL_ECOMMERCE_NUMBER_31: DHL_ECOMMERCE_NUMBER_31},
+    }
+    tracking_details = {
+        "ebay_delivering": [DHL_ECOMMERCE_NUMBER_31],
+        "dhl_delivering": [DHL_ECOMMERCE_NUMBER_31],
+    }
+
+    MailDataUpdateCoordinator._attribute_dhl_marketplace_packages(
+        data, tracking_details
+    )
+
+    assert data["ebay_delivering"] == 1
+    assert data["dhl_delivering"] == 1
+    assert data["dhl_packages"] == 1
+    assert tracking_details["dhl_delivering"] == [DHL_ECOMMERCE_NUMBER_31]
+
+
+def test_attribute_then_dedupe_carrier_wins():
+    """Pipeline order: attribution defers to the carrier record, dedup drops the copy."""
+    data = {
+        "ebay_delivering": 1,
+        "ebay_packages": 1,
+        "dhl_delivering": 1,
+        "dhl_packages": 1,
+        "ebay_carrier_tracking": {DHL_ECOMMERCE_NUMBER_31: DHL_ECOMMERCE_NUMBER_31},
+    }
+    tracking_details = {
+        "ebay_delivering": [DHL_ECOMMERCE_NUMBER_31],
+        "dhl_delivering": [DHL_ECOMMERCE_NUMBER_31],
+    }
+
+    MailDataUpdateCoordinator._attribute_dhl_marketplace_packages(
+        data, tracking_details
+    )
+    assert data["ebay_delivering"] == 1
+
+    MailDataUpdateCoordinator._dedupe_marketplace_duplicates(data, tracking_details)
+    assert data["ebay_delivering"] == 0
+    assert data["dhl_delivering"] == 1
+    assert data["dhl_packages"] == 1
+    assert tracking_details["dhl_delivering"] == [DHL_ECOMMERCE_NUMBER_31]
+
+
+def test_attribute_dhl_marketplace_longer_token_does_not_attribute():
+    """A 420 number embedded in a longer digit string must not attribute."""
+    longer = DHL_ECOMMERCE_NUMBER_31 + "7"
+    data = {
+        "ebay_delivering": 1,
+        "ebay_carrier_tracking": {"ITEM1": longer},
+    }
+    tracking_details = {"ebay_delivering": ["ITEM1"], "dhl_delivering": []}
+
+    MailDataUpdateCoordinator._attribute_dhl_marketplace_packages(
+        data, tracking_details
+    )
+
+    assert data["ebay_delivering"] == 1
+    assert tracking_details["dhl_delivering"] == []
+
+
+def test_attribute_dhl_marketplace_other_carrier_does_not_attribute():
+    """A non-DHL carrier number stays with the marketplace."""
+    data = {
+        "temu_delivering": 1,
+        "temu_carrier_tracking": {"GFUS000000000001": "GFUS000000000001"},
+    }
+    tracking_details = {
+        "temu_delivering": ["GFUS000000000001"],
+        "dhl_delivering": [],
+    }
+
+    MailDataUpdateCoordinator._attribute_dhl_marketplace_packages(
+        data, tracking_details
+    )
+
+    assert data["temu_delivering"] == 1
+    assert tracking_details["dhl_delivering"] == []
+
+
+def test_attribute_dhl_marketplace_no_mapping_is_noop():
+    """Without usable carrier mappings nothing moves."""
+    data = {
+        "ebay_delivering": 1,
+        "shopify_delivered": 1,
+        "shopify_carrier_tracking": ["not-a-dict"],
+        "temu_delivering": 1,
+        "temu_carrier_tracking": {"ITEM2": 12345},
+    }
+    tracking_details = {
+        "ebay_delivering": ["ITEM1"],
+        "shopify_delivered": ["12345"],
+        "temu_delivering": ["ITEM2"],
+        "dhl_delivering": [],
+        "dhl_delivered": [],
+    }
+
+    MailDataUpdateCoordinator._attribute_dhl_marketplace_packages(
+        data, tracking_details
+    )
+
+    assert data["ebay_delivering"] == 1
+    assert data["shopify_delivered"] == 1
+    assert data["temu_delivering"] == 1
+    assert tracking_details["dhl_delivering"] == []
+    assert tracking_details["dhl_delivered"] == []
+
+
+def test_attribute_dhl_marketplace_unlisted_state_does_not_move():
+    """A mapped number whose package is not in the state lists does not move."""
+    data = {
+        "shopify_delivered": 1,
+        "shopify_packages": 1,
+        "dhl_delivered": 0,
+        "dhl_packages": 0,
+        "shopify_carrier_tracking": {"12345": DHL_ECOMMERCE_NUMBER_29},
+    }
+    tracking_details = {"shopify_delivered": [], "dhl_delivered": []}
+
+    MailDataUpdateCoordinator._attribute_dhl_marketplace_packages(
+        data, tracking_details
+    )
+
+    assert data["shopify_delivered"] == 1
+    assert data["shopify_packages"] == 1
+    assert data["dhl_delivered"] == 0
+    assert data["dhl_packages"] == 0
+    assert tracking_details["dhl_delivered"] == []
+
+
+def test_attribute_dhl_marketplace_without_count_keys():
+    """Attribution still records DHL tracking when count keys are absent."""
+    data = {
+        "dhl_delivering": 0,
+        "ebay_carrier_tracking": {DHL_ECOMMERCE_NUMBER_31: DHL_ECOMMERCE_NUMBER_31},
+    }
+    tracking_details = {"ebay_delivering": [DHL_ECOMMERCE_NUMBER_31]}
+
+    MailDataUpdateCoordinator._attribute_dhl_marketplace_packages(
+        data, tracking_details
+    )
+
+    assert data["dhl_delivering"] == 1
+    assert "ebay_delivering" not in data
+    assert "ebay_packages" not in data
+    assert "dhl_packages" not in data
+    assert tracking_details["dhl_delivering"] == [DHL_ECOMMERCE_NUMBER_31]
+
+
+def test_attribute_dhl_marketplace_totals_stay_consistent():
+    """Moved packages keep the per-prefix totals aggregation consumes."""
+    data = {
+        "ebay_delivering": 1,
+        "ebay_packages": 1,
+        "shopify_delivered": 1,
+        "shopify_packages": 1,
+        "dhl_delivering": 0,
+        "dhl_delivered": 0,
+        "dhl_packages": 0,
+        "ebay_carrier_tracking": {DHL_ECOMMERCE_NUMBER_31: DHL_ECOMMERCE_NUMBER_31},
+        "shopify_carrier_tracking": {"12345": DHL_ECOMMERCE_NUMBER_29},
+    }
+    tracking_details = {
+        "ebay_delivering": [DHL_ECOMMERCE_NUMBER_31],
+        "shopify_delivered": ["12345"],
+        "dhl_delivering": [],
+        "dhl_delivered": [],
+    }
+
+    MailDataUpdateCoordinator._attribute_dhl_marketplace_packages(
+        data, tracking_details
+    )
+
+    # Nothing is created or lost: the totals zpackages sums are unchanged.
+    assert data["ebay_delivering"] + data["dhl_delivering"] == 1
+    assert data["shopify_delivered"] + data["dhl_delivered"] == 1
+    assert data["dhl_packages"] == data["dhl_delivering"] + data["dhl_delivered"]
