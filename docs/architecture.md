@@ -51,6 +51,8 @@ Each supported carrier defines up to three standard package sensor entities in `
 | **`*_packages`** | Computed rollup total of active package volume for the carrier | `{}` (Empty dictionary) | **No** (Computed dynamically) |
 | **`*_exception`** | Delivery exceptions/delays found in carrier emails; the extracted tracking numbers are retained as `<prefix>_exception_tracking` and shown on the sensor's `tracking_#` attribute so templates can match an exception to a later delivery | List of `email` senders, `subject` patterns, optional `body` patterns | **Yes** |
 
+Two coordinator behaviors soften the midnight reset without changing the rules above: an exception sighting for an already-tracked package refreshes its last-seen date (exceptions still never create in-transit entries or set delivering counts on their own), and a delivered package stays confirmed past midnight while an exception for the same tracking number is still open, clearing once nothing references it or it ages past the tracking TTL. Amazon attempted orders likewise stay open until the delivered order list matches them.
+
 Amazon converts timezone-aware email `Date` headers to the host's local date before using them for arrival-date parsing and today's delivery counts, matching `get_today()` and the generic carrier header parser. Headers without a timezone retain their calendar date.
 
 ### Additional Global Sensors

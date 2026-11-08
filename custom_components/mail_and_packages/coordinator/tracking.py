@@ -43,19 +43,157 @@ def update_tracking_for_prefix(
         del in_transit[tid]
 
 
+def _refresh_tracked_from_exceptions(
+    in_transit_tracking: dict[str, dict[str, str]],
+    open_exception_tracking: dict[str, dict[str, str]],
+    prefix: str,
+    exceptions: list[str],
+    today_iso: str,
+) -> None:
+    """Record exception sightings and refresh already-tracked packages.
+
+    An exception sighting for a package that is already in transit
+    refreshes its last-seen date, so the package stays in today's
+    delivering view past midnight. Sightings are also remembered as
+    open exceptions (used to keep a later delivery confirmed), but they
+    never create in-transit entries and never affect delivering counts
+    on their own.
+    """
+    if not exceptions:
+        return
+
+    open_exceptions = open_exception_tracking.setdefault(prefix, {})
+    in_transit = in_transit_tracking.get(prefix, {})
+    for tid in exceptions:
+        if not tid:
+            continue
+        open_exceptions[tid] = today_iso
+        if tid in in_transit:
+            in_transit[tid] = today_iso
+
+
+def _update_delivered_records(
+    delivered_tracking: dict[str, dict[str, str]],
+    open_exception_tracking: dict[str, dict[str, str]],
+    prefix: str,
+    delivering: list[str],
+    delivered: list[str],
+    today_iso: str,
+    cutoff: str,
+) -> int:
+    """Maintain persistent delivered records; return the confirmed count.
+
+    A delivered tracking number is recorded the first day it is seen
+    delivered. The record stays confirmed while it was delivered today
+    or an open exception still references it; it is cleared once
+    nothing references it, when the number starts a new delivering
+    cycle, or when it ages past the tracking TTL.
+    """
+    records = delivered_tracking.setdefault(prefix, {})
+
+    # A number seen delivering again starts a new cycle; the old
+    # delivery confirmation no longer applies to it.
+    for tid in delivering:
+        records.pop(tid, None)
+
+    for tid in delivered:
+        if tid:
+            records.setdefault(tid, today_iso)
+
+    open_exceptions = open_exception_tracking.get(prefix, {})
+    for tid, seen in list(open_exceptions.items()):
+        if seen < cutoff:
+            del open_exceptions[tid]
+
+    confirmed = 0
+    for tid, delivered_date in list(records.items()):
+        if delivered_date < cutoff or (
+            delivered_date != today_iso and tid not in open_exceptions
+        ):
+            del records[tid]
+        else:
+            confirmed += 1
+    return confirmed
+
+
+def _apply_confirmed_delivered(data: dict, prefix: str, confirmed: int) -> None:
+    """Raise a prefix's delivered count to cover confirmed delivered records."""
+    delivered_count = data.get(f"{prefix}_delivered")
+    if confirmed and isinstance(delivered_count, int):
+        data[f"{prefix}_delivered"] = max(delivered_count, confirmed)
+
+
+def apply_amazon_attempted_state(
+    data: dict,
+    open_attempted: dict[str, str],
+    today_iso: str,
+    max_tracking_age_days: int,
+) -> None:
+    """Persist Amazon attempted orders as open until delivered.
+
+    The attempted search only sees today's emails, so without this an
+    attempted order vanishes at midnight even though the delivery is
+    still outstanding. Attempted sightings add (or refresh) an open
+    record keyed by order number; a delivered sighting for the same
+    order closes it. Records expire on the tracking TTL like the
+    in-transit state.
+    """
+    if (
+        const.AMAZON_ATTEMPTED_ORDER not in data
+        and const.AMAZON_DELIVERED_ORDER not in data
+    ):
+        return
+
+    for order in data.get(const.AMAZON_ATTEMPTED_ORDER) or []:
+        if order:
+            open_attempted[order] = today_iso
+    for order in data.get(const.AMAZON_DELIVERED_ORDER) or []:
+        open_attempted.pop(order, None)
+
+    cutoff = (
+        dt.date.fromisoformat(today_iso) - dt.timedelta(days=max_tracking_age_days)
+    ).isoformat()
+    for order, seen in list(open_attempted.items()):
+        if seen < cutoff:
+            del open_attempted[order]
+
+    data[const.AMAZON_ATTEMPTED_ORDER] = list(open_attempted)
+    if isinstance(data.get(const.AMAZON_ATTEMPTED), int):
+        data[const.AMAZON_ATTEMPTED] = len(open_attempted)
+    if isinstance(data.get(const.AMAZON_ATTEMPTED_COUNT), int):
+        data[const.AMAZON_ATTEMPTED_COUNT] = len(open_attempted)
+
+
+def _state_or_empty[T](state: dict[str, T] | None) -> dict[str, T]:
+    """Return the passed persistent state dict, or a throwaway empty one."""
+    return state if state is not None else {}
+
+
 def apply_tracking_state(
     in_transit_tracking: dict[str, dict[str, str]],
     data: dict,
     tracking_details: dict[str, list[str]],
     today_iso: str,
     max_tracking_age_days: int,
+    delivered_tracking: dict[str, dict[str, str]] | None = None,
+    open_exception_tracking: dict[str, dict[str, str]] | None = None,
+    amazon_open_attempted: dict[str, str] | None = None,
 ) -> None:
     """Update in-transit tracking state and override sensor counts."""
+    delivered_tracking = _state_or_empty(delivered_tracking)
+    open_exception_tracking = _state_or_empty(open_exception_tracking)
+    amazon_open_attempted = _state_or_empty(amazon_open_attempted)
+
     prefixes: set[str] = set(in_transit_tracking.keys())
+    prefixes.update(delivered_tracking.keys(), open_exception_tracking.keys())
     for sensor_key in tracking_details:
         prefix = "_".join(sensor_key.split("_")[:-1])
         if prefix:
             prefixes.add(prefix)
+
+    cutoff = (
+        dt.date.fromisoformat(today_iso) - dt.timedelta(days=max_tracking_age_days)
+    ).isoformat()
 
     for prefix in prefixes:
         if prefix in in_transit_tracking and not (
@@ -71,6 +209,15 @@ def apply_tracking_state(
 
         delivering = list(tracking_details.get(f"{prefix}_delivering", []))
         delivered = list(tracking_details.get(f"{prefix}_delivered", []))
+        exceptions = list(tracking_details.get(f"{prefix}_exception", []))
+
+        _refresh_tracked_from_exceptions(
+            in_transit_tracking,
+            open_exception_tracking,
+            prefix,
+            exceptions,
+            today_iso,
+        )
 
         update_tracking_for_prefix(
             in_transit_tracking,
@@ -80,6 +227,17 @@ def apply_tracking_state(
             today_iso,
             max_tracking_age_days,
         )
+
+        confirmed_delivered = _update_delivered_records(
+            delivered_tracking,
+            open_exception_tracking,
+            prefix,
+            delivering,
+            delivered,
+            today_iso,
+            cutoff,
+        )
+        _apply_confirmed_delivered(data, prefix, confirmed_delivered)
 
         in_transit = in_transit_tracking.get(prefix, {})
         has_delivering_details = f"{prefix}_delivering" in tracking_details
@@ -100,6 +258,10 @@ def apply_tracking_state(
             data[f"{prefix}_packages"] = len(in_transit) + (
                 delivered_count if isinstance(delivered_count, int) else 0
             )
+
+    apply_amazon_attempted_state(
+        data, amazon_open_attempted, today_iso, max_tracking_age_days
+    )
 
 
 @dataclass(frozen=True, slots=True)

@@ -68,6 +68,7 @@ from .helpers import (
 from .models import MailAndPackagesConfigEntry, MailAndPackagesData
 from .tracking import (
     MailDeliveredLatchState,
+    apply_amazon_attempted_state,
     apply_tracking_state,
     dedupe_marketplace_duplicates,
     latch_mail_delivered,
@@ -84,6 +85,7 @@ __all__ = [
     "MailDataUpdateCoordinator",
     "MailDeliveredLatchState",
     "aggregate_package_counts",
+    "apply_amazon_attempted_state",
     "apply_tracking_state",
     "async_oauth_access_token",
     "binary_sensor_update",
@@ -132,6 +134,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self._file_mtime_cache = {}
         self._hash_cache = {}
         self._in_transit_tracking: dict[str, dict[str, str]] = {}
+        self._delivered_tracking: dict[str, dict[str, str]] = {}
+        self._open_exception_tracking: dict[str, dict[str, str]] = {}
+        self._amazon_open_attempted: dict[str, str] = {}
         self._mail_delivered_latch_state = MailDeliveredLatchState()
         entry_id = (
             self.config_entry.entry_id
@@ -414,6 +419,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             tracking_details,
             today_iso,
             MAX_TRACKING_AGE_DAYS,
+            self._delivered_tracking,
+            self._open_exception_tracking,
+            self._amazon_open_attempted,
         )
 
     def _latch_mail_delivered(self, data: dict, today_iso: str) -> None:

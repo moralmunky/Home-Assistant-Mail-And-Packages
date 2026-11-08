@@ -23,6 +23,7 @@ from custom_components.mail_and_packages.coordinator.helpers import (
 )
 from custom_components.mail_and_packages.coordinator.tracking import (
     MailDeliveredLatchState,
+    apply_tracking_state,
     latch_mail_delivered,
 )
 from custom_components.mail_and_packages.utils.imap import InvalidAuth
@@ -798,6 +799,248 @@ async def test_apply_tracking_state_overwrites_empty_config_packages(hass):
     assert data["hermes_delivering"] == 1
     assert data["hermes_packages"] == 4  # 3 in transit + 1 delivered
     assert set(data["hermes_tracking"]) == {"H1", "H2", "H3"}
+
+
+@pytest.mark.asyncio
+async def test_apply_tracking_state_exception_refreshes_tracked_package(hass):
+    """An exception sighting refreshes an already-tracked package's last-seen date."""
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    coordinator._in_transit_tracking["ups"] = {"1Z111": "2026-04-20"}
+
+    data = {"ups_delivering": 0, "ups_exception": 1, "ups_delivered": 0}
+    tracking_details = {"ups_exception": ["1Z111"]}
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+
+    # Last-seen refreshed to today, so the package stays in today's
+    # delivering view instead of dropping out at midnight.
+    assert coordinator._in_transit_tracking["ups"] == {"1Z111": "2026-04-22"}
+    assert data["ups_delivering"] == 1
+    assert data["ups_tracking"] == ["1Z111"]
+
+
+@pytest.mark.asyncio
+async def test_apply_tracking_state_exception_refresh_saves_from_ttl_expiry(hass):
+    """An exception sighting keeps a tracked package alive past the TTL."""
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    # Last seen 21 days ago — beyond the 14-day TTL without a refresh.
+    coordinator._in_transit_tracking["ups"] = {"1ZOLD": "2026-04-01"}
+
+    data = {"ups_delivering": 0, "ups_exception": 1, "ups_delivered": 0}
+    tracking_details = {"ups_exception": ["1ZOLD"]}
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+
+    assert coordinator._in_transit_tracking["ups"] == {"1ZOLD": "2026-04-22"}
+
+
+@pytest.mark.asyncio
+async def test_apply_tracking_state_exception_untracked_creates_no_entry(hass):
+    """An exception sighting for an untracked number creates no in-transit entry."""
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    data = {"ups_delivering": 0, "ups_exception": 1, "ups_delivered": 0}
+    tracking_details = {"ups_exception": ["1Z999"]}
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+
+    assert coordinator._in_transit_tracking.get("ups", {}) == {}
+    assert data["ups_delivering"] == 0
+    assert "ups_tracking" not in data
+    # The sighting is remembered as an open exception only.
+    assert coordinator._open_exception_tracking["ups"] == {"1Z999": "2026-04-22"}
+    # An exception alone never marks anything delivered.
+    assert coordinator._delivered_tracking.get("ups", {}) == {}
+    assert data["ups_delivered"] == 0
+
+
+@pytest.mark.asyncio
+async def test_apply_tracking_state_delivered_stays_confirmed_with_open_exception(
+    hass,
+):
+    """Delivered stays confirmed past midnight while an exception is open."""
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    coordinator._in_transit_tracking["ups"] = {"1Z111": "2026-04-21"}
+
+    # Day 1: an exception and the delivery land for the same package.
+    data = {"ups_delivering": 0, "ups_exception": 1, "ups_delivered": 1}
+    tracking_details = {
+        "ups_exception": ["1Z111"],
+        "ups_delivered": ["1Z111"],
+    }
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+
+    assert data["ups_delivered"] == 1
+    assert "1Z111" not in coordinator._in_transit_tracking["ups"]
+    assert coordinator._delivered_tracking["ups"] == {"1Z111": "2026-04-22"}
+
+    # Day 2: no new email at all. The delivery would normally reset at
+    # midnight, but the open exception keeps it confirmed.
+    data = {"ups_delivering": 0, "ups_exception": 0, "ups_delivered": 0}
+    coordinator._apply_tracking_state(data, {}, "2026-04-23")
+
+    assert data["ups_delivered"] == 1
+    assert coordinator._delivered_tracking["ups"] == {"1Z111": "2026-04-22"}
+
+    # Day 16: the exception sighting ages past the 14-day TTL, so the
+    # confirmation is finally cleared.
+    data = {"ups_delivering": 0, "ups_exception": 0, "ups_delivered": 0}
+    coordinator._apply_tracking_state(data, {}, "2026-05-07")
+
+    assert data["ups_delivered"] == 0
+    assert coordinator._delivered_tracking["ups"] == {}
+    assert coordinator._open_exception_tracking["ups"] == {}
+
+
+@pytest.mark.asyncio
+async def test_apply_tracking_state_delivered_without_exception_clears_next_day(
+    hass,
+):
+    """A delivered record with no open exception does not survive midnight."""
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    data = {"ups_delivering": 0, "ups_delivered": 1}
+    tracking_details = {"ups_delivered": ["1Z111"]}
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+
+    assert data["ups_delivered"] == 1
+    assert coordinator._delivered_tracking["ups"] == {"1Z111": "2026-04-22"}
+
+    # Next day nothing references the delivery, so the record clears
+    # and the sensor falls back to the fresh scan count.
+    data = {"ups_delivering": 0, "ups_delivered": 0}
+    coordinator._apply_tracking_state(data, {}, "2026-04-23")
+
+    assert data["ups_delivered"] == 0
+    assert coordinator._delivered_tracking["ups"] == {}
+
+
+@pytest.mark.asyncio
+async def test_apply_tracking_state_delivered_record_cleared_on_new_cycle(hass):
+    """A delivered record clears when the number is seen delivering again."""
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    data = {"ups_delivering": 0, "ups_exception": 1, "ups_delivered": 1}
+    tracking_details = {
+        "ups_exception": ["1Z111"],
+        "ups_delivered": ["1Z111"],
+    }
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+    assert coordinator._delivered_tracking["ups"] == {"1Z111": "2026-04-22"}
+
+    # Next day the same number is out for delivery again (carrier reuse
+    # or a re-shipment): the old confirmation must not stick.
+    data = {"ups_delivering": 1, "ups_exception": 0, "ups_delivered": 0}
+    tracking_details = {"ups_delivering": ["1Z111"]}
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-23")
+
+    assert coordinator._delivered_tracking["ups"] == {}
+    assert data["ups_delivered"] == 0
+    assert data["ups_delivering"] == 1
+    assert coordinator._in_transit_tracking["ups"] == {"1Z111": "2026-04-23"}
+
+
+@pytest.mark.asyncio
+async def test_apply_tracking_state_amazon_attempted_persists_until_delivered(hass):
+    """An Amazon attempted order stays open across midnight until delivered."""
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    order = "111-2222222-3333333"
+
+    # Day 1: the delivery was attempted.
+    data = {
+        "amazon_attempted": 1,
+        "amazon_attempted_count": 1,
+        "amazon_attempted_order": [order],
+        "amazon_delivered_order": [],
+    }
+    coordinator._apply_tracking_state(data, {}, "2026-04-22")
+
+    assert data["amazon_attempted_order"] == [order]
+    assert data["amazon_attempted"] == 1
+
+    # Day 2: the attempted search only sees today's emails, so it finds
+    # nothing — but the attempt is still open and must persist.
+    data = {
+        "amazon_attempted": 0,
+        "amazon_attempted_count": 0,
+        "amazon_attempted_order": [],
+        "amazon_delivered_order": [],
+    }
+    coordinator._apply_tracking_state(data, {}, "2026-04-23")
+
+    assert data["amazon_attempted_order"] == [order]
+    assert data["amazon_attempted"] == 1
+    assert data["amazon_attempted_count"] == 1
+
+    # Day 3: the order is delivered, which closes the open attempt.
+    data = {
+        "amazon_attempted": 0,
+        "amazon_attempted_count": 0,
+        "amazon_attempted_order": [],
+        "amazon_delivered_order": [order],
+    }
+    coordinator._apply_tracking_state(data, {}, "2026-04-24")
+
+    assert data["amazon_attempted_order"] == []
+    assert data["amazon_attempted"] == 0
+    assert coordinator._amazon_open_attempted == {}
+
+
+@pytest.mark.asyncio
+async def test_apply_tracking_state_amazon_attempted_expires_on_ttl(hass):
+    """An open Amazon attempt expires on the tracking TTL if never delivered."""
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    order = "111-2222222-3333333"
+    data = {
+        "amazon_attempted": 1,
+        "amazon_attempted_count": 1,
+        "amazon_attempted_order": [order],
+        "amazon_delivered_order": [],
+    }
+    coordinator._apply_tracking_state(data, {}, "2026-04-22")
+    assert coordinator._amazon_open_attempted == {order: "2026-04-22"}
+
+    # 15 days later with no delivery and no new attempt, the open
+    # record is older than the 14-day TTL and is dropped.
+    data = {
+        "amazon_attempted": 0,
+        "amazon_attempted_count": 0,
+        "amazon_attempted_order": [],
+        "amazon_delivered_order": [],
+    }
+    coordinator._apply_tracking_state(data, {}, "2026-05-07")
+
+    assert data["amazon_attempted_order"] == []
+    assert data["amazon_attempted"] == 0
+    assert coordinator._amazon_open_attempted == {}
+
+
+@pytest.mark.asyncio
+async def test_apply_tracking_state_amazon_untouched_without_order_keys(hass):
+    """Data without Amazon order keys gains no attempted state."""
+    coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
+
+    data = {"ups_delivering": 1}
+    tracking_details = {"ups_delivering": ["1Z111"]}
+    coordinator._apply_tracking_state(data, tracking_details, "2026-04-22")
+
+    assert "amazon_attempted_order" not in data
+    assert coordinator._amazon_open_attempted == {}
+
+
+async def test_apply_tracking_state_without_persistent_state_args(hass):
+    """apply_tracking_state works when the persistent state dicts are omitted."""
+    in_transit_tracking: dict[str, dict[str, str]] = {"ups": {"1Z111": "2026-04-20"}}
+    data = {"ups_delivering": 0, "ups_exception": 1, "ups_delivered": 0}
+    tracking_details = {"ups_exception": ["", "1Z111"]}
+
+    apply_tracking_state(in_transit_tracking, data, tracking_details, "2026-04-22", 14)
+
+    # Blank tracking numbers are skipped; the tracked one is refreshed.
+    assert in_transit_tracking["ups"] == {"1Z111": "2026-04-22"}
+    assert data["ups_delivering"] == 1
 
 
 @pytest.mark.asyncio
