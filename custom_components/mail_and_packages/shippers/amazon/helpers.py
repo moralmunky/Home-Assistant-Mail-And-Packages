@@ -8,7 +8,6 @@ import re
 from html.parser import HTMLParser
 from typing import Any
 
-from custom_components.mail_and_packages import const
 from custom_components.mail_and_packages.const import (
     AMAZON_DELIVERING_SUBJECT,
     AMAZON_EXCEPTION_BODY,
@@ -22,6 +21,9 @@ from custom_components.mail_and_packages.utils.amazon import (
     extract_order_numbers,
     get_decoded_subject,
     get_email_body,
+)
+from custom_components.mail_and_packages.utils.amazon_image import (
+    extract_amazon_image_urls,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -118,26 +120,6 @@ def _calculate_delivering_count(ctx: dict) -> int:
     return final_count + len(delivering_today)
 
 
-def _extract_amazon_image_urls(msg: email.message.Message) -> list[str]:
-    """Extract image URLs from Amazon email body."""
-    urls = []
-    pattern = re.compile(rf"{const.AMAZON_IMG_PATTERN}")
-    for part in msg.walk():
-        if part.get_content_type() != "text/html":
-            continue
-        part_payload = part.get_payload(decode=True)
-        if part_payload:
-            part_content = part_payload.decode("utf-8", "ignore")
-            found = pattern.findall(part_content)
-            for url in found:
-                if url[1] not in const.AMAZON_IMG_LIST:
-                    continue
-                full_url = url[0] + url[1] + url[2]
-                if full_url not in urls:
-                    urls.append(full_url)
-    return urls
-
-
 def _is_amazon_delivered(msg_data: list, subjects: list[str]) -> tuple[bool, list[str]]:
     """Verify if email is a delivered notification and return image URLs."""
     for response_part in msg_data:
@@ -158,7 +140,7 @@ def _is_amazon_delivered(msg_data: list, subjects: list[str]) -> tuple[bool, lis
         )
 
         if has_delivered and not has_ordered and not has_shipped and not has_delivering:
-            urls = _extract_amazon_image_urls(msg)
+            urls = extract_amazon_image_urls(msg)
             return True, urls
     return False, []
 

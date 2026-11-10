@@ -1,23 +1,21 @@
 """Tests for Amazon utility functions."""
 
 import email
-import re
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiohttp
 import pytest
+from yarl import URL
 
 from custom_components.mail_and_packages.const import (
     AMAZON_DELIVERED_SUBJECT,
     AMAZON_DELIVERING_SUBJECT,
     AMAZON_DOMAINS,
-    AMAZON_IMG_PATTERN,
     AMAZON_ORDERED_SUBJECT,
     AMAZON_SHIPMENT_SUBJECT,
 )
 from custom_components.mail_and_packages.utils.amazon import (
-    _extract_amazon_urls_from_msg,
     _extract_hub_code,
     amazon_date_regex,
     amazon_date_search,
@@ -32,7 +30,12 @@ from custom_components.mail_and_packages.utils.amazon import (
     get_html_body,
     search_amazon_emails,
 )
+from custom_components.mail_and_packages.utils.amazon_image import (
+    extract_amazon_image_urls,
+)
 from custom_components.mail_and_packages.utils.cache import EmailCache
+
+_AMAZON_PHOTO_URL = "https://us-prod-temp.s3.amazonaws.com/test.jpg"
 
 
 def test_get_decoded_subject_error_handling():
@@ -220,7 +223,7 @@ def test_amazon_email_addresses_various_fwds():
 async def test_download_amazon_img_success(hass, tmp_path):
     """Test download_amazon_img success path (Lines 174-185)."""
 
-    img_url = "https://example.com/test.jpg"
+    img_url = f"{_AMAZON_PHOTO_URL}?X-Amz-Date=20261110T120000Z&amp;X-Amz-Expires=300"
     img_path = str(tmp_path)
     img_name = "test.jpg"
 
@@ -234,13 +237,33 @@ async def test_download_amazon_img_success(hass, tmp_path):
     mock_get.__aenter__.return_value = mock_resp
 
     with (
-        patch("aiohttp.ClientSession.get", return_value=mock_get),
+        patch("aiohttp.ClientSession.get", return_value=mock_get) as request,
         patch(
             "custom_components.mail_and_packages.utils.amazon_image.io_save_file",
         ) as mock_save,
     ):
         await download_amazon_img(img_url, img_path, img_name, hass)
+        request.assert_called_once_with(
+            URL(f"{_AMAZON_PHOTO_URL}?X-Amz-Date=20261110T120000Z&X-Amz-Expires=300"),
+            allow_redirects=False,
+        )
         assert mock_save.called
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://example.com/test.jpg",
+        "http://us-prod-temp.s3.amazonaws.com/test.jpg",
+        "https://us-prod-temp.s3.amazonaws.com:8443/test.jpg",
+        "https://us-prod-temp.s3.amazonaws.com:invalid/test.jpg",
+    ],
+)
+async def test_download_amazon_img_rejects_disallowed_urls(hass, tmp_path, url):
+    """Reject disallowed destinations before starting an HTTP session."""
+    with patch("aiohttp.ClientSession") as session:
+        await download_amazon_img(url, str(tmp_path), "test.jpg", hass)
+    session.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -248,7 +271,7 @@ async def test_download_amazon_img_client_error(hass, tmp_path, caplog):
     """Test download_amazon_img with aiohttp error (Line 184)."""
 
     caplog.set_level("ERROR")
-    img_url = "https://example.com/test.jpg"
+    img_url = _AMAZON_PHOTO_URL
     img_path = str(tmp_path)
     img_name = "test.jpg"
 
@@ -424,14 +447,15 @@ def test_get_email_body_attribute_error():
 
 
 @pytest.mark.asyncio
-async def test_download_amazon_img_non_200_status(hass, tmp_path):
-    """Test download_amazon_img returns early when HTTP status is not 200 (line 220)."""
-    img_url = "https://example.com/test.jpg"
+@pytest.mark.parametrize("status", [302, 404])
+async def test_download_amazon_img_non_200_status(hass, tmp_path, status):
+    """Skip responses that do not contain a successful image download."""
+    img_url = _AMAZON_PHOTO_URL
     img_path = str(tmp_path)
     img_name = "test.jpg"
 
     mock_resp = AsyncMock()
-    mock_resp.status = 404
+    mock_resp.status = status
     mock_get = MagicMock()
     mock_get.__aenter__.return_value = mock_resp
     mock_get.__aexit__ = AsyncMock(return_value=False)
@@ -449,7 +473,7 @@ async def test_download_amazon_img_non_200_status(hass, tmp_path):
 @pytest.mark.asyncio
 async def test_download_amazon_img_non_image_content_type(hass, tmp_path):
     """Test download_amazon_img returns early when content-type is not image (line 223)."""
-    img_url = "https://example.com/test.jpg"
+    img_url = _AMAZON_PHOTO_URL
     img_path = str(tmp_path)
     img_name = "test.jpg"
 
@@ -473,7 +497,7 @@ async def test_download_amazon_img_non_image_content_type(hass, tmp_path):
 @pytest.mark.asyncio
 async def test_download_amazon_img_content_length_too_large(hass, tmp_path, caplog):
     """Test download_amazon_img returns early when content-length exceeds limit (lines 226-230)."""
-    img_url = "https://example.com/test.jpg"
+    img_url = _AMAZON_PHOTO_URL
     img_path = str(tmp_path)
     img_name = "test.jpg"
 
@@ -502,7 +526,7 @@ async def test_download_amazon_img_content_length_too_large(hass, tmp_path, capl
 @pytest.mark.asyncio
 async def test_download_amazon_img_body_exceeds_size_limit(hass, tmp_path, caplog):
     """Test download_amazon_img returns early when downloaded data exceeds limit (lines 54-57)."""
-    img_url = "https://example.com/test.jpg"
+    img_url = _AMAZON_PHOTO_URL
     img_path = str(tmp_path)
     img_name = "test.jpg"
 
@@ -708,13 +732,11 @@ def test_amazon_date_regex_es(message, expected):
     assert amazon_date_regex(message) == expected
 
 
-def test_extract_amazon_urls_from_msg_edge_cases():
-    """Test _extract_amazon_urls_from_msg edge cases."""
-    pattern = re.compile(rf"{AMAZON_IMG_PATTERN}")
-
+def test_extract_amazon_image_urls_edge_cases():
+    """Ignore non-HTML and empty HTML email parts."""
     # Plain text message (no html part)
     msg_plain = email.message_from_string("Content-Type: text/plain\n\nHello")
-    assert _extract_amazon_urls_from_msg(msg_plain, pattern) == []
+    assert extract_amazon_image_urls(msg_plain) == []
 
     # Non-bytes payload
     msg_bad_payload = MagicMock()
@@ -722,7 +744,7 @@ def test_extract_amazon_urls_from_msg_edge_cases():
     part.get_content_type.return_value = "text/html"
     part.get_payload.return_value = None  # not bytes or bytearray
     msg_bad_payload.walk.return_value = [part]
-    assert _extract_amazon_urls_from_msg(msg_bad_payload, pattern) == []
+    assert extract_amazon_image_urls(msg_bad_payload) == []
 
 
 def test_get_html_body_decode_failure(caplog):
