@@ -1621,6 +1621,30 @@ def mock_imap_ebay_out_for_delivery(mock_imap):
 
 
 @pytest.fixture
+def mock_imap_pledgebox_in_transit(mock_imap):
+    """Mock IMAP search with a PledgeBox in-transit email (4PX courier)."""
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+    email_file = Path("tests/test_emails/pledgebox_in_transit.eml").read_text(
+        encoding="utf-8",
+    )
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+    return mock_imap
+
+
+@pytest.fixture
+def mock_imap_pledgebox_in_transit_ups(mock_imap):
+    """Mock IMAP search with a PledgeBox in-transit email (UPS courier)."""
+    mock_imap.select.return_value = ("OK", [b""])
+    mock_imap.uid.return_value = MagicMock(result="OK", lines=[b"1"])
+    email_file = Path("tests/test_emails/pledgebox_in_transit_ups.eml").read_text(
+        encoding="utf-8",
+    )
+    mock_imap.fetch.side_effect = _generate_fetch_side_effect(email_file)
+    return mock_imap
+
+
+@pytest.fixture
 def mock_imap_shopify_store_delivered(mock_imap):
     """Mock IMAP search with a Shopify store-domain delivered email."""
     mock_imap.select.return_value = ("OK", [b""])

@@ -71,6 +71,7 @@ from .tracking import (
     apply_amazon_attempted_state,
     apply_tracking_state,
     attribute_dhl_marketplace_packages,
+    attribute_fourpx_pledgebox_packages,
     dedupe_marketplace_duplicates,
     latch_mail_delivered,
     remove_marketplace_package,
@@ -90,6 +91,7 @@ __all__ = [
     "apply_tracking_state",
     "async_oauth_access_token",
     "attribute_dhl_marketplace_packages",
+    "attribute_fourpx_pledgebox_packages",
     "binary_sensor_update",
     "check_camera_update",
     "const",
@@ -271,6 +273,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             tracking_details = shipper_data.pop("_tracking_details", {})
             data.update(shipper_data)
             self._attribute_dhl_marketplace_packages(data, tracking_details)
+            self._attribute_fourpx_pledgebox_packages(data, tracking_details)
             self._dedupe_marketplace_duplicates(data, tracking_details)
             self._apply_tracking_state(data, tracking_details, today_iso)
             self._latch_mail_delivered(data, today_iso)
@@ -404,6 +407,13 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         tracking_details: dict[str, list],
     ) -> None:
         attribute_dhl_marketplace_packages(data, tracking_details)
+
+    @staticmethod
+    def _attribute_fourpx_pledgebox_packages(
+        data: dict,
+        tracking_details: dict[str, list],
+    ) -> None:
+        attribute_fourpx_pledgebox_packages(data, tracking_details)
 
     @staticmethod
     def _remove_marketplace_package(

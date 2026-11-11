@@ -1065,6 +1065,40 @@ SENSOR_DATA = {
     "ebay_tracking": {
         "pattern": [r"Tracking\snumber:?\s*#?([A-Za-z0-9]{8,34})"],
     },
+    # PledgeBox (crowdfunding pledge manager). PledgeBox is not a
+    # carrier: its shipping updates relay the tracking code the creator
+    # uploaded for the physical courier named in the body (4PX in the
+    # sample on file). Only the "In Transit" state is sample-backed; no
+    # genuine PledgeBox delivered email is on file, so no delivered
+    # subject is invented here. Like the AliExpress/Temu shipped
+    # notices, the in-transit notice counts on the delivering sensor
+    # while its tracking number is active.
+    "pledgebox_delivering": {
+        "email": ["none-reply@survey.pledgebox.com"],
+        "subject": ["Shipping Update"],
+        "body": ["In Transit"],
+    },
+    "pledgebox_packages": {},
+    # The code after the "Tracking Code" label is the courier's own
+    # tracking number; its format varies by courier (UPS, FedEx, 4PX,
+    # ...), so the label, not a courier format, anchors the extraction.
+    # The label is matched with \s, not a literal space: a literal space
+    # in a tracking pattern triggers the DHL split in
+    # utils.shipper._find_tracking_in_body.
+    "pledgebox_tracking": {
+        "pattern": [r"Tracking\sCode:?\s*([A-Za-z0-9]{8,34})"],
+    },
+    # 4PX (courier). No direct 4PX email format is sample-backed, so
+    # this sensor performs no IMAP search of its own (empty config,
+    # like poczta_polska_delivered); it is populated by attribution
+    # from PledgeBox mail whose tracking number is a 4PX number (see
+    # FOURPX_TRACKING_PATTERN and
+    # coordinator.tracking.attribute_fourpx_pledgebox_packages). No
+    # genuine 4PX delivered email is on file, so there is no
+    # fourpx_delivered sensor.
+    "fourpx_delivering": {},
+    "fourpx_packages": {},
+    "fourpx_tracking": {"pattern": [r"(4PX\d{13}CN)"]},
     "shopify_delivering": {
         "email": [
             "t.shopifyemail.com",
@@ -1728,6 +1762,30 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="ebay_packages",
+    ),
+    "pledgebox_delivering": SensorEntityDescription(
+        name="Mail PledgeBox Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="pledgebox_delivering",
+    ),
+    "pledgebox_packages": SensorEntityDescription(
+        name="Mail PledgeBox Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="pledgebox_packages",
+    ),
+    "fourpx_delivering": SensorEntityDescription(
+        name="Mail 4PX Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="fourpx_delivering",
+    ),
+    "fourpx_packages": SensorEntityDescription(
+        name="Mail 4PX Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="fourpx_packages",
     ),
     # Canada Post
     "capost_delivered": SensorEntityDescription(
@@ -2599,6 +2657,12 @@ MARKETPLACE_CARRIER_TRACKING = {
     "shopify": r"tracking number:?\s*#?([A-Za-z0-9]{8,34})",
     "home_depot": r"Tracking ID:?\s*#?([A-Za-z0-9]{8,34})",
     "ebay": r"tracking number:?\s*#?([A-Za-z0-9]{8,34})",
+    # PledgeBox relays the courier's own number after the same
+    # "Tracking Code" label its tracking extraction anchors on, so the
+    # marketplace id and the carrier number are the same token: when a
+    # carrier shipper reports that number too, the PledgeBox copy is
+    # the duplicate and is dropped (carrier wins).
+    "pledgebox": r"Tracking\sCode:?\s*([A-Za-z0-9]{8,34})",
 }
 
 # DHL eCommerce (US) tracking numbers: "420" + 5-digit destination ZIP +
@@ -2607,6 +2671,13 @@ MARKETPLACE_CARRIER_TRACKING = {
 # of the whole extracted token (re.fullmatch); a 420-shaped substring of a
 # longer token must never attribute a package to DHL.
 DHL_ECOMMERCE_TRACKING_PATTERN = r"420\d{26,28}"
+
+# 4PX tracking numbers: the literal "4PX" prefix, the 13-digit serial
+# from the genuine PledgeBox sample on file, and the "CN" origin
+# suffix. Attribution requires a FULL match of the whole extracted
+# token (re.fullmatch); a 4PX-shaped substring of a longer token must
+# never attribute a package to 4PX.
+FOURPX_TRACKING_PATTERN = r"4PX\d{13}CN"
 
 # Body fingerprint for mail from Shopify stores sending from their own
 # domain (the sender is not one of the known shopify_delivered senders, so
@@ -2630,6 +2701,8 @@ SHIPPERS = [
     "aliexpress",
     "temu",
     "ebay",
+    "pledgebox",
+    "fourpx",
     "amazon",
     "capost",
     "dhl",

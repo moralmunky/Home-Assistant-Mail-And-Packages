@@ -1,0 +1,84 @@
+Return-Path: <bounce+000000.000000-redacted=example.com@survey.pledgebox.com>
+From: PledgeBox <none-reply@survey.pledgebox.com>
+To: redacted@example.com
+Subject: Shipping Update
+Message-ID: <00000000000000000000000000000000@swift.generated>
+Date: Tue, 10 Nov 2026 17:38:38 -0800
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="pledgebox-boundary"
+
+--pledgebox-boundary
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Hi John Doe,
+
+Here is the shipping status of your pledge on
+
+The 100W Example Charger: A Fictional Campaign
+by ExampleCo
+
+You can also register on PledgeBox as a backer to check the shipping status any time.
+
+In Transit
+
+Ships To
+United States
+
+Courier
+4PX
+
+Tracking Code
+4PX1000000000001CN
+
+If you had received the reward, please click the button below to confirm and let us know about the shipping status.
+
+Click Here to Confirm: https://survey.pledgebox.com/project/000000/the-100w-example-charger-a-fictional-campaign/FAKETOKEN/success?order_shipping_id=0000000
+
+* The Tracking Info was uploaded by the creator. If you have question about the shipping, please contact creator@example.com
+
+Thanks again and stay tuned!
+
+The 100W Example Charger: A Fictional Campaign Team
+
+This project is using PledgeBox surveys and pledge management software to stay organized and on schedule.
+
+Need Help? please contact the Creator <creator@example.com>.
+
+--pledgebox-boundary
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+  <body>
+    <p>Hi John Doe,</p>
+    <p>Here is the shipping status of your pledge on</p>
+    <p>The 100W Example Charger: A Fictional Campaign by ExampleCo</p>
+    <table>
+      <tr>
+        <td><img src="https://api.pledgebox.com/assets/shipping-icon.png"> In Transit</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <td>Ships To</td>
+        <td>United States</td>
+      </tr>
+      <tr>
+        <td>Courier</td>
+        <td>4PX</td>
+      </tr>
+      <tr>
+        <td>Tracking Code</td>
+        <td>4PX1000000000001CN</td>
+      </tr>
+    </table>
+    <p>If you had received the reward, please click the button below to confirm and let us know about the shipping status.</p>
+    <p><a href="https://survey.pledgebox.com/project/000000/the-100w-example-charger-a-fictional-campaign/FAKETOKEN/success?order_shipping_id=0000000">Click Here to Confirm</a></p>
+    <p>* The Tracking Info was uploaded by the creator. If you have question about the shipping, please contact creator@example.com</p>
+    <p>Thanks again and stay tuned!</p>
+    <p>The 100W Example Charger: A Fictional Campaign Team</p>
+  </body>
+</html>
+
+--pledgebox-boundary--
