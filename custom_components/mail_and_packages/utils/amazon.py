@@ -27,7 +27,6 @@ from custom_components.mail_and_packages.const import (
 )
 from custom_components.mail_and_packages.utils.amazon_image import (
     _MAX_IMAGE_SIZE,
-    _extract_amazon_urls_from_msg,
     download_amazon_img,
     get_amazon_image_urls,
 )
@@ -39,7 +38,6 @@ from custom_components.mail_and_packages.utils.imap import (
 
 __all__ = [
     "_MAX_IMAGE_SIZE",
-    "_extract_amazon_urls_from_msg",
     "download_amazon_img",
     "get_amazon_image_urls",
 ]

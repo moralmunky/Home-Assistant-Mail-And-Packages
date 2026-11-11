@@ -135,6 +135,7 @@ Mail and Packages provides camera entities for mail visualization and shipper de
 
 ### Carrier Delivery Photos
 - **Delivery Confirmation Images**: Shippers supporting delivery verification photos (e.g., FedEx, UPS, Amazon) extract photographic proof of delivery directly from incoming emails.
+- **Amazon Photo Downloads**: The integration fetches photos directly from the supported Amazon S3 hosts over HTTPS. It skips URLs that require redirects.
 - **Async Safety**: All disk file I/O and image transformations (Pillow / ImageMagick) are offloaded to executor threads via `hass.async_add_executor_job` to keep the Home Assistant event loop responsive.
 
 ---

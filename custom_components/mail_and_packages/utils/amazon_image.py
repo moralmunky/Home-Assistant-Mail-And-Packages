@@ -10,6 +10,7 @@ from typing import Any
 
 import aiohttp
 from aioimaplib import IMAP4_SSL
+from yarl import URL
 
 from custom_components.mail_and_packages.const import (
     AMAZON_IMG_LIST,
@@ -22,6 +23,24 @@ from custom_components.mail_and_packages.utils.imap import email_fetch
 _LOGGER = logging.getLogger(__name__)
 
 _MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
+_IMAGE_URL_PATTERN = re.compile(AMAZON_IMG_PATTERN)
+
+
+def _allowed_image_url(candidate: str) -> URL | None:
+    """Return the URL aiohttp can fetch from an approved Amazon image host."""
+    try:
+        url = URL(candidate.replace("&amp;", "&"))
+    except ValueError:
+        return None
+    if (
+        url.scheme != "https"
+        or url.raw_host not in AMAZON_IMG_LIST
+        or url.port != 443
+        or url.raw_user is not None
+        or url.raw_password is not None
+    ):
+        return None
+    return url
 
 
 async def download_amazon_img(
@@ -31,12 +50,16 @@ async def download_amazon_img(
     hass: Any,
 ) -> None:
     """Download image from url."""
+    url = _allowed_image_url(img_url)
+    if url is None:
+        return
+
     img_path_obj = Path(img_path) / "amazon"
     filepath = img_path_obj / img_name
     timeout = aiohttp.ClientTimeout(total=30)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
-            async with session.get(img_url.replace("&amp;", "&")) as resp:
+            async with session.get(url, allow_redirects=False) as resp:
                 if resp.status != 200:
                     return
                 content_type = resp.headers.get("content-type", "")
@@ -60,10 +83,7 @@ async def download_amazon_img(
             _LOGGER.error("Problem downloading file: %s", err)
 
 
-def _extract_amazon_urls_from_msg(
-    msg: email.message.Message,
-    pattern: re.Pattern[str],
-) -> list[str]:
+def extract_amazon_image_urls(msg: email.message.Message) -> list[str]:
     """Extract Amazon delivery image URLs from a message."""
     urls = []
     for part in msg.walk():
@@ -73,11 +93,10 @@ def _extract_amazon_urls_from_msg(
         if not isinstance(part_payload, (bytes, bytearray)):
             continue
         part_content = part_payload.decode("utf-8", "ignore")
-        for url in pattern.findall(part_content):
-            if url[1] in AMAZON_IMG_LIST:
-                full_url = url[0] + url[1] + url[2]
-                if full_url not in urls:
-                    urls.append(full_url)
+        for match in _IMAGE_URL_PATTERN.finditer(part_content):
+            full_url = match.group()
+            if full_url not in urls and _allowed_image_url(full_url) is not None:
+                urls.append(full_url)
     return urls
 
 
@@ -88,7 +107,6 @@ async def get_amazon_image_urls(
 ) -> list[str]:
     """Find all Amazon delivery image URLs."""
     mail_list = sdata.split()
-    pattern = re.compile(rf"{AMAZON_IMG_PATTERN}")
     urls: list[str] = []
     for i in mail_list:
         if cache:
@@ -98,7 +116,7 @@ async def get_amazon_image_urls(
         for response_part in data:
             if isinstance(response_part, (bytes, bytearray)):
                 msg = email.message_from_bytes(response_part)
-                for full_url in _extract_amazon_urls_from_msg(msg, pattern):
+                for full_url in extract_amazon_image_urls(msg):
                     if full_url not in urls:
                         urls.append(full_url)
     return urls

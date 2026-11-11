@@ -39,7 +39,7 @@ from custom_components.mail_and_packages.const import (
 )
 from custom_components.mail_and_packages.shippers.amazon import AmazonShipper
 from custom_components.mail_and_packages.shippers.amazon.helpers import (
-    _extract_amazon_image_urls,
+    _is_amazon_delivered,
 )
 from custom_components.mail_and_packages.shippers.amazon.search import (
     _extract_amazon_otp_code,
@@ -2345,7 +2345,8 @@ def test_extract_amazon_image_urls_accepts_delivery_photo_hosts(host):
         subtype="html",
     )
 
-    assert _extract_amazon_image_urls(msg) == [url]
+    msg["Subject"] = "Delivered: Your order"
+    assert _is_amazon_delivered([msg.as_bytes()], ["Delivered:"]) == (True, [url])
 
 
 @pytest.mark.asyncio
