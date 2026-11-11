@@ -24,6 +24,7 @@ Huge contributions from [@firstof9](https://github.com/firstof9) moving the proj
 - Per-shipper sensors for packages in transit, delivered, and exceptions
 - Delivery confirmation matching — Amazon attempted-delivery detection with order numbers, and exception sensors that expose their tracking numbers, so automations can match an attempt or exception to the delivery that resolves it (support varies by carrier; see the [support matrix](docs/architecture.md#9-delivery-confirmation-support-matrix))
 - Marketplace carrier attribution *(in [PR #1579](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/pull/1579), open)* — DHL eCommerce shipments reported by eBay, Temu, or Shopify (including Shopify stores mailing from their own domains) will count under DHL, not the marketplace
+- PledgeBox shipping updates — in-transit notices count under PledgeBox, shipments whose courier is 4PX count under the 4PX sensors instead, and a package reported by both PledgeBox and a carrier is counted once (carrier wins)
 - USPS Informed Delivery — mail piece count and rotating GIF of today's mail images
 - Camera entities per shipper with delivery images pulled directly from emails
 - OAuth2 authentication support for Microsoft (Outlook/Exchange) and Google (Gmail)

@@ -426,6 +426,91 @@ def _attribute_dhl_number(
     return moved
 
 
+def attribute_fourpx_pledgebox_packages(
+    data: dict,
+    tracking_details: dict[str, list],
+) -> None:
+    """Move PledgeBox-reported 4PX packages to the 4PX sensors.
+
+    Runs before dedupe_marketplace_duplicates, which consumes (pops) the
+    carrier-tracking mapping this step reads: when a PledgeBox email's
+    tracking number is a full 4PX number and no carrier shipper already
+    holds that number, the package was really shipped by 4PX, so it
+    counts under 4PX instead of the pledge platform. Numbers a carrier
+    already holds are left for the dedup pass to drop from the
+    PledgeBox side. Counts move in ``data``; the tracking number joins
+    the 4PX tracking-details list, so the coordinator's tracking-state
+    step picks it up as 4PX in-transit. The PledgeBox id is kept on the
+    PledgeBox tracking list (it is how the PledgeBox email is
+    referenced); the dedup pass removes it there because the 4PX side
+    now holds the same number, so the package is counted exactly once.
+    Only the delivering state exists: no delivered sample is on file
+    for PledgeBox or for 4PX.
+    """
+    mapping = data.get("pledgebox_carrier_tracking") or {}
+    if not isinstance(mapping, dict):
+        return
+
+    marketplace_prefixes = tuple(const.MARKETPLACE_CARRIER_TRACKING)
+    fourpx_re = re.compile(const.FOURPX_TRACKING_PATTERN)
+    carrier_numbers = {
+        str(num).upper()
+        for sensor, ids in tracking_details.items()
+        if not sensor.startswith(marketplace_prefixes)
+        for num in ids or []
+    }
+
+    for marketplace_id, carrier_num in list(mapping.items()):
+        carrier_num = str(carrier_num)
+        if not fourpx_re.fullmatch(carrier_num):
+            continue
+        if carrier_num.upper() in carrier_numbers:
+            # A carrier shipper already holds this number; the dedup
+            # pass owns that case.
+            continue
+        if _attribute_fourpx_number(
+            data,
+            tracking_details,
+            marketplace_id,
+            carrier_num,
+            carrier_numbers,
+        ):
+            _adjust_packages_rollup(data, "pledgebox", -1)
+            _adjust_packages_rollup(data, "fourpx", 1)
+
+
+def _attribute_fourpx_number(
+    data: dict,
+    tracking_details: dict[str, list],
+    marketplace_id: str,
+    carrier_num: str,
+    carrier_numbers: set[str],
+) -> bool:
+    """Move one PledgeBox package to the 4PX sensors.
+
+    Returns True when the PledgeBox id sat on the delivering list and
+    the package moved; the caller then adjusts the packages rollups.
+    The carrier number joins the 4PX delivering list and the
+    carrier-held set, so a second source reporting the same number
+    defers to the 4PX record.
+    """
+    ids = tracking_details.get("pledgebox_delivering")
+    if not ids or marketplace_id not in ids:
+        return False
+    if isinstance(data.get("pledgebox_delivering"), int):
+        data["pledgebox_delivering"] = max(0, data["pledgebox_delivering"] - 1)
+    if isinstance(data.get("fourpx_delivering"), int):
+        data["fourpx_delivering"] += 1
+    tracking_details.setdefault("fourpx_delivering", []).append(carrier_num)
+    carrier_numbers.add(carrier_num.upper())
+    _LOGGER.debug(
+        "Attributed pledgebox package %s to 4PX (4PX tracking %s)",
+        marketplace_id,
+        carrier_num,
+    )
+    return True
+
+
 def _adjust_packages_rollup(data: dict, prefix: str, delta: int) -> None:
     """Adjust a computed ``<prefix>_packages`` rollup by delta.
 
