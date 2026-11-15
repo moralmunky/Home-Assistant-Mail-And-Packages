@@ -110,14 +110,14 @@ All carrier `*_packages` sensors must be defined as an empty dictionary (`{}`) i
 
 During each coordinator update cycle:
 
-> **Note:** Steps 4–6 below (marketplace carrier attribution, Shopify store senders, and eBay) land in [PR #1579](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/pull/1579), which is open and not yet merged. On the current codebase only the remaining steps apply; the #1579 steps are marked *(in #1579, open)* where they appear.
+> **Note:** Steps 4–6 below (marketplace carrier attribution, Shopify store senders, and eBay) landed in [PR #1579](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/pull/1579) (merged).
 
 1. **Per-Carrier IMAP Search**: Shippers search IMAP for delivered and out-for-delivery messages within the configured time window (`custom_days`).
 2. **Extended Window Delivery Filtering**: `_deduplicate_batch_tracking` removes tracking numbers found in delivered emails from the active delivering list so delivered items do not continue to show as out for delivery.
 3. **Embedded Carrier Tracking Extraction**: For retailers and marketplace platforms (such as Home Depot or Shopify) that embed third-party carrier tracking numbers (UPS, FedEx, Canada Post, etc.) in their order notification emails, `GenericShipper` extracts the underlying carrier tracking ID to prevent duplicate counts when both merchant and courier emails are received for the same package.
-4. **Marketplace Carrier Attribution** *(in #1579, open)*: When a marketplace email's tracking number belongs to a carrier family that no direct carrier email reports — DHL eCommerce numbers (the `420…` format) found in marketplace mail from sources such as eBay, Temu, and Shopify — the package is *attributed* to that carrier (`dhl`) instead of counting under the marketplace. Direct DHL Express email is unaffected and continues to count under `dhl` as before.
-5. **Shopify Store Senders** *(in #1579, open)*: Shopify stores that mail order updates from their own domain (rather than Shopify's own senders) are matched by the sample-backed subject shape plus a Shopify body fingerprint in the message; lookalike mail without the fingerprint is skipped. Their extracted carrier tracking numbers take part in deduplication and DHL attribution like any other marketplace mail.
-6. **eBay** *(in #1579, open)*: eBay order email from `ebay@ebay.com` counts under `ebay_delivering`; a body line naming the carrier ("Carrier: DHL eCommerce America") or a `420…` tracking number attributes the package to DHL. There is no `ebay_delivered` sensor yet — no genuine delivered sample has been available to build one from.
+4. **Marketplace Carrier Attribution**: When a marketplace email's tracking number belongs to a carrier family that no direct carrier email reports — DHL eCommerce numbers (the `420…` format) found in marketplace mail from sources such as eBay, Temu, and Shopify — the package is *attributed* to that carrier (`dhl`) instead of counting under the marketplace. Direct DHL Express email is unaffected and continues to count under `dhl` as before.
+5. **Shopify Store Senders**: Shopify stores that mail order updates from their own domain (rather than Shopify's own senders) are matched by the sample-backed subject shape plus a Shopify body fingerprint in the message; lookalike mail without the fingerprint is skipped. Their extracted carrier tracking numbers take part in deduplication and DHL attribution like any other marketplace mail.
+6. **eBay**: eBay order email from `ebay@ebay.com` counts under `ebay_delivering`; a body line naming the carrier ("Carrier: DHL eCommerce America") or a `420…` tracking number attributes the package to DHL. There is no `ebay_delivered` sensor yet — no genuine delivered sample has been available to build one from.
 7. **PledgeBox / 4PX Attribution**: PledgeBox shipping updates (`none-reply@survey.pledgebox.com`, subject "Shipping Update", body "In Transit") relay the courier's own tracking number after a "Tracking Code" label, so PledgeBox takes part in marketplace deduplication like any other marketplace source: a package whose number a carrier shipper also reports is dropped from the PledgeBox side (carrier wins). A number that is a full 4PX number (`4PX` + 13 digits + `CN`) is *attributed* to the `fourpx` sensors instead of counting under PledgeBox, following the DHL eCommerce attribution pattern; the `fourpx` sensors perform no IMAP search of their own, because no direct 4PX email format is sample-backed yet. Only the in-transit state is supported for either source — no genuine PledgeBox or 4PX delivered email has been available to build a delivered sensor from.
 8. **Email Caching (`EmailCache`)**: Uses Home Assistant's `Store` helper (`custom_components/mail_and_packages/utils/cache.py`) to persist email body hashes and message IDs across updates, preventing redundant fetches of unchanged messages.
 
@@ -166,7 +166,7 @@ To minimize bandwidth, reduce latency, and prevent hitting IMAP server rate limi
 
 ## 9. Delivery Confirmation Support Matrix
 
-Delivery-confirmation support is **not** uniform across carriers. This matrix states what each source actually supports today; unsupported cells are marked honestly rather than implied. "Exception w/ numbers" means the exception sensor exposes the identifiers (tracking numbers, or order numbers for Amazon) that let a template match the exception to a later delivery. Cells marked *(in #1579, open)* describe support that lands in [PR #1579](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/pull/1579), which is open and not yet merged; everything unmarked is implemented today.
+Delivery-confirmation support is **not** uniform across carriers. This matrix states what each source actually supports today; unsupported cells are marked honestly rather than implied. "Exception w/ numbers" means the exception sensor exposes the identifiers (tracking numbers, or order numbers for Amazon) that let a template match the exception to a later delivery. Everything unmarked is implemented today.
 
 | Source | Delivering / Delivered | Exception w/ numbers | Attempted / missed detection | Dedup / attribution |
 | :--- | :--- | :--- | :--- | :--- |
@@ -177,11 +177,11 @@ Delivery-confirmation support is **not** uniform across carriers. This matrix st
 | **Walmart** | Yes / Yes | Yes — `walmart_exception`, tracking on `tracking_#` | No | — |
 | **Home Depot** | Yes / Yes | Yes — `home_depot_exception`, tracking on `tracking_#` | No | Embedded carrier tracking extracted; carrier email wins on duplicates |
 | **PostNL** | Yes / Yes | Yes — `post_nl_exception`, tracking on `tracking_#` | **Yes** — the "we missed you" notice is the `post_nl_exception` email | — |
-| **DHL** (direct Express email) | Yes / Yes | No — no `dhl_exception` entry | No | Receives DHL eCommerce packages attributed from marketplace mail *(in #1579, open)* |
+| **DHL** (direct Express email) | Yes / Yes | No — no `dhl_exception` entry | No | Receives DHL eCommerce packages attributed from marketplace mail |
 | **Canada Post** | Yes / Yes | No — no `capost_exception` entry | No | Carrier side of Etsy/Shopify dedup |
-| **eBay** | **No** *(delivering in #1579, open)* / **No** — no `ebay_delivered` yet; a genuine delivered sample is still needed | No | No | Source for DHL eCommerce attribution (carrier line or `420…` number) *(in #1579, open)* |
-| **Shopify** (standard senders; store-domain senders in #1579, open) | Yes / Yes | No | No | Dedup against carrier email; source for DHL attribution *(in #1579, open)* |
-| **Temu / Etsy** | Yes / Yes | No | No | Dedup against carrier email (carrier wins); Temu is a DHL attribution source *(attribution in #1579, open)* |
+| **eBay** | Yes / **No** — no `ebay_delivered` yet; a genuine delivered sample is still needed | No | No | Source for DHL eCommerce attribution (carrier line or `420…` number) |
+| **Shopify** (standard senders and store-domain senders) | Yes / Yes | No | No | Dedup against carrier email; source for DHL attribution |
+| **Temu / Etsy** | Yes / Yes | No | No | Dedup against carrier email (carrier wins); Temu is a DHL attribution source |
 | **PledgeBox** | In-transit only / **No** — no `pledgebox_delivered` yet; a genuine delivered sample is still needed | No | No | Marketplace-style source: the relayed carrier number dedupes against carrier mail (carrier wins); full 4PX numbers are attributed to 4PX |
 | **4PX** | In-transit only (via PledgeBox attribution) / **No** — no `fourpx_delivered` yet | No | No | Receives 4PX packages attributed from PledgeBox mail; no direct 4PX email format is sample-backed yet, so the sensors perform no IMAP search of their own |
 | **Post AT / REWE Lieferservice** | Yes / Yes | No — `post_at_exception` / `rewe_lieferservice_exception` exist only as empty placeholders | No | — |
@@ -191,7 +191,6 @@ Known gaps, stated plainly:
 
 - **Attempted/missed-delivery detection exists only for Amazon and PostNL.** No other carrier's "attempted" email is detected today.
 - **Exception entries exist only for USPS, UPS, FedEx, Walmart, Home Depot, PostNL, and Amazon.** DHL, Canada Post, and every other carrier have no exception sensor with identifiers.
-- **DHL eCommerce attribution, eBay delivering, and Shopify store-domain senders are not implemented yet.** They land in [PR #1579](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/pull/1579) (open); until it merges, marketplace mail counts under the marketplace and only the standard senders above are matched.
 - **eBay delivered-side support is missing** until a genuine eBay delivered email sample is available to build from.
 - **PledgeBox and 4PX delivered-side support is missing, and there is no direct 4PX email parsing**, until genuine delivered / direct-carrier email samples are available to build from; only the sample-backed PledgeBox in-transit notice is parsed today.
 - **The USPS Informed Delivery Daily Digest's PACKAGES section is not parsed.** The digest is processed for mailpiece images and counts only; packages that appear solely in the digest are not tracked.
