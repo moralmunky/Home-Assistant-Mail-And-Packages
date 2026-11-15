@@ -7109,7 +7109,7 @@ async def test_get_target_fallback():
         ("mkdir_error", False),
     ],
 )
-def test_create_storage_dir(hass, scenario, expected):
+async def test_create_storage_dir(hass, scenario, expected):
     """Test _create_storage_dir across hass, path boundary, and mkdir error cases."""
     if scenario == "without_hass":
         assert _create_storage_dir("images", None, pathlib.Path) is expected
@@ -7120,7 +7120,7 @@ def test_create_storage_dir(hass, scenario, expected):
     elif scenario == "inside_config_dir":
         path = hass.config.path("mail_and_packages_test_images", "box")
         assert _create_storage_dir(path, hass, pathlib.Path) is expected
-        assert pathlib.Path(path).is_dir()
+        assert await Path(path).is_dir()
     elif scenario == "mkdir_error":
         path_cls = MagicMock()
         path_cls.return_value.mkdir.side_effect = OSError("read only")
