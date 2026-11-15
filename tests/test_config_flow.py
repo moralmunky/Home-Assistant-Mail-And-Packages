@@ -98,6 +98,14 @@ from tests.const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+OAUTH_IMAP_INPUT = {
+    CONF_HOST: "imap.gmail.com",
+    CONF_PORT: 993,
+    CONF_USERNAME: "user@gmail.com",
+    CONF_IMAP_SECURITY: "SSL",
+    "token": {"access_token": "fake-token"},
+}
+
 
 @pytest.mark.parametrize(
     (
@@ -7092,40 +7100,32 @@ async def test_get_target_fallback():
         assert gt_fn("_non_existent_symbol_for_test_", sentinel) is sentinel
 
 
-def test_create_storage_dir_without_hass():
-    """No folder is created when there is no Home Assistant instance."""
-    assert _create_storage_dir("images", None, pathlib.Path) is False
-
-
-def test_create_storage_dir_outside_config_dir(hass):
-    """A folder outside the config directory is never created."""
-    path_cls = MagicMock()
-    assert _create_storage_dir("/nonexistent/images", hass, path_cls) is False
-    path_cls.assert_not_called()
-
-
-def test_create_storage_dir_inside_config_dir(hass):
-    """A missing folder inside the config directory is created."""
-    path = hass.config.path("mail_and_packages_test_images", "box")
-    assert _create_storage_dir(path, hass, pathlib.Path) is True
-    assert pathlib.Path(path).is_dir()
-
-
-def test_create_storage_dir_mkdir_error(hass):
-    """A folder that cannot be created is reported as missing."""
-    path_cls = MagicMock()
-    path_cls.return_value.mkdir.side_effect = OSError("read only")
-    path = hass.config.path("mail_and_packages_test_images", "readonly")
-    assert _create_storage_dir(path, hass, path_cls) is False
-
-
-OAUTH_IMAP_INPUT = {
-    CONF_HOST: "imap.gmail.com",
-    CONF_PORT: 993,
-    CONF_USERNAME: "user@gmail.com",
-    CONF_IMAP_SECURITY: "SSL",
-    "token": {"access_token": "fake-token"},
-}
+@pytest.mark.parametrize(
+    ("scenario", "expected"),
+    [
+        ("without_hass", False),
+        ("outside_config_dir", False),
+        ("inside_config_dir", True),
+        ("mkdir_error", False),
+    ],
+)
+async def test_create_storage_dir(hass, scenario, expected):
+    """Test _create_storage_dir across hass, path boundary, and mkdir error cases."""
+    if scenario == "without_hass":
+        assert _create_storage_dir("images", None, pathlib.Path) is expected
+    elif scenario == "outside_config_dir":
+        path_cls = MagicMock()
+        assert _create_storage_dir("/nonexistent/images", hass, path_cls) is expected
+        path_cls.assert_not_called()
+    elif scenario == "inside_config_dir":
+        path = hass.config.path("mail_and_packages_test_images", "box")
+        assert _create_storage_dir(path, hass, pathlib.Path) is expected
+        assert await Path(path).is_dir()
+    elif scenario == "mkdir_error":
+        path_cls = MagicMock()
+        path_cls.return_value.mkdir.side_effect = OSError("read only")
+        path = hass.config.path("mail_and_packages_test_images", "readonly")
+        assert _create_storage_dir(path, hass, path_cls) is expected
 
 
 def _patch_oauth_imap(login, logout=None):
@@ -7228,3 +7228,57 @@ async def test_validate_oauth_login_select_error_logs_out(hass):
         result = await _validate_oauth_login(hass, OAUTH_IMAP_INPUT)
     assert result == "oauth_cannot_connect"
     logout.assert_awaited_once_with(client)
+
+
+@pytest.mark.asyncio
+async def test_oauth_reauth_flow(hass):
+    """Test the OAuth re-authentication flow."""
+    entry = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Test OAuth",
+        data={
+            CONF_AUTH_TYPE: "oauth2_microsoft",
+            "token": {"access_token": "old_token"},
+            "host": "imap.test.com",
+        },
+        source=config_entries.SOURCE_USER,
+        options={},
+        entry_id="reauth_oauth_test_entry",
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_REAUTH,
+            "entry_id": entry.entry_id,
+        },
+        data=entry.data,
+    )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "reauth_confirm"
+
+    # Trigger external authentication for non-password authentication types
+    with patch(
+        "custom_components.mail_and_packages.config_flow.MailAndPackagesFlowHandler.async_step_pick_implementation",
+        return_value={"type": "external", "url": "http://fake"},
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input={},
+        )
+    assert result["type"] == "external"
+
+    # Test the OAuth2 completion redirect handler
+    flow = MailAndPackagesFlowHandler()
+    flow.hass = hass
+    flow.context = {"source": config_entries.SOURCE_REAUTH}
+    flow._entry = entry
+    flow._data = entry.data.copy()
+
+    result = await flow.async_oauth_create_entry(data={"token": "new_token"})
+    assert result["type"] == "abort"
+    assert result["reason"] == "reauth_successful"

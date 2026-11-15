@@ -3442,3 +3442,24 @@ def test_ebay_marketplace_regex_extracts_full_dhl_ecommerce_number():
     match = pattern.search(f"Tracking number: {EBAY_DHL_ECOMMERCE_NUMBER}")
     assert match is not None
     assert match.group(1) == EBAY_DHL_ECOMMERCE_NUMBER
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("fixture_name", "sensor_type", "expected_tracking"),
+    [
+        ("mock_imap_hermes_de_delivered", "hermes_delivered", ["12345678901234"]),
+        (
+            "mock_imap_hermes_de_delivering_today",
+            "hermes_delivering",
+            ["98765432109876"],
+        ),
+    ],
+)
+async def test_hermes_de(hass, request, fixture_name, sensor_type, expected_tracking):
+    """Test Hermes DE email parsing."""
+    mock_imap = request.getfixturevalue(fixture_name)
+    shipper = GenericShipper(hass, {})
+    result = await shipper.process(mock_imap, "today", sensor_type)
+    assert result[ATTR_COUNT] == 1
+    assert result[ATTR_TRACKING] == expected_tracking

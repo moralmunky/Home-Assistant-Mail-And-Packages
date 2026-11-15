@@ -2,7 +2,7 @@
 
 import datetime as dt
 import re
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -228,8 +228,8 @@ async def test_bpost_delivering_with_cache_and_multipart(hass):
             return ("OK", [f"Subject: {DELIVERING_SUBJECT}\r\n".encode()])
         return ("OK", ["not_bytes", raw_multipart])
 
-    mock_cache = AsyncMock()
-    mock_cache.fetch.side_effect = _mock_fetch
+    mock_cache = MagicMock()
+    mock_cache.fetch = AsyncMock(side_effect=_mock_fetch)
 
     shipper = GenericShipper(hass, {})
     mock_account = AsyncMock()
