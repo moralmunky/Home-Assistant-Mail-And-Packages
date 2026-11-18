@@ -854,10 +854,10 @@ async def test_apply_tracking_state_exception_untracked_creates_no_entry(hass):
 
 
 @pytest.mark.asyncio
-async def test_apply_tracking_state_delivered_stays_confirmed_with_open_exception(
+async def test_apply_tracking_state_delivered_closes_open_exception(
     hass,
 ):
-    """Delivered stays confirmed past midnight while an exception is open."""
+    """Delivering a package closes its open exception so it resets at midnight."""
     coordinator = MailDataUpdateCoordinator(hass, FAKE_CONFIG_DATA)
 
     coordinator._in_transit_tracking["ups"] = {"1Z111": "2026-04-21"}
@@ -873,19 +873,12 @@ async def test_apply_tracking_state_delivered_stays_confirmed_with_open_exceptio
     assert data["ups_delivered"] == 1
     assert "1Z111" not in coordinator._in_transit_tracking["ups"]
     assert coordinator._delivered_tracking["ups"] == {"1Z111": "2026-04-22"}
+    assert coordinator._open_exception_tracking["ups"] == {}
 
-    # Day 2: no new email at all. The delivery would normally reset at
-    # midnight, but the open exception keeps it confirmed.
+    # Day 2: no new email at all. Because the exception was closed on delivery,
+    # the delivered count resets to 0 at midnight.
     data = {"ups_delivering": 0, "ups_exception": 0, "ups_delivered": 0}
     coordinator._apply_tracking_state(data, {}, "2026-04-23")
-
-    assert data["ups_delivered"] == 1
-    assert coordinator._delivered_tracking["ups"] == {"1Z111": "2026-04-22"}
-
-    # Day 16: the exception sighting ages past the 14-day TTL, so the
-    # confirmation is finally cleared.
-    data = {"ups_delivering": 0, "ups_exception": 0, "ups_delivered": 0}
-    coordinator._apply_tracking_state(data, {}, "2026-05-07")
 
     assert data["ups_delivered"] == 0
     assert coordinator._delivered_tracking["ups"] == {}
@@ -2420,3 +2413,103 @@ def test_attribute_dhl_marketplace_totals_stay_consistent():
     assert data["ebay_delivering"] + data["dhl_delivering"] == 1
     assert data["shopify_delivered"] + data["dhl_delivered"] == 1
     assert data["dhl_packages"] == data["dhl_delivering"] + data["dhl_delivered"]
+
+
+def test_apply_tracking_state_delivered_window_does_not_reincrement_after_midnight():
+    """Multi-day delivered window clears in-transit without re-stamping delivered."""
+    transit: dict[str, dict[str, str]] = {"ups": {"PKG1": "2026-11-16"}}
+    delivered: dict[str, dict[str, str]] = {}
+    exceptions: dict[str, dict[str, str]] = {}
+
+    # Day 1: PKG1 delivered today
+    data1 = {"ups_delivered": 1}
+    apply_tracking_state(
+        transit,
+        data1,
+        {"ups_delivered": ["PKG1"], "ups_delivered_window": ["PKG1"]},
+        "2026-11-17",
+        14,
+        delivered,
+        exceptions,
+        {},
+    )
+    assert data1["ups_delivered"] == 1
+    assert transit["ups"] == {}
+
+    # Day 2 (first scan after midnight): today-filtered list is empty,
+    # multi-day window still contains PKG1.
+    data2 = {"ups_delivered": 0}
+    apply_tracking_state(
+        transit,
+        data2,
+        {"ups_delivered_window": ["PKG1"]},
+        "2026-11-18",
+        14,
+        delivered,
+        exceptions,
+        {},
+    )
+    assert data2["ups_delivered"] == 0
+
+    # Day 2 (second scan): must remain 0, not re-increment to 1.
+    data3 = {"ups_delivered": 0}
+    apply_tracking_state(
+        transit,
+        data3,
+        {"ups_delivered_window": ["PKG1"]},
+        "2026-11-18",
+        14,
+        delivered,
+        exceptions,
+        {},
+    )
+    assert data3["ups_delivered"] == 0
+
+
+def test_apply_tracking_state_delivery_closes_open_exception():
+    """Delivering a package closes its open exception so it does not linger."""
+    transit: dict[str, dict[str, str]] = {}
+    delivered: dict[str, dict[str, str]] = {}
+    exceptions: dict[str, dict[str, str]] = {}
+
+    # Day 1: exception recorded
+    apply_tracking_state(
+        transit,
+        {"ups_delivered": 0},
+        {"ups_exception": ["PKG_EXC"], "ups_delivering": ["PKG_EXC"]},
+        "2026-11-16",
+        14,
+        delivered,
+        exceptions,
+        {},
+    )
+    assert "PKG_EXC" in exceptions["ups"]
+
+    # Day 2: package delivered
+    data2 = {"ups_delivered": 1}
+    apply_tracking_state(
+        transit,
+        data2,
+        {"ups_delivered": ["PKG_EXC"], "ups_delivered_window": ["PKG_EXC"]},
+        "2026-11-17",
+        14,
+        delivered,
+        exceptions,
+        {},
+    )
+    assert data2["ups_delivered"] == 1
+    assert "PKG_EXC" not in exceptions["ups"]
+
+    # Day 3: after midnight, delivered count must drop to 0
+    data3 = {"ups_delivered": 0}
+    apply_tracking_state(
+        transit,
+        data3,
+        {"ups_delivered_window": ["PKG_EXC"]},
+        "2026-11-18",
+        14,
+        delivered,
+        exceptions,
+        {},
+    )
+    assert data3["ups_delivered"] == 0

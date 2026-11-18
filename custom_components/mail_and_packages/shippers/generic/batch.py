@@ -34,11 +34,12 @@ class GenericBatchMixin:
         # Merge results and aggregate global tracking
         res: dict[str, Any] = {}
         for sensor, sensor_res in batch_results:
-            tracking = (
+            pre_filtered = (
                 sensor_res.pop("pre_filtered_tracking", [])
                 if sensor.endswith("_delivered")
-                else sensor_res.get(ATTR_TRACKING)
+                else []
             )
+            tracking = sensor_res.get(ATTR_TRACKING)
             for key, value in list(sensor_res.items()):
                 if key.endswith("_carrier_tracking") and isinstance(res.get(key), dict):
                     sensor_res[key] = {**res[key], **value}
@@ -49,6 +50,10 @@ class GenericBatchMixin:
                 ("_delivering", "_delivered", "_exception")
             ):
                 res.setdefault("_tracking_details", {})[sensor] = list(tracking)
+            if pre_filtered and sensor.endswith("_delivered"):
+                res.setdefault("_tracking_details", {})[f"{sensor}_window"] = list(
+                    pre_filtered
+                )
 
         if all_tracking:
             res[ATTR_TRACKING] = list(all_tracking)

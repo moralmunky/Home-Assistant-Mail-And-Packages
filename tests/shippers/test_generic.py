@@ -1046,7 +1046,8 @@ async def test_process_batch_dedup_uses_extended_window_delivered(hass):
 
         assert result["fedex_delivered"] == 0
         assert result["fedex_delivering"] == 0  # F1+F2 delivered on prior days
-        assert result["_tracking_details"]["fedex_delivered"] == ["F1", "F2"]
+        assert result["_tracking_details"]["fedex_delivered_window"] == ["F1", "F2"]
+        assert "fedex_delivered" not in result["_tracking_details"]
         assert "fedex_delivering" not in result["_tracking_details"]
 
 
