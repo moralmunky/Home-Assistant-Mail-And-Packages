@@ -305,6 +305,22 @@ class AmazonSearchMixin(AmazonImageMixin):
             if o not in ctx["amazon_delivered"]:
                 ctx["amazon_delivered"].append(o)
 
+    @staticmethod
+    def _record_delivery_date(
+        ctx: dict,
+        order_id: str,
+        arrival: dt.date,
+        email_date: dt.date | None,
+    ) -> None:
+        """Store the expected delivery date, preferring the newest email."""
+        seen = ctx.setdefault("order_date_seen", {})
+        stamp = email_date or dt.date.min
+        if order_id in seen and stamp < seen[order_id]:
+            return
+        seen[order_id] = stamp
+        ctx["order_details"].setdefault(order_id, {})["delivery_date"] = (
+            arrival.isoformat()
+        )
     async def _handle_shipping_email(
         self,
         subject: str,
@@ -331,6 +347,9 @@ class AmazonSearchMixin(AmazonImageMixin):
         # time-window parsing fails (e.g. "Zustellung heute 15:15 - 17:15").
         if is_delivering and date == ctx["today"] and parsed_arrival is None:
             parsed_arrival = ctx["today"]
+
+        if order_id and parsed_arrival:
+            self._record_delivery_date(ctx, order_id, parsed_arrival, date)
 
         if parsed_arrival == ctx["today"]:
             if order_id:
