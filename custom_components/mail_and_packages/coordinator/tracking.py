@@ -97,11 +97,12 @@ def _update_delivered_records(
     for tid in delivering:
         records.pop(tid, None)
 
+    open_exceptions = open_exception_tracking.get(prefix, {})
     for tid in delivered:
         if tid:
             records.setdefault(tid, today_iso)
+            open_exceptions.pop(tid, None)
 
-    open_exceptions = open_exception_tracking.get(prefix, {})
     for tid, seen in list(open_exceptions.items()):
         if seen < cutoff:
             del open_exceptions[tid]
@@ -188,7 +189,10 @@ def apply_tracking_state(
     prefixes: set[str] = set(in_transit_tracking.keys())
     prefixes.update(delivered_tracking.keys(), open_exception_tracking.keys())
     for sensor_key in tracking_details:
-        prefix = "_".join(sensor_key.split("_")[:-1])
+        if sensor_key.endswith("_delivered_window"):
+            prefix = sensor_key.removesuffix("_delivered_window")
+        else:
+            prefix = "_".join(sensor_key.split("_")[:-1])
         if prefix:
             prefixes.add(prefix)
 
@@ -210,6 +214,9 @@ def apply_tracking_state(
 
         delivering = list(tracking_details.get(f"{prefix}_delivering", []))
         delivered = list(tracking_details.get(f"{prefix}_delivered", []))
+        delivered_window = list(
+            tracking_details.get(f"{prefix}_delivered_window", delivered)
+        )
         exceptions = list(tracking_details.get(f"{prefix}_exception", []))
 
         _refresh_tracked_from_exceptions(
@@ -224,7 +231,7 @@ def apply_tracking_state(
             in_transit_tracking,
             prefix,
             delivering,
-            delivered,
+            delivered_window,
             today_iso,
             max_tracking_age_days,
         )
