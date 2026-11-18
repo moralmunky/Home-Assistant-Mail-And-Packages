@@ -2327,7 +2327,7 @@ async def test_amazon_packages_order_details(hass):
     assert details["702-4925201-8953856"]["image"].startswith(
         "https://m.media-amazon.com/images/I/"
     )
-
+    assert details["702-4925201-8953856"]["delivery_date"] == "2026-07-20"
 
 @pytest.mark.parametrize(
     "host",
