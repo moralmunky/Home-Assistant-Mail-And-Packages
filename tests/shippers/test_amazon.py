@@ -2329,6 +2329,23 @@ async def test_amazon_packages_order_details(hass):
     )
     assert details["702-4925201-8953856"]["delivery_date"] == "2026-07-20"
 
+
+@pytest.mark.parametrize("newer_first", [True, False])
+def test_amazon_delivery_date_prefers_newer_email(newer_first):
+    """Keep the newer email's delivery date regardless of processing order."""
+    ctx = {"order_details": {"order-1": {"name": "Item"}}}
+    older = (dt.date(2026, 7, 20), dt.date(2026, 7, 15))
+    newer = (dt.date(2026, 7, 22), dt.date(2026, 7, 16))
+
+    for arrival, email_date in [newer, older] if newer_first else [older, newer]:
+        AmazonShipper._record_delivery_date(ctx, "order-1", arrival, email_date)
+
+    assert ctx["order_details"]["order-1"] == {
+        "name": "Item",
+        "delivery_date": "2026-07-22",
+    }
+
+
 @pytest.mark.parametrize(
     "host",
     [
