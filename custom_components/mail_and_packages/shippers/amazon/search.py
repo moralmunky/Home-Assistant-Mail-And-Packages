@@ -321,6 +321,7 @@ class AmazonSearchMixin(AmazonImageMixin):
         ctx["order_details"].setdefault(order_id, {})["delivery_date"] = (
             arrival.isoformat()
         )
+        
     async def _handle_shipping_email(
         self,
         subject: str,
