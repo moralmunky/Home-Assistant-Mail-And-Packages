@@ -36,6 +36,27 @@ Amazon uses several third-party carriers (USPS, UPS, FedEx) as well as its own l
 - When Amazon delivers via its own network, notifications with expected arrival dates are tracked under Amazon sensors (`sensor.mail_amazon_packages`).
 - Amazon package counts are automatically included in total package counts (`sensor.mail_packages_in_transit` and `sensor.mail_packages_delivered`).
 
+### Amazon expected delivery dates
+
+`sensor.mail_amazon_packages` can include an `order_details` attribute
+keyed by pending order number. When an expected delivery date can be
+determined from a shipping email, the order's `delivery_date` will be an ISO
+date such as `2026-07-20`. Some orders may not have a date.
+
+The sensor's state remains the number of packages arriving today. To
+display order dates, use a template such as this in a Markdown card:
+
+```jinja
+{% set details = state_attr('sensor.mail_amazon_packages', 'order_details') or {} %}
+{% for order, item in details.items() %}
+- {{ order }}: {{ item.get('delivery_date', 'Date unavailable') }}
+{% else %}
+No pending Amazon order details.
+{% endfor %}
+```
+
+Adjust the entity ID if yours differs. Results depend on the emails
+available within the configured search period.
 ---
 
 ## Wiki Documentation Index
