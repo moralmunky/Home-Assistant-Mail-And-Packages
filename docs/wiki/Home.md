@@ -40,7 +40,7 @@ Amazon uses several third-party carriers (USPS, UPS, FedEx) as well as its own l
 
 `sensor.mail_amazon_packages` can include an `order_details` attribute
 keyed by pending order number. When an expected delivery date can be
-determined from a shipping email, the order's `delivery_date` wll be an ISO
+determined from a shipping email, the order's `delivery_date` will be an ISO
 date such as `2026-07-20`. Some orders may not have a date.
 
 The sensor's state remains the number of packages arriving today. To
