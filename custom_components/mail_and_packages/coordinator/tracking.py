@@ -263,9 +263,22 @@ def apply_tracking_state(
             )
         if in_transit:
             delivered_count = data.get(f"{prefix}_delivered", 0)
-            data[f"{prefix}_packages"] = len(in_transit) + (
+            tracked_package_count = len(in_transit) + (
                 delivered_count if isinstance(delivered_count, int) else 0
             )
+            if prefix == "usps":
+                # The Daily Digest gives a total inbound-package count, while
+                # USPS tracking emails may describe those same packages.
+                # Use the larger source count instead of adding both and
+                # double-counting overlapping shipments.
+                digest_package_count = data.get("usps_packages", 0)
+                if not isinstance(digest_package_count, int):
+                    digest_package_count = 0
+                data["usps_packages"] = max(
+                    digest_package_count, tracked_package_count
+                )
+            else:
+                data[f"{prefix}_packages"] = tracked_package_count
 
     apply_amazon_attempted_state(
         data, amazon_open_attempted, today_iso, max_tracking_age_days

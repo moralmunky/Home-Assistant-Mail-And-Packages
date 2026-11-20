@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 import email
 import email.utils
+import html
 import logging
 import re
 import shutil
@@ -58,6 +59,19 @@ from custom_components.mail_and_packages.utils.imap import email_fetch, email_se
 from .image import extract_jpeg_attachment, extract_usps_images
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def extract_inbound_package_count(content: str) -> int | None:
+    """Extract the inbound package count from a USPS Daily Digest body."""
+    text = html.unescape(content)
+    text = re.sub(r"<[^>]*>", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    match = re.search(
+        r"\b(\d+)\s+inbound\s+packages?(?:\s*\(s\))?(?=\s|[.,;:!?]|$)",
+        text,
+        re.IGNORECASE,
+    )
+    return int(match.group(1)) if match else None
 
 
 def extract_digest_target_date(subject: str | None, current_date: date) -> date | None:
@@ -131,7 +145,7 @@ class USPSShipper(Shipper):
     @classmethod
     def handles_sensor(cls, sensor_type: str) -> bool:
         """Return True if this shipper handles the given sensor type."""
-        return sensor_type == "usps_mail"
+        return sensor_type in {"usps_mail", "usps_packages"}
 
     async def process(
         self,
@@ -145,6 +159,7 @@ class USPSShipper(Shipper):
         image_count = 0
         images = []
         images_delete = []
+        digest_package_counts: list[int] = []
 
         (server_response, data) = await self._search_informed_delivery(account)
 
@@ -161,6 +176,7 @@ class USPSShipper(Shipper):
             )
             return {
                 ATTR_COUNT: image_count,
+                "usps_packages": 0,
                 ATTR_SCANNED_IMAGES: 0,
                 ATTR_UNSCANNED_PIECES: 0,
                 ATTR_HAS_MAIL_IMAGES: False,
@@ -180,6 +196,7 @@ class USPSShipper(Shipper):
                     image_count,
                     images,
                     cache,
+                    package_counts=digest_package_counts,
                 )
                 all_msg_content += email_content
 
@@ -204,6 +221,7 @@ class USPSShipper(Shipper):
             unscanned_count = unscanned_matches
 
         total_count = scanned_count + unscanned_count
+        package_count = max(digest_package_counts, default=0)
 
         # Generate filtered list for GIF/MP4/Grid
         gif_images = images.copy()
@@ -216,6 +234,7 @@ class USPSShipper(Shipper):
 
         return {
             ATTR_COUNT: total_count,
+            "usps_packages": package_count,
             ATTR_SCANNED_IMAGES: scanned_count,
             ATTR_UNSCANNED_PIECES: unscanned_count,
             ATTR_HAS_MAIL_IMAGES: has_mail_images,
@@ -233,17 +252,28 @@ class USPSShipper(Shipper):
         since_date: str | None = None,
     ) -> dict[str, Any]:
         """Process multiple USPS sensors in batch."""
-        res = {}
-        for sensor in sensors:
-            res.update(await self.process(account, date, sensor, cache))
+        res: dict[str, Any] = {}
+        requested = set(sensors)
+        if not requested.intersection({"usps_mail", "usps_packages"}):
+            return res
 
-            # Replicatecoordinator dict structure
-            if sensor not in res:
-                if ATTR_COUNT in res:
-                    res[sensor] = res[ATTR_COUNT]
-                    # Don't pop ATTR_COUNT because other things might need it, actually
-                    # coordinator used to pop it via explicit assignment
-
+        # Both values come from the same Daily Digest search. Process it once,
+        # even when both sensors are enabled.
+        result = await self.process(account, date, "usps_mail", cache)
+        if "usps_mail" in requested:
+            res["usps_mail"] = result.get(ATTR_COUNT, 0)
+            for key in (
+                ATTR_SCANNED_IMAGES,
+                ATTR_UNSCANNED_PIECES,
+                ATTR_HAS_MAIL_IMAGES,
+                ATTR_USPS_IMAGE,
+                ATTR_IMAGE_PATH,
+                ATTR_GRID_IMAGE_NAME,
+            ):
+                if key in result:
+                    res[key] = result[key]
+        if "usps_packages" in requested:
+            res["usps_packages"] = result.get("usps_packages", 0)
         return res
 
     async def _create_camera_media(
@@ -442,6 +472,7 @@ class USPSShipper(Shipper):
         images: list,
         cache: EmailCache | None = None,
         target_date: date | None = None,
+        package_counts: list[int] | None = None,
     ) -> tuple[int, list, str]:
         """Process a single USPS Informed Delivery email."""
         if cache:
@@ -476,6 +507,18 @@ class USPSShipper(Shipper):
 
                 all_content += str(response_part, "utf-8", errors="ignore")
                 for part in msg.walk():
+                    if (
+                        package_counts is not None
+                        and part.get_content_type() in {"text/plain", "text/html"}
+                    ):
+                        payload = part.get_payload(decode=True)
+                        if payload:
+                            charset = part.get_content_charset() or "utf-8"
+                            with contextlib.suppress(LookupError):
+                                body = payload.decode(charset, errors="replace")
+                                package_count = extract_inbound_package_count(body)
+                                if package_count is not None:
+                                    package_counts.append(package_count)
                     if part.get_content_type() == "text/html":
                         (image_count, images) = await self._extract_usps_images(
                             part,
