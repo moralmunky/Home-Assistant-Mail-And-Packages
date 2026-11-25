@@ -348,8 +348,8 @@ def test_filter_amazon_strings_branches():
     ("subjects", "english_subjects"),
     [
         (AMAZON_DELIVERED_SUBJECT, ["Delivered", "Your Amazon order has arrived!"]),
-        (AMAZON_DELIVERING_SUBJECT, ["Out for delivery:"]),
-        (AMAZON_SHIPMENT_SUBJECT, ["Shipped", "Dispatched", "Out for delivery:"]),
+        (AMAZON_DELIVERING_SUBJECT, ["Out for delivery"]),
+        (AMAZON_SHIPMENT_SUBJECT, ["Shipped", "Dispatched", "Out for delivery"]),
         (AMAZON_ORDERED_SUBJECT, ["Ordered"]),
     ],
     ids=["delivered", "delivering", "shipment", "ordered"],

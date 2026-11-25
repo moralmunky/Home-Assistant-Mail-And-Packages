@@ -2550,3 +2550,46 @@ async def test_amazon_email_date_fallbacks(hass, header, expected):
         msg["Date"] = header
     with _host_timezone("Asia/Tokyo"):
         assert await AmazonShipper(hass, {})._parse_email_date(msg) == expected
+
+
+@pytest.mark.asyncio
+async def test_amazon_out_for_delivery_multi_item_subject(hass):
+    """Multi-item 'Out for delivery N items: ...' subjects count as delivering."""
+    today = dt.date(2026, 11, 25)
+    raw = (
+        b'From: "Amazon.com" <shipment-tracking@amazon.com>\r\n'
+        b"Date: Wed, 25 Nov 2026 16:25:23 +0000\r\n"
+        b"Subject: Out for delivery 3 items: Computer Case Fans\r\n"
+        b"Content-Type: text/plain; charset=utf-8\r\n\r\n"
+        b"Arriving today 11:45 AM - 2:45 PM\r\n"
+        b"Order #\r\n"
+        b"111-2222222-3333333\r\n"
+    )
+    account = AsyncMock()
+    with (
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.get_today",
+            return_value=today,
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.get_today",
+            return_value=today,
+        ),
+        patch(
+            "custom_components.mail_and_packages.utils.amazon.email_search",
+            new_callable=AsyncMock,
+            return_value=("OK", [b"1"]),
+        ),
+        patch(
+            "custom_components.mail_and_packages.shippers.amazon.search.email_fetch",
+            new_callable=AsyncMock,
+            return_value=("OK", [raw]),
+        ),
+    ):
+        shipper = AmazonShipper(hass, {})
+        delivering_result = await shipper.process(account, "today", "amazon_delivering")
+        packages_result = await shipper.process(account, "today", "amazon_packages")
+
+    assert delivering_result["amazon_delivering"] == 1
+    assert packages_result["amazon_packages"] == 1
+    assert packages_result["amazon_order"] == ["111-2222222-3333333"]
