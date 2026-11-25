@@ -208,7 +208,7 @@ AMAZON_SHIPMENT_TRACKING = [
     "pickup-point",
 ]
 AMAZON_DELIVERING_SUBJECT = [
-    "Out for delivery:",
+    "Out for delivery",
     "In Zustellung:",
     "En cours de livraison",
 ]
