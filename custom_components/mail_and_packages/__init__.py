@@ -211,8 +211,12 @@ async def async_setup_entry(
         last_data=last_data,
     )
 
-    # Fetch initial data in the background so setup doesn't block
-    hass.async_create_task(coordinator.async_refresh())
+    # Fetch initial data in the background so setup and HA startup don't block
+    config_entry.async_create_background_task(
+        hass,
+        coordinator.async_refresh(),
+        f"{DOMAIN}_{config_entry.entry_id}_first_refresh",
+    )
 
     # Register HTTP view for serving images if not already registered
     if not hass.data.setdefault(DOMAIN, {}).get("view_registered") and getattr(
